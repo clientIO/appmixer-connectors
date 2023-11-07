@@ -1,0 +1,147 @@
+[
+    { "op": "add", "path": "/info/x-connector-service", "value": "zoom" },
+    { "op": "add", "path": "/info/x-connector-module", "value": "meeting" },
+    { "op": "add", "path": "/info/x-connector-icon", "value": "https://seeklogo.com/images/Z/zoom-fondo-azul-vertical-logo-8246E36E95-seeklogo.com.png" },
+    { "op": "add", "path": "/components/securitySchemes/OAuth/x-connector-connection-check", "value": {
+        "method": "GET",
+        "url": "/users/me",
+        "headers": {
+            "Authorization": "Bearer {accessToken}"
+        }
+    } },
+    { "op": "move", "from": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/oneOf", "path": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/anyOf" },
+    { "op": "move", "from": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/oneOf", "path": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/anyOf" },
+    { "op": "add", "path": "/components/securitySchemes/OAuth/x-connector-connection-profile", "value": {
+        "method": "GET",
+        "url": "/users/me",
+        "headers": {
+            "Authorization": "Bearer {accessToken}"
+        },
+        "transform": "email"
+    } },
+    { "op": "add", "jsonpath": "$.paths.*[?(@.operationId == 'meetings')]", "path": "x-connector-pagination", "value": {
+        "type": "cursor",
+        "parameters": {
+            "limit": "page_size",
+            "page": 20,
+            "cursor": "next_page_token",
+            "cursorPath": "next_page_token",
+            "results": "meetings"
+        }
+    } },
+    { "op": "add", "path": "/components/x-connector-webhooks", "value": {
+        "events": {
+            "type": "static",
+            "path": "/events",
+            "pattern": "payload.event & ':' & payload.payload.account_id",
+            "crc": {
+                "condition": "payload.event = \"endpoint.url_validation\"",
+                "alg": "sha256",
+                "key": "webhookSecretToken",
+                "challenge": "payload.payload.plainToken",
+                "response": "{ \"encryptedToken\": responseToken, \"plainToken\": challenge }",
+                "digest": "hex"
+            }
+        }
+    } },
+    { "op": "add", "path": "/webhooks", "value": {} },
+
+    { "op": "add", "path": "/webhooks/meeting.created", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/meeting.created"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.created/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.created/post/x-connector-webhook/topic", "value": "meeting.created:{$connection.profile#/account_id}" },
+
+    { "op": "add", "path": "/webhooks/meeting.deleted", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/meeting.deleted"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.deleted/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.deleted/post/x-connector-webhook/topic", "value": "meeting.deleted:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/meeting.updated", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/meeting.updated"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.updated/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.updated/post/x-connector-webhook/topic", "value": "meeting.updated:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/meeting.started", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/meeting.started"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.started/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.started/post/x-connector-webhook/topic", "value": "meeting.started:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/meeting.ended", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/meeting.ended"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.ended/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.ended/post/x-connector-webhook/topic", "value": "meeting.ended:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/meeting.participant_joined", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/meeting.participant_joined"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.participant_joined/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.participant_joined/post/x-connector-webhook/topic", "value": "meeting.participant_joined:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/webinar.participant_joined", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/webinar.participant_joined"
+    } },
+    { "op": "add", "path": "/webhooks/webinar.participant_joined/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/webinar.participant_joined/post/x-connector-webhook/topic", "value": "webinar.participant_joined:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/meeting.participant_left", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/meeting.participant_left"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.participant_left/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/meeting.participant_left/post/x-connector-webhook/topic", "value": "meeting.participant_left:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/webinar.participant_left", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/webinar.participant_left"
+    } },
+    { "op": "add", "path": "/webhooks/webinar.participant_left/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/webinar.participant_left/post/x-connector-webhook/topic", "value": "webinar.participant_left:{$connection.profile.account_id}" },
+
+    { "op": "add", "path": "/webhooks/recording.completed", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/recording.completed"
+    } },
+    { "op": "add", "path": "/webhooks/recording.completed/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/recording.completed/post/x-connector-webhook/topic", "value": "recording.completed:{$connection.profile#/account_id}" },
+
+    { "op": "add", "path": "/webhooks/recording.started", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/recording.started"
+    } },
+    { "op": "add", "path": "/webhooks/recording.started/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/recording.started/post/x-connector-webhook/topic", "value": "recording.started:{$connection.profile#/account_id}" },
+
+    { "op": "add", "path": "/webhooks/recording.stopped", "value": {
+        "$ref": "./zoom/ZoomAPIEvents-MeetingSpec.json#/webhooks/recording.stopped"
+    } },
+    { "op": "add", "path": "/webhooks/recording.stopped/post/x-connector-webhook", "value": {
+        "$ref": "#/components/x-connector-webhooks/events"
+    } },
+    { "op": "add", "path": "/webhooks/recording.stopped/post/x-connector-webhook/topic", "value": "recording.stopped:{$connection.profile#/account_id}" },
+
+    { "op": "remove", "jsonpath": "$.paths.*[?(@.operationId != 'meetings' && @.operationId != 'meetingCreate' && @.operationId != 'meetingDelete' && @.operationId != 'meeting')]" }
+]
+

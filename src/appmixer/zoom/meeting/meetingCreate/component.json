@@ -1,0 +1,1676 @@
+{
+    "name": "appmixer.zoom.meeting.meetingCreate",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label>Create a meeting</label><br/><p><a href=\"https://support.zoom.us/hc/en-us/articles/201362413-Scheduling-meetings\" rel=\"noopener noreferrer\" target=\"_blank\">Create a meeting</a> for a user. For user-level apps, pass <a href=\"https://marketplace.zoom.us/docs/api-reference/using-zoom-apis#mekeyword\" rel=\"noopener noreferrer\" target=\"_blank\">the <code>me</code> value</a> instead of the <code>userId</code> parameter.</p>\n<ul>\n<li>A meeting's <code>start_url</code> value is the URL a host or an alternative host can use to start a meeting. The expiration time for the <code>start_url</code> value is <strong>two hours</strong> for all regular users.</li>\n<li>For <code>custCreate</code> meeting hosts (users created with the <code>custCreate</code> parameter via the <a href=\"/api-reference/zoom-api/methods#operation/userCreate\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Create users</strong></a> API), the expiration time of the <code>start_url</code> parameter is <strong>90 days</strong> from the generation of the <code>start_url</code>.</li>\n</ul>\n<p><strong>Note:</strong> </p>\n<p>For security reasons, the recommended way to programmatically (after expiry) get the updated <code>start_url</code> value is to call the <a href=\"/api-reference/zoom-api/methods#operation/meeting\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Get a meeting</strong></a> API. Refer to the <code>start_url</code> value in the response. </p>\n<p><strong>Scopes:</strong> <code>meeting:write:admin</code>, <code>meeting:write</code></p>\n<p><strong><a href=\"https://marketplace.zoom.us/docs/api-reference/rate-limits#rate-limits\" rel=\"noopener noreferrer\" target=\"_blank\">Rate Limit Label</a>:</strong> <code>Medium</code> <br></p>\n<ul>\n<li>This API has a daily rate limit of <strong>100 requests per day</strong>. The rate limit is applied against the <code>userId</code> of the <strong>meeting host</strong> used to make the request.</li>\n</ul>",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "userId"
+                ],
+                "properties": {
+                    "userId": {
+                        "anyOf": [
+                            {
+                                "type": "string",
+                                "example": "6dfgdfgdg444447b0egga"
+                            },
+                            {
+                                "type": "string",
+                                "format": "email",
+                                "example": "jchill@example.com"
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "me"
+                                ],
+                                "example": "me"
+                            }
+                        ]
+                    },
+                    "agenda": {
+                        "description": "The meeting's agenda. This value has a maximum length of 2,000 characters.",
+                        "maxLength": 2000,
+                        "type": "string",
+                        "example": "My Meeting",
+                        "path": "agenda"
+                    },
+                    "default_password": {
+                        "default": false,
+                        "description": "Whether to generate a default password using the user's settings. This value defaults to `false`. \n\nIf this value is `true` and the user has the PMI setting enabled with a password, then the user's meetings will use the PMI password. It will **not** use a default password.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "default_password"
+                    },
+                    "duration": {
+                        "description": "The meeting's scheduled duration, in minutes. This field is only used for scheduled meetings (`2`).",
+                        "type": "integer",
+                        "example": 60,
+                        "path": "duration"
+                    },
+                    "password": {
+                        "description": "The password required to join the meeting. By default, a password can **only** have a maximum length of 10 characters and only contain alphanumeric characters and the `@`, `-`, `_`, and `*` characters. \n* If the account owner or administrator has configured [minimum passcode requirement settings](https://support.zoom.us/hc/en-us/articles/360033559832-Meeting-and-webinar-passwords#h_a427384b-e383-4f80-864d-794bf0a37604), the password **must** meet those requirements. \n* If password requirements are enabled, use the [**Get user settings**](/docs/api-reference/zoom-api/methods#operation/userSettings) API or the [**Get account settings**](/docs/api-reference/zoom-api/ma#operation/accountSettings) API to get the requirements.",
+                        "maxLength": 10,
+                        "type": "string",
+                        "example": "123456",
+                        "path": "password"
+                    },
+                    "pre_schedule": {
+                        "default": false,
+                        "description": "Whether to create a prescheduled meeting via the [GSuite app](https://support.zoom.us/hc/en-us/articles/360020187492-Zoom-for-GSuite-add-on). This **only** supports the meeting `type` value of `2` (scheduled meetings) and `3` (recurring meetings with no fixed time): \n* `true` — Create a prescheduled meeting. \n* `false` — Create a regular meeting.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "pre_schedule"
+                    },
+                    "schedule_for": {
+                        "description": "The email address or user ID of the user to schedule a meeting for.",
+                        "type": "string",
+                        "example": "jchill@example.com",
+                        "path": "schedule_for"
+                    },
+                    "start_time": {
+                        "description": "The meeting's start time. This field is only used for scheduled and/or recurring meetings with a fixed time. This supports local time and GMT formats. \n* To set a meeting's start time in GMT, use the `yyyy-MM-ddTHH:mm:ssZ` date-time format. For example, `2020-03-31T12:02:00Z`. \n* To set a meeting's start time using a specific timezone, use the `yyyy-MM-ddTHH:mm:ss` date-time format and specify the [timezone ID](https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#timezones) in the `timezone` field. If you do not specify a timezone, the `timezone` value defaults to your Zoom account's timezone. You can also use `UTC` for the `timezone` value.",
+                        "format": "date-time",
+                        "type": "string",
+                        "example": "2022-03-25T07:32:55Z",
+                        "path": "start_time"
+                    },
+                    "template_id": {
+                        "description": "The **account admin meeting template** ID with which to schedule a meeting using a [meeting template](https://support.zoom.us/hc/en-us/articles/360036559151-Meeting-templates). For a list of account admin-provided meeting templates, use the [**List meeting templates**](/docs/api-reference/zoom-api/methods#operation/listMeetingTemplates) API. \n* At this time, this field **only** accepts account admin meeting template IDs. \n* To enable the account admin meeting templates feature, [contact Zoom support](https://support.zoom.us/hc/en-us).",
+                        "type": "string",
+                        "example": "Dv4YdINdTk+Z5RToadh5ug==",
+                        "path": "template_id"
+                    },
+                    "timezone": {
+                        "description": "The timezone to assign to the `start_time` value. This field is only used for scheduled meetings (`2`).\n\nFor a list of supported timezones and their format, refer to our [timezone list documentation](https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#timezones).",
+                        "type": "string",
+                        "example": "America/Los_Angeles",
+                        "path": "timezone"
+                    },
+                    "topic": {
+                        "description": "The meeting's topic.",
+                        "type": "string",
+                        "maxLength": 200,
+                        "example": "My Meeting",
+                        "path": "topic"
+                    },
+                    "tracking_fields": {
+                        "description": "Information about the meeting's tracking fields.",
+                        "type": "array",
+                        "path": "tracking_fields",
+                        "items": {
+                            "required": [
+                                "field"
+                            ],
+                            "type": "object",
+                            "properties": {
+                                "field": {
+                                    "description": "The tracking field's label.",
+                                    "type": "string",
+                                    "example": "field1"
+                                },
+                                "value": {
+                                    "description": "The tracking field's value.",
+                                    "type": "string",
+                                    "example": "value1"
+                                }
+                            }
+                        }
+                    },
+                    "type": {
+                        "default": 2,
+                        "description": "The type of meeting:\n* `1` — An instant meeting. \n* `2` — A scheduled meeting. \n* `3` — A recurring meeting with no fixed time. \n* `8` — A recurring meeting with fixed time.",
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            8
+                        ],
+                        "type": "integer",
+                        "x-enum-descriptions": [
+                            "Instant meeting.",
+                            "Scheduled meeting.",
+                            "Recurring meeting with no fixed time.",
+                            "Recurring meeting with fixed time."
+                        ],
+                        "example": 2,
+                        "path": "type"
+                    },
+                    "recurrence|end_date_time": {
+                        "description": "Select the final date on which the meeting will recur before it is canceled. Should be in UTC time, such as 2017-11-25T12:00:00Z. (Cannot be used with \"end_times\".)",
+                        "format": "date-time",
+                        "type": "string",
+                        "example": "2022-04-02T15:59:00Z",
+                        "path": "recurrence.end_date_time"
+                    },
+                    "recurrence|end_times": {
+                        "default": 1,
+                        "description": "Select how many times the meeting should recur before it is canceled. (Cannot be used with \"end_date_time\".)",
+                        "maximum": 365,
+                        "type": "integer",
+                        "example": 7,
+                        "path": "recurrence.end_times"
+                    },
+                    "recurrence|monthly_day": {
+                        "default": 1,
+                        "description": "Use this field **only if you're scheduling a recurring meeting of type** `3` to state which day in a month, the meeting should recur. The value range is from 1 to 31.\n\nFor instance, if you would like the meeting to recur on 23rd of each month, provide `23` as the value of this field and `1` as the value of the `repeat_interval` field. Instead, if you would like the meeting to recur every three months, on 23rd of the month, change the value of the `repeat_interval` field to `3`.",
+                        "type": "integer",
+                        "example": 1,
+                        "path": "recurrence.monthly_day"
+                    },
+                    "recurrence|monthly_week": {
+                        "description": "Use this field **only if you're scheduling a recurring meeting of type** `3` to state the week of the month when the meeting should recur. If you use this field, **you must also use the `monthly_week_day` field to state the day of the week when the meeting should recur.** <br>`-1` - Last week of the month.<br>`1` - First week of the month.<br>`2` - Second week of the month.<br>`3` - Third week of the month.<br>`4` - Fourth week of the month.",
+                        "enum": [
+                            -1,
+                            1,
+                            2,
+                            3,
+                            4
+                        ],
+                        "type": "integer",
+                        "x-enum-descriptions": [
+                            "Last week",
+                            "First week",
+                            "Second week",
+                            "Third week",
+                            "Fourth week"
+                        ],
+                        "example": 1,
+                        "path": "recurrence.monthly_week"
+                    },
+                    "recurrence|monthly_week_day": {
+                        "description": "Use this field **only if you're scheduling a recurring meeting of type** `3` to state a specific day in a week when the monthly meeting should recur. To use this field, you must also use the `monthly_week` field. \n\n<br>`1` - Sunday.<br>`2` - Monday.<br>`3` - Tuesday.<br>`4` -  Wednesday.<br>`5` - Thursday.<br>`6` - Friday.<br>`7` - Saturday.",
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "type": "integer",
+                        "x-enum-descriptions": [
+                            "Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday"
+                        ],
+                        "example": 1,
+                        "path": "recurrence.monthly_week_day"
+                    },
+                    "recurrence|repeat_interval": {
+                        "description": "Define the interval at which the meeting should recur. For instance, if you would like to schedule a meeting that recurs every two months, you must set the value of this field as `2` and the value of the `type` parameter as `3`. \n\nFor a daily meeting, the maximum interval you can set is `90` days. For a weekly meeting the maximum interval that you can set is  of `12` weeks. For a monthly meeting, there is a maximum of `3` months.\n\n",
+                        "type": "integer",
+                        "example": 1,
+                        "path": "recurrence.repeat_interval"
+                    },
+                    "recurrence|type": {
+                        "description": "Recurrence meeting types:<br>`1` - Daily.<br>`2` - Weekly.<br>`3` - Monthly.",
+                        "enum": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "type": "integer",
+                        "x-enum-descriptions": [
+                            "Daily",
+                            "Weekly",
+                            "Monthly"
+                        ],
+                        "example": 1,
+                        "path": "recurrence.type"
+                    },
+                    "recurrence|weekly_days": {
+                        "type": "string",
+                        "default": "1",
+                        "description": "This field is required **if you're scheduling a recurring meeting of type** `2` to state which day(s) of the week the meeting should repeat. <br> <br> The value for this field could be a number between `1` to `7` in string format. For instance, if the meeting should recur on Sunday, provide `\"1\"` as the value of this field.<br><br> **Note:** If you would like the meeting to occur on multiple days of a week, you should provide comma separated values for this field. For instance, if the meeting should recur on Sundays and Tuesdays provide `\"1,3\"` as the value of this field.\n\n <br>`1`  - Sunday. <br>`2` - Monday.<br>`3` - Tuesday.<br>`4` -  Wednesday.<br>`5` -  Thursday.<br>`6` - Friday.<br>`7` - Saturday.",
+                        "enum": [
+                            "1",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            "7"
+                        ],
+                        "example": "1",
+                        "path": "recurrence.weekly_days"
+                    },
+                    "settings|additional_data_center_regions": {
+                        "description": "Add additional meeting [data center regions](https://support.zoom.us/hc/en-us/articles/360042411451-Selecting-data-center-regions-for-hosted-meetings-and-webinars). Provide this value as an array of [country codes](https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#countries) for the countries available as data center regions in the [**Account Profile**](https://zoom.us/account/setting) interface but have been opted out of in the [user settings](https://zoom.us/profile).\n\nFor example, the data center regions selected in your [**Account Profile**](https://zoom.us/account) are \"Europe\", \"Hong Kong SAR\", \"Australia\", \"India\", \"Japan\", \"China\", \"United States\", and \"Canada\". However, in the [**My Profile**](https://zoom.us/profile) settings, you did **not** select \"India\" and \"Japan\" for meeting and webinar traffic routing.\n\nTo include \"India\" and \"Japan\" as additional data centers, use the `[\"IN\", \"TY\"]` value for this field.",
+                        "type": "array",
+                        "path": "settings.additional_data_center_regions",
+                        "items": {
+                            "type": "string",
+                            "example": "TY"
+                        }
+                    },
+                    "settings|allow_multiple_devices": {
+                        "description": "Whether to allow attendees to join a meeting from multiple devices. This setting is only applied to meetings with registration enabled.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.allow_multiple_devices"
+                    },
+                    "settings|alternative_hosts": {
+                        "description": "A semicolon-separated list of the meeting's alternative hosts' email addresses or IDs.",
+                        "type": "string",
+                        "example": "jchill@example.com;thill@example.com",
+                        "path": "settings.alternative_hosts"
+                    },
+                    "settings|alternative_hosts_email_notification": {
+                        "default": true,
+                        "description": "Whether to send email notifications to alternative hosts. This value defaults to `true`.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.alternative_hosts_email_notification"
+                    },
+                    "settings|approval_type": {
+                        "default": 2,
+                        "description": "Enable meeting registration approval: \n* `0` — Automatically approve registration.\n* `1` — Manually approve registration.\n* `2` — No registration required.\n\nThis value defaults to `2`.",
+                        "enum": [
+                            0,
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "x-enum-descriptions": [
+                            "Automatically approve registration.",
+                            "Manually approve registration.",
+                            "No registration required."
+                        ],
+                        "example": 2,
+                        "path": "settings.approval_type"
+                    },
+                    "settings|approved_or_denied_countries_or_regions": {
+                        "description": "The list of approved or blocked users from specific countries or regions who can join the meeting.",
+                        "type": "object",
+                        "path": "settings.approved_or_denied_countries_or_regions",
+                        "properties": {
+                            "approved_list": {
+                                "description": "The list of approved countries or regions.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "example": "CX"
+                                }
+                            },
+                            "denied_list": {
+                                "description": "The list of blocked countries or regions.",
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "example": "CA"
+                                }
+                            },
+                            "enable": {
+                                "description": "Whether to enable the [**Approve or block entry for users from specific countries/regions**](https://support.zoom.us/hc/en-us/articles/360060086231-Approve-or-block-entry-for-users-from-specific-countries-regions) setting.",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "method": {
+                                "description": "Whether to allow or block users from specific countries or regions: \n* `approve` — Allow users from specific countries or regions to join the meeting. If you select this setting, you must include the approved countries or regions in the `approved_list` field. \n* `deny` — Block users from specific countries or regions from joining the meeting. If you select this setting, you must include the blocked countries or regions in the `denied_list` field.",
+                                "enum": [
+                                    "approve",
+                                    "deny"
+                                ],
+                                "type": "string",
+                                "example": "approve"
+                            }
+                        }
+                    },
+                    "settings|audio": {
+                        "default": "both",
+                        "description": "How participants join the audio portion of the meeting: \n* `both` — Both telephony and VoIP. \n* `telephony` — Telephony only. \n* `voip` — VoIP only.\n\nThis value defaults to `both`.",
+                        "enum": [
+                            "both",
+                            "telephony",
+                            "voip"
+                        ],
+                        "type": "string",
+                        "x-enum-descriptions": [
+                            "Telephony and VoIP.",
+                            "Telephony only.",
+                            "VoIP only."
+                        ],
+                        "example": "telephony",
+                        "path": "settings.audio"
+                    },
+                    "settings|authentication_domains": {
+                        "description": "The meeting's authenticated domains. Only Zoom users whose email address contains an authenticated domain can join the meeting. Comma-separate multiple domains or use a wildcard for listing domains.",
+                        "type": "string",
+                        "example": "example.com",
+                        "path": "settings.authentication_domains"
+                    },
+                    "settings|authentication_exception": {
+                        "description": "A list of participants that can bypass meeting authentication. These participants will receive a unique meeting invite.",
+                        "type": "array",
+                        "path": "settings.authentication_exception",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "description": "The participant's email address.",
+                                    "format": "email",
+                                    "type": "string",
+                                    "example": "jchill@example.com"
+                                },
+                                "name": {
+                                    "description": "The participant's name.",
+                                    "type": "string",
+                                    "example": "Jill Chill"
+                                }
+                            }
+                        }
+                    },
+                    "settings|authentication_option": {
+                        "description": "If the `meeting_authentication` value is `true`, the type of authentication required for users to join a meeting.\n\nTo get this value, use the `authentication_options` array's `id` value in the [**Get user settings**](/docs/api-reference/zoom-api/methods#operation/userSettings) API response.",
+                        "type": "string",
+                        "example": "signIn_D8cJuqWVQ623CI4Q8yQK0Q",
+                        "path": "settings.authentication_option"
+                    },
+                    "settings|auto_recording": {
+                        "default": "none",
+                        "description": "The automatic recording settings: \n* `local` — Record the meeting locally. \n* `cloud` — Record the meeting to the cloud. \n* `none` — Auto-recording disabled.\n\nThis value defaults to `none`.",
+                        "enum": [
+                            "local",
+                            "cloud",
+                            "none"
+                        ],
+                        "type": "string",
+                        "x-enum-descriptions": [
+                            "Record the meeting locally.",
+                            "Record the meeting to the cloud.",
+                            "Auto-recording disabled."
+                        ],
+                        "example": "cloud",
+                        "path": "settings.auto_recording"
+                    },
+                    "settings|breakout_room": {
+                        "description": "The [pre-assigned breakout rooms](https://support.zoom.us/hc/en-us/articles/360032752671-Pre-assigning-participants-to-breakout-rooms) settings.",
+                        "type": "object",
+                        "path": "settings.breakout_room",
+                        "properties": {
+                            "enable": {
+                                "description": "Whether to enable the [**Breakout Room pre-assign**](https://support.zoom.us/hc/en-us/articles/360032752671-Pre-assigning-participants-to-breakout-rooms) option.",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "rooms": {
+                                "description": "Information about the breakout rooms.",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "description": "The breakout room's name.",
+                                            "type": "string",
+                                            "example": "room1"
+                                        },
+                                        "participants": {
+                                            "description": "The email addresses of the participants to assign to the breakout room.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string",
+                                                "example": "jchill@example.com"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "settings|calendar_type": {
+                        "description": "Indicates the type of calendar integration used to schedule the meeting: \n* `1` — [Zoom Outlook add-in](https://support.zoom.us/hc/en-us/articles/360031592971-Getting-started-with-Outlook-plugin-and-add-in) \n* `2` — [Zoom for Google Workspace add-on](https://support.zoom.us/hc/en-us/articles/360020187492-Using-the-Zoom-for-Google-Workspace-add-on)\n\nWorks with the `private_meeting` field to determine whether to share details of meetings or not.",
+                        "enum": [
+                            1,
+                            2
+                        ],
+                        "type": "integer",
+                        "x-enum-descriptions": [
+                            "Outlook",
+                            "Google Calendar"
+                        ],
+                        "example": 1,
+                        "path": "settings.calendar_type"
+                    },
+                    "settings|close_registration": {
+                        "default": false,
+                        "description": "Whether to close registration after the event date. This value defaults to `false`.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.close_registration"
+                    },
+                    "settings|cn_meeting": {
+                        "type": "boolean",
+                        "default": false,
+                        "deprecated": true,
+                        "description": "Whether to host the meeting in China (CN). This value defaults to `false`.",
+                        "example": false,
+                        "path": "settings.cn_meeting"
+                    },
+                    "settings|contact_email": {
+                        "description": "The contact email address for meeting registration.",
+                        "type": "string",
+                        "example": "jchill@example.com",
+                        "path": "settings.contact_email"
+                    },
+                    "settings|contact_name": {
+                        "description": "The contact name for meeting registration.",
+                        "type": "string",
+                        "example": "Jill Chill",
+                        "path": "settings.contact_name"
+                    },
+                    "settings|email_notification": {
+                        "default": true,
+                        "description": "Whether to send email notifications to [alternative hosts](https://support.zoom.us/hc/en-us/articles/208220166) and [users with scheduling privileges](https://support.zoom.us/hc/en-us/articles/201362803-Scheduling-privilege). This value defaults to `true`.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.email_notification"
+                    },
+                    "settings|encryption_type": {
+                        "description": "The type of [end-to-end (E2EE) encryption](https://support.zoom.us/hc/en-us/articles/360048660871) to use for the meeting: \n* `enhanced_encryption` — Enhanced encryption. Encryption is stored in the cloud when you enable this option. \n* `e2ee` — End-to-end encryption. The encryption key is stored on your local device and **cannot** be obtained by anyone else. When you use E2EE encryption, [certain features](https://support.zoom.us/hc/en-us/articles/360048660871), such as cloud recording or phone and SIP/H.323 dial-in, are **disabled**.",
+                        "enum": [
+                            "enhanced_encryption",
+                            "e2ee"
+                        ],
+                        "type": "string",
+                        "example": "enhanced_encryption",
+                        "path": "settings.encryption_type"
+                    },
+                    "settings|focus_mode": {
+                        "description": "Whether to enable the [**Focus Mode** feature](https://support.zoom.us/hc/en-us/articles/360061113751-Using-focus-mode) when the meeting starts.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.focus_mode"
+                    },
+                    "settings|global_dial_in_countries": {
+                        "description": "A list of available global dial-in countries.",
+                        "type": "array",
+                        "path": "settings.global_dial_in_countries",
+                        "items": {
+                            "type": "string",
+                            "example": "US"
+                        }
+                    },
+                    "settings|host_video": {
+                        "description": "Whether to start meetings with the host video on.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.host_video"
+                    },
+                    "settings|in_meeting": {
+                        "type": "boolean",
+                        "default": false,
+                        "deprecated": true,
+                        "description": "Whether to host the meeting in India (IN). This value defaults to `false`.",
+                        "example": false,
+                        "path": "settings.in_meeting"
+                    },
+                    "settings|jbh_time": {
+                        "description": "If the value of the `join_before_host` field is `true`, this field indicates the time limits within which a participant can join a meeting before the meeting's host:\n\n* `0` — Allow the participant to join the meeting at anytime.\n* `5` — Allow the participant to join 5 minutes before the meeting's start time.\n* `10` — Allow the participant to join 10 minutes before the meeting's start time.",
+                        "enum": [
+                            0,
+                            5,
+                            10
+                        ],
+                        "type": "integer",
+                        "example": 0,
+                        "path": "settings.jbh_time"
+                    },
+                    "settings|join_before_host": {
+                        "default": false,
+                        "description": "Whether participants can join the meeting before its host. This field is only used for scheduled meetings (`2`) or recurring meetings (`3` and `8`). This value defaults to `false`.\n\nIf the [**Waiting Room** feature](https://support.zoom.us/hc/en-us/articles/115000332726-Waiting-Room) is enabled, this setting is **disabled**.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.join_before_host"
+                    },
+                    "settings|language_interpretation": {
+                        "description": "The meeting's [language interpretation settings](https://support.zoom.us/hc/en-us/articles/360034919791-Language-interpretation-in-meetings-and-webinars). Make sure to add the language in the web portal in order to use it in the API. See link for details. \n\n**Note:** This feature is only available for certain Meeting add-on, Education, and Business and higher plans. If this feature is not enabled on the host's account, this setting will **not** be applied to the meeting.",
+                        "type": "object",
+                        "path": "settings.language_interpretation",
+                        "properties": {
+                            "enable": {
+                                "description": "Whether to enable [language interpretation](https://support.zoom.us/hc/en-us/articles/360034919791-Language-interpretation-in-meetings-and-webinars) for the meeting.",
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "interpreters": {
+                                "description": "Information about the meeting's language interpreters.",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {
+                                            "description": "The interpreter's email address.",
+                                            "format": "email",
+                                            "type": "string",
+                                            "example": "interpreter@example.com"
+                                        },
+                                        "languages": {
+                                            "description": "A comma-separated list of the interpreter's languages. The string must contain two [country IDs](https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#countries). \n\nFor example, if the interpreter will translate from English to Chinese, then this value will be `US,CN`.",
+                                            "type": "string",
+                                            "example": "US,FR"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "settings|meeting_authentication": {
+                        "description": "If true, only [authenticated](https://support.zoom.us/hc/en-us/articles/360037117472-Authentication-Profiles-for-Meetings-and-Webinars) users can join the meeting.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.meeting_authentication"
+                    },
+                    "settings|meeting_invitees": {
+                        "description": "A list of the meeting's invitees.",
+                        "type": "array",
+                        "path": "settings.meeting_invitees",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "description": "The invitee's email address.",
+                                    "format": "email",
+                                    "type": "string",
+                                    "example": "jchill@example.com"
+                                }
+                            }
+                        }
+                    },
+                    "settings|mute_upon_entry": {
+                        "default": false,
+                        "description": "Whether to mute participants upon entry.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.mute_upon_entry"
+                    },
+                    "settings|participant_video": {
+                        "description": "Whether to start meetings with the participant video on.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.participant_video"
+                    },
+                    "settings|private_meeting": {
+                        "description": "Whether to set the meeting as private.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.private_meeting"
+                    },
+                    "settings|registrants_confirmation_email": {
+                        "description": "Whether to send registrants an email confirmation: \n* `true` — Send a confirmation email. \n* `false` — Do not send a confirmation email.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.registrants_confirmation_email"
+                    },
+                    "settings|registrants_email_notification": {
+                        "description": "Whether to send registrants email notifications about their registration approval, cancellation, or rejection:\n\n* `true` — Send an email notification.\n* `false` — Do not send an email notification.\n\n Set this value to `true` to also use the `registrants_confirmation_email` parameter.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.registrants_email_notification"
+                    },
+                    "settings|registration_type": {
+                        "default": 1,
+                        "description": "The meeting's registration type: \n* `1` — Attendees register once and can attend any meeting occurrence. \n* `2` — Attendees must register for each meeting occurrence. \n* `3` — Attendees register once and can select one or more meeting occurrences to attend.\n\nThis field is only for recurring meetings with fixed times (`8`). This value defaults to `1`.",
+                        "enum": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "type": "integer",
+                        "x-enum-descriptions": [
+                            "Attendees register once and can attend any meeting occurrence.",
+                            "Attendees must register for each meeting occurrence.",
+                            "Attendees register once and can select one or more meeting occurrences to attend."
+                        ],
+                        "example": 1,
+                        "path": "settings.registration_type"
+                    },
+                    "settings|show_share_button": {
+                        "description": "Whether to include social media sharing buttons on the meeting's registration page. This setting is only applied to meetings with registration enabled.",
+                        "type": "boolean",
+                        "example": true,
+                        "path": "settings.show_share_button"
+                    },
+                    "settings|use_pmi": {
+                        "default": false,
+                        "description": "Whether to use a [Personal Meeting ID (PMI)](https://marketplace.zoom.us/docs/api-reference/using-zoom-apis#understanding-personal-meeting-id-pmi) instead of a generated meeting ID. This field is only used for scheduled meetings (`2`), instant meetings (`1`), or recurring meetings with no fixed time (`3`). This value defaults to `false`.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.use_pmi"
+                    },
+                    "settings|waiting_room": {
+                        "description": "Whether to enable the [**Waiting Room** feature](https://support.zoom.us/hc/en-us/articles/115000332726-Waiting-Room). If this value is `true`, this **disables** the `join_before_host` setting.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.waiting_room"
+                    },
+                    "settings|watermark": {
+                        "default": false,
+                        "description": "Whether to add a watermark when viewing a shared screen.",
+                        "type": "boolean",
+                        "example": false,
+                        "path": "settings.watermark"
+                    },
+                    "settings|host_save_video_order": {
+                        "type": "boolean",
+                        "description": "Whether the **Allow host to save video order** feature is enabled.",
+                        "example": true,
+                        "path": "settings.host_save_video_order"
+                    },
+                    "settings|alternative_host_update_polls": {
+                        "type": "boolean",
+                        "description": "Whether the **Allow alternative hosts to add or edit polls** feature is enabled. This requires Zoom version 5.8.0 or higher.",
+                        "example": true,
+                        "path": "settings.alternative_host_update_polls"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "userId": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "User Id",
+                        "tooltip": "<p>The user ID or email address of the user. For user-level apps, pass the <code>me</code> value.</p>"
+                    },
+                    "agenda": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "Agenda",
+                        "tooltip": "<p>The meeting's agenda. This value has a maximum length of 2,000 characters. Example: My Meeting</p>"
+                    },
+                    "default_password": {
+                        "type": "toggle",
+                        "index": 2,
+                        "label": "Default Password",
+                        "tooltip": "<p>Whether to generate a default password using the user's settings. This value defaults to <code>false</code>. </p>\n<p>If this value is <code>true</code> and the user has the PMI setting enabled with a password, then the user's meetings will use the PMI password. It will <strong>not</strong> use a default password.</p>",
+                        "defaultValue": false
+                    },
+                    "duration": {
+                        "type": "number",
+                        "index": 3,
+                        "label": "Duration",
+                        "tooltip": "<p>The meeting's scheduled duration, in minutes. This field is only used for scheduled meetings (<code>2</code>). Example: 60</p>"
+                    },
+                    "password": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "Password",
+                        "tooltip": "<p>The password required to join the meeting. By default, a password can <strong>only</strong> have a maximum length of 10 characters and only contain alphanumeric characters and the <code>@</code>, <code>-</code>, <code>_</code>, and <code>*</code> characters. </p>\n<ul>\n<li>If the account owner or administrator has configured <a href=\"https://support.zoom.us/hc/en-us/articles/360033559832-Meeting-and-webinar-passwords#h_a427384b-e383-4f80-864d-794bf0a37604\" rel=\"noopener noreferrer\" target=\"_blank\">minimum passcode requirement settings</a>, the password <strong>must</strong> meet those requirements. </li>\n<li>If password requirements are enabled, use the <a href=\"/docs/api-reference/zoom-api/methods#operation/userSettings\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Get user settings</strong></a> API or the <a href=\"/docs/api-reference/zoom-api/ma#operation/accountSettings\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Get account settings</strong></a> API to get the requirements. Example: 123456</li>\n</ul>"
+                    },
+                    "pre_schedule": {
+                        "type": "toggle",
+                        "index": 5,
+                        "label": "Pre Schedule",
+                        "tooltip": "<p>Whether to create a prescheduled meeting via the <a href=\"https://support.zoom.us/hc/en-us/articles/360020187492-Zoom-for-GSuite-add-on\" rel=\"noopener noreferrer\" target=\"_blank\">GSuite app</a>. This <strong>only</strong> supports the meeting <code>type</code> value of <code>2</code> (scheduled meetings) and <code>3</code> (recurring meetings with no fixed time): </p>\n<ul>\n<li><code>true</code> — Create a prescheduled meeting. </li>\n<li><code>false</code> — Create a regular meeting.</li>\n</ul>",
+                        "defaultValue": false
+                    },
+                    "schedule_for": {
+                        "type": "text",
+                        "index": 6,
+                        "label": "Schedule For",
+                        "tooltip": "<p>The email address or user ID of the user to schedule a meeting for. Example: jchill@example.com</p>"
+                    },
+                    "start_time": {
+                        "type": "date-time",
+                        "index": 7,
+                        "label": "Start Time",
+                        "tooltip": "<p>The meeting's start time. This field is only used for scheduled and/or recurring meetings with a fixed time. This supports local time and GMT formats. </p>\n<ul>\n<li>To set a meeting's start time in GMT, use the <code>yyyy-MM-ddTHH:mm:ssZ</code> date-time format. For example, <code>2020-03-31T12:02:00Z</code>. </li>\n<li>To set a meeting's start time using a specific timezone, use the <code>yyyy-MM-ddTHH:mm:ss</code> date-time format and specify the <a href=\"https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#timezones\" rel=\"noopener noreferrer\" target=\"_blank\">timezone ID</a> in the <code>timezone</code> field. If you do not specify a timezone, the <code>timezone</code> value defaults to your Zoom account's timezone. You can also use <code>UTC</code> for the <code>timezone</code> value. Example: 2022-03-25T07:32:55Z</li>\n</ul>"
+                    },
+                    "template_id": {
+                        "type": "text",
+                        "index": 8,
+                        "label": "Template Id",
+                        "tooltip": "<p>The <strong>account admin meeting template</strong> ID with which to schedule a meeting using a <a href=\"https://support.zoom.us/hc/en-us/articles/360036559151-Meeting-templates\" rel=\"noopener noreferrer\" target=\"_blank\">meeting template</a>. For a list of account admin-provided meeting templates, use the <a href=\"/docs/api-reference/zoom-api/methods#operation/listMeetingTemplates\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>List meeting templates</strong></a> API. </p>\n<ul>\n<li>At this time, this field <strong>only</strong> accepts account admin meeting template IDs. </li>\n<li>To enable the account admin meeting templates feature, <a href=\"https://support.zoom.us/hc/en-us\" rel=\"noopener noreferrer\" target=\"_blank\">contact Zoom support</a>. Example: Dv4YdINdTk+Z5RToadh5ug==</li>\n</ul>"
+                    },
+                    "timezone": {
+                        "type": "text",
+                        "index": 9,
+                        "label": "Timezone",
+                        "tooltip": "<p>The timezone to assign to the <code>start_time</code> value. This field is only used for scheduled meetings (<code>2</code>).</p>\n<p>For a list of supported timezones and their format, refer to our <a href=\"https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#timezones\" rel=\"noopener noreferrer\" target=\"_blank\">timezone list documentation</a>. Example: America/Los_Angeles</p>"
+                    },
+                    "topic": {
+                        "type": "text",
+                        "index": 10,
+                        "label": "Topic",
+                        "tooltip": "<p>The meeting's topic. Example: My Meeting</p>"
+                    },
+                    "tracking_fields": {
+                        "type": "textarea",
+                        "index": 11,
+                        "label": "Tracking Fields",
+                        "tooltip": "<p>Information about the meeting's tracking fields.</p> JSON array. Example: [{\"field\":\"field1\",\"value\":\"value1\"}]."
+                    },
+                    "type": {
+                        "type": "number",
+                        "index": 12,
+                        "label": "Type",
+                        "tooltip": "<p>The type of meeting:</p>\n<ul>\n<li><code>1</code> — An instant meeting. </li>\n<li><code>2</code> — A scheduled meeting. </li>\n<li><code>3</code> — A recurring meeting with no fixed time. </li>\n<li><code>8</code> — A recurring meeting with fixed time. Example: 2</li>\n</ul>",
+                        "defaultValue": 2
+                    },
+                    "recurrence|end_date_time": {
+                        "type": "date-time",
+                        "index": 13,
+                        "label": "Recurrence End Date Time",
+                        "tooltip": "<p>Select the final date on which the meeting will recur before it is canceled. Should be in UTC time, such as 2017-11-25T12:00:00Z. (Cannot be used with \"end_times\".) Example: 2022-04-02T15:59:00Z</p>"
+                    },
+                    "recurrence|end_times": {
+                        "type": "number",
+                        "index": 14,
+                        "label": "Recurrence End Times",
+                        "tooltip": "<p>Select how many times the meeting should recur before it is canceled. (Cannot be used with \"end<em>date</em>time\".) Example: 7</p>",
+                        "defaultValue": 1,
+                        "max": 365
+                    },
+                    "recurrence|monthly_day": {
+                        "type": "number",
+                        "index": 15,
+                        "label": "Recurrence Monthly Day",
+                        "tooltip": "<p>Use this field <strong>only if you're scheduling a recurring meeting of type</strong> <code>3</code> to state which day in a month, the meeting should recur. The value range is from 1 to 31.</p>\n<p>For instance, if you would like the meeting to recur on 23rd of each month, provide <code>23</code> as the value of this field and <code>1</code> as the value of the <code>repeat_interval</code> field. Instead, if you would like the meeting to recur every three months, on 23rd of the month, change the value of the <code>repeat_interval</code> field to <code>3</code>. Example: 1</p>",
+                        "defaultValue": 1
+                    },
+                    "recurrence|monthly_week": {
+                        "type": "number",
+                        "index": 16,
+                        "label": "Recurrence Monthly Week",
+                        "tooltip": "<p>Use this field <strong>only if you're scheduling a recurring meeting of type</strong> <code>3</code> to state the week of the month when the meeting should recur. If you use this field, <strong>you must also use the <code>monthly_week_day</code> field to state the day of the week when the meeting should recur.</strong> <br><code>-1</code> - Last week of the month.<br><code>1</code> - First week of the month.<br><code>2</code> - Second week of the month.<br><code>3</code> - Third week of the month.<br><code>4</code> - Fourth week of the month. Example: 1</p>"
+                    },
+                    "recurrence|monthly_week_day": {
+                        "type": "number",
+                        "index": 17,
+                        "label": "Recurrence Monthly Week Day",
+                        "tooltip": "<p>Use this field <strong>only if you're scheduling a recurring meeting of type</strong> <code>3</code> to state a specific day in a week when the monthly meeting should recur. To use this field, you must also use the <code>monthly_week</code> field. </p>\n<p><br><code>1</code> - Sunday.<br><code>2</code> - Monday.<br><code>3</code> - Tuesday.<br><code>4</code> -  Wednesday.<br><code>5</code> - Thursday.<br><code>6</code> - Friday.<br><code>7</code> - Saturday. Example: 1</p>"
+                    },
+                    "recurrence|repeat_interval": {
+                        "type": "number",
+                        "index": 18,
+                        "label": "Recurrence Repeat Interval",
+                        "tooltip": "<p>Define the interval at which the meeting should recur. For instance, if you would like to schedule a meeting that recurs every two months, you must set the value of this field as <code>2</code> and the value of the <code>type</code> parameter as <code>3</code>. </p>\n<p>For a daily meeting, the maximum interval you can set is <code>90</code> days. For a weekly meeting the maximum interval that you can set is  of <code>12</code> weeks. For a monthly meeting, there is a maximum of <code>3</code> months.</p>\n<p>Example: 1</p>"
+                    },
+                    "recurrence|type": {
+                        "type": "number",
+                        "index": 19,
+                        "label": "Recurrence Type",
+                        "tooltip": "<p>Recurrence meeting types:<br><code>1</code> - Daily.<br><code>2</code> - Weekly.<br><code>3</code> - Monthly. Example: 1</p>"
+                    },
+                    "recurrence|weekly_days": {
+                        "type": "select",
+                        "index": 20,
+                        "label": "Recurrence Weekly Days",
+                        "tooltip": "<p>This field is required <strong>if you're scheduling a recurring meeting of type</strong> <code>2</code> to state which day(s) of the week the meeting should repeat. <br> <br> The value for this field could be a number between <code>1</code> to <code>7</code> in string format. For instance, if the meeting should recur on Sunday, provide <code>\"1\"</code> as the value of this field.<br><br> <strong>Note:</strong> If you would like the meeting to occur on multiple days of a week, you should provide comma separated values for this field. For instance, if the meeting should recur on Sundays and Tuesdays provide <code>\"1,3\"</code> as the value of this field.</p>\n<p><br><code>1</code>  - Sunday. <br><code>2</code> - Monday.<br><code>3</code> - Tuesday.<br><code>4</code> -  Wednesday.<br><code>5</code> -  Thursday.<br><code>6</code> - Friday.<br><code>7</code> - Saturday. Example: 1</p>",
+                        "options": [
+                            {
+                                "content": "1",
+                                "value": "1"
+                            },
+                            {
+                                "content": "2",
+                                "value": "2"
+                            },
+                            {
+                                "content": "3",
+                                "value": "3"
+                            },
+                            {
+                                "content": "4",
+                                "value": "4"
+                            },
+                            {
+                                "content": "5",
+                                "value": "5"
+                            },
+                            {
+                                "content": "6",
+                                "value": "6"
+                            },
+                            {
+                                "content": "7",
+                                "value": "7"
+                            }
+                        ],
+                        "defaultValue": "1"
+                    },
+                    "settings|additional_data_center_regions": {
+                        "type": "textarea",
+                        "index": 21,
+                        "label": "Settings Additional Data Center Regions",
+                        "tooltip": "<p>Add additional meeting <a href=\"https://support.zoom.us/hc/en-us/articles/360042411451-Selecting-data-center-regions-for-hosted-meetings-and-webinars\" rel=\"noopener noreferrer\" target=\"_blank\">data center regions</a>. Provide this value as an array of <a href=\"https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#countries\" rel=\"noopener noreferrer\" target=\"_blank\">country codes</a> for the countries available as data center regions in the <a href=\"https://zoom.us/account/setting\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Account Profile</strong></a> interface but have been opted out of in the <a href=\"https://zoom.us/profile\" rel=\"noopener noreferrer\" target=\"_blank\">user settings</a>.</p>\n<p>For example, the data center regions selected in your <a href=\"https://zoom.us/account\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Account Profile</strong></a> are \"Europe\", \"Hong Kong SAR\", \"Australia\", \"India\", \"Japan\", \"China\", \"United States\", and \"Canada\". However, in the <a href=\"https://zoom.us/profile\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>My Profile</strong></a> settings, you did <strong>not</strong> select \"India\" and \"Japan\" for meeting and webinar traffic routing.</p>\n<p>To include \"India\" and \"Japan\" as additional data centers, use the <code>[\"IN\", \"TY\"]</code> value for this field.</p> JSON array. Example: [\"TY\"]."
+                    },
+                    "settings|allow_multiple_devices": {
+                        "type": "toggle",
+                        "index": 22,
+                        "label": "Settings Allow Multiple Devices",
+                        "tooltip": "<p>Whether to allow attendees to join a meeting from multiple devices. This setting is only applied to meetings with registration enabled. Example: true</p>"
+                    },
+                    "settings|alternative_hosts": {
+                        "type": "text",
+                        "index": 23,
+                        "label": "Settings Alternative Hosts",
+                        "tooltip": "<p>A semicolon-separated list of the meeting's alternative hosts' email addresses or IDs. Example: jchill@example.com;thill@example.com</p>"
+                    },
+                    "settings|alternative_hosts_email_notification": {
+                        "type": "toggle",
+                        "index": 24,
+                        "label": "Settings Alternative Hosts Email Notification",
+                        "tooltip": "<p>Whether to send email notifications to alternative hosts. This value defaults to <code>true</code>. Example: true</p>",
+                        "defaultValue": true
+                    },
+                    "settings|approval_type": {
+                        "type": "number",
+                        "index": 25,
+                        "label": "Settings Approval Type",
+                        "tooltip": "<p>Enable meeting registration approval: </p>\n<ul>\n<li><code>0</code> — Automatically approve registration.</li>\n<li><code>1</code> — Manually approve registration.</li>\n<li><code>2</code> — No registration required.</li>\n</ul>\n<p>This value defaults to <code>2</code>. Example: 2</p>",
+                        "defaultValue": 2
+                    },
+                    "settings|approved_or_denied_countries_or_regions": {
+                        "type": "text",
+                        "index": 26,
+                        "label": "Settings Approved Or Denied Countries Or Regions",
+                        "tooltip": "<p>The list of approved or blocked users from specific countries or regions who can join the meeting.</p>"
+                    },
+                    "settings|audio": {
+                        "type": "select",
+                        "index": 27,
+                        "label": "Settings Audio",
+                        "tooltip": "<p>How participants join the audio portion of the meeting: </p>\n<ul>\n<li><code>both</code> — Both telephony and VoIP. </li>\n<li><code>telephony</code> — Telephony only. </li>\n<li><code>voip</code> — VoIP only.</li>\n</ul>\n<p>This value defaults to <code>both</code>. Example: telephony</p>",
+                        "options": [
+                            {
+                                "content": "both",
+                                "value": "both"
+                            },
+                            {
+                                "content": "telephony",
+                                "value": "telephony"
+                            },
+                            {
+                                "content": "voip",
+                                "value": "voip"
+                            }
+                        ],
+                        "defaultValue": "both"
+                    },
+                    "settings|authentication_domains": {
+                        "type": "text",
+                        "index": 28,
+                        "label": "Settings Authentication Domains",
+                        "tooltip": "<p>The meeting's authenticated domains. Only Zoom users whose email address contains an authenticated domain can join the meeting. Comma-separate multiple domains or use a wildcard for listing domains. Example: example.com</p>"
+                    },
+                    "settings|authentication_exception": {
+                        "type": "textarea",
+                        "index": 29,
+                        "label": "Settings Authentication Exception",
+                        "tooltip": "<p>A list of participants that can bypass meeting authentication. These participants will receive a unique meeting invite.</p> JSON array. Example: [{\"email\":\"jchill@example.com\",\"name\":\"Jill Chill\"}]."
+                    },
+                    "settings|authentication_option": {
+                        "type": "text",
+                        "index": 30,
+                        "label": "Settings Authentication Option",
+                        "tooltip": "<p>If the <code>meeting_authentication</code> value is <code>true</code>, the type of authentication required for users to join a meeting.</p>\n<p>To get this value, use the <code>authentication_options</code> array's <code>id</code> value in the <a href=\"/docs/api-reference/zoom-api/methods#operation/userSettings\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Get user settings</strong></a> API response. Example: signIn_D8cJuqWVQ623CI4Q8yQK0Q</p>"
+                    },
+                    "settings|auto_recording": {
+                        "type": "select",
+                        "index": 31,
+                        "label": "Settings Auto Recording",
+                        "tooltip": "<p>The automatic recording settings: </p>\n<ul>\n<li><code>local</code> — Record the meeting locally. </li>\n<li><code>cloud</code> — Record the meeting to the cloud. </li>\n<li><code>none</code> — Auto-recording disabled.</li>\n</ul>\n<p>This value defaults to <code>none</code>. Example: cloud</p>",
+                        "options": [
+                            {
+                                "content": "local",
+                                "value": "local"
+                            },
+                            {
+                                "content": "cloud",
+                                "value": "cloud"
+                            },
+                            {
+                                "content": "none",
+                                "value": "none"
+                            }
+                        ],
+                        "defaultValue": "none"
+                    },
+                    "settings|breakout_room": {
+                        "type": "text",
+                        "index": 32,
+                        "label": "Settings Breakout Room",
+                        "tooltip": "<p>The <a href=\"https://support.zoom.us/hc/en-us/articles/360032752671-Pre-assigning-participants-to-breakout-rooms\" rel=\"noopener noreferrer\" target=\"_blank\">pre-assigned breakout rooms</a> settings.</p>"
+                    },
+                    "settings|calendar_type": {
+                        "type": "number",
+                        "index": 33,
+                        "label": "Settings Calendar Type",
+                        "tooltip": "<p>Indicates the type of calendar integration used to schedule the meeting: </p>\n<ul>\n<li><code>1</code> — <a href=\"https://support.zoom.us/hc/en-us/articles/360031592971-Getting-started-with-Outlook-plugin-and-add-in\" rel=\"noopener noreferrer\" target=\"_blank\">Zoom Outlook add-in</a> </li>\n<li><code>2</code> — <a href=\"https://support.zoom.us/hc/en-us/articles/360020187492-Using-the-Zoom-for-Google-Workspace-add-on\" rel=\"noopener noreferrer\" target=\"_blank\">Zoom for Google Workspace add-on</a></li>\n</ul>\n<p>Works with the <code>private_meeting</code> field to determine whether to share details of meetings or not. Example: 1</p>"
+                    },
+                    "settings|close_registration": {
+                        "type": "toggle",
+                        "index": 34,
+                        "label": "Settings Close Registration",
+                        "tooltip": "<p>Whether to close registration after the event date. This value defaults to <code>false</code>.</p>",
+                        "defaultValue": false
+                    },
+                    "settings|cn_meeting": {
+                        "type": "toggle",
+                        "index": 35,
+                        "label": "Settings Cn Meeting",
+                        "tooltip": "<p>Whether to host the meeting in China (CN). This value defaults to <code>false</code>.</p>",
+                        "defaultValue": false
+                    },
+                    "settings|contact_email": {
+                        "type": "text",
+                        "index": 36,
+                        "label": "Settings Contact Email",
+                        "tooltip": "<p>The contact email address for meeting registration. Example: jchill@example.com</p>"
+                    },
+                    "settings|contact_name": {
+                        "type": "text",
+                        "index": 37,
+                        "label": "Settings Contact Name",
+                        "tooltip": "<p>The contact name for meeting registration. Example: Jill Chill</p>"
+                    },
+                    "settings|email_notification": {
+                        "type": "toggle",
+                        "index": 38,
+                        "label": "Settings Email Notification",
+                        "tooltip": "<p>Whether to send email notifications to <a href=\"https://support.zoom.us/hc/en-us/articles/208220166\" rel=\"noopener noreferrer\" target=\"_blank\">alternative hosts</a> and <a href=\"https://support.zoom.us/hc/en-us/articles/201362803-Scheduling-privilege\" rel=\"noopener noreferrer\" target=\"_blank\">users with scheduling privileges</a>. This value defaults to <code>true</code>. Example: true</p>",
+                        "defaultValue": true
+                    },
+                    "settings|encryption_type": {
+                        "type": "select",
+                        "index": 39,
+                        "label": "Settings Encryption Type",
+                        "tooltip": "<p>The type of <a href=\"https://support.zoom.us/hc/en-us/articles/360048660871\" rel=\"noopener noreferrer\" target=\"_blank\">end-to-end (E2EE) encryption</a> to use for the meeting: </p>\n<ul>\n<li><code>enhanced_encryption</code> — Enhanced encryption. Encryption is stored in the cloud when you enable this option. </li>\n<li><code>e2ee</code> — End-to-end encryption. The encryption key is stored on your local device and <strong>cannot</strong> be obtained by anyone else. When you use E2EE encryption, <a href=\"https://support.zoom.us/hc/en-us/articles/360048660871\" rel=\"noopener noreferrer\" target=\"_blank\">certain features</a>, such as cloud recording or phone and SIP/H.323 dial-in, are <strong>disabled</strong>. Example: enhanced_encryption</li>\n</ul>",
+                        "options": [
+                            {
+                                "content": "enhanced_encryption",
+                                "value": "enhanced_encryption"
+                            },
+                            {
+                                "content": "e2ee",
+                                "value": "e2ee"
+                            }
+                        ]
+                    },
+                    "settings|focus_mode": {
+                        "type": "toggle",
+                        "index": 40,
+                        "label": "Settings Focus Mode",
+                        "tooltip": "<p>Whether to enable the <a href=\"https://support.zoom.us/hc/en-us/articles/360061113751-Using-focus-mode\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Focus Mode</strong> feature</a> when the meeting starts. Example: true</p>"
+                    },
+                    "settings|global_dial_in_countries": {
+                        "type": "textarea",
+                        "index": 41,
+                        "label": "Settings Global Dial In Countries",
+                        "tooltip": "<p>A list of available global dial-in countries.</p> JSON array. Example: [\"US\"]."
+                    },
+                    "settings|host_video": {
+                        "type": "toggle",
+                        "index": 42,
+                        "label": "Settings Host Video",
+                        "tooltip": "<p>Whether to start meetings with the host video on. Example: true</p>"
+                    },
+                    "settings|in_meeting": {
+                        "type": "toggle",
+                        "index": 43,
+                        "label": "Settings In Meeting",
+                        "tooltip": "<p>Whether to host the meeting in India (IN). This value defaults to <code>false</code>.</p>",
+                        "defaultValue": false
+                    },
+                    "settings|jbh_time": {
+                        "type": "number",
+                        "index": 44,
+                        "label": "Settings Jbh Time",
+                        "tooltip": "<p>If the value of the <code>join_before_host</code> field is <code>true</code>, this field indicates the time limits within which a participant can join a meeting before the meeting's host:</p>\n<ul>\n<li><code>0</code> — Allow the participant to join the meeting at anytime.</li>\n<li><code>5</code> — Allow the participant to join 5 minutes before the meeting's start time.</li>\n<li><code>10</code> — Allow the participant to join 10 minutes before the meeting's start time.</li>\n</ul>"
+                    },
+                    "settings|join_before_host": {
+                        "type": "toggle",
+                        "index": 45,
+                        "label": "Settings Join Before Host",
+                        "tooltip": "<p>Whether participants can join the meeting before its host. This field is only used for scheduled meetings (<code>2</code>) or recurring meetings (<code>3</code> and <code>8</code>). This value defaults to <code>false</code>.</p>\n<p>If the <a href=\"https://support.zoom.us/hc/en-us/articles/115000332726-Waiting-Room\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Waiting Room</strong> feature</a> is enabled, this setting is <strong>disabled</strong>.</p>",
+                        "defaultValue": false
+                    },
+                    "settings|language_interpretation": {
+                        "type": "text",
+                        "index": 46,
+                        "label": "Settings Language Interpretation",
+                        "tooltip": "<p>The meeting's <a href=\"https://support.zoom.us/hc/en-us/articles/360034919791-Language-interpretation-in-meetings-and-webinars\" rel=\"noopener noreferrer\" target=\"_blank\">language interpretation settings</a>. Make sure to add the language in the web portal in order to use it in the API. See link for details. </p>\n<p><strong>Note:</strong> This feature is only available for certain Meeting add-on, Education, and Business and higher plans. If this feature is not enabled on the host's account, this setting will <strong>not</strong> be applied to the meeting.</p>"
+                    },
+                    "settings|meeting_authentication": {
+                        "type": "toggle",
+                        "index": 47,
+                        "label": "Settings Meeting Authentication",
+                        "tooltip": "<p>If true, only <a href=\"https://support.zoom.us/hc/en-us/articles/360037117472-Authentication-Profiles-for-Meetings-and-Webinars\" rel=\"noopener noreferrer\" target=\"_blank\">authenticated</a> users can join the meeting. Example: true</p>"
+                    },
+                    "settings|meeting_invitees": {
+                        "type": "textarea",
+                        "index": 48,
+                        "label": "Settings Meeting Invitees",
+                        "tooltip": "<p>A list of the meeting's invitees.</p> JSON array. Example: [{\"email\":\"jchill@example.com\"}]."
+                    },
+                    "settings|mute_upon_entry": {
+                        "type": "toggle",
+                        "index": 49,
+                        "label": "Settings Mute Upon Entry",
+                        "tooltip": "<p>Whether to mute participants upon entry.</p>",
+                        "defaultValue": false
+                    },
+                    "settings|participant_video": {
+                        "type": "toggle",
+                        "index": 50,
+                        "label": "Settings Participant Video",
+                        "tooltip": "<p>Whether to start meetings with the participant video on.</p>"
+                    },
+                    "settings|private_meeting": {
+                        "type": "toggle",
+                        "index": 51,
+                        "label": "Settings Private Meeting",
+                        "tooltip": "<p>Whether to set the meeting as private.</p>"
+                    },
+                    "settings|registrants_confirmation_email": {
+                        "type": "toggle",
+                        "index": 52,
+                        "label": "Settings Registrants Confirmation Email",
+                        "tooltip": "<p>Whether to send registrants an email confirmation: </p>\n<ul>\n<li><code>true</code> — Send a confirmation email. </li>\n<li><code>false</code> — Do not send a confirmation email. Example: true</li>\n</ul>"
+                    },
+                    "settings|registrants_email_notification": {
+                        "type": "toggle",
+                        "index": 53,
+                        "label": "Settings Registrants Email Notification",
+                        "tooltip": "<p>Whether to send registrants email notifications about their registration approval, cancellation, or rejection:</p>\n<ul>\n<li><p><code>true</code> — Send an email notification.</p></li>\n<li><p><code>false</code> — Do not send an email notification.</p>\n<p>Set this value to <code>true</code> to also use the <code>registrants_confirmation_email</code> parameter. Example: true</p></li>\n</ul>"
+                    },
+                    "settings|registration_type": {
+                        "type": "number",
+                        "index": 54,
+                        "label": "Settings Registration Type",
+                        "tooltip": "<p>The meeting's registration type: </p>\n<ul>\n<li><code>1</code> — Attendees register once and can attend any meeting occurrence. </li>\n<li><code>2</code> — Attendees must register for each meeting occurrence. </li>\n<li><code>3</code> — Attendees register once and can select one or more meeting occurrences to attend.</li>\n</ul>\n<p>This field is only for recurring meetings with fixed times (<code>8</code>). This value defaults to <code>1</code>. Example: 1</p>",
+                        "defaultValue": 1
+                    },
+                    "settings|show_share_button": {
+                        "type": "toggle",
+                        "index": 55,
+                        "label": "Settings Show Share Button",
+                        "tooltip": "<p>Whether to include social media sharing buttons on the meeting's registration page. This setting is only applied to meetings with registration enabled. Example: true</p>"
+                    },
+                    "settings|use_pmi": {
+                        "type": "toggle",
+                        "index": 56,
+                        "label": "Settings Use Pmi",
+                        "tooltip": "<p>Whether to use a <a href=\"https://marketplace.zoom.us/docs/api-reference/using-zoom-apis#understanding-personal-meeting-id-pmi\" rel=\"noopener noreferrer\" target=\"_blank\">Personal Meeting ID (PMI)</a> instead of a generated meeting ID. This field is only used for scheduled meetings (<code>2</code>), instant meetings (<code>1</code>), or recurring meetings with no fixed time (<code>3</code>). This value defaults to <code>false</code>.</p>",
+                        "defaultValue": false
+                    },
+                    "settings|waiting_room": {
+                        "type": "toggle",
+                        "index": 57,
+                        "label": "Settings Waiting Room",
+                        "tooltip": "<p>Whether to enable the <a href=\"https://support.zoom.us/hc/en-us/articles/115000332726-Waiting-Room\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Waiting Room</strong> feature</a>. If this value is <code>true</code>, this <strong>disables</strong> the <code>join_before_host</code> setting.</p>"
+                    },
+                    "settings|watermark": {
+                        "type": "toggle",
+                        "index": 58,
+                        "label": "Settings Watermark",
+                        "tooltip": "<p>Whether to add a watermark when viewing a shared screen.</p>",
+                        "defaultValue": false
+                    },
+                    "settings|host_save_video_order": {
+                        "type": "toggle",
+                        "index": 59,
+                        "label": "Settings Host Save Video Order",
+                        "tooltip": "<p>Whether the <strong>Allow host to save video order</strong> feature is enabled. Example: true</p>"
+                    },
+                    "settings|alternative_host_update_polls": {
+                        "type": "toggle",
+                        "index": 60,
+                        "label": "Settings Alternative Host Update Polls",
+                        "tooltip": "<p>Whether the <strong>Allow alternative hosts to add or edit polls</strong> feature is enabled. This requires Zoom version 5.8.0 or higher. Example: true</p>"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Assistant Id",
+                    "value": "assistant_id"
+                },
+                {
+                    "label": "Host Email",
+                    "value": "host_email"
+                },
+                {
+                    "label": "Id",
+                    "value": "id"
+                },
+                {
+                    "label": "Registration Url",
+                    "value": "registration_url"
+                },
+                {
+                    "label": "Agenda",
+                    "value": "agenda"
+                },
+                {
+                    "label": "Created At",
+                    "value": "created_at"
+                },
+                {
+                    "label": "Duration",
+                    "value": "duration"
+                },
+                {
+                    "label": "H 323 Password",
+                    "value": "h323_password"
+                },
+                {
+                    "label": "Join Url",
+                    "value": "join_url"
+                },
+                {
+                    "label": "Occurrences",
+                    "value": "occurrences",
+                    "schema": {
+                        "description": "Array of occurrence objects.",
+                        "type": "array",
+                        "items": {
+                            "description": "Occurrence object. This object is only returned for Recurring Webinars.",
+                            "type": "object",
+                            "properties": {
+                                "duration": {
+                                    "description": "Duration.",
+                                    "type": "integer",
+                                    "example": 60
+                                },
+                                "occurrence_id": {
+                                    "description": "Occurrence ID: Unique Identifier that identifies an occurrence of a recurring webinar. [Recurring webinars](https://support.zoom.us/hc/en-us/articles/216354763-How-to-Schedule-A-Recurring-Webinar) can have a maximum of 50 occurrences.",
+                                    "type": "string",
+                                    "example": "1648194360000"
+                                },
+                                "start_time": {
+                                    "description": "Start time.",
+                                    "format": "date-time",
+                                    "type": "string",
+                                    "example": "2022-03-25T07:46:00Z"
+                                },
+                                "status": {
+                                    "description": "Occurrence status.",
+                                    "type": "string",
+                                    "example": "available"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Password",
+                    "value": "password"
+                },
+                {
+                    "label": "Pmi",
+                    "value": "pmi"
+                },
+                {
+                    "label": "Pre Schedule",
+                    "value": "pre_schedule"
+                },
+                {
+                    "label": "Recurrence",
+                    "value": "recurrence"
+                },
+                {
+                    "label": "Recurrence End Date Time",
+                    "value": "recurrence.end_date_time"
+                },
+                {
+                    "label": "Recurrence End Times",
+                    "value": "recurrence.end_times"
+                },
+                {
+                    "label": "Recurrence Monthly Day",
+                    "value": "recurrence.monthly_day"
+                },
+                {
+                    "label": "Recurrence Monthly Week",
+                    "value": "recurrence.monthly_week"
+                },
+                {
+                    "label": "Recurrence Monthly Week Day",
+                    "value": "recurrence.monthly_week_day"
+                },
+                {
+                    "label": "Recurrence Repeat Interval",
+                    "value": "recurrence.repeat_interval"
+                },
+                {
+                    "label": "Recurrence Type",
+                    "value": "recurrence.type"
+                },
+                {
+                    "label": "Recurrence Weekly Days",
+                    "value": "recurrence.weekly_days"
+                },
+                {
+                    "label": "Settings",
+                    "value": "settings"
+                },
+                {
+                    "label": "Settings Allow Multiple Devices",
+                    "value": "settings.allow_multiple_devices"
+                },
+                {
+                    "label": "Settings Alternative Hosts",
+                    "value": "settings.alternative_hosts"
+                },
+                {
+                    "label": "Settings Alternative Hosts Email Notification",
+                    "value": "settings.alternative_hosts_email_notification"
+                },
+                {
+                    "label": "Settings Alternative Host Update Polls",
+                    "value": "settings.alternative_host_update_polls"
+                },
+                {
+                    "label": "Settings Approval Type",
+                    "value": "settings.approval_type"
+                },
+                {
+                    "label": "Settings Approved Or Denied Countries Or Regions",
+                    "value": "settings.approved_or_denied_countries_or_regions"
+                },
+                {
+                    "label": "Settings Approved Or Denied Countries Or Regions Approved List",
+                    "value": "settings.approved_or_denied_countries_or_regions.approved_list",
+                    "schema": {
+                        "description": "List of countries/regions from where participants can join this meeting. ",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "CX"
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Approved Or Denied Countries Or Regions Denied List",
+                    "value": "settings.approved_or_denied_countries_or_regions.denied_list",
+                    "schema": {
+                        "description": "List of countries/regions from where participants can not join this meeting. ",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "CA"
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Approved Or Denied Countries Or Regions Enable",
+                    "value": "settings.approved_or_denied_countries_or_regions.enable"
+                },
+                {
+                    "label": "Settings Approved Or Denied Countries Or Regions Method",
+                    "value": "settings.approved_or_denied_countries_or_regions.method"
+                },
+                {
+                    "label": "Settings Audio",
+                    "value": "settings.audio"
+                },
+                {
+                    "label": "Settings Authentication Domains",
+                    "value": "settings.authentication_domains"
+                },
+                {
+                    "label": "Settings Authentication Exception",
+                    "value": "settings.authentication_exception",
+                    "schema": {
+                        "description": "The participants added here will receive unique meeting invite links and bypass authentication.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "description": "Email address of the participant.",
+                                    "format": "email",
+                                    "type": "string",
+                                    "example": "jchill@example.com"
+                                },
+                                "name": {
+                                    "description": "Name of the participant.",
+                                    "type": "string",
+                                    "example": "Jill Chill"
+                                },
+                                "join_url": {
+                                    "description": "URL for participants to join the meeting",
+                                    "type": "string",
+                                    "example": "https://example.com/s/11111"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Authentication Name",
+                    "value": "settings.authentication_name"
+                },
+                {
+                    "label": "Settings Authentication Option",
+                    "value": "settings.authentication_option"
+                },
+                {
+                    "label": "Settings Auto Recording",
+                    "value": "settings.auto_recording"
+                },
+                {
+                    "label": "Settings Breakout Room",
+                    "value": "settings.breakout_room"
+                },
+                {
+                    "label": "Settings Breakout Room Enable",
+                    "value": "settings.breakout_room.enable"
+                },
+                {
+                    "label": "Settings Breakout Room Rooms",
+                    "value": "settings.breakout_room.rooms",
+                    "schema": {
+                        "description": "Create room(s).",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "description": "Name of the breakout room.",
+                                    "type": "string",
+                                    "example": "room1"
+                                },
+                                "participants": {
+                                    "description": "Email addresses of the participants who are to be assigned to the breakout room.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "example": "jchill@example.com"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Calendar Type",
+                    "value": "settings.calendar_type"
+                },
+                {
+                    "label": "Settings Close Registration",
+                    "value": "settings.close_registration"
+                },
+                {
+                    "label": "Settings Cn Meeting",
+                    "value": "settings.cn_meeting"
+                },
+                {
+                    "label": "Settings Contact Email",
+                    "value": "settings.contact_email"
+                },
+                {
+                    "label": "Settings Contact Name",
+                    "value": "settings.contact_name"
+                },
+                {
+                    "label": "Settings Custom Keys",
+                    "value": "settings.custom_keys",
+                    "schema": {
+                        "description": "Custom keys and values assigned to the meeting.",
+                        "maxItems": 10,
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "description": "Custom key associated with the user.",
+                                    "maxLength": 64,
+                                    "type": "string",
+                                    "example": "key1"
+                                },
+                                "value": {
+                                    "description": "Value of the custom key associated with the user.",
+                                    "maxLength": 256,
+                                    "type": "string",
+                                    "example": "value1"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Email Notification",
+                    "value": "settings.email_notification"
+                },
+                {
+                    "label": "Settings Encryption Type",
+                    "value": "settings.encryption_type"
+                },
+                {
+                    "label": "Settings Enforce Login",
+                    "value": "settings.enforce_login"
+                },
+                {
+                    "label": "Settings Enforce Login Domains",
+                    "value": "settings.enforce_login_domains"
+                },
+                {
+                    "label": "Settings Focus Mode",
+                    "value": "settings.focus_mode"
+                },
+                {
+                    "label": "Settings Global Dial In Countries",
+                    "value": "settings.global_dial_in_countries",
+                    "schema": {
+                        "description": "List of global dial-in countries",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "US"
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Global Dial In Numbers",
+                    "value": "settings.global_dial_in_numbers",
+                    "schema": {
+                        "description": "Global Dial-in Countries/Regions",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "city": {
+                                    "description": "City of the number, if any. For example, Chicago.",
+                                    "type": "string",
+                                    "example": "New York"
+                                },
+                                "country": {
+                                    "description": "Country code. For example, BR.",
+                                    "type": "string",
+                                    "example": "US"
+                                },
+                                "country_name": {
+                                    "description": "Full name of country. For example, Brazil.",
+                                    "type": "string",
+                                    "example": "US"
+                                },
+                                "number": {
+                                    "description": "Phone number. For example, +1 2332357613.",
+                                    "type": "string",
+                                    "example": "+1 1000200200"
+                                },
+                                "type": {
+                                    "description": "Type of number. ",
+                                    "enum": [
+                                        "toll",
+                                        "tollfree"
+                                    ],
+                                    "type": "string",
+                                    "example": "toll"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Host Video",
+                    "value": "settings.host_video"
+                },
+                {
+                    "label": "Settings In Meeting",
+                    "value": "settings.in_meeting"
+                },
+                {
+                    "label": "Settings Jbh Time",
+                    "value": "settings.jbh_time"
+                },
+                {
+                    "label": "Settings Join Before Host",
+                    "value": "settings.join_before_host"
+                },
+                {
+                    "label": "Settings Language Interpretation",
+                    "value": "settings.language_interpretation"
+                },
+                {
+                    "label": "Settings Language Interpretation Enable",
+                    "value": "settings.language_interpretation.enable"
+                },
+                {
+                    "label": "Settings Language Interpretation Interpreters",
+                    "value": "settings.language_interpretation.interpreters",
+                    "schema": {
+                        "description": "Information about the meeting's language interpreters.",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "description": "The interpreter's email address.",
+                                    "format": "email",
+                                    "type": "string",
+                                    "example": "interpreter@example.com"
+                                },
+                                "languages": {
+                                    "description": "A comma-separated list of the interpreter's languages. The string must contain two [country IDs](https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#countries). \n\nFor example, if the interpreter will translate from English to Chinese, then this value will be `US,CN`.",
+                                    "type": "string",
+                                    "example": "US,FR"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Settings Meeting Authentication",
+                    "value": "settings.meeting_authentication"
+                },
+                {
+                    "label": "Settings Mute Upon Entry",
+                    "value": "settings.mute_upon_entry"
+                },
+                {
+                    "label": "Settings Participant Video",
+                    "value": "settings.participant_video"
+                },
+                {
+                    "label": "Settings Private Meeting",
+                    "value": "settings.private_meeting"
+                },
+                {
+                    "label": "Settings Registrants Confirmation Email",
+                    "value": "settings.registrants_confirmation_email"
+                },
+                {
+                    "label": "Settings Registrants Email Notification",
+                    "value": "settings.registrants_email_notification"
+                },
+                {
+                    "label": "Settings Registration Type",
+                    "value": "settings.registration_type"
+                },
+                {
+                    "label": "Settings Show Share Button",
+                    "value": "settings.show_share_button"
+                },
+                {
+                    "label": "Settings Use Pmi",
+                    "value": "settings.use_pmi"
+                },
+                {
+                    "label": "Settings Waiting Room",
+                    "value": "settings.waiting_room"
+                },
+                {
+                    "label": "Settings Watermark",
+                    "value": "settings.watermark"
+                },
+                {
+                    "label": "Settings Host Save Video Order",
+                    "value": "settings.host_save_video_order"
+                },
+                {
+                    "label": "Start Time",
+                    "value": "start_time"
+                },
+                {
+                    "label": "Start Url",
+                    "value": "start_url"
+                },
+                {
+                    "label": "Timezone",
+                    "value": "timezone"
+                },
+                {
+                    "label": "Topic",
+                    "value": "topic"
+                },
+                {
+                    "label": "Tracking Fields",
+                    "value": "tracking_fields",
+                    "schema": {
+                        "description": "Tracking fields",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "field": {
+                                    "description": "Label of the tracking field.",
+                                    "type": "string",
+                                    "example": "field1"
+                                },
+                                "value": {
+                                    "description": "Value for the field.",
+                                    "type": "string",
+                                    "example": "value1"
+                                },
+                                "visible": {
+                                    "description": "Indicates whether the [tracking field](https://support.zoom.us/hc/en-us/articles/115000293426-Scheduling-Tracking-Fields) is visible in the meeting scheduling options in the Zoom Web Portal or not.\n\n`true`: Tracking field is visible. <br>\n\n`false`: Tracking field is not visible to the users in the meeting options in the Zoom Web Portal but the field was used while scheduling this meeting via API. An invisible tracking field can be used by users while scheduling meetings via API only. ",
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Type",
+                    "value": "type"
+                }
+            ]
+        }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:zoom"
+    },
+    "icon": "data:image/png;base64,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"
+}
