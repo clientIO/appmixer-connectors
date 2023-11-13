@@ -36,7 +36,7 @@ module.exports = {
                 url: normalizedUrl
             };
             options.headers = {
-                "Authorization": "Bearer {accessToken}"
+                'Authorization': 'Bearer {accessToken}'
             };
             options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
             const {
@@ -61,7 +61,7 @@ module.exports = {
                 url: normalizedUrl
             };
             options.headers = {
-                "Authorization": "Bearer {accessToken}"
+                'Authorization': 'Bearer {accessToken}'
             };
             options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
             await context.httpRequest(options);

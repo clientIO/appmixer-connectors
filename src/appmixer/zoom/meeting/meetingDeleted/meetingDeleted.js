@@ -12,7 +12,7 @@ module.exports = {
                 webhook: context.messages.webhook
             });
 
-            let out = await lib.replaceRuntimeExpressions("$request.body", context, {}, context.messages.webhook
+            let out = await lib.replaceRuntimeExpressions('$request.body', context, {}, context.messages.webhook
                 .content);
             await context.sendJson(out, 'out');
             return context.response(out);
@@ -24,7 +24,7 @@ module.exports = {
         // Subscribe to a static webhook events received via ../../plugin.js.
         return context.service.stateAddToSet(
             await lib.replaceRuntimeExpressions('meeting.deleted:{$connection.profile.account_id}',
-            context, {}), {
+                context, {}), {
                 componentId: context.componentId,
                 flowId: context.flowId
             }
@@ -36,7 +36,7 @@ module.exports = {
         // Unsubscribe from a static webhook events received via ../../plugin.js.
         return context.service.stateRemoveFromSet(
             await lib.replaceRuntimeExpressions('meeting.deleted:{$connection.profile.account_id}',
-            context, {}), {
+                context, {}), {
                 componentId: context.componentId,
                 flowId: context.flowId
             }

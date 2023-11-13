@@ -1,6 +1,6 @@
 'use strict';
 
-const lib = require('./lib')
+const lib = require('./lib');
 
 module.exports = async context => {
 

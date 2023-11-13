@@ -12,7 +12,7 @@ module.exports = {
                 webhook: context.messages.webhook
             });
 
-            let out = await lib.replaceRuntimeExpressions("$request.body", context, {}, context.messages.webhook
+            let out = await lib.replaceRuntimeExpressions('$request.body', context, {}, context.messages.webhook
                 .content);
             await context.sendJson(out, 'out');
             return context.response(out);

@@ -8,7 +8,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/meetings/${input["meetingId"]}`;
+        let url = lib.getBaseUrl(context) + `/meetings/${input['meetingId']}`;
 
         const headers = {};
         const query = new URLSearchParams;

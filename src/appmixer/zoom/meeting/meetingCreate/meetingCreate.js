@@ -8,7 +8,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/users/${input["userId"]}/meetings`;
+        let url = lib.getBaseUrl(context) + `/users/${input['userId']}/meetings`;
 
         const headers = {};
 
@@ -74,7 +74,7 @@ module.exports = {
             'settings.waiting_room': input['settings|waiting_room'],
             'settings.watermark': input['settings|watermark'],
             'settings.host_save_video_order': input['settings|host_save_video_order'],
-            'settings.alternative_host_update_polls': input['settings|alternative_host_update_polls'],
+            'settings.alternative_host_update_polls': input['settings|alternative_host_update_polls']
         };
         let body = {};
         lib.setProperties(body, inputMapping);
