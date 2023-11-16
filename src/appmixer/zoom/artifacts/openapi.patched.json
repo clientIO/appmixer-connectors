@@ -61,7 +61,9 @@
                             "anyOf": [
                                 {
                                     "type": "string",
-                                    "example": "6dfgdfgdg444447b0egga"
+                                    "example": "6dfgdfgdg444447b0egga",
+                                    "default": "me",
+                                    "x-connector-field-index": 1000
                                 },
                                 {
                                     "type": "string",
@@ -267,7 +269,6 @@
                 "tags": [
                     "Meetings"
                 ],
-                "description": "List a user's (meeting host) scheduled meetings. For user-level apps, pass [the `me` value](https://marketplace.zoom.us/docs/api-reference/using-zoom-apis#mekeyword) instead of the `userId` parameter. \n\n**Note:** \n* This API **only** supports scheduled meetings. This API does not return information about instant meetings. \n* This API only returns a user's [unexpired meetings](https://support.zoom.us/hc/en-us/articles/201362373-Meeting-ID#h_c73f9b08-c1c0-4a1a-b538-e01ebb98e844). \n\n **Scopes:** `meeting:read:admin`, `meeting:read` </br> **[Rate Limit Label](https://marketplace.zoom.us/docs/api-reference/rate-limits#rate-limits):** `Medium`",
                 "operationId": "meetings",
                 "summary": "List meetings",
                 "x-connector-pagination": {
@@ -276,8 +277,9 @@
                         "limit": "page_size",
                         "page": 20,
                         "cursor": "next_page_token",
-                        "cursorPath": "next_page_token",
-                        "results": "meetings"
+                        "next": "next_page_token",
+                        "results": "meetings",
+                        "counter": "page_number"
                     }
                 }
             },
@@ -292,7 +294,9 @@
                             "anyOf": [
                                 {
                                     "type": "string",
-                                    "example": "6dfgdfgdg444447b0egga"
+                                    "example": "6dfgdfgdg444447b0egga",
+                                    "default": "me",
+                                    "x-connector-field-index": 1000
                                 },
                                 {
                                     "type": "string",
@@ -1055,7 +1059,6 @@
                 "tags": [
                     "Meetings"
                 ],
-                "description": "[Create a meeting](https://support.zoom.us/hc/en-us/articles/201362413-Scheduling-meetings) for a user. For user-level apps, pass [the `me` value](https://marketplace.zoom.us/docs/api-reference/using-zoom-apis#mekeyword) instead of the `userId` parameter.\n\n* A meeting's `start_url` value is the URL a host or an alternative host can use to start a meeting. The expiration time for the `start_url` value is **two hours** for all regular users.\n* For `custCreate` meeting hosts (users created with the `custCreate` parameter via the [**Create users**](/api-reference/zoom-api/methods#operation/userCreate) API), the expiration time of the `start_url` parameter is **90 days** from the generation of the `start_url`.\n\n**Note:** \n\nFor security reasons, the recommended way to programmatically (after expiry) get the updated `start_url` value is to call the [**Get a meeting**](/api-reference/zoom-api/methods#operation/meeting) API. Refer to the `start_url` value in the response. \n\n **Scopes:** `meeting:write:admin`, `meeting:write`\n\n**[Rate Limit Label](https://marketplace.zoom.us/docs/api-reference/rate-limits#rate-limits):** `Medium` <br>\n* This API has a daily rate limit of **100 requests per day**. The rate limit is applied against the `userId` of the **meeting host** used to make the request.",
                 "operationId": "meetingCreate",
                 "requestBody": {
                     "content": {
@@ -1117,17 +1120,12 @@
                                         "example": "Dv4YdINdTk+Z5RToadh5ug==",
                                         "path": "template_id"
                                     },
-                                    "timezone": {
-                                        "description": "The timezone to assign to the `start_time` value. This field is only used for scheduled meetings (`2`).\n\nFor a list of supported timezones and their format, refer to our [timezone list documentation](https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#timezones).",
-                                        "type": "string",
-                                        "example": "America/Los_Angeles",
-                                        "path": "timezone"
-                                    },
                                     "topic": {
                                         "description": "The meeting's topic.",
                                         "type": "string",
                                         "maxLength": 200,
                                         "example": "My Meeting",
+                                        "x-connector-field-index": -1000,
                                         "path": "topic"
                                     },
                                     "tracking_fields": {
@@ -1180,7 +1178,6 @@
                                         "path": "recurrence.end_date_time"
                                     },
                                     "recurrence|end_times": {
-                                        "default": 1,
                                         "description": "Select how many times the meeting should recur before it is canceled. (Cannot be used with \"end_date_time\".)",
                                         "maximum": 365,
                                         "type": "integer",
@@ -1188,7 +1185,6 @@
                                         "path": "recurrence.end_times"
                                     },
                                     "recurrence|monthly_day": {
-                                        "default": 1,
                                         "description": "Use this field **only if you're scheduling a recurring meeting of type** `3` to state which day in a month, the meeting should recur. The value range is from 1 to 31.\n\nFor instance, if you would like the meeting to recur on 23rd of each month, provide `23` as the value of this field and `1` as the value of the `repeat_interval` field. Instead, if you would like the meeting to recur every three months, on 23rd of the month, change the value of the `repeat_interval` field to `3`.",
                                         "type": "integer",
                                         "example": 1,
@@ -1262,7 +1258,6 @@
                                     },
                                     "recurrence|weekly_days": {
                                         "type": "string",
-                                        "default": "1",
                                         "description": "This field is required **if you're scheduling a recurring meeting of type** `2` to state which day(s) of the week the meeting should repeat. <br> <br> The value for this field could be a number between `1` to `7` in string format. For instance, if the meeting should recur on Sunday, provide `\"1\"` as the value of this field.<br><br> **Note:** If you would like the meeting to occur on multiple days of a week, you should provide comma separated values for this field. For instance, if the meeting should recur on Sundays and Tuesdays provide `\"1,3\"` as the value of this field.\n\n <br>`1`  - Sunday. <br>`2` - Monday.<br>`3` - Tuesday.<br>`4` -  Wednesday.<br>`5` -  Thursday.<br>`6` - Friday.<br>`7` - Saturday.",
                                         "enum": [
                                             "1",
@@ -1705,6 +1700,10 @@
                                         "path": "settings.alternative_host_update_polls"
                                     }
                                 }
+                            },
+                            "x-connector-transform": {
+                                "language": "javascript",
+                                "expression": "requestBody.start_time = requestBody.start_time.replace('Z', ''); requestBody.timezone = requestBody.timezone || 'UTC';"
                             }
                         }
                     },
@@ -1775,7 +1774,6 @@
                 "tags": [
                     "Meetings"
                 ],
-                "description": "Delete a meeting.<br><br>\n**Scopes:** `meeting:write:admin` `meeting:write`<br>\n\n **[Rate Limit Label](https://marketplace.zoom.us/docs/api-reference/rate-limits#rate-limits):** `Light` \n\n",
                 "operationId": "meetingDelete",
                 "summary": "Delete a meeting"
             },
@@ -2578,7 +2576,6 @@
                 "tags": [
                     "Meetings"
                 ],
-                "description": "Retrieve the details of a meeting.<br><br>\n**Scopes:** `meeting:read:admin` `meeting:read`<br>\n\n **[Rate Limit Label](https://marketplace.zoom.us/docs/api-reference/rate-limits#rate-limits):** `Light` \n\n",
                 "operationId": "meeting",
                 "summary": "Get a meeting"
             }

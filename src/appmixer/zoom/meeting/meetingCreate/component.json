@@ -1,7 +1,8 @@
 {
+    "version": "1.0.0",
     "name": "appmixer.zoom.meeting.meetingCreate",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "<label>Create a meeting</label><br/><p><a href=\"https://support.zoom.us/hc/en-us/articles/201362413-Scheduling-meetings\" rel=\"noopener noreferrer\" target=\"_blank\">Create a meeting</a> for a user. For user-level apps, pass <a href=\"https://marketplace.zoom.us/docs/api-reference/using-zoom-apis#mekeyword\" rel=\"noopener noreferrer\" target=\"_blank\">the <code>me</code> value</a> instead of the <code>userId</code> parameter.</p>\n<ul>\n<li>A meeting's <code>start_url</code> value is the URL a host or an alternative host can use to start a meeting. The expiration time for the <code>start_url</code> value is <strong>two hours</strong> for all regular users.</li>\n<li>For <code>custCreate</code> meeting hosts (users created with the <code>custCreate</code> parameter via the <a href=\"/api-reference/zoom-api/methods#operation/userCreate\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Create users</strong></a> API), the expiration time of the <code>start_url</code> parameter is <strong>90 days</strong> from the generation of the <code>start_url</code>.</li>\n</ul>\n<p><strong>Note:</strong> </p>\n<p>For security reasons, the recommended way to programmatically (after expiry) get the updated <code>start_url</code> value is to call the <a href=\"/api-reference/zoom-api/methods#operation/meeting\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Get a meeting</strong></a> API. Refer to the <code>start_url</code> value in the response. </p>\n<p><strong>Scopes:</strong> <code>meeting:write:admin</code>, <code>meeting:write</code></p>\n<p><strong><a href=\"https://marketplace.zoom.us/docs/api-reference/rate-limits#rate-limits\" rel=\"noopener noreferrer\" target=\"_blank\">Rate Limit Label</a>:</strong> <code>Medium</code> <br></p>\n<ul>\n<li>This API has a daily rate limit of <strong>100 requests per day</strong>. The rate limit is applied against the <code>userId</code> of the <strong>meeting host</strong> used to make the request.</li>\n</ul>",
+    "description": "<label>Create a meeting</label>",
     "private": false,
     "quota": {},
     "inPorts": [
@@ -17,7 +18,9 @@
                         "anyOf": [
                             {
                                 "type": "string",
-                                "example": "6dfgdfgdg444447b0egga"
+                                "example": "6dfgdfgdg444447b0egga",
+                                "default": "me",
+                                "x-connector-field-index": 1000
                             },
                             {
                                 "type": "string",
@@ -86,17 +89,12 @@
                         "example": "Dv4YdINdTk+Z5RToadh5ug==",
                         "path": "template_id"
                     },
-                    "timezone": {
-                        "description": "The timezone to assign to the `start_time` value. This field is only used for scheduled meetings (`2`).\n\nFor a list of supported timezones and their format, refer to our [timezone list documentation](https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#timezones).",
-                        "type": "string",
-                        "example": "America/Los_Angeles",
-                        "path": "timezone"
-                    },
                     "topic": {
                         "description": "The meeting's topic.",
                         "type": "string",
                         "maxLength": 200,
                         "example": "My Meeting",
+                        "x-connector-field-index": -1000,
                         "path": "topic"
                     },
                     "tracking_fields": {
@@ -149,7 +147,6 @@
                         "path": "recurrence.end_date_time"
                     },
                     "recurrence|end_times": {
-                        "default": 1,
                         "description": "Select how many times the meeting should recur before it is canceled. (Cannot be used with \"end_date_time\".)",
                         "maximum": 365,
                         "type": "integer",
@@ -157,7 +154,6 @@
                         "path": "recurrence.end_times"
                     },
                     "recurrence|monthly_day": {
-                        "default": 1,
                         "description": "Use this field **only if you're scheduling a recurring meeting of type** `3` to state which day in a month, the meeting should recur. The value range is from 1 to 31.\n\nFor instance, if you would like the meeting to recur on 23rd of each month, provide `23` as the value of this field and `1` as the value of the `repeat_interval` field. Instead, if you would like the meeting to recur every three months, on 23rd of the month, change the value of the `repeat_interval` field to `3`.",
                         "type": "integer",
                         "example": 1,
@@ -231,7 +227,6 @@
                     },
                     "recurrence|weekly_days": {
                         "type": "string",
-                        "default": "1",
                         "description": "This field is required **if you're scheduling a recurring meeting of type** `2` to state which day(s) of the week the meeting should repeat. <br> <br> The value for this field could be a number between `1` to `7` in string format. For instance, if the meeting should recur on Sunday, provide `\"1\"` as the value of this field.<br><br> **Note:** If you would like the meeting to occur on multiple days of a week, you should provide comma separated values for this field. For instance, if the meeting should recur on Sundays and Tuesdays provide `\"1,3\"` as the value of this field.\n\n <br>`1`  - Sunday. <br>`2` - Monday.<br>`3` - Tuesday.<br>`4` -  Wednesday.<br>`5` -  Thursday.<br>`6` - Friday.<br>`7` - Saturday.",
                         "enum": [
                             "1",
@@ -679,9 +674,10 @@
                 "inputs": {
                     "userId": {
                         "type": "text",
-                        "index": 0,
+                        "index": 1000,
                         "label": "User Id",
-                        "tooltip": "<p>The user ID or email address of the user. For user-level apps, pass the <code>me</code> value.</p>"
+                        "tooltip": "<p>The user ID or email address of the user. For user-level apps, pass the <code>me</code> value.</p>",
+                        "defaultValue": "me"
                     },
                     "agenda": {
                         "type": "textarea",
@@ -733,79 +729,71 @@
                         "label": "Template Id",
                         "tooltip": "<p>The <strong>account admin meeting template</strong> ID with which to schedule a meeting using a <a href=\"https://support.zoom.us/hc/en-us/articles/360036559151-Meeting-templates\" rel=\"noopener noreferrer\" target=\"_blank\">meeting template</a>. For a list of account admin-provided meeting templates, use the <a href=\"/docs/api-reference/zoom-api/methods#operation/listMeetingTemplates\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>List meeting templates</strong></a> API. </p>\n<ul>\n<li>At this time, this field <strong>only</strong> accepts account admin meeting template IDs. </li>\n<li>To enable the account admin meeting templates feature, <a href=\"https://support.zoom.us/hc/en-us\" rel=\"noopener noreferrer\" target=\"_blank\">contact Zoom support</a>. Example: Dv4YdINdTk+Z5RToadh5ug==</li>\n</ul>"
                     },
-                    "timezone": {
-                        "type": "text",
-                        "index": 9,
-                        "label": "Timezone",
-                        "tooltip": "<p>The timezone to assign to the <code>start_time</code> value. This field is only used for scheduled meetings (<code>2</code>).</p>\n<p>For a list of supported timezones and their format, refer to our <a href=\"https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#timezones\" rel=\"noopener noreferrer\" target=\"_blank\">timezone list documentation</a>. Example: America/Los_Angeles</p>"
-                    },
                     "topic": {
                         "type": "text",
-                        "index": 10,
+                        "index": -1000,
                         "label": "Topic",
                         "tooltip": "<p>The meeting's topic. Example: My Meeting</p>"
                     },
                     "tracking_fields": {
                         "type": "textarea",
-                        "index": 11,
+                        "index": 10,
                         "label": "Tracking Fields",
                         "tooltip": "<p>Information about the meeting's tracking fields.</p> JSON array. Example: [{\"field\":\"field1\",\"value\":\"value1\"}]."
                     },
                     "type": {
                         "type": "number",
-                        "index": 12,
+                        "index": 11,
                         "label": "Type",
                         "tooltip": "<p>The type of meeting:</p>\n<ul>\n<li><code>1</code> — An instant meeting. </li>\n<li><code>2</code> — A scheduled meeting. </li>\n<li><code>3</code> — A recurring meeting with no fixed time. </li>\n<li><code>8</code> — A recurring meeting with fixed time. Example: 2</li>\n</ul>",
                         "defaultValue": 2
                     },
                     "recurrence|end_date_time": {
                         "type": "date-time",
-                        "index": 13,
+                        "index": 12,
                         "label": "Recurrence End Date Time",
                         "tooltip": "<p>Select the final date on which the meeting will recur before it is canceled. Should be in UTC time, such as 2017-11-25T12:00:00Z. (Cannot be used with \"end_times\".) Example: 2022-04-02T15:59:00Z</p>"
                     },
                     "recurrence|end_times": {
                         "type": "number",
-                        "index": 14,
+                        "index": 13,
                         "label": "Recurrence End Times",
                         "tooltip": "<p>Select how many times the meeting should recur before it is canceled. (Cannot be used with \"end<em>date</em>time\".) Example: 7</p>",
-                        "defaultValue": 1,
                         "max": 365
                     },
                     "recurrence|monthly_day": {
                         "type": "number",
-                        "index": 15,
+                        "index": 14,
                         "label": "Recurrence Monthly Day",
-                        "tooltip": "<p>Use this field <strong>only if you're scheduling a recurring meeting of type</strong> <code>3</code> to state which day in a month, the meeting should recur. The value range is from 1 to 31.</p>\n<p>For instance, if you would like the meeting to recur on 23rd of each month, provide <code>23</code> as the value of this field and <code>1</code> as the value of the <code>repeat_interval</code> field. Instead, if you would like the meeting to recur every three months, on 23rd of the month, change the value of the <code>repeat_interval</code> field to <code>3</code>. Example: 1</p>",
-                        "defaultValue": 1
+                        "tooltip": "<p>Use this field <strong>only if you're scheduling a recurring meeting of type</strong> <code>3</code> to state which day in a month, the meeting should recur. The value range is from 1 to 31.</p>\n<p>For instance, if you would like the meeting to recur on 23rd of each month, provide <code>23</code> as the value of this field and <code>1</code> as the value of the <code>repeat_interval</code> field. Instead, if you would like the meeting to recur every three months, on 23rd of the month, change the value of the <code>repeat_interval</code> field to <code>3</code>. Example: 1</p>"
                     },
                     "recurrence|monthly_week": {
                         "type": "number",
-                        "index": 16,
+                        "index": 15,
                         "label": "Recurrence Monthly Week",
                         "tooltip": "<p>Use this field <strong>only if you're scheduling a recurring meeting of type</strong> <code>3</code> to state the week of the month when the meeting should recur. If you use this field, <strong>you must also use the <code>monthly_week_day</code> field to state the day of the week when the meeting should recur.</strong> <br><code>-1</code> - Last week of the month.<br><code>1</code> - First week of the month.<br><code>2</code> - Second week of the month.<br><code>3</code> - Third week of the month.<br><code>4</code> - Fourth week of the month. Example: 1</p>"
                     },
                     "recurrence|monthly_week_day": {
                         "type": "number",
-                        "index": 17,
+                        "index": 16,
                         "label": "Recurrence Monthly Week Day",
                         "tooltip": "<p>Use this field <strong>only if you're scheduling a recurring meeting of type</strong> <code>3</code> to state a specific day in a week when the monthly meeting should recur. To use this field, you must also use the <code>monthly_week</code> field. </p>\n<p><br><code>1</code> - Sunday.<br><code>2</code> - Monday.<br><code>3</code> - Tuesday.<br><code>4</code> -  Wednesday.<br><code>5</code> - Thursday.<br><code>6</code> - Friday.<br><code>7</code> - Saturday. Example: 1</p>"
                     },
                     "recurrence|repeat_interval": {
                         "type": "number",
-                        "index": 18,
+                        "index": 17,
                         "label": "Recurrence Repeat Interval",
                         "tooltip": "<p>Define the interval at which the meeting should recur. For instance, if you would like to schedule a meeting that recurs every two months, you must set the value of this field as <code>2</code> and the value of the <code>type</code> parameter as <code>3</code>. </p>\n<p>For a daily meeting, the maximum interval you can set is <code>90</code> days. For a weekly meeting the maximum interval that you can set is  of <code>12</code> weeks. For a monthly meeting, there is a maximum of <code>3</code> months.</p>\n<p>Example: 1</p>"
                     },
                     "recurrence|type": {
                         "type": "number",
-                        "index": 19,
+                        "index": 18,
                         "label": "Recurrence Type",
                         "tooltip": "<p>Recurrence meeting types:<br><code>1</code> - Daily.<br><code>2</code> - Weekly.<br><code>3</code> - Monthly. Example: 1</p>"
                     },
                     "recurrence|weekly_days": {
                         "type": "select",
-                        "index": 20,
+                        "index": 19,
                         "label": "Recurrence Weekly Days",
                         "tooltip": "<p>This field is required <strong>if you're scheduling a recurring meeting of type</strong> <code>2</code> to state which day(s) of the week the meeting should repeat. <br> <br> The value for this field could be a number between <code>1</code> to <code>7</code> in string format. For instance, if the meeting should recur on Sunday, provide <code>\"1\"</code> as the value of this field.<br><br> <strong>Note:</strong> If you would like the meeting to occur on multiple days of a week, you should provide comma separated values for this field. For instance, if the meeting should recur on Sundays and Tuesdays provide <code>\"1,3\"</code> as the value of this field.</p>\n<p><br><code>1</code>  - Sunday. <br><code>2</code> - Monday.<br><code>3</code> - Tuesday.<br><code>4</code> -  Wednesday.<br><code>5</code> -  Thursday.<br><code>6</code> - Friday.<br><code>7</code> - Saturday. Example: 1</p>",
                         "options": [
@@ -837,50 +825,49 @@
                                 "content": "7",
                                 "value": "7"
                             }
-                        ],
-                        "defaultValue": "1"
+                        ]
                     },
                     "settings|additional_data_center_regions": {
                         "type": "textarea",
-                        "index": 21,
+                        "index": 20,
                         "label": "Settings Additional Data Center Regions",
                         "tooltip": "<p>Add additional meeting <a href=\"https://support.zoom.us/hc/en-us/articles/360042411451-Selecting-data-center-regions-for-hosted-meetings-and-webinars\" rel=\"noopener noreferrer\" target=\"_blank\">data center regions</a>. Provide this value as an array of <a href=\"https://marketplace.zoom.us/docs/api-reference/other-references/abbreviation-lists#countries\" rel=\"noopener noreferrer\" target=\"_blank\">country codes</a> for the countries available as data center regions in the <a href=\"https://zoom.us/account/setting\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Account Profile</strong></a> interface but have been opted out of in the <a href=\"https://zoom.us/profile\" rel=\"noopener noreferrer\" target=\"_blank\">user settings</a>.</p>\n<p>For example, the data center regions selected in your <a href=\"https://zoom.us/account\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Account Profile</strong></a> are \"Europe\", \"Hong Kong SAR\", \"Australia\", \"India\", \"Japan\", \"China\", \"United States\", and \"Canada\". However, in the <a href=\"https://zoom.us/profile\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>My Profile</strong></a> settings, you did <strong>not</strong> select \"India\" and \"Japan\" for meeting and webinar traffic routing.</p>\n<p>To include \"India\" and \"Japan\" as additional data centers, use the <code>[\"IN\", \"TY\"]</code> value for this field.</p> JSON array. Example: [\"TY\"]."
                     },
                     "settings|allow_multiple_devices": {
                         "type": "toggle",
-                        "index": 22,
+                        "index": 21,
                         "label": "Settings Allow Multiple Devices",
                         "tooltip": "<p>Whether to allow attendees to join a meeting from multiple devices. This setting is only applied to meetings with registration enabled. Example: true</p>"
                     },
                     "settings|alternative_hosts": {
                         "type": "text",
-                        "index": 23,
+                        "index": 22,
                         "label": "Settings Alternative Hosts",
                         "tooltip": "<p>A semicolon-separated list of the meeting's alternative hosts' email addresses or IDs. Example: jchill@example.com;thill@example.com</p>"
                     },
                     "settings|alternative_hosts_email_notification": {
                         "type": "toggle",
-                        "index": 24,
+                        "index": 23,
                         "label": "Settings Alternative Hosts Email Notification",
                         "tooltip": "<p>Whether to send email notifications to alternative hosts. This value defaults to <code>true</code>. Example: true</p>",
                         "defaultValue": true
                     },
                     "settings|approval_type": {
                         "type": "number",
-                        "index": 25,
+                        "index": 24,
                         "label": "Settings Approval Type",
                         "tooltip": "<p>Enable meeting registration approval: </p>\n<ul>\n<li><code>0</code> — Automatically approve registration.</li>\n<li><code>1</code> — Manually approve registration.</li>\n<li><code>2</code> — No registration required.</li>\n</ul>\n<p>This value defaults to <code>2</code>. Example: 2</p>",
                         "defaultValue": 2
                     },
                     "settings|approved_or_denied_countries_or_regions": {
                         "type": "text",
-                        "index": 26,
+                        "index": 25,
                         "label": "Settings Approved Or Denied Countries Or Regions",
                         "tooltip": "<p>The list of approved or blocked users from specific countries or regions who can join the meeting.</p>"
                     },
                     "settings|audio": {
                         "type": "select",
-                        "index": 27,
+                        "index": 26,
                         "label": "Settings Audio",
                         "tooltip": "<p>How participants join the audio portion of the meeting: </p>\n<ul>\n<li><code>both</code> — Both telephony and VoIP. </li>\n<li><code>telephony</code> — Telephony only. </li>\n<li><code>voip</code> — VoIP only.</li>\n</ul>\n<p>This value defaults to <code>both</code>. Example: telephony</p>",
                         "options": [
@@ -901,25 +888,25 @@
                     },
                     "settings|authentication_domains": {
                         "type": "text",
-                        "index": 28,
+                        "index": 27,
                         "label": "Settings Authentication Domains",
                         "tooltip": "<p>The meeting's authenticated domains. Only Zoom users whose email address contains an authenticated domain can join the meeting. Comma-separate multiple domains or use a wildcard for listing domains. Example: example.com</p>"
                     },
                     "settings|authentication_exception": {
                         "type": "textarea",
-                        "index": 29,
+                        "index": 28,
                         "label": "Settings Authentication Exception",
                         "tooltip": "<p>A list of participants that can bypass meeting authentication. These participants will receive a unique meeting invite.</p> JSON array. Example: [{\"email\":\"jchill@example.com\",\"name\":\"Jill Chill\"}]."
                     },
                     "settings|authentication_option": {
                         "type": "text",
-                        "index": 30,
+                        "index": 29,
                         "label": "Settings Authentication Option",
                         "tooltip": "<p>If the <code>meeting_authentication</code> value is <code>true</code>, the type of authentication required for users to join a meeting.</p>\n<p>To get this value, use the <code>authentication_options</code> array's <code>id</code> value in the <a href=\"/docs/api-reference/zoom-api/methods#operation/userSettings\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Get user settings</strong></a> API response. Example: signIn_D8cJuqWVQ623CI4Q8yQK0Q</p>"
                     },
                     "settings|auto_recording": {
                         "type": "select",
-                        "index": 31,
+                        "index": 30,
                         "label": "Settings Auto Recording",
                         "tooltip": "<p>The automatic recording settings: </p>\n<ul>\n<li><code>local</code> — Record the meeting locally. </li>\n<li><code>cloud</code> — Record the meeting to the cloud. </li>\n<li><code>none</code> — Auto-recording disabled.</li>\n</ul>\n<p>This value defaults to <code>none</code>. Example: cloud</p>",
                         "options": [
@@ -940,52 +927,52 @@
                     },
                     "settings|breakout_room": {
                         "type": "text",
-                        "index": 32,
+                        "index": 31,
                         "label": "Settings Breakout Room",
                         "tooltip": "<p>The <a href=\"https://support.zoom.us/hc/en-us/articles/360032752671-Pre-assigning-participants-to-breakout-rooms\" rel=\"noopener noreferrer\" target=\"_blank\">pre-assigned breakout rooms</a> settings.</p>"
                     },
                     "settings|calendar_type": {
                         "type": "number",
-                        "index": 33,
+                        "index": 32,
                         "label": "Settings Calendar Type",
                         "tooltip": "<p>Indicates the type of calendar integration used to schedule the meeting: </p>\n<ul>\n<li><code>1</code> — <a href=\"https://support.zoom.us/hc/en-us/articles/360031592971-Getting-started-with-Outlook-plugin-and-add-in\" rel=\"noopener noreferrer\" target=\"_blank\">Zoom Outlook add-in</a> </li>\n<li><code>2</code> — <a href=\"https://support.zoom.us/hc/en-us/articles/360020187492-Using-the-Zoom-for-Google-Workspace-add-on\" rel=\"noopener noreferrer\" target=\"_blank\">Zoom for Google Workspace add-on</a></li>\n</ul>\n<p>Works with the <code>private_meeting</code> field to determine whether to share details of meetings or not. Example: 1</p>"
                     },
                     "settings|close_registration": {
                         "type": "toggle",
-                        "index": 34,
+                        "index": 33,
                         "label": "Settings Close Registration",
                         "tooltip": "<p>Whether to close registration after the event date. This value defaults to <code>false</code>.</p>",
                         "defaultValue": false
                     },
                     "settings|cn_meeting": {
                         "type": "toggle",
-                        "index": 35,
+                        "index": 34,
                         "label": "Settings Cn Meeting",
                         "tooltip": "<p>Whether to host the meeting in China (CN). This value defaults to <code>false</code>.</p>",
                         "defaultValue": false
                     },
                     "settings|contact_email": {
                         "type": "text",
-                        "index": 36,
+                        "index": 35,
                         "label": "Settings Contact Email",
                         "tooltip": "<p>The contact email address for meeting registration. Example: jchill@example.com</p>"
                     },
                     "settings|contact_name": {
                         "type": "text",
-                        "index": 37,
+                        "index": 36,
                         "label": "Settings Contact Name",
                         "tooltip": "<p>The contact name for meeting registration. Example: Jill Chill</p>"
                     },
                     "settings|email_notification": {
                         "type": "toggle",
-                        "index": 38,
+                        "index": 37,
                         "label": "Settings Email Notification",
                         "tooltip": "<p>Whether to send email notifications to <a href=\"https://support.zoom.us/hc/en-us/articles/208220166\" rel=\"noopener noreferrer\" target=\"_blank\">alternative hosts</a> and <a href=\"https://support.zoom.us/hc/en-us/articles/201362803-Scheduling-privilege\" rel=\"noopener noreferrer\" target=\"_blank\">users with scheduling privileges</a>. This value defaults to <code>true</code>. Example: true</p>",
                         "defaultValue": true
                     },
                     "settings|encryption_type": {
                         "type": "select",
-                        "index": 39,
+                        "index": 38,
                         "label": "Settings Encryption Type",
                         "tooltip": "<p>The type of <a href=\"https://support.zoom.us/hc/en-us/articles/360048660871\" rel=\"noopener noreferrer\" target=\"_blank\">end-to-end (E2EE) encryption</a> to use for the meeting: </p>\n<ul>\n<li><code>enhanced_encryption</code> — Enhanced encryption. Encryption is stored in the cloud when you enable this option. </li>\n<li><code>e2ee</code> — End-to-end encryption. The encryption key is stored on your local device and <strong>cannot</strong> be obtained by anyone else. When you use E2EE encryption, <a href=\"https://support.zoom.us/hc/en-us/articles/360048660871\" rel=\"noopener noreferrer\" target=\"_blank\">certain features</a>, such as cloud recording or phone and SIP/H.323 dial-in, are <strong>disabled</strong>. Example: enhanced_encryption</li>\n</ul>",
                         "options": [
@@ -1001,133 +988,133 @@
                     },
                     "settings|focus_mode": {
                         "type": "toggle",
-                        "index": 40,
+                        "index": 39,
                         "label": "Settings Focus Mode",
                         "tooltip": "<p>Whether to enable the <a href=\"https://support.zoom.us/hc/en-us/articles/360061113751-Using-focus-mode\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Focus Mode</strong> feature</a> when the meeting starts. Example: true</p>"
                     },
                     "settings|global_dial_in_countries": {
                         "type": "textarea",
-                        "index": 41,
+                        "index": 40,
                         "label": "Settings Global Dial In Countries",
                         "tooltip": "<p>A list of available global dial-in countries.</p> JSON array. Example: [\"US\"]."
                     },
                     "settings|host_video": {
                         "type": "toggle",
-                        "index": 42,
+                        "index": 41,
                         "label": "Settings Host Video",
                         "tooltip": "<p>Whether to start meetings with the host video on. Example: true</p>"
                     },
                     "settings|in_meeting": {
                         "type": "toggle",
-                        "index": 43,
+                        "index": 42,
                         "label": "Settings In Meeting",
                         "tooltip": "<p>Whether to host the meeting in India (IN). This value defaults to <code>false</code>.</p>",
                         "defaultValue": false
                     },
                     "settings|jbh_time": {
                         "type": "number",
-                        "index": 44,
+                        "index": 43,
                         "label": "Settings Jbh Time",
                         "tooltip": "<p>If the value of the <code>join_before_host</code> field is <code>true</code>, this field indicates the time limits within which a participant can join a meeting before the meeting's host:</p>\n<ul>\n<li><code>0</code> — Allow the participant to join the meeting at anytime.</li>\n<li><code>5</code> — Allow the participant to join 5 minutes before the meeting's start time.</li>\n<li><code>10</code> — Allow the participant to join 10 minutes before the meeting's start time.</li>\n</ul>"
                     },
                     "settings|join_before_host": {
                         "type": "toggle",
-                        "index": 45,
+                        "index": 44,
                         "label": "Settings Join Before Host",
                         "tooltip": "<p>Whether participants can join the meeting before its host. This field is only used for scheduled meetings (<code>2</code>) or recurring meetings (<code>3</code> and <code>8</code>). This value defaults to <code>false</code>.</p>\n<p>If the <a href=\"https://support.zoom.us/hc/en-us/articles/115000332726-Waiting-Room\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Waiting Room</strong> feature</a> is enabled, this setting is <strong>disabled</strong>.</p>",
                         "defaultValue": false
                     },
                     "settings|language_interpretation": {
                         "type": "text",
-                        "index": 46,
+                        "index": 45,
                         "label": "Settings Language Interpretation",
                         "tooltip": "<p>The meeting's <a href=\"https://support.zoom.us/hc/en-us/articles/360034919791-Language-interpretation-in-meetings-and-webinars\" rel=\"noopener noreferrer\" target=\"_blank\">language interpretation settings</a>. Make sure to add the language in the web portal in order to use it in the API. See link for details. </p>\n<p><strong>Note:</strong> This feature is only available for certain Meeting add-on, Education, and Business and higher plans. If this feature is not enabled on the host's account, this setting will <strong>not</strong> be applied to the meeting.</p>"
                     },
                     "settings|meeting_authentication": {
                         "type": "toggle",
-                        "index": 47,
+                        "index": 46,
                         "label": "Settings Meeting Authentication",
                         "tooltip": "<p>If true, only <a href=\"https://support.zoom.us/hc/en-us/articles/360037117472-Authentication-Profiles-for-Meetings-and-Webinars\" rel=\"noopener noreferrer\" target=\"_blank\">authenticated</a> users can join the meeting. Example: true</p>"
                     },
                     "settings|meeting_invitees": {
                         "type": "textarea",
-                        "index": 48,
+                        "index": 47,
                         "label": "Settings Meeting Invitees",
                         "tooltip": "<p>A list of the meeting's invitees.</p> JSON array. Example: [{\"email\":\"jchill@example.com\"}]."
                     },
                     "settings|mute_upon_entry": {
                         "type": "toggle",
-                        "index": 49,
+                        "index": 48,
                         "label": "Settings Mute Upon Entry",
                         "tooltip": "<p>Whether to mute participants upon entry.</p>",
                         "defaultValue": false
                     },
                     "settings|participant_video": {
                         "type": "toggle",
-                        "index": 50,
+                        "index": 49,
                         "label": "Settings Participant Video",
                         "tooltip": "<p>Whether to start meetings with the participant video on.</p>"
                     },
                     "settings|private_meeting": {
                         "type": "toggle",
-                        "index": 51,
+                        "index": 50,
                         "label": "Settings Private Meeting",
                         "tooltip": "<p>Whether to set the meeting as private.</p>"
                     },
                     "settings|registrants_confirmation_email": {
                         "type": "toggle",
-                        "index": 52,
+                        "index": 51,
                         "label": "Settings Registrants Confirmation Email",
                         "tooltip": "<p>Whether to send registrants an email confirmation: </p>\n<ul>\n<li><code>true</code> — Send a confirmation email. </li>\n<li><code>false</code> — Do not send a confirmation email. Example: true</li>\n</ul>"
                     },
                     "settings|registrants_email_notification": {
                         "type": "toggle",
-                        "index": 53,
+                        "index": 52,
                         "label": "Settings Registrants Email Notification",
                         "tooltip": "<p>Whether to send registrants email notifications about their registration approval, cancellation, or rejection:</p>\n<ul>\n<li><p><code>true</code> — Send an email notification.</p></li>\n<li><p><code>false</code> — Do not send an email notification.</p>\n<p>Set this value to <code>true</code> to also use the <code>registrants_confirmation_email</code> parameter. Example: true</p></li>\n</ul>"
                     },
                     "settings|registration_type": {
                         "type": "number",
-                        "index": 54,
+                        "index": 53,
                         "label": "Settings Registration Type",
                         "tooltip": "<p>The meeting's registration type: </p>\n<ul>\n<li><code>1</code> — Attendees register once and can attend any meeting occurrence. </li>\n<li><code>2</code> — Attendees must register for each meeting occurrence. </li>\n<li><code>3</code> — Attendees register once and can select one or more meeting occurrences to attend.</li>\n</ul>\n<p>This field is only for recurring meetings with fixed times (<code>8</code>). This value defaults to <code>1</code>. Example: 1</p>",
                         "defaultValue": 1
                     },
                     "settings|show_share_button": {
                         "type": "toggle",
-                        "index": 55,
+                        "index": 54,
                         "label": "Settings Show Share Button",
                         "tooltip": "<p>Whether to include social media sharing buttons on the meeting's registration page. This setting is only applied to meetings with registration enabled. Example: true</p>"
                     },
                     "settings|use_pmi": {
                         "type": "toggle",
-                        "index": 56,
+                        "index": 55,
                         "label": "Settings Use Pmi",
                         "tooltip": "<p>Whether to use a <a href=\"https://marketplace.zoom.us/docs/api-reference/using-zoom-apis#understanding-personal-meeting-id-pmi\" rel=\"noopener noreferrer\" target=\"_blank\">Personal Meeting ID (PMI)</a> instead of a generated meeting ID. This field is only used for scheduled meetings (<code>2</code>), instant meetings (<code>1</code>), or recurring meetings with no fixed time (<code>3</code>). This value defaults to <code>false</code>.</p>",
                         "defaultValue": false
                     },
                     "settings|waiting_room": {
                         "type": "toggle",
-                        "index": 57,
+                        "index": 56,
                         "label": "Settings Waiting Room",
                         "tooltip": "<p>Whether to enable the <a href=\"https://support.zoom.us/hc/en-us/articles/115000332726-Waiting-Room\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>Waiting Room</strong> feature</a>. If this value is <code>true</code>, this <strong>disables</strong> the <code>join_before_host</code> setting.</p>"
                     },
                     "settings|watermark": {
                         "type": "toggle",
-                        "index": 58,
+                        "index": 57,
                         "label": "Settings Watermark",
                         "tooltip": "<p>Whether to add a watermark when viewing a shared screen.</p>",
                         "defaultValue": false
                     },
                     "settings|host_save_video_order": {
                         "type": "toggle",
-                        "index": 59,
+                        "index": 58,
                         "label": "Settings Host Save Video Order",
                         "tooltip": "<p>Whether the <strong>Allow host to save video order</strong> feature is enabled. Example: true</p>"
                     },
                     "settings|alternative_host_update_polls": {
                         "type": "toggle",
-                        "index": 60,
+                        "index": 59,
                         "label": "Settings Alternative Host Update Polls",
                         "tooltip": "<p>Whether the <strong>Allow alternative hosts to add or edit polls</strong> feature is enabled. This requires Zoom version 5.8.0 or higher. Example: true</p>"
                     }

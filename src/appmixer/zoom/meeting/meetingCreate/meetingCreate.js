@@ -8,6 +8,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
+
         let url = lib.getBaseUrl(context) + `/users/${input['userId']}/meetings`;
 
         const headers = {};
@@ -21,7 +22,6 @@ module.exports = {
             'schedule_for': input['schedule_for'],
             'start_time': input['start_time'],
             'template_id': input['template_id'],
-            'timezone': input['timezone'],
             'topic': input['topic'],
             'tracking_fields': input['tracking_fields'],
             'type': input['type'],
@@ -36,11 +36,9 @@ module.exports = {
             'settings.additional_data_center_regions': input['settings|additional_data_center_regions'],
             'settings.allow_multiple_devices': input['settings|allow_multiple_devices'],
             'settings.alternative_hosts': input['settings|alternative_hosts'],
-            'settings.alternative_hosts_email_notification': input[
-                'settings|alternative_hosts_email_notification'],
+            'settings.alternative_hosts_email_notification': input['settings|alternative_hosts_email_notification'],
             'settings.approval_type': input['settings|approval_type'],
-            'settings.approved_or_denied_countries_or_regions': input[
-                'settings|approved_or_denied_countries_or_regions'],
+            'settings.approved_or_denied_countries_or_regions': input['settings|approved_or_denied_countries_or_regions'],
             'settings.audio': input['settings|audio'],
             'settings.authentication_domains': input['settings|authentication_domains'],
             'settings.authentication_exception': input['settings|authentication_exception'],
@@ -76,17 +74,20 @@ module.exports = {
             'settings.host_save_video_order': input['settings|host_save_video_order'],
             'settings.alternative_host_update_polls': input['settings|alternative_host_update_polls']
         };
-        let body = {};
-        lib.setProperties(body, inputMapping);
+        let requestBody = {};
+        lib.setProperties(requestBody, inputMapping);
+
+        requestBody.start_time = requestBody.start_time.replace('Z', ''); requestBody.timezone = requestBody.timezone || 'UTC';
+
 
         headers['Authorization'] = 'Bearer ' + context.auth.accessToken;
 
         const req = {
             url: url,
             method: 'POST',
-            data: body,
-            headers: headers
+            data: requestBody,        headers: headers
         };
+
 
         try {
             const response = await context.httpRequest(req);
@@ -130,9 +131,8 @@ module.exports = {
 
     receive: async function(context) {
 
-        const {
-            data
-        } = await this.httpRequest(context);
+
+        const { data } = await this.httpRequest(context);
 
         return context.sendJson(data, 'out');
     }

@@ -31,17 +31,12 @@ module.exports = {
             const url = '/users/me';
             const baseUrl = lib.getBaseUrl(context);
             const normalizedUrl = this.replaceVariables(context, baseUrl + url);
-            const options = {
-                method: method,
-                url: normalizedUrl
-            };
+            const options = { method: method, url: normalizedUrl };
             options.headers = {
                 'Authorization': 'Bearer {accessToken}'
             };
             options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
-            const {
-                data
-            } = await context.httpRequest(options);
+            const { data } = await context.httpRequest(options);
             return data;
         },
 
@@ -56,10 +51,7 @@ module.exports = {
             const url = '/users/me';
             const baseUrl = lib.getBaseUrl(context);
             const normalizedUrl = this.replaceVariables(context, baseUrl + url);
-            const options = {
-                method: method,
-                url: normalizedUrl
-            };
+            const options = { method: method, url: normalizedUrl };
             options.headers = {
                 'Authorization': 'Bearer {accessToken}'
             };

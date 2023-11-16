@@ -26,16 +26,6 @@
         }
     },
     {
-        "op": "move",
-        "from": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/oneOf",
-        "path": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/anyOf"
-    },
-    {
-        "op": "move",
-        "from": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/oneOf",
-        "path": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/anyOf"
-    },
-    {
         "op": "add",
         "path": "/components/securitySchemes/OAuth/x-connector-connection-profile",
         "value": {
@@ -48,6 +38,85 @@
         }
     },
     {
+        "op": "move",
+        "from": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/oneOf",
+        "path": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/anyOf"
+    },
+    {
+        "op": "move",
+        "from": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/oneOf",
+        "path": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/anyOf"
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/anyOf/0/default",
+        "value": "me"
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/anyOf/0/default",
+        "value": "me"
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1users~1{userId}~1meetings/post/parameters/0/schema/anyOf/0/x-connector-field-index",
+        "value": 1000
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1users~1{userId}~1meetings/get/parameters/0/schema/anyOf/0/x-connector-field-index",
+        "value": 1000
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1users~1{userId}~1meetings/post/requestBody/content/application~1json/schema/properties/topic/x-connector-field-index",
+        "value": -1000
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1users~1{userId}~1meetings/post/requestBody/content/application~1json/schema/properties/recurrence/properties/end_times/default"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1users~1{userId}~1meetings/post/requestBody/content/application~1json/schema/properties/recurrence/properties/monthly_day/default"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1users~1{userId}~1meetings/post/requestBody/content/application~1json/schema/properties/recurrence/properties/weekly_days/default"
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'meetingCreate')]",
+        "path": "description"
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'meetings')]",
+        "path": "description"
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'meeting')]",
+        "path": "description"
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'meetingDelete')]",
+        "path": "description"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1users~1{userId}~1meetings/post/requestBody/content/application~1json/schema/properties/timezone"
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1users~1{userId}~1meetings/post/requestBody/content/application~1json/x-connector-transform",
+        "value": {
+            "language": "javascript",
+            "expression": "requestBody.start_time = requestBody.start_time.replace('Z', ''); requestBody.timezone = requestBody.timezone || 'UTC';"
+        }
+    },
+    {
         "op": "add",
         "jsonpath": "$.paths.*[?(@.operationId == 'meetings')]",
         "path": "x-connector-pagination",
@@ -57,8 +126,9 @@
                 "limit": "page_size",
                 "page": 20,
                 "cursor": "next_page_token",
-                "cursorPath": "next_page_token",
-                "results": "meetings"
+                "next": "next_page_token",
+                "results": "meetings",
+                "counter": "page_number"
             }
         }
     },

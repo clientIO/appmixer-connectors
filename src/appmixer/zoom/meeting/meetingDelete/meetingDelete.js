@@ -8,16 +8,17 @@ module.exports = {
 
         const input = context.messages.in.content;
 
+
         let url = lib.getBaseUrl(context) + `/meetings/${input['meetingId']}`;
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = {
-            'occurrence_id': input['occurrence_id'],
+
+        const queryParameters = { 'occurrence_id': input['occurrence_id'],
             'schedule_for_reminder': input['schedule_for_reminder'],
-            'cancel_meeting_reminder': input['cancel_meeting_reminder']
-        };
+            'cancel_meeting_reminder': input['cancel_meeting_reminder'] };
+
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {
@@ -33,10 +34,12 @@ module.exports = {
             headers: headers
         };
 
+
         const queryString = query.toString();
         if (queryString) {
             req.url += '?' + queryString;
         }
+
 
         try {
             const response = await context.httpRequest(req);
@@ -80,9 +83,8 @@ module.exports = {
 
     receive: async function(context) {
 
-        const {
-            data
-        } = await this.httpRequest(context);
+
+        const { data } = await this.httpRequest(context);
 
         return context.sendJson(data, 'out');
     }

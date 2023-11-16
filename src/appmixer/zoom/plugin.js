@@ -5,17 +5,14 @@ const lib = require('./lib');
 module.exports = async context => {
 
     context.http.router.register({
-        method: 'POST',
+        method:'POST',
         // {APPMIXER_API_URL}/plugins/appmixer/{SERVICE}/events
         path: '/events',
         options: {
             auth: false,
             handler: async req => {
 
-                context.log('info', 'plugin-route-hit', {
-                    payload: req.payload,
-                    headers: req.headers
-                });
+                context.log('info', 'plugin-route-hit', { payload: req.payload, headers: req.headers });
 
                 const expCondition = lib.jsonata('payload.event = "endpoint.url_validation"');
                 const condition = await expCondition.evaluate(req);
@@ -25,14 +22,9 @@ module.exports = async context => {
                     const key = context.config['webhookSecretToken'];
                     const expChallenge = lib.jsonata('payload.payload.plainToken');
                     const challenge = await expChallenge.evaluate(req);
-                    const responseToken = crypto.createHmac(alg, key).update(challenge).digest(
-                        'hex');
-                    const expResponse = lib.jsonata(
-                        '{ "encryptedToken": responseToken, "plainToken": challenge }');
-                    const response = await expResponse.evaluate({
-                        responseToken,
-                        challenge
-                    });
+                    const responseToken = crypto.createHmac(alg, key).update(challenge).digest('hex');
+                    const expResponse = lib.jsonata('{ "encryptedToken": responseToken, "plainToken": challenge }');
+                    const response = await expResponse.evaluate({ responseToken, challenge });
                     return response;
                 }
 
@@ -44,8 +36,7 @@ module.exports = async context => {
                     const topic = await expTopic.evaluate(req);
                     const registeredComponents = await context.service.stateGet(topic);
                     if (registeredComponents) {
-                        registeredComponents.forEach(c => allRegisteredComponents[c.componentId] =
-                            c);
+                        registeredComponents.forEach(c => allRegisteredComponents[c.componentId] = c);
                     }
                 }
 
@@ -73,9 +64,7 @@ module.exports = async context => {
                 })).then(results => {
                     results.forEach(result => {
                         if (result.status === 'rejected') {
-                            context.log(
-                                'Plugin error when triggering one of the components.',
-                                result.reason);
+                            context.log('Plugin error when triggering one of the components.', result.reason);
                         }
                     });
                 }).catch(err => {
@@ -85,5 +74,6 @@ module.exports = async context => {
             }
         }
     });
+
 
 };
