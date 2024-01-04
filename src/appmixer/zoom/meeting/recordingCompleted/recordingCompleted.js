@@ -4,17 +4,6 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    receive: async function(context) {
-
-        if (context.messages.webhook) {
-            await context.log({ step: 'webhook', webhook: context.messages.webhook });
-
-            let out = await lib.replaceRuntimeExpressions('$request.body', context, {}, context.messages.webhook.content);
-            await context.sendJson(out, 'out');
-            return context.response(out);
-        }
-    },
-
     start: async function(context) {
 
         // Subscribe to a static webhook events received via ../../plugin.js.
@@ -37,6 +26,17 @@ module.exports = {
                 flowId: context.flowId
             }
         );
+    },
+
+    receive: async function(context) {
+
+        if (context.messages.webhook) {
+            await context.log({ step: 'webhook', webhook: context.messages.webhook });
+
+            let out = await lib.replaceRuntimeExpressions('$request.body', context, {}, context.messages.webhook.content);
+            await context.sendJson(out, 'out');
+            return context.response(out);
+        }
     }
 
 };

@@ -4,10 +4,17 @@ const lib = require('../../lib');
 
 module.exports = {
 
+    receive: async function(context) {
+
+        const { data } = await this.httpRequest(context);
+
+        return context.sendJson(data, 'out');
+    },
+
     httpRequest: async function(context) {
 
+        // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
-
 
         let url = lib.getBaseUrl(context) + `/users/${input['userId']}/meetings`;
 
@@ -79,15 +86,14 @@ module.exports = {
 
         requestBody.start_time = requestBody.start_time.replace('Z', ''); requestBody.timezone = requestBody.timezone || 'UTC';
 
-
         headers['Authorization'] = 'Bearer ' + context.auth.accessToken;
 
         const req = {
             url: url,
             method: 'POST',
-            data: requestBody,        headers: headers
+            data: requestBody,
+            headers: headers
         };
-
 
         try {
             const response = await context.httpRequest(req);
@@ -127,14 +133,6 @@ module.exports = {
             await context.log(log);
             throw err;
         }
-    },
-
-    receive: async function(context) {
-
-
-        const { data } = await this.httpRequest(context);
-
-        return context.sendJson(data, 'out');
     }
 
 };

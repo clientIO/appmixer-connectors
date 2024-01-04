@@ -4,100 +4,11 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    httpRequest: async function(context, override = {}) {
-
-        const input = context.messages.in.content;
-
-
-        let url = lib.getBaseUrl(context) + `/users/${input['userId']}/meetings`;
-
-        const headers = {};
-        const query = new URLSearchParams;
-
-
-        const queryParameters = { 'type': input['type'],
-            'page_size': input['page_size'],
-            'next_page_token': input['next_page_token'],
-            'page_number': input['page_number'] };
-
-        if (override?.query) {
-            Object.keys(override.query).forEach(parameter => {
-                queryParameters[parameter] = override.query[parameter];
-            });
-        }
-
-        Object.keys(queryParameters).forEach(parameter => {
-            if (queryParameters[parameter]) {
-                query.append(parameter, queryParameters[parameter]);
-            }
-        });
-
-        headers['Authorization'] = 'Bearer ' + context.auth.accessToken;
-
-        const req = {
-            url: url,
-            method: 'GET',
-            headers: headers
-        };
-
-        if (override.url) req.url = override.url;
-        if (override.body) req.data = override.body;
-        if (override.headers) req.headers = override.headers;
-        if (override.method) req.method = override.method;
-
-        const queryString = query.toString();
-        if (queryString) {
-            req.url += '?' + queryString;
-        }
-
-
-        try {
-            const response = await context.httpRequest(req);
-            const log = {
-                step: 'http-request-success',
-                request: {
-                    url: req.url,
-                    method: req.method,
-                    headers: req.headers,
-                    data: req.data
-                },
-                response: {
-                    data: response.data,
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers
-                }
-            };
-            await context.log(log);
-            return response;
-        } catch (err) {
-            const log = {
-                step: 'http-request-error',
-                request: {
-                    url: req.url,
-                    method: req.method,
-                    headers: req.headers,
-                    data: req.data
-                },
-                response: err.response ? {
-                    data: err.response.data,
-                    status: err.response.status,
-                    statusText: err.response.statusText,
-                    headers: err.response.headers
-                } : undefined
-            };
-            await context.log(log);
-            throw err;
-        }
-    },
-
     receive: async function(context) {
-
 
         if (context.properties.generateOutputPortOptions) {
             return this.getOutputPortOptions(context, context.messages.in.content.xConnectorOutputType);
         }
-
 
         const limit = context.messages.in.content.xConnectorPaginationLimit;
         const query = {
@@ -140,6 +51,91 @@ module.exports = {
         } else {
             // array
             return context.sendJson({ result }, 'out');
+        }
+    },
+
+    httpRequest: async function(context, override = {}) {
+
+        // eslint-disable-next-line no-unused-vars
+        const input = context.messages.in.content;
+
+        let url = lib.getBaseUrl(context) + `/users/${input['userId']}/meetings`;
+
+        const headers = {};
+        const query = new URLSearchParams;
+
+        const queryParameters = { 'type': input['type'],
+            'page_size': input['page_size'],
+            'next_page_token': input['next_page_token'],
+            'page_number': input['page_number'] };
+
+        if (override?.query) {
+            Object.keys(override.query).forEach(parameter => {
+                queryParameters[parameter] = override.query[parameter];
+            });
+        }
+
+        Object.keys(queryParameters).forEach(parameter => {
+            if (queryParameters[parameter]) {
+                query.append(parameter, queryParameters[parameter]);
+            }
+        });
+
+        headers['Authorization'] = 'Bearer ' + context.auth.accessToken;
+
+        const req = {
+            url: url,
+            method: 'GET',
+            headers: headers
+        };
+
+        if (override.url) req.url = override.url;
+        if (override.body) req.data = override.body;
+        if (override.headers) req.headers = override.headers;
+        if (override.method) req.method = override.method;
+
+        const queryString = query.toString();
+        if (queryString) {
+            req.url += '?' + queryString;
+        }
+
+        try {
+            const response = await context.httpRequest(req);
+            const log = {
+                step: 'http-request-success',
+                request: {
+                    url: req.url,
+                    method: req.method,
+                    headers: req.headers,
+                    data: req.data
+                },
+                response: {
+                    data: response.data,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                }
+            };
+            await context.log(log);
+            return response;
+        } catch (err) {
+            const log = {
+                step: 'http-request-error',
+                request: {
+                    url: req.url,
+                    method: req.method,
+                    headers: req.headers,
+                    data: req.data
+                },
+                response: err.response ? {
+                    data: err.response.data,
+                    status: err.response.status,
+                    statusText: err.response.statusText,
+                    headers: err.response.headers
+                } : undefined
+            };
+            await context.log(log);
+            throw err;
         }
     },
 
