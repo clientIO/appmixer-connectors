@@ -21,7 +21,11 @@ module.exports = {
         replaceVariables(context, str) {
 
             Object.getOwnPropertyNames(context).forEach(variableName => {
-                str = str.replaceAll('{' + variableName + '}', context[variableName]);
+                try {
+                    str = str.replaceAll('{' + variableName + '}', context[variableName]);
+                } catch (error) {
+                    context.log({ msg: 'Failed to replace variable ' + variableName + '.', error });
+                }
             });
             return str;
         },

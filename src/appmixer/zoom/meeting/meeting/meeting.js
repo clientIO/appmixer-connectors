@@ -4,20 +4,25 @@ const lib = require('../../lib');
 
 module.exports = {
 
+    receive: async function(context) {
+
+        const { data } = await this.httpRequest(context);
+
+        return context.sendJson(data, 'out');
+    },
+
     httpRequest: async function(context) {
 
+        // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
-
 
         let url = lib.getBaseUrl(context) + `/meetings/${input['meetingId']}`;
 
         const headers = {};
         const query = new URLSearchParams;
 
-
         const queryParameters = { 'occurrence_id': input['occurrence_id'],
             'show_previous_occurrences': input['show_previous_occurrences'] };
-
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {
@@ -33,12 +38,10 @@ module.exports = {
             headers: headers
         };
 
-
         const queryString = query.toString();
         if (queryString) {
             req.url += '?' + queryString;
         }
-
 
         try {
             const response = await context.httpRequest(req);
@@ -78,14 +81,6 @@ module.exports = {
             await context.log(log);
             throw err;
         }
-    },
-
-    receive: async function(context) {
-
-
-        const { data } = await this.httpRequest(context);
-
-        return context.sendJson(data, 'out');
     }
 
 };
