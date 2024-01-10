@@ -14,6 +14,7 @@
             "get": {
                 "operationId": "apps_salesbooster_api_get_project_simple_list",
                 "summary": "Get Project Simple List",
+                "x-connector-label": "ListProjects",
                 "parameters": [],
                 "responses": {
                     "200": {
@@ -70,6 +71,7 @@
             "get": {
                 "operationId": "apps_salesbooster_api_get_project_sent_messages",
                 "summary": "Get Project Sent Messages",
+                "x-connector-label": "PeojectSentMessages",
                 "parameters": [
                     {
                         "in": "path",
@@ -164,7 +166,7 @@
                         }
                     }
                 },
-                "description": "Messages that were sent.\n\nThere are actually two types of messages:\n\n* **Email messages** - `message_type = \"email\"` - have `to_email`, `from_email`, `subject` and `message` filled\n* **LinkedIn messages** - `message_type = \"linkedin\"` - have `linkedin` field filled\n\nThe `status` values can be as following:\n\n* `sent` - message was sent (no reply received)\n* `gave_up` - we gave up on trying to get the response (no response for at least a month)\n* `replied_to_followup` - there was a reply, but to some other message in the sequence\n* `replied` - message was sent and we received a reply to it",
+                "description": "Messages that were sent.",
                 "tags": [
                     "Project"
                 ],
@@ -175,8 +177,7 @@
                     {
                         "ApiKey": []
                     }
-                ],
-                "x-connector-label": "ProjectsSentMessages"
+                ]
             }
         },
         "/app/sb/api/projects/{project_id}/persons": {},
@@ -4461,7 +4462,22 @@
             "ApiKey": {
                 "type": "apiKey",
                 "in": "header",
-                "name": "X-API-Key"
+                "name": "X-API-Key",
+                "x-connector-connection-check": {
+                    "method": "GET",
+                    "url": "/app/sb/api/auth/me",
+                    "headers": {
+                        "X-API-Key": "{apiKey}"
+                    }
+                },
+                "x-connector-connection-profile": {
+                    "method": "GET",
+                    "url": "/app/sb/api/auth/me",
+                    "headers": {
+                        "X-API-Key": "{apiKey}"
+                    },
+                    "transform": "email"
+                }
             }
         }
     },
@@ -4472,7 +4488,7 @@
     ],
     "servers": [
         {
-            "url": "https://leadspicker.com/"
+            "url": "https://leadspicker.com"
         }
     ]
 }

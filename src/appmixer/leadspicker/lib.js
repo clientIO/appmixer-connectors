@@ -12,7 +12,7 @@ module.exports = {
 
     getBaseUrl: function(context) {
 
-        let url = 'https://leadspicker.com/';
+        let url = 'https://leadspicker.com';
         return url;
     },
 
