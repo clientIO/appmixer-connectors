@@ -62,7 +62,7 @@ class Hubspot {
         const url = `${this.url}/${path}`.concat(opts.query ? `?${opts.query}` : '');
         try {
             return await axios(url, payload);
-        } catch(e) {
+        } catch (e) {
             if (e.response && e.response.data && e.response.data.message) {
                 const error = new Error(e.response.data.message);
                 error.status = e.response.status;

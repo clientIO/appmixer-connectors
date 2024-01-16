@@ -38,7 +38,7 @@ module.exports = async (context) => {
                         });
 
                         if (!subscriptionsToCreate.length) {
-                            return {}
+                            return {};
                         }
 
                         const { data } = await context.hubspot.createSubscriptions(subscriptions);

@@ -32,9 +32,9 @@ module.exports = {
             context,
             outputPortName: 'out',
             outputType,
-            records: contacts,
+            records: contacts
         });
-    },
+    }
 };
 
 const getOutputPortOptions = async (context, outputType) => {
@@ -45,8 +45,8 @@ const getOutputPortOptions = async (context, outputType) => {
             'appmixer.hubspot.crm.GetContactsProperties',
             'out',
             {
-                transform: './transformers#contactToSelectArray',
-            },
+                transform: './transformers#contactToSelectArray'
+            }
         );
         return context.sendJson(properties, 'out');
 
@@ -56,8 +56,8 @@ const getOutputPortOptions = async (context, outputType) => {
             'appmixer.hubspot.crm.GetContactsProperties',
             'out',
             {
-                transform: './transformers#contactsToSchema',
-            },
+                transform: './transformers#contactsToSchema'
+            }
         );
 
         return context.sendJson([{ label: 'Array', value: 'array', schema }], 'out');
