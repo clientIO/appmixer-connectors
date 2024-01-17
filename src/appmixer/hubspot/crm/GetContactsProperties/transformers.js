@@ -40,7 +40,7 @@ module.exports = {
                 if (!property.hidden) {
 
                     contactProperties[property.name] = {
-                        title: property.label || property.name,
+                        title: property.label || property.name
                     };
                 }
             });
@@ -55,7 +55,7 @@ module.exports = {
                     properties: {
                         type: 'object', title: 'properties',
                         properties: contactProperties
-                    },
+                    }
                     // createdAt: { type: 'string', title: 'createdAt' },
                     // updatedAt: { type: 'string', title: 'updatedAt' },
                     // archived: { type: 'boolean', title: 'archived' }

@@ -20,14 +20,14 @@ class DeletedContact extends BaseSubscriptionComponent {
 
         if (context.messages.timeout) {
 
-            await context.log({ stage: 'timeout', ...context.messages.timeout })
+            await context.log({ stage: 'timeout', ...context.messages.timeout });
             return;
         }
 
         if (context.messages.webhook) {
             const eventsByObjectId = context.messages.webhook.content.data;
 
-            for (const [contactId, event] of Object.entries(eventsByObjectId)) {
+            for (const [, event] of Object.entries(eventsByObjectId)) {
                 await context.sendJson(event, 'out');
             }
         }

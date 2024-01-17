@@ -91,7 +91,10 @@ class UpdatedDeal extends BaseSubscriptionComponent {
                         await context.clearTimeout(previousTimeout.timeoutId);
                     }
 
-                    const timeoutId = await context.setTimeout({ dealId, occurredAt: occurrenceTime }, context.config.triggerTimeout || 5000);
+                    const timeoutId = await context.setTimeout(
+                        { dealId, occurredAt: occurrenceTime },
+                        context.config.triggerTimeout || 5000
+                    );
                     await context.stateSet(`deal-${dealId}`, { timeoutId });
                 } finally {
                     if (lock) {
