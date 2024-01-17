@@ -45,7 +45,7 @@ module.exports = {
                     ]
                 }
             ]
-        }
+        };
 
         context.log({ stage: 'Engagements - CreateEmail payload ', payload });
 
