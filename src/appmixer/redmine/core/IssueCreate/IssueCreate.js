@@ -6,10 +6,9 @@ module.exports = {
 
     receive: async function(context) {
 
-        await this.httpRequest(context);
+        const { data } = await this.httpRequest(context);
 
-        // http 204 No Content on success
-        return context.sendJson({}, 'out');
+        return context.sendJson(data, 'out');
     },
 
     httpRequest: async function(context) {

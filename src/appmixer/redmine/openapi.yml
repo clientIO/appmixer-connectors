@@ -178,7 +178,10 @@ paths:
             title: Body
             type: object
             required:
-              - issue
+              - issue|project_id
+              - issue|subject
+              - issue|priority_id
+              - issue|tracker_id
             properties:
               issue:
                 type: object
@@ -251,7 +254,16 @@ paths:
                     format: float
       responses:
         201:
-          description: 'Created: issue was created'
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - issue
+                properties:
+                  issue:
+                    $ref: '#/definitions/issue'
         422:
           $ref: '#/responses/validationError'
   /issues/{id}.json:
@@ -292,7 +304,6 @@ paths:
               title: Body
               type: object
               required:
-                - issue
               properties:
                 issue:
                   title: Issue
@@ -367,7 +378,8 @@ paths:
                       description: 'true if notes are private'
                       type: boolean
         responses:
-          201:
+          204:
+            # There is no response body even though the documentation says so in https://www.redmine.org/projects/redmine/wiki/Rest_Issues#Updating-an-issue
             description: 'OK'
           422:
             $ref: '#/responses/validationError'
