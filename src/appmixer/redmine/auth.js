@@ -33,7 +33,7 @@ module.exports = {
             options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
             const { data } = await context.httpRequest(options);
             // Return string in format: admin - abc***
-            const info = `${data.user.login} - ${data.user.api_key.slice(0, 3)}***`
+            const info = `${data.user.login} - ${data.user.api_key.slice(0, 3)}***`;
             return { info };
         },
 
