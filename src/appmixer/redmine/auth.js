@@ -1,7 +1,5 @@
 'use strict';
 
-const lib = require('./lib');
-
 module.exports = {
 
     type: 'apiKey',
@@ -16,8 +14,6 @@ module.exports = {
             },
             'url': { type: 'text', name: 'url', tooltip: 'Redmine URL' }
         },
-        // TODO: hide key partialy. Also show domain
-        accountNameFromProfileInfo: 'apiKey',
 
         replaceVariables(context, str) {
             Object.keys(this.auth).forEach(variableName => {
@@ -26,7 +22,33 @@ module.exports = {
             return str;
         },
 
-        validate: context => {
+        async requestProfileInfo(context) {
+            const method = 'GET';
+            const url = '/my/account.json';
+            const baseUrl = context.url;
+            const options = { method: method, url: baseUrl + url };
+            options.headers = {
+                'X-Redmine-API-Key': '{apiKey}'
+            };
+            options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
+            const { data } = await context.httpRequest(options);
+            // Return string in format: admin - abc***
+            const info = `${data.user.login} - ${data.user.api_key.slice(0, 3)}***`
+            return { info };
+        },
+
+        accountNameFromProfileInfo: 'info',
+
+        async validate(context) {
+            const method = 'GET';
+            const url = '/my/account.json';
+            const baseUrl = context.url;
+            const options = { method: method, url: baseUrl + url };
+            options.headers = {
+                'X-Redmine-API-Key': '{apiKey}'
+            };
+            options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
+            await context.httpRequest(options);
             return true;
         }
     }
