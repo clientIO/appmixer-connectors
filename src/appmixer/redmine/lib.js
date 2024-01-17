@@ -12,7 +12,8 @@ module.exports = {
 
     getBaseUrl: function(context) {
 
-        let url = '';
+        let url = '{url}';
+        url = url.replaceAll('{url}', context.auth?.url || context.config?.url || 'https://redmine.acme.com');
         return url;
     },
 

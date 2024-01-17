@@ -6,9 +6,10 @@ module.exports = {
 
     receive: async function(context) {
 
-        const { data } = await this.httpRequest(context);
+        await this.httpRequest(context);
 
-        return context.sendJson(data, 'out');
+        // http 204 No Content on success
+        return context.sendJson({}, 'out');
     },
 
     httpRequest: async function(context) {
@@ -16,7 +17,7 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/issues.${input['format']}`;
+        let url = lib.getBaseUrl(context) + `/issues/${input['id']}.json`;
 
         const headers = {};
 
@@ -27,8 +28,6 @@ module.exports = {
             'issue.priority_id': input['issue|priority_id'],
             'issue.subject': input['issue|subject'],
             'issue.description': input['issue|description'],
-            'issue.start_date': input['issue|start_date'],
-            'issue.due_date': input['issue|due_date'],
             'issue.category_id': input['issue|category_id'],
             'issue.fixed_version_id': input['issue|fixed_version_id'],
             'issue.assigned_to_id': input['issue|assigned_to_id'],
@@ -37,7 +36,8 @@ module.exports = {
             'issue.watcher_user_ids': input['issue|watcher_user_ids'],
             'issue.is_private': input['issue|is_private'],
             'issue.estimated_hours': input['issue|estimated_hours'],
-            'issue.uploads': !!input['issue|uploads'] ? JSON.parse(input['issue|uploads']) : undefined
+            'issue.notes': input['issue|notes'],
+            'issue.private_notes': input['issue|private_notes']
         };
         let requestBody = {};
         lib.setProperties(requestBody, inputMapping);
@@ -46,7 +46,7 @@ module.exports = {
 
         const req = {
             url: url,
-            method: 'POST',
+            method: 'PUT',
             data: requestBody,
             headers: headers
         };

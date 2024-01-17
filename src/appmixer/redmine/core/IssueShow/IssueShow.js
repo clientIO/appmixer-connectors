@@ -16,7 +16,7 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/issues/${input['issue_id']}.${input['format']}`;
+        let url = lib.getBaseUrl(context) + `/issues/${input['id']}.json`;
 
         const headers = {};
         const query = new URLSearchParams;

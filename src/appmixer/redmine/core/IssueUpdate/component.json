@@ -1,8 +1,8 @@
 {
     "version": "1.0.0",
-    "name": "appmixer.redmineapi.core.PutIssues",
+    "name": "appmixer.redmineapi.core.IssueUpdate",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "<label><p>Updating an issue</p></label>",
+    "description": "<label><p>Update issue</p></label><br/><p>Updates a issue.</p>",
     "private": false,
     "quota": {},
     "inPorts": [
@@ -11,280 +11,210 @@
             "schema": {
                 "type": "object",
                 "required": [
-                    "format",
-                    "issue_id"
+                    "id",
+                    "issue"
                 ],
                 "properties": {
-                    "format": {
-                        "type": "string",
-                        "enum": [
-                            "json",
-                            "xml"
-                        ]
-                    },
-                    "issue_id": {
-                        "type": "integer"
+                    "id": {
+                        "type": "string"
                     },
                     "issue|project_id": {
-                        "oneOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
+                        "title": "ProjectId",
+                        "type": "integer",
                         "path": "issue.project_id"
                     },
                     "issue|tracker_id": {
-                        "oneOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
+                        "title": "TrackerId",
+                        "type": "integer",
                         "path": "issue.tracker_id"
                     },
                     "issue|status_id": {
-                        "oneOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
+                        "title": "StatusId",
+                        "type": "integer",
                         "path": "issue.status_id"
                     },
                     "issue|priority_id": {
-                        "oneOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
+                        "title": "PriorityId",
+                        "type": "integer",
                         "path": "issue.priority_id"
                     },
                     "issue|subject": {
+                        "title": "Subject",
                         "type": "string",
                         "path": "issue.subject"
                     },
                     "issue|description": {
+                        "title": "Description",
                         "type": "string",
-                        "nullable": true,
                         "path": "issue.description"
                     },
-                    "issue|start_date": {
-                        "type": "string",
-                        "format": "date",
-                        "nullable": true,
-                        "path": "issue.start_date"
-                    },
-                    "issue|due_date": {
-                        "type": "string",
-                        "format": "date",
-                        "nullable": true,
-                        "path": "issue.due_date"
-                    },
                     "issue|category_id": {
-                        "oneOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
+                        "title": "CategoryId",
+                        "type": "integer",
                         "path": "issue.category_id"
                     },
                     "issue|fixed_version_id": {
-                        "type": "string",
+                        "title": "FixedVersionId",
+                        "type": "integer",
+                        "description": "ID of the Target Versions (previously called \"Fixed Version\" and still referred to as such in the API)",
                         "path": "issue.fixed_version_id"
                     },
                     "issue|assigned_to_id": {
-                        "oneOf": [
-                            {
-                                "type": "integer"
-                            },
-                            {
-                                "type": "string"
-                            }
-                        ],
+                        "title": "AssignedToId",
+                        "type": "integer",
+                        "description": "ID of the user to assign the issue to (currently no mechanism to assign by name)",
                         "path": "issue.assigned_to_id"
                     },
                     "issue|parent_issue_id": {
-                        "oneOf": [
-                            {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            {
-                                "type": "string",
-                                "nullable": true
-                            }
-                        ],
+                        "title": "ParentIssueId",
+                        "type": "integer",
+                        "description": "ID of the parent issue",
                         "path": "issue.parent_issue_id"
                     },
                     "issue|custom_fields": {
-                        "type": "string",
-                        "path": "issue.custom_fields"
+                        "title": "CustomFields",
+                        "type": "array",
+                        "path": "issue.custom_fields",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "issue|watcher_user_ids": {
+                        "title": "WatcherUserIds",
+                        "type": "array",
+                        "description": "Array of user ids to add as watchers",
+                        "path": "issue.watcher_user_ids",
+                        "items": {
+                            "type": "integer"
+                        }
                     },
                     "issue|is_private": {
+                        "title": "IsPrivate",
                         "type": "boolean",
                         "path": "issue.is_private"
                     },
                     "issue|estimated_hours": {
-                        "oneOf": [
-                            {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            {
-                                "type": "string",
-                                "nullable": true
-                            }
-                        ],
+                        "title": "EstimatedHours",
+                        "type": "number",
                         "path": "issue.estimated_hours"
                     },
                     "issue|notes": {
+                        "title": "Notes",
+                        "description": "Comments about the update",
                         "type": "string",
                         "path": "issue.notes"
                     },
                     "issue|private_notes": {
-                        "type": "string",
+                        "title": "PrivateNotes",
+                        "description": "true if notes are private",
+                        "type": "boolean",
                         "path": "issue.private_notes"
                     }
                 }
             },
             "inspector": {
                 "inputs": {
-                    "format": {
-                        "type": "select",
+                    "id": {
+                        "type": "text",
                         "index": 0,
-                        "label": "Format",
-                        "tooltip": "",
-                        "options": [
-                            {
-                                "content": "json",
-                                "value": "json"
-                            },
-                            {
-                                "content": "xml",
-                                "value": "xml"
-                            }
-                        ]
-                    },
-                    "issue_id": {
-                        "type": "number",
-                        "index": 1,
-                        "label": "Issue Id",
-                        "tooltip": ""
+                        "label": "Id",
+                        "tooltip": "<p>id or identifier of the project/issue/user/timeEntry</p>"
                     },
                     "issue|project_id": {
                         "type": "number",
-                        "index": 2,
+                        "index": 1,
                         "label": "Issue Project Id",
                         "tooltip": ""
                     },
                     "issue|tracker_id": {
                         "type": "number",
-                        "index": 3,
+                        "index": 2,
                         "label": "Issue Tracker Id",
                         "tooltip": ""
                     },
                     "issue|status_id": {
                         "type": "number",
-                        "index": 4,
+                        "index": 3,
                         "label": "Issue Status Id",
                         "tooltip": ""
                     },
                     "issue|priority_id": {
                         "type": "number",
-                        "index": 5,
+                        "index": 4,
                         "label": "Issue Priority Id",
                         "tooltip": ""
                     },
                     "issue|subject": {
                         "type": "text",
-                        "index": 6,
+                        "index": 5,
                         "label": "Issue Subject",
                         "tooltip": ""
                     },
                     "issue|description": {
                         "type": "text",
-                        "index": 7,
+                        "index": 6,
                         "label": "Issue Description",
-                        "tooltip": ""
-                    },
-                    "issue|start_date": {
-                        "type": "text",
-                        "index": 8,
-                        "label": "Issue Start Date",
-                        "tooltip": ""
-                    },
-                    "issue|due_date": {
-                        "type": "text",
-                        "index": 9,
-                        "label": "Issue Due Date",
                         "tooltip": ""
                     },
                     "issue|category_id": {
                         "type": "number",
-                        "index": 10,
+                        "index": 7,
                         "label": "Issue Category Id",
                         "tooltip": ""
                     },
                     "issue|fixed_version_id": {
-                        "type": "text",
-                        "index": 11,
+                        "type": "number",
+                        "index": 8,
                         "label": "Issue Fixed Version Id",
-                        "tooltip": ""
+                        "tooltip": "<p>ID of the Target Versions (previously called \"Fixed Version\" and still referred to as such in the API)</p>"
                     },
                     "issue|assigned_to_id": {
                         "type": "number",
-                        "index": 12,
+                        "index": 9,
                         "label": "Issue Assigned To Id",
-                        "tooltip": ""
+                        "tooltip": "<p>ID of the user to assign the issue to (currently no mechanism to assign by name)</p>"
                     },
                     "issue|parent_issue_id": {
                         "type": "number",
-                        "index": 13,
+                        "index": 10,
                         "label": "Issue Parent Issue Id",
-                        "tooltip": ""
+                        "tooltip": "<p>ID of the parent issue</p>"
                     },
                     "issue|custom_fields": {
-                        "type": "text",
-                        "index": 14,
+                        "type": "textarea",
+                        "index": 11,
                         "label": "Issue Custom Fields",
-                        "tooltip": ""
+                        "tooltip": " JSON array. Example: [{}]."
+                    },
+                    "issue|watcher_user_ids": {
+                        "type": "textarea",
+                        "index": 12,
+                        "label": "Issue Watcher User Ids",
+                        "tooltip": "<p>Array of user ids to add as watchers</p> JSON array. Example: [16858947]."
                     },
                     "issue|is_private": {
                         "type": "toggle",
-                        "index": 15,
+                        "index": 13,
                         "label": "Issue Is Private",
                         "tooltip": ""
                     },
                     "issue|estimated_hours": {
                         "type": "number",
-                        "index": 16,
+                        "index": 14,
                         "label": "Issue Estimated Hours",
                         "tooltip": ""
                     },
                     "issue|notes": {
                         "type": "text",
-                        "index": 17,
+                        "index": 15,
                         "label": "Issue Notes",
-                        "tooltip": ""
+                        "tooltip": "<p>Comments about the update</p>"
                     },
                     "issue|private_notes": {
-                        "type": "text",
-                        "index": 18,
+                        "type": "toggle",
+                        "index": 16,
                         "label": "Issue Private Notes",
-                        "tooltip": ""
+                        "tooltip": "<p>true if notes are private</p>"
                     }
                 }
             }
@@ -297,7 +227,6 @@
         }
     ],
     "properties": {},
-    "label": "UpdateIssue",
     "auth": {
         "service": "appmixer:redmineapi"
     },

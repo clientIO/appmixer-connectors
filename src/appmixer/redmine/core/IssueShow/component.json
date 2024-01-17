@@ -1,8 +1,8 @@
 {
     "version": "1.0.0",
-    "name": "appmixer.redmineapi.core.GetIssues",
+    "name": "appmixer.redmineapi.core.IssueShow",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "<label><p>Showing an issue</p></label>",
+    "description": "<label><p>Show issues</p></label><br/><p>Returns the issue of given id or identifier.</p>",
     "private": false,
     "quota": {},
     "inPorts": [
@@ -11,93 +11,30 @@
             "schema": {
                 "type": "object",
                 "required": [
-                    "format",
-                    "issue_id"
+                    "id"
                 ],
                 "properties": {
-                    "format": {
-                        "type": "string",
-                        "enum": [
-                            "json",
-                            "xml"
-                        ]
-                    },
-                    "issue_id": {
-                        "type": "integer"
+                    "id": {
+                        "type": "string"
                     },
                     "include": {
-                        "type": "string",
-                        "enum": [
-                            "children",
-                            "attachments",
-                            "relations",
-                            "changesets",
-                            "journals",
-                            "watchers",
-                            "allowed_statuses"
-                        ]
+                        "type": "string"
                     }
                 }
             },
             "inspector": {
                 "inputs": {
-                    "format": {
-                        "type": "select",
+                    "id": {
+                        "type": "text",
                         "index": 0,
-                        "label": "Format",
-                        "tooltip": "",
-                        "options": [
-                            {
-                                "content": "json",
-                                "value": "json"
-                            },
-                            {
-                                "content": "xml",
-                                "value": "xml"
-                            }
-                        ]
-                    },
-                    "issue_id": {
-                        "type": "number",
-                        "index": 1,
-                        "label": "Issue Id",
-                        "tooltip": ""
+                        "label": "Id",
+                        "tooltip": "<p>id or identifier of the project/issue/user/timeEntry</p>"
                     },
                     "include": {
-                        "type": "select",
-                        "index": 2,
+                        "type": "text",
+                        "index": 1,
                         "label": "Include",
-                        "tooltip": "",
-                        "options": [
-                            {
-                                "content": "children",
-                                "value": "children"
-                            },
-                            {
-                                "content": "attachments",
-                                "value": "attachments"
-                            },
-                            {
-                                "content": "relations",
-                                "value": "relations"
-                            },
-                            {
-                                "content": "changesets",
-                                "value": "changesets"
-                            },
-                            {
-                                "content": "journals",
-                                "value": "journals"
-                            },
-                            {
-                                "content": "watchers",
-                                "value": "watchers"
-                            },
-                            {
-                                "content": "allowed_statuses",
-                                "value": "allowed_statuses"
-                            }
-                        ]
+                        "tooltip": "<p>fetch associated data (optional, use comma to fetch multiple associations). Possible values: children,attachments,relations,changesets,journals,watchers</p>"
                     }
                 }
             }
@@ -152,10 +89,6 @@
                     "value": "issue.status.name"
                 },
                 {
-                    "label": "Issue Status Is Closed",
-                    "value": "issue.status.is_closed"
-                },
-                {
                     "label": "Issue Priority",
                     "value": "issue.priority"
                 },
@@ -192,18 +125,6 @@
                     "value": "issue.assigned_to.name"
                 },
                 {
-                    "label": "Issue Category",
-                    "value": "issue.category"
-                },
-                {
-                    "label": "Issue Category Id",
-                    "value": "issue.category.id"
-                },
-                {
-                    "label": "Issue Category Name",
-                    "value": "issue.category.name"
-                },
-                {
                     "label": "Issue Subject",
                     "value": "issue.subject"
                 },
@@ -232,18 +153,6 @@
                     "value": "issue.estimated_hours"
                 },
                 {
-                    "label": "Issue Total Estimated Hours",
-                    "value": "issue.total_estimated_hours"
-                },
-                {
-                    "label": "Issue Spent Hours",
-                    "value": "issue.spent_hours"
-                },
-                {
-                    "label": "Issue Total Spent Hours",
-                    "value": "issue.total_spent_hours"
-                },
-                {
                     "label": "Issue Created On",
                     "value": "issue.created_on"
                 },
@@ -256,47 +165,24 @@
                     "value": "issue.closed_on"
                 },
                 {
-                    "label": "Issue Changesets",
-                    "value": "issue.changesets",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
-                {
                     "label": "Issue Children",
                     "value": "issue.children",
                     "schema": {
+                        "title": "Children",
                         "type": "array",
                         "items": {
                             "type": "object",
                             "required": [
                                 "id",
-                                "tracker",
-                                "subject"
+                                "name"
                             ],
                             "properties": {
                                 "id": {
+                                    "title": "Id",
                                     "type": "integer"
                                 },
-                                "tracker": {
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "subject": {
+                                "name": {
+                                    "title": "Name",
                                     "type": "string"
                                 }
                             }
@@ -307,58 +193,21 @@
                     "label": "Issue Attachments",
                     "value": "issue.attachments",
                     "schema": {
+                        "title": "Attachments",
                         "type": "array",
                         "items": {
                             "type": "object",
                             "required": [
                                 "id",
-                                "filename",
-                                "filesize",
-                                "content_type",
-                                "description",
-                                "content_url",
-                                "author",
-                                "created_on"
+                                "name"
                             ],
                             "properties": {
                                 "id": {
+                                    "title": "Id",
                                     "type": "integer"
                                 },
-                                "filename": {
-                                    "type": "string"
-                                },
-                                "filesize": {
-                                    "type": "integer"
-                                },
-                                "content_type": {
-                                    "type": "string"
-                                },
-                                "description": {
-                                    "type": "string"
-                                },
-                                "content_url": {
-                                    "type": "string"
-                                },
-                                "author": {
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "created_on": {
-                                    "type": "string",
-                                    "format": "data-time"
-                                },
-                                "thumbnail_url": {
+                                "name": {
+                                    "title": "Name",
                                     "type": "string"
                                 }
                             }
@@ -369,25 +218,47 @@
                     "label": "Issue Relations",
                     "value": "issue.relations",
                     "schema": {
+                        "title": "Realtions",
                         "type": "array",
                         "items": {
                             "type": "object",
+                            "required": [
+                                "id",
+                                "name"
+                            ],
                             "properties": {
                                 "id": {
+                                    "title": "Id",
                                     "type": "integer"
                                 },
-                                "issue_id": {
-                                    "type": "integer"
-                                },
-                                "issue_to_id": {
-                                    "type": "integer"
-                                },
-                                "relation_type": {
+                                "name": {
+                                    "title": "Name",
                                     "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Issue Changesets",
+                    "value": "issue.changesets",
+                    "schema": {
+                        "title": "Chagesets",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "name"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "title": "Id",
+                                    "type": "integer"
                                 },
-                                "delay": {
-                                    "type": "integer",
-                                    "nullable": true
+                                "name": {
+                                    "title": "Name",
+                                    "type": "string"
                                 }
                             }
                         }
@@ -397,19 +268,14 @@
                     "label": "Issue Journals",
                     "value": "issue.journals",
                     "schema": {
+                        "title": "Journals",
                         "type": "array",
                         "items": {
+                            "title": "Journal",
                             "type": "object",
-                            "required": [
-                                "id",
-                                "user",
-                                "notes",
-                                "created_on",
-                                "private_notes",
-                                "details"
-                            ],
                             "properties": {
                                 "id": {
+                                    "title": "Id",
                                     "type": "integer"
                                 },
                                 "user": {
@@ -420,9 +286,11 @@
                                     ],
                                     "properties": {
                                         "id": {
+                                            "title": "Id",
                                             "type": "integer"
                                         },
                                         "name": {
+                                            "title": "Name",
                                             "type": "string"
                                         }
                                     }
@@ -431,8 +299,7 @@
                                     "type": "string"
                                 },
                                 "created_on": {
-                                    "type": "string",
-                                    "format": "date-time"
+                                    "type": "string"
                                 },
                                 "private_notes": {
                                     "type": "boolean"
@@ -441,12 +308,6 @@
                                     "type": "array",
                                     "items": {
                                         "type": "object",
-                                        "required": [
-                                            "property",
-                                            "name",
-                                            "old_value",
-                                            "new_value"
-                                        ],
                                         "properties": {
                                             "property": {
                                                 "type": "string"
@@ -455,8 +316,7 @@
                                                 "type": "string"
                                             },
                                             "old_value": {
-                                                "type": "string",
-                                                "nullable": true
+                                                "type": "string"
                                             },
                                             "new_value": {
                                                 "type": "string"
@@ -472,6 +332,7 @@
                     "label": "Issue Watchers",
                     "value": "issue.watchers",
                     "schema": {
+                        "title": "Watchers",
                         "type": "array",
                         "items": {
                             "type": "object",
@@ -481,36 +342,12 @@
                             ],
                             "properties": {
                                 "id": {
+                                    "title": "Id",
                                     "type": "integer"
                                 },
                                 "name": {
+                                    "title": "Name",
                                     "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "label": "Issue Allowed Statuses",
-                    "value": "issue.allowed_statuses",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "id",
-                                "is_closed",
-                                "name"
-                            ],
-                            "properties": {
-                                "id": {
-                                    "type": "integer"
-                                },
-                                "name": {
-                                    "type": "string"
-                                },
-                                "is_closed": {
-                                    "type": "boolean"
                                 }
                             }
                         }
@@ -520,7 +357,6 @@
         }
     ],
     "properties": {},
-    "label": "GetIssue",
     "auth": {
         "service": "appmixer:redmineapi"
     },
