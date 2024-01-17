@@ -26,7 +26,6 @@ module.exports = {
 
         try {
             const url = `crm/v3/objects/contacts/${contactId || encodeURIComponent(email)}`;
-            console.log(url);
             const { data } = await hs.call(
                 'get',
                 url,
