@@ -5,16 +5,16 @@ module.exports = {
     async receive(context) {
 
         const {
-            contact_id,
-            hs_timestamp,
-            hubspot_owner_id,
-            hs_email_direction,
-            hs_email_html,
-            hs_email_status,
-            hs_email_subject,
-            hs_email_text,
-            hs_attachment_ids,
-            hs_email_headers,
+            contact_id: contactId,
+            hs_timestamp: hsTimestamp,
+            hubspot_owner_id: hubspotOwnerId,
+            hs_email_direction: hsEmailDirection,
+            hs_email_html: hsEmailHtml,
+            hs_email_status: hsEmailStatus,
+            hs_email_subject: hsEmailSubject,
+            hs_email_text: hsEmailText,
+            hs_attachment_ids: hsAttachmentIds,
+            hs_email_headers: hsEmailHeaders,
         } = context.messages.in.content;
 
         const { auth } = context;
@@ -22,20 +22,20 @@ module.exports = {
 
         const payload = {
             properties: {
-                hs_timestamp,
-                hubspot_owner_id,
-                hs_email_direction,
-                hs_email_html,
-                hs_email_status,
-                hs_email_subject,
-                hs_email_text,
-                hs_attachment_ids,
-                hs_email_headers,
+                hs_timestamp: hsTimestamp,
+                hubspot_owner_id: hubspotOwnerId,
+                hs_email_direction: hsEmailDirection,
+                hs_email_html: hsEmailHtml,
+                hs_email_status: hsEmailStatus,
+                hs_email_subject: hsEmailSubject,
+                hs_email_text: hsEmailText,
+                hs_attachment_ids: hsAttachmentIds,
+                hs_email_headers: hsEmailHeaders
             },
             associations: [
                 {
                     to: {
-                        id: contact_id
+                        id: contactId
                     },
                     types: [
                         {
@@ -56,5 +56,5 @@ module.exports = {
         );
 
         return context.sendJson(data, 'out');
-    },
+    }
 };
