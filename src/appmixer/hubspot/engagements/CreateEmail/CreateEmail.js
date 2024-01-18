@@ -14,7 +14,7 @@ module.exports = {
             hs_email_subject: hsEmailSubject,
             hs_email_text: hsEmailText,
             hs_attachment_ids: hsAttachmentIds,
-            hs_email_headers: hsEmailHeaders,
+            hs_email_headers: hsEmailHeaders
         } = context.messages.in.content;
 
         const { auth } = context;
