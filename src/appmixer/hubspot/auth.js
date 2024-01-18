@@ -29,7 +29,8 @@ module.exports = {
             'crm.schemas.contacts.write',
             'crm.schemas.custom.read',
             'crm.schemas.deals.read',
-            'crm.schemas.deals.write'
+            'crm.schemas.deals.write',
+            'sales-email-read'
         ],
         scopeDelimiter: ' ',
 
