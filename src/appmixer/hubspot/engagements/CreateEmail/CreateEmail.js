@@ -5,16 +5,16 @@ module.exports = {
     async receive(context) {
 
         const {
-            contact_id: contactId,
-            hs_timestamp: hsTimestamp,
-            hubspot_owner_id: hubspotOwnerId,
-            hs_email_direction: hsEmailDirection,
-            hs_email_html: hsEmailHtml,
-            hs_email_status: hsEmailStatus,
-            hs_email_subject: hsEmailSubject,
-            hs_email_text: hsEmailText,
-            hs_attachment_ids: hsAttachmentIds,
-            hs_email_headers: hsEmailHeaders
+            contactId,
+            hsTimestamp,
+            hubspotOwnerId,
+            hsEmailDirection,
+            hsEmailHtml,
+            hsEmailStatus,
+            hsEmailSubject,
+            hsEmailText,
+            hsAttachmentIds,
+            hsEmailHeaders
         } = context.messages.in.content;
 
         const { auth } = context;
@@ -51,7 +51,7 @@ module.exports = {
 
         const { data } = await hs.call(
             'post',
-            '/crm/v3/objects/emails',
+            'crm/v3/objects/emails',
             payload
         );
 
