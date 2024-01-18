@@ -21,13 +21,12 @@ const getProjectMessages = async function(context) {
     return data.filter(item => item.message_type === 'email');
 };
 
-const saveMessagesToState = async function(context, messages) {
+const messagesToState = function(messages) {
 
-    const state = messages.map(item => {
+    return messages.map(item => {
         return { id: item.id, name: item.sent_date };
     });
 
-    return await context.saveState({ startMessages: state });
 };
 
 module.exports = {
@@ -35,7 +34,7 @@ module.exports = {
     async start(context) {
 
         const messages = await getProjectMessages(context);
-        return saveMessagesToState(context, messages);
+        return await context.saveState({ messages: meessagesToState(messages) });
     },
 
     async tick(context) {
@@ -46,12 +45,12 @@ module.exports = {
 
             let { messages } = await context.loadState();
             if (!messages) {
-                messages = await getProjectMessages(context);
+                messages = messagesToState(await getProjectMessages(context));
             }
 
             const latestMessages = await getProjectMessages(context);
 
-            context.log({ stage: 'latest', x: latestMessages.map(item => item.id) });
+            context.log({ stage: 'latest', x: messagesToState(latestMessages) });
 
             const newMessages = latestMessages.filter(item => {
                 return !messages.find(message => message.id === item.id);
