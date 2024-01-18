@@ -1,5 +1,3 @@
-'use strict';
-
 const lib = require('../../lib');
 
 const getProjectMessages = async function(context) {
@@ -26,7 +24,6 @@ const messagesToState = function(messages) {
     return messages.map(item => {
         return { id: item.id, name: item.sent_date };
     });
-
 };
 
 module.exports = {
@@ -34,7 +31,7 @@ module.exports = {
     async start(context) {
 
         const messages = await getProjectMessages(context);
-        return await context.saveState({ messages: meessagesToState(messages) });
+        return await context.saveState({ messages: messagesToState(messages) });
     },
 
     async tick(context) {
@@ -50,15 +47,11 @@ module.exports = {
 
             const latestMessages = await getProjectMessages(context);
 
-            context.log({ stage: 'latest', x: messagesToState(latestMessages) });
-
             const newMessages = latestMessages.filter(item => {
                 return !messages.find(message => message.id === item.id);
             });
 
-            context.log({ stage: 'new messages', x: newMessages });
-
-            await saveMessagesToState(context, latestMessages);
+            await context.saveState({ messages: messagesToState(latestMessages) });
 
             if (newMessages.length) {
                 await context.sendArray(newMessages, 'out');
