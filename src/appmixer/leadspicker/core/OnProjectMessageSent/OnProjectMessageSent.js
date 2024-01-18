@@ -22,7 +22,7 @@ const getProjectMessages = async function(context) {
 const messagesToState = function(messages) {
 
     return messages.map(item => {
-        return { id: item.id, name: item.sent_date };
+        return { id: item.id, sent_date: item.sent_date };
     });
 };
 
