@@ -21,9 +21,10 @@ const getProjectMessages = async function(context) {
 
 const messagesToState = function(messages) {
 
-    return messages.map(item => {
-        return { id: item.id, sent_date: item.sent_date };
-    });
+    const lastItem = messages.slice(-1)[0] || { id: 0 };
+    return {
+        id: lastItem.id
+    };
 };
 
 module.exports = {
@@ -31,7 +32,7 @@ module.exports = {
     async start(context) {
 
         const messages = await getProjectMessages(context);
-        return await context.saveState({ messages: messagesToState(messages) });
+        return await context.saveState({ message: messagesToState(messages) });
     },
 
     async tick(context) {
@@ -40,18 +41,16 @@ module.exports = {
         try {
             lock = await context.lock(context.componentId);
 
-            let { messages } = await context.loadState();
-            if (!messages) {
-                messages = messagesToState(await getProjectMessages(context));
+            let { message } = await context.loadState();
+            if (!message) {
+                message = messagesToState(await getProjectMessages(context));
             }
 
             const latestMessages = await getProjectMessages(context);
 
-            const newMessages = latestMessages.filter(item => {
-                return !messages.find(message => message.id === item.id);
-            });
+            const newMessages = latestMessages.filter(item => item.id > message.id);
 
-            await context.saveState({ messages: messagesToState(latestMessages) });
+            await context.saveState({ message: messagesToState(latestMessages) });
 
             if (newMessages.length) {
                 await context.sendArray(newMessages, 'out');
