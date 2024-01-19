@@ -11,10 +11,6 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "limit": {
-                        "type": "integer",
-                        "maximum": 100
-                    },
                     "offset": {
                         "type": "integer"
                     },
@@ -41,71 +37,94 @@
                     },
                     "assigned_to_id": {
                         "type": "string"
+                    },
+                    "xConnectorOutputType": {
+                        "type": "string"
+                    },
+                    "xConnectorPaginationLimit": {
+                        "type": "number"
                     }
                 }
             },
             "inspector": {
                 "inputs": {
-                    "limit": {
-                        "type": "number",
-                        "index": 0,
-                        "label": "Limit",
-                        "tooltip": "<p>the number of items to be present in the response (default is 25, maximum is 100)</p>",
-                        "max": 100
-                    },
                     "offset": {
                         "type": "number",
-                        "index": 1,
+                        "index": 0,
                         "label": "Offset",
                         "tooltip": "<p>skip this number of issues in response (optional)</p>"
                     },
                     "sort": {
                         "type": "text",
-                        "index": 2,
+                        "index": 1,
                         "label": "Sort",
                         "tooltip": "<p>column to sort with. Append :desc to invert the order. (optional)</p>"
                     },
                     "include": {
                         "type": "text",
-                        "index": 3,
+                        "index": 2,
                         "label": "Include",
                         "tooltip": "<p>fetch associated data (optional, use comma to fetch multiple associations). Possible values: children,attachments,relations,changesets,journals,watchers</p>"
                     },
                     "issue_id": {
                         "type": "text",
-                        "index": 4,
+                        "index": 3,
                         "label": "Issue Id",
                         "tooltip": "<p>get issue with the given id or multiple issues by id using comma to separate id.</p>"
                     },
                     "project_id": {
                         "type": "number",
-                        "index": 5,
+                        "index": 4,
                         "label": "Project Id",
                         "tooltip": "<p>get issues from the project with the given id (a numeric value, not a project identifier).</p>"
                     },
                     "subproject_id": {
                         "type": "number",
-                        "index": 6,
+                        "index": 5,
                         "label": "Subproject Id",
                         "tooltip": "<p>get issues from the subproject with the given id. You can use project<em>id=XXX&subproject</em>id=!* to get only the issues of a given project and none of its subprojects.</p>"
                     },
                     "tracker_id": {
                         "type": "number",
-                        "index": 7,
+                        "index": 6,
                         "label": "Tracker Id",
                         "tooltip": "<p>get issues from the tracker with the given id</p>"
                     },
                     "status_id": {
                         "type": "text",
-                        "index": 8,
+                        "index": 7,
                         "label": "Status Id",
                         "tooltip": "<p>get issues with the given status id only. Possible values: open, closed, * to get open and closed issues, status id</p>"
                     },
                     "assigned_to_id": {
                         "type": "text",
-                        "index": 9,
+                        "index": 8,
                         "label": "Assigned To Id",
                         "tooltip": "<p>get issues which are assigned to the given user id. me can be used instead an ID to fetch all issues from the logged in user (via API key or HTTP auth)</p>"
+                    },
+                    "xConnectorOutputType": {
+                        "label": "Output Options",
+                        "type": "select",
+                        "options": [
+                            {
+                                "content": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "content": "One item at a time",
+                                "value": "object"
+                            }
+                        ],
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether to output all items at once in a single list or, instead, output one item at a time. For example, if you only care about the first item, you can choose \"One item at a time\" and then use 1 as the \"Limit\" parameter.",
+                        "index": -1
+                    },
+                    "xConnectorPaginationLimit": {
+                        "label": "Limit",
+                        "type": "number",
+                        "defaultValue": 10,
+                        "tooltip": "The total number of items to return.",
+                        "index": -1
                     }
                 }
             }
@@ -114,370 +133,17 @@
     "outPorts": [
         {
             "name": "out",
-            "options": [
-                {
-                    "label": "Issues",
-                    "value": "issues",
-                    "schema": {
-                        "title": "Issues",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "title": "Issue",
-                            "required": [
-                                "id",
-                                "project",
-                                "tracker",
-                                "status",
-                                "priority",
-                                "author",
-                                "subject",
-                                "description",
-                                "start_date",
-                                "due_date",
-                                "done_ratio",
-                                "is_private",
-                                "estimated_hours",
-                                "created_on",
-                                "updated_on",
-                                "closed_on"
-                            ],
-                            "properties": {
-                                "id": {
-                                    "title": "Id",
-                                    "type": "integer"
-                                },
-                                "project": {
-                                    "title": "Project",
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "title": "Id",
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "title": "Name",
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "tracker": {
-                                    "title": "Tracker",
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "title": "Id",
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "title": "Name",
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "status": {
-                                    "title": "Status",
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "title": "Id",
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "title": "Name",
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "priority": {
-                                    "title": "Priority",
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "title": "Id",
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "title": "Name",
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "author": {
-                                    "title": "Author",
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "title": "Id",
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "title": "Name",
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "assigned_to": {
-                                    "title": "AssignedTo",
-                                    "type": "object",
-                                    "required": [
-                                        "id",
-                                        "name"
-                                    ],
-                                    "properties": {
-                                        "id": {
-                                            "title": "Id",
-                                            "type": "integer"
-                                        },
-                                        "name": {
-                                            "title": "Name",
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "subject": {
-                                    "title": "Subject",
-                                    "type": "string"
-                                },
-                                "description": {
-                                    "title": "Description",
-                                    "type": "string"
-                                },
-                                "start_date": {
-                                    "title": "StartDate",
-                                    "type": "string"
-                                },
-                                "due_date": {
-                                    "title": "DueDate",
-                                    "type": "string"
-                                },
-                                "done_ratio": {
-                                    "title": "DoneRatio",
-                                    "type": "integer"
-                                },
-                                "is_private": {
-                                    "title": "Is Private",
-                                    "type": "boolean"
-                                },
-                                "estimated_hours": {
-                                    "title": "EstimatedHours",
-                                    "type": "number",
-                                    "example": 1.5
-                                },
-                                "created_on": {
-                                    "title": "CreatedOn",
-                                    "type": "string"
-                                },
-                                "updated_on": {
-                                    "title": "UpdatedOn",
-                                    "type": "string"
-                                },
-                                "closed_on": {
-                                    "title": "ClosedOn",
-                                    "type": "string"
-                                },
-                                "children": {
-                                    "title": "Children",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "required": [
-                                            "id",
-                                            "name"
-                                        ],
-                                        "properties": {
-                                            "id": {
-                                                "title": "Id",
-                                                "type": "integer"
-                                            },
-                                            "name": {
-                                                "title": "Name",
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                },
-                                "attachments": {
-                                    "title": "Attachments",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "required": [
-                                            "id",
-                                            "name"
-                                        ],
-                                        "properties": {
-                                            "id": {
-                                                "title": "Id",
-                                                "type": "integer"
-                                            },
-                                            "name": {
-                                                "title": "Name",
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                },
-                                "relations": {
-                                    "title": "Realtions",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "required": [
-                                            "id",
-                                            "name"
-                                        ],
-                                        "properties": {
-                                            "id": {
-                                                "title": "Id",
-                                                "type": "integer"
-                                            },
-                                            "name": {
-                                                "title": "Name",
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                },
-                                "changesets": {
-                                    "title": "Chagesets",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "required": [
-                                            "id",
-                                            "name"
-                                        ],
-                                        "properties": {
-                                            "id": {
-                                                "title": "Id",
-                                                "type": "integer"
-                                            },
-                                            "name": {
-                                                "title": "Name",
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                },
-                                "journals": {
-                                    "title": "Journals",
-                                    "type": "array",
-                                    "items": {
-                                        "title": "Journal",
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "title": "Id",
-                                                "type": "integer"
-                                            },
-                                            "user": {
-                                                "type": "object",
-                                                "required": [
-                                                    "id",
-                                                    "name"
-                                                ],
-                                                "properties": {
-                                                    "id": {
-                                                        "title": "Id",
-                                                        "type": "integer"
-                                                    },
-                                                    "name": {
-                                                        "title": "Name",
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            },
-                                            "notes": {
-                                                "type": "string"
-                                            },
-                                            "created_on": {
-                                                "type": "string"
-                                            },
-                                            "private_notes": {
-                                                "type": "boolean"
-                                            },
-                                            "details": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "property": {
-                                                            "type": "string"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "old_value": {
-                                                            "type": "string"
-                                                        },
-                                                        "new_value": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                "watchers": {
-                                    "title": "Watchers",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "required": [
-                                            "id",
-                                            "name"
-                                        ],
-                                        "properties": {
-                                            "id": {
-                                                "title": "Id",
-                                                "type": "integer"
-                                            },
-                                            "name": {
-                                                "title": "Name",
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+            "source": {
+                "url": "/component/appmixer/redmine/core/IssuesList?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/xConnectorOutputType": "inputs/in/xConnectorOutputType"
                     }
-                },
-                {
-                    "label": "Total Count",
-                    "value": "total_count"
-                },
-                {
-                    "label": "Offset",
-                    "value": "offset"
-                },
-                {
-                    "label": "Limit",
-                    "value": "limit"
                 }
-            ]
+            }
         }
     ],
     "properties": {},

@@ -70,15 +70,9 @@ security:
 ## Tags
 # https://swagger.io/docs/specification/2-0/grouping-operations-with-tags/
 tags:
-  - name: 'Projects'
-    externalDocs:
-      url: https://www.redmine.org/projects/redmine/wiki/Rest_Projects
   - name: 'Issues'
     externalDocs:
       url: https://www.redmine.org/projects/redmine/wiki/Rest_Issues
-  - name: 'TimeEntries'
-    externalDocs:
-      url: https://www.redmine.org/projects/redmine/wiki/Rest_TimeEntries
   - name: 'IssueStatuses'
     externalDocs:
       url: https://www.redmine.org/projects/redmine/wiki/Rest_IssueStatuses
@@ -94,9 +88,16 @@ paths:
     get:
       description: 'Returns a paginated list of issues. By default, it returns open issues only.'
       operationId: IssuesList
+      # We want to preserve the `offset` and `limit` parameters in the query string
+      # We loose the `total_count` parameter in the response.
+      x-connector-pagination:
+        type: once
+        parameters:
+          results: issues
+          count: total_count # not supported by generator yet
       tags: [ Issues ]
       parameters:
-        - $ref: '#/parameters/limitParam'
+        # - $ref: '#/parameters/limitParam' # Added by x-connector-pagination
         - $ref: '#/parameters/offsetParam'
         - name: sort
           in: query
@@ -234,12 +235,7 @@ paths:
                     items:
                       type: object
                   watcher_user_ids:
-                    title: WatcherUserIds
-                    type: array
-                    description: 'Array of user ids to add as watchers'
-                    items:
-                      type: integer
-                      format: int32
+                    $ref: '#/definitions/watcher_user_ids'
                   is_private:
                     title: IsPrivate
                     type: boolean
@@ -341,12 +337,7 @@ paths:
                       items:
                         type: object
                     watcher_user_ids:
-                      title: WatcherUserIds
-                      type: array
-                      description: 'Array of user ids to add as watchers'
-                      items:
-                        type: integer
-                        format: int32
+                      $ref: '#/definitions/watcher_user_ids'
                     is_private:
                       title: IsPrivate
                       type: boolean
@@ -439,6 +430,14 @@ definitions:
     format: int32
     example: 34
     description: 'ID of the user to assign the issue to (currently no mechanism to assign by name).'
+  watcher_user_ids:
+    title: WatcherUserIds
+    type: array
+    example: [1, 2, 3]
+    description: 'Array of user ids to add as watchers.'
+    items:
+      type: integer
+      format: int32
   idNameObject:
     type: object
     required:
