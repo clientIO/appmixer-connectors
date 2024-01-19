@@ -4,7 +4,9 @@ const _ = require('lodash');
 const { getComponentJsonFiles } = require('./utils');
 
 /** Existing components with old outports, eg. 'item','items' */
-const legacyOutputTypesComponents = [];
+const legacyOutputTypesComponents = [
+    'appmixer.monday.core.FindItems'
+];
 
 describe('component.json', () => {
 
