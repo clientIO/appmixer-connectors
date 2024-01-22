@@ -20,11 +20,11 @@ module.exports = {
         let item = data.items[0];
         item?.column_values?.map(val => {
             item[`column_value_${val.id}_id`] = val.id,
-                item[`column_value_${val.id}_text`] = val.text,
-                item[`column_value_${val.id}_title`] = val.title,
-                item[`column_value_${val.id}_type`] = val.type,
-                item[`column_value_${val.id}_value`] = val.value,
-                item[`column_value_${val.id}_additional_info`] = val.additional_info;
+            item[`column_value_${val.id}_text`] = val.text,
+            item[`column_value_${val.id}_title`] = val.title,
+            item[`column_value_${val.id}_type`] = val.type,
+            item[`column_value_${val.id}_value`] = val.value,
+            item[`column_value_${val.id}_additional_info`] = val.additional_info;
         });
 
         if (context.properties.generateOutputPortOptions) {

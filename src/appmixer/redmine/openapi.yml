@@ -70,15 +70,9 @@ security:
 ## Tags
 # https://swagger.io/docs/specification/2-0/grouping-operations-with-tags/
 tags:
-  - name: 'Projects'
-    externalDocs:
-      url: https://www.redmine.org/projects/redmine/wiki/Rest_Projects
   - name: 'Issues'
     externalDocs:
       url: https://www.redmine.org/projects/redmine/wiki/Rest_Issues
-  - name: 'TimeEntries'
-    externalDocs:
-      url: https://www.redmine.org/projects/redmine/wiki/Rest_TimeEntries
   - name: 'IssueStatuses'
     externalDocs:
       url: https://www.redmine.org/projects/redmine/wiki/Rest_IssueStatuses
@@ -94,9 +88,17 @@ paths:
     get:
       description: 'Returns a paginated list of issues. By default, it returns open issues only.'
       operationId: IssuesList
+      # We want to preserve the `offset` and `limit` parameters in the query string
+      # We loose the `total_count` parameter in the response.
+      x-connector-pagination:
+        type: once
+        parameters:
+          results: issues
+          count: total_count # not supported by generator yet
+      x-connector-label: FindIssues
       tags: [ Issues ]
       parameters:
-        - $ref: '#/parameters/limitParam'
+        # - $ref: '#/parameters/limitParam' # Added by x-connector-pagination
         - $ref: '#/parameters/offsetParam'
         - name: sort
           in: query
@@ -166,6 +168,7 @@ paths:
     post:
       description: 'Creates a new issue.'
       operationId: IssueCreate
+      x-connector-label: CreateIssue
       tags: [ Issues ]
       parameters:
         - name: issue
@@ -194,10 +197,12 @@ paths:
                     title: ProjectId
                     type: integer
                     format: int32
+                    example: 1
                   tracker_id:
                     title: TrackerId
                     type: integer
                     format: int32
+                    example: 1
                   status_id:
                     title: StatusId
                     type: integer
@@ -220,36 +225,24 @@ paths:
                     title: FixedVersionId
                     type: integer
                     format: int32
-                    description: 'ID of the Target Versions (previously called "Fixed Version" and still referred to as such in the API)'
+                    example: 1
+                    description: 'ID of the Target Versions (previously called "Fixed Version" and still referred to as such in the API).'
                   assigned_to_id:
-                    title: AssignedToId
-                    type: integer
-                    format: int32
-                    description: 'ID of the user to assign the issue to (currently no mechanism to assign by name)'
+                    $ref: '#/definitions/assigned_to_id'
                   parent_issue_id:
-                    title: ParentIssueId
-                    type: integer
-                    format: int32
-                    description: 'ID of the parent issue'
+                    $ref: '#/definitions/parent_issue_id'
                   custom_fields:
                     title: CustomFields
                     type: array
                     items:
                       type: object
                   watcher_user_ids:
-                    title: WatcherUserIds
-                    type: array
-                    description: 'Array of user ids to add as watchers'
-                    items:
-                      type: integer
-                      format: int32
+                    $ref: '#/definitions/watcher_user_ids'
                   is_private:
                     title: IsPrivate
                     type: boolean
                   estimated_hours:
-                    title: EstimatedHours
-                    type: number
-                    format: float
+                    $ref: '#/definitions/estimated_hours'
       responses:
         201:
           description: ''
@@ -268,6 +261,7 @@ paths:
       get:
         description: 'Returns the issue of given id or identifier.'
         operationId: IssueShow
+        x-connector-label: GetIssue
         tags: [ Issues ]
         parameters:
           - $ref: '#/parameters/idParam'
@@ -289,6 +283,7 @@ paths:
       put:
         description: 'Updates a issue.'
         operationId: IssueUpdate
+        x-connector-label: UpdateIssue
         tags: [ Issues ]
         parameters:
           - $ref: '#/parameters/idParam'
@@ -337,34 +332,21 @@ paths:
                       format: int32
                       description: 'ID of the Target Versions (previously called "Fixed Version" and still referred to as such in the API)'
                     assigned_to_id:
-                      title: AssignedToId
-                      type: integer
-                      format: int32
-                      description: 'ID of the user to assign the issue to (currently no mechanism to assign by name)'
+                      $ref: '#/definitions/assigned_to_id'
                     parent_issue_id:
-                      title: ParentIssueId
-                      type: integer
-                      format: int32
-                      description: 'ID of the parent issue'
+                      $ref: '#/definitions/parent_issue_id'
                     custom_fields:
                       title: CustomFields
                       type: array
                       items:
                         type: object
                     watcher_user_ids:
-                      title: WatcherUserIds
-                      type: array
-                      description: 'Array of user ids to add as watchers'
-                      items:
-                        type: integer
-                        format: int32
+                      $ref: '#/definitions/watcher_user_ids'
                     is_private:
                       title: IsPrivate
                       type: boolean
                     estimated_hours:
-                      title: EstimatedHours
-                      type: number
-                      format: float
+                      $ref: '#/definitions/estimated_hours'
                     notes:
                       title: Notes
                       description: 'Comments about the update'
@@ -382,6 +364,7 @@ paths:
       delete:
         description: 'Deletes a issue.'
         operationId: IssueDelete
+        x-connector-label: DeleteIssue
         tags: [ Issues ]
         parameters:
           - $ref: '#/parameters/idParam'
@@ -435,6 +418,31 @@ responses:
 ## Input and Output Models
 # Common data structure (schema object) definitions.
 definitions:
+  estimated_hours:
+    title: EstimatedHours
+    type: number
+    format: float
+    example: 1.5
+  parent_issue_id:
+    title: ParentIssueId
+    type: integer
+    format: int32
+    example: 43
+    description: 'ID of the parent issue.'
+  assigned_to_id:
+    title: AssignedToId
+    type: integer
+    format: int32
+    example: 34
+    description: 'ID of the user to assign the issue to (currently no mechanism to assign by name).'
+  watcher_user_ids:
+    title: WatcherUserIds
+    type: array
+    example: [1, 2, 3]
+    description: 'Array of user ids to add as watchers.'
+    items:
+      type: integer
+      format: int32
   idNameObject:
     type: object
     required:
@@ -707,9 +715,7 @@ definitions:
         title: Is Private
         type: boolean
       estimated_hours:
-        title: EstimatedHours
-        type: number
-        format: float
+        $ref: '#/definitions/estimated_hours'
       created_on:
         title: CreatedOn
         type: string
