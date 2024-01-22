@@ -9,20 +9,17 @@ module.exports = {
         accountNameFromProfileInfo: 'user',
 
         scope: [
-            'oauth',
-            'tickets',
-            'e-commerce',
-            'timeline',
-            'media_bridge.read',
             'crm.lists.read',
             'crm.lists.write',
-            'crm.objects.companies.write',
             'crm.objects.companies.read',
+            'crm.objects.companies.write',
             'crm.objects.contacts.read',
             'crm.objects.contacts.write',
             'crm.objects.deals.read',
             'crm.objects.deals.write',
+            'crm.objects.line_items.read',
             'crm.objects.owners.read',
+            'crm.objects.quotes.read',
             'crm.schemas.companies.read',
             'crm.schemas.companies.write',
             'crm.schemas.contacts.read',
@@ -30,8 +27,17 @@ module.exports = {
             'crm.schemas.custom.read',
             'crm.schemas.deals.read',
             'crm.schemas.deals.write',
-            'sales-email-read'
+            'crm.schemas.line_items.read',
+            'crm.schemas.quotes.read',
+            'e-commerce',
+            'files',
+            'media_bridge.read',
+            'oauth',
+            'sales-email-read',
+            'tickets',
+            'timeline'
         ],
+
         scopeDelimiter: ' ',
 
         authUrl: 'https://app.hubspot.com/oauth/authorize',
