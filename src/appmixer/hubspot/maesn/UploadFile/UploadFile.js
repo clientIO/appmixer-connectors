@@ -9,15 +9,15 @@ module.exports = {
         const { fileId, fileName } = context.messages.in.content;
 
         const { auth } = context;
-        const hs = new Hubspot(auth.accessToken, context.config);
+        // const hs = new Hubspot(auth.accessToken, context.config);
 
-        var filestream = await context.getFileReadStream(fileId);
+        const filestream = await context.getFileReadStream(fileId);
 
-        var options = {
+        const options = {
             access: 'PUBLIC_NOT_INDEXABLE',
             overwrite: false,
             duplicateValidationStrategy: 'NONE',
-            duplicateValidationScope: 'EXACT_FOLDER',
+            duplicateValidationScope: 'EXACT_FOLDER'
         };
 
         let form = new FormData();

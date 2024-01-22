@@ -14,7 +14,7 @@ module.exports = {
             body,
             contactId,
             hubSpotOwnerId,
-            attachmentIds,
+            attachmentIds
         } = context.messages.in.content;
 
         const { auth } = context;
@@ -30,14 +30,14 @@ module.exports = {
             associations: [  //TODO: In the future extend to accept other object types than contacts
                 {
                     to: {
-                       id: contactId
-                     },
-                     types: [
-                       {
-                         associationCategory: "HUBSPOT_DEFINED",
-                         associationTypeId: 202
-                       } ]
-                   }
+                        id: contactId
+                    },
+                    types: [
+                        {
+                            associationCategory: 'HUBSPOT_DEFINED',
+                            associationTypeId: 202
+                        }]
+                }
             ]
         };
 

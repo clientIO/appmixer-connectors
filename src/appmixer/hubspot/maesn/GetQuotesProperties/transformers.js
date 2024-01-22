@@ -12,4 +12,4 @@ module.exports.quoteToLabelNameArray = (quotesProperties) => {
         });
     }
     return transformed;
-}
+};

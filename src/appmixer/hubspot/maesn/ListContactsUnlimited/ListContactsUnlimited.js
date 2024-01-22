@@ -26,11 +26,10 @@ module.exports = {
         } else {
             params.properties = properties;
         }
-        
+
         const method = params.query ? 'post' : 'get';
         const url = params.query ? 'crm/v3/objects/contacts/search' : 'crm/v3/objects/contacts';
         const contacts = await hs.paginatedCall(method, url, params);
-     
 
         return commons.sendArrayOutput({
             context,

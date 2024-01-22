@@ -9,10 +9,8 @@ class UpdatedDeal extends BaseSubscriptionComponent {
 
         const subscriptions = [];
         subscriptions.push({
-            enabled: true,
-            subscriptionDetails: {
-                subscriptionType: this.subscriptionType,
-                propertyName: 'dealstage'
+            enabled: true, subscriptionDetails: {
+                subscriptionType: this.subscriptionType, propertyName: 'dealstage'
             }
         });
         return subscriptions;
@@ -67,10 +65,3 @@ class UpdatedDeal extends BaseSubscriptionComponent {
 }
 
 module.exports = new UpdatedDeal(subscriptionType);
-
-
-
-
-
-
-

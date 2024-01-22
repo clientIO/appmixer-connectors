@@ -71,8 +71,7 @@ module.exports = {
             quotesProperties.forEach((property) => {
                 if (!property.hidden) {
                     transformed.push({
-                        label: property.label || property.name,
-                        value: 'properties.' + property.name
+                        label: property.label || property.name, value: 'properties.' + property.name
                     });
                 }
             });

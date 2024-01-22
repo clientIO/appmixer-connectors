@@ -25,9 +25,7 @@ module.exports = {
                 if (!property.hidden) {
 
                     let field = {
-                        type: 'text',
-                        label: property.label || property.name,
-                        index: index++
+                        type: 'text', label: property.label || property.name, index: index++
                     };
 
                     switch (property.type) {
@@ -71,8 +69,7 @@ module.exports = {
             lineitemsProperties.forEach((property) => {
                 if (!property.hidden) {
                     transformed.push({
-                        label: property.label || property.name,
-                        value: 'properties.' + property.name
+                        label: property.label || property.name, value: 'properties.' + property.name
                     });
                 }
             });

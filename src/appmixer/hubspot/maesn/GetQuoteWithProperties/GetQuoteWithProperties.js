@@ -8,7 +8,7 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
-        const {quoteId, properties} = context.messages.in.content;
+        const { quoteId, properties } = context.messages.in.content;
         const propertiesQuery = '&properties=' + properties;
 
         try {

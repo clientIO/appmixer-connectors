@@ -7,7 +7,7 @@ module.exports = {
 
         const { auth } = context;
         const hubSpot = new HubSpot(auth.accessToken, context.config);
-        const {pipeline, dealstage, dealId} = context.messages.in.content;
+        const { pipeline, dealstage, dealId } = context.messages.in.content;
 
         try {
             const { data } = await hubSpot.call('get', `crm/v3/objects/deals/${dealId}`);
