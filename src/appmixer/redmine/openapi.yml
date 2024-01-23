@@ -84,6 +84,48 @@ tags:
 ## Endpoints
 # https://swagger.io/docs/specification/2-0/paths-and-operations/
 paths:
+  /projects.json:
+    get:
+      summary: 'List Projects'
+      description: 'Returns all projects (all public projects and private projects where user have access to).'
+      operationId: ProjectsList
+      x-connector-pagination:
+        type: once
+        parameters:
+          results: projects
+          count: total_count # not supported by generator yet
+      x-connector-label: FindProjects
+      tags: [ Projects ]
+      parameters:
+        # - $ref: '#/parameters/limitParam' # Added by x-connector-pagination
+        - $ref: '#/parameters/offsetParam'
+        - name: include
+          in: query
+          description: 'Fetch associated data (optional). Possible values: trackers, issue_categories, enabled_modules. Values should be separated by a comma ",".'
+          required: false
+          type: string
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            required:
+              - projects
+              - total_count
+              - offset
+              - limit
+            properties:
+              projects:
+                title: Projects
+                type: array
+                items:
+                  $ref: '#/definitions/project'
+              total_count:
+                $ref: '#/definitions/totalCount'
+              offset:
+                $ref: '#/definitions/offset'
+              limit:
+                $ref: '#/definitions/limit'
   /issues.json:
     get:
       description: 'Returns a paginated list of issues. By default, it returns open issues only.'
@@ -121,6 +163,10 @@ paths:
           required: false
           type: integer
           format: int32
+          schema:
+            x-connector-source:
+              operationId: ProjectsList
+              transform: 'projects[].{value: id, label: name}'
         - name: subproject_id
           in: query
           description: 'Get issues from the subproject with the given id. You can use project_id=XXX&subproject_id=!* to get only the issues of a given project and none of its subprojects.'
@@ -198,6 +244,9 @@ paths:
                     type: integer
                     format: int32
                     example: 1
+                    x-connector-source:
+                      operationId: ProjectsList
+                      transform: 'projects[].{value: id, label: name}'
                   tracker_id:
                     title: TrackerId
                     type: integer
@@ -304,6 +353,9 @@ paths:
                       title: ProjectId
                       type: integer
                       format: int32
+                      x-connector-source:
+                        operationId: ProjectsList
+                        transform: 'projects[].{value: id, label: name}'
                     tracker_id:
                       title: TrackerId
                       type: integer
