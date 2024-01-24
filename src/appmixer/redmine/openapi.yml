@@ -84,6 +84,48 @@ tags:
 ## Endpoints
 # https://swagger.io/docs/specification/2-0/paths-and-operations/
 paths:
+  /projects.json:
+    get:
+      summary: 'List Projects'
+      description: 'Returns all projects (all public projects and private projects where user have access to).'
+      operationId: ProjectsList
+      x-connector-pagination:
+        type: once
+        parameters:
+          results: projects
+          count: total_count # not supported by generator yet
+      x-connector-label: FindProjects
+      tags: [ Projects ]
+      parameters:
+        # - $ref: '#/parameters/limitParam' # Added by x-connector-pagination
+        - $ref: '#/parameters/offsetParam'
+        - name: include
+          in: query
+          description: 'Fetch associated data (optional). Possible values: trackers, issue_categories, enabled_modules. Values should be separated by a comma ",".'
+          required: false
+          type: string
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: object
+            required:
+              - projects
+              - total_count
+              - offset
+              - limit
+            properties:
+              projects:
+                title: Projects
+                type: array
+                items:
+                  $ref: '#/definitions/project'
+              total_count:
+                $ref: '#/definitions/totalCount'
+              offset:
+                $ref: '#/definitions/offset'
+              limit:
+                $ref: '#/definitions/limit'
   /issues.json:
     get:
       description: 'Returns a paginated list of issues. By default, it returns open issues only.'
@@ -102,45 +144,49 @@ paths:
         - $ref: '#/parameters/offsetParam'
         - name: sort
           in: query
-          description: column to sort with. Append :desc to invert the order. (optional)
+          description: Column to sort with. Append :desc to invert the order. (optional)
           required: false
           type: string
         - name: include
           in: query
-          description: 'fetch associated data (optional, use comma to fetch multiple associations). Possible values: children,attachments,relations,changesets,journals,watchers'
+          description: 'Fetch associated data (optional, use comma to fetch multiple associations). Possible values: children,attachments,relations,changesets,journals,watchers.'
           required: false
           type: string
         - name: issue_id
           in: query
-          description: 'get issue with the given id or multiple issues by id using comma to separate id.'
+          description: 'Get issue with the given id or multiple issues by id using comma to separate id.'
           required: false
           type: string
         - name: project_id
           in: query
-          description: 'get issues from the project with the given id (a numeric value, not a project identifier).'
+          description: 'Get issues from the project with the given id (a numeric value, not a project identifier).'
           required: false
           type: integer
           format: int32
+          schema:
+            x-connector-source:
+              operationId: ProjectsList
+              transform: 'projects[].{value: id, label: name}'
         - name: subproject_id
           in: query
-          description: 'get issues from the subproject with the given id. You can use project_id=XXX&subproject_id=!* to get only the issues of a given project and none of its subprojects.'
+          description: 'Get issues from the subproject with the given id. You can use project_id=XXX&subproject_id=!* to get only the issues of a given project and none of its subprojects.'
           required: false
           type: integer
           format: int32
         - name: tracker_id
           in: query
-          description: 'get issues from the tracker with the given id'
+          description: 'Get issues from the tracker with the given id'
           required: false
           type: integer
           format: int32
         - name: status_id
           in: query
-          description: 'get issues with the given status id only. Possible values: open, closed, * to get open and closed issues, status id'
+          description: 'Get issues with the given status id only. Possible values: open, closed, * to get open and closed issues, status id'
           required: false
           type: string
         - name: assigned_to_id
           in: query
-          description: 'get issues which are assigned to the given user id. me can be used instead an ID to fetch all issues from the logged in user (via API key or HTTP auth)'
+          description: 'Get issues which are assigned to the given user id. me can be used instead an ID to fetch all issues from the logged in user (via API key or HTTP auth)'
           required: false
           type: string
       responses:
@@ -197,12 +243,13 @@ paths:
                     title: ProjectId
                     type: integer
                     format: int32
-                    example: 1
+                    x-connector-source:
+                      operationId: ProjectsList
+                      transform: 'projects[].{value: id, label: name}'
                   tracker_id:
                     title: TrackerId
                     type: integer
                     format: int32
-                    example: 1
                   status_id:
                     title: StatusId
                     type: integer
@@ -225,7 +272,6 @@ paths:
                     title: FixedVersionId
                     type: integer
                     format: int32
-                    example: 1
                     description: 'ID of the Target Versions (previously called "Fixed Version" and still referred to as such in the API).'
                   assigned_to_id:
                     $ref: '#/definitions/assigned_to_id'
@@ -267,7 +313,7 @@ paths:
           - $ref: '#/parameters/idParam'
           - name: include
             in: query
-            description: 'fetch associated data (optional, use comma to fetch multiple associations). Possible values: children,attachments,relations,changesets,journals,watchers'
+            description: 'Fetch associated data (optional, use comma to fetch multiple associations). Possible values: children,attachments,relations,changesets,journals,watchers'
             required: false
             type: string
         responses:
@@ -304,6 +350,9 @@ paths:
                       title: ProjectId
                       type: integer
                       format: int32
+                      x-connector-source:
+                        operationId: ProjectsList
+                        transform: 'projects[].{value: id, label: name}'
                     tracker_id:
                       title: TrackerId
                       type: integer
@@ -378,13 +427,13 @@ parameters:
   idParam:
     name: "id"
     in: path
-    description: "id or identifier of the project/issue/user/timeEntry"
+    description: "ID or identifier of the project/issue/user/timeEntry"
     required: true
     type: string
   limitParam:
     name: limit
     in: query
-    description: "the number of items to be present in the response (default is 25, maximum is 100)"
+    description: "The number of items to be present in the response (default is 25, maximum is 100)"
     required: false
     type: integer
     format: int32
@@ -392,7 +441,7 @@ parameters:
   offsetParam:
     name: offset
     in: query
-    description: "skip this number of issues in response (optional)"
+    description: "Skip this number of issues in response (optional)"
     required: false
     type: integer
     format: int32
@@ -427,13 +476,11 @@ definitions:
     title: ParentIssueId
     type: integer
     format: int32
-    example: 43
     description: 'ID of the parent issue.'
   assigned_to_id:
     title: AssignedToId
     type: integer
     format: int32
-    example: 34
     description: 'ID of the user to assign the issue to (currently no mechanism to assign by name).'
   watcher_user_ids:
     title: WatcherUserIds
