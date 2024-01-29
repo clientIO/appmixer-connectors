@@ -1,0 +1,2504 @@
+openapi: 3.0.0
+servers:
+  - url: 'https://api.ringring.be'
+    description: prod
+info:
+  title: RingRing API
+  version: 1.8.1
+  contact:
+    name: API Support
+    email: support@ringring.be
+    url: 'https://support.ringring.be'
+  x-logo:
+    url: img/logo_ringring.png
+  description: |
+    The RingRing API let you send [SMSs](#tag/SMS), [mails](#tag/Mail) and make [voice calls](#tag/Voice).
+    In addition to those 3 channels, a contact management system is available under [directory](#tag/Contact).
+x-tagGroups:
+  - name: Concepts
+    tags:
+      - concept_auth
+      - ratelimit
+      - webhook
+      - sdk
+  - name: General
+    tags:
+      - Auth
+  - name: Channels
+    tags:
+      - SMS
+      - Voice
+      - Mail
+      - Template
+      - OTP
+  - name: Directory
+    tags:
+      - Contact
+      - Group
+  - name: SMPP
+    tags:
+      - SMPP_definition
+      - SMSC_platform
+      - protocol_implementation
+tags:
+  - name: concept_auth
+    x-displayName: Authentication
+    x-traitTag: true
+    description:
+      $ref: auth.md
+  - name: ratelimit
+    x-displayName: Rate Limit
+    x-traitTag: true
+    description:
+      $ref: ratelimit.md
+  - name: webhook
+    x-displayName: Webhook
+    x-traitTag: true
+    description:
+      $ref: webhook.md
+  - name: sdk
+    x-displayName: Libraries & SDK's
+    x-traitTag: true
+    description: |
+      You will find our Message API SDK with examples on GitHub.
+
+      * C# : https://github.com/RingRing-cloud/MessageApiClient-CSharp
+      * Java : https://github.com/RingRing-cloud/MessageApiClient-Java
+      * PHP : https://github.com/RingRing-cloud/MessageApiClient-PHP
+
+      Think we should add another common language? Feel free to send us an email at coordination@ringring.be !
+  - name: Auth
+    description: |
+      Endpoint for JSON Web Token authentication. Used to retrieve a token for **mail** and **directory**.
+  - name: SMS
+    x-displayName: SMS (Message API)
+    description:
+      $ref: sms.md
+  - name: Voice
+    x-displayName: Voice (Voice API)
+    description:
+      $ref: voice.md
+  - name: Mail
+    description:
+      $ref: mail.md
+  - name: Contact
+    description:
+      $ref: directory.md
+  - name: Group
+  - name: SMPP_definition
+    x-displayName: SMPP Protocol Definition
+    x-traitTag: true
+    description:
+      $ref: SMPP_definition.md
+  - name: SMSC_platform
+    x-displayName: RingRing SMSC Platform
+    x-traitTag: true
+    description:
+      $ref: SMSC_platform.md
+  - name: protocol_implementation
+    x-displayName: SMPP Protocol Implementation
+    x-traitTag: true
+    description:
+      $ref: protocol_implementation.md
+paths:
+  /portal/auth:
+    post:
+      summary: Authenticate
+      operationId: AuthApiKey_Post
+      tags:
+        - Auth
+      description: |
+        This resource is used to authenticate and generate a token to use other APIs from RingRing. The token has a validity duration of 1 hour and will have to be generated again to use the API.
+
+        > You will find your API key on the General settings page of your SMS Mailer application.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthApiKey'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthApiKeyResponse'
+              examples:
+                jwtIO:
+                  value:
+                    bearerToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /sms/v1/message:
+    post:
+      summary: Send SMS
+      operationId: MessageApiSmsRequest_Post
+      tags:
+        - SMS
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageApiSmsRequest'
+            examples:
+              text:
+                value:
+                  apiKey: THE-API-KEY
+                  to: '32485123456,32485123457'
+                  message: Send messages in text
+              unicode:
+                value:
+                  apiKey: THE-API-KEY
+                  to: 32485123456
+                  message: Здраво свету
+                  messageEncoding: Unicode
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiSmsResponse'
+              examples:
+                default:
+                  value:
+                    MessageCount: 1
+                    Messages:
+                      - MessageId: UNIQUE-MESSAGE-ID
+                        To: 32485123456
+                        ResultCode: 0
+                        ResultDescription: Success
+                    ResultCode: 0
+                    ResultDescription: Success
+                    NumberOfParts: 1
+                    NumberOfChars: 36
+                    MessageEncoding: TEXT
+                  bulk:
+                    value:
+                      MessageCount: 2
+                      Reference: 'null'
+                      Messages:
+                        - MessageId: 2616F513-9C0E-4487-983E-F72F963E047D
+                          To: 32485123456
+                          ResultCode: 0
+                          ResultDescription: Success
+                        - MessageId: 3D0D2A19-9439-4CD6-91A0-B0839549F5AD
+                          To: 32485123457
+                          ResultCode: 0
+                          ResultDescription: Success
+                      ResultCode: 0
+                      ResultDescription: Success
+                      NumberOfParts: 1
+                      NumberOfChars: 21
+                      MessageEncoding: TEXT
+                  unicode:
+                    value:
+                      MessageCount: 1
+                      Reference: 'null'
+                      Messages:
+                        - MessageId: 5B6E2580-1698-4610-B1B3-9A05691CA727
+                          To: 32485123456
+                          ResultCode: 0
+                          ResultDescription: Success
+                      ResultCode: 0
+                      ResultDescription: Success
+                      NumberOfParts: 1
+                      NumberOfChars: 12
+                      MessageEncoding: UNICODE
+        '400':
+          $ref: '#/components/responses/MessageApiGlobal400'
+        '403':
+          $ref: '#/components/responses/MessageApiGlobal403'
+        '500':
+          $ref: '#/components/responses/MessageApiGlobal500'
+  /sms/v1/statusmessage:
+    get:
+      summary: Inspect an SMS
+      operationId: MessageApiStatusMessage_Get
+      tags:
+        - SMS
+      description: 'This endpoint allows you to retrieve the status of an individual message. If you need to retrieve the status of all sent messages or of incoming messages, we recommend to use a [webhook](https://developers.ringring.be/#tag/webhook).'
+      parameters:
+        - name: apiKey
+          in: query
+          description: The application key.
+          schema:
+            type: string
+        - name: messageId
+          in: query
+          description: The ID of the message to retrieve.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiSmsStatus'
+              examples:
+                default:
+                  value:
+                    MessageId: B8B56F39-C0A1-4C73-AB55-3173E6D44B45
+                    StatusCode: 200
+                    StatusDescription: Delivered
+                    To: 32485123456
+                    Country: BE
+                    NumberOfParts: 1
+                    NumberOfChars: 36
+                    MessageEncoding: TEXT
+                    TimeSubmitted: '2018/03/28 13:55:00'
+                    TimeDelivered: '2018/03/28 13:55:03'
+                    ResultCode: 0
+                    ResultDescription: Success
+        '400':
+          $ref: '#/components/responses/MessageApiGlobal400'
+        '403':
+          $ref: '#/components/responses/MessageApiGlobal403'
+        '500':
+          $ref: '#/components/responses/MessageApiGlobal500'
+  /sms/v1/cancel:
+    post:
+      summary: Cancel an SMS
+      operationId: MessageApiCancelRequest_Post
+      tags:
+        - SMS
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageApiSmsCancel'
+      responses:
+        '200':
+          description: Success
+          headers:
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/X-RateLimit-Limit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/X-RateLimit-Remaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/X-RateLimit-Reset'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiSmsCancel'
+        '400':
+          $ref: '#/components/responses/MessageApiGlobal400'
+        '403':
+          $ref: '#/components/responses/MessageApiGlobal403'
+        '500':
+          $ref: '#/components/responses/MessageApiGlobal500'
+  /sms/v1/status: {}
+  /sms/v1/incoming: {}
+  '/sms/v1/Webhooks/{gatewayId}':
+    get:
+      tags:
+        - SMS
+      summary: Get webhook(s) configuration(s)
+      description: This endpoint allows you to retrieve the webhook configuration for an API key
+      operationId: Webhooks_Get
+      consumes: []
+      produces:
+        - application/json
+        - text/json
+      parameters:
+        - name: apiKey
+          in: path
+          description: The application key
+          required: true
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponseItem'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookErrorResponse'
+  /sms/v1/Webhooks:
+    post:
+      tags:
+        - SMS
+      summary: Update webhook(s) configuration(s)
+      description: You can update the webhook(s) onfiguration(s) of your applications (or API keys) using this endpoint
+      operationId: Webhooks_PostStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookPostItem'
+            example:
+              apiKey: THE-API-KEY
+              configurations:
+                - verb: POST
+                  Url: 'https://yoururl.com'
+                  settings: XML
+                  type: incoming
+                - Url: 'http://yoururl.com'
+                  verb: GET
+                  settings: JSON
+                  type: status
+              authentication:
+                username: username
+                password: yourpassword
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookResponseItem'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookErrorResponse'
+  /voice/v1/call:
+    post:
+      summary: Make call
+      operationId: VoiceV1Call_Post
+      tags:
+        - Voice
+      description:
+        $ref: voiceapi-call.md
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceV1Call'
+            examples:
+              basic:
+                value:
+                  appId: EF7491BE-03A7-4350-831E-2B1888D62BBA
+                  phoneNumber: 32499999999
+                  language: en-US
+                  introTts: Greetings. We would like to inform you that your car has arrived. You can come and pick it up starting today at 5 PM. Have a nice day. Your dealership.
+              advanced:
+                value:
+                  appId: MY-API-KEY
+                  phoneNumber: 32499999999
+                  callerId: 6083228
+                  language: en-US
+                  machineDetection: true
+                  introTts: 'Greetings. This is a message about your delivery of monday, 26th of june.'
+                  menuTts: 'To accept delivery on that day, press 1. To delay it to the day after, press 2.'
+                  menu:
+                    - key: 1
+                      tts: 'The delivery will take place on monday, 26th of june.'
+                    - key: 2
+                      tts: 'The delivery will be delayed to tuesday, 27th of june.'
+                  errorTts: 'We are sorry, but there was an error with your input.'
+                  byeTts: Thank you. Have a nice day.
+                  feedbackUrl: 'http://api.mycompany.com/v1/FeedbackCall'
+                  feedbackUrlmethod: POST
+      responses:
+        '200':
+          $ref: '#/components/responses/VoiceV1CallResponse'
+  /voice/v1/voicedeposit:
+    post:
+      summary: Make voice deposit
+      operationId: VoiceV1Deposit
+      tags:
+        - Voice
+      description: |
+        ## Leave a Voice message directly on a mobile voicemail box
+
+        > **Limited Availability**
+        >
+        > The VoiceDeposit API is only available for Belgian mobile phone numbers.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceV1Deposit'
+            example:
+              appId: EF7491BE-03A7-4354-831F-1B1888D62BBA
+              phoneNumber: 32499999999
+              feedbackUrl: 'http://mywebsite.com/feedback.php'
+              feedbackUrlMethod: POST
+              language: en-US
+              introTts: 'Please callback 0 1 2 3 4 5 6 7, as soon as possible.'
+      responses:
+        '200':
+          $ref: '#/components/responses/VoiceV1CallResponse'
+  /voice/v1/voicexml:
+    post:
+      summary: Make call with VoiceXML
+      operationId: VoiceV1CallXml_Post
+      description: |
+        ## Make an outbound call and route to a VoiceXML application
+
+        ### VoiceXML samples
+
+        Please find below an example of VoiceXML file.
+        RingRing provides you some sample available here :
+
+        * [Example in French](https://cdn.ringring.be/public/documentation/VoiceApi/Samples/sample-fr.vxml)
+        * [Example in Dutch](https://cdn.ringring.be/public/documentation/VoiceApi/Samples/sample-nl.vxml)
+        * [Example in English](https://cdn.ringring.be/public/documentation/VoiceApi/Samples/sample-en.vxml)
+
+        These paths can be used directly in the AnswerUrl field.
+
+        **VoiceXML**
+
+        ```xml
+         <vxml version="2.1">
+          <catch event="connection.disconnect.hangup">
+            <exit/>
+          </catch>
+          <catch event="connection.disconnect">
+            <exit/>
+          </catch>
+          <form id="myForm">
+            <block>
+              <prompt xml:lang="en-US">
+                Hello and welcome on our automatic call platform.
+              </prompt>
+              <exit/>
+            </block>
+          </form>
+        </vxml>
+        ```
+      tags:
+        - Voice
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceV1CallXml'
+            example:
+              appId: EF7491BE-03A7-4354-831F-1B1888D62BBA
+              phoneNumber: 32499999999
+              feedbackUrl: 'http://mywebsite.com/feedback.php'
+              feedbackUrlMethod: POST
+              answerUrl: 'http://mywebsite.com/myvxml.vxml'
+              language: fr-BE
+              scheduledTime: '2015-07-02T10:00:00.000Z'
+              machineDetection: false
+      responses:
+        '200':
+          $ref: '#/components/responses/VoiceV1CallResponse'
+  /voice/v1/callstatus:
+    post:
+      summary: Inspect a call
+      operationId: VoiceV1CallStatus
+      tags:
+        - Voice
+      description: |
+        > **FeedbackUrl**
+        >
+        > You will get a similar reponse to the JSON above when using the `FeedbackUrl` parameter in a Call, VoiceDeposit or VoiceXML.
+        > Only the `ResultCode` and `ResultDescription` parameters are not sent.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceV1CallStatus'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoiceV1CallBase'
+              examples:
+                default:
+                  value:
+                    id: 1319
+                    appId: EF7491BE-03A7-4354-831F-1B1888D62BBA
+                    phoneNumber: 3249999999
+                    scheduledTime: '2015-06-30T14:37:00.417Z'
+                    validityTime: '2015-07-07T14:37:00.417Z'
+                    callTime: '2015-06-30T14:37:55.040Z'
+                    duration: 34
+                    input: 2
+                    language: en-US
+                    answeredBy: Human
+                    applicationName: My application
+                    applicationType: VoiceXML
+                    status: Completed
+                    statusCode: 200
+                    statusDescription: Success
+                    resultCode: 0
+                    resultDescription: Success
+                    transferred: true
+                    transferTime: '2015-06-30T14:37:55.040Z'
+                    transferStatusCode: 200
+                    transferStatus: Completed
+                    transferAttempts: 1
+  /voice/v1/cancelcall:
+    post:
+      summary: Cancel a call
+      operationId: VoiceV1CallCancel
+      tags:
+        - Voice
+      description: Cancel a scheduled call
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoiceV1CallCancel'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoiceV1CallCancelResponse'
+  /voice/v1/prompts:
+    post:
+      summary: Create a prompt
+      operationId: VoiceV1Prompt_Post
+      tags:
+        - Voice
+      parameters:
+        - $ref: '#/components/parameters/voiceAppIdQueryParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoicePrompt'
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoicePrompt'
+        '400':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+        '401':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+    get:
+      summary: Get all prompts
+      operationId: VoiceV1Prompt_Get
+      tags:
+        - Voice
+      parameters:
+        - name: start
+          in: query
+          schema:
+            type: int
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: int
+            default: 100
+        - $ref: '#/components/parameters/voiceAppIdQueryParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoicePromptList'
+        '400':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+        '401':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+  '/voice/v1/prompts/{id}':
+    get:
+      summary: Inspect a prompt
+      operationId: VoiceV1Prompt_Get
+      tags:
+        - Voice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/voiceAppIdQueryParam'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoicePrompt'
+        '400':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+        '401':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+        '404':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+    delete:
+      summary: Delete a prompt
+      operationId: VoiceV1Prompt_Delete
+      tags:
+        - Voice
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/voiceAppIdQueryParam'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+        '404':
+          $ref: '#/components/responses/VoicePromptErrorResponse'
+  /mail/mail:
+    post:
+      tags:
+        - Mail
+      summary: Send mail
+      operationId: Mail_Post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Mail'
+              required:
+                - appId
+            examples:
+              basic:
+                value:
+                  appId: YOUR-APP-ID
+                  from:
+                    email: noreply@your.domain.com
+                  tos:
+                    - email: user@your.domain.com
+                  content:
+                    subject: basic
+                    html: <p>Hello basic</p>
+                    text: Hello basic
+                    base64Inactive: true
+              attachments:
+                summary: multiple attachments
+                value:
+                  appId: YOUR-APP-ID
+                  from:
+                    email: noreply@your.domain.com
+                  tos:
+                    - email: user@your.domain.com
+                  content:
+                    subject: multiple attachments
+                    text: This is a mail with 2 attachments.
+                    base64Inactive: true
+                  attachments:
+                    - name: first-attachment.txt
+                      content: Hi
+                      base64Inactive: true
+                    - name: second-attachment.txt
+                      content: Hello
+                      base64Inactive: true
+      responses:
+        '201':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mail'
+          links:
+            InspectMailById:
+              operationId: MailinspectId_Get
+              parameters:
+                id: '$response.body#/id'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnAuthorized'
+        '403':
+          $ref: '#/components/responses/InvalidRole'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      security:
+        - bearerAuth:
+            - 'mail:write'
+  '/mail/mail/inspect/{id}':
+    get:
+      tags:
+        - Mail
+      summary: Inspect a mail
+      operationId: MailinspectId_Get
+      security:
+        - bearerAuth:
+            - 'mail:read'
+      description: 'Inspect your sent mail. For debugging purposes only [old data are purged], use reporting api or webhook instead'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mail'
+          links:
+            InspectMailById:
+              operationId: MailinspectId_Get
+              parameters:
+                id: '$response.body#/id'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnAuthorized'
+        '403':
+          $ref: '#/components/responses/InvalidRole'
+        '404':
+          description: Not Found
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  '/directory/contact/group/{groupId}':
+    get:
+      summary: List contacts for a group
+      operationId: Contact_Get_groupId_start_limit
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - name: groupId
+          in: path
+          description: Group guid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/startParam'
+        - $ref: '#/components/parameters/contactLimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactList'
+  /directory/contact:
+    get:
+      summary: List contacts
+      operationId: Contact_Get_start_limit
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/startParam'
+        - $ref: '#/components/parameters/contactLimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactList'
+    post:
+      summary: Create a contact
+      operationId: Contact_Post_Contact
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactAPIInsertUpdate'
+  '/directory/contact/{id}':
+    get:
+      summary: Inspect a contact
+      operationId: Contact_Get_id
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/uuidPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+    put:
+      summary: Update a contact
+      description: |
+        If GroupGuids is null. The groups linked to contact will not change
+
+        If GroupGuids contains value. The groups linked with the contact will be reset and only Groups in the GroupGuids will be linked with the contact.
+
+        If GroupGuids is empty. Contact will be removed from all his current group
+      operationId: Contact_Put_id_Contact
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/uuidPathParam'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactAPIInsertUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+    delete:
+      summary: Delete a contact
+      operationId: Contact_Delete_id
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/uuidPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  '/directory/contact/{phoneNumber}':
+    get:
+      summary: Inspect a contact (by phoneNumber)
+      operationId: Contact_Get_phoneNumber
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/contactPhoneNumberPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+    put:
+      summary: Update a contact (by phoneNumber)
+      description: "If GroupGuids is null. The groups linked to contact will not change\r\nIf GroupGuids contains value. The groups linked with the contact will be reset and only Groups in the GroupGuids will be linked with the contact.\r\nIf GroupGuids is empty. Contact will be removed from all his current group"
+      operationId: Contact_Put_phoneNumber_Contact
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/contactPhoneNumberPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contact'
+    delete:
+      summary: Delete a contact (by phoneNumber)
+      operationId: Contact_Delete_phoneNumber
+      tags:
+        - Contact
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/contactPhoneNumberPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  '/directory/contact/{contactId}/group/{groupId}':
+    post:
+      summary: Add a contact to a group
+      operationId: Group_Post_contactId_groupId
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/contactIdPathParam'
+        - $ref: '#/components/parameters/contactGroupIdPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Remove a contact from a group
+      operationId: Group_Delete_contactId_groupId
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/contactIdPathParam'
+        - $ref: '#/components/parameters/contactGroupIdPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  '/directory/contact/{phoneNumber}/group/{groupId}':
+    post:
+      summary: Add a contact (by phoneNumber) to a group
+      operationId: Group_Post_phoneNumber_groupId
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/contactPhoneNumberPathParam'
+        - $ref: '#/components/parameters/contactGroupIdPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: Remove a contact (by phoneNumber) from a group
+      operationId: Group_Delete_phoneNumber_groupId
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/contactPhoneNumberPathParam'
+        - $ref: '#/components/parameters/contactGroupIdPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /directory/group:
+    get:
+      summary: List groups
+      operationId: Group_Get_start_limit
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/startParam'
+        - $ref: '#/components/parameters/contactLimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactGroupList'
+    post:
+      summary: Create a group
+      operationId: Group_Post_ContactGroup
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactGroup'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactGroup'
+        required: true
+  '/directory/group/{id}':
+    get:
+      summary: Inspect a group
+      operationId: Group_Get_id
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/uuidPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactGroup'
+    put:
+      summary: Update a group
+      operationId: Group_Put_id_ContactGroup
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/uuidPathParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactGroup'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactGroup'
+    delete:
+      summary: Delete a group
+      operationId: Group_Delete_id_deleteAlsoLinkedContact
+      tags:
+        - Group
+      security:
+        - bearerAuth:
+            - contact
+      parameters:
+        - $ref: '#/components/parameters/uuidPathParam'
+        - name: deleteAlsoLinkedContact
+          in: query
+          description: Force to delete also contact in the group. Default value is false.
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  headers:
+    X-RateLimit-Limit:
+      description: 'The current limit of Message API requests allowed in one minute (5000, 30 in debug mode)'
+      schema:
+        type: integer
+    X-RateLimit-Remaining:
+      description: The remaining available requests within a minute
+      schema:
+        type: integer
+    X-RateLimit-Reset:
+      description: The date and time when remaining limit is reset.
+      schema:
+        type: string
+        format: date-time
+  parameters:
+    uuid:
+      name: id
+      type: string
+      format: uuid
+    key:
+      name: key
+      type: string
+    name:
+      name: name
+      type: string
+    uuidPathParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/parameters/uuid'
+    phoneNumberPathParam:
+      name: phoneNumber
+      in: path
+      required: true
+      schema:
+        type: string
+    startParam:
+      name: start
+      in: query
+      description: Offset start of the result list
+      required: false
+      schema:
+        type: integer
+        format: int64
+    limitParam:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+    contactIdPathParam:
+      name: contactId
+      in: path
+      description: Contact id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    contactLimitParam:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+      description: Maximum contact in the result (maximum is 10.000)
+    contactPhoneNumberPathParam:
+      name: phoneNumber
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Phone number of the contact
+    contactGroupIdPathParam:
+      name: groupId
+      in: path
+      description: Group id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    voiceAppIdQueryParam:
+      name: appId
+      in: query
+      description: Application id
+      required: true
+      schema:
+        type: string
+  schemas:
+    WebhookErrorResponse:
+      type: object
+      properties:
+        resultCode:
+          format: int32
+          type: integer
+        resultDescription:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Error'
+    Error:
+      type: object
+      properties:
+        Description:
+          type: string
+    WebhookResponseItem:
+      type: object
+      properties:
+        apiKey:
+          description: The application key.
+          format: uuid
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+        configurations:
+          type: array
+          items:
+            $ref: '#/components/schemas/UrlConfig'
+        authentication:
+          $ref: '#/components/schemas/AuthenticationResponse'
+    UrlConfig:
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL of the webhook (null when no webhook is configured)
+        verb:
+          type: string
+          description: POST or GET depending how your webhook will receive information.
+        settings:
+          type: string
+          description: JSON or XML
+        type:
+          type: string
+          description: Satus or incoming
+    AuthenticationResponse:
+      type: object
+      properties:
+        userName:
+          type: string
+          description: UserName used for basic authentication on the webhook. Null if no authentication is required.
+    WebhookPostItem:
+      type: object
+      properties:
+        apiKey:
+          format: uuid
+          type: string
+          description: The application key.
+          example: 00000000-0000-0000-0000-000000000000
+        configurations:
+          type: array
+          items:
+            $ref: '#/components/schemas/UrlConfig'
+        authentication:
+          $ref: '#/components/schemas/Authentication'
+    Authentication:
+      type: object
+      properties:
+        userName:
+          type: string
+          description: Username used for basic authentication on the webhooks URLs
+        password:
+          type: string
+          description: Password used for basic authentication on the webhooks URLs
+    Uuid:
+      properties:
+        id:
+          $ref: '#/components/parameters/uuid'
+    Key:
+      properties:
+        key:
+          $ref: '#/components/parameters/key'
+    Name:
+      properties:
+        name:
+          $ref: '#/components/parameters/name'
+    UuidKey:
+      allOf:
+        - $ref: '#/components/schemas/Uuid'
+        - $ref: '#/components/schemas/Key'
+    KeyName:
+      allOf:
+        - $ref: '#/components/schemas/Key'
+        - $ref: '#/components/schemas/Name'
+    UuidKeyName:
+      allOf:
+        - $ref: '#/components/schemas/Uuid'
+        - $ref: '#/components/schemas/Key'
+        - $ref: '#/components/schemas/Name'
+    IdKeyName:
+      allOf:
+        - properties:
+            id:
+              type: string
+        - $ref: '#/components/schemas/Key'
+        - $ref: '#/components/schemas/Name'
+    TenantId:
+      properties:
+        tenantId:
+          type: integer
+    Object:
+      description: Object
+      type: object
+      additionalProperties: true
+    ResponseMessage:
+      properties:
+        errorCode:
+          type: string
+        message:
+          type: string
+        stackTrace:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseError'
+      type: object
+    ResponseError:
+      title: ResponseError
+      properties:
+        errorCode:
+          type: string
+        fieldName:
+          type: string
+        message:
+          type: string
+      description: ResponseError
+      type: object
+    AuthApiKey:
+      properties:
+        apiKey:
+          type: string
+          description: Value of the API Key provided by RingRing for authentication
+    AuthApiKeyResponse:
+      properties:
+        bearerToken:
+          type: string
+          format: byte
+    ChannelAttachment:
+      title: ChannelAttachment
+      required:
+        - name
+        - content
+      properties:
+        Name:
+          type: string
+        Content:
+          type: string
+        Base64Inactive:
+          type: boolean
+      description: attachment
+      type: object
+    Data:
+      properties:
+        data:
+          $ref: '#/components/schemas/Object'
+    NamedChannelCategory:
+      allOf:
+        - $ref: '#/components/schemas/UuidKeyName'
+        - $ref: '#/components/schemas/Data'
+    ChannelCampaign:
+      allOf:
+        - $ref: '#/components/schemas/NamedChannelCategory'
+        - title: ChannelCampaign
+          properties:
+            timeRange:
+              $ref: '#/components/schemas/TimeRange'
+          description: campaign - to categorise your channel message
+          type: object
+    TimeRange:
+      title: TimeRange
+      properties:
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+      description: TimeRange
+      type: object
+    ChannelScenario:
+      allOf:
+        - $ref: '#/components/schemas/NamedChannelCategory'
+        - title: ChannelScenario
+          description: scenario - to categorise your channel message
+          type: object
+    ChannelFlow:
+      allOf:
+        - $ref: '#/components/schemas/UuidKey'
+        - $ref: '#/components/schemas/Data'
+        - title: ChannelFlow
+          description: flow - to categorise your channel message
+          type: object
+    ChannelSchedule:
+      title: ChannelSchedule
+      properties:
+        In:
+          type: string
+        At:
+          type: string
+          format: date-time
+      description: schedule your message in the future
+      type: object
+    ChannelAppRef:
+      properties:
+        appId:
+          type: string
+          format: uuid
+          description: The application id
+    ChannelService:
+      type: object
+      required:
+        - key
+      properties:
+        key:
+          type: string
+          description: The service key
+          example: EmailToSms
+    MessageApiApiKey:
+      properties:
+        apiKey:
+          type: string
+          description: The application key.
+          writeOnly: true
+    MessageApiMessageId:
+      properties:
+        messageId:
+          type: string
+          description: Unique Id of the message.
+          example: B8B56F39-C0A1-4C73-AB55-3173E6D44B45
+    MessageApiResponseMessage:
+      properties:
+        resultCode:
+          type: integer
+          description: Result code of request
+          readOnly: true
+        resultDescription:
+          type: string
+          description: Result description of request
+          readOnly: true
+          enum:
+            - Success
+            - Internal Error
+            - Gateway not active
+            - TimeScheduled invalid
+            - Reference too long
+            - Number From invalid
+            - Message empty
+            - Message too long
+            - Number To invalid
+            - 'Internal Error: Application not associated with a right AppId'
+            - ApiKey invalid
+            - XML or JSON invalid
+            - ApiKey unknown
+            - IP Address denied
+            - RIP invalid
+            - StatusUrl invalid
+            - StatusMethod invalid
+            - TimeValidity invalid
+            - Number To limit reached
+            - Out of Time Window
+            - TimeSchedule invalid
+            - MaxRecords invalid
+            - MessageId invalid
+            - Message already cancelled
+            - Message already sent
+            - MessageId not found
+            - X-RateLimit reached
+            - SenderId invalid
+            - Number To Blacklisted
+            - StatusFormat invalid
+            - 'Maintenance, please retry later'
+            - Trial Period Expired
+            - Mobile Not Authorized
+            - Trial Quota Limit Reached
+    MessageApiCountry:
+      properties:
+        country:
+          type: string
+          description: The country identifier (ISO Alpha-2)
+    MessageApiForward:
+      properties: {}
+    MessageApiSmsRequest:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiApiKey'
+        - type: object
+          required:
+            - apiKey
+            - to
+            - message
+          properties:
+            to:
+              type: string
+              example: 32485123456
+              description: |
+                The phone number of the end user formatted following the E.164 recommendation of ITU-T (For example 32460123456 for a Belgian mobile number).
+                You can enter up to 1000 numbers separated with , (comma)
+            message:
+              type: string
+              description: The message. The content should be shorter than 1530 characters.
+            messageEncoding:
+              type: string
+              description: 'This parameter overrides the encoding defined in the application. Values ''Text'', ''Auto'' or ''Unicode'' are valid, other entries are ignored.'
+              enum:
+                - Text
+                - Auto
+                - Unicode
+            reference:
+              type: string
+              example: 3f1a06c6-5c3f-4e55-9b01-a29dbb0e8bcf
+              description: This is a reference you can use to trace your SMS internally. This one will be communicated if you receive a reply on your SMS through the Incoming API.
+            from:
+              type: string
+              example: 8686
+              description: If you have different shortcodes assigned to your application
+            senderId:
+              type: string
+              description: Some countries allow to change the SenderId.
+            timeScheduled:
+              type: string
+              format: datetime
+              description: 'The datetime (yyyy/MM/dd hh:mm:ss) at which you wish to send the SMS. If this falls outside of the Timewindow configuration, the request will be refused.'
+            timeValidity:
+              type: string
+              format: datetime
+              description: 'Expiration datetime (yyyy/MM/dd hh:mm:ss) of message'
+            replaceIfPresent:
+              type: string
+              example: '1'
+              description: |
+                This parameter allows to replace the content of a previously sent SMS that is still pending.
+                The authorized values are between 1 and 7.
+                This makes it possible to replace the content of up to the 7th SMS delivered in the past from the same number to the same recipient.
+    MessageApiSmsContent:
+      properties:
+        messageEncoding:
+          type: string
+          enum:
+            - Text
+            - Auto
+            - Unicode
+        numberOfParts:
+          type: integer
+          description: 'Number of parts of the message. Once you exceed the character limit (160 for text encoding or 70 for Unicode), messages are split in 153 characters or 67 character parts, up to 5 parts.'
+        numberOfChars:
+          type: integer
+          description: Number of characters of the message.
+    MessageApiSmsResponse:
+      allOf:
+        - type: object
+          properties:
+            reference:
+              type: string
+              description: The reference of your request. This reference is linked to the SMS
+            messages:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessageApiSmsRecipientStatus'
+        - $ref: '#/components/schemas/MessageApiSmsContent'
+        - $ref: '#/components/schemas/MessageApiResponseMessage'
+    MessageApiSmsRecipientStatus:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiMessageId'
+        - type: object
+          properties:
+            to:
+              type: string
+              description: The phone number of the end-user
+            resultCode:
+              type: integer
+              description: Result code of request
+              readOnly: true
+            resultDescription:
+              type: string
+              description: Result description of request
+              readOnly: true
+              enum:
+                - Success
+                - Internal Error
+                - Gateway not active
+                - TimeScheduled invalid
+                - Reference too long
+                - Number From invalid
+                - Message empty
+                - Message too long
+                - Number To invalid
+                - 'Internal Error: Application not associated with a right AppId'
+                - ApiKey invalid
+                - XML or JSON invalid
+                - ApiKey unknown
+                - IP Address denied
+                - RIP invalid
+                - StatusUrl invalid
+                - StatusMethod invalid
+                - TimeValidity invalid
+                - Number To limit reached
+                - Out of Time Window
+                - TimeSchedule invalid
+                - MaxRecords invalid
+                - MessageId invalid
+                - Message already cancelled
+                - Message already sent
+                - MessageId not found
+                - X-RateLimit reached
+                - SenderId invalid
+                - Number To Blacklisted
+                - StatusFormat invalid
+                - 'Maintenance, please retry later'
+                - Trial Period Expired
+                - Mobile Not Authorized
+                - Trial Quota Limit Reached
+    MessageApiSmsStatus:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiMessageId'
+        - type: object
+          properties:
+            statusCode:
+              type: string
+              description: 'Status code of the message. [List of status codes](https://support.ringring.be/hc/en-us/articles/115005254206-Message-status-errorcodes-and-flow-of-a-message).'
+            statusDescription:
+              type: string
+              description: Description of the status of the message
+            timeScheduled:
+              type: string
+              format: datetime
+              description: 'The datetime (yyyy/MM/dd hh:mm:ss) at which the SMS is scheduled to be sent'
+            timeSubmitted:
+              type: string
+              format: datetime
+              description: 'Datetime (yyyy/MM/dd HH:mm:ss) of when we submitted the message to the carrier'
+            deliveryTime:
+              type: string
+              format: datetime
+              description: 'Datetime (yyyy/MM/dd HH:mm:ss) of the delivery, provided by the carrier'
+            to:
+              type: string
+              description: The phone number of the end user
+        - $ref: '#/components/schemas/MessageApiCountry'
+        - $ref: '#/components/schemas/MessageApiSmsContent'
+        - $ref: '#/components/schemas/MessageApiResponseMessage'
+    MessageApiSmsCancel:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiApiKey'
+        - $ref: '#/components/schemas/MessageApiMessageId'
+        - $ref: '#/components/schemas/MessageApiResponseMessage'
+        - type: object
+    MessageApiSmsIn:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiMessageId'
+        - type: object
+          properties:
+            timeReceived:
+              type: string
+              format: datetime
+              description: 'Datetime (yyyy/MM/dd hh:mm:ss) of when we received the message'
+            from:
+              type: string
+              description: Phone number of the end-user
+            to:
+              type: string
+              description: Number it was sent to
+            message:
+              type: string
+              description: The body of the message
+            reference:
+              type: string
+              description: Your reference (used when sending message)
+        - $ref: '#/components/schemas/MessageApiCountry'
+    MessageApiConsumeRequest:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiApiKey'
+        - properties:
+            maxRecords:
+              type: integer
+              default: 100
+              description: The max amount of records. Entering 0 will return the default amount of records.
+    MessageApiSmsOutConsumeRequest:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiConsumeRequest'
+        - type: object
+    MessageApiSmsInConsumeRequest:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiConsumeRequest'
+        - type: object
+    MessageApiConsumeResponse:
+      allOf:
+        - properties:
+            numberOfRecords:
+              type: integer
+            remainingRecords:
+              type: integer
+        - $ref: '#/components/schemas/MessageApiResponseMessage'
+    MessageApiSmsOutConsumeResponse:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiConsumeResponse'
+        - type: object
+          properties:
+            statusMessages:
+              type: array
+              items:
+                allOf:
+                  - type: object
+                    properties:
+                      messageId:
+                        type: string
+                        description: Unique Id of the message.
+                        example: B8B56F39-C0A1-4C73-AB55-3173E6D44B45
+                      statusCode:
+                        type: string
+                        description: 'Status code of the message. [List of status codes](https://support.ringring.be/hc/en-us/articles/115005254206-Message-status-errorcodes-and-flow-of-a-message).'
+                      statusDescription:
+                        type: string
+                        description: Description of the status of the message
+                      timeScheduled:
+                        type: string
+                        format: datetime
+                        description: 'The datetime (yyyy/MM/dd hh:mm:ss) at which the SMS is scheduled to be sent'
+                      timeSubmitted:
+                        type: string
+                        format: datetime
+                        description: 'Datetime (yyyy/MM/dd HH:mm:ss) of when we submitted the message to the carrier'
+                      deliveryTime:
+                        type: string
+                        format: datetime
+                        description: 'Datetime (yyyy/MM/dd HH:mm:ss) of the delivery, provided by the carrier'
+                      to:
+                        type: string
+                        description: The phone number of the end user
+                      country:
+                        type: string
+                        description: The country identifier (ISO Alpha-2)
+                      messageEncoding:
+                        type: string
+                        enum:
+                          - Text
+                          - Auto
+                          - Unicode
+                      numberOfParts:
+                        type: integer
+                        description: 'Number of parts of the message. Once you exceed the character limit (160 for text encoding or 70 for Unicode), messages are split in 153 characters or 67 character parts, up to 5 parts.'
+                      numberOfChars:
+                        type: integer
+                        description: Number of characters of the message.
+                      resultCode:
+                        type: integer
+                        description: Result code of request
+                        readOnly: true
+                      resultDescription:
+                        type: string
+                        description: Result description of request
+                        readOnly: true
+                        enum:
+                          - Success
+                          - Internal Error
+                          - Gateway not active
+                          - TimeScheduled invalid
+                          - Reference too long
+                          - Number From invalid
+                          - Message empty
+                          - Message too long
+                          - Number To invalid
+                          - 'Internal Error: Application not associated with a right AppId'
+                          - ApiKey invalid
+                          - XML or JSON invalid
+                          - ApiKey unknown
+                          - IP Address denied
+                          - RIP invalid
+                          - StatusUrl invalid
+                          - StatusMethod invalid
+                          - TimeValidity invalid
+                          - Number To limit reached
+                          - Out of Time Window
+                          - TimeSchedule invalid
+                          - MaxRecords invalid
+                          - MessageId invalid
+                          - Message already cancelled
+                          - Message already sent
+                          - MessageId not found
+                          - X-RateLimit reached
+                          - SenderId invalid
+                          - Number To Blacklisted
+                          - StatusFormat invalid
+                          - 'Maintenance, please retry later'
+                          - Trial Period Expired
+                          - Mobile Not Authorized
+                          - Trial Quota Limit Reached
+    MessageApiSmsInConsumeResponse:
+      allOf:
+        - $ref: '#/components/schemas/MessageApiConsumeResponse'
+        - type: object
+          properties:
+            incomingMessages:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessageApiSmsIn'
+    VoiceV1Authentication:
+      allOf:
+        - properties:
+            appId:
+              description: The voice application ID to be used for the call.
+        - $ref: '#/components/schemas/ChannelAppRef'
+    VoiceV1Id:
+      properties:
+        id:
+          description: The Unique Call identifier
+    VoiceV1Result:
+      properties:
+        resultCode:
+          type: integer
+          readOnly: true
+          description: The result Code of the API response
+          enum:
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+            - 9
+            - 10
+            - 11
+            - 12
+            - 13
+            - 14
+            - 15
+            - 16
+            - 17
+            - 18
+            - 19
+            - 20
+            - 21
+            - 22
+            - 23
+            - 24
+            - 25
+            - 26
+            - 27
+            - 28
+            - 29
+            - 30
+            - 31
+            - 32
+        resultDescription:
+          type: string
+          readOnly: true
+          description: The textual description of the response
+          enum:
+            - Success
+            - Internal Error - Cannot process request
+            - Call successfully cancelled
+            - Internal Error - VoiceDeposit not supported for this phone number
+            - Internal Error - Cannot process VoiceXml request
+            - Invalid Prompt Id for ErrorPrompt
+            - Invalid Prompt Id for ByePrompt
+            - Invalid Prompt Id for MenuPrompt
+            - Invalid Prompt Id for IntroPrompt
+            - Invalid Caller Id
+            - Invalid Language
+            - Invalid Application Id
+            - Invalid AnswerUrl
+            - Invalid ValidityTime
+            - Invalid PhoneNumber
+            - Invalid Application Id
+            - Invalid Call Id
+            - Access Denied or Invalid Application Id
+            - Internal Error - Cannot process Call request
+            - Internal Error - General failure
+            - Invalid XML or JSON
+            - VoiceDeposit is only available for mobile phonenumbers in Belgium
+            - Invalid Method
+            - Mandatory IntroTts or IntroPrompt
+            - Invalid MachineDetection
+            - 'Menu Key {0} already in use'
+            - 'Invalid Menu Key {0}'
+            - Missing Menu Key
+            - MenuTts or MenuPrompt without Menu key(s)
+            - 'Missing Tts or Prompt Id for Key {0}'
+            - Only Mobile PhoneNumbers are accepted for VoiceDeposit
+            - Invalid Prompt Id for WhisperPrompt
+            - Invalid transfer phone number
+    VoiceV1Forward:
+      properties:
+        feedbackUrl:
+          type: string
+          format: uri
+          writeOnly: true
+          description: Url to push the status of the call.
+        feedbackUrlMethod:
+          type: string
+          writeOnly: true
+          description: The method used when pushing the status of the call
+    VoiceV1CallBase:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1Authentication'
+        - $ref: '#/components/schemas/VoiceV1Id'
+        - $ref: '#/components/schemas/VoiceV1Result'
+        - type: object
+          properties:
+            id:
+              readOnly: true
+            applicationType:
+              type: string
+              readOnly: true
+              description: 'The Application type. Call, VoiceXML or VoiceDeposit'
+            applicationName:
+              type: string
+              readOnly: true
+              description: The name of the voice application
+            phoneNumber:
+              type: string
+              writeOnly: true
+              description: Phone number of the destination
+            callerId:
+              type: string
+              description: Phone number used as source
+            scheduledTime:
+              type: string
+              description: The scheduled Datetime
+            validityTime:
+              type: string
+              description: The validity of the call
+            machineDetection:
+              type: boolean
+              description: Machine detection is enabled by default.
+            callTime:
+              type: string
+              writeOnly: true
+              description: The Call time of the call
+            duration:
+              type: integer
+              writeOnly: true
+              description: The length of the call in seconds
+            input:
+              type: string
+              writeOnly: true
+              description: The input given in a menu
+            language:
+              type: string
+              writeOnly: true
+              description: The language used by TTS
+            answeredBy:
+              writeOnly: true
+              description: The Url of the VoiceXML
+            status:
+              type: string
+              readonly: true
+              description: The Status of the Call
+            statusCode:
+              type: string
+              readonly: true
+              description: The specific Status Code of the call
+            statusDescription:
+              type: string
+              readonly: true
+              description: The textual description of the Call Status
+        - $ref: '#/components/schemas/VoiceV1Forward'
+    VoiceV1Call:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1Deposit'
+        - type: object
+          required:
+            - appId
+            - phoneNumber
+          properties:
+            menuTts:
+              type: string
+              description: The menu TTS audio message
+            menuPrompt:
+              type: string
+              description: The menu prompt Id
+            menu:
+              type: object
+              description: Please check below for more information on menu
+            byeTts:
+              type: string
+              description: The bye TTS audio message
+            byePrompt:
+              type: string
+              description: The bye prompt Id
+            errorTts:
+              type: string
+              description: The error TTS audio message
+            errorPrompt:
+              type: string
+              description: The error prompt Id
+    VoiceV1Deposit:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1CallBase'
+        - type: object
+          properties:
+            language:
+              type: string
+              description: The language used to read the TTS message
+              enum:
+                - fr-BE
+                - nl-BE
+                - nl-NL
+                - fr-FR
+                - en-US
+                - de-DE
+                - es-ES
+            introTts:
+              type: string
+              description: The intro TTS audio message
+            introPrompt:
+              type: string
+              format: uuid
+              description: The intro prompt ID
+    VoiceV1CallXml:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1CallBase'
+        - type: object
+          properties:
+            answerUrl:
+              type: string
+    VoiceV1Get:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1Authentication'
+        - $ref: '#/components/schemas/VoiceV1Id'
+        - type: object
+          example:
+            id: 1319
+            appId: EF7491BE-03A7-4354-831F-1B1888D62BBA
+    VoiceV1CallCancel:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1Get'
+    VoiceV1CallCancelResponse:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1Id'
+        - $ref: '#/components/schemas/VoiceV1Result'
+    VoiceV1CallStatus:
+      allOf:
+        - $ref: '#/components/schemas/VoiceV1Get'
+    VoicePromptListItem:
+      properties:
+        id:
+          readOnly: true
+          type: string
+          format: uuid
+          description: The id of the prompt
+          example: f221f0e9-a583-4b51-ad47-6eb712ba6cac
+        name:
+          type: string
+          description: The name of the prompt
+          example: My file name
+        extension:
+          type: string
+          enum:
+            - .mp3
+            - .wav
+          description: The extension of the file
+          example: .mp3
+        uploadTime:
+          readOnly: true
+          type: date-time
+          pattern: 'yyyy-MM-dd''T''HH:mm:ss.fffffffXXX'
+          description: The time the prompt was uploaded
+          example: '2018-11-21T09:07:36.308Z'
+    VoicePrompt:
+      allOf:
+        - $ref: '#/components/schemas/VoicePromptListItem'
+        - properties:
+            content:
+              type: string
+              format: byte
+              description: The content of the prompt base64 encoded
+              example: c29tZSBiYXNlIDY0IGNvbnRlbnQ=
+    VoicePromptList:
+      properties:
+        pagination:
+          $ref: '#/components/schemas/ContactPagination'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/VoicePromptListItem'
+    VoicePromptError:
+      properties:
+        resultDescription:
+          type: string
+          description: ErrorMessage
+    MailAppProvider:
+      type: object
+      properties:
+        name:
+          type: string
+        key:
+          type: string
+          enum:
+            - SendGrid
+            - ZoneMTA
+          default: SendGrid
+        user:
+          type: string
+    MailApp:
+      allOf:
+        - $ref: '#/components/schemas/UuidKeyName'
+        - $ref: '#/components/schemas/TenantId'
+        - properties:
+            personalisationId:
+              type: string
+              format: uuid
+            provider:
+              $ref: '#/components/schemas/MailAppProvider'
+    Mail:
+      allOf:
+        - $ref: '#/components/schemas/ChannelAppRef'
+        - type: object
+          properties:
+            status:
+              type: string
+              readOnly: true
+            from:
+              $ref: '#/components/schemas/MailParty'
+              description: The mail sender
+            replyTo:
+              $ref: '#/components/schemas/MailParty'
+              description: To whom mail answers should be sent
+            tos:
+              description: 'The mail recepients : to,cc,bcc'
+              type: array
+              items:
+                $ref: '#/components/schemas/MailParty'
+            content:
+              $ref: '#/components/schemas/MailContent'
+              description: 'The mail content : subject, text and/or html. You can also use http file multipart (''subject'', ''text'', ''html )'
+            attachments:
+              description: Mail attachments
+              type: array
+              items:
+                $ref: '#/components/schemas/ChannelAttachment'
+            campaign:
+              $ref: '#/components/schemas/ChannelCampaign'
+              description: 'The campaign the mail should be referenced to. Set full info about the campaign. Useful for reporting purposes (ex: search all mail relative to *last accounting period invoices*)'
+            scenario:
+              $ref: '#/components/schemas/ChannelScenario'
+              description: 'The scenario the mail should be referenced to. Set full info about the scenario Useful for reporting purposes (ex: compare number of mail send for *invoices* to *credit notes*  )'
+            flow:
+              $ref: '#/components/schemas/ChannelFlow'
+              description: 'The flow the mail should be referenced to. Set full info about the flowUseful for transactional purposes (ex : set flow id as invoice id and know which mail(s) is associated to which invoice)'
+            tags:
+              description: 'Campaign and scenario are not enough to categorize your business : Use tags to label your mail (ex: statistics about *private persons* and *companies*)'
+              type: array
+              items:
+                type: string
+            schedule:
+              $ref: '#/components/schemas/ChannelSchedule'
+              description: Schedule your mail in the future
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/MailEvent'
+              readOnly: true
+          example:
+            id: MAIL-ID
+            appId: YOUR-APP-ID
+            tenantId: 4276
+            status: Enqueued
+            from:
+              email: noreply@your.domain.com
+            tos:
+              - type: To
+                email: user@your.domain.com
+            content:
+              subject: Basic
+            attachments: []
+            events:
+              - time: '2018-02-16T15:48:43.5665673+01:00'
+                name: MailEnqueued
+    MailParty:
+      title: MailParty
+      required:
+        - email
+      properties:
+        type:
+          type: string
+          enum:
+            - To
+            - Cc
+            - Bcc
+            - From
+            - ReplyTo
+        name:
+          type: string
+        email:
+          type: string
+      description: MailParty
+      type: object
+    MailContent:
+      title: MailContent
+      required:
+        - Subject
+      properties:
+        subject:
+          type: string
+        text:
+          type: string
+          writeOnly: true
+        html:
+          type: string
+          writeOnly: true
+        base64Inactive:
+          type: boolean
+          writeOnly: true
+        data:
+          $ref: '#/components/schemas/Object'
+      description: 'mail content - subject, html and/or text'
+      type: object
+    MailEvent:
+      title: MailEvent
+      properties:
+        time:
+          type: string
+          format: date-time
+        name:
+          type: string
+        email:
+          type: string
+        reason:
+          type: string
+        url:
+          type: string
+      description: MailEvent
+      type: object
+    ContactPagination:
+      type: object
+      properties:
+        totalRecord:
+          format: int32
+          type: integer
+        start:
+          format: int32
+          type: integer
+        limit:
+          format: int32
+          type: integer
+        returnedRecord:
+          format: int32
+          type: integer
+        remainingRecord:
+          format: int32
+          type: integer
+    ContactAPIInsertUpdate:
+      required:
+        - phoneNumber
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+        groupGuids:
+          type: array
+          items:
+            format: uuid
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+        customFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomFieldsInsertUpdate'
+    CustomFieldsInsertUpdate:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          format: int32
+          maximum: 10
+          minimum: 1
+          type: integer
+        value:
+          type: string
+    Contact:
+      required:
+        - phoneNumber
+      type: object
+      properties:
+        contactId:
+          description: Guid of the contact
+          type: string
+          format: uuid
+          readOnly: true
+        phoneNumber:
+          description: Phone number of the contact
+          type: string
+        createdDateTime:
+          description: Creation date time of the contact
+          type: string
+          format: date-time
+          readOnly: true
+        customFields:
+          description: List of custom fields
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactCustomField'
+        groupGuids:
+          description: List of group guid where contact is in
+          type: array
+          writeOnly: true
+          items:
+            format: uuid
+            type: string
+        groups:
+          description: List of group of the contact
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/ContactGroup'
+    ContactCustomField:
+      required:
+        - id
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Id of the custom field from 1 to 10
+          maximum: 10
+          minimum: 1
+          type: integer
+          readOnly: true
+        name:
+          description: Name of the custom field
+          type: string
+        value:
+          description: Value of the custom field
+          type: string
+    ContactGroup:
+      description: Group object
+      required:
+        - name
+      type: object
+      properties:
+        groupId:
+          description: Guid of the group
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          description: Name of the group
+          pattern: '([a-zA-Z0-9 .&''-]+)'
+          type: string
+        contacts:
+          type: integer
+          format: int32
+          readOnly: true
+    ContactList:
+      type: object
+      properties:
+        Pagination:
+          $ref: '#/components/schemas/ContactPagination'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+    ContactGroupList:
+      type: object
+      properties:
+        Pagination:
+          $ref: '#/components/schemas/ContactPagination'
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContactGroup'
+    Time:
+      properties:
+        time:
+          type: string
+          format: date-time
+    ValidationError:
+      type: object
+      properties:
+        fieldName:
+          type: string
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+      additionalProperties: false
+  responses:
+    VoiceV1CallResponse:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VoiceV1CallBase'
+    UnAuthorized:
+      description: Unauthorized
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+    InvalidRole:
+      description: Invalid Role
+    NoContent:
+      description: No Content
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseMessage'
+          examples:
+            invalidNotEmpty:
+              value:
+                code: Invalid
+                message: Invalid
+                errors:
+                  - code: NotEmpty
+                    message: '''SomeField'' should not be empty.'
+                    fieldName: SomeField
+    VoicePromptErrorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VoicePromptError'
+    MessageApiGlobal400:
+      description: Bad request / Maintenance
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MessageApiResponseMessage'
+          examples:
+            numberInvalid:
+              value:
+                ResultCode: 2
+                ResultDescription: Gateway not active
+    MessageApiGlobal403:
+      description: Forbidden / X-Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MessageApiResponseMessage'
+          examples:
+            apiKeyInvalid:
+              value:
+                ResultCode: 12
+                ResultDescription: ApiKey invalid
+    MessageApiGlobal500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MessageApiResponseMessage'
+          examples:
+            internalError:
+              value:
+                ResultCode: 1
+                ResultDescription: Internal
