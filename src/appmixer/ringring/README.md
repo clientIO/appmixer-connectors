@@ -12,6 +12,12 @@ Currently authentication for SMS API is done directly in the component and no ac
 
 Apply the following manual updates since those are not covered by the OpenAPI generator.
 
+### service.json
+
+```json
+"label": "RingRing",
+```
+
 ### MessageAPiSmsRequest_Post/component.json
 
 Make sure these are the values for the `timeScheduled` and `timeValidity` fields for inspector:
