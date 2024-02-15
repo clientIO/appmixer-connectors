@@ -5,6 +5,7 @@ https://developer-docs.amazon.com
 https://github.com/amzn/selling-partner-api-models
 
 ### Tutorials, SO
+- https://www.youtube.com/@amazon-sp-api (official)
 - https://www.youtube.com/watch?v=gp5kTI8I3pU, update of https://www.youtube.com/watch?v=BGmx-9C1aoM
 - https://stackoverflow.com/questions/71493378/amazon-selling-partner-api-how-to-update-price-and-quantity-of-the-product
 
