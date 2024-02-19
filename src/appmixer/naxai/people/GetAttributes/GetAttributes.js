@@ -6,16 +6,46 @@ module.exports = {
 
     receive: async function(context) {
 
-        if (context.properties.generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, context.messages.in.content.xConnectorOutputType);
-        }
+        const { isSource } = context.messages.in.content;
 
-        const { data } = await this.httpRequest(context);
+        const cacheKey = 'naxai_attributes_' + context.auth.clientId;
+        let lock;
+        try {
+            lock = await context.lock(context.auth.clientId);
 
-        if (context.messages.in.content.xConnectorOutputType === 'object') {
-            return context.sendArray(data, 'out');
-        } else {
-            return context.sendJson({ result: data }, 'out');
+            // Checking and returning cache only if this is a call from another component.
+            if (isSource) {
+                const basesCached = await context.staticCache.get(cacheKey);
+                if (basesCached) {
+                    return context.sendJson({ items: basesCached }, 'out');
+                }
+            }
+
+            const { data } = await this.httpRequest(context);
+            // Response exaple: [{ "name": "newKey" }, { "name": "newKey-2" }]
+
+            // Cache the tables for 20 seconds unless specified otherwise in the config.
+            // Note that we only need name and id, so we can save some space in the cache.
+            // Caching only if this is a call from another component.
+            if (isSource) {
+                await context.staticCache.set(
+                    cacheKey,
+                    data.map(item => ({ id: item.name, name: item.name })),
+                    context.config.listAttributesCacheTTL || (20 * 1000)
+                );
+
+                // Returning values into another component.
+                return context.sendJson({ items: data }, 'out');
+            }
+
+            // Returning values to the flow.
+            if (context.messages.in.content.xConnectorOutputType === 'object') {
+                return context.sendArray(data, 'out');
+            } else {
+                return context.sendJson({ result: data }, 'out');
+            }
+        } finally {
+            lock?.unlock();
         }
     },
 

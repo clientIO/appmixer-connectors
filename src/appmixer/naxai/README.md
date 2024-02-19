@@ -18,6 +18,10 @@ Apply the following manual updates since those are not covered by the OpenAPI ge
     },
 ```
 
+### ./GetAttributes/GetAttributes.js
+
+Keep the code as is to preserve caching.
+
 ### All httpRequest methods
 
 Replace
