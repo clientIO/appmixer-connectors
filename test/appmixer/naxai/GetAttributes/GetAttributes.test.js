@@ -31,6 +31,7 @@ describe('GetAttributes', function() {
                         }
                     }
                 };
+                context.properties = {};
 
                 // Stub the HTTP request to return the metadata for Account entity.
                 context.httpRequest.onFirstCall().resolves({

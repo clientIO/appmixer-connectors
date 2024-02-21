@@ -6,6 +6,10 @@ module.exports = {
 
     receive: async function(context) {
 
+        if (context.properties.generateOutputPortOptions) {
+            return this.getOutputPortOptions(context, context.messages.in.content.xConnectorOutputType);
+        }
+
         const { isSource } = context.messages.in.content;
 
         const cacheKey = 'naxai_attributes_' + context.auth.clientId;
