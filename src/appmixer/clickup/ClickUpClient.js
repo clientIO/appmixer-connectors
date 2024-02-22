@@ -1,12 +1,10 @@
 'use strict';
 
 class ClickUpClient {
-
     /**
-     * @param {*} context Component context
-     */
+   * @param {*} context Component context
+   */
     constructor(context) {
-
         this.log = context.log;
 
         // context.auth.accessToken for component calls
@@ -28,19 +26,29 @@ class ClickUpClient {
     }
 
     /**
-     * @param {string} method GET, POST, PUT, DELETE
-     * @param {string} url Partial URL, e.g. /list
-     * @param {object} params
-     * @param {string} params.dataKey Key of the data array in the response.
-     * Eg. 'tasks' for /tasks. If not provided, the last part of the URL is used.
-     * @param {number} params.countLimit Maximum number of records to return. Default 10000.
-     * @param {object} params.data Request body. Valid for POST and PUT only.
-     * @param {object} params.headers Request headers
-     * @param {object} params.params Request query parameters
-     * @returns {Promise<object[]>} Array of records
-     */
-    async requestPaginated(method, url, { dataKey, countLimit = 10000, data, headers = {}, params = {}, paramsSerializer = {} } = {}) {
-
+   * @param {string} method GET, POST, PUT, DELETE
+   * @param {string} url Partial URL, e.g. /list
+   * @param {object} params
+   * @param {string} params.dataKey Key of the data array in the response.
+   * Eg. 'tasks' for /tasks. If not provided, the last part of the URL is used.
+   * @param {number} params.countLimit Maximum number of records to return. Default 10000.
+   * @param {object} params.data Request body. Valid for POST and PUT only.
+   * @param {object} params.headers Request headers
+   * @param {object} params.params Request query parameters
+   * @returns {Promise<object[]>} Array of records
+   */
+    async requestPaginated(
+        method,
+        url,
+        {
+            dataKey,
+            countLimit = 10000,
+            data,
+            headers = {},
+            params = {},
+            paramsSerializer = {}
+        } = {}
+    ) {
         let records = [];
         const key = dataKey || url.split('/').pop();
         let hasMoreRecords = false;
@@ -49,7 +57,12 @@ class ClickUpClient {
             page += 1;
             params.page = page;
 
-            const response = await this.request(method, url, { data, headers, params, paramsSerializer });
+            const response = await this.request(method, url, {
+                data,
+                headers,
+                params,
+                paramsSerializer
+            });
             if (response && response[key]) {
                 const results = response[key];
                 hasMoreRecords = !response['last_page'];
@@ -59,8 +72,11 @@ class ClickUpClient {
         return records;
     }
 
-    async request(method, url, { data, headers = {}, params = {}, paramsSerializer } = {}) {
-
+    async request(
+        method,
+        url,
+        { data, headers = {}, params = {}, paramsSerializer } = {}
+    ) {
         const request = {
             method,
             url,
@@ -68,14 +84,13 @@ class ClickUpClient {
             data,
             params,
             paramsSerializer
-
         };
         this.log({ step: 'ClickUpClient.request', request });
         return this.client(request)
-            .then(response => {
+            .then((response) => {
                 return response.data;
             })
-            .catch(e => {
+            .catch((e) => {
                 if (e.response && e.response.data) {
                     if (Array.isArray(e.response.data)) {
                         const errorData = e.response.data[0];

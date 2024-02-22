@@ -7,7 +7,22 @@ module.exports = {
 
     async receive(context) {
 
-        const { taskId, name, description, assigneesToAdd, assigneesToRemove, status, priority, dueDate, dueDateTime, startDate, startDateTime, notifyAll, parent, archived } = context.messages.in.content;
+        const {
+            taskId,
+            name,
+            description,
+            assigneesToAdd,
+            assigneesToRemove,
+            status,
+            priority,
+            dueDate,
+            dueDateTime,
+            startDate,
+            startDateTime,
+            notifyAll,
+            parent,
+            archived
+        } = context.messages.in.content;
 
         const clickUpClient = new ClickUpClient(context);
 

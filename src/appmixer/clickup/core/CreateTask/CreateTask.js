@@ -5,7 +5,21 @@ module.exports = {
 
     async receive(context) {
 
-        const { listId, name, description, assignees, tags, status, priority, dueDate, dueDateTime, startDate, startDateTime, notifyAll, parent } = context.messages.in.content;
+        const {
+            listId,
+            name,
+            description,
+            assignees,
+            tags,
+            status,
+            priority,
+            dueDate,
+            dueDateTime,
+            startDate,
+            startDateTime,
+            notifyAll,
+            parent
+        } = context.messages.in.content;
 
         const clickUpClient = new ClickUpClient(context);
 

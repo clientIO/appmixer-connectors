@@ -137,6 +137,5 @@ module.exports = {
             // Default to array output
             return context.sendJson([], outputPortName);
         }
-    }    
-    
+    }
 };
