@@ -17,7 +17,9 @@ module.exports = {
 
             requestProfileInfo: 'https://api.clickup.com/api/v2/user',
 
-            accountNameFromProfileInfo: 'user.username'
+            accountNameFromProfileInfo: 'user.username',
+
+            validateAccessToken: 'https://api.clickup.com/api/v2/user'
         };
     }
 };
