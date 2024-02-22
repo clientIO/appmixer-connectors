@@ -1,0 +1,121 @@
+openapi: 3.0.0
+servers:
+  - url: '{instance}.daktela.com'
+    description: Daktela instance
+    variables:
+      instance:
+        description: Daktela instance
+        default: 'https://democz.daktela.com'
+
+components:
+  securitySchemes:
+    accessToken:
+      type: http
+      scheme: basic
+
+security:
+  - accessToken: []
+
+info:
+  title: Daktela
+  version: 1.0.0
+  description: Multichannel Ticketing System application with a modern web interface for user-friendly processing of customers’ requests and internal corporate tasks.
+  x-connector-icon: data:image/octet-stream;base64,UklGRqYEAABXRUJQVlA4TJkEAAAv78A7EOJQ3LaNY++/dnq7e0bEBOC+FHhmRJrWxdi0hvxYSbVtu5ZyHZSCXAqCgNjNBYpyUkQvp3f3qeCJeO7g7xb1N0EFAjiE7neAn9Lxm1j4ElBB72jAQs4NN7Ftu8rpSKayjJ/PPh9wgoYM6uiggvK5sW1bTV7FzBwqdzqS0eEyJ7okuG642vafX67//wTM0VaTudXkOgDbtdttnuw6CNds27b745kASLVty1GeiLLEtJJ3b0AkNhmmOUMkIARHVwG9ARwwihL6xgDCGLZt40j7r3vl+xNCG0mSpOKySN4uRy+d439Qtm07Jo0n2TPJtp3M3TZ97ca4Sc1INv4Bk23btvVMgPr+7/v/kJWDSxZdos/0+jV9or4pk3Kk+Og6quFuvKMfZxgHJhcs8O0/0Ae+Yh0+S/mHHsbtdnTZwz4/meck6AdYy1bpmatHdfG1732TuoSnGiyqJK/mTjQ2ClZJ+gZmUsSrQbNKIo5budWgYCXmUuTRSqxLOUFaiTRWDYvWJOhroSmAlbxac4MjgJX0uSCSaeXPtNPKbm2c+KPDSszTaLW00veCCNDKg5REK3qASKOVGymdVvQCE6GVf+GmFfExevJoxTr+oLWbQVpJU4LrRdZGK+KyGhytV9FCK39t3bRiLnBFFON6qIZMK6YZ19UoGa2IAVz97F87PFoxjbj093beP4HW3uTRirSG66+tllZsK3GZK1w5RYtLVOAye7heq8Fvh1JCsfWveD88FtJuwmLtD8Rmmj1TO98VRVfurrV33bv9bbH1bdHi1qfFzq+JO1O7WMD4te7Cjf7udX6zf3gvVWfvuPosaEGT80pYPY84Xmp4M+uLVTG9O8IC5y+u9AVjkzafFpTQ4pxSVu9j3OkDi4WYshEInMflPmds0eZ/k/NKaaAaEa0vkUgrUgEu0YRLjOISu7isB1zW6xMt6+2alvVVDY1Wv/tXjQBXNfxL/x0WrmKcLkOjBWwBtXTtjnK+sAUkVP6wtWvBlR9s/fvBlmr+0IXYTbYMoxawZShxd7nLKCozqxlNTmvO0quPu9ebaoRLVRTu9HbDD07slpzebGjy7HLHxdNpbrGUMo+Var5zK0vKrIawVLrjD86+xP4ebR4cYLVm9Y7Auo1w1moa2nsIRG2whaOgZEu3/foIthBDdGEQnWx9BJ6CLBn6kq3ObLf9hi0hVoItIP0LW0UhQJwGWQKKvrBVFELEbZAloPgLW/oZbAFxX9gSYjnZ+nfLL9gSUPWCLVmsJltm2lvDkyBLiIyOH2wJMZJs6VWwBVMa3oIswdyDIEuI+EGQpYrMYZAlIHsYZMmQc4cvQZbMEm/7RZCliljEb5AlmN5wmWTpHTDHloSoGQRZqhZmeEiydGQYHAVXEhCBeEyypPeDJEtFIQdGhsmVBLMBM5+TKwkDHaIP/H8yqJK6EBnKDbujDKYkAW6gu/Pv7UUkU5IQQYhWxNmLiCRK0jtDCtCJ2B5VflT+fMkMb4aOXu2uRWE2JBiqDf2GWeDQ4sXiE/Fl+Ov4+v0Ogbae7p5H74pCVhS6otC6fVkUUgb6/u/7/8m+AA==
+  x-connector-module: tickets
+paths:
+  /api/v6/tickets.json:
+    get:
+      security:
+        - accessToken: []
+      parameters:
+        - name: accessToken
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: filter
+          in: query
+          required: true
+          schema:
+            type: object
+            properties:
+              logic:
+                type: string
+              filters:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    field:
+                      type: string
+                    operator:
+                      type: string
+                    value:
+                      type: string
+      responses:
+        '200':
+          description: A list of tickets
+    put:
+      parameters:
+        - name: accessToken
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: comment
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comment added to ticket
+    post:
+      parameters:
+        - name: accessToken
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category:
+                  type: string
+                user:
+                  type: string
+                stage:
+                  type: string
+                title:
+                  type: string
+                priority:
+                  type: string
+                statuses:
+                  type: array
+                  items:
+                    type: string
+                contact:
+                  type: string
+                comment:
+                  type: string
+                comment_add_files:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      title:
+                        type: string
+                      size:
+                        type: integer
+                      type:
+                        type: string
+                customFields:
+                  type: object
+      responses:
+        '200':
+          description: Ticket created with comment and attachment
