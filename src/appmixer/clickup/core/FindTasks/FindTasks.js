@@ -30,7 +30,7 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'item') {
+        if (outputType === 'object') {
             return context.sendJson([
                 { label: 'Task ID', value: 'id' },
                 { label: 'Name', value: 'name' },
@@ -74,7 +74,7 @@ module.exports = {
                 { label: 'Folder Name', value: 'folder.name' },
                 { label: 'Space ID', value: 'space.id' }
             ], outputPortName);
-        } else if (outputType === 'items') {
+        } else if (outputType === 'array') {
             return context.sendJson([
                 {
                     label: 'Tasks',

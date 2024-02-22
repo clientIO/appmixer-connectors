@@ -5,12 +5,12 @@ module.exports = {
 
     // TODO: Move to appmixer-lib
     // Expects standardized outputType: 'item', 'items', 'file'
-    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'items', records = [] }) {
+    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
 
-        if (outputType === 'item') {
+        if (outputType === 'object') {
             // One by one.
             await context.sendJson(records[0], outputPortName);
-        } else if (outputType === 'items') {
+        } else if (outputType === 'array') {
             // All at once.
             await context.sendJson({ tasks: records }, outputPortName);
         } else if (outputType === 'file') {
