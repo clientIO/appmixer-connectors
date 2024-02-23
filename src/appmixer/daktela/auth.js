@@ -47,13 +47,11 @@ module.exports = {
         const cacheKey = `daktela-access-token-${context.username || context.auth.username}`;
         const cachedAccessToken = await context.staticCache.get(cacheKey);
         if (cachedAccessToken) {
-            context.log({ step: '--getAccessTokenFromLoginEndpoint', cacheKey, cachedAccessToken });
             return cachedAccessToken;
         }
 
         const { result } = await daktelaWhoim(context);
         const accessToken = result.accessToken;
-        context.log({ step: '++getAccessTokenFromLoginEndpoint', cacheKey, accessToken });
 
         // Cache the access token so that we don't have to call the login endpoint in every component.
         await context.staticCache.set(
