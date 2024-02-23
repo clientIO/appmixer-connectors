@@ -12,7 +12,7 @@ module.exports = {
 
     getBaseUrl: function(context) {
 
-        let url = '{instance}.daktela.com';
+        let url = 'https://{instance}.daktela.com';
         url = url.replaceAll('{instance}', context.auth?.instance || context.config?.instance || 'https://democz.daktela.com');
         return url;
     },

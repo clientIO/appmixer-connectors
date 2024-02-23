@@ -1,17 +1,11 @@
 openapi: 3.0.0
 servers:
-  - url: '{instance}.daktela.com'
+  - url: 'https://{instance}.daktela.com'
     description: Daktela instance
     variables:
       instance:
         description: Daktela instance
         default: 'https://democz.daktela.com'
-
-components:
-  securitySchemes:
-    accessToken:
-      type: http
-      scheme: basic
 
 security:
   - accessToken: []
@@ -25,97 +19,175 @@ info:
 paths:
   /api/v6/tickets.json:
     get:
+      operationId: getTickets
       security:
         - accessToken: []
+      x-connector-pagination:
+        type: page
+        parameters:
+          offset: skip
+          limit: take
+          page: 100
+          results: result.data
+          count: result.count
       parameters:
-        - name: accessToken
-          in: query
-          required: true
-          schema:
-            type: string
         - name: filter
           in: query
-          required: true
+          required: false
+          description: Filter tickets. See [Daktela API documentation](https://democz.daktela.com/external/apihelp/v6/working-with/tickets#example-1-url) for more information.
           schema:
-            type: object
-            properties:
-              logic:
-                type: string
-              filters:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    field:
-                      type: string
-                    operator:
-                      type: string
-                    value:
-                      type: string
+            type: string
       responses:
         '200':
           description: A list of tickets
-    put:
-      parameters:
-        - name: accessToken
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: comment
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Comment added to ticket
-    post:
-      parameters:
-        - name: accessToken
-          in: query
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                category:
-                  type: string
-                user:
-                  type: string
-                stage:
-                  type: string
-                title:
-                  type: string
-                priority:
-                  type: string
-                statuses:
-                  type: array
-                  items:
-                    type: string
-                contact:
-                  type: string
-                comment:
-                  type: string
-                comment_add_files:
-                  type: array
-                  items:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
                     type: object
                     properties:
-                      name:
-                        type: string
-                      title:
-                        type: string
-                      size:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Ticket'
+                      count:
                         type: integer
-                      type:
-                        type: string
-                customFields:
-                  type: object
-      responses:
-        '200':
-          description: Ticket created with comment and attachment
+                        description: Total number of tickets
+components:
+  securitySchemes:
+    accessToken:
+      type: apiKey
+      in: query
+      name: accessToken
+  schemas:
+    Ticket:
+      type: object
+      properties:
+        name:
+          type: integer
+          description: Unique name
+        title:
+          type: string
+          description: Subject of ticket
+        id_merge:
+          type: string
+          description: Merge ID
+        category:
+          type: string
+          description: Category
+        user:
+          type: string
+          description: User
+        email:
+          type: string
+          format: email
+          description: Email
+        contact:
+          type: string
+          description: Contact
+        parentTicket:
+          type: string
+          description: Parent ticket
+        isParent:
+          type: boolean
+          description: Parent flag
+        description:
+          type: string
+          description: Optional description
+        stage:
+          type: string
+          enum: [OPEN, WAIT, CLOSE]
+          description: Stage
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: Level of priority
+        sla_overdue:
+          type: integer
+          description: SLA overdue in seconds
+        sla_deadtime:
+          type: string
+          format: date-time
+          description: Deadline
+        sla_close_deadline:
+          type: string
+          format: date-time
+          description: Ticket deadline
+        sla_change:
+          type: string
+          format: date-time
+          description: Sla change
+        sla_duration:
+          type: integer
+          description: Sla duration
+        sla_custom:
+          type: boolean
+          description: Sla custom
+        interaction_activity_count:
+          type: integer
+          description: Activity count
+        reopen:
+          type: string
+          format: date-time
+          description: Reopen
+        created:
+          type: string
+          format: date-time
+          description: Date of creation
+        created_by:
+          type: string
+          description: Created by
+        edited:
+          type: string
+          format: date-time
+          description: Date of last modification
+        edited_by:
+          type: string
+          description: Edited by
+        first_answer:
+          type: string
+          format: date-time
+          description: Date of first answer
+        first_answer_duration:
+          type: integer
+          description: First answer duration
+        first_answer_deadline:
+          type: string
+          format: date-time
+          description: First answer deadline
+        first_answer_overdue:
+          type: integer
+          description: First answer overdue in seconds
+        closed:
+          type: string
+          format: date-time
+          description: Date when the ticket was closed
+        unread:
+          type: boolean
+          description: Unread
+        has_attachment:
+          type: boolean
+          description: Has attachment
+        followers:
+          type: string
+          description: Followers
+        statuses:
+          type: string
+          description: Statuses
+        last_activity:
+          type: string
+          format: date-time
+          description: Last Activity
+        last_activity_operator:
+          type: string
+          format: date-time
+          description: Last Activity of Operator
+        last_activity_client:
+          type: string
+          format: date-time
+          description: Last Activity of Client
+        customFields:
+          type: string
+          description: Custom fields
