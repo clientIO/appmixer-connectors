@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const sinon = require('sinon');
 
 function getComponentJsonFiles(dir) {
 
@@ -48,7 +49,47 @@ function getPackageJsonFiles(dir) {
     return componentJsonFiles;
 }
 
+function createMockContext(options) {
+
+    const context = {
+        clientId: 'testClientId',
+        clientSecret: 'testClientSecret',
+        auth: {
+            clientId: 'testClientId',
+            clientSecret: 'testClientSecret'
+        },
+        config: {},
+        authorizationCode: 'testAuthorizationCode',
+        callbackUrl: 'testCallbackUrl',
+        ticket: 'testTicket',
+        scope: ['offline_access'],
+        httpRequest: sinon.stub(),
+        accessToken: 'testAccessToken',
+        profileInfo: {
+            fullname: 'testFullname',
+            internalemailaddress: 'testEmail',
+            systemuserid: 'testUserId'
+        },
+        lock: sinon.stub(),
+        log: console.log,
+        CancelError: Error,
+        sendJson: sinon.stub(),
+        staticCache: {
+            get: sinon.stub(),
+            set: sinon.stub()
+        },
+        componentStaticCall: sinon.stub()
+    };
+
+    if (options) {
+        Object.assign(context, options);
+    }
+
+    return context;
+}
+
 module.exports = {
     getComponentJsonFiles,
-    getPackageJsonFiles
+    getPackageJsonFiles,
+    createMockContext
 };
