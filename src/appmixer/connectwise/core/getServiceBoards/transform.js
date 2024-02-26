@@ -8,7 +8,7 @@ module.exports = {
 
     toSelectOptions(msg) {
 
-        const transform = 'result[].{value: id, label: name}' || 'result[].{value: id, label: name}';
+        const transform = "result[].{value: id, label: name}" || "result[].{value: id, label: name}";
         const options = jmespath.search(msg, transform);
         return options;
     }

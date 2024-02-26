@@ -15,7 +15,7 @@ module.exports = {
         data.append('attachment', fileStream, {
             filename: fileInfo.filename,
             contentType: fileInfo.contentType,
-            knownLength: fileInfo.length
+            knownLength: fileInfo.length,
         });
 
         const can_send_in_emailValue = can_send_in_email === true ? 'true' : 'false';
@@ -25,12 +25,8 @@ module.exports = {
         const params = { organization_id };
 
         const zc = new ZohoClient(context);
-        const result = await zc.request(
-            'POST',
-            '/books/v3/invoices/' + invoice_id + '/attachment',
-            { data, headers, params }
-        );
+        const result = await zc.request('POST', '/books/v3/invoices/' + invoice_id + '/attachment', { data, headers, params });
 
         return context.sendJson(result, 'out');
     }
-};
+}

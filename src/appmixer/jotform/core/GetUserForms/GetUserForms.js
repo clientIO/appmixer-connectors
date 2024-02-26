@@ -1,7 +1,7 @@
 'use strict';
 
 const dependencies = {
-    'jsonata': require('jsonata')
+    "jsonata": require("jsonata")
 };
 
 module.exports = {
@@ -71,7 +71,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + '/user/forms';
+        let url = this.getBaseUrl(context) + `/user/forms`;
 
         const headers = {};
         const query = new URLSearchParams;
@@ -168,54 +168,54 @@ module.exports = {
     },
 
     arrayOutputOptions: [{
-        'label': 'Result',
-        'value': 'result',
-        'schema': {
-            'type': 'array',
-            'items': {
-                'type': 'object',
-                'properties': {
-                    'id': {
-                        'type': 'string'
+        "label": "Result",
+        "value": "result",
+        "schema": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
                     },
-                    'username': {
-                        'type': 'string'
+                    "username": {
+                        "type": "string"
                     },
-                    'title': {
-                        'type': 'string'
+                    "title": {
+                        "type": "string"
                     },
-                    'height': {
-                        'type': 'string'
+                    "height": {
+                        "type": "string"
                     },
-                    'status': {
-                        'type': 'string'
+                    "status": {
+                        "type": "string"
                     },
-                    'created_at': {
-                        'type': 'string'
+                    "created_at": {
+                        "type": "string"
                     },
-                    'updated_at': {
-                        'type': 'string'
+                    "updated_at": {
+                        "type": "string"
                     },
-                    'last_submission': {
-                        'type': 'string'
+                    "last_submission": {
+                        "type": "string"
                     },
-                    'new': {
-                        'type': 'string'
+                    "new": {
+                        "type": "string"
                     },
-                    'count': {
-                        'type': 'string'
+                    "count": {
+                        "type": "string"
                     },
-                    'type': {
-                        'type': 'string'
+                    "type": {
+                        "type": "string"
                     },
-                    'favorite': {
-                        'type': 'number'
+                    "favorite": {
+                        "type": "number"
                     },
-                    'archived': {
-                        'type': 'number'
+                    "archived": {
+                        "type": "number"
                     },
-                    'url': {
-                        'type': 'string'
+                    "url": {
+                        "type": "string"
                     }
                 }
             }
@@ -223,60 +223,60 @@ module.exports = {
     }],
 
     objectOutputOptions: [{
-        'label': 'Id',
-        'value': 'id'
-    },
-    {
-        'label': 'Username',
-        'value': 'username'
-    },
-    {
-        'label': 'Title',
-        'value': 'title'
-    },
-    {
-        'label': 'Height',
-        'value': 'height'
-    },
-    {
-        'label': 'Status',
-        'value': 'status'
-    },
-    {
-        'label': 'Created At',
-        'value': 'created_at'
-    },
-    {
-        'label': 'Updated At',
-        'value': 'updated_at'
-    },
-    {
-        'label': 'Last Submission',
-        'value': 'last_submission'
-    },
-    {
-        'label': 'New',
-        'value': 'new'
-    },
-    {
-        'label': 'Count',
-        'value': 'count'
-    },
-    {
-        'label': 'Type',
-        'value': 'type'
-    },
-    {
-        'label': 'Favorite',
-        'value': 'favorite'
-    },
-    {
-        'label': 'Archived',
-        'value': 'archived'
-    },
-    {
-        'label': 'Url',
-        'value': 'url'
-    }
+            "label": "Id",
+            "value": "id"
+        },
+        {
+            "label": "Username",
+            "value": "username"
+        },
+        {
+            "label": "Title",
+            "value": "title"
+        },
+        {
+            "label": "Height",
+            "value": "height"
+        },
+        {
+            "label": "Status",
+            "value": "status"
+        },
+        {
+            "label": "Created At",
+            "value": "created_at"
+        },
+        {
+            "label": "Updated At",
+            "value": "updated_at"
+        },
+        {
+            "label": "Last Submission",
+            "value": "last_submission"
+        },
+        {
+            "label": "New",
+            "value": "new"
+        },
+        {
+            "label": "Count",
+            "value": "count"
+        },
+        {
+            "label": "Type",
+            "value": "type"
+        },
+        {
+            "label": "Favorite",
+            "value": "favorite"
+        },
+        {
+            "label": "Archived",
+            "value": "archived"
+        },
+        {
+            "label": "Url",
+            "value": "url"
+        }
     ]
 };

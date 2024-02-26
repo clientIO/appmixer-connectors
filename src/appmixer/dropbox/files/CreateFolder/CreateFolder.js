@@ -8,7 +8,7 @@ const commons = require('../../dropbox-commons');
 module.exports = {
 
     receive(context) {
-
+       
         let params = {
             path: context.messages.folder.content.path,
             autorename: context.messages.folder.content.autorename

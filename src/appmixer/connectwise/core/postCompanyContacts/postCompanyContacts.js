@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + '/company/contacts';
+        let url = this.getBaseUrl(context) + `/company/contacts`;
 
         const headers = {};
 
@@ -99,7 +99,7 @@ module.exports = {
             'companyLocation._info': input['companyLocation|_info'],
             'photo.id': input['photo|id'],
             'photo.name': input['photo|name'],
-            'photo._info': input['photo|_info']
+            'photo._info': input['photo|_info'],
         };
         let body = {};
         this.setProperties(body, inputMapping);

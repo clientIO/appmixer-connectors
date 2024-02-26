@@ -7,43 +7,43 @@ module.exports = {
     definition: {
 
         auth: {
-            'environment': {
-                'type': 'select',
-                'name': 'Environment',
-                'options': [{
-                    'content': 'Australia',
-                    'value': 'au'
-                },
-                {
-                    'content': 'Europe',
-                    'value': 'eu'
-                },
-                {
-                    'content': 'North America',
-                    'value': 'na'
-                },
-                {
-                    'content': 'Staging',
-                    'value': 'staging'
-                }
+            "environment": {
+                "type": "select",
+                "name": "Environment",
+                "options": [{
+                        "content": "Australia",
+                        "value": "au"
+                    },
+                    {
+                        "content": "Europe",
+                        "value": "eu"
+                    },
+                    {
+                        "content": "North America",
+                        "value": "na"
+                    },
+                    {
+                        "content": "Staging",
+                        "value": "staging"
+                    }
                 ]
             },
-            'clientId': {
-                'type': 'text',
-                'name': 'Client ID',
-                'tooltip': 'Client Id is used to authentication all requests using the ClientId HTTP header.'
+            "clientId": {
+                "type": "text",
+                "name": "Client ID",
+                "tooltip": "Client Id is used to authentication all requests using the ClientId HTTP header."
             },
-            'companyId': {
-                'type': 'text',
-                'name': 'Company ID'
+            "companyId": {
+                "type": "text",
+                "name": "Company ID"
             },
-            'publicKey': {
-                'type': 'text',
-                'name': 'Public Key'
+            "publicKey": {
+                "type": "text",
+                "name": "Public Key"
             },
-            'privateKey': {
-                'type': 'text',
-                'name': 'Private Key'
+            "privateKey": {
+                "type": "text",
+                "name": "Private Key"
             }
         },
 

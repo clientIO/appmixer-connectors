@@ -1,24 +1,24 @@
-const Promise = require('bluebird');
-const commons = require('../google-commons');
+const Promise = require("bluebird");
+const commons = require("../google-commons");
 const EventEmitter = require('events');
 
-module.exports.getProjectId = async function(context) {
+module.exports.getProjectId = async function (context) {
 
     const { clientId } = context.auth;
-    const [projectNumber] = clientId.split('-');
+    const [ projectNumber ] = clientId.split('-');
 
     const authClient = commons.getAuthLibraryOAuth2Client(context.auth);
-    const res = await authClient.request({ url: 'https://cloudresourcemanager.googleapis.com/v1/projects' });
+    const res = await authClient.request({url: 'https://cloudresourcemanager.googleapis.com/v1/projects'});
     const { projects } = res.data;
 
     const project = projects.find(project => project.projectNumber === projectNumber);
     return project.projectId;
-};
+}
 
-module.exports.getInterval = function(context) {
+module.exports.getInterval = function (context) {
 
     return parseInt(context.config.queryPollingInterval, 10) || 5 * 1000;
-};
+}
 
 module.exports.StreamProcessor = class {
 
@@ -69,9 +69,9 @@ module.exports.StreamProcessor = class {
 
         this.eventEmitter.on('batchProcessed', callback);
     }
-};
+}
 
-module.exports.processStream = function(stream, context, storeId, idField, processFn) {
+module.exports.processStream = function (stream, context, storeId, idField, processFn) {
 
     let promises = [];
     const concurrency = parseInt(context.config.concurrency, 10) || 100;
@@ -107,9 +107,9 @@ module.exports.processStream = function(stream, context, storeId, idField, proce
             resolve();
         });
     });
-};
+}
 
-module.exports.ensureStore = async function(context, prefix) {
+module.exports.ensureStore = async function (context, prefix) {
 
     let { storeId } = context.properties;
     const name = prefix + '-' + context.componentId;
@@ -139,19 +139,19 @@ module.exports.ensureStore = async function(context, prefix) {
         }
     }
     return storeId;
-};
+}
 
-module.exports.getStoreId = async function(context) {
+module.exports.getStoreId = async function (context) {
 
     let { storeId } = context.properties;
     if (!storeId) {
         storeId = await context.stateGet('storeId');
     }
     return storeId;
-};
+}
 
-module.exports.cleanupStorage = async function(context) {
-
+module.exports.cleanupStorage = async function (context) {
+    
     let { storeId, detectOnStop } = context.properties;
 
     const stateStoreId = await context.stateGet('storeId');
@@ -168,4 +168,4 @@ module.exports.cleanupStorage = async function(context) {
         });
     }
     return context.store.unregisterWebhook(storeId || stateStoreId);
-};
+}

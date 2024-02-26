@@ -10,12 +10,12 @@ module.exports = {
             // await context.log({ isReplicaSet, start: true });
             await context.stateSet('isReplicaSet', isReplicaSet);
             if (isReplicaSet) {
-                await setOperationalTimestamp(context);
+                await setOperationalTimestamp(context)
                 return;
             }
 
             const storeId = await ensureStore(context, 'DeletedDoc-' + context.componentId);
-            await processDocuments({ client, context, storeId });
+            await processDocuments({ client, context, storeId })
         } finally {
             await client.close();
         }
@@ -64,8 +64,8 @@ module.exports = {
 
                 try {
                     while (await changeStream.hasNext()) {
-                        const next = await changeStream.next();
-                        const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
+                        const next = await changeStream.next()
+                        const jsonDoc = JSON.parse(JSON.stringify(next.documentKey))
                         await context.sendJson({ document: jsonDoc }, 'out');
                         await context.stateSet('resumeToken', changeStream.resumeToken['_data']);
                     }

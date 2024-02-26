@@ -1,4 +1,5 @@
 'use strict';
+const ActiveCampaign = require('../../ActiveCampaign');
 
 module.exports = {
 
@@ -21,7 +22,7 @@ module.exports = {
             { label: 'Task type', value: 'taskType' },
             { label: 'Assignee', value: 'assignee' },
             { label: 'Due datetime', value: 'due' },
-            { label: 'Estimated completion datetime', value: 'edate' }
+            { label: 'Estimated completion datetime', value: 'edate' },
         ];
 
 

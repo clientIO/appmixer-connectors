@@ -17,7 +17,7 @@ module.exports = {
             projectId
         });
 
-        const [tables] = await client.dataset(datasetId).getTables();
+        const [ tables ] = await client.dataset(datasetId).getTables();
         // Metadata only as in https://cloud.google.com/bigquery/docs/reference/rest/v2/tables/list
         const metadata = tables.map(d => d.metadata);
         await commons.sendArrayOutput({ context, outputType, records: metadata });
@@ -28,7 +28,7 @@ module.exports = {
         return tableIds.map(tableId => ({ label: tableId, value: tableId }));
     },
 
-    /**
+/**
  * Returns options for ListTables output port depending on outputType.
  * @param {Context} context
  */

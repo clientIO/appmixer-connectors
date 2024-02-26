@@ -124,7 +124,7 @@ module.exports = {
             }
         }).then(people => {
             // process tags
-            people = Array.isArray(people) ? people : [people];
+            people = Array.isArray(people) ? people : [ people ];
             if (person['tag']) {
                 let promises = [];
                 people.forEach(createdPerson => {

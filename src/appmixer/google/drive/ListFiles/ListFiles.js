@@ -24,8 +24,8 @@ module.exports = {
             }
         }
 
-        const queryFolderSuffix = ' and mimeType = \'application/vnd.google-apps.folder\'';
-        const queryFileSuffix = ' and mimeType != \'application/vnd.google-apps.folder\'';
+        const queryFolderSuffix = ` and mimeType = 'application/vnd.google-apps.folder'`;
+        const queryFileSuffix = ` and mimeType != 'application/vnd.google-apps.folder'`;
 
         /** A query for filtering the file results. See https://developers.google.com/drive/api/v3/search-files for more info. */
         let q = `'${folderId}' in parents and trashed=false`;

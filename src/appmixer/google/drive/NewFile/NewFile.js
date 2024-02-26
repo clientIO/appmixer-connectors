@@ -7,7 +7,7 @@ const { URL, URLSearchParams } = require('url');
 
 const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
-    const { data: { changes, newStartPageToken, nextPageToken } } = await drive.changes.list({ pageToken, fields: '*', includeRemoved: false, includeDeleted: false });
+    const { data: { changes, newStartPageToken, nextPageToken } } = await drive.changes.list({ pageToken, fields: '*' });
 
     changes.forEach(change => {
         if (change.changeType === 'file' && !change.removed && !change.file?.trashed && new Date(change.file?.createdTime) >= new Date(change.file?.modifiedTime)) {
@@ -59,18 +59,14 @@ module.exports = {
         await new Promise(resolve => {
             setTimeout(() => {
                 resolve();
-            }, 1000);
+            }, 1000)
         });
 
         const { folder = {} } = context.properties;
 
         let lock = null;
         try {
-            try {
-                lock = await context.lock(context.componentId, { retryDelay: 4000 });
-            } catch (e) {
-                return;
-            }
+            lock = await context.lock(context.componentId, { retryDelay: 2000 });
             const { startPageToken, lastChangeFileIDs } = await context.loadState();
             const lastFiles = Array.isArray(lastChangeFileIDs) ? new Set(lastChangeFileIDs) : new Set();
 

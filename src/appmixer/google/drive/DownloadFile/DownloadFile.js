@@ -17,7 +17,7 @@ module.exports = {
             }),
             drive.files.get({
                 fileId: fileId,
-                alt: 'media'
+                alt: 'media',
             }, { responseType: 'stream' })
         ]);
 

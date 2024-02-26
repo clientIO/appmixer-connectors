@@ -35,7 +35,7 @@ module.exports = {
                 updatedMin: since,
                 maxResults: 30,
                 ...(nextPageToken ? { pageToken: nextPageToken } : {})
-            };
+            }
 
             let data = await listEvents(payload);
 
@@ -46,11 +46,11 @@ module.exports = {
         let newItems = [];
 
         let { nextPageToken, items } = await getEvents();
-        newItems = newItems.concat(items.filter(item => item.created > since));
+        newItems = newItems.concat(items.filter(item => item.created > since))
         while (nextPageToken) {
             const response = await getEvents(nextPageToken);
             nextPageToken = response.nextPageToken;
-            newItems = newItems.concat(response.items.filter(item => item.created > since));
+            newItems = newItems.concat(response.items.filter(item => item.created > since))
         }
 
         await Promise.map(newItems, item => {

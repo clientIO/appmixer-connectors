@@ -380,4 +380,4 @@ const toCsv = (array) => {
         })
 
     ].join('\n');
-};
+}

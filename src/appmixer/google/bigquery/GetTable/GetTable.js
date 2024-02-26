@@ -14,8 +14,8 @@ module.exports = {
         });
 
         const dataset = client.dataset(datasetId);
-        const [table] = await dataset.table(tableId).get();
+        const [table] = await dataset.table(tableId).get()
 
-        return context.sendJson({ table }, 'out');
+        return context.sendJson({ table }, 'out')
     }
 };

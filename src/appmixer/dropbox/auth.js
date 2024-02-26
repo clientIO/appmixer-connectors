@@ -16,7 +16,8 @@ module.exports = {
             let refreshToken;
             try {
                 refreshToken = context.refreshToken;
-            } catch (err) {
+            }
+            catch (err) {
                 throw new context.InvalidTokenError('Invalid token');
             }
 
@@ -28,7 +29,7 @@ module.exports = {
                 },
                 data: {
                     grant_type: 'refresh_token',
-                    refresh_token: refreshToken,
+                    refresh_token: context.refreshToken,
                     client_id: context.clientId,
                     client_secret: context.clientSecret
                 }

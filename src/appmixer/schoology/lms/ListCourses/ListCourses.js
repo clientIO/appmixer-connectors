@@ -13,7 +13,7 @@ module.exports = {
                 const { course = [] } = response || {};
                 return acc.concat(course);
             }, []);
-        };
+        }
 
         const data = await client.paginatedCall('get', '/courses', 200, assembler);
 
@@ -22,6 +22,6 @@ module.exports = {
 
     toSelectArray({ courses }) {
 
-        return courses.map(course => ({ label: course.title, value: course.id }));
+        return courses.map(course => ({ label: course.title, value: course.id }))
     }
-};
+}

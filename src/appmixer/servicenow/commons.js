@@ -10,7 +10,7 @@ function getBasicAuth(username, password) {
 
 function isAppmixerVariable(variable) {
 
-    return variable?.startsWith('{{{') && variable?.endsWith('}}}');
+    return variable && variable.startsWith('{{{') && variable.endsWith('}}}');
 }
 
 async function requestPaginated(context, { method, url, data = {}, headers = {}, params = {} } = {}) {

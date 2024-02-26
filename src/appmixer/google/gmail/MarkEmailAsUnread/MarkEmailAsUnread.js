@@ -18,8 +18,8 @@ module.exports = {
             resource: {
                 addLabelIds: ['UNREAD']
             },
-            id: emailId
+            id: emailId,
         });
         return context.sendJson(email, 'out');
-    }
+    },
 };

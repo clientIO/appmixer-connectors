@@ -27,7 +27,6 @@ const tryParseJSON = function(jsonString) {
 const convertToCSV = async function(storeListCursor, resStream, errorHandler) {
 
     const input = new Readable({ objectMode: true });
-    // eslint-disable-next-line no-underscore-dangle
     input._read = () => { };
     const defaultIterationMax = 10;
     const keySamples = [];

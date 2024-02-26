@@ -1,7 +1,7 @@
 'use strict';
 
 const dependencies = {
-    'jsonata': require('jsonata')
+    "jsonata": require("jsonata")
 };
 
 module.exports = {
@@ -31,7 +31,9 @@ module.exports = {
 
     httpRequest: async function(context, override = {}) {
 
-        let url = this.getBaseUrl(context) + '/user/reports';
+        const input = context.messages.in.content;
+
+        let url = this.getBaseUrl(context) + `/user/reports`;
 
         const headers = {};
         const query = new URLSearchParams;
@@ -125,42 +127,42 @@ module.exports = {
     },
 
     arrayOutputOptions: [{
-        'label': 'Result',
-        'value': 'result',
-        'schema': {
-            'type': 'array',
-            'items': {
-                'type': 'object',
-                'properties': {
-                    'id': {
-                        'type': 'string'
+        "label": "Result",
+        "value": "result",
+        "schema": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
                     },
-                    'form_id': {
-                        'type': 'string'
+                    "form_id": {
+                        "type": "string"
                     },
-                    'title': {
-                        'type': 'string'
+                    "title": {
+                        "type": "string"
                     },
-                    'created_at': {
-                        'type': 'string'
+                    "created_at": {
+                        "type": "string"
                     },
-                    'updated_at': {
-                        'type': 'string'
+                    "updated_at": {
+                        "type": "string"
                     },
-                    'fields': {
-                        'type': 'string'
+                    "fields": {
+                        "type": "string"
                     },
-                    'list_type': {
-                        'type': 'string'
+                    "list_type": {
+                        "type": "string"
                     },
-                    'status': {
-                        'type': 'string'
+                    "status": {
+                        "type": "string"
                     },
-                    'url': {
-                        'type': 'string'
+                    "url": {
+                        "type": "string"
                     },
-                    'isProtected': {
-                        'type': 'boolean'
+                    "isProtected": {
+                        "type": "boolean"
                     }
                 }
             }
@@ -168,44 +170,44 @@ module.exports = {
     }],
 
     objectOutputOptions: [{
-        'label': 'Id',
-        'value': 'id'
-    },
-    {
-        'label': 'Form Id',
-        'value': 'form_id'
-    },
-    {
-        'label': 'Title',
-        'value': 'title'
-    },
-    {
-        'label': 'Created At',
-        'value': 'created_at'
-    },
-    {
-        'label': 'Updated At',
-        'value': 'updated_at'
-    },
-    {
-        'label': 'Fields',
-        'value': 'fields'
-    },
-    {
-        'label': 'List Type',
-        'value': 'list_type'
-    },
-    {
-        'label': 'Status',
-        'value': 'status'
-    },
-    {
-        'label': 'Url',
-        'value': 'url'
-    },
-    {
-        'label': 'Is Protected',
-        'value': 'isProtected'
-    }
+            "label": "Id",
+            "value": "id"
+        },
+        {
+            "label": "Form Id",
+            "value": "form_id"
+        },
+        {
+            "label": "Title",
+            "value": "title"
+        },
+        {
+            "label": "Created At",
+            "value": "created_at"
+        },
+        {
+            "label": "Updated At",
+            "value": "updated_at"
+        },
+        {
+            "label": "Fields",
+            "value": "fields"
+        },
+        {
+            "label": "List Type",
+            "value": "list_type"
+        },
+        {
+            "label": "Status",
+            "value": "status"
+        },
+        {
+            "label": "Url",
+            "value": "url"
+        },
+        {
+            "label": "Is Protected",
+            "value": "isProtected"
+        }
     ]
 };

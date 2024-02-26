@@ -40,7 +40,7 @@ module.exports = {
     definition: {
 
         scope: [
-            'ZohoBooks.settings.READ'
+            'ZohoBooks.settings.READ',
         ],
 
         authUrl: 'https://accounts.zoho.com/oauth/v2/auth?access_type=offline&prompt=consent',
@@ -58,7 +58,7 @@ module.exports = {
 
             const url = accountsEndpoint(region);
             const tokenUrl = `${url}/oauth/v2/token?` +
-                'grant_type=authorization_code' +
+                'grant_type=authorization_code' + 
                 '&client_id=' + context.clientId +
                 '&client_secret=' + context.clientSecret +
                 '&code=' + context.authorizationCode +
@@ -110,6 +110,6 @@ module.exports = {
         validateAccessToken: async context => {
 
             return validateUser(context);
-        }
+        },
     }
 };

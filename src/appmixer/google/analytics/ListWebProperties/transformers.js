@@ -5,7 +5,7 @@
 */
 module.exports.webPropertiesToSelectArray = (message) => {
 
-    let transformed = [];
+    var transformed = [];
 
     if (Array.isArray(message.items)) {
         message.items.forEach((webPropertyItem) => {

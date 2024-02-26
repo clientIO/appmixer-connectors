@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + `/submission/${input['id']}`;
+        let url = this.getBaseUrl(context) + `/submission/${input["id"]}`;
 
         const headers = {};
         const query = new URLSearchParams;

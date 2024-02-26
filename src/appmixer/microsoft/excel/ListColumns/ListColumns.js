@@ -28,7 +28,7 @@ module.exports = {
         if (Array.isArray(columns.values)) {
             const firstColumn = columns.values[0] || [];
             const firstColumnIndex = columns.columnIndex;
-            for (let i = 0; i < columns.columnCount; i++) {
+            for (var i = 0; i < columns.columnCount; i++) {
 
                 const value = 'c' + (firstColumnIndex + i);
                 transformed.push({
@@ -55,7 +55,7 @@ module.exports = {
             const firstColumn = columns.values[0] || [];
             const firstColumnIndex = columns.columnIndex;
 
-            for (let i = 0; i < columns.columnCount; i++) {
+            for (var i = 0; i < columns.columnCount; i++) {
 
                 const value = 'c' + (firstColumnIndex + i);
 

@@ -22,8 +22,8 @@ module.exports = {
                 addLabelIds: [destinationFolder],
                 removeLabelIds: [folder]
             },
-            id: emailId
+            id: emailId,
         });
         return context.sendJson(email, 'out');
-    }
+    },
 };

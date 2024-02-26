@@ -1,8 +1,31 @@
 'use strict';
 
-const lib = require('../../lib');
+const dependencies = {
+    "json-pointer": require("json-pointer"),
+    "jsonata": require("jsonata")
+};
 
 module.exports = {
+
+    receive: async function(context) {
+
+        if (context.messages.webhook) {
+            await context.log({
+                step: 'webhook',
+                webhook: context.messages.webhook
+            });
+
+            let out = await this.replaceRuntimeExpressions("$request.body", context, {}, context.messages
+                .webhook.content);
+            const expCondition = dependencies.jsonata("$boolean(status=$parameters.status)");
+            const condition = await expCondition.evaluate(out, {
+                parameters: context.properties
+            });
+            if (!condition) return null;
+            await context.sendJson(out, 'out');
+            return context.response(out);
+        }
+    },
 
     httpRequest: async function(context, override = {}) {
 
@@ -11,15 +34,9 @@ module.exports = {
         const headers = {};
         const query = new URLSearchParams;
 
-        const inputMapping = {
+        const queryParameters = {};
 
-        };
-        let requestBody = {};
-        lib.setProperties(requestBody, inputMapping);
-
-        const queryParameters = {  };
-
-        if (override?.query) {
+        if (override && override.query) {
             Object.keys(override.query).forEach(parameter => {
                 queryParameters[parameter] = override.query[parameter];
             });
@@ -31,12 +48,12 @@ module.exports = {
             }
         });
 
-        headers['Authorization'] = 'token {username}:{apiKey}'.replace(/{(.*?)}/g, (match, variable) => context.auth[variable]);
+        headers['Authorization'] = 'token {username}:{apiKey}'.replace(/{(.*?)}/g, (match, variable) => context
+            .auth[variable]);
 
         const req = {
             url: url,
             method: 'POST',
-            data: requestBody,
             headers: headers
         };
 
@@ -50,54 +67,45 @@ module.exports = {
             req.url += '?' + queryString;
         }
 
-        try {
-            const response = await context.httpRequest(req);
-            const log = {
-                step: 'http-request-success',
-                request: {
-                    url: req.url,
-                    method: req.method,
-                    headers: req.headers,
-                    data: req.data
-                },
-                response: {
-                    data: response.data,
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers
-                }
-            };
-            await context.log(log);
-            return response;
-        } catch (err) {
-            const log = {
-                step: 'http-request-error',
-                request: {
-                    url: req.url,
-                    method: req.method,
-                    headers: req.headers,
-                    data: req.data
-                },
-                response: err.response ? {
-                    data: err.response.data,
-                    status: err.response.status,
-                    statusText: err.response.statusText,
-                    headers: err.response.headers
-                } : undefined
-            };
-            await context.log(log);
-            throw err;
-        }
+        await context.log({
+            step: 'request',
+            req
+        });
+
+        const response = await context.httpRequest(req);
+
+        await context.log({
+            step: 'response',
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+            data: response.data
+        });
+
+        return response;
+    },
+
+    getBaseUrl: function(context) {
+
+        let url = 'https://freedom.voys.nl/api';
+        return url;
     },
 
     start: async function(context) {
 
         const override = {};
-        override.url = await lib.replaceRuntimeExpressions('{$baseUrl}/callnotification/callnotification/', context, {});
+        override.url = await this.replaceRuntimeExpressions('{$baseUrl}/callnotification/callnotification/',
+            context, {});
         override.method = 'POST';
-        override.body = await lib.replaceRuntimeExpressions({ 'target_url':'{$webhookUrl}' }, context, {});
+        override.body = await this.replaceRuntimeExpressions({
+            "target_url": "{$webhookUrl}"
+        }, context, {});
         const response = await this.httpRequest(context, override);
-        return context.stateSet('response', { data: response.data, headers: response.headers });
+        return context.stateSet('response', {
+            data: response.data,
+            headers: response.headers
+        });
     },
 
     stop: async function(context) {
@@ -105,24 +113,46 @@ module.exports = {
         const response = await context.stateGet('response');
 
         const override = {};
-        override.url = await lib.replaceRuntimeExpressions('{$baseUrl}/callnotification/callnotification/{$response.body#/id}/', context, response);
+        override.url = await this.replaceRuntimeExpressions(
+            '{$baseUrl}/callnotification/callnotification/{$response.body#/id}/', context, response);
         override.method = 'DELETE';
 
         return this.httpRequest(context, override);
     },
 
-    receive: async function(context) {
+    replaceRuntimeExpressions: async function(template, context, response, request) {
 
-        if (context.messages.webhook) {
-            await context.log({ step: 'webhook', webhook: context.messages.webhook });
-
-            let out = await lib.replaceRuntimeExpressions('$request.body', context, {}, context.messages.webhook.content);
-            const expCondition = lib.jsonata('$boolean(status=$parameters.status)');
-            const condition = await expCondition.evaluate(out, { parameters: context.properties });
-            if (!condition) return null;
-            await context.sendJson(out, 'out');
-            return context.response(out);
+        if (template === '$request.body') {
+            return request.data;
         }
+
+        let result = typeof template === 'string' ? template : JSON.stringify(template);
+
+        result = result.replace(/{\$webhookUrl}/g, context.getWebhookUrl());
+        result = result.replace(/{\$baseUrl}/g, this.getBaseUrl(context));
+
+        result = result.replace(/{\$response.body#([^}]*)}/g, (match, pointer) => {
+            return dependencies['json-pointer'].get(response.data, pointer);
+        });
+
+        result = result.replace(/{\$parameters\.([^}]*)}/g, (match, pointer) => {
+            return dependencies['json-pointer'].get(context.properties, '/' + pointer);
+        });
+
+        const responseTransformPromises = [];
+        const responseTransformRegex = /{\$response.transform#(.*(?<!\\))}/g;
+        result.replace(responseTransformRegex, (match, exp) => {
+            const expression = dependencies['jsonata'](exp);
+            responseTransformPromises.push(expression.evaluate(response));
+        });
+        const replacements = await Promise.all(responseTransformPromises);
+        result = result.replace(responseTransformRegex, () => replacements.shift());
+
+        result = result.replace(/{\$response.header\.([^}]*)}/g, (match, pointer) => {
+            return dependencies['json-pointer'].get(response.headers, '/' + pointer);
+        });
+
+        return typeof template === 'string' ? result : JSON.parse(result);
     }
 
 };

@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + `/service/tickets/${input['parentId']}/notes`;
+        let url = this.getBaseUrl(context) + `/service/tickets/${input["parentId"]}/notes`;
 
         const headers = {};
 
@@ -37,7 +37,7 @@ module.exports = {
             'member._info': input['member|_info'],
             'contact.id': input['contact|id'],
             'contact.name': input['contact|name'],
-            'contact._info': input['contact|_info']
+            'contact._info': input['contact|_info'],
         };
         let body = {};
         this.setProperties(body, inputMapping);

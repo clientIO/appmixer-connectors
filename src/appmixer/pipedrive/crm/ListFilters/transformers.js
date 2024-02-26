@@ -6,7 +6,7 @@
  */
 module.exports.filtersToSelectArray = (filters) => {
 
-    let transformed = [];
+    var transformed = [];
 
     if (Array.isArray(filters)) {
         filters.forEach((filter) => {

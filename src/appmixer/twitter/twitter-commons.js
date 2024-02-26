@@ -1,36 +1,16 @@
 'use strict';
+const TwitterApi = require('node-twitter-api');
+const Promise = require('bluebird');
 
 module.exports = {
 
-    async requestAccessToken(context) {
+    getTwitterApi(auth) {
 
-        const { clientId, clientSecret, authorizationCode } = context;
-        const authorizationHeader = Buffer.from(
-            `${clientId}:${clientSecret}`,
-            'utf8'
-        ).toString('base64');
-        const headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Accept: 'application/json',
-            Authorization: `Basic ${authorizationHeader}`
-        };
-        const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
-        const requestBody = `grant_type=authorization_code&code=${authorizationCode}&redirect_uri=${context.callbackUrl}&code_verifier=${context.ticket}`;
-        const { data: tokenResponse } = await context.httpRequest({
-            url: tokenUrl,
-            method: 'POST',
-            data: requestBody,
-            headers: headers
-        });
-        const expirationTime = new Date();
-        expirationTime.setTime(
-            expirationTime.getTime() + tokenResponse['expires_in'] * 1000
-        );
-        return {
-            accessToken: tokenResponse['access_token'],
-            refreshToken: tokenResponse['refresh_token'],
-            accessTokenExpDate: expirationTime
-        };
+        return Promise.promisifyAll(new TwitterApi({
+            consumerKey: auth.consumerKey,
+            consumerSecret: auth.secretKey,
+            callback: auth.callback
+        }));
     },
 
     /**

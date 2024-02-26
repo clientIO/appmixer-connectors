@@ -16,4 +16,4 @@ module.exports = {
 
         return gradingScales.map(scale => ({ label: scale.title, value: scale.id }));
     }
-};
+}

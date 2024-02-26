@@ -13,7 +13,7 @@ module.exports = {
         let person = context.messages.person.content;
 
         let data = {
-            lastName: person.lastName
+            lastName: person.lastName,
         };
         if (person.firstName) {
             data.firstName = person.firstName;

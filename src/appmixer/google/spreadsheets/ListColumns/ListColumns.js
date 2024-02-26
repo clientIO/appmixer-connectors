@@ -34,7 +34,7 @@ module.exports = {
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
             range: `${context.properties.worksheetId.split('/')[1]}!1:1`, // Fetch only the first row
-            majorDimension: 'ROWS' // Fetch data by rows
+            majorDimension: 'ROWS', // Fetch data by rows
         }).then(res => {
             // Extract only the first row from the retrieved data
             const headerRow = res.values ? res.values[0] : [];

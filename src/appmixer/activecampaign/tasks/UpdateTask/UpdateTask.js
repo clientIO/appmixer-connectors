@@ -36,7 +36,7 @@ module.exports = {
             duedate: due,
             assignee,
             edate: eDate.toISOString()
-        };
+        }
 
         const { data } = await ac.call('put', `dealTasks/${taskId}`, {
             dealTask: body

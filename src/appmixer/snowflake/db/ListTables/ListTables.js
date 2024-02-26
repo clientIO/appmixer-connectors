@@ -5,7 +5,7 @@ module.exports = {
 
     async receive(context) {
         const { schema } = context.messages.in.content;
-        const snowflake = new SnowflakeDB();
+        const snowflake = new SnowflakeDB()
         const tables = await snowflake.listTables(context.auth, schema);
         return context.sendJson({ tables }, 'tables');
     },

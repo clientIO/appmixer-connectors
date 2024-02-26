@@ -12,7 +12,7 @@ module.exports = {
             const result = await collection[operation](JSON.parse(query));
             let documents = result;
             if (operation != 'findOne') {
-                documents = await result.limit(1000).toArray();
+                documents = await result.limit(1000).toArray()
             }
             await context.sendJson({ documents }, 'out');
         } finally {

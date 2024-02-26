@@ -1,7 +1,7 @@
 'use strict';
 
-const { SnowflakeDB } = require('../../common');
-const snowflake = new SnowflakeDB();
+const { SnowflakeDB } = require("../../common");
+const snowflake = new SnowflakeDB()
 module.exports = {
 
     async start(context) {
@@ -58,7 +58,7 @@ module.exports = {
                     label: `Row.${key}`,
                     value: `row.${key}`
                 }
-            );
+            )
         }
         return context.sendJson(options, 'out');
     }

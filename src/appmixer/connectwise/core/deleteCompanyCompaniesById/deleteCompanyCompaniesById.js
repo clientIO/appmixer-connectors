@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + `/company/companies/${input['id']}`;
+        let url = this.getBaseUrl(context) + `/company/companies/${input["id"]}`;
 
         const headers = {};
 

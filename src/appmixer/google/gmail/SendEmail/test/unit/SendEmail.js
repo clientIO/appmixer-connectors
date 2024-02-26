@@ -1,14 +1,15 @@
 'use strict';
-const SendEmail = require('../../SendEmail');
+var assert = require('assert');
+var SendEmail = require('../../SendEmail');
 
 describe('SendEmail', function() {
 
-    let component;
+    var component;
 
     before(function() {
 
         // minimal constructor for the SendEmail component
-        let constructor = {
+        var constructor = {
 
             'id': 'Doesn\'t matter, but required.',
             'coordinatorId': 'Doesn\'t matter, but required.',
@@ -30,7 +31,7 @@ describe('SendEmail', function() {
         component.setAuth(constructor.manifest.auth);
 
         // SendEmail doesn't need any property
-        let properties = {};
+        var properties = {};
         component.configure(properties);
     });
 
@@ -38,7 +39,7 @@ describe('SendEmail', function() {
 
         this.timeout(10000);
 
-        let inMessages = {
+        var inMessages = {
             in: Buffer.from(JSON.stringify({
                 'sender': 'tomas.waldauf@gmail.com',
                 'from': 'Grid',

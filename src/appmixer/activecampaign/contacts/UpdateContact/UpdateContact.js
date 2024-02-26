@@ -31,7 +31,7 @@ module.exports = {
         if (customFieldsValues.length > 0) {
             customFieldsValues.forEach(customField => {
                 fieldValues.push({ field: customField.field, value: customField.value });
-            });
+            })
             payload.contact.fieldValues = fieldValues;
         }
 

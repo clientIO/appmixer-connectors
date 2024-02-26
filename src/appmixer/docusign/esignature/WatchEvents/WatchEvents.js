@@ -16,7 +16,6 @@ module.exports = {
             accountId,
             events
         };
-        // eslint-disable-next-line max-len
         const { connectId } = await commons.registerDocusignWebhook(args, context.auth.accessToken, context.getWebhookUrl());
         await context.saveState({ connectId });
     },

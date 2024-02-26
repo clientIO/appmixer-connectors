@@ -17,11 +17,7 @@ module.exports = {
             sort_column
         };
         const zc = new ZohoClient(context);
-        const chartofaccounts = await zc.requestPaginated(
-            'GET',
-            '/books/v3/chartofaccounts',
-            { dataKey: 'chartofaccounts', params }
-        );
+        const chartofaccounts = await zc.requestPaginated('GET', '/books/v3/chartofaccounts', { dataKey: 'chartofaccounts', params });
 
         await sendArrayOutput({ context, outputType, records: chartofaccounts });
     },

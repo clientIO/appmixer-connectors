@@ -17,7 +17,7 @@ module.exports = {
 
     isAppmixerVariable(variable) {
 
-        return variable?.startsWith('{{{') && variable?.endsWith('}}}');
+        return variable && variable.startsWith('{{{') && variable.endsWith('}}}');
     },
 
     // TODO: Move to appmixer-lib

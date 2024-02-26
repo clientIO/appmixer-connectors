@@ -52,12 +52,12 @@ module.exports = {
                 formData.append('attachments[]', fileStream, {
                     filename: fileInfo.filename,
                     contentType: fileInfo.contentType,
-                    knownLength: fileInfo.length
+                    knownLength: fileInfo.length,
                 });
                 body = trimUndefined(body);
 
-                Object.entries(body).forEach(([key, value]) => {
-                    if (key === 'tags') {
+                Object.entries(body).forEach(([ key, value ]) => {
+                    if (key === 'tags'){
                         value.forEach(tag => formData.append('tags[]', tag));
                     } else {
                         formData.append(key, value);
