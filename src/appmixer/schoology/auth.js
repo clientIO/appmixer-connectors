@@ -71,8 +71,8 @@ module.exports = {
                 client.setAccessToken(context.accessToken);
                 client.setAccessTokenSecret(context.accessTokenSecret);
 
-                const { api_uid: apiUid } = await client.apiRequest('get', '/app-user-info');
-                return client.apiRequest('get', `/users/${apiUid}`);
+                const { api_uid } = await client.apiRequest('get', '/app-user-info');
+                return client.apiRequest('get', `/users/${api_uid}`);
             },
 
             requestAccessToken: async context => {

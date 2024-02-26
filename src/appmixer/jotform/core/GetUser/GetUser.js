@@ -13,7 +13,9 @@ module.exports = {
 
     httpRequest: async function(context) {
 
-        let url = this.getBaseUrl(context) + '/user';
+        const input = context.messages.in.content;
+
+        let url = this.getBaseUrl(context) + `/user`;
 
         const headers = {};
         const query = new URLSearchParams;

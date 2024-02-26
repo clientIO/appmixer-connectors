@@ -40,7 +40,7 @@ module.exports = {
             grading_category: gradingCategoryId,
             grading_period: gradingPeriodId,
             grading_scale: gradeScaleId,
-            grading_group_ids: Array.isArray(gradingGroupIds) ? gradingGroupIds : [gradingGroupIds],
+            grading_group_ids: gradingGroupIds,
             grade_stats: gradeStats,
             show_comments: booleanToNumber(showComments),
             show_rubric: showRubric,
@@ -79,8 +79,8 @@ module.exports = {
             assignees: data.assignees,
             grading_group_ids: data.grading_group_ids,
             links: data.links
-        };
+        }
 
         return context.sendJson(output, 'out');
     }
-};
+}

@@ -6,9 +6,9 @@ module.exports = {
 
         const { recordOldValues } = context.properties;
 
-        const variables = [{ 'label': 'Updated Row', 'value': 'updatedRow' }];
+        const variables = [{ "label": "Updated Row", "value": "updatedRow" }];
         if (recordOldValues) {
-            variables.push({ 'label': 'Old Row', 'value': 'oldRow' });
+            variables.push({ "label": "Old Row", "value": "oldRow" })
         }
         return context.sendJson(variables, 'out');
     }

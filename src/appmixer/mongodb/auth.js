@@ -47,8 +47,8 @@ module.exports = {
                 try {
                     conn = await getClient(context);
                     return true;
-                } finally {
-                    conn && await conn.close();
+                } finally{
+                    conn && await conn.close()
                 }
             }
         };

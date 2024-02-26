@@ -1,6 +1,6 @@
 'use strict';
 
-const Canvas = require('../../canvas-sdk');
+const Canvas = require("../../canvas-sdk");
 module.exports = {
 
     async receive(context) {
@@ -9,18 +9,10 @@ module.exports = {
         const accessToken = auth.accessToken;
         const client = new Canvas(accessToken, context);
 
-        const {
-            courseId,
-            enrollmentStatus,
-            teacherId,
-            gradingPeriodId,
-            enrollmentTermId,
-            enrollmentType
-        } = context.messages.in.content;
+        const { courseId, enrollmentStatus, teacherId, gradingPeriodId, enrollmentTermId, enrollmentType } = context.messages.in.content;
 
-        // eslint-disable-next-line max-len
         const { data } = await client.listCourseEnrollmentUsers(courseId, enrollmentStatus, teacherId, gradingPeriodId, enrollmentTermId, enrollmentType);
 
         return context.sendJson({ enrollments: data }, 'out');
     }
-};
+}

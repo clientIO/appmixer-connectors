@@ -1,18 +1,15 @@
 'use strict';
-const TrelloAPI = require('node-trello');
+
 const pathModule = require('path');
 
 module.exports = {
 
-    /**
-     * Get new TrelloAPI
-     * @param {string} key
-     * @param {string} token
-     * @returns {*}
-     */
-    getTrelloAPI(key, token) {
+    getAuthQueryParams(context) {
 
-        return new TrelloAPI(key, token);
+        return new URLSearchParams({
+            key: context.auth.consumerKey,
+            token: context.auth.accessToken
+        });
     },
 
     isAppmixerVariable(variable) {
@@ -32,7 +29,7 @@ module.exports = {
             await context.sendJson(records, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.
-            const headers = Object.keys(records[0]);
+            const headers = Object.keys(records[0] || {});
             let csvRows = [];
             csvRows.push(headers.join(','));
             for (const record of records) {

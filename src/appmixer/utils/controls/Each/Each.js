@@ -44,7 +44,7 @@ module.exports = {
         const { buildOutPortOptions = false } = context.properties;
         if (buildOutPortOptions) {
 
-            const componentConfig = context.flowDescriptor[context.componentId].config.transform['in'];
+            const componentConfig = context.flowDescriptor[context.componentId].config?.transform['in'] || {};
             const inputConfig = getInputConfig(componentConfig);
 
             if (inputConfig) {

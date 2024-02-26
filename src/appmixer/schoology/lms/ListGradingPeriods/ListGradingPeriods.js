@@ -15,4 +15,4 @@ module.exports = {
 
         return gradingPeriods.map(item => ({ label: `${item.title} (${item.start} - ${item.end})`, value: item.id }));
     }
-};
+}

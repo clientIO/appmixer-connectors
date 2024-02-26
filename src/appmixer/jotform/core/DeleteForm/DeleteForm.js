@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + `/form/${input['id']}`;
+        let url = this.getBaseUrl(context) + `/form/${input["id"]}`;
 
         const headers = {};
         const query = new URLSearchParams;

@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + '/company/companies';
+        let url = this.getBaseUrl(context) + `/company/companies`;
 
         const headers = {};
 
@@ -144,7 +144,7 @@ module.exports = {
             'territoryManager._info': input['territoryManager|_info'],
             'site.id': input['site|id'],
             'site.name': input['site|name'],
-            'site._info': input['site|_info']
+            'site._info': input['site|_info'],
         };
         let body = {};
         this.setProperties(body, inputMapping);

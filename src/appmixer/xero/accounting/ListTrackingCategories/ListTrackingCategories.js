@@ -78,10 +78,7 @@ module.exports = {
                                                     TrackingOptionID: { type: 'string', title: 'TrackingOptionID' },
                                                     Name: { type: 'string', title: 'Name' },
                                                     Status: { type: 'string', title: 'Status' },
-                                                    HasValidationErrors: {
-                                                        type: 'boolean',
-                                                        title: 'HasValidationErrors'
-                                                    },
+                                                    HasValidationErrors: { type: 'boolean', title: 'HasValidationErrors' },
                                                     IsDeleted: { type: 'boolean', title: 'IsDeleted' },
                                                     IsArchived: { type: 'boolean', title: 'IsArchived' },
                                                     IsActive: { type: 'boolean', title: 'IsActive' }

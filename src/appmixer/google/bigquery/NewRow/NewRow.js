@@ -55,7 +55,7 @@ async function startRoutine(context) {
     const now = Date.now();
     const timeParam = Math.floor((await context.stateGet('updatedSince')) || now);
 
-    const params = [timeParam];
+    const params = [timeParam]
 
     await context.log({ step: 'Querying data.', query });
 
@@ -66,7 +66,7 @@ async function startRoutine(context) {
             maxRetryCount: 0
         });
         const rowsStream = await runQuery(client, query, params);
-        await processNewRowStream(rowsStream, context, storeId, idField, lock);
+        await processNewRowStream(rowsStream, context, storeId, idField, lock)
 
         // Update the updatedSince cache only after the query successfully returned to make this
         // robust against component crashes.

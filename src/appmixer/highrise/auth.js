@@ -11,8 +11,8 @@ module.exports = {
 
             authUrl: context => {
 
-                return 'https://launchpad.37signals.com/authorization/new?' +
-                    'type=web_server' +
+                return `https://launchpad.37signals.com/authorization/new?` +
+                    `type=web_server` +
                     `&client_id=${context.clientId}` +
                     `&redirect_uri=${context.callbackUrl}` +
                     `&state=${context.ticket}`;

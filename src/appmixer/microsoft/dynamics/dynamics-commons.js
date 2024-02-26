@@ -77,7 +77,7 @@ async function getOutputPortOptions(context) {
             // Extract key, type and title from the response.
             const properties = data.value.reduce((acc, item) => {
                 const property = getSchemaProperties(item.LogicalName, item.AttributeType);
-                const title = `${item.DisplayName?.UserLocalizedLabel?.Label} (${item.LogicalName})`;
+                const title = `${item.DisplayName?.UserLocalizedLabel?.Label} (${item.LogicalName})` || item.LogicalName;
 
                 let key = item.LogicalName;
                 if (item.AttributeType === 'Lookup') {
@@ -294,8 +294,7 @@ async function generateInspector(context, isValidFor) {
         // Called from another component, eg: CreateLead. In this case we don't want to show the default fields.
         // Remove the default fields from the schema and inputs.
         defaultSchema = _.omit(defaultSchema, ['properties.objectName']);
-        // Remove objectName from required.
-        defaultSchema.required = _.without(defaultSchema.required, 'objectName');
+        defaultSchema.required = ['id'];
         defaultInputs = _.omit(defaultInputs, ['objectName']);
     }
 
@@ -362,26 +361,17 @@ async function getSchemaAndInputs(context, schema, logicalName, isValidFor) {
         headers
     };
 
-    // Getting DateTimeBehavior for DateTime fields.
-    const urlDateTimeBehavior = `${urlPathAttributes}/Microsoft.Dynamics.CRM.DateTimeAttributeMetadata?$select=LogicalName,DateTimeBehavior`;
-    const optionsDateTimeBehavior = {
-        url: urlDateTimeBehavior,
-        headers
-    };
-
     // Await for all requests to finish.
     const [
         { data },
         { data: dataPickList },
         { data: dataStatus },
-        { data: dataLookup },
-        { data: dataDateTimeBehavior }
+        { data: dataLookup }
     ] = await Promise.all([
         context.httpRequest(optionsAttributes),
         context.httpRequest(optionsPickList),
         context.httpRequest(optionsStatus),
-        context.httpRequest(optionsLookup),
-        context.httpRequest(optionsDateTimeBehavior)
+        context.httpRequest(optionsLookup)
     ]);
 
     let fieldsInputs = {};
@@ -431,14 +421,15 @@ async function getSchemaAndInputs(context, schema, logicalName, isValidFor) {
         fieldsInputs[fieldName] = getInputs(item, i + 3);
 
         // Some DateTime fields are DateOnly, see: https://learn.microsoft.com/en-us/dynamics365/sales/developer/entities/lead#BKMK_EstimatedCloseDate
-        if (item.AttributeType === 'DateTime') {
-            const isDateOnly = dataDateTimeBehavior?.value.find(x => x.LogicalName === item.LogicalName)?.DateTimeBehavior.Value === 'DateOnly';
-            if (isDateOnly) {
-                fieldsInputs[fieldName].config = {
-                    format: 'YYYY-MM-DD',
-                    enableTime: false
-                };
-            }
+        const dateOnlyFields = {
+            lead: ['estimatedclosedate', 'lastusedincampaign', 'schedulefollowup_prospect', 'schedulefollowup_qualify']
+        };
+
+        if (item.AttributeType === 'DateTime' && dateOnlyFields[logicalName]?.includes(item.LogicalName)) {
+            fieldsInputs[fieldName].config = {
+                format: 'YYYY-MM-DD',
+                enableTime: false
+            };
         }
 
         // Add options for select. Picklist and Status fields.

@@ -1,0 +1,159 @@
+{
+    "name": "appmixer.twitter.statuses.SearchMention",
+    "author": "Martin Krčmář <martin@client.io>",
+    "description": "When triggered, searches tweets using your query.",
+    "tick": true,
+    "auth": {
+        "service": "appmixer:twitter"
+    },
+    "quota": {
+        "manager": "appmixer:twitter",
+        "resources": [ "search/tweets" ],
+        "scope": { "userId": "{{userId}}" }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "created_at", "value": "created_at" },
+                { "label": "id", "value": "id" },
+                { "label": "id_str", "value": "id_str" },
+                { "label": "text", "value": "text" },
+                { "label": "truncated", "value": "truncated" },
+                { "label": "entities", "value": "entities" },
+                { "label": "entities.hashtags", "value": "entities.hashtags" },
+                { "label": "entities.symbols", "value": "entities.symbols" },
+                { "label": "entities.user_mentions", "value": "entities.user_mentions" },
+                { "label": "entities.urls", "value": "entities.urls" },
+                { "label": "metadata", "value": "metadata" },
+                { "label": "metadata.iso_language_code", "value": "metadata.iso_language_code" },
+                { "label": "metadata.result_type", "value": "metadata.result_type" },
+                { "label": "source", "value": "source" },
+                { "label": "in_reply_to_status_id", "value": "in_reply_to_status_id" },
+                { "label": "in_reply_to_status_id_str", "value": "in_reply_to_status_id_str" },
+                { "label": "in_reply_to_user_id", "value": "in_reply_to_user_id" },
+                { "label": "in_reply_to_user_id_str", "value": "in_reply_to_user_id_str" },
+                { "label": "in_reply_to_screen_name", "value": "in_reply_to_screen_name" },
+                { "label": "user", "value": "user" },
+                { "label": "user.id", "value": "user.id" },
+                { "label": "user.id_str", "value": "user.id_str" },
+                { "label": "user.name", "value": "user.name" },
+                { "label": "user.screen_name", "value": "user.screen_name" },
+                { "label": "user.location", "value": "user.location" },
+                { "label": "user.description", "value": "user.description" },
+                { "label": "user.url", "value": "user.url" },
+                { "label": "user.entities", "value": "user.entities" },
+                { "label": "user.entities.url", "value": "user.entities.url" },
+                { "label": "user.entities.url.urls", "value": "user.entities.url.urls" },
+                { "label": "user.entities.description", "value": "user.entities.description" },
+                { "label": "user.entities.description.urls", "value": "user.entities.description.urls" },
+                { "label": "user.protected", "value": "user.protected" },
+                { "label": "user.followers_count", "value": "user.followers_count" },
+                { "label": "user.friends_count", "value": "user.friends_count" },
+                { "label": "user.listed_count", "value": "user.listed_count" },
+                { "label": "user.created_at", "value": "user.created_at" },
+                { "label": "user.favourites_count", "value": "user.favourites_count" },
+                { "label": "user.utc_offset", "value": "user.utc_offset" },
+                { "label": "user.time_zone", "value": "user.time_zone" },
+                { "label": "user.geo_enabled", "value": "user.geo_enabled" },
+                { "label": "user.verified", "value": "user.verified" },
+                { "label": "user.statuses_count", "value": "user.statuses_count" },
+                { "label": "user.lang", "value": "user.lang" },
+                { "label": "user.contributors_enabled", "value": "user.contributors_enabled" },
+                { "label": "user.is_translator", "value": "user.is_translator" },
+                { "label": "user.is_translation_enabled", "value": "user.is_translation_enabled" },
+                { "label": "user.has_extended_profile", "value": "user.has_extended_profile" },
+                { "label": "user.default_profile", "value": "user.default_profile" },
+                { "label": "user.default_profile_image", "value": "user.default_profile_image" },
+                { "label": "user.following", "value": "user.following" },
+                { "label": "user.follow_request_sent", "value": "user.follow_request_sent" },
+                { "label": "user.notifications", "value": "user.notifications" },
+                { "label": "geo", "value": "geo" },
+                { "label": "coordinates", "value": "coordinates" },
+                { "label": "place", "value": "place" },
+                { "label": "contributors", "value": "contributors" },
+                { "label": "is_quote_status", "value": "is_quote_status" },
+                { "label": "retweet_count", "value": "retweet_count" },
+                { "label": "favorite_count", "value": "favorite_count" },
+                { "label": "favorited", "value": "favorited" },
+                { "label": "retweeted", "value": "retweeted" },
+                { "label": "lang", "value": "lang" }
+            ]
+        }
+    ],
+    "properties": {
+        "schema": {
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "max": 500
+                },
+                "count": {
+                    "type": "integer",
+                    "default": 15,
+                    "min": 1,
+                    "max": 100
+                },
+                "lang": {
+                    "type": "string",
+                    "max": 2
+                },
+                "until": {
+                    "type": "string",
+                    "format": "date"
+                },
+                "resultType": {
+                    "enum": [
+                        "mixed",
+                        "popular",
+                        "recent"
+                    ]
+                },
+                "geocode": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "query"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "query": {
+                    "type": "text",
+                    "label": "Query",
+                    "index": 1,
+                    "tooltip": "Search query of 500 characters maximum, including operators. Queries may additionally be limited by complexity."
+                },
+                "count": {
+                    "type": "number",
+                    "min": 1,
+                    "max": 100,
+                    "defaultValue": 15,
+                    "label": "Result count",
+                    "index": 2,
+                    "tooltip": "The number of tweets to return, up to a maximum of 100. Defaults to 15."
+                },
+                "lang": {
+                    "type": "text",
+                    "label": "Language code",
+                    "index": 3,
+                    "tooltip": "Restricts tweets to the given language, given by an ISO 639-1 code. Language detection is best-effort. Example: <i>de</i>."
+                },
+                "until": {
+                    "type": "date-time",
+                    "label": "Until",
+                    "index": 4,
+                    "tooltip": "Returns tweets created before the given date. Date should be formatted as <i>YYYY-MM-DD</i>. Keep in mind that the Twitter search index has a 7-day limit. In other words, no tweets will be found for a date older than one week."
+                },
+                "geocode": {
+                    "type": "text",
+                    "label": "Geocode",
+                    "index": 5,
+                    "tooltip": "Returns tweets by users located within a given radius of the given latitude/longitude. The parameter value is specified by <i>latitude,longitude,radius</i>, where radius units must be specified as either <i>mi</i> (miles) or <i>km</i> (kilometers). <br/><br/>Example: <pre>50.0755,14.4378,10km</pre>."
+                }
+            }
+        }
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjAzLjE0Ij48ZGVmcz48c3R5bGU+LmF7ZmlsbDojMWRhMWYyO308L3N0eWxlPjwvZGVmcz48cGF0aCBjbGFzcz0iYSIgZD0iTTE1My42MiwzMDEuNTljOTQuMzQsMCwxNDUuOTQtNzguMTYsMTQ1Ljk0LTE0NS45NCwwLTIuMjIsMC00LjQzLS4xNS02LjYzQTEwNC4zNiwxMDQuMzYsMCwwLDAsMzI1LDEyMi40N2ExMDIuMzc5LDEwMi4zNzksMCwwLDEtMjkuNDYsOC4wNyw1MS40Nyw1MS40NywwLDAsMCwyMi41NS0yOC4zNywxMDIuNzksMTAyLjc5LDAsMCwxLTMyLjU3LDEyLjQ1LDUxLjM0LDUxLjM0LDAsMCwwLTg3LjQxLDQ2Ljc4QTE0NS42MiwxNDUuNjIsMCwwLDEsOTIuNCwxMDcuODFhNTEuMzMsNTEuMzMsMCwwLDAsMTUuODgsNjguNDdBNTAuOTEsNTAuOTEsMCwwLDEsODUsMTY5Ljg2di42NWE1MS4zMSw1MS4zMSwwLDAsMCw0MS4xNSw1MC4yOCw1MS4yMSw1MS4yMSwwLDAsMS0yMy4xNi44OCw1MS4zNSw1MS4zNSwwLDAsMCw0Ny45MiwzNS42MiwxMDIuOTIsMTAyLjkyLDAsMCwxLTYzLjcsMjJBMTA0LjQxMSwxMDQuNDExLDAsMCwxLDc1LDI3OC41NWExNDUuMjEsMTQ1LjIxLDAsMCwwLDc4LjYyLDIzIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNzUgLTk4LjQ1KSIvPjwvc3ZnPg=="
+}

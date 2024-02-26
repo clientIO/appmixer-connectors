@@ -1,7 +1,7 @@
 'use strict';
 
 const { BigQuery } = require('@google-cloud/bigquery');
-const commons = require('../../google-commons');
+const commons = require("../../google-commons");
 
 module.exports = {
 
@@ -31,9 +31,9 @@ module.exports = {
         const inputValues = {
             insertMode,
             timePartition
-        };
+        }
 
-        return context.sendJson({ table, inputValues }, 'out');
+        return context.sendJson({ table, inputValues }, 'out')
     },
 
     addRowInspector({ table, inputValues }) {
@@ -47,51 +47,51 @@ module.exports = {
                 insertMode: { type: 'string' }
             },
             required: ['projectId', 'datasetId', 'tableId', 'insertMode']
-        };
+        }
 
         let inputs = {
             projectId: {
-                'type': 'select',
-                'label': 'Project ID',
-                'index': 1,
-                'source': {
-                    'url': '/component/appmixer/google/bigquery/ListProjects?outPort=out',
-                    'data': {
-                        'transform': './ListProjects#toSelectArray'
+                "type": "select",
+                "label": "Project ID",
+                "index": 1,
+                "source": {
+                    "url": "/component/appmixer/google/bigquery/ListProjects?outPort=out",
+                    "data": {
+                        "transform": "./ListProjects#toSelectArray"
                     }
                 },
-                'tooltip': 'Select the target project.'
+                "tooltip": "Select the target project."
             },
             datasetId: {
                 type: 'select',
                 label: 'Dataset',
                 index: 2,
                 source: {
-                    url: '/component/appmixer/google/bigquery/ListDatasets?outPort=out',
+                    url: "/component/appmixer/google/bigquery/ListDatasets?outPort=out",
                     data: {
                         messages: {
-                            'in/projectId': 'inputs/in/projectId'
+                            "in/projectId": "inputs/in/projectId"
                         },
-                        transform: './ListDatasets#toSelectArray'
+                        transform: "./ListDatasets#toSelectArray"
                     }
                 },
                 tooltip: 'Select the target dataset.'
             },
             tableId: {
-                type: 'select',
-                label: 'Table',
+                type: "select",
+                label: "Table",
                 index: 3,
                 source: {
-                    url: '/component/appmixer/google/bigquery/ListTables?outPort=out',
+                    url: "/component/appmixer/google/bigquery/ListTables?outPort=out",
                     data: {
                         messages: {
-                            'in/projectId': 'inputs/in/projectId',
-                            'in/datasetId': 'inputs/in/datasetId'
+                            "in/projectId": "inputs/in/projectId",
+                            "in/datasetId": "inputs/in/datasetId"
                         },
-                        transform: './ListTables#toSelectArray'
+                        transform: "./ListTables#toSelectArray"
                     }
                 },
-                tooltip: 'Select the target table.'
+                tooltip: "Select the target table."
             },
             insertMode: {
                 type: 'select',
@@ -120,7 +120,7 @@ module.exports = {
             fields.forEach((field) => {
                 const entry = createSchemaField(field);
                 schema.properties[entry.name] = entry.inputDefinition;
-            });
+            })
 
             fields.forEach((field, idx) => {
                 const entry = createInput(idx + 5, field);
@@ -160,7 +160,7 @@ module.exports = {
                         index: 3,
                         label: 'Time Partitioning',
                         options: [
-                            { 'clearItem': true, 'content': '-- Clear selection --' },
+                            { "clearItem": true, "content": "-- Clear selection --" },
                             { label: 'Hour', value: 'HOUR' },
                             { label: 'Day', value: 'DAY' },
                             { label: 'Month', value: 'MONTH' },
@@ -169,7 +169,7 @@ module.exports = {
                         tooltip: 'Select a time partition to use',
                         group: 'options'
                     }
-                };
+                }
 
                 if (inputValues.timePartition) {
                     inputs.timePartitionField = {
@@ -180,7 +180,7 @@ module.exports = {
                             .map(field => ({ label: field.name, value: field.name })),
                         tooltip: 'Select the field to use for time partitioning',
                         group: 'options'
-                    };
+                    }
                 }
 
                 inputs.clusteringFields = {
@@ -190,7 +190,7 @@ module.exports = {
                     options: fields.map(field => ({ label: field.name, value: field.name })),
                     tooltip: 'Select clustering fields',
                     group: 'options'
-                };
+                }
             }
 
             groups = {
@@ -202,16 +202,16 @@ module.exports = {
                     label: 'Options',
                     index: 3
                 }
-            };
+            }
         }
 
         return {
             schema,
             inputs,
             groups
-        };
+        }
 
-    }
+    },
 };
 
 function createSchemaField(inputSchema) {
@@ -230,14 +230,14 @@ function createSchemaField(inputSchema) {
         'GEOGRAPHY': { type: 'string' },
         'RECORD': { type: 'string' },
         'INTEGER': { type: 'number' }
-    };
+    }
 
     return {
         name: inputSchema.name,
         inputDefinition: {
             type: fieldMap[inputSchema.type].type
         }
-    };
+    }
 }
 
 function createInput(idx, inputSchema) {
@@ -256,7 +256,7 @@ function createInput(idx, inputSchema) {
         'GEOGRAPHY': { input: 'text' },
         'RECORD': { input: 'text' },
         'INTEGER': { input: 'number' }
-    };
+    }
 
     return {
         name: inputSchema.name,
@@ -266,5 +266,5 @@ function createInput(idx, inputSchema) {
             type: fieldMap[inputSchema.type].input,
             group: 'fields'
         }
-    };
+    }
 }

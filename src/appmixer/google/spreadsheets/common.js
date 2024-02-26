@@ -15,7 +15,7 @@ const stringIsAValidUrl = s => {
     } catch (err) {
         return false;
     }
-};
+}
 
 const getHeader = async (context, sheetId, worksheetId) => {
 
@@ -53,7 +53,7 @@ async function* loadFile(context, fileSource, delimiter, destroy, skipRows = 0) 
             });
         } else if (protocol === 'https:') {
             https.get(fileSource, (response) => {
-                response.pipe(readStream);
+                response.pipe(readStream)
             });
         } else {
             throw new context.CancelError('Unsupported protocol: ' + protocol);

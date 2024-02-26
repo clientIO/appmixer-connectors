@@ -16,10 +16,7 @@ module.exports = {
 
         /** Generated dynamically from `context.messages.in.content`. Only the fields that are to be updated need to be specified. */
         const data = Object.keys(context.messages.in.content).reduce((acc, key) => {
-            if (
-                !ignoredDataProperties.includes(key)
-                && !ignoredDataPropertiesPrefixes.some(prefix => key.startsWith(prefix))
-            ) {
+            if (!ignoredDataProperties.includes(key) && !ignoredDataPropertiesPrefixes.some(prefix => key.startsWith(prefix))) {
                 // All this will be passed as data to ZOHO.
 
                 // Handle the arrays
@@ -61,8 +58,8 @@ module.exports = {
 
         const zc = new ZohoClient(context);
         const organization_id = context.messages.in.content.organization_id;
-        const { contact } = await zc.request('POST', '/books/v3/contacts', { data, params: { organization_id } });
+        const { contact } = await zc.request('POST', '/books/v3/contacts', { data, params: { organization_id }});
 
         return context.sendJson(contact, 'out');
     }
-};
+}

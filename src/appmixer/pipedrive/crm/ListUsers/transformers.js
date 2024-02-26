@@ -6,7 +6,7 @@
  */
 module.exports.usersToSelectArray = (users) => {
 
-    let transformed = [];
+    var transformed = [];
 
     if (Array.isArray(users)) {
         users.forEach((user) => {

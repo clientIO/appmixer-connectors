@@ -13,7 +13,7 @@ async function getVideos(context) {
     const videosList = promisify(youtube.videos.list.bind(youtube.videos));
     const { data } = await videosList({
         part: 'snippet,contentDetails,player,status,statistics',
-        id: context.messages.in.content.videoIds.split(',').map((id) => id.trim())
+        id: context.messages.in.content.videoIds.split(',').map((id) => id.trim()),
     });
 
     const videos = data.items.map((item) => {
@@ -86,7 +86,7 @@ module.exports = {
         }
 
         if (outputType === 'items') {
-            return context.sendJson({ items: videos }, 'out');
+            return context.sendJson({ videos }, 'out');
         }
 
         const headers = Object.keys(videos[0]);
@@ -115,88 +115,88 @@ module.exports = {
             return context.sendJson(
                 [
                     {
-                        value: 'videoId',
-                        label: 'Video ID'
+                        value: "videoId",
+                        label: "Video ID"
                     },
                     {
-                        value: 'title',
-                        label: 'Title'
+                        value: "title",
+                        label: "Title"
                     },
                     {
-                        value: 'description',
-                        label: 'Description'
+                        value: "description",
+                        label: "Description"
                     },
                     {
-                        value: 'publishDate',
-                        label: 'Publish Date'
+                        value: "publishDate",
+                        label: "Publish Date"
                     },
                     {
-                        value: 'channelId',
-                        label: 'Channel ID'
+                        value: "channelId",
+                        label: "Channel ID"
                     },
                     {
-                        value: 'channelTitle',
-                        label: 'Channel Title'
+                        value: "channelTitle",
+                        label: "Channel Title"
                     },
                     {
-                        value: 'thumbnailDefault',
-                        label: 'Thumbnail Default'
+                        value: "thumbnailDefault",
+                        label: "Thumbnail Default"
                     },
                     {
-                        value: 'duration',
-                        label: 'Duration'
+                        value: "duration",
+                        label: "Duration"
                     },
                     {
-                        value: 'caption',
-                        label: 'Caption'
+                        value: "caption",
+                        label: "Caption"
                     },
                     {
-                        value: 'licensedContent',
-                        label: 'Licensed Content'
+                        value: "licensedContent",
+                        label: "Licensed Content"
                     },
                     {
-                        value: 'embedHtml',
-                        label: 'Embed HTML'
+                        value: "embedHtml",
+                        label: "Embed HTML"
                     },
                     {
-                        value: 'tags',
-                        label: 'Tags'
+                        value: "tags",
+                        label: "Tags"
                     },
                     {
-                        value: 'viewCount',
-                        label: 'View Count'
+                        value: "viewCount",
+                        label: "View Count"
                     },
                     {
-                        value: 'likeCount',
-                        label: 'Like Count'
+                        value: "likeCount",
+                        label: "Like Count"
                     },
                     {
-                        value: 'favoriteCount',
-                        label: 'Favorite Count'
+                        value: "favoriteCount",
+                        label: "Favorite Count"
                     },
                     {
-                        value: 'commentCount',
-                        label: 'Comment Count'
+                        value: "commentCount",
+                        label: "Comment Count"
                     },
                     {
-                        value: 'privacyStatus',
-                        label: 'Privacy Status'
+                        value: "privacyStatus",
+                        label: "Privacy Status"
                     },
                     {
-                        value: 'license',
-                        label: 'License'
+                        value: "license",
+                        label: "License"
                     },
                     {
-                        value: 'embeddable',
-                        label: 'Embeddable'
+                        value: "embeddable",
+                        label: "Embeddable"
                     },
                     {
-                        value: 'publicStatsViewable',
-                        label: 'Public Stats Viewable'
+                        value: "publicStatsViewable",
+                        label: "Public Stats Viewable"
                     },
                     {
-                        value: 'madeForKids',
-                        label: 'Made For Kids'
+                        value: "madeForKids",
+                        label: "Made For Kids"
                     }
                 ]
                 ,
@@ -214,88 +214,88 @@ module.exports = {
                                 type: 'object',
                                 properties: {
                                     videoId: {
-                                        type: 'string',
-                                        title: 'Video ID'
+                                        type: "string",
+                                        title: "Video ID"
                                     },
                                     title: {
-                                        type: 'string',
-                                        title: 'Title'
+                                        type: "string",
+                                        title: "Title"
                                     },
                                     description: {
-                                        type: 'string',
-                                        title: 'Description'
+                                        type: "string",
+                                        title: "Description"
                                     },
                                     publishDate: {
-                                        type: 'string',
-                                        title: 'Publish Date'
+                                        type: "string",
+                                        title: "Publish Date"
                                     },
                                     channelId: {
-                                        type: 'string',
-                                        title: 'Channel ID'
+                                        type: "string",
+                                        title: "Channel ID"
                                     },
                                     channelTitle: {
-                                        type: 'string',
-                                        title: 'Channel Title'
+                                        type: "string",
+                                        title: "Channel Title"
                                     },
                                     thumbnailDefault: {
-                                        type: 'string',
-                                        title: 'Thumbnail Default'
+                                        type: "string",
+                                        title: "Thumbnail Default"
                                     },
                                     duration: {
-                                        type: 'string',
-                                        title: 'Duration'
+                                        type: "string",
+                                        title: "Duration"
                                     },
                                     caption: {
-                                        type: 'string',
-                                        title: 'Caption'
+                                        type: "string",
+                                        title: "Caption"
                                     },
                                     licensedContent: {
-                                        type: 'string',
-                                        title: 'Licensed Content'
+                                        type: "string",
+                                        title: "Licensed Content"
                                     },
                                     embedHtml: {
-                                        type: 'string',
-                                        title: 'Embed HTML'
+                                        type: "string",
+                                        title: "Embed HTML"
                                     },
                                     tags: {
-                                        type: 'string',
-                                        title: 'Tags'
+                                        type: "string",
+                                        title: "Tags"
                                     },
                                     viewCount: {
-                                        type: 'string',
-                                        title: 'View Count'
+                                        type: "string",
+                                        title: "View Count"
                                     },
                                     likeCount: {
-                                        type: 'string',
-                                        title: 'Like Count'
+                                        type: "string",
+                                        title: "Like Count"
                                     },
                                     favoriteCount: {
-                                        type: 'string',
-                                        title: 'Favorite Count'
+                                        type: "string",
+                                        title: "Favorite Count"
                                     },
                                     commentCount: {
-                                        type: 'string',
-                                        title: 'Comment Count'
+                                        type: "string",
+                                        title: "Comment Count"
                                     },
                                     privacyStatus: {
-                                        type: 'string',
-                                        title: 'Privacy Status'
+                                        type: "string",
+                                        title: "Privacy Status"
                                     },
                                     license: {
-                                        type: 'string',
-                                        title: 'License'
+                                        type: "string",
+                                        title: "License"
                                     },
                                     embeddable: {
-                                        type: 'string',
-                                        title: 'Embeddable'
+                                        type: "string",
+                                        title: "Embeddable"
                                     },
                                     publicStatsViewable: {
-                                        type: 'string',
-                                        title: 'Public Stats Viewable'
+                                        type: "string",
+                                        title: "Public Stats Viewable"
                                     },
                                     madeForKids: {
-                                        type: 'string',
-                                        title: 'Made For Kids'
+                                        type: "string",
+                                        title: "Made For Kids"
                                     }
                                 }
                             }
@@ -308,20 +308,20 @@ module.exports = {
             // file
             return context.sendJson([
                 {
-                    label: 'File ID',
-                    value: 'fileId'
+                    label: "File ID",
+                    value: "fileId"
                 },
                 {
-                    label: 'File Name',
-                    value: 'filename'
+                    label: "File Name",
+                    value: "filename"
                 },
                 {
-                    label: 'Chunk Size',
-                    value: 'chunkSize'
+                    label: "Chunk Size",
+                    value: "chunkSize"
                 },
                 {
-                    label: 'File Length',
-                    value: 'length'
+                    label: "File Length",
+                    value: "length"
                 }
             ], 'out');
         }

@@ -1,6 +1,8 @@
 'use strict';
 
-const lib = require('./lib');
+const dependencies = {
+    jsonata: require('jsonata')
+};
 
 module.exports = {
 
@@ -9,15 +11,15 @@ module.exports = {
     definition: {
 
         auth: {
-            'username': {
-                'name': 'Username',
-                'type': 'text',
-                'tooltip': ''
+            "username": {
+                "name": "Username",
+                "type": "text",
+                "tooltip": ""
             },
-            'apiKey': {
-                'name': 'API Key',
-                'type': 'text',
-                'tooltip': ''
+            "apiKey": {
+                "name": "API Key",
+                "type": "text",
+                "tooltip": ""
             }
         },
 
@@ -26,6 +28,11 @@ module.exports = {
                 str = str.replaceAll('{' + variableName + '}', context[variableName]);
             });
             return str;
+        },
+
+        getBaseUrl(context) {
+            let url = 'https://freedom.voys.nl/api';
+            return url;
         },
 
         requestProfileInfo(context) {
@@ -39,18 +46,25 @@ module.exports = {
         async validate(context) {
             const method = 'GET';
             const url = '/callnotification/callnotification/';
-            const baseUrl = lib.getBaseUrl(context);
+            const baseUrl = this.getBaseUrl(context);
             const normalizedUrl = this.replaceVariables(context, baseUrl + url);
-            const options = { method: method, url: normalizedUrl };
+            const options = {
+                method: method,
+                url: normalizedUrl
+            };
             options.headers = {
-                'Authorization': 'token {username}:{apiKey}'
+                "Authorization": "token {username}:{apiKey}"
             };
             options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
-            options.validateStatus = (status) => {
-                return status === 405;
-            };
-            await context.httpRequest(options);
-            return true;
+            try {
+                options.validateStatus = (status) => {
+                    return status === 405;
+                };
+                await context.httpRequest(options);
+                return true;
+            } catch (err) {
+                throw new Error(method + ' ' + normalizedUrl + ' Error: ' + err);
+            }
         }
     }
 };

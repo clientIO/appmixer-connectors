@@ -5,7 +5,7 @@ module.exports = {
 
     async receive(context) {
 
-        const query = 'SELECT * FROM pg_catalog.pg_tables WHERE schemaname != \'pg_catalog\' AND schemaname != \'information_schema\'';
+        const query = `SELECT * FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema'`;
 
         const client = new Client({
             user: context.auth.dbUser,

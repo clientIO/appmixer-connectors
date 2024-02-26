@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for fetching list of labels of a board.
@@ -8,7 +7,7 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         const { boardId, outputType, isSource } = context.messages.in.content;
 
@@ -23,17 +22,17 @@ module.exports = {
             }
         }
 
-        //https://api.trello.com/1/boards/kpPww9qv/labels/?fields=color&limit=2
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let get = Promise.promisify(client.get, { context: client });
+        const { data } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            url: `https://api.trello.com/1/boards/${boardId}/labels?${commons.getAuthQueryParams(context)}`
+        });
 
-        return get(`/1/boards/${boardId}/labels`).then(res => {
-            return commons.sendArrayOutput({
-                context,
-                outputPortName: 'labels',
-                outputType,
-                records: res
-            });
+        //https://api.trello.com/1/boards/kpPww9qv/labels/?fields=color&limit=2
+        return commons.sendArrayOutput({
+            context,
+            outputPortName: 'labels',
+            outputType,
+            records: data
         });
     }
 };

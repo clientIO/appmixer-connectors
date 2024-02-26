@@ -16,7 +16,7 @@ module.exports = {
 
         const attendees = emails?.split(',').map(email => ({ emailAddress: { address: email.trim() } }));
         const options = {
-            url: 'https://graph.microsoft.com/v1.0/me/events',
+            url: `https://graph.microsoft.com/v1.0/me/events`,
             method: 'POST',
             data: {
                 attendees,
@@ -36,7 +36,7 @@ module.exports = {
                     dateTime: start,
                     timeZone: 'UTC'
                 },
-                subject
+                subject,
             },
             headers: {
                 Authorization: `Bearer ${context.auth?.accessToken || context.accessToken}`,
@@ -44,10 +44,10 @@ module.exports = {
             }
         };
 
-        context.log({ step: 'Making request', options });
+        context.log({ step: 'Making request', options});
 
         const { data } = await context.httpRequest(options);
 
         return context.sendJson(data, 'out');
     }
-};
+}

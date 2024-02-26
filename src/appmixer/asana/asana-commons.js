@@ -38,7 +38,7 @@ module.exports = {
             }
             const csvString = csvRows.join('\n');
             let buffer = Buffer.from(csvString, 'utf8');
-            const componentName = context.flowDescriptor[context.componentId].label || context.componentId;
+            const componentName = context.flowDescriptor[context.componentId].label;
             const fileName = `${context.config.outputFilePrefix || 'asana-export'}-${componentName}.csv`;
             const savedFile = await context.saveFileStream(pathModule.normalize(fileName), buffer);
             await context.log({ step: 'File was saved', fileName, fileId: savedFile.fileId });

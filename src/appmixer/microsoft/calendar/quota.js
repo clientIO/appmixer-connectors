@@ -15,6 +15,6 @@ module.exports = {
             queueing: 'fifo',
             resource: 'requests',
             scope: 'userId'
-        }
+        },
     ]
 };

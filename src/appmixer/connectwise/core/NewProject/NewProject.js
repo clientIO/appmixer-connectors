@@ -1,8 +1,8 @@
 'use strict';
 
 const dependencies = {
-    'json-pointer': require('json-pointer'),
-    'jsonata': require('jsonata')
+    "json-pointer": require("json-pointer"),
+    "jsonata": require("jsonata")
 };
 
 module.exports = {
@@ -15,12 +15,12 @@ module.exports = {
                 webhook: context.messages.webhook
             });
 
-            let out = this.replaceRuntimeExpressions('$request.body', context, {}, context.messages.webhook
+            let out = this.replaceRuntimeExpressions("$request.body", context, {}, context.messages.webhook
                 .content);
             const expCondition = dependencies.jsonata("$boolean(Action='added')");
             const condition = await expCondition.evaluate(out);
             if (!condition) return null;
-            const expOutput = dependencies.jsonata('$eval(Entity)');
+            const expOutput = dependencies.jsonata("$eval(Entity)");
             out = await expOutput.evaluate(out);
             await context.sendJson(out, 'out');
             return context.response(out);
@@ -100,10 +100,10 @@ module.exports = {
         override.url = this.replaceRuntimeExpressions('{$baseUrl}/system/callbacks', context, {});
         override.method = 'POST';
         override.body = this.replaceRuntimeExpressions({
-            'url': '{$webhookUrl}',
-            'objectId': '{$parameters.objectId}',
-            'type': 'Project',
-            'level': '{$parameters.level}'
+            "url": "{$webhookUrl}",
+            "objectId": "{$parameters.objectId}",
+            "type": "Project",
+            "level": "{$parameters.level}"
         }, context, {});
         const response = await this.httpRequest(context, override);
         return context.stateSet('response', {

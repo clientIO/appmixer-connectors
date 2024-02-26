@@ -1,6 +1,6 @@
 'use strict';
 const qs = require('qs');
-const Canvas = require('../../canvas-sdk');
+const Canvas = require("../../canvas-sdk");
 
 module.exports = {
     async receive(context) {
@@ -15,7 +15,7 @@ module.exports = {
             isAnonymous,
             ...inputs
         } = context.messages.in.content;
-
+        
         const form = {
             'comment[text_comment]': `${inputs.comment || ''}`,
             'comment[attempt]': `${inputs.attempt || ''}`,

@@ -7,7 +7,8 @@ const commons = require('../../pipedrive-commons');
  */
 module.exports = {
 
-    async receive(context) {
+    receive(context) {
+
         let data = context.messages.person.content;
         const personsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Persons');
 
@@ -17,17 +18,12 @@ module.exports = {
         data.phone = commons.stringToContactArray(data.phone);
         data.email = commons.stringToContactArray(data.email);
 
-        const customFieldsValues = data.customFields.AND || [];
-        delete data.customFields;
-        if (customFieldsValues.length > 0) {
-            customFieldsValues.forEach(customField => {
-                data[customField.field] = customField.value;
+        return personsApi.updateAsync(id, data)
+            .then(response => {
+                if (response.success === false) {
+                    throw new context.CancelError(response.formattedError);
+                }
+                return context.sendJson(response.data, 'updatedPerson');
             });
-        }
-        const response = await personsApi.updateAsync(id, data);
-        if (response.success === false) {
-            throw new context.CancelError(response.formattedError);
-        }
-        return context.sendJson(response.data, 'updatedPerson');
     }
 };

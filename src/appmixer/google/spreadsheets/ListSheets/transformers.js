@@ -6,7 +6,7 @@
  */
 module.exports.sheetsToSelectArray = message => {
 
-    let transformed = [];
+    var transformed = [];
     if (!message || !message.items) {
         return transformed;
     }

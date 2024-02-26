@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for finding specific card of board.
@@ -8,23 +7,23 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let getRequest = Promise.promisify(client.get, { context: client });
+        const { data } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            url: `https://api.trello.com/1/search?query=${encodeURIComponent(context.messages.in.content.query)}&modelTypes=cards&cards_limit=100&${commons.getAuthQueryParams(context)}`
+        });
         let { query, boardId } = context.messages.in.content;
 
-        return getRequest(`/1/search?query=${encodeURIComponent(query)}&modelTypes=cards&cards_limit=100`)
-            .then(res => {
-                if (!res.cards.length) {
-                    return context.sendJson({ query }, 'notFound');
-                }
-                return Promise.map(res.cards, card => {
-                    if (boardId && boardId !== '0' && card.idBoard !== boardId) {
-                        return;
-                    }
-                    return context.sendJson(card, 'card');
-                });
-            });
+        if (data.cards.length === 0) {
+            return context.sendJson({ query }, 'notFound');
+        }
+
+        for (let card of data.cards) {
+            if (boardId && boardId !== '0' && card.idBoard !== boardId) {
+                continue;
+            }
+            context.sendJson(card, 'card');
+        }
     }
 };

@@ -33,8 +33,7 @@ class XeroClient {
      * @param {string} method GET, POST, PUT, DELETE
      * @param {string} url Partial URL, e.g. /api.xro/2.0/Contacts
      * @param {object} params
-     * @param {string} params.dataKey Key of the data array in the response.
-     * Eg. 'Contacts' for /api.xro/2.0/Contacts. If not provided, the last part of the URL is used.
+     * @param {string} params.dataKey Key of the data array in the response. Eg. 'Contacts' for /api.xro/2.0/Contacts. If not provided, the last part of the URL is used.
      * @param {number} params.countLimit Maximum number of records to return. Default 10000.
      * @param {object} params.data Request body. Valid for POST and PUT only.
      * @param {object} params.headers Request headers

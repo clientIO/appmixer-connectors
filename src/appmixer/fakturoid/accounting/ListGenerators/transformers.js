@@ -6,7 +6,7 @@
  */
 module.exports.generatorsToSelectArray = (generators) => {
 
-    let transformed = [];
+    var transformed = [];
 
     if (Array.isArray(generators)) {
         generators.forEach((generator) => {

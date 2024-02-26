@@ -27,7 +27,7 @@ async function setWorksheetHeader(context, sheet, csvHeader, append, autoMatch, 
             throw new context.CancelError('Missing header row in the Spreadsheet.');
         }
     } else {
-        if (!defineColumns) throw new context.CancelError('The \'defineColumns\' parameter cannot be empty.');
+        if (!defineColumns) throw new context.CancelError(`The 'defineColumns' parameter cannot be empty.`);
         headerRow = defineColumns;
     }
 
@@ -295,7 +295,6 @@ module.exports = {
             if (!csvHeader) {
                 throw new context.CancelError('No header found in the source file.');
             }
-            // eslint-disable-next-line max-len
             csvColumnMap = await setWorksheetHeader(context, sheet, csvHeader, append, autoMatch, defineColumns, newColumns);
         }
 

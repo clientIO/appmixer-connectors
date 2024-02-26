@@ -80,7 +80,7 @@ module.exports = class Blackboard {
         data.append('file', fileStream, {
             filename: fileInfo.filename,
             contentType: fileInfo.contentType,
-            knownLength: fileInfo.length
+            knownLength: fileInfo.length,
         });
 
         const config = {

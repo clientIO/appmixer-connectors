@@ -75,7 +75,7 @@ module.exports = {
 
                 return axios({
                     method: 'POST',
-                    url: 'https://slack.com/api/auth.test',
+                    url: `https://slack.com/api/auth.test`,
                     headers: {
                         'Authorization': `Bearer ${context.accessToken}`
                     },

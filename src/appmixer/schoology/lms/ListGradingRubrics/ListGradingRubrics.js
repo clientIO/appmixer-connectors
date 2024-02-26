@@ -16,4 +16,4 @@ module.exports = {
 
         return gradingRubrics.map(category => ({ label: category.title, value: category.id }));
     }
-};
+}

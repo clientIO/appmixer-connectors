@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for update an existing board
@@ -8,21 +7,20 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         let boardInfo = context.messages.in.content;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let updateCard = Promise.promisify(client.put, { context: client });
-
-        return updateCard(
-            `/1/boards/${boardInfo.boardId}`,
-            {
+        const { data: updatedBoard } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            method: 'PUT',
+            url: `https://api.trello.com/1/boards/${boardInfo.boardId}?${commons.getAuthQueryParams(context)}`,
+            data: {
                 name: boardInfo['name'],
                 desc: boardInfo['description']
             }
-        ).then(updatedBoard => {
-            return context.sendJson(updatedBoard, 'board');
         });
+
+        return context.sendJson(updatedBoard, 'board');
     }
 };
 

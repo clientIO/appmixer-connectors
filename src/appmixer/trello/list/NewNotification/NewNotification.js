@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Process notifications to find newly added.
@@ -25,12 +24,11 @@ module.exports = {
 
     async tick(context) {
 
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let newNotification = Promise.promisify(client.get, { context: client });
+        const { data: res } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            url: `https://api.trello.com/1/members/me/notifications?${commons.getAuthQueryParams(context)}`
+        });
 
-        let res = await newNotification(
-            '/1/members/me/notifications'
-        );
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
@@ -38,11 +36,10 @@ module.exports = {
         res.forEach(processNotifications.bind(null, known, actual, diff));
 
         if (diff.size) {
-            await Promise.map(diff, notification => {
+            await Promise.all(Array.from(diff).map(notification => {
                 return context.sendJson(notification, 'notification');
-            });
+            }));
         }
         await context.saveState({ known: Array.from(actual) });
     }
 };
-

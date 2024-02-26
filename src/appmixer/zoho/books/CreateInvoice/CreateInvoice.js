@@ -52,4 +52,4 @@ module.exports = {
 
         return context.sendJson(invoice, 'out');
     }
-};
+}

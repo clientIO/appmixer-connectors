@@ -8,9 +8,7 @@ module.exports = {
         let contact = context.messages.contact.content;
         // Unfortunately, Inspector does not allow to have a property "type". Therefore, we use "type_" and do a small
         // conversion here before sending the data to Fakturoid.
-        // eslint-disable-next-line no-underscore-dangle
         contact.type = contact.type_;
-        // eslint-disable-next-line no-underscore-dangle
         delete contact.type_;
 
         return new Promise((resolve, reject) => {

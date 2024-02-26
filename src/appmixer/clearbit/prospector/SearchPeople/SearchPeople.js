@@ -14,7 +14,7 @@ const aggregator = new PagingAggregator(
         return accumulator.concat(chunk['results']);
     },
     (accumulator, chunk, page, pageSize) => {
-        return (page - 1) * pageSize + chunk['results'].length >= chunk['total'] ? -1 : page + 1;
+        return (page - 1) * pageSize + chunk['results'].length >= chunk['total'] ? -1 : page + 1
     }
 );
 

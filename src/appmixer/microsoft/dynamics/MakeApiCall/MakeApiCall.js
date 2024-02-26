@@ -25,6 +25,7 @@ module.exports = {
         } catch (error) {
             // If Axios throws an error, the response is in error.response.data.
             const axiosError = error.response?.data;
+            const axiosStatusCode = error.response?.status;
             // This propagates the error properly when the component is called by a different component.
             error.message = `${error.message}: ${axiosError?.error?.message || axiosError?.message || ''}`;
             throw error;

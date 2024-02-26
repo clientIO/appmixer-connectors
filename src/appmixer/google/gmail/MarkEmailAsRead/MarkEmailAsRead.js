@@ -16,10 +16,10 @@ module.exports = {
             userId: 'me',
             quotaUser: context.auth.userId,
             resource: {
-                removeLabelIds: ['UNREAD']
+                removeLabelIds: ['UNREAD'],
             },
-            id: emailId
+            id: emailId,
         });
         return context.sendJson(email, 'out');
-    }
+    },
 };

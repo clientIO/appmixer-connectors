@@ -16,13 +16,13 @@ class StreamProcessor {
         return new Promise((resolve, reject) => {
             const processCallback = async (row) => {
                 try {
-                    return await processCb(row);
+                    return await processCb(row)
                 } catch (err) {
                     // Just log the error. This prevents the promise chain from breaking if there
                     // was an error while processing a row.
                     this.context.log('error', err.message, err);
                 }
-            };
+            }
 
             queryStream
                 .on('error', async (err) => {

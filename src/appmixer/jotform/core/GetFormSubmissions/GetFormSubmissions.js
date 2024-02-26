@@ -1,7 +1,7 @@
 'use strict';
 
 const dependencies = {
-    'jsonata': require('jsonata')
+    "jsonata": require("jsonata")
 };
 
 module.exports = {
@@ -71,7 +71,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + `/form/${input['id']}/submissions`;
+        let url = this.getBaseUrl(context) + `/form/${input["id"]}/submissions`;
 
         const headers = {};
         const query = new URLSearchParams;
@@ -168,39 +168,39 @@ module.exports = {
     },
 
     arrayOutputOptions: [{
-        'label': 'Result',
-        'value': 'result',
-        'schema': {
-            'type': 'array',
-            'items': {
-                'type': 'object',
-                'properties': {
-                    'id': {
-                        'type': 'string'
+        "label": "Result",
+        "value": "result",
+        "schema": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
                     },
-                    'form_id': {
-                        'type': 'string'
+                    "form_id": {
+                        "type": "string"
                     },
-                    'ip': {
-                        'type': 'string'
+                    "ip": {
+                        "type": "string"
                     },
-                    'created_at': {
-                        'type': 'string'
+                    "created_at": {
+                        "type": "string"
                     },
-                    'updated_at': {
-                        'type': 'string'
+                    "updated_at": {
+                        "type": "string"
                     },
-                    'status': {
-                        'type': 'string'
+                    "status": {
+                        "type": "string"
                     },
-                    'new': {
-                        'type': 'string'
+                    "new": {
+                        "type": "string"
                     },
-                    'answers': {
-                        'type': 'object'
+                    "answers": {
+                        "type": "object"
                     },
-                    'workflowStatus': {
-                        'type': 'string'
+                    "workflowStatus": {
+                        "type": "string"
                     }
                 }
             }
@@ -208,40 +208,40 @@ module.exports = {
     }],
 
     objectOutputOptions: [{
-        'label': 'Id',
-        'value': 'id'
-    },
-    {
-        'label': 'Form Id',
-        'value': 'form_id'
-    },
-    {
-        'label': 'Ip',
-        'value': 'ip'
-    },
-    {
-        'label': 'Created At',
-        'value': 'created_at'
-    },
-    {
-        'label': 'Updated At',
-        'value': 'updated_at'
-    },
-    {
-        'label': 'Status',
-        'value': 'status'
-    },
-    {
-        'label': 'New',
-        'value': 'new'
-    },
-    {
-        'label': 'Answers',
-        'value': 'answers'
-    },
-    {
-        'label': 'Workflow Status',
-        'value': 'workflowStatus'
-    }
+            "label": "Id",
+            "value": "id"
+        },
+        {
+            "label": "Form Id",
+            "value": "form_id"
+        },
+        {
+            "label": "Ip",
+            "value": "ip"
+        },
+        {
+            "label": "Created At",
+            "value": "created_at"
+        },
+        {
+            "label": "Updated At",
+            "value": "updated_at"
+        },
+        {
+            "label": "Status",
+            "value": "status"
+        },
+        {
+            "label": "New",
+            "value": "new"
+        },
+        {
+            "label": "Answers",
+            "value": "answers"
+        },
+        {
+            "label": "Workflow Status",
+            "value": "workflowStatus"
+        }
     ]
 };

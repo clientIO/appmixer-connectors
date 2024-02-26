@@ -149,11 +149,7 @@ class ZohoClient {
         return result;
     }
 
-    async requestPaginated(
-        method,
-        url,
-        { dataKey = 'data', countLimit = 500, data = {}, headers = {}, params = {} } = {}
-    ) {
+    async requestPaginated(method, url, { dataKey = 'data', countLimit = 500, data = {}, headers = {}, params = {} } = {}) {
 
         let records = [];
         params.per_page = 200; // Zoho default is 200

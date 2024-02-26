@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + `/service/tickets/${input['id']}`;
+        let url = this.getBaseUrl(context) + `/service/tickets/${input["id"]}`;
 
         const headers = {};
 

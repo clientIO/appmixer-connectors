@@ -15,7 +15,7 @@ module.exports = {
 
         const input = context.messages.in.content;
 
-        let url = this.getBaseUrl(context) + '/service/tickets';
+        let url = this.getBaseUrl(context) + `/service/tickets`;
 
         const headers = {};
 
@@ -181,7 +181,7 @@ module.exports = {
             'currency._info': input['currency|_info'],
             'mergedParentTicket.id': input['mergedParentTicket|id'],
             'mergedParentTicket.summary': input['mergedParentTicket|summary'],
-            'mergedParentTicket._info': input['mergedParentTicket|_info']
+            'mergedParentTicket._info': input['mergedParentTicket|_info'],
         };
         let body = {};
         this.setProperties(body, inputMapping);

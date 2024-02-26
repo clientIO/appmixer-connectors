@@ -1,8 +1,8 @@
 'use strict';
 
 const dependencies = {
-    'json-pointer': require('json-pointer'),
-    'jsonata': require('jsonata')
+    "json-pointer": require("json-pointer"),
+    "jsonata": require("jsonata")
 };
 
 module.exports = {
@@ -15,9 +15,9 @@ module.exports = {
                 webhook: context.messages.webhook
             });
 
-            let out = await this.replaceRuntimeExpressions('$request.body', context, {}, context.messages
+            let out = await this.replaceRuntimeExpressions("$request.body", context, {}, context.messages
                 .webhook.content);
-            const expCondition = dependencies.jsonata('$exists(submissionID)');
+            const expCondition = dependencies.jsonata("$exists(submissionID)");
             const condition = await expCondition.evaluate(out, {
                 parameters: context.properties
             });
@@ -120,10 +120,10 @@ module.exports = {
             context, {});
         override.method = 'POST';
         override.headers = await this.replaceRuntimeExpressions({
-            'Content-Type': 'application/x-www-form-urlencoded'
+            "Content-Type": "application/x-www-form-urlencoded"
         }, context, {});
         override.body = await this.replaceRuntimeExpressions({
-            'webhookURL': '{$webhookUrl}'
+            "webhookURL": "{$webhookUrl}"
         }, context, {});
         const response = await this.httpRequest(context, override);
         return context.stateSet('response', {
@@ -138,7 +138,6 @@ module.exports = {
 
         const override = {};
         override.url = await this.replaceRuntimeExpressions(
-            // eslint-disable-next-line max-len
             '{$baseUrl}/form/{$parameters.formId}/webhooks/{$response.transform#$keys(data.content) ~> $filter(function ($key) { $lookup(data.content, $key) = "{$webhookUrl}"})}',
             context, response);
         override.method = 'DELETE';
