@@ -28,7 +28,7 @@ class Schoology {
         this.oauth = OAuth({
             consumer: { key: consumerKey, secret: consumerSecret },
             signature_method: 'HMAC-SHA1',
-            hash_function: (base_string, key) => crypto.createHmac('sha1', key).update(base_string).digest('base64')
+            hash_function: (baseString, key) => crypto.createHmac('sha1', key).update(baseString).digest('base64')
         });
     }
 

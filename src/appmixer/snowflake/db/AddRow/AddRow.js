@@ -83,7 +83,7 @@ module.exports = {
         const { schema, table, ...columnValues } = context.messages.in.content;
 
         const snowflake = new SnowflakeDB();
-        const row = await snowflake.addRow(context.auth, schema, table, Object.keys(columnValues), Object.values(columnValues));
+        await snowflake.addRow(context.auth, schema, table, Object.keys(columnValues), Object.values(columnValues));
         return context.sendJson({ row: columnValues }, 'out');
     },
 

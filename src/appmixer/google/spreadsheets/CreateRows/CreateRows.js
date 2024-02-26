@@ -295,6 +295,7 @@ module.exports = {
             if (!csvHeader) {
                 throw new context.CancelError('No header found in the source file.');
             }
+            // eslint-disable-next-line max-len
             csvColumnMap = await setWorksheetHeader(context, sheet, csvHeader, append, autoMatch, defineColumns, newColumns);
         }
 

@@ -93,6 +93,7 @@ class SnowflakeDB {
         }
         const data = await this.collectRows(context.auth, { sqlText });
         if (data.length) {
+            // eslint-disable-next-line no-unused-vars
             const { METADATA$ACTION, METADATA$ISUPDATE, METADATA$ROW_ID, ...columns } = data[0];
             const columnsNames = Object.keys(columns).join();
             const dummyQuery = `insert into ${schema}.${tableName} select ${columnsNames}  from ${schema}.${tableName}_change_${componentId} where false;`;

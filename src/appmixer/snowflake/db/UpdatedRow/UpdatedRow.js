@@ -23,8 +23,16 @@ module.exports = {
         const mid = data.length / 2;
         for (let i = 0; i < mid; i++) {
 
-            const { METADATA$ACTION: oldAction, METADATA$ISUPDATE: oldUpdate, METADATA$ROW_ID: oldId, ...oldRow } = data[i + mid];
-            const { METADATA$ACTION: updatedAction, METADATA$ISUPDATE: updatedUpdate, METADATA$ROW_ID: updatedId, ...updatedRow } = data[i];
+            const {
+                // eslint-disable-next-line no-unused-vars
+                METADATA$ACTION: oldAction, METADATA$ISUPDATE: oldUpdate, METADATA$ROW_ID: oldId,
+                ...oldRow
+            } = data[i + mid];
+            const {
+                // eslint-disable-next-line no-unused-vars
+                METADATA$ACTION: updatedAction, METADATA$ISUPDATE: updatedUpdate, METADATA$ROW_ID: updatedId,
+                ...updatedRow
+            } = data[i];
             await context.sendJson({ oldRow, updatedRow }, 'out');
         }
     }

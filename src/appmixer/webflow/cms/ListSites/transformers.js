@@ -15,6 +15,7 @@ module.exports.sitesToSelectArray = items => {
 
             transformed.push({
                 label: siteItem.name,
+                // eslint-disable-next-line no-underscore-dangle
                 value: siteItem._id
             });
         });

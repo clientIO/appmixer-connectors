@@ -1,6 +1,5 @@
 'use strict';
 const request = require('request-promise');
-const Promise = require('bluebird');
 
 module.exports = {
 

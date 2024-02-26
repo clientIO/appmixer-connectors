@@ -41,6 +41,7 @@ module.exports = {
         const client = new Webflow({ token: apiKey });
         return this.registerWebhook(client, webhookId, siteId, context.getWebhookUrl())
             .then(response => {
+                // eslint-disable-next-line no-underscore-dangle
                 return context.saveState({ webhookId: response._id });
             });
     },

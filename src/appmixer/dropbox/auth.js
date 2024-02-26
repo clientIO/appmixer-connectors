@@ -28,7 +28,7 @@ module.exports = {
                 },
                 data: {
                     grant_type: 'refresh_token',
-                    refresh_token: context.refreshToken,
+                    refresh_token: refreshToken,
                     client_id: context.clientId,
                     client_secret: context.clientSecret
                 }

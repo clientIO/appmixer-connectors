@@ -1,6 +1,5 @@
 'use strict';
-var assert = require('assert');
-var SendEmail = require('../../SendEmail');
+const SendEmail = require('../../SendEmail');
 
 describe('SendEmail', function() {
 
