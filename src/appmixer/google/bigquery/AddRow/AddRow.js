@@ -29,6 +29,7 @@ async function streamingInsert(context) {
         projectId
     });
 
+    // eslint-disable-next-line no-unused-vars
     const [table] = await client.dataset(datasetId).table(tableId).get();
 
     const excludedKeys = [

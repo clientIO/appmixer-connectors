@@ -10,7 +10,7 @@ module.exports = {
 
         const apiUrl = context.profileInfo.apiUrl;
         const { id } = context.messages.in.content;
-        const { status, data: [contact] = [] } = await request({
+        const { data: [contact] = [] } = await request({
             method: 'GET',
             url: apiUrl + 'contacts/' + id,
             headers: {

@@ -22,7 +22,7 @@ module.exports = {
 
             // curl http://actimo.com/api/v1/project \
             //  -H 'api-key: abcd1234-abcd-1234-5678-abcd1234efgh'
-            const result = await request({
+            await request({
                 method: 'GET',
                 url: 'http://actimo.com/api/v1/project',
                 headers: {

@@ -25,7 +25,13 @@ module.exports = {
             Payload: payload,
             Qualifier: qualifier
         };
-        const { ExecutedVersion, FunctionError, LogResult, Payload, StatusCode } = await lambda.invoke(params).promise();
+        const {
+            ExecutedVersion,
+            FunctionError,
+            LogResult,
+            Payload,
+            StatusCode
+        } = await lambda.invoke(params).promise();
 
         return context.sendJson({ ExecutedVersion, FunctionError, LogResult, Payload, StatusCode }, 'out');
     },

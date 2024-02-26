@@ -1,5 +1,4 @@
 'use strict';
-const ActiveCampaign = require('../../ActiveCampaign');
 
 module.exports = {
 

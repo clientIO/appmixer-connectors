@@ -11,7 +11,7 @@ module.exports = {
         const apiUrl = context.profileInfo.apiUrl;
         const body = context.messages.contact.content;
 
-        const { status, data: [contact] = [] } = await request({
+        const { data: [contact] = [] } = await request({
             method: 'POST',
             url: apiUrl + 'contacts',
             body,

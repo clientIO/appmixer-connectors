@@ -12,7 +12,7 @@ module.exports = {
         const body = context.messages.contact.content;
 
         const id = body.id;
-        const { status, data: [contact] = [] } = await request({
+        const { data: [contact] = [] } = await request({
             method: 'PUT',
             url: apiUrl + 'contacts/' + id,
             body,
