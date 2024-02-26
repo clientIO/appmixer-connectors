@@ -1,0 +1,297 @@
+{
+    "name": "appmixer.salesforce.crm.CreateContact",
+    "author": "Tomasz Hencel <thencel@ntrc.eu>",
+    "description": "Create a new contact in Salesforce.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:salesforce"
+    },
+    "quota": {
+        "manager": "appmixer:salesforce",
+        "resources": "requests"
+    },
+    "version": "1.1.2",
+    "dependencies": {
+        "service": "1.1.2"
+    },
+    "inPorts": [
+        {
+            "name": "contact",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "reportsTo": {
+                        "type": "string"
+                    },
+                    "accountId": {
+                        "type": "string"
+                    },
+                    "salutation": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "firstName": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "maxLength": 80
+                    },
+                    "title": {
+                        "type": "string",
+                        "maxLength": 80
+                    },
+                    "department": {
+                        "type": "string",
+                        "maxLength": 80
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "format": "email"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "fax": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "mobile": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "mailingStreet": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "mailingCity": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "mailingState": {
+                        "type": "string",
+                        "maxLength": 80
+                    },
+                    "mailingZip": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "mailingCountry": {
+                        "type": "string",
+                        "maxLength": 80
+                    },
+                    "customFields": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "accountId",
+                    "lastName"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "accountId": {
+                        "type": "select",
+                        "label": "Account name",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/salesforce/crm/ListAccounts?outPort=accounts",
+                            "data": {
+                                "transform": "./transformers#accountsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select account name."
+                    },
+                    "salutation": {
+                        "type": "select",
+                        "index": 2,
+                        "options": [
+                            { "value": "none", "content": "none" },
+                            { "value": "Mr.", "content": "Mr." },
+                            { "value": "Ms.", "content": "Ms." },
+                            { "value": "Mrs.", "content": "Mrs." },
+                            { "value": "Dr.", "content": "Dr." },
+                            { "value": "Prof.", "content": "Prof." }
+                        ],
+                        "defaultValue": "none",
+                        "tooltip": "Honorific abbreviation, word, or phrase to be used in front of name in greetings, such as Dr. or Mrs.",
+                        "label": "Salutation"
+                    },
+                    "firstName": {
+                        "type": "text",
+                        "index": 3,
+                        "tooltip": "First name of the contact.",
+                        "label": "First name"
+                    },
+                    "lastName": {
+                        "type": "text",
+                        "index": 4,
+                        "tooltip": "Last name of the contact.",
+                        "label": "Last name"
+                    },
+                    "title": {
+                        "type": "text",
+                        "index": 5,
+                        "tooltip": "Title of the contact such as CEO or Vice President.",
+                        "label": "Title"
+                    },
+                    "department": {
+                        "type": "text",
+                        "index": 6,
+                        "tooltip": "The department of the contact.",
+                        "label": "Department"
+                    },
+                    "email": {
+                        "type": "text",
+                        "index": 7,
+                        "tooltip": "Email address for the contact.",
+                        "label": "Email"
+                    },
+                    "phone": {
+                        "type": "text",
+                        "index": 8,
+                        "tooltip": "Telephone number for the contact.",
+                        "label": "Phone"
+                    },
+                    "fax": {
+                        "type": "text",
+                        "index": 9,
+                        "tooltip": "Fax number for the contact.",
+                        "label": "Fax"
+                    },
+                    "mobile": {
+                        "type": "text",
+                        "index": 10,
+                        "tooltip": "Contact’s mobile phone number.",
+                        "label": "Mobile phone"
+                    },
+                    "mailingStreet": {
+                        "type": "text",
+                        "index": 11,
+                        "tooltip": "Street address for mailing address.",
+                        "label": "Mailing street"
+                    },
+                    "mailingCity": {
+                        "type": "text",
+                        "index": 12,
+                        "tooltip": "City for mailing address.",
+                        "label": "Mailing city"
+                    },
+                    "mailingState": {
+                        "type": "text",
+                        "index": 13,
+                        "tooltip": "State for mailing address.",
+                        "label": "Mailing state"
+                    },
+                    "mailingZip": {
+                        "type": "text",
+                        "index": 14,
+                        "tooltip": "Postal code for mailing address.",
+                        "label": "Mailing postal code"
+                    },
+                    "mailingCountry": {
+                        "type": "text",
+                        "index": 15,
+                        "tooltip": "Country for mailing address.",
+                        "label": "Mailing county"
+                    },
+                    "reportsTo": {
+                        "type": "select",
+                        "label": "Reports to",
+                        "index": 16,
+                        "source": {
+                            "url": "/component/appmixer/salesforce/crm/ListContacts?outPort=contacts",
+                            "data": {
+                                "transform": "./transformers#contactsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select contact."
+                    },
+                    "customFields": {
+                        "type": "expression",
+                        "label": "Custom Fields",
+                        "tooltip": "Custom fields to add to the new contact.",
+                        "exclusiveFields": [ "field" ],
+                        "index": 17,
+                        "levels": [ "AND" ],
+                        "fields": {
+                            "field": {
+                                "type": "select",
+                                "label": "Field",
+                                "tooltip": "The field to append.",
+                                "index": 1,
+                                "source": {
+                                    "url": "/component/appmixer/salesforce/crm/ListCustomFields?outPort=out",
+                                    "data": {
+                                        "transform": "./ListCustomFields#fieldsToSelectArray"
+                                    }
+                                }
+                            },
+                            "value": {
+                                "type": "text",
+                                "label": "Value",
+                                "tooltip": "The value for the custom field.",
+                                "index": 2
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "newContact",
+            "options": [
+                { "label": "Id", "value": "Id" },
+                { "label": "AccountId", "value": "AccountId" },
+                { "label": "CreatedById", "value": "CreatedById" },
+                { "label": "CreatedDate", "value": "CreatedDate" },
+                { "label": "Department", "value": "Department" },
+                { "label": "Email", "value": "Email" },
+                { "label": "EmailBouncedDate", "value": "EmailBouncedDate" },
+                { "label": "EmailBouncedReason", "value": "EmailBouncedReason" },
+                { "label": "Fax", "value": "Fax" },
+                { "label": "FirstName", "value": "FirstName" },
+                { "label": "IsDeleted", "value": "IsDeleted" },
+                { "label": "IsEmailBounced", "value": "IsEmailBounced" },
+                { "label": "Jigsaw", "value": "Jigsaw" },
+                { "label": "JigsawContactId", "value": "JigsawContactId" },
+                { "label": "LastActivityDate", "value": "LastActivityDate" },
+                { "label": "LastCURequestDate", "value": "LastCURequestDate" },
+                { "label": "LastCUUpdateDate", "value": "LastCUUpdateDate" },
+                { "label": "LastModifiedById", "value": "LastModifiedById" },
+                { "label": "LastModifiedDate", "value": "LastModifiedDate" },
+                { "label": "LastName", "value": "LastName" },
+                { "label": "LastReferencedDate", "value": "LastReferencedDate" },
+                { "label": "LastViewedDate", "value": "LastViewedDate" },
+                { "label": "MailingAddress", "value": "MailingAddress" },
+                { "label": "MailingCity", "value": "MailingCity" },
+                { "label": "MailingCountry", "value": "MailingCountry" },
+                { "label": "MailingGeocodeAccuracy", "value": "MailingGeocodeAccuracy" },
+                { "label": "MailingLatitude", "value": "MailingLatitude" },
+                { "label": "MailingLongitude", "value": "MailingLongitude" },
+                { "label": "MailingPostalCode", "value": "MailingPostalCode" },
+                { "label": "MailingState", "value": "MailingState" },
+                { "label": "MailingStreet", "value": "MailingStreet" },
+                { "label": "MasterRecordId", "value": "MasterRecordId" },
+                { "label": "MobilePhone", "value": "MobilePhone" },
+                { "label": "Name", "value": "Name" },
+                { "label": "OwnerId", "value": "OwnerId" },
+                { "label": "Phone", "value": "Phone" },
+                { "label": "PhotoUrl", "value": "PhotoUrl" },
+                { "label": "ReportsToId", "value": "ReportsToId" },
+                { "label": "Salutation", "value": "Salutation" },
+                { "label": "SystemModstamp", "value": "SystemModstamp" },
+                { "label": "Title", "value": "Title" },
+                { "label": "attributes.type", "value": "attributes.type" },
+                { "label": "attributes.url", "value": "attributes.url" }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5OTkgNjk5LjI0MSI+PGRlZnM+PHN0eWxlPi5he2ZpbGw6IzAwYTFlMDt9PC9zdHlsZT48L2RlZnM+PHBhdGggY2xhc3M9ImEiIGQ9Ik00MTYuMjI0LDc2Ljc2M2MzMi4yMTktMzMuNTcsNzcuMDc0LTU0LjM5MSwxMjYuNjgyLTU0LjM5MSw2NS45NDYsMCwxMjMuNDgsMzYuNzcyLDE1NC4xMiw5MS4zNjFhMjEyLjk4NCwyMTIuOTg0LDAsMCwxLDg3LjEwNi0xOC41MTRjMTE4Ljk0LDAsMjE1LjM2OCw5Ny4yNjgsMjE1LjM2OCwyMTcuMjQ3UzkwMy4wNzIsNTI5LjcyNyw3ODQuMTMyLDUyOS43MjdBMjEzLjc0LDIxMy43NCwwLDAsMSw3NDEuNzEsNTI1LjVhMTU3LjQzNiwxNTcuNDM2LDAsMCwxLTIwNi4yODksNjQuNzkzLDE3OS42MjEsMTc5LjYyMSwwLDAsMS0zMzMuOTExLTguMTI2LDE2NC43NzUsMTY0Ljc3NSwwLDAsMS0zNC4yNjgsMy41NzJDNzUuMTU1LDU4NS43NC41LDUxMC4zMTcuNSw0MTcuMjYyQTE2OC43NDEsMTY4Ljc0MSwwLDAsMSw4My44NzgsMjcxLjMyNWExOTIuODY2LDE5Mi44NjYsMCwwLDEtMTUuOTY3LTc3LjA2QzY3LjkxMSw4Ny4yNSwxNTQuNzkuNSwyNjEuOTQ4LjVBMTkzLjc5MSwxOTMuNzkxLDAsMCwxLDQxNi4yMjQsNzYuNzYzIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC41IC0wLjUpIi8+PC9zdmc+"
+}

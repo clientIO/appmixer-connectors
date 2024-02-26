@@ -1,0 +1,193 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.openai.core.createEdit",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Creates a new edit for the provided input, instruction, and parameters.</p></label>",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "model",
+                    "instruction"
+                ],
+                "properties": {
+                    "instruction": {
+                        "description": "The instruction that tells the model how to edit the prompt.",
+                        "type": "string",
+                        "example": "Fix the spelling mistakes.",
+                        "path": "instruction"
+                    },
+                    "model": {
+                        "description": "ID of the model to use. You can use the `text-davinci-edit-001` or `code-davinci-edit-001` model with this endpoint.",
+                        "example": "text-davinci-edit-001",
+                        "x-oaiTypeLabel": "string",
+                        "type": "string",
+                        "path": "model"
+                    },
+                    "input": {
+                        "description": "The input text to use as a starting point for the edit.",
+                        "type": "string",
+                        "default": "",
+                        "nullable": true,
+                        "example": "What day of the wek is it?",
+                        "path": "input"
+                    },
+                    "n": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20,
+                        "default": 1,
+                        "example": 1,
+                        "nullable": true,
+                        "description": "How many edits to generate for the input and instruction.",
+                        "path": "n"
+                    },
+                    "temperature": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 2,
+                        "default": 1,
+                        "example": 1,
+                        "nullable": true,
+                        "description": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n\nWe generally recommend altering this or `top_p` but not both.\n",
+                        "path": "temperature"
+                    },
+                    "top_p": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "default": 1,
+                        "example": 1,
+                        "nullable": true,
+                        "description": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n\nWe generally recommend altering this or `temperature` but not both.\n",
+                        "path": "top_p"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "instruction": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "Instruction",
+                        "tooltip": "<p>The instruction that tells the model how to edit the prompt. Example: Fix the spelling mistakes.</p>"
+                    },
+                    "model": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Model",
+                        "tooltip": "<p>ID of the model to use. You can use the <code>text-davinci-edit-001</code> or <code>code-davinci-edit-001</code> model with this endpoint. Example: text-davinci-edit-001</p>"
+                    },
+                    "input": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Input",
+                        "tooltip": "<p>The input text to use as a starting point for the edit. Example: What day of the wek is it?</p>",
+                        "defaultValue": ""
+                    },
+                    "n": {
+                        "type": "number",
+                        "index": 3,
+                        "label": "N",
+                        "tooltip": "<p>How many edits to generate for the input and instruction. Example: 1</p>",
+                        "defaultValue": 1,
+                        "min": 1,
+                        "max": 20
+                    },
+                    "temperature": {
+                        "type": "number",
+                        "index": 4,
+                        "label": "Temperature",
+                        "tooltip": "<p>What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.</p>\n<p>We generally recommend altering this or <code>top_p</code> but not both.\n Example: 1</p>",
+                        "defaultValue": 1,
+                        "min": 0,
+                        "max": 2
+                    },
+                    "top_p": {
+                        "type": "number",
+                        "index": 5,
+                        "label": "Top P",
+                        "tooltip": "<p>An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.</p>\n<p>We generally recommend altering this or <code>temperature</code> but not both.\n Example: 1</p>",
+                        "defaultValue": 1,
+                        "min": 0,
+                        "max": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Choices",
+                    "value": "choices",
+                    "schema": {
+                        "type": "array",
+                        "description": "A list of edit choices. Can be more than one if `n` is greater than 1.",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "text",
+                                "index",
+                                "finish_reason"
+                            ],
+                            "properties": {
+                                "finish_reason": {
+                                    "type": "string",
+                                    "description": "The reason the model stopped generating tokens. This will be `stop` if the model hit a natural stop point or a provided stop sequence,\n`length` if the maximum number of tokens specified in the request was reached,\nor `content_filter` if content was omitted due to a flag from our content filters.\n",
+                                    "enum": [
+                                        "stop",
+                                        "length"
+                                    ]
+                                },
+                                "index": {
+                                    "type": "integer",
+                                    "description": "The index of the choice in the list of choices."
+                                },
+                                "text": {
+                                    "type": "string",
+                                    "description": "The edited result."
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Object",
+                    "value": "object"
+                },
+                {
+                    "label": "Created",
+                    "value": "created"
+                },
+                {
+                    "label": "Usage",
+                    "value": "usage"
+                },
+                {
+                    "label": "Usage Completion Tokens",
+                    "value": "usage.completion_tokens"
+                },
+                {
+                    "label": "Usage Prompt Tokens",
+                    "value": "usage.prompt_tokens"
+                },
+                {
+                    "label": "Usage Total Tokens",
+                    "value": "usage.total_tokens"
+                }
+            ]
+        }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:openai"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNHB4IiBoZWlnaHQ9IjI0cHgiIGZpbGw9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0IiBjb2xvcj0iYmxhY2siPjxwYXRoIGQ9Ik0yMi40MTggOS44MjJhNS45MDMgNS45MDMgMCAwIDAtLjUyLTQuOTEgNi4xIDYuMSAwIDAgMC0yLjgyMi0yLjUxMyA2LjIwNCA2LjIwNCAwIDAgMC0zLjc4LS4zODlBNi4wNTUgNi4wNTUgMCAwIDAgMTMuMjMyLjUxOCA2LjEyOSA2LjEyOSAwIDAgMCAxMC43MjYgMGE2LjE4NSA2LjE4NSAwIDAgMC0zLjYxNSAxLjE1M0E2LjA1MiA2LjA1MiAwIDAgMCA0Ljg4IDQuMTg3YTYuMTAyIDYuMTAyIDAgMCAwLTIuMzQ0IDEuMDE4QTYuMDA4IDYuMDA4IDAgMCAwIC44MjggNy4wODdhNS45ODEgNS45ODEgMCAwIDAgLjc1NCA3LjA5IDUuOTA0IDUuOTA0IDAgMCAwIC41MiA0LjkxMSA2LjEwMSA2LjEwMSAwIDAgMCAyLjgyMSAyLjUxMyA2LjIwNSA2LjIwNSAwIDAgMCAzLjc4LjM4OSA2LjA1NyA2LjA1NyAwIDAgMCAyLjA2NSAxLjQ5MiA2LjEzIDYuMTMgMCAwIDAgMi41MDUuNTE4IDYuMTg1IDYuMTg1IDAgMCAwIDMuNjE3LTEuMTU0IDYuMDUyIDYuMDUyIDAgMCAwIDIuMjMyLTMuMDM1IDYuMTAxIDYuMTAxIDAgMCAwIDIuMzQzLTEuMDE4IDYuMDA5IDYuMDA5IDAgMCAwIDEuNzA5LTEuODgzIDUuOTgxIDUuOTgxIDAgMCAwLS43NTYtNy4wODhabS05LjE0MyAxMi42MDlhNC41ODMgNC41ODMgMCAwIDEtMi45MTgtMS4wNGMuMDM3LS4wMi4xMDItLjA1Ni4xNDQtLjA4MWw0Ljg0NC0yLjc2YS43ODMuNzgzIDAgMCAwIC4zOTctLjY4di02LjczOEwxNy43OSAxMi4zYS4wNzIuMDcyIDAgMCAxIC4wNC4wNTV2NS41OGE0LjQ3MyA0LjQ3MyAwIDAgMS0xLjMzNSAzLjE3NiA0LjU5NiA0LjU5NiAwIDAgMS0zLjIxOSAxLjMyMVptLTkuNzkzLTQuMTI3YTQuNDMyIDQuNDMyIDAgMCAxLS41NDQtMy4wMTRjLjAzNi4wMjEuMDk5LjA2LjE0NC4wODVsNC44NDMgMi43NmEuNzk2Ljc5NiAwIDAgMCAuNzk1IDBsNS45MTMtMy4zNjlWMTcuMWEuMDcxLjA3MSAwIDAgMS0uMDI5LjA2Mkw5LjcwOCAxOS45NWE0LjYxNyA0LjYxNyAwIDAgMS0zLjQ1OC40NDcgNC41NTYgNC41NTYgMCAwIDEtMi43NjgtMi4wOTNaTTIuMjA4IDcuODcyQTQuNTI3IDQuNTI3IDAgMCAxIDQuNTggNS45bC0uMDAyLjE2NHY1LjUyYS43NjguNzY4IDAgMCAwIC4zOTcuNjhsNS45MTMgMy4zNjktMi4wNDcgMS4xNjZhLjA3NS4wNzUgMCAwIDEtLjA2OS4wMDZsLTQuODk2LTIuNzkyYTQuNTEgNC41MSAwIDAgMS0yLjEyLTIuNzMgNC40NSA0LjQ1IDAgMCAxIC40NTItMy40MTFabTE2LjgxOCAzLjg2MS01LjkxMy0zLjM2OCAyLjA0Ny0xLjE2NmEuMDc0LjA3NCAwIDAgMSAuMDctLjAwNmw0Ljg5NiAyLjc4OWE0LjUyNiA0LjUyNiAwIDAgMSAxLjc2MiAxLjgxNSA0LjQ0OCA0LjQ0OCAwIDAgMS0uNDE4IDQuODA4IDQuNTU2IDQuNTU2IDAgMCAxLTIuMDQ5IDEuNDk0di01LjY4NmEuNzY3Ljc2NyAwIDAgMC0uMzk1LS42OFptMi4wMzgtMy4wMjVhNi44NzQgNi44NzQgMCAwIDAtLjE0NC0uMDg1bC00Ljg0My0yLjc2YS43OTcuNzk3IDAgMCAwLS43OTYgMEw5LjM2OCA5LjIzVjYuOWEuMDcyLjA3MiAwIDAgMSAuMDMtLjA2Mmw0Ljg5NS0yLjc4N2E0LjYwOCA0LjYwOCAwIDAgMSA0Ljg4NS4yMDcgNC41MSA0LjUxIDAgMCAxIDEuNTk5IDEuOTU1Yy4zMzMuNzg4LjQzMyAxLjY1NC4yODcgMi40OTZaTTguMjU1IDEyLjg2NSA2LjIwOCAxMS43YS4wNzEuMDcxIDAgMCAxLS4wNC0uMDU2di01LjU4YzAtLjg1NC4yNDgtMS42OS43MTMtMi40MTJhNC41NCA0LjU0IDAgMCAxIDEuOTEzLTEuNjU4IDQuNjE0IDQuNjE0IDAgMCAxIDQuODUuNjE2Yy0uMDM3LjAyLS4xMDIuMDU1LS4xNDQuMDhMOC42NTcgNS40NTJhLjc4Mi43ODIgMCAwIDAtLjM5OC42OGwtLjAwNCA2LjczNFpNOS4zNjcgMTAuNSAxMi4wMDEgOWwyLjYzMyAxLjV2M0wxMi4wMDEgMTVsLTIuNjM0LTEuNXYtM1oiLz48L3N2Zz4="
+}

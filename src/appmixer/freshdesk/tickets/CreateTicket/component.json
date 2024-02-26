@@ -1,0 +1,219 @@
+{
+    "name": "appmixer.freshdesk.tickets.CreateTicket",
+    "author": "Camilo Manrique <camilo@client.io>",
+    "description": "Create a new ticket in Freshdesk.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:freshdesk"
+    },
+    "quota": {
+        "manager": "appmixer:freshdesk",
+        "resources": "tickets.create",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "properties": {
+                "filePickerFilename": {
+                    "type": "string"
+                },
+                "filePickerContent": {}
+            }
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "subject": { "type": "string" },
+                    "description": { "type": "string" },
+                    "type": { "type": "string" },
+                    "requesterId": { "type": "number" },
+                    "requesterName": { "type": "string" },
+                    "requesterEmail": { "type": "string" },
+                    "requesterFacebookId": { "type": "string" },
+                    "requesterPhone": { "type": "string" },
+                    "requesterTwitterId": { "type": "string" },
+                    "requesterUniqueExternalId": { "type": "string" },
+                    "status": { "type": "number" },
+                    "priority": { "type": "number" },
+                    "agentId": { "type": "number" },
+                    "tags": { "type": "string" },
+                    "attachmentId": {}
+                },
+                "oneOf": [
+                    { "required": ["requesterId"] },
+                    { "required": ["requesterEmail"] },
+                    { "required": ["requesterFacebookId"] },
+                    { "required": ["requesterPhone"] },
+                    { "required": ["requesterTwitterId"] }
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "requesterId": {
+                        "type": "select",
+                        "label": "Requester ID",
+                        "index": 1,
+                        "group": "requester",
+                        "source": {
+                            "url": "/component/appmixer/freshdesk/contacts/ListContacts?outPort=contacts",
+                            "data": {
+                                "transform": "./ListContacts#contactsToSelectArray"
+                            }
+                        }
+                    },
+                    "requesterName": {
+                        "type": "text",
+                        "group": "requester",
+                        "label": "Requester name",
+                        "index": 2
+                    },
+                    "requesterEmail": {
+                        "type": "text",
+                        "group": "requester",
+                        "label": "Requester email",
+                        "index": 3
+                    },
+                    "requesterFacebookId": {
+                        "type": "text",
+                        "group": "requester",
+                        "label": "Requester Facebook ID",
+                        "index": 4
+                    },
+                    "requesterPhone": {
+                        "type": "text",
+                        "group": "requester",
+                        "label": "Requester Phone",
+                        "index": 5
+                    },
+                    "requesterTwitterId": {
+                        "type": "text",
+                        "group": "requester",
+                        "label": "Requester Twitter handle",
+                        "index": 6
+                    },
+                    "requesterUniqueExternalId": {
+                        "type": "text",
+                        "group": "requester",
+                        "label": "Requester unique external ID",
+                        "index": 7
+                    },
+                    "subject": {
+                        "type": "text",
+                        "group": "ticket",
+                        "label": "Subject",
+                        "index": 1
+                    },
+                    "description": {
+                        "type": "textarea",
+                        "group": "ticket",
+                        "label": "Description",
+                        "index": 2
+                    },
+                    "type": {
+                        "type": "select",
+                        "group": "ticket",
+                        "label": "Type",
+                        "index": 3,
+                        "options": [
+                            { "label": "Question", "value": "Question" },
+                            { "label": "Incident", "value": "Incident" },
+                            { "label": "Problem", "value": "Problem" },
+                            { "label": "Feature Request", "value": "Feature Request" },
+                            { "label": "Refund", "value": "Refund" }
+                        ]
+                    },
+                    "status": {
+                        "type": "select",
+                        "group": "ticket",
+                        "label": "Status",
+                        "index": 4,
+                        "defaultValue": 2,
+                        "options": [
+                            { "label": "Open", "value": 2 },
+                            { "label": "Pending", "value": 3 },
+                            { "label": "Resolved", "value": 4 },
+                            { "label": "Closed", "value": 5 }
+                        ]
+                    },
+                    "priority": {
+                        "type": "select",
+                        "group": "ticket",
+                        "label": "Priority",
+                        "index": 5,
+                        "defaultValue": 1,
+                        "options": [
+                            { "label": "Low", "value": 1 },
+                            { "label": "Medium", "value": 2 },
+                            { "label": "High", "value": 3 },
+                            { "label": "Urgent", "value": 4 }
+                        ]
+                    },
+                    "agentId": {
+                        "type": "select",
+                        "label": "Assigned Agent",
+                        "index": 6,
+                        "group": "ticket",
+                        "source": {
+                            "url": "/component/appmixer/freshdesk/agents/ListAgents?outPort=agents",
+                            "data": {
+                                "transform": "./ListAgents#agentsToSelectArray"
+                            }
+                        }
+                    },
+                    "tags": {
+                        "type": "text",
+                        "label": "Tags",
+                        "tooltip": "Comma separated tags for this ticket",
+                        "index": 7,
+                        "group": "ticket"
+                    },
+                    "attachmentId": {
+                        "type": "filepicker",
+                        "index": 8,
+                        "label": "Attachment",
+                        "group": "ticket"
+                    }
+                },
+                "groups": {
+                    "requester": {
+                        "label": "Requester",
+                        "index": 1
+                    },
+                    "ticket": {
+                        "label": "Ticket",
+                        "index": 2
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "newTicket",
+            "options": [
+                { "label": "Ticket ID", "value": "id" },
+                { "label": "CreatedAt", "value": "createdAt" },
+                { "label": "Due By", "value": "dueBy" },
+                { "label": "Subject", "value": "subject" },
+                { "label": "Description", "value": "description" },
+                { "label": "Requester ID", "value": "requesterId" },
+                { "label": "Requester name", "value": "requesterName" },
+                { "label": "Requester Facebook ID", "value": "requesterFacebookId" },
+                { "label": "Requester Phone", "value": "requesterPhone" },
+                { "label": "Requester Twitter ID", "value": "requesterTwitterId" },
+                { "label": "Requester unique external ID", "value": "requesterUniqueExternalId" },
+                { "label": "Type", "value": "type" },
+                { "label": "Status", "value": "status" },
+                { "label": "Priority", "value": "priority" },
+                { "label": "Assigned Agent ID", "value": "agentId" }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHBhdGggZD0iTTMxLjkgMGgyNC4wMzZBOCA4IDAgMCAxIDY0IDguMDczVjMyLjFDNjQgNDkuNzIyIDQ5LjcyMiA2NCAzMi4xIDY0aC0uMTgyQTMxLjg5IDMxLjg5IDAgMCAxIDAgMzIuMTA5QzAgMTQuNDM3IDE0LjI1NC4xODIgMzEuOSAweiIgZmlsbD0iIzI1YzE2ZiIvPjxwYXRoIGQ9Ik0zMS45IDE0LjI1NWMtOC4wOTMgMC0xNC42NTQgNi41Ni0xNC42NTQgMTQuNjU0djkuOTY0Yy4wNTggMi42NjcgMi4yMDYgNC44MTUgNC44NzMgNC44NzNoNC4xNDVWMzIuM2gtNS42di0zLjJjLjM0LTYuMDI2IDUuMzI3LTEwLjc0IDExLjM2NC0xMC43NFM0My4wNCAyMy4wNjUgNDMuMzggMjkuMXYzLjJIMzcuN3YxMS40NTRoMy43NDV2LjE4MmMtLjA0IDIuNDc0LTIuMDM1IDQuNDctNC41IDQuNWgtNC40NzNjLS4zNjQgMC0uNzY0LjE4Mi0uNzY0LjU0NWEuOC44IDAgMCAwIC43NjQuNzY0aDQuNWMzLjIwNS0uMDIgNS43OTgtMi42MTMgNS44MTgtNS44MTh2LS4zNjRhNC44IDQuOCAwIDAgMCAzLjc0NS00LjcyN1YyOS4xYy4xODItOC4yNTQtNi4zNjQtMTQuODM2LTE0LjY1NC0xNC44MzZ6IiBmaWxsPSIjZmZmIi8+PC9zdmc+"
+}

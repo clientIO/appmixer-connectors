@@ -1,0 +1,2310 @@
+[
+    {
+        "op": "add",
+        "path": "/info/x-connector-service",
+        "value": "zendesktickets"
+    },
+    {
+        "op": "add",
+        "path": "/info/x-connector-rel-link-base-url",
+        "value": "https://developer.zendesk.com/"
+    },
+    {
+        "op": "add",
+        "path": "/info/x-connector-icon",
+        "value": "data:image/svg+xml;base64,PHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxNjQgMTY0IiBoZWlnaHQ9IjE2NCIgdmlld0JveD0iMCAwIDE2NCAxNjQiIHdpZHRoPSIxNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0ibTg1LjcgNjAuMS0yNS43LTcuMy02LjcgMjMuOS03LjggMjcuNCAyNS43IDcuMiA3LjItMjUuNnoiIGZpbGw9IiM3OGEzMDAiLz48cGF0aCBkPSJtOTIuOCAxMTEuMyAyNS43LTcuMi03LjMtMjUuNi0yNS42IDcuMnoiIGZpbGw9IiMwMDM2M2QiLz48L3N2Zz4="
+    },
+    {
+        "op": "add",
+        "path": "/info/x-connector-configuration",
+        "value": {
+            "properties": {
+                "clientId": {
+                    "type": "string"
+                },
+                "clientSecret": {
+                    "type": "string"
+                },
+                "subdomain": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "clientId",
+                "clientSecret",
+                "subdomain"
+            ]
+        }
+    },
+    {
+        "op": "add",
+        "path": "/info/x-connector-module",
+        "value": "tickets"
+    },
+    {
+        "op": "remove",
+        "path": "/security/basicAuth"
+    },
+    {
+        "op": "add",
+        "path": "/components/securitySchemes/OAuth",
+        "value": {
+            "type": "oauth2",
+            "flows": {
+                "authorizationCode": {
+                    "authorizationUrl": "https://{subdomain}.zendesk.com/oauth/authorizations/new?client_id={clientId}&response_type=code&redirect_uri={callbackUrl}&state={state}&scope={scope}",
+                    "tokenUrl": "https://{subdomain}.zendesk.com/oauth/tokens",
+                    "refreshUrl": null,
+                    "scopes": {
+                        "users:read": "Read user information"
+                    }
+                }
+            },
+            "x-connector-connection-check": {
+                "method": "GET",
+                "url": "/api/v2/users/me",
+                "headers": {
+                    "Authorization": "Bearer {accessToken}"
+                }
+            },
+            "x-connector-connection-profile": {
+                "method": "GET",
+                "url": "/api/v2/users/me",
+                "headers": {
+                    "Authorization": "Bearer {accessToken}"
+                },
+                "transform": "user.email"
+            }
+        }
+    },
+    {
+        "op": "add",
+        "path": "/security",
+        "value": [
+            {
+                "OAuth": []
+            }
+        ]
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1api~1v2~1tickets/get/security",
+        "value": [
+            {
+                "OAuth": [
+                    "tickets:read"
+                ]
+            }
+        ]
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}/get/security",
+        "value": [
+            {
+                "OAuth": [
+                    "tickets:read"
+                ]
+            }
+        ]
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1api~1v2~1tickets/post/security",
+        "value": [
+            {
+                "OAuth": [
+                    "tickets:write"
+                ]
+            }
+        ]
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}/put/security",
+        "value": [
+            {
+                "OAuth": [
+                    "tickets:write"
+                ]
+            }
+        ]
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}/delete/security",
+        "value": [
+            {
+                "OAuth": [
+                    "tickets:write"
+                ]
+            }
+        ]
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1api~1v2~1tickets/get/x-connector-pagination",
+        "value": {
+            "type": "once",
+            "parameters": {
+                "results": "tickets"
+            }
+        }
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1{target_type}~1{target_id}~1relationship_fields~1{field_id}~1{source_type}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1account~1settings/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1account~1settings/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1accounts/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1accounts~1available/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1activities/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1activities/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1activities~1{activity_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1activities~1{activity_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1activities~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1any_channel~1channelback~1report_error/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1any_channel~1push/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1any_channel~1validate_token/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1attachments~1{attachment_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1attachments~1{attachment_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1audit_logs/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1audit_logs~1{audit_log_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1audit_logs~1{audit_log_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1audit_logs~1export/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1autocomplete~1tags/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1autocomplete~1tags/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1{automation_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1{automation_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1{automation_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1{automation_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1active/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1search/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1automations~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1bookmarks/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1bookmarks/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1bookmarks~1{bookmark_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1bookmarks~1{bookmark_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1brands/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1brands/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1brands~1{brand_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1brands~1{brand_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1brands~1{brand_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1brands~1{brand_id}~1check_host_mapping/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1brands~1check_host_mapping/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1twitter~1monitored_twitter_handles/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1twitter~1monitored_twitter_handles~1{monitored_twitter_handle_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1twitter~1monitored_twitter_handles~1{monitored_twitter_handle_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1twitter~1tickets/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1twitter~1tickets~1{comment_id}~1statuses/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1twitter~1tickets~1{comment_id}~1statuses/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1voice~1agents~1{agent_id}~1tickets~1{ticket_id}~1display/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1voice~1agents~1{agent_id}~1users~1{user_id}~1display/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1channels~1voice~1tickets/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1chat_file_redactions~1{ticket_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1chat_file_redactions~1{ticket_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1chat_redactions~1{ticket_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1chat_redactions~1{ticket_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1comment_redactions~1{ticket_comment_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1comment_redactions~1{ticket_comment_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}/patch"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1fields/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1fields/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1fields~1{custom_object_field_key_or_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1fields~1{custom_object_field_key_or_id}/patch"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1fields~1{custom_object_field_key_or_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1fields~1reorder/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1jobs/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1limits~1field_limit/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records/patch"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records~1{custom_object_record_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records~1{custom_object_record_id}/patch"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records~1{custom_object_record_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records~1autocomplete/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1{custom_object_key}~1records~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1limits~1object_limit/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_objects~1limits~1record_limit/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_roles/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_roles/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_roles~1{custom_role_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_roles~1{custom_role_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_roles~1{custom_role_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_roles~1{custom_role_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_status~1default/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_statuses/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_statuses/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_statuses~1{custom_status_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1custom_statuses~1{custom_status_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_tickets/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_tickets~1{ticket_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_tickets~1{ticket_id}~1restore/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_tickets~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_tickets~1restore_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_users/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_users~1{deleted_user_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_users~1{deleted_user_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_users~1{deleted_user_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1deleted_users~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1{dynammic_content_variant_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1{dynammic_content_variant_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1{dynammic_content_variant_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1{dynammic_content_variant_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1create_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1create_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1update_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1{dynamic_content_item_id}~1variants~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1dynamic_content~1items~1show_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships~1{group_membership_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships~1{group_membership_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships~1{group_membership_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships~1assignable/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships~1create_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_memberships~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies~1{group_sla_policy_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies~1{group_sla_policy_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies~1{group_sla_policy_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies~1{group_sla_policy_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies~1definitions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1group_slas~1policies~1reorder/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1{group_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1{group_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1{group_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1{group_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1{group_id}~1memberships/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1{group_id}~1memberships/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1assignable/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1count/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1groups~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1imports~1tickets/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1imports~1tickets~1create_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1{incremental_resource}~1sample/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1{incremental_resource}~1sample/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1organizations/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1organizations/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1routing~1attribute_values/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1routing~1attributes/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1routing~1instance_values/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1ticket_events/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1ticket_events/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1ticket_metric_events/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1tickets/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1tickets/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1tickets~1cursor/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1tickets~1cursor/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1users/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1users/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1users~1cursor/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1incremental~1users~1cursor/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1job_statuses/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1job_statuses~1{job_status_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1job_statuses~1{job_status_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1job_statuses~1show_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1locales/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1locales~1{locale_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1locales~1{locale_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1locales~1agent/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1locales~1current/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1locales~1detect_best_locale/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1locales~1public/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}~1apply/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}~1apply/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}~1attachments/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}~1attachments/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1{macro_id}~1attachments/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1actions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1active/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1attachments/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1attachments~1{attachment_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1attachments~1{attachment_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1categories/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1definitions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1new/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1new/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1search/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1macros~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_fields/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_fields/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_fields~1{organization_field_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_fields~1{organization_field_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_fields~1{organization_field_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_fields~1{organization_field_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_fields~1reorder/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_memberships/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_memberships/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_memberships~1{organization_membership_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_memberships~1{organization_membership_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_memberships~1{organization_membership_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_memberships~1create_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_memberships~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_subscriptions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_subscriptions/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_subscriptions~1{organization_subscription_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organization_subscriptions~1{organization_subscription_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1{organization_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1{organization_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1{organization_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1{organization_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1{organization_id}~1related/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1{organization_id}~1related/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1autocomplete/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1autocomplete/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1create_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1create_or_update/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1destroy_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1search/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1show_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1show_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1update_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1organizations~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1problems/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1problems~1autocomplete/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1push_notification_devices~1destroy_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses~1{support_address_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses~1{support_address_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses~1{support_address_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses~1{support_address_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses~1{support_address_id}~1verify/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1recipient_addresses~1{support_address_id}~1verify/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1relationships~1definitions~1{target_type}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1{request_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1{request_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1{request_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1{request_id}~1comments/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1{request_id}~1comments/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1{request_id}~1comments~1{ticket_comment_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1{request_id}~1comments~1{ticket_comment_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1requests~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1resource_collections/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1resource_collections/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1resource_collections~1{resource_collection_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1resource_collections~1{resource_collection_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1resource_collections~1{resource_collection_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1resource_collections~1{resource_collection_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1agents~1{user_id}~1instance_values/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1agents~1{user_id}~1instance_values/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1agents~1{user_id}~1instance_values/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}~1values/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}~1values/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}~1values/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}~1values~1{attribute_value_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}~1values~1{attribute_value_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}~1values~1{attribute_value_id}/patch"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1{attribute_id}~1values~1{attribute_value_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1attributes~1definitions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1requirements~1fulfilled/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1tickets~1{ticket_id}~1instance_values/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1tickets~1{ticket_id}~1instance_values/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1routing~1tickets~1{ticket_id}~1instance_values/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1satisfaction_ratings/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1satisfaction_ratings~1{satisfaction_rating_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1satisfaction_ratings~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1satisfaction_reasons/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1satisfaction_reasons~1{satisfaction_reason_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1search~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1search~1export/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sessions/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sessions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sharing_agreements/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sharing_agreements/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sharing_agreements~1{sharing_agreement_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sharing_agreements~1{sharing_agreement_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sharing_agreements~1{sharing_agreement_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1sharing_agreements~1{sharing_agreement_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1skips/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies~1{sla_policy_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies~1{sla_policy_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies~1{sla_policy_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies~1{sla_policy_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies~1definitions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1slas~1policies~1reorder/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1{id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1{id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1{id}~1recover/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1attachments/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1attachments/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1destroy_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1export/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1recover_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1suspended_tickets~1recover_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tags/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tags~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1target_failures/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1target_failures~1{target_failure_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1target_failures~1{target_failure_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1targets/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1targets/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1targets~1{target_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1targets~1{target_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1targets~1{target_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1targets~1{target_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_audits/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}~1options/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}~1options/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}~1options/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}~1options~1{ticket_field_option_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}~1options~1{ticket_field_option_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1{ticket_field_id}~1options~1{ticket_field_option_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_fields~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1{ticket_form_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1{ticket_form_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1{ticket_form_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1{ticket_form_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1{ticket_form_id}~1clone/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1{ticket_form_id}~1clone/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1reorder/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_forms~1show_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_metrics/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1ticket_metrics~1{ticket_metric_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits~1{ticket_audit_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits~1{ticket_audit_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits~1{ticket_audit_id}~1make_private/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits~1{ticket_audit_id}~1make_private/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits~1count/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1audits~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1collaborators/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments~1{comment_id}~1attachments~1{attachment_id}~1redact/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments~1{comment_id}~1attachments~1{attachment_id}~1redact/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments~1{ticket_comment_id}~1make_private/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments~1{ticket_comment_id}~1make_private/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments~1{ticket_comment_id}~1redact/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments~1{ticket_comment_id}~1redact/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1comments~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1email_ccs/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1followers/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1incidents/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1macros~1{macro_id}~1apply/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1macros~1{macro_id}~1apply/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1mark_as_spam/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1merge/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1related/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1satisfaction_rating/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1satisfaction_rating/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1tags/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1tags/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1tags/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1tags/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1{ticket_id}~1tags/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1create_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1mark_many_as_spam/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1show_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1tickets~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1trigger_categories/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1trigger_categories/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1trigger_categories~1{trigger_category_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1trigger_categories~1{trigger_category_id}/patch"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1trigger_categories~1{trigger_category_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1trigger_categories~1jobs/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}~1revisions/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}~1revisions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}~1revisions~1{trigger_revision_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1{trigger_id}~1revisions~1{trigger_revision_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1active/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1active/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1definitions/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1destroy_many/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1reorder/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1search/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1triggers~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1uploads/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1uploads~1{token}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}~1options/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}~1options/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}~1options/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}~1options~1{user_field_option_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}~1options~1{user_field_option_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1{user_field_id}~1options~1{user_field_option_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1user_fields~1reorder/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1compliance_deletion_statuses/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1compliance_deletion_statuses/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1group_memberships/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1group_memberships/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1group_memberships~1{group_membership_id}~1make_default/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1group_memberships~1{group_membership_id}~1make_default/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}~1make_primary/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}~1make_primary/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}~1request_verification/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}~1request_verification/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}~1verify/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1identities~1{user_identity_id}~1verify/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1merge/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1merge/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1organization_memberships~1{organization_membership_id}~1make_default/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1organization_memberships~1{organization_membership_id}~1make_default/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1organizations~1{organization_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1organizations~1{organization_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1organizations~1{organization_id}~1make_default/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1organizations~1{organization_id}~1make_default/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1password/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1password/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1password/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1password~1requirements/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1password~1requirements/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1related/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1related/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1sessions/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1sessions/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1sessions~1{session_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1sessions~1{session_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1sessions~1{session_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1skips/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1{user_id}~1skips/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1autocomplete/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1create_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1create_or_update/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1create_or_update_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1logout_many/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1me/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1me~1logout/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1me~1session/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1me~1session~1renew/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1request_create/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1show_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1users~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1count/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1execute/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1execute/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1export/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1export/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1tickets/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1{view_id}~1tickets/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1active/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1compact/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1count/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1count_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1preview/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1preview~1count/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1search/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1show_many/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1views~1update_many/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces/post"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces~1{workspace_id}/parameters"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces~1{workspace_id}/get"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces~1{workspace_id}/put"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces~1{workspace_id}/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces~1destroy_many/delete"
+    },
+    {
+        "op": "remove",
+        "path": "/paths/~1api~1v2~1workspaces~1reorder/put"
+    }
+]

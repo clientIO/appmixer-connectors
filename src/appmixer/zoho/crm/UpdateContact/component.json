@@ -1,0 +1,294 @@
+{
+    "name": "appmixer.zoho.crm.UpdateContact",
+    "author": "Zulkafil Tabish <zulkafil@client.io>",
+    "description": "This component updates existing contact.",
+    "version": "2.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:zoho"
+    },
+    "quota": {
+        "manager": "appmixer:zoho",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "contact",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "contactId": { "type": "string" },
+                    "contactOwner": { "type": "string", "maxLength": 120 },
+                    "leadSource": { "type": "string",  "maxLength": 120 },
+                    "salutation": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "firstName": {
+                        "type": "string",
+                        "maxLength": 40
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "maxLength": 80
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "accountName": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "department": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "title": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "fax": {
+                        "type": "string",
+                        "maxLength": 30
+                    },
+                    "mobile": {
+                        "type": "string",
+                        "maxLength": 30
+                    },
+                    "assistant": { "type": "string", "maxLength": 50 },
+                    "reportsTo": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "skypeID": {
+                        "type": "string",
+                        "minLength": 6,
+                        "maxLength": 50
+                    },
+                    "mailingStreet": {
+                        "type": "string",
+                        "maxLength": 250
+                    },
+                    "mailingCity": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "mailingState": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "mailingZip": {
+                        "type": "string",
+                        "maxLength": 30
+                    },
+                    "mailingCountry": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 32000
+                    }
+                },
+                "required": [
+                    "contactId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "contactId": {
+                        "type": "select",
+                        "label": "Contact Id",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/zoho/crm/ListRecords?outPort=out",
+                            "data": {
+                                "transform": "./transformers#personsToSelectArray",
+                                "messages": { "in": {"allAtOnce": true, "moduleName": "Contacts"} }
+                            }
+                        },
+                        "tooltip": "Select contact."
+                    },
+                    "contactOwner": {
+                        "type": "select",
+                        "label": "Contact Owner",
+                        "index": 1,
+                        "tooltip": "Select the Zoho CRM user to whom the account is assigned.",
+                        "source": {
+                            "url": "/component/appmixer/zoho/crm/ListUsers?outPort=users",
+                            "data": {
+                                "transform": "./ListUsers#usersToSelectArray"
+                            }
+                        }
+                    },
+                    "leadSource": {
+                        "type": "select",
+                        "label": "Lead Source",
+                        "index": 2,
+                        "tooltip": "Select the source from which the contact is created.",
+                        "source": {
+                            "url": "/component/appmixer/zoho/crm/ListFields?outPort=fields",
+                            "data": {
+                                "messages": {"in": {"moduleName": "Leads", "filterApiName": "Lead_Source"}},
+                                "transform": "./transformers#listPickValues"
+                            }
+                        }
+                    },
+                    "salutation": {
+                        "type": "select",
+                        "label": "Salutation",
+                        "index": 3,
+                        "tooltip": "Select salutation.",
+                        "source": {
+                            "url": "/component/appmixer/zoho/crm/ListFields?outPort=fields",
+                            "data": {
+                                "messages": {"in": {"moduleName": "Leads", "filterApiName": "Salutation"}},
+                                "transform": "./transformers#listPickValues"
+                            }
+                        }
+                    },
+                    "firstName": {
+                        "type": "text",
+                        "label": "First Name",
+                        "index": 4,
+                        "tooltip": "Specify the first name of the contact."
+                    },
+                    "lastName": {
+                        "type": "text",
+                        "label": "Last Name",
+                        "index": 5,
+                        "tooltip": "Specify the last name of the contact. This field is mandatory."
+                    },
+                    "email": {
+                        "type": "text",
+                        "label": "Email",
+                        "index": 6,
+                        "tooltip": "Specify the primary email address of the contact."
+                    },
+                    "accountName": {
+                        "type": "select",
+                        "label": "Account Name",
+                        "index": 7,
+                        "tooltip": "Select the account related to the contact.",
+                        "source": {
+                            "url": "/component/appmixer/zoho/crm/ListAccounts?outPort=out",
+                            "data": {
+                                "messages": {"in": {"allAtOnce": true}},
+                                "transform": "./ListAccounts#toSelectArray"
+                            }
+                        }
+                    },
+                    "department": {
+                        "type": "text",
+                        "label": "Department",
+                        "index": 8,
+                        "tooltip": "Specify the department of the contact."
+                    },
+                    "title": {
+                        "type": "text",
+                        "label": "Title",
+                        "index": 9,
+                        "tooltip": "Specify the job position of the contact."
+                    },
+                    "phone": {
+                        "type": "text",
+                        "label": "Phone",
+                        "index": 10,
+                        "tooltip": "Specify the office phone number of the contact."
+                    },
+                    "fax": {
+                        "type": "text",
+                        "label": "Fax",
+                        "index": 11,
+                        "tooltip": "Specify the Fax number of the contact."
+                    },
+                    "mobile": {
+                        "type": "text",
+                        "label": "Mobile",
+                        "index": 12,
+                        "tooltip": "Specify the mobile number of the contact."
+                    },
+                    "assistant": {
+                        "type": "text",
+                        "label": "Assistant",
+                        "index": 13,
+                        "tooltip": "Specify the name of the contact’s assistant."
+                    },
+                    "reportsTo": {
+                        "type": "text",
+                        "label": "Reports To",
+                        "index": 14,
+                        "tooltip": "The Contact ID to whom the contact reports."
+                    },
+                    "skypeID": {
+                        "type": "text",
+                        "label": "Skype ID",
+                        "index": 15,
+                        "tooltip": "Specify the Skype ID of the contact. Currently skype ID can be in the range of 6 to 32 characters."
+                    },
+                    "mailingStreet": {
+                        "type": "text",
+                        "label": "Mailing Street",
+                        "index": 16,
+                        "tooltip": "Specify the mailing street address of the contact."
+                    },
+                    "mailingCity": {
+                        "type": "text",
+                        "label": "Mailing City",
+                        "index": 17,
+                        "tooltip": "Specify the name of the mailing city."
+                    },
+                    "mailingState": {
+                        "type": "text",
+                        "label": "Mailing State",
+                        "index": 18,
+                        "tooltip": "Specify the name of the mailing state."
+                    },
+                    "mailingZip": {
+                        "type": "text",
+                        "label": "Mailing Zip Code",
+                        "index": 19,
+                        "tooltip": "Specify the mailing zip code."
+                    },
+                    "mailingCountry": {
+                        "type": "text",
+                        "label": "Mailing Country",
+                        "index": 20,
+                        "tooltip": "Specify the mailing country."
+                    },
+                    "description": {
+                        "type": "textarea",
+                        "label": "Description",
+                        "index": 21,
+                        "tooltip": "Specify any other details about contact."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "updatedContact",
+            "source": {
+                "url": "/component/appmixer/zoho/crm/ListFields?outPort=fields",
+                "data": {
+                    "messages": {
+                        "in": {
+                            "moduleName": "Contacts"
+                        }
+                    },
+                    "transform": "./transformers#toSingleRecordSelectArray"
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSI4NjQiIHZpZXdCb3g9IjAgMCA1MTIgMTc3IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIj48ZGVmcz48bGluZWFyR3JhZGllbnQgeDE9IjQ5Ljk5NiUiIHkxPSIxLjQzMSUiIHgyPSI0OS45OTYlIiB5Mj0iOTYuOTgxJSIgaWQ9ImEiPjxzdG9wIHN0b3AtY29sb3I9IiNGRkU1MTMiIG9mZnNldD0iLjU2MiUiLz48c3RvcCBzdG9wLWNvbG9yPSIjRkRCOTI0IiBvZmZzZXQ9IjEwMCUiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCB4MT0iNC41MTIlIiB5MT0iMTMuNDk0JSIgeDI9Ijk1LjY3MiUiIHkyPSI4Ny4wNjQlIiBpZD0iYiI+PHN0b3Agc3RvcC1jb2xvcj0iIzAwOENEMiIgb2Zmc2V0PSIuNTYyJSIvPjxzdG9wIHN0b3AtY29sb3I9IiMwMDY0OUQiIG9mZnNldD0iMTAwJSIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IHgxPSI1MC4wMDIlIiB5MT0iMjcuNzc5JSIgeDI9IjUwLjAwMiUiIHkyPSI5Ny41MjklIiBpZD0iYyI+PHN0b3Agc3RvcC1jb2xvcj0iIzI2QTE0NiIgb2Zmc2V0PSIwJSIvPjxzdG9wIHN0b3AtY29sb3I9IiMwMDhBNTIiIG9mZnNldD0iMTAwJSIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IHgxPSI0My43MzQlIiB5MT0iOC4yMDglIiB4Mj0iNTcuNTQ0JSIgeTI9IjkzLjE5OCUiIGlkPSJkIj48c3RvcCBzdG9wLWNvbG9yPSIjRDkyMjMxIiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iI0JBMjIzNCIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZD0iTTUxMiAzNy43djEyMS40bC0xNi44IDE2LjRWNTYuN2wxNi44LTE5eiIgZmlsbD0iI0U3OTIyNSIvPjxwYXRoIGQ9Ik00MDEuOSAzNy44bC0xNy40IDE4LjkuOSAxLjIgMTA5LjEtLjQgMS0uOCAxNi41LTE5LTExMC4xLjF6IiBmaWxsPSIjRkZGMTZEIi8+PHBhdGggZmlsbD0idXJsKCNhKSIgZD0iTS41IDE5LjdoMTExdjExOC45SC41eiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzg0IDM3KSIvPjxwYXRoIGQ9Ik00NzguNiA5OS41Yy0yLjItNS41LTUuNS0xMC41LTkuOC0xNC44LTQuMS00LjItOC43LTcuNC0xMy45LTkuNS01LjEtMi4xLTEwLjYtMy4yLTE2LjYtMy4yLTYgMC0xMS42IDEuMS0xNi43IDMuMi01LjIgMi4xLTkuOCA1LjMtMTMuOSA5LjUtNC4zIDQuMy03LjUgOS4zLTkuNyAxNC44LTIuMiA1LjUtMy4yIDExLjUtMy4yIDE4LjEgMCA2LjQgMS4xIDEyLjQgMy4zIDE4IDIuMiA1LjYgNS40IDEwLjYgOS43IDE1IDQgNC4xIDguNiA3LjIgMTMuNyA5LjMgNS4xIDIuMSAxMC44IDMuMiAxNi45IDMuMiA1LjkgMCAxMS40LTEuMSAxNi41LTMuMnM5LjgtNS4yIDEzLjktOS4zYzQuMy00LjQgNy42LTkuNCA5LjgtMTQuOSAyLjItNS41IDMuMy0xMS42IDMuMy0xOCAwLTYuNy0xLjEtMTIuNy0zLjMtMTguMnptLTIyLjkgMzkuMmMtNC4zIDUuMS0xMCA3LjctMTcuNCA3LjctNy40IDAtMTMuMi0yLjYtMTcuNS03LjctNC4zLTUuMS02LjQtMTIuMi02LjQtMjEuMiAwLTkuMiAyLjItMTYuMyA2LjQtMjEuNSA0LjMtNS4yIDEwLTcuNyAxNy41LTcuNyA3LjQgMCAxMy4xIDIuNiAxNy40IDcuNyA0LjIgNS4yIDYuNCAxMi4zIDYuNCAyMS41IDAgOS0yLjEgMTYuMS02LjQgMjEuMnoiIGZpbGw9IiNGRkYiLz48Zz48cGF0aCBkPSJNMzczLjYgMjcuOHYuNmwxNC4yIDEwOS4xLTguMyAyMy0xLjEtLjgtMTQuNi0xMDQuNi4zLTEuNCA5LjEtMjUuMy40LS42eiIgZmlsbD0iIzAwOUFEQSIvPjxwYXRoIGQ9Ik0yNjQuMyA0M2wxMDkuMy0xNS4yLTkuMiAyNi4yLTEuMyAxLjQtMTAyLjIgMTUgLjUtMTguNyAyLjktOC43eiIgZmlsbD0iIzkxQzlFRCIvPjxwYXRoIGQ9Ik0xMDcuNCAyN2wxNS4xIDEwNi41LTEwNy43IDE1LjFMLjMgNDUuN2w2LjMtNC45TDEwNy40IDI3eiIgZmlsbD0idXJsKCNiKSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU3IDI3KSIvPjxwYXRoIGQ9Ik0zNDYuMSA3NC40Yy0uNS0zLjMtMS42LTUuOC0zLjQtNy41LTEuNS0xLjMtMy4zLTItNS40LTItLjUgMC0xLjEgMC0xLjcuMS0yLjguNC00LjkgMS43LTYuMiAzLjgtMSAxLjUtMS40IDMuNC0xLjQgNS42IDAgLjguMSAxLjcuMiAyLjZsMy45IDI3LjctMzEgNC42LTMuOS0yNy43Yy0uNS0zLjItMS42LTUuNy0zLjQtNy40LTEuNS0xLjQtMy4zLTIuMS01LjMtMi4xLS41IDAtMSAwLTEuNS4xLTIuOS40LTUuMSAxLjctNi41IDMuOC0xIDEuNS0xLjQgMy40LTEuNCA1LjYgMCAuOC4xIDEuNy4yIDIuN2wxMC42IDcyLjFjLjUgMy4zIDEuNiA1LjggMy42IDcuNSAxLjUgMS4zIDMuMyAxLjkgNS41IDEuOS42IDAgMS4yIDAgMS44LS4xIDIuNy0uNCA0LjctMS43IDYtMy44LjktMS41IDEuMy0zLjMgMS4zLTUuNCAwLS44LS4xLTEuNy0uMi0yLjZsLTQuMy0yOC41IDMxLTQuNiA0LjMgMjguNWMuNSAzLjMgMS42IDUuOCAzLjUgNy40IDEuNSAxLjMgMy4zIDIgNS40IDIgLjUgMCAxLjEgMCAxLjctLjEgMi44LS40IDQuOS0xLjcgNi4yLTMuOC45LTEuNSAxLjQtMy4zIDEuNC01LjUgMC0uOC0uMS0xLjctLjItMi42bC0xMC44LTcyLjN6IiBmaWxsPSIjRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0xNjIgMGwtMzguOSA5Mi40IDUuMyA0MC42LjMtLjEgNDMuNy05OC4zLS4yLTIuMS05LjQtMzEuMkwxNjIgMHoiIGZpbGw9IiM2NkJGNkIiLz48cGF0aCBkPSJNMTYyIDBsMTAuMSAzMy45LjIuNyA5Ni4yIDQzLjEuMy0uMi04LjItMzIuNEwxNjIgMHoiIGZpbGw9IiM5OEQwQTAiLz48cGF0aCBkPSJNNDkuMSAzMy45bDk2LjcgNDMuNi00My43IDk5LjFMNS40IDEzM2w0My43LTk5LjF6IiBmaWxsPSJ1cmwoI2MpIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMjMpIi8+PHBhdGggZD0iTTIzOS41IDg1LjVjLTIuMS01LjYtNS0xMC40LTguOC0xNC40LTMuOC00LTguNC03LjItMTMuOC05LjVzLTEwLjgtMy40LTE2LjMtMy40aC0uM2MtNS42IDAtMTEuMSAxLjMtMTYuNSAzLjctNS43IDIuNS0xMC42IDUuOS0xNC44IDEwLjQtNC4yIDQuNC03LjYgOS44LTEwLjIgMTYtMi42IDYuMS00IDEyLjMtNC4zIDE4LjR2Mi4xYzAgNS40LjkgMTAuNyAyLjggMTUuOSAyIDUuNSA0LjkgMTAuMiA4LjcgMTQuMiAzLjggNCA4LjUgNy4yIDE0LjEgOS41IDUuMyAyLjMgMTAuNyAzLjQgMTYuMiAzLjRoLjFjNS41IDAgMTEtMS4yIDE2LjQtMy41IDUuNy0yLjUgMTAuNy02IDE0LjktMTAuNSA0LjItNC40IDcuNy05LjcgMTAuMy0xNS45IDIuNi02LjIgNC0xMi4zIDQuMy0xOC40di0xLjhjLjEtNS41LS44LTEwLjktMi44LTE2LjJ6bS0xOS4zIDI4LjhjLTMuNiA4LjYtOC41IDE0LjUtMTQuNCAxNy43LTMuMiAxLjctNi41IDIuNi05LjggMi42LTIuOSAwLTYtLjctOS4xLTItNi44LTIuOS0xMS03LjUtMTIuOC0xNC4xLS42LTIuMi0uOS00LjUtLjktNi45IDAtNC44IDEuMi0xMC4xIDMuNi0xNS44IDMuNy04LjggOC42LTE0LjggMTQuNS0xOC4xIDMuMi0xLjggNi41LTIuNiA5LjgtMi42IDMgMCA2IC43IDkuMiAyIDYuNyAyLjkgMTAuOSA3LjUgMTIuNyAxNC4xLjYgMi4xLjkgNC40LjkgNi44IDAgNS0xLjIgMTAuNC0zLjcgMTYuM3oiIGZpbGw9IiNGRkYiLz48L2c+PGc+PHBhdGggZD0iTTExNS40IDE1LjdsMTUuOCAxMDUuOC03LjIgMzcuMi0xLTEuMy0xNS40LTEwMi4ydi0ybDYuOC0zNS43IDEtMS44eiIgZmlsbD0iIzc2MEQxNiIvPjxwYXRoIGQ9Ik0wIDcwLjRMNy41IDMzbDEwNy45LTE3LjMtNy4zIDM4LjF2Mi41TDEuMyA3MS40bC0xLjMtMXoiIGZpbGw9IiNFRjQ2M0UiLz48cGF0aCBkPSJNMTA4LjEgMzguOEwxMjQgMTQzLjcgMTcuMiAxNjAuNCAwIDU1LjRsMTA4LjEtMTYuNnoiIGZpbGw9InVybCgjZCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgMTUpIi8+PHBhdGggZD0iTTk2LjYgMTQyYy0uOC0xLTItMS43LTMuNC0yLjItMS40LS41LTMuMS0uNy01LjItLjctMS45IDAtNC4xLjItNi41LjZsLTI4LjIgNC44Yy4zLTIuMiAxLjQtNSAzLjMtOC41IDIuMS0zLjkgNS4zLTguNiA5LjQtMTQgMS40LTEuOSAyLjUtMy4zIDMuMy00LjMuNS0uNyAxLjMtMS42IDIuMy0yLjkgNi41LTguNSAxMC40LTE1LjQgMTItMjAuOC45LTMuMSAxLjQtNi4yIDEuNi05LjMuMS0uOS4xLTEuNy4xLTIuNSAwLTIuMi0uMi00LjQtLjYtNi42LS4zLTItLjgtMy42LTEuNS00LjktLjctMS4zLTEuNS0yLjMtMi41LTIuOS0xLjEtLjctMi44LTEtNC45LTEtMS43IDAtMy44LjItNi4zLjZMMzYuOSA3M2MtMy45LjctNi45IDEuOC04LjcgMy42LTEuNSAxLjQtMi4yIDMuMi0yLjIgNS4yIDAgLjUgMCAxLjEuMSAxLjcuNSAyLjggMS45IDQuOCA0LjIgNS44IDEuNC42IDMgLjkgNSAuOSAxLjMgMCAyLjgtLjEgNC40LS40TDY2LjkgODVjMCAuNS4xIDEgLjEgMS40IDAgMS43LS4zIDMuNC0uOSA1LS44IDIuMy0yLjggNS41LTYuMSA5LjYtLjkgMS4xLTIuMyAyLjktNC4yIDUuMi03LjQgOC45LTEyLjYgMTYuNS0xNS44IDIyLjgtMi4zIDQuNC0zLjggOC42LTQuNyAxMi45LS41IDIuNS0uOCA0LjgtLjggNy4xIDAgMS42LjEgMy4yLjQgNC43LjQgMi4yLjkgNCAxLjYgNS40LjcgMS40IDEuNyAyLjUgMi44IDMuMSAxLjEuNiAyLjYuOCA0LjguOCAyLjcgMCA2LjQtLjQgMTEuMS0xLjJsMjkuNi01LjFjNS4yLS45IDguOS0yLjIgMTEtMy45IDEuNy0xLjQgMi42LTMuMyAyLjYtNS41IDAtLjYtLjEtMS4yLS4yLTEuOC0uMi0xLjMtLjctMi41LTEuNi0zLjV6IiBmaWxsPSIjRkZGIi8+PC9nPjwvc3ZnPg=="
+}

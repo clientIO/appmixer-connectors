@@ -1,0 +1,229 @@
+{
+    "name": "appmixer.asana.projects.CreateProject",
+    "author": "Tomasz Hencel <thencel@ntrc.eu>",
+    "description": "This component creates a new project.",
+    "private": false,
+    "version": "1.0.1",
+    "auth": {
+        "service": "appmixer:asana"
+    },
+    "quota": {
+        "manager": "appmixer:asana",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "project",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "workspace": { "type": "string" },
+                    "team": { "type": "string" },
+                    "name": { "type": "string" },
+                    "note": { "type": "string" },
+                    "dueDate": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/Date"
+                            },
+                            {
+                                "$ref": "#/definitions/DateTime"
+                            }
+                        ]
+                    },
+                    "color": {
+                        "enum": [
+                            "null",
+                            "dark-pink",
+                            "dark-green",
+                            "dark-blue",
+                            "dark-red",
+                            "dark-orange",
+                            "dark-purple",
+                            "dark-warm-gray",
+                            "light-pink",
+                            "light-green",
+                            "light-blue",
+                            "light-yellow",
+                            "light-orange",
+                            "light-purple",
+                            "light-warm-gray"
+                        ]
+                    }
+                },
+                "required": [
+                    "workspace"
+                ],
+                "definitions": {
+                    "Date": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0|1][0-9]-[0-3][0-9]$"
+                    },
+                    "DateTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "workspace": {
+                        "type": "select",
+                        "group": "config",
+                        "label": "Workspace",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/asana/tasks/ListWorkspaces?outPort=workspaces",
+                            "data": {
+                                "transform": "./transformers#workspacesToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select workspace."
+                    },
+                    "team": {
+                        "type": "select",
+                        "group": "config",
+                        "label": "Team",
+                        "index": 2,
+                        "source": {
+                            "url": "/component/appmixer/asana/tasks/ListTeams?outPort=teams",
+                            "data": {
+                                "messages": {
+                                    "in/workspace": "inputs/project/workspace"
+                                },
+                                "transform": "./transformers#teamsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select team (if creating in an organization select specific team to create the project in)."
+                    },
+                    "name": {
+                        "type": "text",
+                        "group": "transformation",
+                        "tooltip": "The name of the project.",
+                        "label": "Name",
+                        "index": 1
+                    },
+                    "note": {
+                        "type": "textarea",
+                        "group": "transformation",
+                        "tooltip": "More detailed, free-form textual information associated with the project.",
+                        "label": "Notes",
+                        "index": 2
+                    },
+                    "dueDate": {
+                        "type": "date-time",
+                        "group": "transformation",
+                        "tooltip": "The day on which this project is due.",
+                        "label": "Due date",
+                        "index": 3
+                    },
+                    "color": {
+                        "type": "color-palette",
+                        "options": [
+                            {
+                                "value": "null",
+                                "content": "Null",
+                                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGoAAABrCAYAAACffRcyAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABPxJREFUeNrsnc9rU1kUx+/LS2LTBtI4VMiqjYjiQgQ3IoIUuhvGUmYzUBgV8SdWLS7sooLgxm0XgjKg0P+gMDC7ggjDzGwGOt1psS2WBptioiYVmrbxnviiSc17eaPvvdzz7vcLlyTk5vVyPtzzzv3mtDWq1arYrVwuNyAfxuUYkaNfQEFoWY4ZOaYymczS7jeNRlASUC9NlOMs4tZRTdNGkcCKX4GyID2V4yjipITm5Bisw4oAkrIiFk8tNp9AWekOkNSENVVLfaurq1Q4LCImSisbtao7R5mmWTQMYxPx8l6yRohvb2/3tpk2HrVKcFtA6XT6WSwWKyOk/qlSqfQUCoVTDsBGIk7nJEAKRhRjirXDlP6I024CpGBhUczt3rcFhXtS8HKKeQTh4aHot35Q3vyObW1tpdvNSyQSi8lk8iWu1yFQtGg59rWbJyuZNVzv+4XUx0QABVCa68+/0mJi8oj4/Y99Xlwuioj6BOn8lSHx4UOs9vr0j2vYUYrJ/G++6zOkRKIihn9aQepTzV14viB6Lo5lP0N68mhWnDxRACjFIP1w9YYwNjZMryEBlNeQSmVR7e7e9hoSib44rLasMqLRtb6+vlm7D5ZKpf3ycNfj4qCY2tnZ2dM2t5tmSY4NbtejexKlO9pJBOndbw/ym4cPtd0ArRyMfD4/ZHeo/uaqz61N4vTDGxWPx9dSqdQ8q+tRdXfhGhUOtXRnPH44u3nwwDE/HAykPi9KcB/uSQDFEBJAMYEEUEwgAdT3OA4BQgIoBRwHgGLiOAAUE8fBrXzvmaATPR0W3TgEdPhU5Xo1x+Hy9WbHQR5m5QnZk/XJOa8DAeW2h0A3x8Ht+pD6GJfgAMUcEkDZQSLdmfhbFUgAZQfp9q1/xK+jKyotUXtQTY5DHdLYlZeqrVNrUE2Og8KQtAbV5DgoDklbUI2OAwdIJO16Jhp7HOh1eXLizcbPw1tBrw89E24dB2snSUjZTqwPPRP/pwRXPN3pB4o5JD1AhQBS+EGFBFKoQXFxHLQGxclx0BYUN8dBS1CR9yWRuneflePgVqHpmTCKb83kxWvZyOJSV4PjkJUn0KwK62txgNawZyKfj4vRc0Pi1UpXpx0H9EzYRzAuRn4hSL1hS3fhAaUJJN6gNILEF5RmkFiCoupON0jsQNE5KXnmQlY3SKxAEaS9V2+K+jlJJ0hsQNUhxV4sCB0h1VK+6j0TNcdBprtdjkPgPQ7omQiZ46Bfz4SGJTg/UIDEABQgMQAFSOqD0tVxYAVKZ8eBDSjdHQcWoOA4uFfHeia49Tjo2TMRYschPD0TKMEZgAIkBqAAiQEoQFIfFBwHBqDgODAABceBASg4Dj7cQrzumQhrj0O4eibgODDomUAJzuAeBUhMQF0aOw5IHECVy3FA8lfe/HvXu5P/1h4V+husANVKAMTXmYAACqnPD9EJ3M3hzm0PgW7XCwyU29/6wPWQ+nCPghQAVa1W4whPsHKKuS0oeUPsrVQqPQhfMKJYU8ydQC3bvVkoFE4BVjCQKNYOU5ap6puR46bdrlpfXx82TbNoGMYmQupPunPaSZZm6BveAflkESFTWtlIJpNZkk+mEQtlNU2M6sXEuBxziIlymrPYfKr6JLGifBgELOUgDVpsvpTnDbCQBhVId42QSIasOr6alcvlBqwtNyJHP+IWiJatCnzKqhua1BIUpJ4+CjAAVnYzLhKE5pcAAAAASUVORK5CYII="
+                            },
+                            {
+                                "value": "dark-pink",
+                                "content": "#EA4E9D"
+                            },
+                            {
+                                "value": "dark-green",
+                                "content": "#62D26F"
+                            },
+                            {
+                                "value": "dark-blue",
+                                "content": "#4186E0"
+                            },
+                            {
+                                "value": "dark-red",
+                                "content": "#E8384F"
+                            },
+                            {
+                                "value": "dark-orange",
+                                "content": "#FD612C"
+                            },
+                            {
+                                "value": "dark-purple",
+                                "content": "#7A6FF0"
+                            },
+                            {
+                                "value": "dark-warm-gray",
+                                "content": "#8DA3A6"
+                            },
+                            {
+                                "value": "light-pink",
+                                "content": "#E362E3"
+                            },
+                            {
+                                "value": "light-green",
+                                "content": "#A4CF30"
+                            },
+                            {
+                                "value": "light-blue",
+                                "content": "#4186E0"
+                            },
+                            {
+                                "value": "light-yellow",
+                                "content": "#EEC300"
+                            },
+                            {
+                                "value": "light-orange",
+                                "content": "#FD9A00"
+                            },
+                            {
+                                "value": "light-purple",
+                                "content": "#AA62E3"
+                            },
+                            {
+                                "value": "light-warm-gray",
+                                "content": "#8DA3A6"
+                            }
+                        ],
+                        "defaultValue": "null",
+                        "group": "transformation",
+                        "label": "The color of the project.",
+                        "index": 4
+                    }
+                },
+                "groups": {
+                    "transformation": {
+                        "label": "Transformation",
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "newProject",
+            "options": [
+                { "label": "gid", "value": "gid" },
+                { "label": "created_at", "value": "created_at" },
+                { "label": "modified_at", "value": "modified_at" },
+                { "label": "due_date", "value": "due_on" },
+                { "label": "current_status", "value": "current_status" },
+                { "label": "public", "value": "public" },
+                { "label": "name", "value": "name" },
+                { "label": "notes", "value": "notes" },
+                { "label": "archived", "value": "archived" },
+                { "label": "workspace", "value": "workspace" },
+                { "label": "workspace.gid", "value": "workspace.gid" },
+                { "label": "workspace.name", "value": "workspace.name" },
+                { "label": "owner", "value": "owner" },
+                { "label": "owner.gid", "value": "owner.gid" },
+                { "label": "owner.name", "value": "owner.name" },
+                { "label": "followers", "value": "followers" },
+                { "label": "color", "value": "color" },
+                { "label": "members", "value": "members" }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAwIiBoZWlnaHQ9IjIzMTEiIHZpZXdCb3g9Ijc4MS4zNjEgMCA5NDQuODkzIDg3My4zNzciPjxyYWRpYWxHcmFkaWVudCBpZD0iYSIgY3g9Ijk0My45OTIiIGN5PSIxMjIxLjQxNiIgcj0iLjY2MyIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCg5NDQuODkzNCAwIDAgLTg3My4zNzcyIC04OTA3MTcuODc1IDEwNjcyMzQuNzUpIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZiOTAwIi8+PHN0b3Agb2Zmc2V0PSIuNiIgc3RvcC1jb2xvcj0iI2Y5NWQ4ZiIvPjxzdG9wIG9mZnNldD0iLjk5OSIgc3RvcC1jb2xvcj0iI2Y5NTM1MyIvPjwvcmFkaWFsR3JhZGllbnQ+PHBhdGggZmlsbD0idXJsKCNhKSIgZD0iTTE1MjAuNzY2IDQ2Mi4zNzFjLTExMy41MDggMC0yMDUuNTA4IDkyLTIwNS41MDggMjA1LjQ4OCAwIDExMy40OTkgOTIgMjA1LjUxOCAyMDUuNTA4IDIwNS41MTggMTEzLjQ4OSAwIDIwNS40ODgtOTIuMDE5IDIwNS40ODgtMjA1LjUxOCAwLTExMy40ODgtOTEuOTk5LTIwNS40ODgtMjA1LjQ4OC0yMDUuNDg4em0tNTMzLjkwNy4wMWMtMTEzLjQ4OS4wMS0yMDUuNDk4IDkxLjk5LTIwNS40OTggMjA1LjQ4OCAwIDExMy40ODkgOTIuMDA5IDIwNS40OTggMjA1LjQ5OCAyMDUuNDk4IDExMy40OTggMCAyMDUuNTA4LTkyLjAwOSAyMDUuNTA4LTIwNS40OTggMC0xMTMuNDk5LTkyLjAxLTIwNS40ODgtMjA1LjUxOC0yMDUuNDg4aC4wMXptNDcyLjQ0Ny0yNTYuODgzYzAgMTEzLjQ4OS05MS45OTkgMjA1LjUxOC0yMDUuNDg4IDIwNS41MTgtMTEzLjUwOCAwLTIwNS41MDgtOTIuMDI5LTIwNS41MDgtMjA1LjUxOFMxMTQwLjMxIDAgMTI1My44MTcgMGMxMTMuNDg5IDAgMjA1LjQ3OSA5Mi4wMDkgMjA1LjQ3OSAyMDUuNDk4aC4wMXoiLz48L3N2Zz4="
+}

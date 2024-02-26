@@ -1,0 +1,78 @@
+{
+    "name": "appmixer.microsoft.excel.NewRow",
+    "author": "Tomáš Waldauf <tomas@client.io>",
+    "description": "This trigger fires any time a new row is added to your spreadsheet.",
+    "tick": true,
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/microsoft/excel/ListColumns?outPort=out",
+                "data": {
+                    "properties": {
+                        "sheetId": "properties/sheetId",
+                        "worksheetId": "properties/worksheetId"
+                    },
+                    "transform": "./ListColumns#columnsToSelectArray"
+                }
+            }
+        }
+    ],
+    "auth": {
+        "service": "appmixer:microsoft",
+        "scope": [
+            "Files.ReadWrite"
+        ]
+    },
+    "properties": {
+        "schema": {
+            "properties": {
+                "sheetId": { "type": "string" },
+                "worksheetId": { "type": "string" },
+                "fullRowOnly": { "type": "boolean" }
+            },
+            "required": [
+                "sheetId",
+                "worksheetId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "sheetId": {
+                    "type": "select",
+                    "index": 1,
+                    "label": "Spreadsheet",
+                    "source": {
+                        "url": "/component/appmixer/microsoft/excel/ListSheets?outPort=out",
+                        "data": {
+                            "transform": "./ListSheets#sheetsToSelectArray"
+                        }
+                    },
+                    "tooltip": "Select spreadsheet."
+                },
+                "worksheetId": {
+                    "type": "select",
+                    "index": 2,
+                    "label": "Worksheet",
+                    "source": {
+                        "url": "/component/appmixer/microsoft/excel/ListWorksheets?outPort=out",
+                        "data": {
+                            "properties": {
+                                "sheetId": "properties/sheetId"
+                            },
+                            "transform": "./ListWorksheets#worksheetsToSelectArray"
+                        }
+                    },
+                    "tooltip": "Select worksheet."
+                },
+                "fullRowOnly": {
+                    "type": "toggle",
+                    "index": 3,
+                    "label": "Full rows only",
+                    "tooltip": "If selected, component will trigger only when the row is fully filled."
+                }
+            }
+        }
+    },
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgd2lkdGg9IjExMC4wMzc1OCIKICAgaGVpZ2h0PSIxMDcuNSIKICAgdmlld0JveD0iMCAwIDg4LjAzMDA2NiA4NiIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnMiIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMC40OC4zLjEgcjk4ODYiCiAgIHNvZGlwb2RpOmRvY25hbWU9IndvcmQuc3ZnIj4KICA8bWV0YWRhdGEKICAgICBpZD0ibWV0YWRhdGExMjYiPgogICAgPHJkZjpSREY+CiAgICAgIDxjYzpXb3JrCiAgICAgICAgIHJkZjphYm91dD0iIj4KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4KICAgICAgICA8ZGM6dHlwZQogICAgICAgICAgIHJkZjpyZXNvdXJjZT0iaHR0cDovL3B1cmwub3JnL2RjL2RjbWl0eXBlL1N0aWxsSW1hZ2UiIC8+CiAgICAgICAgPGRjOnRpdGxlPjwvZGM6dGl0bGU+CiAgICAgIDwvY2M6V29yaz4KICAgIDwvcmRmOlJERj4KICA8L21ldGFkYXRhPgogIDxkZWZzCiAgICAgaWQ9ImRlZnMxMjQiIC8+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxIgogICAgIG9iamVjdHRvbGVyYW5jZT0iMTAiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgICAgZ3VpZGV0b2xlcmFuY2U9IjEwIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMjgwIgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijk2MCIKICAgICBpZD0ibmFtZWR2aWV3MTIyIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpbmtzY2FwZTp6b29tPSIxLjA5MDU5ODMiCiAgICAgaW5rc2NhcGU6Y3g9IjM0NC44OTQ0MiIKICAgICBpbmtzY2FwZTpjeT0iNTMuNzUiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9IjAiCiAgICAgaW5rc2NhcGU6d2luZG93LXk9IjAiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJzdmcyIgogICAgIGZpdC1tYXJnaW4tdG9wPSIwIgogICAgIGZpdC1tYXJnaW4tbGVmdD0iMCIKICAgICBmaXQtbWFyZ2luLXJpZ2h0PSIwIgogICAgIGZpdC1tYXJnaW4tYm90dG9tPSIwIiAvPgogIDxwYXRoCiAgICAgZD0ibSA0Ni4wNCwwIDUuOTQsMCBjIDAsMi42NyAwLDUuMzMgMCw4IDEwLjAxLDAgMjAuMDIsMC4wMiAzMC4wMywtMC4wMyAxLjY5LDAuMDcgMy41NSwtMC4wNSA1LjAyLDAuOTYgMS4wMywxLjQ4IDAuOTEsMy4zNiAwLjk4LDUuMDYgLTAuMDUsMTcuMzYgLTAuMDMsMzQuNzEgLTAuMDIsNTIuMDYgLTAuMDUsMi45MSAwLjI3LDUuODggLTAuMzQsOC43NSAtMC40LDIuMDggLTIuOSwyLjEzIC00LjU3LDIuMiAtMTAuMzYsMC4wMyAtMjAuNzMsLTAuMDIgLTMxLjEsMCAwLDMgMCw2IDAsOSBsIC02LjIxLDAgQyAzMC41Myw4My4yMyAxNS4yNiw4MC42NyAwLDc4IDAsNTQuNjcgMCwzMS4zNCAwLDguMDEgMTUuMzUsNS4zNCAzMC43LDIuNzEgNDYuMDQsMCB6IgogICAgIGlkPSJwYXRoMTAiCiAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgICBzdHlsZT0iZmlsbDojMjA3MjQ1IiAvPgogIDxwYXRoCiAgICAgZD0ibSA1MS45OCwxMSBjIDExLDAgMjIsMCAzMywwIDAsMjEgMCw0MiAwLDYzIC0xMSwwIC0yMiwwIC0zMywwIDAsLTIgMCwtNCAwLC02IDIuNjcsMCA1LjMzLDAgOCwwIDAsLTIuMzMgMCwtNC42NyAwLC03IC0yLjY3LDAgLTUuMzMsMCAtOCwwIDAsLTEuMzMgMCwtMi42NyAwLC00IDIuNjcsMCA1LjMzLDAgOCwwIDAsLTIuMzMgMCwtNC42NyAwLC03IC0yLjY3LDAgLTUuMzMsMCAtOCwwIDAsLTEuMzMgMCwtMi42NyAwLC00IDIuNjcsMCA1LjMzLDAgOCwwIDAsLTIuMzMgMCwtNC42NyAwLC03IC0yLjY3LDAgLTUuMzMsMCAtOCwwIDAsLTEuMzMgMCwtMi42NyAwLC00IDIuNjcsMCA1LjMzLDAgOCwwIDAsLTIuMzMgMCwtNC42NyAwLC03IC0yLjY3LDAgLTUuMzMsMCAtOCwwIDAsLTEuMzMgMCwtMi42NyAwLC00IDIuNjcsMCA1LjMzLDAgOCwwIDAsLTIuMzMgMCwtNC42NyAwLC03IC0yLjY3LDAgLTUuMzMsMCAtOCwwIDAsLTIgMCwtNCAwLC02IHoiCiAgICAgaWQ9InBhdGg0OCIKICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgIHN0eWxlPSJmaWxsOiNmZmZmZmYiIC8+CiAgPHBhdGgKICAgICBkPSJtIDYzLjk4LDE3IGMgNC42NywwIDkuMzMsMCAxNCwwIDAsMi4zMyAwLDQuNjcgMCw3IC00LjY3LDAgLTkuMzMsMCAtMTQsMCAwLC0yLjMzIDAsLTQuNjcgMCwtNyB6IgogICAgIGlkPSJwYXRoNTgiCiAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgICBzdHlsZT0iZmlsbDojMjA3MjQ1IiAvPgogIDxwYXRoCiAgICAgZD0ibSAyOS42MiwyNi4zNyBjIDIuMjYsLTAuMTYgNC41MywtMC4zIDYuOCwtMC40MSAtMi42Nyw1LjQ3IC01LjM1LDEwLjk0IC04LjA3LDE2LjM5IDIuNzUsNS42IDUuNTYsMTEuMTYgOC4zMiwxNi43NiAtMi40MSwtMC4xNCAtNC44MSwtMC4yOSAtNy4yMiwtMC40NiAtMS43LC00LjE3IC0zLjc3LC04LjIgLTQuOTksLTEyLjU2IC0xLjM2LDQuMDYgLTMuMyw3Ljg5IC00Ljg2LDExLjg3IC0yLjE5LC0wLjAzIC00LjM4LC0wLjEyIC02LjU3LC0wLjIxIDIuNTcsLTUuMDMgNS4wNSwtMTAuMSA3LjcsLTE1LjEgLTIuMjUsLTUuMTUgLTQuNzIsLTEwLjIgLTcuMDQsLTE1LjMyIDIuMiwtMC4xMyA0LjQsLTAuMjYgNi42LC0wLjM4IDEuNDksMy45MSAzLjEyLDcuNzcgNC4zNSwxMS43OCAxLjMyLC00LjI1IDMuMjksLTguMjUgNC45OCwtMTIuMzYgeiIKICAgICBpZD0icGF0aDcyIgogICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgICAgc3R5bGU9ImZpbGw6I2ZmZmZmZiIgLz4KICA8cGF0aAogICAgIGQ9Im0gNjMuOTgsMjggYyA0LjY3LDAgOS4zMywwIDE0LDAgMCwyLjMzIDAsNC42NyAwLDcgLTQuNjcsMCAtOS4zMywwIC0xNCwwIDAsLTIuMzMgMCwtNC42NyAwLC03IHoiCiAgICAgaWQ9InBhdGg5MCIKICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgIHN0eWxlPSJmaWxsOiMyMDcyNDUiIC8+CiAgPHBhdGgKICAgICBkPSJtIDYzLjk4LDM5IGMgNC42NywwIDkuMzMsMCAxNCwwIDAsMi4zMyAwLDQuNjcgMCw3IC00LjY3LDAgLTkuMzMsMCAtMTQsMCAwLC0yLjMzIDAsLTQuNjcgMCwtNyB6IgogICAgIGlkPSJwYXRoMTA4IgogICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgICAgc3R5bGU9ImZpbGw6IzIwNzI0NSIgLz4KICA8cGF0aAogICAgIGQ9Im0gNjMuOTgsNTAgYyA0LjY3LDAgOS4zMywwIDE0LDAgMCwyLjMzIDAsNC42NyAwLDcgLTQuNjcsMCAtOS4zMywwIC0xNCwwIDAsLTIuMzMgMCwtNC42NyAwLC03IHoiCiAgICAgaWQ9InBhdGgxMTQiCiAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgICBzdHlsZT0iZmlsbDojMjA3MjQ1IiAvPgogIDxwYXRoCiAgICAgZD0ibSA2My45OCw2MSBjIDQuNjcsMCA5LjMzLDAgMTQsMCAwLDIuMzMgMCw0LjY3IDAsNyAtNC42NywwIC05LjMzLDAgLTE0LDAgMCwtMi4zMyAwLC00LjY3IDAsLTcgeiIKICAgICBpZD0icGF0aDEyMCIKICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgIHN0eWxlPSJmaWxsOiMyMDcyNDUiIC8+Cjwvc3ZnPgo="
+}

@@ -1,0 +1,763 @@
+{
+    "name": "appmixer.zoho.books.CreateContact",
+    "author": "Jiří Hofman <jirka@client.io>",
+    "description": "Create a contact with given information.",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:zoho:books",
+        "scope": [
+            "ZohoBooks.contacts.CREATE"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:zoho:books",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "organization_id": { "type": "string" },
+                    "contact_name": { "type": "string", "maxLength": 200 },
+                    "company_name": { "type": "string", "maxLength": 200 },
+                    "website": { "type": "string" },
+                    "language_code": { "type": "string" },
+                    "contact_type": { "type": "string" },
+                    "customer_sub_type": { "type": "string" },
+                    "credit_limit": { "type": "number" },
+                    "tags": { "type": "string" },
+                    "is_portal_enabled": { "type": "boolean" },
+                    "currency_id": { "type": "string" },
+                    "payment_terms": { "type": "string", "maxLength": 100 },
+                    "payment_terms_label": { "type": "string", "maxLength": 100 },
+                    "notes": { "type": "string" },
+                    "billing_address_attention": { "type": "string" },
+                    "billing_address_address": { "type": "string", "maxLength": 500 },
+                    "billing_address_street2": { "type": "string" },
+                    "billing_address_state_code": { "type": "string" },
+                    "billing_address_city": { "type": "string" },
+                    "billing_address_state": { "type": "string" },
+                    "billing_address_zip": { "type": "string" },
+                    "billing_address_country": { "type": "string" },
+                    "billing_address_fax": { "type": "string" },
+                    "billing_address_phone": { "type": "string" },
+                    "shipping_address_attention": { "type": "string" },
+                    "shipping_address_address": { "type": "string", "maxLength": 500 },
+                    "shipping_address_street2": { "type": "string" },
+                    "shipping_address_state_code": { "type": "string" },
+                    "shipping_address_city": { "type": "string" },
+                    "shipping_address_state": { "type": "string" },
+                    "shipping_address_zip": { "type": "string" },
+                    "shipping_address_country": { "type": "string" },
+                    "shipping_address_fax": { "type": "string" },
+                    "shipping_address_phone": { "type": "string" },
+                    "contact_persons": {},
+                    "default_templates_invoice_template_id": { "type": "string" },
+                    "default_templates_estimate_template_id": { "type": "string" },
+                    "default_templates_creditnote_template_id": { "type": "string" },
+                    "default_templates_purchaseorder_template_id": { "type": "string" },
+                    "default_templates_salesorder_template_id": { "type": "string" },
+                    "default_templates_retainerinvoice_template_id": { "type": "string" },
+                    "default_templates_paymentthankyou_template_id": { "type": "string" },
+                    "default_templates_retainerinvoice_paymentthankyou_template_id": { "type": "string" },
+                    "default_templates_invoice_email_template_id": { "type": "string" },
+                    "default_templates_estimate_email_template_id": { "type": "string" },
+                    "default_templates_creditnote_email_template_id": { "type": "string" },
+                    "default_templates_purchaseorder_email_template_id": { "type": "string" },
+                    "default_templates_salesorder_email_template_id": { "type": "string" },
+                    "default_templates_retainerinvoice_email_template_id": { "type": "string" },
+                    "default_templates_paymentthankyou_email_template_id": { "type": "string" },
+                    "default_templates_retainerinvoice_paymentthankyou_email_template_id": { "type": "string" },
+                    "opening_balance_amount": { "type": "number" },
+                    "exchange_rate": { "type": "number" },
+                    "vat_reg_no": { "type": "string" },
+                    "owner_id": { "type": "string" },
+                    "tax_reg_no": { "type": "string" },
+                    "country_code": { "type": "string" },
+                    "vat_treatment": { "type": "string" },
+                    "tax_treatment": { "type": "string" },
+                    "tax_regime": { "type": "string" },
+                    "is_tds_registered": { "type": "boolean" },
+                    "place_of_contact": { "type": "string" },
+                    "gst_no": { "type": "string" },
+                    "gst_treatment": { "type": "string" },
+                    "tax_authority_name": { "type": "string" },
+                    "avatax_exempt_no": { "type": "string" },
+                    "avatax_use_codes": { "type": "string" },
+                    "tax_exemption_id": { "type": "string" },
+                    "tax_exemption_code": { "type": "string" },
+                    "tax_authority_id": { "type": "string" },
+                    "tax_id": { "type": "string" },
+                    "tds_tax_id": { "type": "string" },
+                    "is_taxable": { "type": "boolean" },
+                    "facebook": { "type": "string", "maxLength": 100 },
+                    "twitter": { "type": "string", "maxLength": 100 },
+                    "track_1099": { "type": "boolean" },
+                    "tax_id_type": { "type": "string" },
+                    "tax_id_value": { "type": "string" }
+                },
+                "required": [
+                    "contact_name"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "organization_id": {
+                        "type": "select",
+                        "label": "Organization ID",
+                        "index": 0,
+                        "source": {
+                            "url": "/component/appmixer/zoho/books/ListOrganizations?outPort=out",
+                            "data": {
+                                "transform": "./transformers#organizationsToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "Select an organization."
+                            }
+                        }
+                    },
+                    "contact_name": {
+                        "type": "text",
+                        "label": "Contact Name",
+                        "index": 1,
+                        "tooltip": "Display Name of the contact."
+                    },
+                    "company_name": {
+                        "type": "text",
+                        "label": "Company Name",
+                        "index": 2,
+                        "tooltip": "Company Name of the contact."
+                    },
+                    "website": {
+                        "type": "text",
+                        "label": "Website",
+                        "index": 3,
+                        "tooltip": "Website of the contact."
+                    },
+                    "language_code": {
+                        "type": "text",
+                        "label": "Language Code",
+                        "index": 4,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "German", "value": "de" },
+                            { "label": "English", "value": "en" },
+                            { "label": "Spanish", "value": "es" },
+                            { "label": "French", "value": "fr" },
+                            { "label": "Italian", "value": "it" },
+                            { "label": "Japanese", "value": "ja" },
+                            { "label": "Dutch", "value": "nl" },
+                            { "label": "Portuguese", "value": "pt" },
+                            { "label": "Portuguese (Brazil)", "value": "pt_br" },
+                            { "label": "Swedish", "value": "sv" },
+                            { "label": "Chinese", "value": "zh" },
+                            { "label": "English (United Kingdom)", "value": "en_gb" }
+                        ],
+                        "tooltip": "Language of a contact."
+                    },
+                    "contact_type": {
+                        "type": "text",
+                        "label": "Contact Type",
+                        "index": 5,
+                        "tooltip": "Contact type of the contact"
+                    },
+                    "customer_sub_type": {
+                        "type": "text",
+                        "label": "Customer Sub Type",
+                        "index": 6,
+                        "tooltip": "Type of the customer"
+                    },
+                    "credit_limit": {
+                        "type": "number",
+                        "label": "Credit Limit",
+                        "index": 7,
+                        "tooltip": "Credit limit for a customer"
+                    },
+                    "is_portal_enabled": {
+                        "type": "toggle",
+                        "label": "Is Portal Enabled",
+                        "index": 9,
+                        "tooltip": "To enable client portal for the contact."
+                    },
+                    "currency_id": {
+                        "type": "text",
+                        "label": "Currency ID",
+                        "index": 10,
+                        "tooltip": "Currency ID of the customer's currency."
+                    },
+                    "payment_terms": {
+                        "type": "text",
+                        "label": "Payment Terms",
+                        "index": 11,
+                        "tooltip": "Net payment term for the customer."
+                    },
+                    "payment_terms_label": {
+                        "type": "text",
+                        "label": "Payment Terms Label",
+                        "index": 12,
+                        "tooltip": "Label for the paymet due details."
+                    },
+                    "notes": {
+                        "type": "textarea",
+                        "label": "Notes",
+                        "index": 13,
+                        "tooltip": "Commennts about the payment made by the contact."
+                    },
+                    "billing_address_attention": {
+                        "type": "text",
+                        "label": "Attention",
+                        "index": 14,
+                        "group": "billingAddress"
+                    },
+                    "billing_address_address": {
+                        "type": "text",
+                        "label": "Address",
+                        "index": 15,
+                        "group": "billingAddress"
+                    },
+                    "billing_address_street2": {
+                        "type": "text",
+                        "label": "Street 2",
+                        "index": 16,
+                        "group": "billingAddress"
+                    },
+                    "billing_address_city": {
+                        "type": "text",
+                        "label": "City",
+                        "index": 17,
+                        "group": "billingAddress",
+                        "tooltip": "City of the customer's billing address."
+                    },
+                    "billing_address_state": {
+                        "type": "text",
+                        "label": "State",
+                        "index": 18,
+                        "group": "billingAddress",
+                        "tooltip": "State of the customer's billing address."
+                    },
+                    "billing_address_zip": {
+                        "type": "text",
+                        "label": "Zip",
+                        "index": 19,
+                        "group": "billingAddress",
+                        "tooltip": "Zip code of the customer's billing address."
+                    },
+                    "billing_address_country": {
+                        "type": "text",
+                        "label": "Country",
+                        "index": 20,
+                        "group": "billingAddress",
+                        "tooltip": "Country of the customer's billing address."
+                    },
+                    "billing_address_fax": {
+                        "type": "text",
+                        "label": "Fax",
+                        "index": 21,
+                        "group": "billingAddress",
+                        "tooltip": "Customer's fax number."
+                    },
+                    "billing_address_phone": {
+                        "type": "text",
+                        "label": "Phone",
+                        "index": 22,
+                        "group": "billingAddress",
+                        "tooltip": "Customer's phone number."
+                    },
+                    "shipping_address_attention": {
+                        "type": "text",
+                        "label": "Attention",
+                        "index": 23,
+                        "group": "shippingAddress"
+                    },
+                    "shipping_address_address": {
+                        "type": "text",
+                        "label": "Address",
+                        "index": 24,
+                        "group": "shippingAddress"
+                    },
+                    "shipping_address_street2": {
+                        "type": "text",
+                        "label": "Street 2",
+                        "index": 25,
+                        "group": "shippingAddress"
+                    },
+                    "shipping_address_city": {
+                        "type": "text",
+                        "label": "City",
+                        "index": 26,
+                        "group": "shippingAddress",
+                        "tooltip": "City of the customer's shipping address."
+                    },
+                    "shipping_address_state": {
+                        "type": "text",
+                        "label": "State",
+                        "index": 27,
+                        "group": "shippingAddress",
+                        "tooltip": "State of the customer's shipping address."
+                    },
+                    "shipping_address_zip": {
+                        "type": "text",
+                        "label": "Zip",
+                        "index": 28,
+                        "group": "shippingAddress",
+                        "tooltip": "Zip code of the customer's shipping address."
+                    },
+                    "shipping_address_country": {
+                        "type": "text",
+                        "label": "Country",
+                        "index": 29,
+                        "group": "shippingAddress",
+                        "tooltip": "Country of the customer's shipping address."
+                    },
+                    "shipping_address_fax": {
+                        "type": "text",
+                        "label": "Fax",
+                        "index": 30,
+                        "group": "shippingAddress",
+                        "tooltip": "Customer's fax number."
+                    },
+                    "shipping_address_phone": {
+                        "type": "text",
+                        "label": "Phone",
+                        "index": 31,
+                        "group": "shippingAddress",
+                        "tooltip": "Customer's phone number."
+                    },
+                    "contact_persons": {
+                        "type": "expression",
+                        "label": "Contact Persons",
+                        "tooltip": "Contact Persons to add to the new contact.",
+                        "exclusiveFields": [ "email" ],
+                        "index": 50,
+                        "levels": [ "AND" ],
+                        "group": "contactPersons",
+                        "fields": {
+                            "salutation": {
+                                "type": "text",
+                                "label": "Salutation",
+                                "tooltip": "Salutation for the contact",
+                                "index": 1
+                            },
+                            "first_name": {
+                                "type": "text",
+                                "label": "First name",
+                                "index": 2
+                            },
+                            "last_name": {
+                                "type": "text",
+                                "label": "Last name",
+                                "index": 3
+                            },
+                            "email": {
+                                "type": "text",
+                                "label": "Email",
+                                "index": 4
+                            },
+                            "phone": {
+                                "type": "text",
+                                "label": "Phone",
+                                "index": 5
+                            },
+                            "mobile": {
+                                "type": "text",
+                                "label": "Mobile",
+                                "index": 6
+                            },
+                            "designation": {
+                                "type": "text",
+                                "label": "Designation",
+                                "index": 7
+                            },
+                            "department": {
+                                "type": "text",
+                                "label": "Department",
+                                "index": 8
+                            },
+                            "skype": {
+                                "type": "text",
+                                "label": "Skype",
+                                "index": 9,
+                                "tooltip": "Skype details for the contact person."
+                            },
+                            "is_primary_contact": {
+                                "type": "toggle",
+                                "label": "Is Primary Contact",
+                                "index": 10,
+                                "tooltip": "To mark contact person as primary for contact. Allowed value is true only."
+                            },
+                            "enable_portal": {
+                                "type": "toggle",
+                                "label": "Enable Portal",
+                                "index": 11,
+                                "tooltip": "To enable client portal for the primary contact. Allowed value is true and false."
+                            }
+                        }
+                    },
+                    "default_templates_invoice_template_id": {
+                        "type": "text",
+                        "label": "Invoice Template ID",
+                        "index": 1,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default invoice template id used for this contact while creating invoice."
+                    },
+                    "default_templates_estimate_template_id": {
+                        "type": "text",
+                        "label": "Estimate Template ID",
+                        "index": 2,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default estimate template id used for this contact while creating estimate."
+                    },
+                    "default_templates_creditnote_template_id": {
+                        "type": "text",
+                        "label": "Credit Note Template ID",
+                        "index": 3,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default credit note template id used for this contact while creating credit note."
+                    },
+                    "default_templates_purchaseorder_template_id": {
+                        "type": "text",
+                        "label": "Purchase Order Template ID",
+                        "index": 4,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default purchase order template id used for this contact while creating purchase order(for Vendors only)."
+                    },
+                    "default_templates_salesorder_template_id": {
+                        "type": "text",
+                        "label": "Sales Order Template ID",
+                        "index": 5,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default sales order template id used for this contact while creating sales order."
+                    },
+                    "default_templates_retainerinvoice_template_id": {
+                        "type": "text",
+                        "label": "Retainer Invoice Template ID",
+                        "index": 6,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default retainer invoice template id used for this contact while creating retainer invoice."
+                    },
+                    "default_templates_paymentthankyou_template_id": {
+                        "type": "text",
+                        "label": "Payment Thankyou Template ID",
+                        "index": 7,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default payment thankyou template id used for this contact while sending payment thankyou note."
+                    },
+                    "default_templates_retainerinvoice_paymentthankyou_template_id": {
+                        "type": "text",
+                        "label": "Retainer Invoice Payment Thankyou Template ID",
+                        "index": 8,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default retainer invoice paymnet thankyou template id used for this contact while sending payment thankyou note for retainer invoice."
+                    },
+                    "default_templates_invoice_email_template_id": {
+                        "type": "text",
+                        "label": "Invoice Email Template ID",
+                        "index": 9,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default invoice email template id used for this contact while sending invoices."
+                    },
+                    "default_templates_estimate_email_template_id": {
+                        "type": "text",
+                        "label": "Estimate Email Template ID",
+                        "index": 10,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default estimate email template id used for this contact while sending estimates."
+                    },
+                    "default_templates_creditnote_email_template_id": {
+                        "type": "text",
+                        "label": "Credit Note Email Template ID",
+                        "index": 11,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default credit note email template id used for this contact while sending credit notes."
+                    },
+                    "default_templates_purchaseorder_email_template_id": {
+                        "type": "text",
+                        "label": "Purchase Order Email Template ID",
+                        "index": 12,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default purchase order template id used for this contact while creating purchase order(for Vendors only)."
+                    },
+                    "default_templates_salesorder_email_template_id": {
+                        "type": "text",
+                        "label": "Sales Order Email Template ID",
+                        "index": 13,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default sales order template id used for this contact while creating sales order."
+                    },
+                    "default_templates_retainerinvoice_email_template_id": {
+                        "type": "text",
+                        "label": "Retainer Invoice Email Template ID",
+                        "index": 14,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default retainer invoice template id used for this contact while creating retainer invoice."
+                    },
+                    "default_templates_paymentthankyou_email_template_id": {
+                        "type": "text",
+                        "label": "Payment Thankyou Email Template ID",
+                        "index": 15,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default payment thankyou template id used for this contact while sending payment thankyou note."
+                    },
+                    "default_templates_retainerinvoice_paymentthankyou_email_template_id": {
+                        "type": "text",
+                        "label": "Retainer Invoice Payment Thankyou Email Template ID",
+                        "index": 16,
+                        "group": "defaultTemplates",
+                        "tooltip": "Default retainer invoice paymnet thankyou template id used for this contact while sending payment thankyou note for retainer invoice."
+                    },
+                    "opening_balance_amount": {
+                        "type": "number",
+                        "label": "Opening Balance Amount",
+                        "index": 32,
+                        "tooltip": "Opening balance amount for a contact."
+                    },
+                    "exchange_rate": {
+                        "type": "text",
+                        "label": "Exchange Rate",
+                        "index": 33,
+                        "tooltip": "Exchange rate for the opening balance."
+                    },
+                    "vat_reg_no": {
+                        "type": "text",
+                        "label": "VAT Reg No 🇬🇧 , Avalara Integration only",
+                        "index": 34,
+                        "tooltip": "<b>For UK Edition:</b> VAT Registration number of a contact with length should be between 2 and 12 characters. <b>For Avalara:</b> If you are doing sales in the European Union (EU) then provide VAT Registration Number of your customers here. This is used to calculate VAT for B2B sales, from Avalara."
+                    },
+                    "owner_id": {
+                        "type": "text",
+                        "label": "Owner ID",
+                        "index": 35,
+                        "tooltip": "For Customer Only : If a contact is assigned to any particular user, that user can manage transactions for the contact."
+                    },
+                    "tax_reg_no": {
+                        "type": "text",
+                        "label": "Tax Reg No, GCC mx only",
+                        "index": 36,
+                        "tooltip": "15 digit Tax Registration number of a contact with Tax treatment as vat_registered,gcc_vat_registered,dz_vat_registered.12 digit Tax Registration number of a contact with Tax treatment as home_country_mexico, border_region_mexico, non_mexico. Consumers generic RFC: XAXX010101000, Overseas generic RFC: XEXX010101000"
+                    },
+                    "country_code": {
+                        "type": "text",
+                        "label": "Country Code 🇬🇧 , GCC Avalara Integration only",
+                        "index": 37,
+                        "tooltip": "For UK Edition: Two letter country code of a contact <br/>For Avalara: Two letter country code for the customer country, if your customer is not in US. Refer [AvaTax Codes for Countries and States][ 2 ]. For GCC Editions : Two Letter country code for the GCC Country or the UAE emirate of the contact which will be considered as place of supply. Supported codes for UAE emirates are: Abu Dhabi - AB, Ajman - AJ, Dubai - DU, Fujairah - FU, Ras al-Khaimah - RA, Sharjah - SH, Umm al-Quwain - UM. Supported codes for the GCC countries are : United Arab Emirates - AE, Saudi Arabia - SA, Bahrain - BH, Kuwait - KW, Oman - OM, Qatar - QA."
+                    },
+                    "vat_treatment": {
+                        "type": "text",
+                        "label": "VAT Treatment 🇬🇧 only",
+                        "index": 38,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "uk", "value": "uk" },
+                            { "label": "eu_vat_registered", "value": "eu_vat_registered" },
+                            { "label": "overseas", "value": "overseas" }
+                        ],
+                        "tooltip": "VAT treatment of the contact. Allowed Values: uk (A business that is located in the UK.), eu_vat_registered (A business that is reg for VAT and trade goods between Northern Ireland and EU. This node is available only for organizations enabled for NI protocal in VAT Settings.) and overseas (A business that is located outside UK. Pre Brexit, this was split as eu_vat_registered, eu_vat_not_registered and non_eu )."
+                    },
+                    "tax_treatment": {
+                        "type": "text",
+                        "label": "Tax Treatment GCC mx only",
+                        "index": 39,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "vat_registered", "value": "vat_registered" },
+                            { "label": "vat_not_registered", "value": "vat_not_registered" },
+                            { "label": "gcc_vat_not_registered", "value": "gcc_vat_not_registered" },
+                            { "label": "gcc_vat_registered", "value": "gcc_vat_registered" },
+                            { "label": "non_gcc", "value": "non_gcc" },
+                            { "label": "dz_vat_registered", "value": "dz_vat_registered" },
+                            { "label": "dz_vat_not_registered", "value": "dz_vat_not_registered" },
+                            { "label": "home_country_mexico (A business that is located within MX)", "value": "home_country_mexico" },
+                            { "label": "border_region_mexico (A business that is located in the northern and southern border regions in MX)", "value": "border_region_mexico" },
+                            { "label": "non_mexico (A business that is located outside MX)", "value": "non_mexico" }
+                        ],
+                        "tooltip": "VAT treatment of the contact."
+                    },
+                    "tax_regime": {
+                        "type": "text",
+                        "label": "Tax Regime mx only",
+                        "index": 40,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "general_legal_person", "value": "general_legal_person" },
+                            { "label": "legal_entities_non_profit", "value": "legal_entities_non_profit" },
+                            { "label": "resident_abroad", "value": "resident_abroad" },
+                            { "label": "production_cooperative_societies", "value": "production_cooperative_societies" },
+                            { "label": "agricultural_livestock", "value": "agricultural_livestock" },
+                            { "label": "optional_group_of_companies", "value": "optional_group_of_companies" },
+                            { "label": "coordinated", "value": "coordinated" },
+                            { "label": "simplified_trust", "value": "simplified_trust" },
+                            { "label": "wages_salaries_income", "value": "wages_salaries_income" },
+                            { "label": "lease", "value": "lease" },
+                            { "label": "property_disposal_acquisition", "value": "property_disposal_acquisition" },
+                            { "label": "other_income", "value": "other_income" },
+                            { "label": "divident_income", "value": "divident_income" },
+                            { "label": "individual_business_professional", "value": "individual_business_professional" },
+                            { "label": "interest_income", "value": "interest_income" },
+                            { "label": "income_obtaining_price", "value": "income_obtaining_price" },
+                            { "label": "no_tax_obligation", "value": "no_tax_obligation" },
+                            { "label": "tax_incorporation", "value": "tax_incorporation" },
+                            { "label": "income_through_technology_platform", "value": "income_through_technology_platform" }
+                        ],
+                        "tooltip": "Tax regime of the contact. Allowed Values: general_legal_person, legal_entities_non_profit, resident_abroad, production_cooperative_societies, agricultural_livestock, optional_group_of_companies, coordinated, simplified_trust, wages_salaries_income, lease, property_disposal_acquisition, other_income, divident_income, individual_business_professional, interest_income, income_obtaining_price, no_tax_obligation, tax_incorporation, income_through_technology_platform."
+                    },
+                    "is_tds_registered": {
+                        "type": "toggle",
+                        "label": "TDS Registered mx only",
+                        "index": 41,
+                        "tooltip": "Boolean to check if tax is registered."
+                    },
+                    "place_of_contact": {
+                        "type": "text",
+                        "label": "Place of Contact 🇮🇳 only",
+                        "index": 42,
+                        "tooltip": "Location of the contact. (This node identifies the place of supply and source of supply when invoices/bills are raised for the customer/vendor respectively. This is not applicable for Overseas contacts)"
+                    },
+                    "gst_no": {
+                        "type": "text",
+                        "label": "GST No 🇮🇳 only",
+                        "index": 43,
+                        "tooltip": "15 digit GST identification number of the customer/vendor."
+                    },
+                    "gst_treatment": {
+                        "type": "text",
+                        "label": "GST Treatment 🇮🇳 only",
+                        "index": 44,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "business_gst", "value": "business_gst" },
+                            { "label": "business_none", "value": "business_none" },
+                            { "label": "overseas", "value": "overseas" },
+                            { "label": "consumer", "value": "consumer" }
+                        ],
+                        "tooltip": "Choose whether the contact is GST registered/unregistered/consumer/overseas. Allowed values are business_gst, business_none, overseas, consumer."
+                    },
+                    "tax_authority_name": {
+                        "type": "text",
+                        "label": "Tax Authority Name",
+                        "index": 45,
+                        "tooltip": "Enter tax authority name."
+                    },
+                    "avatax_exempt_no": {
+                        "type": "text",
+                        "label": "AvaTax Exempt No, Avalara Integration only",
+                        "index": 46,
+                        "tooltip": "Exemption certificate number of the customer."
+                    },
+                    "avatax_use_code": {
+                        "type": "text",
+                        "label": "AvaTax Use Code, Avalara Integration only",
+                        "index": 47,
+                        "tooltip": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code."
+                    },
+                    "tax_exemption_id": {
+                        "type": "text",
+                        "label": "Tax Exemption ID, 🇺🇸 , 🇨🇦 , 🇦🇺 , 🇮🇳 only",
+                        "index": 48,
+                        "tooltip": "ID of the tax exemption."
+                    },
+                    "tax_exemption_code": {
+                        "type": "text",
+                        "label": "Tax Exemption Code, 🇺🇸 , 🇨🇦 , 🇦🇺 , 🇮🇳 only",
+                        "index": 49,
+                        "tooltip": "Enter tax exemption code"
+                    },
+                    "tax_authority_id": {
+                        "type": "text",
+                        "label": "Tax Authority ID, 🇺🇸 only",
+                        "index": 50,
+                        "tooltip": "ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+                    },
+                    "tax_id": {
+                        "type": "text",
+                        "label": "Tax ID, 🇮🇳 , 🇺🇸 only",
+                        "index": 51,
+                        "tooltip": "ID of the tax or tax group that can be collected from the contact. Tax can be given only if is_taxable is true."
+                    },
+                    "tds_tax_id": {
+                        "type": "text",
+                        "label": "TDS Tax ID, mx only",
+                        "index": 52,
+                        "tooltip": "ID of the TDS tax."
+                    },
+                    "is_taxable": {
+                        "type": "toggle",
+                        "label": "Is Taxable 🇺🇸 , 🇨🇦 , 🇦🇺 , 🇮🇳 , mx only",
+                        "index": 53,
+                        "tooltip": "Boolean to track the taxability of the customer."
+                    },
+                    "facebook": {
+                        "type": "text",
+                        "label": "Facebook",
+                        "index": 54,
+                        "tooltip": "Facebook profile account."
+                    },
+                    "twitter": {
+                        "type": "text",
+                        "label": "Twitter",
+                        "index": 55,
+                        "tooltip": "Twitter account."
+                    },
+                    "track_1099": {
+                        "type": "toggle",
+                        "label": "Track 1099 🇺🇸 only",
+                        "index": 56,
+                        "tooltip": "Boolean to track a contact for 1099 reporting."
+                    },
+                    "tax_id_type": {
+                        "type": "text",
+                        "label": "Tax ID Type 🇺🇸 only",
+                        "index": 57,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "ssn", "value": "ssn" },
+                            { "label": "atin", "value": "atin" },
+                            { "label": "itin", "value": "itin" },
+                            { "label": "ein", "value": "ein" }
+                        ],
+                        "tooltip": "Tax ID type of the contact, it can be SSN, ATIN, ITIN or EIN."
+                    },
+                    "tax_id_value": {
+                        "type": "text",
+                        "label": "Tax ID Value 🇺🇸 only",
+                        "index": 58,
+                        "tooltip": "Tax ID of the contact."
+                    }
+                },
+                "groups": {
+                    "billingAddress": {
+                        "label": "Billing Address",
+                        "index": 1
+                    },
+                    "shippingAddress": {
+                        "label": "Shipping Address",
+                        "index": 2
+                    },
+                    "contactPersons": {
+                        "label": "Contact Persons",
+                        "index": 3
+                    },
+                    "defaultTemplates": {
+                        "label": "Default Templates",
+                        "index": 4
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/zoho/books/GenerateContactOutput?outPort=out"
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJsb2dvLWNvbG9yIiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0Ij48cGF0aCBmaWxsPSIjMjI2ZWIzIiBkPSJNNzI5LjU0IDEwMjRIMzBjLTE2LjU3IDAtMzAtMTMuNDMtMzAtMzBWNzM5Ljg0YzAtNTUuNTIgMzUuMjgtMTA0LjkzIDg3LjgtMTIyLjk2bDc3NS4yOC0yNjYuMDlDOTIzLjQ0IDMzMC4wNyA5NjQgMjczLjI2IDk2NCAyMDkuNDQgOTY0IDEyNy4wNCA4OTYuOTYgNjAgODE0LjU2IDYwSDYwdjQ5NC45NmMwIDE2LjU3LTEzLjQzIDMwLTMwIDMwcy0zMC0xMy40My0zMC0zMFYzMEMwIDEzLjQzIDEzLjQzIDAgMzAgMGg3ODQuNTZDOTMwLjA1IDAgMTAyNCA5My45NSAxMDI0IDIwOS40NGMwIDg5LjQ1LTU2Ljg0IDE2OS4wNi0xNDEuNDUgMTk4LjFMMTA3LjI4IDY3My42M0M3OSA2ODMuMzMgNjAgNzA5Ljk0IDYwIDczOS44NFY5NjRoNjY5LjU0YzYyLjYzIDAgMTIxLjUtMjQuMzkgMTY1Ljc5LTY4LjY3QzkzOS42MSA4NTEuMDQgOTY0IDc5Mi4xNyA5NjQgNzI5LjU0YzAtNDQuMzMtMTIuNDktODcuNTYtMzYuMTEtMTI1LjAyLTIzLjM5LTM3LjEtNTYuNTUtNjYuNzktOTUuODktODUuODgtMTQuOTEtNy4yMy0yMS4xMy0yNS4xOC0xMy44OS00MC4wOSA3LjIzLTE0LjkxIDI1LjE4LTIxLjEzIDQwLjA5LTEzLjg5IDQ5LjQyIDIzLjk4IDkxLjA3IDYxLjI4IDEyMC40NSAxMDcuODYgMjkuNjggNDcuMDYgNDUuMzYgMTAxLjM2IDQ1LjM2IDE1Ny4wMyAwIDc4LjY1LTMwLjYzIDE1Mi42LTg2LjI1IDIwOC4yMi01NS42MiA1NS42LTEyOS41NyA4Ni4yMy0yMDguMjIgODYuMjN6IiBvcGFjaXR5PSIuOSIvPjxwYXRoIGZpbGw9IiMyMjZlYjMiIGQ9Ik0zMzcuNTIgNDE5LjgyYy02Ni4xNyAwLTEyMC01My44My0xMjAtMTIwczUzLjgzLTEyMCAxMjAtMTIwIDEyMCA1My44MyAxMjAgMTIwLTUzLjgzIDEyMC0xMjAgMTIwem0wLTE4MGMtMzMuMDggMC02MCAyNi45Mi02MCA2MHMyNi45MiA2MCA2MCA2MCA2MC0yNi45MiA2MC02MC0yNi45Mi02MC02MC02MHpNNjM4LjM0IDg0My41M2MtNjYuMTcgMC0xMjAtNTMuODMtMTIwLTEyMHM1My44My0xMjAgMTIwLTEyMCAxMjAgNTMuODMgMTIwIDEyMC01My44MyAxMjAtMTIwIDEyMHptMC0xODBjLTMzLjA4IDAtNjAgMjYuOTItNjAgNjBzMjYuOTIgNjAgNjAgNjAgNjAtMjYuOTIgNjAtNjAtMjYuOTItNjAtNjAtNjB6IiBvcGFjaXR5PSIuOSIvPjwvc3ZnPgo="
+}

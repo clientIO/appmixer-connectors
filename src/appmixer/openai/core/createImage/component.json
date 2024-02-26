@@ -1,0 +1,276 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.openai.core.createImage",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Creates an image given a prompt.</p></label>",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "prompt"
+                ],
+                "properties": {
+                    "prompt": {
+                        "description": "A text description of the desired image(s). The maximum length is 1000 characters for `dall-e-2` and 4000 characters for `dall-e-3`.",
+                        "type": "string",
+                        "example": "A cute baby sea otter",
+                        "path": "prompt"
+                    },
+                    "model": {
+                        "x-oaiTypeLabel": "string",
+                        "default": "dall-e-2",
+                        "example": "dall-e-3",
+                        "nullable": true,
+                        "description": "The model to use for image generation.",
+                        "x-connector-source": {
+                            "operationId": "listModels",
+                            "transform": "result[].{value:id, label:id}"
+                        },
+                        "type": "string",
+                        "path": "model"
+                    },
+                    "n": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "default": 1,
+                        "example": 1,
+                        "nullable": true,
+                        "description": "The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.",
+                        "path": "n"
+                    },
+                    "quality": {
+                        "type": "string",
+                        "enum": [
+                            "standard",
+                            "hd"
+                        ],
+                        "default": "standard",
+                        "example": "standard",
+                        "description": "The quality of the image that will be generated. `hd` creates images with finer details and greater consistency across the image. This param is only supported for `dall-e-3`.",
+                        "path": "quality"
+                    },
+                    "response_format": {
+                        "type": "string",
+                        "enum": [
+                            "url",
+                            "b64_json"
+                        ],
+                        "default": "url",
+                        "example": "url",
+                        "nullable": true,
+                        "description": "The format in which the generated images are returned. Must be one of `url` or `b64_json`.",
+                        "path": "response_format"
+                    },
+                    "size": {
+                        "type": "string",
+                        "enum": [
+                            "256x256",
+                            "512x512",
+                            "1024x1024",
+                            "1792x1024",
+                            "1024x1792"
+                        ],
+                        "default": "1024x1024",
+                        "example": "1024x1024",
+                        "nullable": true,
+                        "description": "The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`. Must be one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3` models.",
+                        "path": "size"
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": [
+                            "vivid",
+                            "natural"
+                        ],
+                        "default": "vivid",
+                        "example": "vivid",
+                        "nullable": true,
+                        "description": "The style of the generated images. Must be one of `vivid` or `natural`. Vivid causes the model to lean towards generating hyper-real and dramatic images. Natural causes the model to produce more natural, less hyper-real looking images. This param is only supported for `dall-e-3`.",
+                        "path": "style"
+                    },
+                    "user": {
+                        "type": "string",
+                        "example": "user-1234",
+                        "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n",
+                        "path": "user"
+                    },
+                    "xConnectorOutputType": {
+                        "type": "string"
+                    },
+                    "xConnectorPaginationLimit": {
+                        "type": "number"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "prompt": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "Prompt",
+                        "tooltip": "<p>A text description of the desired image(s). The maximum length is 1000 characters for <code>dall-e-2</code> and 4000 characters for <code>dall-e-3</code>. Example: A cute baby sea otter</p>"
+                    },
+                    "model": {
+                        "type": "select",
+                        "index": 1,
+                        "label": "Model",
+                        "tooltip": "<p>The model to use for image generation. Example: dall-e-3</p>",
+                        "defaultValue": "dall-e-2",
+                        "source": {
+                            "url": "/component/appmixer/openai/core/listModels?outPort=out",
+                            "data": {
+                                "transform": "./transform#toSelectOptions"
+                            }
+                        }
+                    },
+                    "n": {
+                        "type": "number",
+                        "index": 2,
+                        "label": "N",
+                        "tooltip": "<p>The number of images to generate. Must be between 1 and 10. For <code>dall-e-3</code>, only <code>n=1</code> is supported. Example: 1</p>",
+                        "defaultValue": 1,
+                        "min": 1,
+                        "max": 10
+                    },
+                    "quality": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Quality",
+                        "tooltip": "<p>The quality of the image that will be generated. <code>hd</code> creates images with finer details and greater consistency across the image. This param is only supported for <code>dall-e-3</code>. Example: standard</p>",
+                        "options": [
+                            {
+                                "content": "standard",
+                                "value": "standard"
+                            },
+                            {
+                                "content": "hd",
+                                "value": "hd"
+                            }
+                        ],
+                        "defaultValue": "standard"
+                    },
+                    "response_format": {
+                        "type": "select",
+                        "index": 4,
+                        "label": "Response Format",
+                        "tooltip": "<p>The format in which the generated images are returned. Must be one of <code>url</code> or <code>b64_json</code>. Example: url</p>",
+                        "options": [
+                            {
+                                "content": "url",
+                                "value": "url"
+                            },
+                            {
+                                "content": "b64_json",
+                                "value": "b64_json"
+                            }
+                        ],
+                        "defaultValue": "url"
+                    },
+                    "size": {
+                        "type": "select",
+                        "index": 5,
+                        "label": "Size",
+                        "tooltip": "<p>The size of the generated images. Must be one of <code>256x256</code>, <code>512x512</code>, or <code>1024x1024</code> for <code>dall-e-2</code>. Must be one of <code>1024x1024</code>, <code>1792x1024</code>, or <code>1024x1792</code> for <code>dall-e-3</code> models. Example: 1024x1024</p>",
+                        "options": [
+                            {
+                                "content": "256x256",
+                                "value": "256x256"
+                            },
+                            {
+                                "content": "512x512",
+                                "value": "512x512"
+                            },
+                            {
+                                "content": "1024x1024",
+                                "value": "1024x1024"
+                            },
+                            {
+                                "content": "1792x1024",
+                                "value": "1792x1024"
+                            },
+                            {
+                                "content": "1024x1792",
+                                "value": "1024x1792"
+                            }
+                        ],
+                        "defaultValue": "1024x1024"
+                    },
+                    "style": {
+                        "type": "select",
+                        "index": 6,
+                        "label": "Style",
+                        "tooltip": "<p>The style of the generated images. Must be one of <code>vivid</code> or <code>natural</code>. Vivid causes the model to lean towards generating hyper-real and dramatic images. Natural causes the model to produce more natural, less hyper-real looking images. This param is only supported for <code>dall-e-3</code>. Example: vivid</p>",
+                        "options": [
+                            {
+                                "content": "vivid",
+                                "value": "vivid"
+                            },
+                            {
+                                "content": "natural",
+                                "value": "natural"
+                            }
+                        ],
+                        "defaultValue": "vivid"
+                    },
+                    "user": {
+                        "type": "text",
+                        "index": 7,
+                        "label": "User",
+                        "tooltip": "<p>A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. <a href=\"https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids\" rel=\"noopener noreferrer\" target=\"_blank\">Learn more</a>.\n Example: user-1234</p>"
+                    },
+                    "xConnectorOutputType": {
+                        "label": "Output Options",
+                        "type": "select",
+                        "options": [
+                            {
+                                "content": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "content": "One item at a time",
+                                "value": "object"
+                            }
+                        ],
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether to output all items at once in a single list or, instead, output one item at a time. For example, if you only care about the first item, you can choose \"One item at a time\" and then use 1 as the \"Limit\" parameter.",
+                        "index": -1
+                    },
+                    "xConnectorPaginationLimit": {
+                        "label": "Limit",
+                        "type": "number",
+                        "defaultValue": 10,
+                        "tooltip": "The total number of items to return.",
+                        "index": -1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/openai/core/createImage?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/xConnectorOutputType": "inputs/in/xConnectorOutputType",
+                        "in/prompt": "inputs/in/prompt"
+                    }
+                }
+            }
+        }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:openai"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNHB4IiBoZWlnaHQ9IjI0cHgiIGZpbGw9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0IiBjb2xvcj0iYmxhY2siPjxwYXRoIGQ9Ik0yMi40MTggOS44MjJhNS45MDMgNS45MDMgMCAwIDAtLjUyLTQuOTEgNi4xIDYuMSAwIDAgMC0yLjgyMi0yLjUxMyA2LjIwNCA2LjIwNCAwIDAgMC0zLjc4LS4zODlBNi4wNTUgNi4wNTUgMCAwIDAgMTMuMjMyLjUxOCA2LjEyOSA2LjEyOSAwIDAgMCAxMC43MjYgMGE2LjE4NSA2LjE4NSAwIDAgMC0zLjYxNSAxLjE1M0E2LjA1MiA2LjA1MiAwIDAgMCA0Ljg4IDQuMTg3YTYuMTAyIDYuMTAyIDAgMCAwLTIuMzQ0IDEuMDE4QTYuMDA4IDYuMDA4IDAgMCAwIC44MjggNy4wODdhNS45ODEgNS45ODEgMCAwIDAgLjc1NCA3LjA5IDUuOTA0IDUuOTA0IDAgMCAwIC41MiA0LjkxMSA2LjEwMSA2LjEwMSAwIDAgMCAyLjgyMSAyLjUxMyA2LjIwNSA2LjIwNSAwIDAgMCAzLjc4LjM4OSA2LjA1NyA2LjA1NyAwIDAgMCAyLjA2NSAxLjQ5MiA2LjEzIDYuMTMgMCAwIDAgMi41MDUuNTE4IDYuMTg1IDYuMTg1IDAgMCAwIDMuNjE3LTEuMTU0IDYuMDUyIDYuMDUyIDAgMCAwIDIuMjMyLTMuMDM1IDYuMTAxIDYuMTAxIDAgMCAwIDIuMzQzLTEuMDE4IDYuMDA5IDYuMDA5IDAgMCAwIDEuNzA5LTEuODgzIDUuOTgxIDUuOTgxIDAgMCAwLS43NTYtNy4wODhabS05LjE0MyAxMi42MDlhNC41ODMgNC41ODMgMCAwIDEtMi45MTgtMS4wNGMuMDM3LS4wMi4xMDItLjA1Ni4xNDQtLjA4MWw0Ljg0NC0yLjc2YS43ODMuNzgzIDAgMCAwIC4zOTctLjY4di02LjczOEwxNy43OSAxMi4zYS4wNzIuMDcyIDAgMCAxIC4wNC4wNTV2NS41OGE0LjQ3MyA0LjQ3MyAwIDAgMS0xLjMzNSAzLjE3NiA0LjU5NiA0LjU5NiAwIDAgMS0zLjIxOSAxLjMyMVptLTkuNzkzLTQuMTI3YTQuNDMyIDQuNDMyIDAgMCAxLS41NDQtMy4wMTRjLjAzNi4wMjEuMDk5LjA2LjE0NC4wODVsNC44NDMgMi43NmEuNzk2Ljc5NiAwIDAgMCAuNzk1IDBsNS45MTMtMy4zNjlWMTcuMWEuMDcxLjA3MSAwIDAgMS0uMDI5LjA2Mkw5LjcwOCAxOS45NWE0LjYxNyA0LjYxNyAwIDAgMS0zLjQ1OC40NDcgNC41NTYgNC41NTYgMCAwIDEtMi43NjgtMi4wOTNaTTIuMjA4IDcuODcyQTQuNTI3IDQuNTI3IDAgMCAxIDQuNTggNS45bC0uMDAyLjE2NHY1LjUyYS43NjguNzY4IDAgMCAwIC4zOTcuNjhsNS45MTMgMy4zNjktMi4wNDcgMS4xNjZhLjA3NS4wNzUgMCAwIDEtLjA2OS4wMDZsLTQuODk2LTIuNzkyYTQuNTEgNC41MSAwIDAgMS0yLjEyLTIuNzMgNC40NSA0LjQ1IDAgMCAxIC40NTItMy40MTFabTE2LjgxOCAzLjg2MS01LjkxMy0zLjM2OCAyLjA0Ny0xLjE2NmEuMDc0LjA3NCAwIDAgMSAuMDctLjAwNmw0Ljg5NiAyLjc4OWE0LjUyNiA0LjUyNiAwIDAgMSAxLjc2MiAxLjgxNSA0LjQ0OCA0LjQ0OCAwIDAgMS0uNDE4IDQuODA4IDQuNTU2IDQuNTU2IDAgMCAxLTIuMDQ5IDEuNDk0di01LjY4NmEuNzY3Ljc2NyAwIDAgMC0uMzk1LS42OFptMi4wMzgtMy4wMjVhNi44NzQgNi44NzQgMCAwIDAtLjE0NC0uMDg1bC00Ljg0My0yLjc2YS43OTcuNzk3IDAgMCAwLS43OTYgMEw5LjM2OCA5LjIzVjYuOWEuMDcyLjA3MiAwIDAgMSAuMDMtLjA2Mmw0Ljg5NS0yLjc4N2E0LjYwOCA0LjYwOCAwIDAgMSA0Ljg4NS4yMDcgNC41MSA0LjUxIDAgMCAxIDEuNTk5IDEuOTU1Yy4zMzMuNzg4LjQzMyAxLjY1NC4yODcgMi40OTZaTTguMjU1IDEyLjg2NSA2LjIwOCAxMS43YS4wNzEuMDcxIDAgMCAxLS4wNC0uMDU2di01LjU4YzAtLjg1NC4yNDgtMS42OS43MTMtMi40MTJhNC41NCA0LjU0IDAgMCAxIDEuOTEzLTEuNjU4IDQuNjE0IDQuNjE0IDAgMCAxIDQuODUuNjE2Yy0uMDM3LjAyLS4xMDIuMDU1LS4xNDQuMDhMOC42NTcgNS40NTJhLjc4Mi43ODIgMCAwIDAtLjM5OC42OGwtLjAwNCA2LjczNFpNOS4zNjcgMTAuNSAxMi4wMDEgOWwyLjYzMyAxLjV2M0wxMi4wMDEgMTVsLTIuNjM0LTEuNXYtM1oiLz48L3N2Zz4="
+}

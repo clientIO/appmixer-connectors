@@ -1,0 +1,82 @@
+{
+    "name": "appmixer.utils.test.ProcessE2EResults",
+    "author": "Camilo Manrique <camilo@client.io>",
+    "label": "Process E2E Results",
+    "description": "Process result from AfterAll component and send email notification.",
+    "properties": {
+        "schema": {
+            "properties": {
+                "successStoreId": { "type": "string" },
+                "failedStoreId": { "type": "string" }
+            },
+            "required": ["successStoreId", "failedStoreId"]
+        },
+        "inspector": {
+            "inputs": {
+                "successStoreId": {
+                    "type": "select",
+                    "label": "Success Storage",
+                    "index": 1,
+                    "source": {
+
+                        "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                        "data": {
+                            "transform": "./ListStores#toSelectArray"
+                        }
+                    },
+                    "tooltip": "This is the storage that will be used to store results when test is successful."
+                },
+                "failedStoreId": {
+                    "type": "select",
+                    "label": "Failure Storage",
+                    "index": 2,
+                    "source": {
+
+                        "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                        "data": {
+                            "transform": "./ListStores#toSelectArray"
+                        }
+                    },
+                    "tooltip": "This is the storage that will be used to store results when test fails."
+                }
+            }
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "recipients": { "type": "string", "format": "email" },
+                    "testCase": { "type": "string" },
+                    "result": { "type": "string" }
+                },
+                "required": [ "recipients", "testCase", "result" ]
+            },
+            "inspector": {
+                "inputs": {
+                    "recipients": {
+                        "type": "text",
+                        "label": "Recipients",
+                        "index": 1,
+                        "tooltip": "Comma separated list of email recipients of the results."
+                    },
+                    "testCase": {
+                        "type": "text",
+                        "label": "Test case name",
+                        "index": 2,
+                        "tooltip": "Name for this test case."
+                    },
+                    "result": {
+                        "type": "select",
+                        "label": "Results",
+                        "index": 3,
+                        "tooltip": "This should be the output from AfterAll component."
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAFL0lEQVR42u2b4XHbMAxGkQ3SDTRCRnA3SCaoMkGTCepOkHSCuhM0G1TdoCN4hGzQCkfzzueGsQgCFGh+7453+SGZkPhIgqRyRaBrrhR/6+/aD9MpRW0IAdoHAnQOBOgcCNA5EKBzIEDnQIDOgQCdAwE6pwkBNOvpEbN3CwHaAAJ0DgToHAjQORCgcyBA50CAzoEAnQMBOgcCdE4XAqx1ltCCnBDAEAjgJEgIkAYCGAIBnAQJAdJAAEMggJMgIUAaCGAIBHASJARIAwEMgQBOgoQAaSCAIRDASZAQIA0EMAQCOAkSAqSBAIZAACdBQoA0EMAQCOAkSAiQBgIYAgGcBAkB0kAAQyCAkyAhQBoIYAgEcBIkBEgDAQyBAE6ChABpIIAhEMBJkBAgDQQwBAI4CRICpIEAhkAAJ0FCgDQQwBAI4CRICJAGAhgCAZwECQHSQABDIID3IAEEsMb76AMBjIEACkCAfCCAEyCAAhAgHwjgBAigAATIBwI4AQIoAAHygQBOgAAKQIB8IIATIIACECAfCOAECKAABMgHAjgBAigAAfKBAE6AAApAgHwggBMggAIQIB8I4AQIoAAEyAcCOGENAXZzuVeIDwIYx27B81weleKDAMaxa8O9fqcYHwQwjl2LVwqN/6IcHwQwjl0DbvyPc/ljEB8EMI69FG50bvxXo/iaEGA/lzuS9wBrrATYUUj2pI2/ncuXM9c0IQBR+TBoiYUAXyk0oJTvcxkXXNeMABFJFmyNpgAs+mPBM17P5edcNguvb04Ahl/Qs2LdNWN/jz2VTXXc+L/mcpNxT5MCMDtavhNmjYYAE4XGl8733Ojc+NcZ93BdH0qC1hRgpDBv5TBR2UvTolSA3J29U24pvLucxtdYXagvz8a5PAkehCXYK8eSg1SAks2dyEj5HUel8RmL9bl0KFtzhSARgGO9L4x5aaZ/zI4Up06rDZqbw8PlJDNE660QJPlLyfo+N9OPlE41/2G5QyfJaJnS9bOEpQJoDPmuOkeNLVrJMPdyeOBayeESAaZDTPuCejYUen7u9Hh3qF+dWnv0Wzq/pXlKzeTwnAAao9JI+cnenoy30Gse0khegKn9R6QE4HpLez2RbBRUy/Tfo/YpnWSFwFjvHJ4KULqdG5HmQTsqSzIXs8Yx7UBhHvT0UqIA/NvfKMhWWo9U9qpJ8Frn9NJlkFVewEP0b9LLskeSTXcao04Wa3+oIZkbNZZiVrDYT8JnWmUjbG0BmJHyewuzxn7Be0jX91WSvRQeBGCk8+VEPg6TRso/A2F2VCnZS+FFAGYgWXJYa6n4FtIhn3HxTYQnAZiSF1p7SpAO+a5yGG8CRB4oiJBLrd3DkvhKTxBV8SoAs6H8fXOGexiPBhbD60Ch128E99Y+31iEZwGYgWR5ATORzjZuhHs9n2fkCsm4mO/fwrsAEcl+ARN39rYFdQ8k7/VrJqiLaEUAZiTZUovhOZd74ZRxD9cTe72EVdf3S2lJAEaaeUcmWjYtjCSXjVH/cseK1gRgSpaKkYnC1HC8FBsOv/np8LcEV0u8JbQoQGSksl4amSg0+KDwO5pJZxVaFoApnRK08HYusZjWBYhsSZ6slbAn3//1fJZLEYDZUBgNhkr1caLHPd91ln+OSxKA4XyAR4IHwzr2FOb6ae2H1eDSBIhsyGY0uIhef8ylChDZzuUzla8UJBtJTXDpAjADheXireDeVb7Tq0kPAkQ2FPKDzYJrNb8Odk1PAkR4z4CnBR4RTqcGHup/UOjxF93wkX8pFNGQT2soYQAAAABJRU5ErkJggg=="
+}

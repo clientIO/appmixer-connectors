@@ -1,0 +1,116 @@
+{
+    "name": "appmixer.activecampaign.tasks.ListTasks",
+    "author": "Camilo Manrique <camilo@client.io>",
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjg4IiBoZWlnaHQ9IjI4OCIgdmlld0JveD0iMCAwIDI4OCAyODgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiPgo8cGF0aCBkPSJNMzUuOCAwSDI1MS44QzI3MS43IDAgMjg3LjggMTYuMSAyODcuOCAzNlYyNTJDMjg3LjggMjcxLjkgMjcxLjcgMjg4IDI1MS44IDI4OEgzNS44QzE1LjkgMjg4IC0wLjIwMDAxMiAyNzEuOSAtMC4yMDAwMTIgMjUyVjM2Qy0wLjIwMDAxMiAxNi4xIDE1LjkgMCAzNS44IDBaIiBmaWxsPSIjMzU2QUU2Ii8+CjxwYXRoIGQ9Ik0xNDYuNiAxNTAuN0MxNDkuMiAxNTAuNyAxNTEuOCAxNDkuNyAxNTQuNiAxNDcuNkMxNTcuOSAxNDUuMyAxNjAuOCAxNDMuNCAxNjAuOCAxNDMuNEwxNjEuOCAxNDIuN0wxNjAuOCAxNDJDMTYwLjQgMTQxLjcgMTE2LjkgMTExLjUgMTEyLjQgMTA4LjZDMTEwLjMgMTA3LjEgMTA3LjkgMTA2LjggMTA2IDEwNy43QzEwNC4yIDEwOC42IDEwMy4yIDExMC41IDEwMy4yIDExMi44VjEyMy4xTDEwMy42IDEyMy4zQzEwMy45IDEyMy41IDEzMy44IDE0NC4zIDEzOS42IDE0OC4yQzE0MiAxNDkuOSAxNDQuMyAxNTAuNyAxNDYuNiAxNTAuN1oiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yMDQuOSAxMzIuNkMyMDIuMyAxMzAuNyAxMDkgNjUuNiAxMDUgNjIuOEwxMDMuNyA2MS45Vjc3LjlDMTAzLjcgODMgMTA2LjQgODQuOSAxMDkuNyA4Ny4zQzEwOS43IDg3LjMgMTgxLjMgMTM3LjIgMTkwLjIgMTQzLjNDMTgxLjMgMTQ5LjUgMTEzLjkgMTk2LjIgMTA5LjYgMTk4LjlDMTA0LjUgMjAyLjMgMTA0IDIwNC41IDEwNCAyMDkuMVYyMjYuM0MxMDQgMjI2LjMgMjAyLjcgMTU1LjcgMjA0LjggMTU0LjFDMjA5LjMgMTUwLjcgMjEwLjMgMTQ2LjcgMjEwLjQgMTQzLjhWMTQyQzIxMC41IDEzOC40IDIwOC42IDEzNS4yIDIwNC45IDEzMi42WiIgZmlsbD0id2hpdGUiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMCI+CjxyZWN0IHdpZHRoPSIyODgiIGhlaWdodD0iMjg4IiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=",
+    "description": "List and filter tasks.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:activecampaign"
+    },
+    "quota": {
+        "manager": "appmixer:activecampaign",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "limit": { "type": "string" },
+                    "filter": { "type": "boolean" },
+                    "title": { "type": "string" },
+                    "relationship": { "type": "string" },
+                    "contactId": { "type": "string" },
+                    "dealId": { "type": "string" },
+                    "status": { "type": "string" }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "limit": {
+                        "type": "number",
+                        "label": "Limit",
+                        "tooltip": "The maximum number of tasks to fetch. If left blank, the limit will be 100.",
+                        "defaultValue": 100,
+                        "index": 1
+                    },
+                    "filter": {
+                        "type": "toggle",
+                        "label": "Filter contacts",
+                        "tooltip": "If set to true, it allows setting several task filters.",
+                        "defaultValue": false,
+                        "index": 2
+                    },
+                    "title": {
+                        "when": { "eq": { "./filter": true }},
+                        "type": "text",
+                        "label": "Title",
+                        "tooltip": "Filter deals that match the given value in the title, contact names or organization.",
+                        "index": 3
+                    },
+                    "relationship": {
+                        "when": { "eq": { "./filter": true }},
+                        "type": "select",
+                        "label": "Relationship",
+                        "tooltip": "Search for tasks related to deals or contacts.",
+                        "index": 4,
+                        "options": [
+                            { "label": "Deal", "value": "Deal" },
+                            { "label": "Contact", "value": "Subscriber" }
+                        ]
+                    },
+                    "contactId": {
+                        "when": { "eq": { "./relationship": "Subscriber" }},
+                        "type": "select",
+                        "label": "Contact",
+                        "tooltip": "The task which the contact is related to. You can select from the list or use Contact ID from another component.",
+                        "index": 5,
+                        "source": {
+                            "url": "/component/appmixer/activecampaign/contacts/ListContacts?outPort=contacts",
+                            "data": {
+                                "transform": "./ListContacts#contactsToSelectArray"
+                            }
+                        }
+                    },
+                    "dealId": {
+                        "when": { "eq": { "./relationship": "Deal" }},
+                        "type": "select",
+                        "label": "Deals",
+                        "tooltip": "The deal which the task is related to. You can select from the list or use Deal ID from another component.",
+                        "index": 5,
+                        "source": {
+                            "url": "/component/appmixer/activecampaign/deals/ListDeals?outPort=deals",
+                            "data": {
+                                "transform": "./ListDeals#dealsToSelectArray"
+                            }
+                        }
+                    },
+                    "status": {
+                        "when": { "eq": { "./filter": true }},
+                        "type": "select",
+                        "label": "Status",
+                        "tooltip": "Filter tasks by their status.",
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "Incomplete", "value": "0" },
+                            { "label": "Complete", "value": "1" }
+                        ],
+                        "index": 6
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "tasks",
+            "options": [
+                { "label": "Tasks", "value": "tasks" }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,64 @@
+{
+    "name": "appmixer.google.calendar.DeleteCalendar",
+    "author": "Pawel Putko <pawel.putko@neoteric.eu>",
+    "description": "Delete a calendar in your calendars.",
+    "auth": {
+        "service": "appmixer:google",
+        "scope": [
+            "https://www.googleapis.com/auth/calendar",
+            "https://www.googleapis.com/auth/calendar.readonly"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:google:calendar",
+        "maxWait": 5000,
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "inspector": {
+                "inputs": {
+                    "calendarId": {
+                        "type": "select",
+                        "label": "Calendar",
+                        "source": {
+                            "url": "/component/appmixer/google/calendar/ListCalendars?outPort=out",
+                            "data": {
+                                "transform": "./transformers#calendarsToSelectArray"
+                            }
+                        },
+                        "index": 1,
+                        "tooltip": "Calendar Id you want to delete."
+                    }
+                }
+            },
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "calendarId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "calendarId"
+                ]
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "deleted",
+            "options": [
+                {
+                    "label": "calendarId",
+                    "value": "calendarId"
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMjEuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDQ4IDQ4IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA0OCA0ODsiIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSI0ODBweCIgaGVpZ2h0PSI0ODBweCI+CjxnIGlkPSJMYXllcl8xIj4KPC9nPgo8ZyBpZD0iTGF5ZXJfMiI+CjwvZz4KPGcgaWQ9IkxheWVyXzMiPgoJPHBhdGggc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO2ZpbGw6I0M3QzdDNzsiIGQ9Ik0zOCw1Yy02LjMwMiwwLTIxLjY5OCwwLTI4LDBDOC44OTUsNSw4LDUuODk1LDgsNyAgIGMwLDMuMDQ3LDAsMywwLDNoMzJjMCwwLDAsMC4wNDcsMC0zQzQwLDUuODk1LDM5LjEwNSw1LDM4LDV6IE0xNCw4Yy0wLjU1MiwwLTEtMC40NDgtMS0xYzAtMC41NTIsMC40NDgtMSwxLTFzMSwwLjQ0OCwxLDEgICBDMTUsNy41NTIsMTQuNTUyLDgsMTQsOHogTTM0LDhjLTAuNTUyLDAtMS0wLjQ0OC0xLTFjMC0wLjU1MiwwLjQ0OC0xLDEtMXMxLDAuNDQ4LDEsMUMzNSw3LjU1MiwzNC41NTIsOCwzNCw4eiIvPgoJPHBhdGggc3R5bGU9ImZpbGwtcnVsZTpldmVub2RkO2NsaXAtcnVsZTpldmVub2RkO2ZpbGw6IzE5NzZEMjsiIGQ9Ik00NCwxMWMwLjEwMy0wLjU4Mi0xLjQwOS0yLTItMkMzNC44ODksOSwxMy4xMTEsOSw2LDkgICBjLTEsMC0yLjEwMywxLjQxOC0yLDJjMC44MjMsNC42NjQsMywxNSwzLDE1aDM0QzQxLDI2LDQzLjE3NywxNS42NjQsNDQsMTF6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMUU4OEU1OyIgZD0iTTQxLDI2SDdjMCwwLTIuMTc3LDEwLjMzNi0zLDE1YzAsMS4xNDYsMC43OTIsMiwyLDIgICBjNy4xMTEsMCwyOC44ODksMCwzNiwwYzAuNTkxLDAsMi0wLjUsMi0yQzQzLjE3NywzNi4zMzYsNDEsMjYsNDEsMjZ6Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojRkFGQUZBOyIgZD0iTTIwLjUzNCwyNmMwLjk4NCwwLjMyNSwxLjY4NywwLjg1LDIuMTA1LDEuNTU3ICAgYzAuNDMzLDAuNzMyLDAuNjUsMS41NSwwLjY1LDIuNDU3YzAsMS41ODItMC41MTksMi44MjYtMS41NTYsMy43MzNjLTEuMDM3LDAuOTA2LTIuMzYzLDEuMzYtMy45NzcsMS4zNiAgIGMtMS41ODIsMC0yLjg5Mi0wLjQyNy0zLjkzLTEuMjgyYy0xLjAzOC0wLjg1NS0xLjUzNi0yLjAxNC0xLjQ5Ny0zLjQ3NmwwLjAzNi0wLjA3MmgyLjI0MmMwLDAuOTE0LDAuMjgsMS42NDIsMC44NDEsMi4xODIgICBjMC41NiwwLjU0MSwxLjMzLDAuODExLDIuMzA4LDAuODExYzAuOTk0LDAsMS43NzMtMC4yNywyLjMzNy0wLjgxMWMwLjU2NC0wLjU0MSwwLjg0Ny0xLjM0LDAuODQ3LTIuMzk3ICAgYzAtMS4wNzMtMC4yNS0xLjg2NC0wLjc1MS0yLjM3M2MtMC41MDEtMC41MDktMS4yOTItMC43NjMtMi4zNzMtMC43NjNoLTIuMDUxVjI2SDIwLjUzNHoiLz4KCTxyZWN0IHg9IjMxLjYzNyIgeT0iMjYiIHN0eWxlPSJmaWxsLXJ1bGU6ZXZlbm9kZDtjbGlwLXJ1bGU6ZXZlbm9kZDtmaWxsOiNGQUZBRkE7IiB3aWR0aD0iMi4zNDkiIGhlaWdodD0iOC44NTYiLz4KCTxwYXRoIHN0eWxlPSJmaWxsLXJ1bGU6ZXZlbm9kZDtjbGlwLXJ1bGU6ZXZlbm9kZDtmaWxsOiNFMEUwRTA7IiBkPSJNMTQuNzI3LDIyLjAzNmgtMi4yNTRsLTAuMDI0LTAuMDcyICAgYy0wLjA0LTEuMzEyLDAuNDM1LTIuNDI3LDEuNDI1LTMuMzQ1YzAuOTktMC45MTgsMi4yODQtMS4zNzcsMy44ODItMS4zNzdjMS42MDYsMCwyLjg4NiwwLjQyNywzLjg0LDEuMjgyICAgYzAuOTU0LDAuODU1LDEuNDMxLDIuMDczLDEuNDMxLDMuNjU1YzAsMC43MTYtMC4yMTcsMS40MjktMC42NSwyLjE0MWMtMC40MzMsMC43MTItMS4wODMsMS4yNTQtMS45NSwxLjYyOEwyMC41MzQsMjZoLTQuNzd2LTAuOTExICAgaDIuMDUxYzEuMDQyLDAsMS43NzktMC4yNiwyLjIxMi0wLjc4MWMwLjQzMy0wLjUyMSwwLjY1LTEuMjQ2LDAuNjUtMi4xNzZjMC0wLjk5NC0wLjI0Ni0xLjc0OS0wLjczOS0yLjI2NiAgIGMtMC40OTMtMC41MTctMS4yMi0wLjc3NS0yLjE4Mi0wLjc3NWMtMC45MTQsMC0xLjY0OCwwLjI2OC0yLjIsMC44MDVDMTUuMDIyLDIwLjQxNCwxNC43NDYsMjEuMDk4LDE0LjcyNywyMi4wMzZ6Ii8+Cgk8cG9seWdvbiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojRTBFMEUwOyIgcG9pbnRzPSIzMy45ODYsMjYgMzEuNjM3LDI2IDMxLjYzNywxOS43ODIgMjguMDgzLDE5LjgzICAgIDI4LjA4MywxOC4xMzYgMzMuOTg2LDE3LjQ5MiAgIi8+Cgk8cGF0aCBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMTk3NkQyOyIgZD0iTTYsOWMtMS40MzgsMC0yLjEwMywxLjQxOC0yLDJjMC44MjMsNC42NjQsMywxNSwzLDE1Ii8+Cgk8cGF0aCBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7ZmlsbDojMTk3NkQyOyIgZD0iTTQxLDI2YzAsMCwyLjE3Ny0xMC4zMzYsMy0xNWMwLTEuNjI1LTEuNDA5LTItMi0yIi8+CjwvZz4KPC9zdmc+Cg=="
+}

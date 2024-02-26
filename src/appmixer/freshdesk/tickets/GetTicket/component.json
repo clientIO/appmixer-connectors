@@ -1,0 +1,68 @@
+{
+    "name": "appmixer.freshdesk.tickets.GetTicket",
+    "author": "Camilo Manrique <camilo@client.io>",
+    "description": "Get a ticket in Freshdesk.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:freshdesk"
+    },
+    "quota": {
+        "manager": "appmixer:freshdesk",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "ticketId": { "type": "string" },
+                    "embed": { "type": "array" }
+                },
+                "required": [
+                    "ticketId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "ticketId": {
+                        "type": "text",
+                        "label": "Ticket ID",
+                        "index": 1
+                    },
+                    "embed": {
+                        "type": "multiselect",
+                        "label": "Embed fields",
+                        "index": 2,
+                        "tooltip": "Additional fields to include on retrieved ticket. Note that each additional field will spend additional API credits",
+                        "options": [
+                            { "label": "conversations", "value": "conversations" },
+                            { "label": "requester", "value": "requester" },
+                            { "label": "company", "value": "company" },
+                            { "label": "stats", "value": "stats" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "ticket",
+            "source": {
+                "url": "/component/appmixer/freshdesk/tickets/GenerateTicketsOutput?outPort=out",
+                "data": {
+                    "properties": {
+                        "operation": 2,
+                        "getTicketEmbedFields": "inputs/in/embed"
+                    },
+                    "transform": "./GenerateTicketsOutput#getTicketComponentOutput"
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHBhdGggZD0iTTMxLjkgMGgyNC4wMzZBOCA4IDAgMCAxIDY0IDguMDczVjMyLjFDNjQgNDkuNzIyIDQ5LjcyMiA2NCAzMi4xIDY0aC0uMTgyQTMxLjg5IDMxLjg5IDAgMCAxIDAgMzIuMTA5QzAgMTQuNDM3IDE0LjI1NC4xODIgMzEuOSAweiIgZmlsbD0iIzI1YzE2ZiIvPjxwYXRoIGQ9Ik0zMS45IDE0LjI1NWMtOC4wOTMgMC0xNC42NTQgNi41Ni0xNC42NTQgMTQuNjU0djkuOTY0Yy4wNTggMi42NjcgMi4yMDYgNC44MTUgNC44NzMgNC44NzNoNC4xNDVWMzIuM2gtNS42di0zLjJjLjM0LTYuMDI2IDUuMzI3LTEwLjc0IDExLjM2NC0xMC43NFM0My4wNCAyMy4wNjUgNDMuMzggMjkuMXYzLjJIMzcuN3YxMS40NTRoMy43NDV2LjE4MmMtLjA0IDIuNDc0LTIuMDM1IDQuNDctNC41IDQuNWgtNC40NzNjLS4zNjQgMC0uNzY0LjE4Mi0uNzY0LjU0NWEuOC44IDAgMCAwIC43NjQuNzY0aDQuNWMzLjIwNS0uMDIgNS43OTgtMi42MTMgNS44MTgtNS44MTh2LS4zNjRhNC44IDQuOCAwIDAgMCAzLjc0NS00LjcyN1YyOS4xYy4xODItOC4yNTQtNi4zNjQtMTQuODM2LTE0LjY1NC0xNC44MzZ6IiBmaWxsPSIjZmZmIi8+PC9zdmc+"
+}

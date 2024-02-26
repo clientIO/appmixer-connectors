@@ -1,0 +1,258 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.openai.core.createFineTuningJob",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Creates a job that fine-tunes a specified model from a given dataset.</p>\n<p>Response includes details of the enqueued job including job status and the name of the fine-tuned models once complete.</p>\n<p><a href=\"https://platform.openai.com/docs/guides/fine-tuning\" rel=\"noopener noreferrer\" target=\"_blank\">Learn more about fine-tuning</a></p></label>",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "model",
+                    "training_file"
+                ],
+                "properties": {
+                    "model": {
+                        "description": "The name of the model to fine-tune. You can select one of the\n[supported models](/docs/guides/fine-tuning/what-models-can-be-fine-tuned).\n",
+                        "example": "gpt-3.5-turbo",
+                        "x-oaiTypeLabel": "string",
+                        "x-connector-source": {
+                            "operationId": "listModels",
+                            "transform": "result[].{value:id, label:id}"
+                        },
+                        "type": "string",
+                        "path": "model"
+                    },
+                    "training_file": {
+                        "description": "The ID of an uploaded file that contains training data.\n\nSee [upload file](/docs/api-reference/files/upload) for how to upload a file.\n\nYour dataset must be formatted as a JSONL file. Additionally, you must upload your file with the purpose `fine-tune`.\n\nSee the [fine-tuning guide](/docs/guides/fine-tuning) for more details.\n",
+                        "type": "string",
+                        "example": "file-abc123",
+                        "path": "training_file"
+                    },
+                    "suffix": {
+                        "description": "A string of up to 18 characters that will be added to your fine-tuned model name.\n\nFor example, a `suffix` of \"custom-model-name\" would produce a model name like `ft:gpt-3.5-turbo:openai:custom-model-name:7p4lURel`.\n",
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40,
+                        "default": null,
+                        "nullable": true,
+                        "path": "suffix"
+                    },
+                    "validation_file": {
+                        "description": "The ID of an uploaded file that contains validation data.\n\nIf you provide this file, the data is used to generate validation\nmetrics periodically during fine-tuning. These metrics can be viewed in\nthe fine-tuning results file.\nThe same data should not be present in both train and validation files.\n\nYour dataset must be formatted as a JSONL file. You must upload your file with the purpose `fine-tune`.\n\nSee the [fine-tuning guide](/docs/guides/fine-tuning) for more details.\n",
+                        "type": "string",
+                        "nullable": true,
+                        "example": "file-abc123",
+                        "path": "validation_file"
+                    },
+                    "hyperparameters|batch_size": {
+                        "description": "Number of examples in each batch. A larger batch size means that model parameters\nare updated less frequently, but with lower variance.\n",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "auto"
+                                ]
+                            },
+                            {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 256
+                            }
+                        ],
+                        "default": "auto",
+                        "path": "hyperparameters.batch_size"
+                    },
+                    "hyperparameters|learning_rate_multiplier": {
+                        "description": "Scaling factor for the learning rate. A smaller learning rate may be useful to avoid\noverfitting.\n",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "auto"
+                                ]
+                            },
+                            {
+                                "type": "number",
+                                "minimum": 0
+                            }
+                        ],
+                        "default": "auto",
+                        "path": "hyperparameters.learning_rate_multiplier"
+                    },
+                    "hyperparameters|n_epochs": {
+                        "description": "The number of epochs to train the model for. An epoch refers to one full cycle \nthrough the training dataset.\n",
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "auto"
+                                ]
+                            },
+                            {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50
+                            }
+                        ],
+                        "default": "auto",
+                        "path": "hyperparameters.n_epochs"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "model": {
+                        "type": "select",
+                        "index": 0,
+                        "label": "Model",
+                        "tooltip": "<p>The name of the model to fine-tune. You can select one of the\n<a href=\"https://platform.openai.com/docs/guides/fine-tuning/what-models-can-be-fine-tuned\" rel=\"noopener noreferrer\" target=\"_blank\">supported models</a>.\n Example: gpt-3.5-turbo</p>",
+                        "source": {
+                            "url": "/component/appmixer/openai/core/listModels?outPort=out",
+                            "data": {
+                                "transform": "./transform#toSelectOptions"
+                            }
+                        }
+                    },
+                    "training_file": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Training File",
+                        "tooltip": "<p>The ID of an uploaded file that contains training data.</p>\n<p>See <a href=\"https://platform.openai.com/docs/api-reference/files/upload\" rel=\"noopener noreferrer\" target=\"_blank\">upload file</a> for how to upload a file.</p>\n<p>Your dataset must be formatted as a JSONL file. Additionally, you must upload your file with the purpose <code>fine-tune</code>.</p>\n<p>See the <a href=\"https://platform.openai.com/docs/guides/fine-tuning\" rel=\"noopener noreferrer\" target=\"_blank\">fine-tuning guide</a> for more details.\n Example: file-abc123</p>"
+                    },
+                    "suffix": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Suffix",
+                        "tooltip": "<p>A string of up to 18 characters that will be added to your fine-tuned model name.</p>\n<p>For example, a <code>suffix</code> of \"custom-model-name\" would produce a model name like <code>ft:gpt-3.5-turbo:openai:custom-model-name:7p4lURel</code>.</p>",
+                        "defaultValue": null
+                    },
+                    "validation_file": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "Validation File",
+                        "tooltip": "<p>The ID of an uploaded file that contains validation data.</p>\n<p>If you provide this file, the data is used to generate validation\nmetrics periodically during fine-tuning. These metrics can be viewed in\nthe fine-tuning results file.\nThe same data should not be present in both train and validation files.</p>\n<p>Your dataset must be formatted as a JSONL file. You must upload your file with the purpose <code>fine-tune</code>.</p>\n<p>See the <a href=\"https://platform.openai.com/docs/guides/fine-tuning\" rel=\"noopener noreferrer\" target=\"_blank\">fine-tuning guide</a> for more details.\n Example: file-abc123</p>"
+                    },
+                    "hyperparameters|batch_size": {
+                        "type": "number",
+                        "index": 4,
+                        "label": "Hyperparameters Batch Size",
+                        "tooltip": "<p>Number of examples in each batch. A larger batch size means that model parameters\nare updated less frequently, but with lower variance.</p>",
+                        "min": 1,
+                        "max": 256
+                    },
+                    "hyperparameters|learning_rate_multiplier": {
+                        "type": "number",
+                        "index": 5,
+                        "label": "Hyperparameters Learning Rate Multiplier",
+                        "tooltip": "<p>Scaling factor for the learning rate. A smaller learning rate may be useful to avoid\noverfitting.</p>",
+                        "min": 0
+                    },
+                    "hyperparameters|n_epochs": {
+                        "type": "number",
+                        "index": 6,
+                        "label": "Hyperparameters N Epochs",
+                        "tooltip": "<p>The number of epochs to train the model for. An epoch refers to one full cycle \nthrough the training dataset.</p>",
+                        "min": 1,
+                        "max": 50
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Id",
+                    "value": "id"
+                },
+                {
+                    "label": "Created At",
+                    "value": "created_at"
+                },
+                {
+                    "label": "Error",
+                    "value": "error"
+                },
+                {
+                    "label": "Error Code",
+                    "value": "error.code"
+                },
+                {
+                    "label": "Error Message",
+                    "value": "error.message"
+                },
+                {
+                    "label": "Error Param",
+                    "value": "error.param"
+                },
+                {
+                    "label": "Fine Tuned Model",
+                    "value": "fine_tuned_model"
+                },
+                {
+                    "label": "Finished At",
+                    "value": "finished_at"
+                },
+                {
+                    "label": "Hyperparameters",
+                    "value": "hyperparameters"
+                },
+                {
+                    "label": "Hyperparameters N Epochs",
+                    "value": "hyperparameters.n_epochs"
+                },
+                {
+                    "label": "Model",
+                    "value": "model"
+                },
+                {
+                    "label": "Object",
+                    "value": "object"
+                },
+                {
+                    "label": "Organization Id",
+                    "value": "organization_id"
+                },
+                {
+                    "label": "Result Files",
+                    "value": "result_files",
+                    "schema": {
+                        "type": "array",
+                        "description": "The compiled results file ID(s) for the fine-tuning job. You can retrieve the results with the [Files API](/docs/api-reference/files/retrieve-contents).",
+                        "items": {
+                            "type": "string",
+                            "example": "file-abc123"
+                        }
+                    }
+                },
+                {
+                    "label": "Status",
+                    "value": "status"
+                },
+                {
+                    "label": "Trained Tokens",
+                    "value": "trained_tokens"
+                },
+                {
+                    "label": "Training File",
+                    "value": "training_file"
+                },
+                {
+                    "label": "Validation File",
+                    "value": "validation_file"
+                }
+            ]
+        }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:openai"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNHB4IiBoZWlnaHQ9IjI0cHgiIGZpbGw9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0IiBjb2xvcj0iYmxhY2siPjxwYXRoIGQ9Ik0yMi40MTggOS44MjJhNS45MDMgNS45MDMgMCAwIDAtLjUyLTQuOTEgNi4xIDYuMSAwIDAgMC0yLjgyMi0yLjUxMyA2LjIwNCA2LjIwNCAwIDAgMC0zLjc4LS4zODlBNi4wNTUgNi4wNTUgMCAwIDAgMTMuMjMyLjUxOCA2LjEyOSA2LjEyOSAwIDAgMCAxMC43MjYgMGE2LjE4NSA2LjE4NSAwIDAgMC0zLjYxNSAxLjE1M0E2LjA1MiA2LjA1MiAwIDAgMCA0Ljg4IDQuMTg3YTYuMTAyIDYuMTAyIDAgMCAwLTIuMzQ0IDEuMDE4QTYuMDA4IDYuMDA4IDAgMCAwIC44MjggNy4wODdhNS45ODEgNS45ODEgMCAwIDAgLjc1NCA3LjA5IDUuOTA0IDUuOTA0IDAgMCAwIC41MiA0LjkxMSA2LjEwMSA2LjEwMSAwIDAgMCAyLjgyMSAyLjUxMyA2LjIwNSA2LjIwNSAwIDAgMCAzLjc4LjM4OSA2LjA1NyA2LjA1NyAwIDAgMCAyLjA2NSAxLjQ5MiA2LjEzIDYuMTMgMCAwIDAgMi41MDUuNTE4IDYuMTg1IDYuMTg1IDAgMCAwIDMuNjE3LTEuMTU0IDYuMDUyIDYuMDUyIDAgMCAwIDIuMjMyLTMuMDM1IDYuMTAxIDYuMTAxIDAgMCAwIDIuMzQzLTEuMDE4IDYuMDA5IDYuMDA5IDAgMCAwIDEuNzA5LTEuODgzIDUuOTgxIDUuOTgxIDAgMCAwLS43NTYtNy4wODhabS05LjE0MyAxMi42MDlhNC41ODMgNC41ODMgMCAwIDEtMi45MTgtMS4wNGMuMDM3LS4wMi4xMDItLjA1Ni4xNDQtLjA4MWw0Ljg0NC0yLjc2YS43ODMuNzgzIDAgMCAwIC4zOTctLjY4di02LjczOEwxNy43OSAxMi4zYS4wNzIuMDcyIDAgMCAxIC4wNC4wNTV2NS41OGE0LjQ3MyA0LjQ3MyAwIDAgMS0xLjMzNSAzLjE3NiA0LjU5NiA0LjU5NiAwIDAgMS0zLjIxOSAxLjMyMVptLTkuNzkzLTQuMTI3YTQuNDMyIDQuNDMyIDAgMCAxLS41NDQtMy4wMTRjLjAzNi4wMjEuMDk5LjA2LjE0NC4wODVsNC44NDMgMi43NmEuNzk2Ljc5NiAwIDAgMCAuNzk1IDBsNS45MTMtMy4zNjlWMTcuMWEuMDcxLjA3MSAwIDAgMS0uMDI5LjA2Mkw5LjcwOCAxOS45NWE0LjYxNyA0LjYxNyAwIDAgMS0zLjQ1OC40NDcgNC41NTYgNC41NTYgMCAwIDEtMi43NjgtMi4wOTNaTTIuMjA4IDcuODcyQTQuNTI3IDQuNTI3IDAgMCAxIDQuNTggNS45bC0uMDAyLjE2NHY1LjUyYS43NjguNzY4IDAgMCAwIC4zOTcuNjhsNS45MTMgMy4zNjktMi4wNDcgMS4xNjZhLjA3NS4wNzUgMCAwIDEtLjA2OS4wMDZsLTQuODk2LTIuNzkyYTQuNTEgNC41MSAwIDAgMS0yLjEyLTIuNzMgNC40NSA0LjQ1IDAgMCAxIC40NTItMy40MTFabTE2LjgxOCAzLjg2MS01LjkxMy0zLjM2OCAyLjA0Ny0xLjE2NmEuMDc0LjA3NCAwIDAgMSAuMDctLjAwNmw0Ljg5NiAyLjc4OWE0LjUyNiA0LjUyNiAwIDAgMSAxLjc2MiAxLjgxNSA0LjQ0OCA0LjQ0OCAwIDAgMS0uNDE4IDQuODA4IDQuNTU2IDQuNTU2IDAgMCAxLTIuMDQ5IDEuNDk0di01LjY4NmEuNzY3Ljc2NyAwIDAgMC0uMzk1LS42OFptMi4wMzgtMy4wMjVhNi44NzQgNi44NzQgMCAwIDAtLjE0NC0uMDg1bC00Ljg0My0yLjc2YS43OTcuNzk3IDAgMCAwLS43OTYgMEw5LjM2OCA5LjIzVjYuOWEuMDcyLjA3MiAwIDAgMSAuMDMtLjA2Mmw0Ljg5NS0yLjc4N2E0LjYwOCA0LjYwOCAwIDAgMSA0Ljg4NS4yMDcgNC41MSA0LjUxIDAgMCAxIDEuNTk5IDEuOTU1Yy4zMzMuNzg4LjQzMyAxLjY1NC4yODcgMi40OTZaTTguMjU1IDEyLjg2NSA2LjIwOCAxMS43YS4wNzEuMDcxIDAgMCAxLS4wNC0uMDU2di01LjU4YzAtLjg1NC4yNDgtMS42OS43MTMtMi40MTJhNC41NCA0LjU0IDAgMCAxIDEuOTEzLTEuNjU4IDQuNjE0IDQuNjE0IDAgMCAxIDQuODUuNjE2Yy0uMDM3LjAyLS4xMDIuMDU1LS4xNDQuMDhMOC42NTcgNS40NTJhLjc4Mi43ODIgMCAwIDAtLjM5OC42OGwtLjAwNCA2LjczNFpNOS4zNjcgMTAuNSAxMi4wMDEgOWwyLjYzMyAxLjV2M0wxMi4wMDEgMTVsLTIuNjM0LTEuNXYtM1oiLz48L3N2Zz4="
+}

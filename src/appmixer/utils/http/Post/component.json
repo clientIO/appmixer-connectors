@@ -1,0 +1,250 @@
+{
+    "name": "appmixer.utils.http.Post",
+    "author": "Tomáš Waldauf <tomas@client.io>",
+    "description": "This component sends HTTP POST request to external services.",
+    "outPorts": [
+        {
+            "name": "response",
+            "options": [
+                { "label": "body", "value": "body" },
+                { "label": "headers", "value": "headers" },
+                { "label": "request", "value": "request" },
+                { "label": "statusCode", "value": "statusCode" }
+            ]
+        }
+    ],
+    "inPorts": [
+        {
+            "name": "in",
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label" : "Host url",
+                        "group": "transformation",
+                        "tooltip": "Fully qualified uri."
+                    },
+                    "headers": {
+                        "type": "textarea",
+                        "index": 2,
+                        "label" : "Request headers",
+                        "group": "transformation",
+                        "tooltip": "JSON object containing request headers."
+                    },
+                    "bodyType": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Body type",
+                        "group": "transformation",
+                        "defaultValue": "raw",
+                        "options": [
+                            { "value": "raw", "content": "raw" },
+                            { "value": "form-data", "content": "form-data" }
+                        ],
+                        "tooltip": "Select type of the body format."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label" : "Request body",
+                        "group": "transformation",
+                        "tooltip": "Data to be send as request body.",
+                        "when": {
+                            "eq": {
+                                "./bodyType": "raw"
+                            }
+                        }
+                    },
+                    "bodyFormData": {
+                        "type": "expression",
+                        "label": "Form data",
+                        "group": "transformation",
+                        "levels": [
+                            "ADD"
+                        ],
+                        "index": 4,
+                        "tooltip": "Provide Form data values.",
+                        "fields": {
+                            "text": {
+                                "type": "text",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Enter a text value.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "text"
+                                    }
+                                }
+                            },
+                            "date-time": {
+                                "type": "date-time",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Pick a date and time.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "date-time"
+                                    }
+                                }
+                            },
+                            "number": {
+                                "type": "number",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Enter a number value.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "number"
+                                    }
+                                }
+                            },
+                            "toggle": {
+                                "type": "toggle",
+                                "label": "Value",
+                                "index": 1,
+                                "defaultValue": false,
+                                "tooltip": "Toggle a value.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "toggle"
+                                    }
+                                }
+                            },
+                            "filepicker": {
+                                "type": "filepicker",
+                                "label": "Content",
+                                "index": 1,
+                                "tooltip": "File ID assigned to file once stored in this application or select a file from your computer.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "filepicker"
+                                    }
+                                }
+                            },
+                            "name": {
+                                "type": "text",
+                                "label": "Name",
+                                "index": 2,
+                                "tooltip": "Enter the variable name."
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "index": 3,
+                                "tooltip": "Select the variable type.",
+                                "defaultValue": "text",
+                                "options": [
+                                    {
+                                        "label": "Number",
+                                        "value": "number"
+                                    },
+                                    {
+                                        "label": "Text",
+                                        "value": "text"
+                                    },
+                                    {
+                                        "label": "Date",
+                                        "value": "date-time"
+                                    },
+                                    {
+                                        "label": "Boolean",
+                                        "value": "toggle"
+                                    },
+                                    {
+                                        "label": "File",
+                                        "value": "filepicker"
+                                    }
+                                ]
+                            }
+                        },
+                        "when": {
+                            "eq": {
+                                "./bodyType": "form-data"
+                            }
+                        }
+                    },
+                    "bodyBase64Encode": {
+                        "type": "toggle",
+                        "index": 5,
+                        "label" : "Request body in base64",
+                        "group": "advanced",
+                        "tooltip": "Turn it on to encode request body in base64."
+                    },
+                    "responseEncoding": {
+                        "type": "select",
+                        "index": 6,
+                        "group": "advanced",
+                        "label": "Response encoding",
+                        "defaultValue": "utf8",
+                        "options": [
+                            { "value": "ascii", "content": "ascii" },
+                            { "value": "utf8", "content": "utf8 (default)" },
+                            { "value": "utf16le", "content": "utf16le" },
+                            { "value": "base64", "content": "base64" },
+                            { "value": "latin1", "content": "latin1" },
+                            { "value": "binary", "content": "binary" },
+                            { "value": "hex", "content": "hex" },
+                            { "value": null, "content": "no encoding" }
+                        ],
+                        "tooltip": "Set the encoding for response. Use <b>null</b> for binary. <br/>Note: Today's browsers follow the WHATWG spec which aliases both 'latin1' and ISO-8859-1 to win-1252. This means that while doing something like http.get(), if the returned charset is one of those listed in the WHATWG spec it's possible that the server actually returned win-1252-encoded data, and using 'latin1' encoding may incorrectly decode the characters."
+                    }
+                },
+                "groups": {
+                    "transformation": {
+                        "label": "Transformation",
+                        "index": 1
+                    },
+                    "advanced": {
+                        "label": "Advanced",
+                        "closed": true,
+                        "index": 2
+                    }
+                }
+            },
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "headers": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "object" }
+                        ]
+                    },
+                    "bodyType": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "object" }
+                        ]
+                    },
+                    "bodyFormData": {
+                        "type": "object"
+                    },
+                    "bodyBase64Encode": { "type": "boolean" },
+                    "method": { "type": "string" },
+                    "responseEncoding": {
+                        "enum": [
+                            "ascii",
+                            "utf8",
+                            "utf16le",
+                            "base64",
+                            "latin1",
+                            "binary",
+                            "hex",
+                            null
+                        ]
+                    }
+                },
+                "required": [ "url" ]
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8ZyBpZD0iR3JvdXBfNTM4IiBkYXRhLW5hbWU9Ikdyb3VwIDUzOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTIyIC0yMzQpIj4KICAgIDxyZWN0IGlkPSJSZWN0YW5nbGVfMzMzMiIgZGF0YS1uYW1lPSJSZWN0YW5nbGUgMzMzMiIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMiAyMzQpIiBmaWxsPSJub25lIi8+CiAgICA8ZyBpZD0iYXBwLnV0aWxzLmh0dHAiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDIzNikiPgogICAgICA8ZyBpZD0id29ybGQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEgMSkiPgogICAgICAgIDxwYXRoIGlkPSJQYXRoXzIxOCIgZGF0YS1uYW1lPSJQYXRoIDIxOCIgZD0iTTksMTYuMkE3LjIsNy4yLDAsMSwwLDEuOCw5LDcuMiw3LjIsMCwwLDAsOSwxNi4yWk05LDE4YTksOSwwLDEsMSw5LTlBOSw5LDAsMCwxLDksMThaIi8+CiAgICAgICAgPHBhdGggaWQ9IlBhdGhfMjE5IiBkYXRhLW5hbWU9IlBhdGggMjE5IiBkPSJNOS41LDE2LjJjLjQsMCwxLjAwNy0uNTExLDEuNTcyLTEuNjQxQTEyLjg2LDEyLjg2LDAsMCwwLDEyLjIsOWExMi44NiwxMi44NiwwLDAsMC0xLjEyOC01LjU1OUMxMC41MDcsMi4zMTEsOS45LDEuOCw5LjUsMS44cy0xLjAwNy41MTEtMS41NzIsMS42NDFBMTIuODYsMTIuODYsMCwwLDAsNi44LDlhMTIuODYsMTIuODYsMCwwLDAsMS4xMjgsNS41NTlDOC40OTMsMTUuNjg5LDkuMSwxNi4yLDkuNSwxNi4yWm0wLDEuOEM3LjAxNSwxOCw1LDEzLjk3MSw1LDlTNy4wMTUsMCw5LjUsMCwxNCw0LjAyOSwxNCw5LDExLjk4NSwxOCw5LjUsMThaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC41KSIvPgogICAgICAgIDxwYXRoIGlkPSJQYXRoXzIyMCIgZGF0YS1uYW1lPSJQYXRoIDIyMCIgZD0iTTIsMTEuNEgxNi40djEuOEgyWk0yLDZIMTYuNFY3LjhIMloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0wLjIgLTAuNikiLz4KICAgICAgPC9nPgogICAgICA8cmVjdCBpZD0iUmVjdGFuZ2xlXzQ3OSIgZGF0YS1uYW1lPSJSZWN0YW5nbGUgNDc5IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9Im5vbmUiLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo="
+}
