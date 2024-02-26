@@ -1,0 +1,278 @@
+{
+    "name": "appmixer.zoho.books.ListJournals",
+    "author": "Jiří Hofman <jirka@client.io>",
+    "description": "Get journal list.",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:zoho:books",
+        "scope": ["ZohoBooks.accountants.READ"]
+    },
+    "quota": {
+        "manager": "appmixer:zoho:books",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "organization_id": { "type": "string" },
+                    "entry_number_value": { "type": "string" },
+                    "entry_number_variant": { "type": "string" },
+                    "reference_number_value": { "type": "string" },
+                    "reference_number_variant": { "type": "string" },
+                    "date_value": { "type": "string" },
+                    "date_variant": { "type": "string" },
+                    "notes_value": { "type": "string" },
+                    "notes_variant": { "type": "string" },
+                    "total_value": { "type": "string" },
+                    "total_variant": { "type": "string" },
+                    "last_modified_time": { "type": "string" },
+                    "customer_id": { "type": "string" },
+                    "vendor_id": { "type": "string" },
+                    "filter_by": { "type": "string" },
+                    "sort_column": { "type": "string" },
+                    "outputType": { "type": "string" }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "organization_id": {
+                        "group": "first",
+                        "type": "select",
+                        "label": "Organization ID",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/zoho/books/ListOrganizations?outPort=out",
+                            "data": {
+                                "transform": "./transformers#organizationsToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "Select an organization."
+                            }
+                        }
+                    },
+                    "entry_number_value": {
+                        "group": "entry_number",
+                        "type": "text",
+                        "label": "Entry Number",
+                        "index": 1,
+                        "tooltip": "Search journals by journal entry number."
+                    },
+                    "entry_number_variant": {
+                        "group": "entry_number",
+                        "type": "select",
+                        "label": "Entry Number Search Type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "reference_number_value": {
+                        "group": "reference_number",
+                        "type": "text",
+                        "label": "Reference Number",
+                        "index": 1,
+                        "tooltip": "Search journals by journal reference number."
+                    },
+                    "reference_number_variant": {
+                        "group": "reference_number",
+                        "type": "select",
+                        "label": "Reference Number Search Type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "date_value": {
+                        "group": "date",
+                        "type": "date-time",
+                        "config": {
+                            "format": "YYYY-MM-DD",
+                            "enableTime": false
+                        },
+                        "label": "Date",
+                        "index": 1,
+                        "tooltip": "Search journals by journal date."
+                    },
+                    "date_variant": {
+                        "group": "date",
+                        "type": "select",
+                        "label": "Date Search Type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Before", "value": "before" },
+                            { "content": "After", "value": "after" },
+                            { "content": "Start", "value": "start" },
+                            { "content": "End", "value": "end" }
+                        ]
+                    },
+                    "notes_value": {
+                        "group": "notes",
+                        "type": "text",
+                        "label": "Notes",
+                        "index": 1,
+                        "tooltip": "Search journals by journal notes."
+                    },
+                    "notes_variant": {
+                        "group": "notes",
+                        "type": "select",
+                        "label": "Notes Search Type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "total_value": {
+                        "group": "total",
+                        "type": "number",
+                        "label": "Total",
+                        "index": 1,
+                        "tooltip": "Search journals by journal total."
+                    },
+                    "total_variant": {
+                        "group": "total",
+                        "type": "select",
+                        "label": "Total Search Type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact value", "value": "none" },
+                            { "content": "Greater than", "value": "greater_than" },
+                            { "content": "Greater than equals", "value": "greater_equals" },
+                            { "content": "Less than", "value": "less_than" },
+                            { "content": "Less than equals", "value": "less_equals" }
+                        ]
+                    },
+                    "last_modified_time": {
+                        "group": "last",
+                        "type": "date-time",
+                        "config": {
+                            "format": "YYYY-MM-DD",
+                            "enableTime": false
+                        },
+                        "label": "Last Modified Time",
+                        "index": 1,
+                        "tooltip": "Search journals using journal last modified time."
+                    },
+                    "customer_id": {
+                        "group": "last",
+                        "type": "text",
+                        "label": "Customer ID",
+                        "index": 2,
+                        "tooltip": "Search journals using customer ID."
+                    },
+                    "vendor_id": {
+                        "group": "last",
+                        "type": "text",
+                        "label": "Vendor ID",
+                        "index": 3,
+                        "tooltip": "Search journals using vendor ID."
+                    },
+                    "filter_by": {
+                        "group": "last",
+                        "type": "select",
+                        "label": "Filter By",
+                        "index": 4,
+                        "tooltip": "Filter journals by journal date.",
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "All", "value": "JournalDate.All" },
+                            { "label": "Today", "value": "JournalDate.Today" },
+                            { "label": "This Week", "value": "JournalDate.ThisWeek" },
+                            { "label": "This Month", "value": "JournalDate.ThisMonth" },
+                            { "label": "This Quarter", "value": "JournalDate.ThisQuarter" },
+                            { "label": "This Year", "value": "JournalDate.ThisYear" }
+                        ]
+                    },
+                    "sort_column": {
+                        "group": "last",
+                        "type": "select",
+                        "label": "Sort Column",
+                        "index": 5,
+                        "defaultValue": "journal_date",
+                        "tooltip": "Sort journal list.",
+                        "options": [
+                            { "label": "Journal Date", "value": "journal_date" },
+                            { "label": "Entry Number", "value": "entry_number" },
+                            { "label": "Reference Number", "value": "reference_number" },
+                            { "label": "Total", "value": "total" }
+                        ]
+                    },
+                    "outputType": {
+                        "group": "last",
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 6,
+                        "defaultValue": "items",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            { "label": "All at once", "value": "items" },
+                            { "label": "One at a time", "value": "item" },
+                            { "label": "File", "value": "file" }
+                        ]
+                    }
+                },
+                "groups": {
+                    "first": {
+                        "label": "",
+                        "index": 1
+                    },
+                    "entry_number": {
+                        "label": "Entry Number",
+                        "index": 2
+                    },
+                    "reference_number": {
+                        "label": "Reference Number",
+                        "index": 3
+                    },
+                    "date": {
+                        "label": "Date",
+                        "index": 4
+                    },
+                    "notes": {
+                        "label": "Notes",
+                        "index": 5
+                    },
+                    "total": {
+                        "label": "Total",
+                        "index": 6
+                    },
+                    "last": {
+                        "label": "",
+                        "index": 7
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/zoho/books/ListJournals?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJsb2dvLWNvbG9yIiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0Ij48cGF0aCBmaWxsPSIjMjI2ZWIzIiBkPSJNNzI5LjU0IDEwMjRIMzBjLTE2LjU3IDAtMzAtMTMuNDMtMzAtMzBWNzM5Ljg0YzAtNTUuNTIgMzUuMjgtMTA0LjkzIDg3LjgtMTIyLjk2bDc3NS4yOC0yNjYuMDlDOTIzLjQ0IDMzMC4wNyA5NjQgMjczLjI2IDk2NCAyMDkuNDQgOTY0IDEyNy4wNCA4OTYuOTYgNjAgODE0LjU2IDYwSDYwdjQ5NC45NmMwIDE2LjU3LTEzLjQzIDMwLTMwIDMwcy0zMC0xMy40My0zMC0zMFYzMEMwIDEzLjQzIDEzLjQzIDAgMzAgMGg3ODQuNTZDOTMwLjA1IDAgMTAyNCA5My45NSAxMDI0IDIwOS40NGMwIDg5LjQ1LTU2Ljg0IDE2OS4wNi0xNDEuNDUgMTk4LjFMMTA3LjI4IDY3My42M0M3OSA2ODMuMzMgNjAgNzA5Ljk0IDYwIDczOS44NFY5NjRoNjY5LjU0YzYyLjYzIDAgMTIxLjUtMjQuMzkgMTY1Ljc5LTY4LjY3QzkzOS42MSA4NTEuMDQgOTY0IDc5Mi4xNyA5NjQgNzI5LjU0YzAtNDQuMzMtMTIuNDktODcuNTYtMzYuMTEtMTI1LjAyLTIzLjM5LTM3LjEtNTYuNTUtNjYuNzktOTUuODktODUuODgtMTQuOTEtNy4yMy0yMS4xMy0yNS4xOC0xMy44OS00MC4wOSA3LjIzLTE0LjkxIDI1LjE4LTIxLjEzIDQwLjA5LTEzLjg5IDQ5LjQyIDIzLjk4IDkxLjA3IDYxLjI4IDEyMC40NSAxMDcuODYgMjkuNjggNDcuMDYgNDUuMzYgMTAxLjM2IDQ1LjM2IDE1Ny4wMyAwIDc4LjY1LTMwLjYzIDE1Mi42LTg2LjI1IDIwOC4yMi01NS42MiA1NS42LTEyOS41NyA4Ni4yMy0yMDguMjIgODYuMjN6IiBvcGFjaXR5PSIuOSIvPjxwYXRoIGZpbGw9IiMyMjZlYjMiIGQ9Ik0zMzcuNTIgNDE5LjgyYy02Ni4xNyAwLTEyMC01My44My0xMjAtMTIwczUzLjgzLTEyMCAxMjAtMTIwIDEyMCA1My44MyAxMjAgMTIwLTUzLjgzIDEyMC0xMjAgMTIwem0wLTE4MGMtMzMuMDggMC02MCAyNi45Mi02MCA2MHMyNi45MiA2MCA2MCA2MCA2MC0yNi45MiA2MC02MC0yNi45Mi02MC02MC02MHpNNjM4LjM0IDg0My41M2MtNjYuMTcgMC0xMjAtNTMuODMtMTIwLTEyMHM1My44My0xMjAgMTIwLTEyMCAxMjAgNTMuODMgMTIwIDEyMC01My44MyAxMjAtMTIwIDEyMHptMC0xODBjLTMzLjA4IDAtNjAgMjYuOTItNjAgNjBzMjYuOTIgNjAgNjAgNjAgNjAtMjYuOTIgNjAtNjAtMjYuOTItNjAtNjAtNjB6IiBvcGFjaXR5PSIuOSIvPjwvc3ZnPgo="
+}

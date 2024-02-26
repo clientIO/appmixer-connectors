@@ -1,0 +1,122 @@
+{
+    "name": "appmixer.google.analytics.TrackEvent",
+    "author": "Ian Sietro <ian@client.io>",
+    "description": "Send a Event Tracking hit to your Google Analytics view (profile).",
+    "auth": {
+        "service": "appmixer:google",
+        "scope": [
+            "https://www.googleapis.com/auth/analytics",
+            "https://www.googleapis.com/auth/analytics.readonly"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:google:analytics",
+        "maxWait": 5000,
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "inspector": {
+                "inputs": {
+                    "ec": {
+                        "type": "text",
+                        "index": 1,
+                        "group": "transformation",
+                        "label": "Category",
+                        "tooltip": "Typically the object that was interacted with (e.g. 'Video')."
+                    },
+                    "ea": {
+                        "type": "text",
+                        "index": 2,
+                        "group": "transformation",
+                        "label": "Action",
+                        "tooltip": "The type of interaction (e.g. 'play')."
+                    },
+                    "el": {
+                        "type": "text",
+                        "index": 3,
+                        "group": "transformation",
+                        "label": "Label",
+                        "tooltip": "Useful for categorizing events (e.g. 'Fall Campaign')"
+                    },
+                    "ev": {
+                        "type": "number",
+                        "index": 4,
+                        "group": "transformation",
+                        "label": "Value",
+                        "tooltip": "A numeric value associated with the event (e.g. 42). Value must be non-negative."
+                    }
+                },
+                "groups": {
+                    "transformation": {
+                        "label": "Transformation",
+                        "index": 1
+                    }
+                }
+            },
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "ec": { "type": "string", "minLength": 1 },
+                    "ea": { "type": "string", "minLength": 1 },
+                    "el": { "type": "string", "minLength": 1 },
+                    "ev": { "type": "integer", "minimum": 0 }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "hit",
+            "options": [
+                { "label": "Tracking ID", "value": "tid"},
+                { "label": "Category", "value": "ec"},
+                { "label": "Action", "value": "ea"},
+                { "label": "Label", "value": "el"},
+                { "label": "Value", "value": "ev"}
+            ]
+        }
+    ],
+    "properties": {
+        "schema": {
+            "properties": {
+                "tid": { "type": "string" }
+            },
+            "required": [
+                "tid"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "tid": {
+                    "type": "select",
+                    "group": "config",
+                    "label": "Analytics property",
+                    "index": 1,
+                    "source": {
+                        "url": "/component/appmixer/google/analytics/ListWebProperties?outPort=out",
+                        "data": {
+                            "transform": "./transformers#webPropertiesToSelectArray"
+                        }
+                    },
+                    "attrs": {
+                        "label": {
+                            "data-tooltip": "A property is a website, mobile application, or blog, etc., that is associated with a unique tracking ID."
+                        }
+                    }
+                }
+            },
+            "groups": {
+                "config": {
+                    "label": "Configuration",
+                    "index": 1
+                }
+            }
+        }
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyBpZD0iQW5hbHl0aWNzIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDAgMTUyLjEgMTUyIiB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNDk4Ij48c3R5bGU+LnN0MHtmaWxsOnVybCgjU1ZHSURfMV8pfS5zdDF7ZmlsbDp1cmwoI1NWR0lEXzJfKX0uc3Qye2NsaXAtcGF0aDp1cmwoI1NWR0lEXzRfKX0uc3Qze2ZpbGw6I2Y1N2MwMH0uc3Q0e2ZpbGw6I2ZmYzEwN30uc3Q1e2NsaXAtcGF0aDp1cmwoI1NWR0lEXzZfKTtmaWxsOnVybCgjU1ZHSURfN18pfS5zdDYsLnN0Nywuc3Q4LC5zdDl7b3BhY2l0eTouMjtjbGlwLXBhdGg6dXJsKCNTVkdJRF85Xyk7ZmlsbDojZmZmO2VuYWJsZS1iYWNrZ3JvdW5kOm5ld30uc3Q3LC5zdDgsLnN0OXtjbGlwLXBhdGg6dXJsKCNTVkdJRF8xMV8pfS5zdDgsLnN0OXtjbGlwLXBhdGg6dXJsKCNTVkdJRF8xM18pfS5zdDl7Y2xpcC1wYXRoOnVybCgjU1ZHSURfMTVfKTtmaWxsOiNiZjM2MGN9LnN0MTB7ZmlsbDp1cmwoI1NWR0lEXzE2Xyl9PC9zdHlsZT48bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzFfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeTE9Ijc3LjMyIiB4Mj0iMTUyLjEiIHkyPSI3Ny4zMiIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDE1My4zMikiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIuMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9saW5lYXJHcmFkaWVudD48cGF0aCBjbGFzcz0ic3QwIiBkPSJNMTM5LjggMGgtMjcuN2MtNi43IDAtMTIuMiA1LjUtMTIuMiAxMi4yVjQ4SDU5LjhDNTMuMyA0OCA0OCA1My4zIDQ4IDU5LjlWMTAwSDExLjlDNS4zIDEwMCAwIDEwNS4zIDAgMTExLjl2MjhjMCA2LjYgNS4zIDExLjkgMTEuOSAxMi4xaDEyOGM2LjcgMCAxMi4yLTUuNSAxMi4yLTEyLjJWMTIuMkMxNTIgNS41IDE0Ni41IDAgMTM5LjggMHoiLz48bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzJfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeTE9Ijc3LjMyIiB4Mj0iMTUyLjEiIHkyPSI3Ny4zMiIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDE1My4zMikiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIuMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9saW5lYXJHcmFkaWVudD48cGF0aCBjbGFzcz0ic3QxIiBkPSJNMTM5LjggMGgtMjcuN2MtNi43IDAtMTIuMiA1LjUtMTIuMiAxMi4yVjQ4SDU5LjhDNTMuMyA0OCA0OCA1My4zIDQ4IDU5LjlWMTAwSDExLjlDNS4zIDEwMCAwIDEwNS4zIDAgMTExLjl2MjhjMCA2LjYgNS4zIDExLjkgMTEuOSAxMi4xaDEyOGM2LjcgMCAxMi4yLTUuNSAxMi4yLTEyLjJWMTIuMkMxNTIgNS41IDE0Ni41IDAgMTM5LjggMHoiLz48ZGVmcz48cGF0aCBpZD0iU1ZHSURfM18iIGQ9Ik0xMzkuOCAwaC0yNy41Yy02LjcgMC0xMi4yIDUuNS0xMi4yIDEyLjJWNDhoLTQwYy02LjYgMC0xMiA1LjQtMTIgMTJ2NDBIMTJjLTYuNiAwLTEyIDUuNC0xMiAxMnYyOGMwIDYuNiA1LjQgMTIgMTIgMTJoMTI3LjhjNi43IDAgMTIuMi01LjUgMTIuMi0xMi4yVjEyLjJDMTUyIDUuNSAxNDYuNSAwIDEzOS44IDB6Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfNF8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzNfIiBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PGcgY2xhc3M9InN0MiI+PHBhdGggY2xhc3M9InN0MyIgZD0iTTEzOS44IDBoLTI3LjVjLTYuNyAwLTEyLjIgNS41LTEyLjIgMTIuMlYxNTJoMzkuN2M2LjcgMCAxMi4yLTUuNSAxMi4yLTEyLjJWMTIuMkMxNTIgNS41IDE0Ni41IDAgMTM5LjggMHoiLz48aW1hZ2Ugd2lkdGg9IjEyNSIgaGVpZ2h0PSIxMjkiIHhsaW5rOmhyZWY9IkQyMTlDNzVDMDNDRENCRjYucG5nIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtOSAzOSkiIG92ZXJmbG93PSJ2aXNpYmxlIiBvcGFjaXR5PSIuMiIvPjxwYXRoIGNsYXNzPSJzdDQiIGQ9Ik00OCA2MHY0MEgxMmMtNi42IDAtMTIgNS40LTEyIDEydjI4YzAgNi42IDUuNCAxMiAxMiAxMmg4OFY0OEg2MGMtNi42IDAtMTIgNS40LTEyIDEyeiIvPjwvZz48ZGVmcz48cGF0aCBpZD0iU1ZHSURfNV8iIGQ9Ik0xMzkuOCAwaC0yNy41Yy02LjcgMC0xMi4yIDUuNS0xMi4yIDEyLjJWNDhoLTQwYy02LjYgMC0xMiA1LjQtMTIgMTJ2NDBIMTJjLTYuNiAwLTEyIDUuNC0xMiAxMnYyOGMwIDYuNiA1LjQgMTIgMTIgMTJoMTI3LjhjNi43IDAgMTIuMi01LjUgMTIuMi0xMi4yVjEyLjJDMTUyIDUuNSAxNDYuNSAwIDEzOS44IDB6Ii8+PC9kZWZzPjxjbGlwUGF0aCBpZD0iU1ZHSURfNl8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzVfIiBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF83XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI3NC4yNSIgeTE9Ijc5LjA3IiB4Mj0iMTQ4LjM2IiB5Mj0iNC45NiIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDE1My4zMikiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2JmMzYwYyIgc3RvcC1vcGFjaXR5PSIuMiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2JmMzYwYyIgc3RvcC1vcGFjaXR5PSIuMDIiLz48L2xpbmVhckdyYWRpZW50PjxwYXRoIGNsYXNzPSJzdDUiIGQ9Ik0xMDAgNDh2MTA0aDM5LjdjNi43IDAgMTIuMi01LjUgMTIuMi0xMi4yVjEwMEwxMDAgNDh6Ii8+PGc+PGRlZnM+PHBhdGggaWQ9IlNWR0lEXzhfIiBkPSJNMTM5LjggMGgtMjcuNWMtNi43IDAtMTIuMiA1LjUtMTIuMiAxMi4yVjQ4aC00MGMtNi42IDAtMTIgNS40LTEyIDEydjQwSDEyYy02LjYgMC0xMiA1LjQtMTIgMTJ2MjhjMCA2LjYgNS40IDEyIDEyIDEyaDEyNy44YzYuNyAwIDEyLjItNS41IDEyLjItMTIuMlYxMi4yQzE1MiA1LjUgMTQ2LjUgMCAxMzkuOCAweiIvPjwvZGVmcz48Y2xpcFBhdGggaWQ9IlNWR0lEXzlfIj48dXNlIHhsaW5rOmhyZWY9IiNTVkdJRF84XyIgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjxwYXRoIGNsYXNzPSJzdDYiIGQ9Ik02MCA0OWg0MHYtMUg2MGMtNi42IDAtMTIgNS40LTEyIDEydjFjMC02LjYgNS40LTEyIDEyLTEyeiIvPjwvZz48Zz48ZGVmcz48cGF0aCBpZD0iU1ZHSURfMTBfIiBkPSJNMTM5LjggMGgtMjcuNWMtNi43IDAtMTIuMiA1LjUtMTIuMiAxMi4yVjQ4aC00MGMtNi42IDAtMTIgNS40LTEyIDEydjQwSDEyYy02LjYgMC0xMiA1LjQtMTIgMTJ2MjhjMCA2LjYgNS40IDEyIDEyIDEyaDEyNy44YzYuNyAwIDEyLjItNS41IDEyLjItMTIuMlYxMi4yQzE1MiA1LjUgMTQ2LjUgMCAxMzkuOCAweiIvPjwvZGVmcz48Y2xpcFBhdGggaWQ9IlNWR0lEXzExXyI+PHVzZSB4bGluazpocmVmPSIjU1ZHSURfMTBfIiBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PHBhdGggY2xhc3M9InN0NyIgZD0iTTEyIDEwMWgzNnYtMUgxMmMtNi42IDAtMTIgNS40LTEyIDEydjFjMC02LjYgNS40LTEyIDEyLTEyeiIvPjwvZz48Zz48ZGVmcz48cGF0aCBpZD0iU1ZHSURfMTJfIiBkPSJNMTM5LjggMGgtMjcuNWMtNi43IDAtMTIuMiA1LjUtMTIuMiAxMi4yVjQ4aC00MGMtNi42IDAtMTIgNS40LTEyIDEydjQwSDEyYy02LjYgMC0xMiA1LjQtMTIgMTJ2MjhjMCA2LjYgNS40IDEyIDEyIDEyaDEyNy44YzYuNyAwIDEyLjItNS41IDEyLjItMTIuMlYxMi4yQzE1MiA1LjUgMTQ2LjUgMCAxMzkuOCAweiIvPjwvZGVmcz48Y2xpcFBhdGggaWQ9IlNWR0lEXzEzXyI+PHVzZSB4bGluazpocmVmPSIjU1ZHSURfMTJfIiBvdmVyZmxvdz0idmlzaWJsZSIvPjwvY2xpcFBhdGg+PHBhdGggY2xhc3M9InN0OCIgZD0iTTEzOS44IDBoLTI3LjVjLTYuNyAwLTEyLjIgNS41LTEyLjIgMTIuMnYxYzAtNi43IDUuNS0xMi4yIDEyLjItMTIuMmgyNy41YzYuNyAwIDEyLjIgNS41IDEyLjIgMTIuMnYtMUMxNTIgNS41IDE0Ni41IDAgMTM5LjggMHoiLz48L2c+PGc+PGRlZnM+PHBhdGggaWQ9IlNWR0lEXzE0XyIgZD0iTTEzOS44IDBoLTI3LjVjLTYuNyAwLTEyLjIgNS41LTEyLjIgMTIuMlY0OGgtNDBjLTYuNiAwLTEyIDUuNC0xMiAxMnY0MEgxMmMtNi42IDAtMTIgNS40LTEyIDEydjI4YzAgNi42IDUuNCAxMiAxMiAxMmgxMjcuOGM2LjcgMCAxMi4yLTUuNSAxMi4yLTEyLjJWMTIuMkMxNTIgNS41IDE0Ni41IDAgMTM5LjggMHoiLz48L2RlZnM+PGNsaXBQYXRoIGlkPSJTVkdJRF8xNV8iPjx1c2UgeGxpbms6aHJlZj0iI1NWR0lEXzE0XyIgb3ZlcmZsb3c9InZpc2libGUiLz48L2NsaXBQYXRoPjxwYXRoIGNsYXNzPSJzdDkiIGQ9Ik0xMzkuOCAxNTFIMTJjLTYuNiAwLTEyLTUuNC0xMi0xMnYxYzAgNi42IDUuNCAxMiAxMiAxMmgxMjcuN2M2LjcgMCAxMi4yLTUuNSAxMi4yLTEyLjJ2LTFjLjEgNi43LTUuNCAxMi4yLTEyLjEgMTIuMnoiLz48L2c+PGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF8xNl8iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNTAuOTY5IiB5MT0iMTAyLjI4OSIgeDI9IjE0OS4yOTUiIHkyPSIzLjk2MyIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxIDAgMCAtMSAwIDE1My4zMikiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIuMSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2ZmZiIgc3RvcC1vcGFjaXR5PSIwIi8+PC9saW5lYXJHcmFkaWVudD48cGF0aCBjbGFzcz0ic3QxMCIgZD0iTTEzOS44IDBoLTI3LjVjLTYuNyAwLTEyLjIgNS41LTEyLjIgMTIuMlY0OGgtNDBjLTYuNiAwLTEyIDUuNC0xMiAxMnY0MEgxMmMtNi42IDAtMTIgNS40LTEyIDEydjI4YzAgNi42IDUuNCAxMiAxMiAxMmgxMjcuOGM2LjcgMCAxMi4yLTUuNSAxMi4yLTEyLjJWMTIuMkMxNTIgNS41IDE0Ni41IDAgMTM5LjggMHoiLz48L3N2Zz4="
+}

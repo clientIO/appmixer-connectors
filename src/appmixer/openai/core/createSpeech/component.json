@@ -1,0 +1,188 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.openai.core.createSpeech",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Generates audio from the input text.</p></label>",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "model",
+                    "input",
+                    "voice"
+                ],
+                "properties": {
+                    "model": {
+                        "description": "One of the available [TTS models](/docs/models/tts): `tts-1` or `tts-1-hd`\n",
+                        "x-oaiTypeLabel": "string",
+                        "x-connector-source": {
+                            "operationId": "listModels",
+                            "transform": "result[].{value:id, label:id}"
+                        },
+                        "type": "string",
+                        "path": "model"
+                    },
+                    "input": {
+                        "type": "string",
+                        "description": "The text to generate audio for. The maximum length is 4096 characters.",
+                        "maxLength": 4096,
+                        "path": "input"
+                    },
+                    "voice": {
+                        "description": "The voice to use when generating the audio. Supported voices are `alloy`, `echo`, `fable`, `onyx`, `nova`, and `shimmer`. Previews of the voices are available in the [Text to speech guide](/docs/guides/text-to-speech/voice-options).",
+                        "type": "string",
+                        "enum": [
+                            "alloy",
+                            "echo",
+                            "fable",
+                            "onyx",
+                            "nova",
+                            "shimmer"
+                        ],
+                        "path": "voice"
+                    },
+                    "response_format": {
+                        "description": "The format to audio in. Supported formats are `mp3`, `opus`, `aac`, and `flac`.",
+                        "default": "mp3",
+                        "type": "string",
+                        "enum": [
+                            "mp3",
+                            "opus",
+                            "aac",
+                            "flac"
+                        ],
+                        "path": "response_format"
+                    },
+                    "speed": {
+                        "description": "The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is the default.",
+                        "type": "number",
+                        "default": 1,
+                        "minimum": 0.25,
+                        "maximum": 4,
+                        "path": "speed"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "model": {
+                        "type": "select",
+                        "index": 0,
+                        "label": "Model",
+                        "tooltip": "<p>One of the available <a href=\"https://platform.openai.com/docs/models/tts\" rel=\"noopener noreferrer\" target=\"_blank\">TTS models</a>: <code>tts-1</code> or <code>tts-1-hd</code></p>",
+                        "source": {
+                            "url": "/component/appmixer/openai/core/listModels?outPort=out",
+                            "data": {
+                                "transform": "./transform#toSelectOptions"
+                            }
+                        }
+                    },
+                    "input": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "Input",
+                        "tooltip": "<p>The text to generate audio for. The maximum length is 4096 characters.</p>"
+                    },
+                    "voice": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Voice",
+                        "tooltip": "<p>The voice to use when generating the audio. Supported voices are <code>alloy</code>, <code>echo</code>, <code>fable</code>, <code>onyx</code>, <code>nova</code>, and <code>shimmer</code>. Previews of the voices are available in the <a href=\"https://platform.openai.com/docs/guides/text-to-speech/voice-options\" rel=\"noopener noreferrer\" target=\"_blank\">Text to speech guide</a>.</p>",
+                        "options": [
+                            {
+                                "content": "alloy",
+                                "value": "alloy"
+                            },
+                            {
+                                "content": "echo",
+                                "value": "echo"
+                            },
+                            {
+                                "content": "fable",
+                                "value": "fable"
+                            },
+                            {
+                                "content": "onyx",
+                                "value": "onyx"
+                            },
+                            {
+                                "content": "nova",
+                                "value": "nova"
+                            },
+                            {
+                                "content": "shimmer",
+                                "value": "shimmer"
+                            }
+                        ]
+                    },
+                    "response_format": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Response Format",
+                        "tooltip": "<p>The format to audio in. Supported formats are <code>mp3</code>, <code>opus</code>, <code>aac</code>, and <code>flac</code>.</p>",
+                        "options": [
+                            {
+                                "content": "mp3",
+                                "value": "mp3"
+                            },
+                            {
+                                "content": "opus",
+                                "value": "opus"
+                            },
+                            {
+                                "content": "aac",
+                                "value": "aac"
+                            },
+                            {
+                                "content": "flac",
+                                "value": "flac"
+                            }
+                        ],
+                        "defaultValue": "mp3"
+                    },
+                    "speed": {
+                        "type": "number",
+                        "index": 4,
+                        "label": "Speed",
+                        "tooltip": "<p>The speed of the generated audio. Select a value from <code>0.25</code> to <code>4.0</code>. <code>1.0</code> is the default.</p>",
+                        "defaultValue": 1,
+                        "min": 0.25,
+                        "max": 4
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "File ID",
+                    "value": "fileId"
+                },
+                {
+                    "label": "File Name",
+                    "value": "filename"
+                },
+                {
+                    "label": "Chunk Size",
+                    "value": "chunkSize"
+                },
+                {
+                    "label": "File Length",
+                    "value": "length"
+                }
+            ]
+        }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:openai"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNHB4IiBoZWlnaHQ9IjI0cHgiIGZpbGw9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0IiBjb2xvcj0iYmxhY2siPjxwYXRoIGQ9Ik0yMi40MTggOS44MjJhNS45MDMgNS45MDMgMCAwIDAtLjUyLTQuOTEgNi4xIDYuMSAwIDAgMC0yLjgyMi0yLjUxMyA2LjIwNCA2LjIwNCAwIDAgMC0zLjc4LS4zODlBNi4wNTUgNi4wNTUgMCAwIDAgMTMuMjMyLjUxOCA2LjEyOSA2LjEyOSAwIDAgMCAxMC43MjYgMGE2LjE4NSA2LjE4NSAwIDAgMC0zLjYxNSAxLjE1M0E2LjA1MiA2LjA1MiAwIDAgMCA0Ljg4IDQuMTg3YTYuMTAyIDYuMTAyIDAgMCAwLTIuMzQ0IDEuMDE4QTYuMDA4IDYuMDA4IDAgMCAwIC44MjggNy4wODdhNS45ODEgNS45ODEgMCAwIDAgLjc1NCA3LjA5IDUuOTA0IDUuOTA0IDAgMCAwIC41MiA0LjkxMSA2LjEwMSA2LjEwMSAwIDAgMCAyLjgyMSAyLjUxMyA2LjIwNSA2LjIwNSAwIDAgMCAzLjc4LjM4OSA2LjA1NyA2LjA1NyAwIDAgMCAyLjA2NSAxLjQ5MiA2LjEzIDYuMTMgMCAwIDAgMi41MDUuNTE4IDYuMTg1IDYuMTg1IDAgMCAwIDMuNjE3LTEuMTU0IDYuMDUyIDYuMDUyIDAgMCAwIDIuMjMyLTMuMDM1IDYuMTAxIDYuMTAxIDAgMCAwIDIuMzQzLTEuMDE4IDYuMDA5IDYuMDA5IDAgMCAwIDEuNzA5LTEuODgzIDUuOTgxIDUuOTgxIDAgMCAwLS43NTYtNy4wODhabS05LjE0MyAxMi42MDlhNC41ODMgNC41ODMgMCAwIDEtMi45MTgtMS4wNGMuMDM3LS4wMi4xMDItLjA1Ni4xNDQtLjA4MWw0Ljg0NC0yLjc2YS43ODMuNzgzIDAgMCAwIC4zOTctLjY4di02LjczOEwxNy43OSAxMi4zYS4wNzIuMDcyIDAgMCAxIC4wNC4wNTV2NS41OGE0LjQ3MyA0LjQ3MyAwIDAgMS0xLjMzNSAzLjE3NiA0LjU5NiA0LjU5NiAwIDAgMS0zLjIxOSAxLjMyMVptLTkuNzkzLTQuMTI3YTQuNDMyIDQuNDMyIDAgMCAxLS41NDQtMy4wMTRjLjAzNi4wMjEuMDk5LjA2LjE0NC4wODVsNC44NDMgMi43NmEuNzk2Ljc5NiAwIDAgMCAuNzk1IDBsNS45MTMtMy4zNjlWMTcuMWEuMDcxLjA3MSAwIDAgMS0uMDI5LjA2Mkw5LjcwOCAxOS45NWE0LjYxNyA0LjYxNyAwIDAgMS0zLjQ1OC40NDcgNC41NTYgNC41NTYgMCAwIDEtMi43NjgtMi4wOTNaTTIuMjA4IDcuODcyQTQuNTI3IDQuNTI3IDAgMCAxIDQuNTggNS45bC0uMDAyLjE2NHY1LjUyYS43NjguNzY4IDAgMCAwIC4zOTcuNjhsNS45MTMgMy4zNjktMi4wNDcgMS4xNjZhLjA3NS4wNzUgMCAwIDEtLjA2OS4wMDZsLTQuODk2LTIuNzkyYTQuNTEgNC41MSAwIDAgMS0yLjEyLTIuNzMgNC40NSA0LjQ1IDAgMCAxIC40NTItMy40MTFabTE2LjgxOCAzLjg2MS01LjkxMy0zLjM2OCAyLjA0Ny0xLjE2NmEuMDc0LjA3NCAwIDAgMSAuMDctLjAwNmw0Ljg5NiAyLjc4OWE0LjUyNiA0LjUyNiAwIDAgMSAxLjc2MiAxLjgxNSA0LjQ0OCA0LjQ0OCAwIDAgMS0uNDE4IDQuODA4IDQuNTU2IDQuNTU2IDAgMCAxLTIuMDQ5IDEuNDk0di01LjY4NmEuNzY3Ljc2NyAwIDAgMC0uMzk1LS42OFptMi4wMzgtMy4wMjVhNi44NzQgNi44NzQgMCAwIDAtLjE0NC0uMDg1bC00Ljg0My0yLjc2YS43OTcuNzk3IDAgMCAwLS43OTYgMEw5LjM2OCA5LjIzVjYuOWEuMDcyLjA3MiAwIDAgMSAuMDMtLjA2Mmw0Ljg5NS0yLjc4N2E0LjYwOCA0LjYwOCAwIDAgMSA0Ljg4NS4yMDcgNC41MSA0LjUxIDAgMCAxIDEuNTk5IDEuOTU1Yy4zMzMuNzg4LjQzMyAxLjY1NC4yODcgMi40OTZaTTguMjU1IDEyLjg2NSA2LjIwOCAxMS43YS4wNzEuMDcxIDAgMCAxLS4wNC0uMDU2di01LjU4YzAtLjg1NC4yNDgtMS42OS43MTMtMi40MTJhNC41NCA0LjU0IDAgMCAxIDEuOTEzLTEuNjU4IDQuNjE0IDQuNjE0IDAgMCAxIDQuODUuNjE2Yy0uMDM3LjAyLS4xMDIuMDU1LS4xNDQuMDhMOC42NTcgNS40NTJhLjc4Mi43ODIgMCAwIDAtLjM5OC42OGwtLjAwNCA2LjczNFpNOS4zNjcgMTAuNSAxMi4wMDEgOWwyLjYzMyAxLjV2M0wxMi4wMDEgMTVsLTIuNjM0LTEuNXYtM1oiLz48L3N2Zz4="
+}

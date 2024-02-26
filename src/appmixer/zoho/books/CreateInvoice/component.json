@@ -1,0 +1,437 @@
+{
+    "name": "appmixer.zoho.books.CreateInvoice",
+    "author": "Jiří Hofman <jirka@client.io>",
+    "description": "Create an invoice for your customer.",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:zoho:books",
+        "scope": [
+            "ZohoBooks.invoices.CREATE"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:zoho:books",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "organization_id": { "type": "string" },
+                    "customer_id": { "type": "string" },
+                    "currency_id": { "type": "number" },
+                    "contact_persons": { "type": "string" },
+                    "invoice_number": { "type": "string", "maxLength": 100 },
+                    "place_of_supply": { "type": "string" },
+                    "vat_treatment": { "type": "string" },
+                    "tax_treatment": { "type": "string" },
+                    "gst_treatment": { "type": "string" },
+                    "cfdi_usage": { "type": "string" },
+                    "gst_no": { "type": "string" },
+                    "reference_number": { "type": "string" },
+                    "template_id": { "type": "string" },
+                    "date": { "type": "string", "pattern": "^[0-9]{4}-[0|1][0-9]-[0-3][0-9]$" },
+                    "payment_terms": { "type": "string", "maxLength": 100 },
+                    "payment_terms_label": { "type": "string", "maxLength": 100 },
+                    "due_date": { "type": "string", "pattern": "^[0-9]{4}-[0|1][0-9]-[0-3][0-9]$" },
+                    "discount": { "type": "string", "maxLength": 100 },
+                    "is_discount_before_tax": { "type": "boolean" },
+                    "discount_type": { "type": "string" },
+                    "is_inclusive_tax": { "type": "boolean" },
+                    "exchange_rate": { "type": "number" },
+                    "recurring_invoice_id": { "type": "string" },
+                    "invoiced_estimate_id": { "type": "string" },
+                    "salesperson_name": { "type": "string", "maxLength": 200 },
+                    "custom_fields": { "type": "string" },
+                    "line_items": { "type": "string" },
+                    "payment_options": { "type": "string" },
+                    "allow_partial_payments": { "type": "boolean" },
+                    "custom_body": { "type": "string" },
+                    "custom_subject": { "type": "string" },
+                    "notes": { "type": "string" },
+                    "terms": { "type": "string" },
+                    "shipping_charge": { "type": "number", "maxLength": 100 },
+                    "adjustment": { "type": "number" },
+                    "adjustment_description": { "type": "string" },
+                    "reason": { "type": "string" },
+                    "tax_authority_id": { "type": "string" },
+                    "tax_exemption_id": { "type": "string" },
+                    "avatax_use_code": { "type": "string", "maxLength": 25 },
+                    "avatax_exempt_no": { "type": "string", "maxLength": 25 },
+                    "tax_id": { "type": "number" },
+                    "expense_id": { "type": "string" },
+                    "salesorder_item_id": { "type": "string" },
+                    "avatax_tax_code": { "type": "string", "maxLength": 25 },
+                    "time_entry_ids": { "type": "string" },
+                    "ignore_auto_number_generation": { "type": "boolean" },
+                    "send": { "type": "boolean" }
+                },
+                "required": [
+                    "customer_id", "line_items"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "organization_id": {
+                        "type": "select",
+                        "label": "Organization ID",
+                        "index": 0,
+                        "source": {
+                            "url": "/component/appmixer/zoho/books/ListOrganizations?outPort=out",
+                            "data": {
+                                "transform": "./transformers#organizationsToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "Select an organization."
+                            }
+                        }
+                    },
+                    "customer_id": {
+                        "type": "text",
+                        "label": "Customer ID",
+                        "index": 1,
+                        "tooltip": "ID of the customer."
+                    },
+                    "currency_id": {
+                        "type": "text",
+                        "label": "Currency ID",
+                        "index": 2,
+                        "tooltip": "The currenct id of the currency"
+                    },
+                    "contact_persons": {
+                        "type": "text",
+                        "label": "Contact Persons",
+                        "index": 3,
+                        "tooltip": "Array of contact person(s) for whom invoice has to be sent. JSON array of strings format expected, example: <code>[\"416723000000074089\", \"416723000000074090\"]</code> or <code>[]</code>."
+                    },
+                    "invoice_number": {
+                        "type": "text",
+                        "label": "Invoice Number",
+                        "index": 4,
+                        "tooltip": "Search invoices by invoice number. Variants: invoice_number_startswith and invoice_number_contains. Max-length [100]"
+                    },
+                    "place_of_supply": {
+                        "type": "text",
+                        "label": "Place of Supply 🇮🇳 , GCC only",
+                        "index": 5,
+                        "tooltip": "Place where the goods/services are supplied to. (If not given, place of contact given for the contact will be taken)"
+                    },
+                    "vat_treatment": {
+                        "type": "text",
+                        "label": "VAT Treatment 🇬🇧 only",
+                        "index": 6,
+                        "tooltip": "(Optional) VAT treatment for the invoices. VAT treatment denotes the location of the customer, if the customer resides in UK then the VAT treatment is uk. If the customer is in an EU country & VAT registered, you are resides in Northen Ireland and selling Goods then his VAT treatment is eu_vat_registered, if he resides outside of the UK then his VAT treatment is overseas (For Pre Brexit, this can be split as eu_vat_registered, eu_vat_not_registered and non_eu)."
+                    },
+                    "tax_treatment": {
+                        "type": "text",
+                        "label": "Tax Treatment GCC mx only",
+                        "index": 7,
+                        "tooltip": "VAT treatment for the invoice .Choose whether the contact falls under: vat_registered,vat_not_registered,gcc_vat_not_registered,gcc_vat_registered,non_gcc. dz_vat_registered and dz_vat_not_registered supported only for UAE. home_country_mexico,border_region_mexico,non_mexico supported only for MX."
+                    },
+                    "gst_treatment": {
+                        "type": "select",
+                        "label": "GST Treatment 🇮🇳 only",
+                        "index": 8,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "content": "business_gst", "value": "business_gst" },
+                            { "content": "business_none", "value": "business_none" },
+                            { "content": "overseas", "value": "overseas" },
+                            { "content": "consumer", "value": "consumer" }
+                        ],
+                        "tooltip": "Choose whether the contact is GST registered/unregistered/consumer/overseas."
+                    },
+                    "cfdi_usage": {
+                        "type": "select",
+                        "label": "CFDI Usage mx only",
+                        "index": 9,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "content": "acquisition_of_merchandise", "value": "acquisition_of_merchandise" },
+                            { "content": "return_discount_bonus", "value": "return_discount_bonus" },
+                            { "content": "general_expense", "value": "general_expense" },
+                            { "content": "buildings", "value": "buildings" },
+                            { "content": "furniture_office_equipment", "value": "furniture_office_equipment" },
+                            { "content": "transport_equipment", "value": "transport_equipment" },
+                            { "content": "computer_equipmentdye_molds_tools", "value": "computer_equipmentdye_molds_tools" },
+                            { "content": "telephone_communication", "value": "telephone_communication" },
+                            { "content": "satellite_communication", "value": "satellite_communication" },
+                            { "content": "other_machinery_equipment", "value": "other_machinery_equipment" },
+                            { "content": "hospital_expense", "value": "hospital_expense" },
+                            { "content": "medical_expense_disability", "value": "medical_expense_disability" },
+                            { "content": "funeral_expense", "value": "funeral_expense" },
+                            { "content": "donation", "value": "donation" },
+                            { "content": "interest_mortage_loans", "value": "interest_mortage_loans" },
+                            { "content": "contribution_sar", "value": "contribution_sar" },
+                            { "content": "medical_expense_insurance_pormium", "value": "medical_expense_insurance_pormium" },
+                            { "content": "school_transportation_expense", "value": "school_transportation_expense" },
+                            { "content": "deposit_saving_account", "value": "deposit_saving_account" },
+                            { "content": "payment_educational_service", "value": "payment_educational_service" },
+                            { "content": "no_tax_effect", "value": "no_tax_effect" },
+                            { "content": "payment", "value": "payment" },
+                            { "content": "payroll", "value": "payroll" }
+                        ],
+                        "tooltip": "Choose CFDI Usage."
+                    },
+                    "gst_no": {
+                        "type": "text",
+                        "label": "GST No 🇮🇳 only",
+                        "index": 12,
+                        "tooltip": "15 digit GST identification number of the customer."
+                    },
+                    "reference_number": {
+                        "type": "text",
+                        "label": "Reference number",
+                        "index": 13,
+                        "tooltip": "The reference number of the invoice."
+                    },
+                    "template_id": {
+                        "type": "text",
+                        "label": "Template ID",
+                        "index": 14,
+                        "tooltip": "ID of the pdf template associated with the invoice."
+                    },
+                    "date": {
+                        "type": "date-time",
+                        "config": {
+                            "format": "YYYY-MM-DD",
+                            "enableTime": false
+                        },
+                        "label": "Date",
+                        "index": 15,
+                        "tooltip": "Default date format is yyyy-mm-dd. Variants: due_date_start, due_date_end, due_date_before and due_date_after."
+                    },
+                    "payment_terms": {
+                        "type": "text",
+                        "label": "Payment Terms",
+                        "index": 16,
+                        "tooltip": "Payment terms in days e.g. 15, 30, 60. Invoice due date will be calculated based on this. Max-length [100]"
+                    },
+                    "payment_terms_label": {
+                        "type": "text",
+                        "label": "Payment Terms Label",
+                        "index": 17,
+                        "tooltip": "Used to override the default payment terms label. Default value for 15 days is 'Net 15 Days'. Max-length [100]"
+                    },
+                    "due_date": {
+                        "type": "date-time",
+                        "config": {
+                            "format": "YYYY-MM-DD",
+                            "enableTime": false
+                        },
+                        "label": "Due Date",
+                        "index": 18,
+                        "tooltip": "Default date format is yyyy-mm-dd. Variants: due_date_start, due_date_end, due_date_before and due_date_after."
+                    },
+                    "discount": {
+                        "type": "text",
+                        "label": "Discount",
+                        "index": 19,
+                        "tooltip": "Discount applied to the invoice. It can be either in % or in amount. e.g. 12.5% or 190. Max-length [100]"
+                    },
+                    "is_discount_before_tax": {
+                        "type": "toggle",
+                        "label": "Is Discount Before Tax",
+                        "index": 20,
+                        "tooltip": "Used to specify how the discount has to applied. Either before or after the calculation of tax."
+                    },
+                    "discount_type": {
+                        "type": "select",
+                        "label": "Discount Type",
+                        "index": 21,
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "content": "entity_level", "value": "entity_level" },
+                            { "content": "item_level", "value": "item_level" }
+                        ],
+                        "tooltip": "How the discount is specified."
+                    },
+                    "is_inclusive_tax": {
+                        "type": "toggle",
+                        "label": "Is Inclusive Tax",
+                        "index": 21,
+                        "tooltip": "Used to specify whether the line item rates are inclusive or exclusivr of tax."
+                    },
+                    "exchange_rate": {
+                        "type": "text",
+                        "label": "Exchange Rate",
+                        "index": 22,
+                        "tooltip": "Exchange rate of the currency."
+                    },
+                    "recurring_invoice_id": {
+                        "type": "text",
+                        "label": "Recurring Invoice ID",
+                        "index": 23,
+                        "tooltip": "ID of the recurring invoice from which the invoice is created."
+                    },
+                    "invoiced_estimate_id": {
+                        "type": "text",
+                        "label": "Invoiced Estimate ID",
+                        "index": 24,
+                        "tooltip": "ID of the invoice from which the invoice is created."
+                    },
+                    "salesperson_name": {
+                        "type": "text",
+                        "label": "Salesperson Name",
+                        "index": 25,
+                        "tooltip": "Name of the salesperson. Max-length [200]"
+                    },
+                    "custom_fields": {
+                        "type": "text",
+                        "label": "Custom Fields",
+                        "index": 26,
+                        "tooltip": "Custom fields for an invoice. JSON array of objects expected, example: <code>[{\"customfield_id\": \"1\", \"value\": \"foo\"}, {\"customfield_id\": \"2\", \"value\": \"bar\"}]</code> or <code>[]</code>."
+                    },
+                    "line_items": {
+                        "type": "textarea",
+                        "label": "Line items",
+                        "index": 27,
+                        "tooltip": "JSON array of objects expected. For more details refer to <a href='https://www.zoho.com/books/api/v3/invoices/#create-an-invoice' target='_blank'>Zoho Books API docs.</a>."
+                    },
+                    "payment_options": {
+                        "type": "text",
+                        "label": "Payment Options",
+                        "index": 28,
+                        "tooltip": "Payment options for the invoice, online payment gateways and bank accounts. Will be displayed in the pdf. JSON array of objects expected, example: <code>{\"payment_gateways\": [{\"configured\": true, \"gateway_name\": \"stripe\"}]}</code> or <code>{}</code>."
+                    },
+                    "allow_partial_payments": {
+                        "type": "toggle",
+                        "label": "Allow Partial Payments",
+                        "index": 29,
+                        "tooltip": "Boolean to check if partial payments are allowed for the contact"
+                    },
+                    "custom_body": {
+                        "type": "text",
+                        "label": "Custom Body",
+                        "index": 30,
+                        "tooltip": ""
+                    },
+                    "custom_subject": {
+                        "type": "text",
+                        "label": "Custom Subject",
+                        "index": 31,
+                        "tooltip": ""
+                    },
+                    "notes": {
+                        "type": "textarea",
+                        "label": "Notes",
+                        "index": 32,
+                        "tooltip": "The notes added below expressing gratitude or for conveying some information."
+                    },
+                    "terms": {
+                        "type": "textarea",
+                        "label": "Terms",
+                        "index": 33,
+                        "tooltip": "The terms added below expressing gratitude or for conveying some information."
+                    },
+                    "shipping_charge": {
+                        "type": "number",
+                        "label": "Shipping Charge",
+                        "index": 34,
+                        "tooltip": "Shipping charges applied to the invoice. Max-length [100]"
+                    },
+                    "adjustment": {
+                        "type": "number",
+                        "label": "Adjustment",
+                        "index": 35,
+                        "tooltip": "Adjustments made to the invoice."
+                    },
+                    "adjustment_description": {
+                        "type": "text",
+                        "label": "Adjustment Description",
+                        "index": 36,
+                        "tooltip": "Customize the adjustment description. E.g. Rounding off."
+                    },
+                    "reason": {
+                        "type": "text",
+                        "label": "Reason",
+                        "index": 37,
+                        "tooltip": ""
+                    },
+                    "tax_authority_id": {
+                        "type": "text",
+                        "label": "Tax Authority ID 🇺🇸 only",
+                        "index": 38,
+                        "tooltip": "ID of the tax authority. Tax authority depends on the location of the customer. For example, if the customer is located in NY, then the tax authority is NY tax authority."
+                    },
+                    "tax_exemption_id": {
+                        "type": "text",
+                        "label": "Tax Exemption ID 🇮🇳 , 🇺🇸 only",
+                        "index": 39,
+                        "tooltip": "ID of the tax exemption."
+                    },
+                    "avatax_use_code": {
+                        "type": "text",
+                        "label": "AvaTax Use Code, Avalara Integration only",
+                        "index": 40,
+                        "tooltip": "Used to group like customers for exemption purposes. It is a custom value that links customers to a tax rule. Select from Avalara [standard codes][1] or enter a custom code. Max-length [25]"
+                    },
+                    "avatax_exempt_no": {
+                        "type": "text",
+                        "label": "AvaTax Exempt No, Avalara Integration only",
+                        "index": 41,
+                        "tooltip": "Exemption certificate number of the customer. Max-length [25]"
+                    },
+                    "tax_id": {
+                        "type": "text",
+                        "label": "Tax ID",
+                        "index": 42,
+                        "tooltip": "ID of the tax."
+                    },
+                    "expense_id": {
+                        "type": "text",
+                        "label": "Expense ID",
+                        "index": 43,
+                        "tooltip": ""
+                    },
+                    "salesorder_item_id": {
+                        "type": "text",
+                        "label": "Sales Order Item ID",
+                        "index": 44,
+                        "tooltip": "ID of the sales order line item which is invoices."
+                    },
+                    "avatax_tax_code": {
+                        "type": "text",
+                        "label": "AvaTax Tax Code, Avalara Integration only",
+                        "index": 45,
+                        "tooltip": "A tax code is a unique label used to group Items (products, services, or charges) together. Refer the [link][2] for more deails. Max-length [25]"
+                    },
+                    "time_entry_ids": {
+                        "type": "text",
+                        "label": "Time Entry IDs",
+                        "index": 46,
+                        "tooltip": "IDs of the time entries associated with the project."
+                    },
+                    "ignore_auto_number_generation": {
+                        "type": "toggle",
+                        "label": "Ignore Auto Number Generation",
+                        "index": 47,
+                        "tooltip": "Ignore auto invoice number generation for this invoice. This mandates the invoice number."
+                    },
+                    "send": {
+                        "type": "toggle",
+                        "label": "Send",
+                        "index": 48,
+                        "tooltip": "Send the invoice to the contact person(s) associated with the invoice."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/zoho/books/GenerateInvoiceOutput?outPort=out"
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJsb2dvLWNvbG9yIiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0Ij48cGF0aCBmaWxsPSIjMjI2ZWIzIiBkPSJNNzI5LjU0IDEwMjRIMzBjLTE2LjU3IDAtMzAtMTMuNDMtMzAtMzBWNzM5Ljg0YzAtNTUuNTIgMzUuMjgtMTA0LjkzIDg3LjgtMTIyLjk2bDc3NS4yOC0yNjYuMDlDOTIzLjQ0IDMzMC4wNyA5NjQgMjczLjI2IDk2NCAyMDkuNDQgOTY0IDEyNy4wNCA4OTYuOTYgNjAgODE0LjU2IDYwSDYwdjQ5NC45NmMwIDE2LjU3LTEzLjQzIDMwLTMwIDMwcy0zMC0xMy40My0zMC0zMFYzMEMwIDEzLjQzIDEzLjQzIDAgMzAgMGg3ODQuNTZDOTMwLjA1IDAgMTAyNCA5My45NSAxMDI0IDIwOS40NGMwIDg5LjQ1LTU2Ljg0IDE2OS4wNi0xNDEuNDUgMTk4LjFMMTA3LjI4IDY3My42M0M3OSA2ODMuMzMgNjAgNzA5Ljk0IDYwIDczOS44NFY5NjRoNjY5LjU0YzYyLjYzIDAgMTIxLjUtMjQuMzkgMTY1Ljc5LTY4LjY3QzkzOS42MSA4NTEuMDQgOTY0IDc5Mi4xNyA5NjQgNzI5LjU0YzAtNDQuMzMtMTIuNDktODcuNTYtMzYuMTEtMTI1LjAyLTIzLjM5LTM3LjEtNTYuNTUtNjYuNzktOTUuODktODUuODgtMTQuOTEtNy4yMy0yMS4xMy0yNS4xOC0xMy44OS00MC4wOSA3LjIzLTE0LjkxIDI1LjE4LTIxLjEzIDQwLjA5LTEzLjg5IDQ5LjQyIDIzLjk4IDkxLjA3IDYxLjI4IDEyMC40NSAxMDcuODYgMjkuNjggNDcuMDYgNDUuMzYgMTAxLjM2IDQ1LjM2IDE1Ny4wMyAwIDc4LjY1LTMwLjYzIDE1Mi42LTg2LjI1IDIwOC4yMi01NS42MiA1NS42LTEyOS41NyA4Ni4yMy0yMDguMjIgODYuMjN6IiBvcGFjaXR5PSIuOSIvPjxwYXRoIGZpbGw9IiMyMjZlYjMiIGQ9Ik0zMzcuNTIgNDE5LjgyYy02Ni4xNyAwLTEyMC01My44My0xMjAtMTIwczUzLjgzLTEyMCAxMjAtMTIwIDEyMCA1My44MyAxMjAgMTIwLTUzLjgzIDEyMC0xMjAgMTIwem0wLTE4MGMtMzMuMDggMC02MCAyNi45Mi02MCA2MHMyNi45MiA2MCA2MCA2MCA2MC0yNi45MiA2MC02MC0yNi45Mi02MC02MC02MHpNNjM4LjM0IDg0My41M2MtNjYuMTcgMC0xMjAtNTMuODMtMTIwLTEyMHM1My44My0xMjAgMTIwLTEyMCAxMjAgNTMuODMgMTIwIDEyMC01My44MyAxMjAtMTIwIDEyMHptMC0xODBjLTMzLjA4IDAtNjAgMjYuOTItNjAgNjBzMjYuOTIgNjAgNjAgNjAgNjAtMjYuOTIgNjAtNjAtMjYuOTItNjAtNjAtNjB6IiBvcGFjaXR5PSIuOSIvPjwvc3ZnPgo="
+}

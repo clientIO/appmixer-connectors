@@ -1,0 +1,121 @@
+{
+    "name": "appmixer.mandrill.messages.SendTemplate",
+    "author": "Martin Krcmar <martin@client.io>",
+    "description": "Send a new transactional message through Mandrill using a template.",
+    "auth": { "service": "appmixer:mandrill" },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "fromName": { "type": "string", "maxLength": 255 },
+                    "fromEmail": { "type": "string", "format": "email" },
+                    "to": { "type": "string", "format": "email" },
+                    "subject": { "type": "string" },
+                    "template": {
+                        "type": "string"
+                    },
+                    "variables": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "object" }
+                        ]
+                    }
+                },
+                "required": [ "to", "template", "fromEmail" ]
+            },
+            "inspector": {
+                "inputs": {
+                    "fromName": {
+                        "type": "text",
+                        "group": "transformation",
+                        "label": "From Name",
+                        "index": 1,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The name of the author of the message, 255 characters max."
+                            }
+                        }
+                    },
+                    "fromEmail": {
+                        "type": "text",
+                        "group": "transformation",
+                        "label": "From Email",
+                        "index": 2,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The email address of the author of the message."
+                            }
+                        }
+                    },
+                    "to": {
+                        "type": "text",
+                        "group": "transformation",
+                        "label": "To",
+                        "index": 3,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The email address of the message's recipient."
+                            }
+                        }
+                    },
+                    "subject": {
+                        "type": "text",
+                        "group": "transformation",
+                        "label": "Subject",
+                        "index": 4,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The subject of the message."
+                            }
+                        }
+                    },
+                    "template": {
+                        "type": "text",
+                        "group": "transformation",
+                        "label": "Template name",
+                        "index": 5,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "Mandrill template name."
+                            }
+                        },
+                        "source": {
+                            "url": "/component/appmixer/mandrill/templates/ListTemplates?outPort=templates",
+                            "data": {
+                                "transform": "./transformers#templatesToSelectArray"
+                            }
+                        }
+                    },
+                    "variables": {
+                        "type": "textarea",
+                        "group": "transformation",
+                        "label": "Template variables",
+                        "index": 6,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "<p>Template global variables. In JSON format.</p> Example:<br /><code>{\"EMAIL\":\"{{{email}}}\",\"YOUR_VARIABLE\":\"Your constant value\"}</code> <p>In this case you have two variables in your template - EMAIL and YOUR_VARIABLE, EMAIL value is taken from the previous component and the value YOUR_VARIABLE is constant string. Don't forget all those neccessary double quotes - \" !</p>"
+                            }
+                        }
+                    }
+                },
+                "groups": {
+                    "transformation": {
+                        "label": "Transformation",
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "id", "value": "_id" }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyMjE3IiB2aWV3Qm94PSIwIDAgMjU2IDIyNyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWluWU1pbiBtZWV0Ij48cGF0aCBkPSJNLjgzMi40NTJoMjU0Ljg0OXYyMjUuNjQySC44MzJWLjQ1MnoiIGZpbGw9IiNFNkU2RTEiLz48cGF0aCBkPSJNMjU1LjY4LjQ1MkguODMzTDEyOC4yNjQgMTg2LjY5IDI1NS42OC40NTEiIGZpbGw9IiNEOEQ4RDMiLz48cGF0aCBkPSJNMTAxLjMgMjI2LjA5NGg1My45MjZsLTI2Ljk2Mi0zOS40MDMtMjYuOTY1IDM5LjQwMyIgZmlsbD0iI0I0QjZCNCIvPjxwYXRoIGQ9Ik0xMjguMzAyIDExOC44MjdMNzMuOTQgMzkuMDM4djY4LjQ5MmwzMS4wNDIgNDUuNTk1IDIzLjI2Ny0zNC4yMy4wNTMtLjA2OCIgZmlsbD0iIzFBMTkxOCIvPjxwYXRoIGQ9Ik0xMjguMzAyIDExOC44MjdsMjMuNDEyIDM0LjM3MSAzMC44NDQtNDUuMDk3VjM5LjAzOGwtNTQuMjU2IDc5Ljc5IiBmaWxsPSIjRUQ5RDRBIi8+PHBhdGggZD0iTTEyOC4yNSAxMTguODk1bC0yMy4yNjggMzQuMjMgMjMuMzQ0IDM0LjI3MyAyMy4zODgtMzQuMi0yMy40MTItMzQuMzctLjA1My4wNjciIGZpbGw9IiNCQjc3MzEiLz48cGF0aCBkPSJNMzUuMzMzIDE4Ny40OUg3My45NHYtNzkuOTZMMzUuMzMzIDUwLjg2djEzNi42MyIgZmlsbD0iIzRDQjJENCIvPjxwYXRoIGQ9Ik0zNS4zMzMgMzkuMDM4djExLjgyM0w3My45NCAxMDcuNTNWMzkuMDM4SDM1LjMzMyIgZmlsbD0iIzFCODJBRCIvPjxwYXRoIGQ9Ik0xODIuNTU4IDEwOC4xMDF2NzkuMzg4aDM4LjU5M1Y1MS42ODNMMTgyLjU1OCAxMDguMSIgZmlsbD0iI0MwMjQzOSIvPjxwYXRoIGQ9Ik0yMjEuMTUgMzkuMDM4aC0zOC41OTJ2NjkuMDYzbDM4LjU5My01Ni40MThWMzkuMDM4IiBmaWxsPSIjOEYyMDJGIi8+PC9zdmc+"
+}

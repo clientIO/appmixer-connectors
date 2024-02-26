@@ -1,0 +1,250 @@
+{
+    "name": "appmixer.sageone.accounting.CreatePurchaseInvoice",
+    "author": "Pawel Putko <pputko@ntrc.eu>",
+    "description": "This component creates a new purchase invoice.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:sageone"
+    },
+    "quota": {
+        "manager": "appmixer:sageone",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "purchaseInvoice",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "contactId": { "type": "number" },
+                    "contactName": { "type": "string" },
+                    "date": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/Date"
+                            },
+                            {
+                                "$ref": "#/definitions/DateTime"
+                            }
+                        ]
+                    },
+                    "dueDate": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/definitions/Date"
+                            },
+                            {
+                                "$ref": "#/definitions/DateTime"
+                            }
+                        ]
+                    },
+                    "description": { "type": "string", "maxLength": 60 },
+                    "productId": { "type": "number" },
+                    "quantity": { "type": "number" },
+                    "unitPrice": { "type": "number" },
+                    "taxCodeId": { "type": "string" },
+                    "ledgerAccountId": { "type": "number" }
+                },
+                "definitions": {
+                    "Date": {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0|1][0-9]-[0-3][0-9]$"
+                    },
+                    "DateTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "contactId",
+                    "contactName",
+                    "date",
+                    "dueDate",
+                    "description",
+                    "ledgerAccountId",
+                    "taxCodeId",
+                    "unitPrice",
+                    "quantity"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "contactId": {
+                        "type": "select",
+                        "label": "Contact Id",
+                        "group": "transformation",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/sageone/accounting/ListContacts?outPort=contacts",
+                            "data": {
+                                "transform": "./transformers#suppliersToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The ID of the Contact. This should be the supplier (contact_type 2) associated with the invoice."
+                            }
+                        }
+                    },
+                    "contactName": {
+                        "type": "text",
+                        "label": "Contact name",
+                        "group": "transformation",
+                        "index": 2,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The name of the contact associated with the invoice. This should be the contact[name_and_company_name] from the specified contact."
+                            }
+                        }
+                    },
+                    "date": {
+                        "type": "date-time",
+                        "label": "Date",
+                        "group": "transformation",
+                        "index": 3,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The invoice date in the format dd/mm/yyyy."
+                            }
+                        }
+                    },
+                    "dueDate": {
+                        "type": "date-time",
+                        "group": "transformation",
+                        "index": 4,
+                        "label": "Due date",
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The payment due date of the invoice, in the format dd/mm/yyyy."
+                            }
+                        }
+                    },
+                    "description": {
+                        "type": "text",
+                        "label": "Description",
+                        "group": "transformation",
+                        "index": 5,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The description of the line item, maximum 60 characters."
+                            }
+                        }
+                    },
+                    "productId": {
+                        "type": "select",
+                        "label": "Product Id",
+                        "group": "transformation",
+                        "index": 6,
+                        "source": {
+                            "url": "/component/appmixer/sageone/accounting/ListProducts?outPort=products",
+                            "data": {
+                                "transform": "./transformers#productsToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "Product ID."
+                            }
+                        }
+                    },
+                    "quantity": {
+                        "type": "number",
+                        "group": "transformation",
+                        "index": 7,
+                        "label": "Quantity",
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The number of units on the line item."
+                            }
+                        }
+                    },
+                    "unitPrice": {
+                        "type": "number",
+                        "group": "transformation",
+                        "label": "Unit price",
+                        "index": 8,
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The unit cost of the line item."
+                            }
+                        }
+                    },
+                    "taxCodeId": {
+                        "type": "select",
+                        "group": "transformation",
+                        "label": "Tax Id",
+                        "index": 9,
+                        "source": {
+                            "url": "/component/appmixer/sageone/accounting/ListTaxRates?outPort=taxRates",
+                            "data": {
+                                "transform": "./transformers#taxRatesToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The ID of the Tax Rate for this transaction."
+                            }
+                        }
+                    },
+                    "ledgerAccountId": {
+                        "type": "select",
+                        "group": "transformation",
+                        "label": "Ledger Account Id",
+                        "index": 12,
+                        "source": {
+                            "url": "/component/appmixer/sageone/accounting/ListLedgerAccounts?outPort=ledgerAccounts",
+                            "data": {
+                                "transform": "./transformers#ledgerAccountsForPurchaseToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "The ID of the Ledger Account."
+                            }
+                        }
+                    }
+                },
+                "groups": {
+                    "transformation": {
+                        "label": "Transformation",
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "newPurchaseInvoice",
+            "options": [
+                { "label": "contact_id", "value": "contact_id" },
+                { "label": "contact_name", "value": "contact_name" },
+                { "label": "date", "value": "date" },
+                { "label": "due_date", "value": "due_date" },
+                { "label": "extra_reference", "value": "extra_reference" },
+                { "label": "id", "value": "id" },
+                { "label": "line_items[0].description", "value": "line_items[0].description" },
+                { "label": "line_items[0].id", "value": "line_items[0].id" },
+                { "label": "line_items[0]['ledger_account']['display_name']", "value": "line_items[0]['ledger_account']['display_name']" },
+                { "label": "line_items[0]['ledger_account'].id", "value": "line_items[0]['ledger_account'].id" },
+                { "label": "line_items[0]['ledger_account']['ledger_account_type'].id", "value": "line_items[0]['ledger_account']['ledger_account_type'].id" },
+                { "label": "line_items[0]['ledger_account']['ledger_account_type'].name", "value": "line_items[0]['ledger_account']['ledger_account_type'].name" },
+                { "label": "line_items[0]['ledger_account']['nominal_code']", "value": "line_items[0]['ledger_account']['nominal_code']" },
+                { "label": "line_items[0]['ledger_account']['tax_code'].id", "value": "line_items[0]['ledger_account']['tax_code'].id" },
+                { "label": "line_items[0]['ledger_account']['tax_code'].name", "value": "line_items[0]['ledger_account']['tax_code'].name" },
+                { "label": "line_items[0]['net_amount']", "value": "line_items[0]['net_amount']" },
+                { "label": "line_items[0]['quantity']", "value": "line_items[0]['quantity']" },
+                { "label": "line_items[0]['tax_amount']", "value": "line_items[0]['tax_amount']" },
+                { "label": "line_items[0]['tax_rate'].id", "value": "line_items[0]['tax_rate'].id" },
+                { "label": "line_items[0]['tax_rate'].name", "value": "line_items[0]['tax_rate'].name" },
+                { "label": "line_items[0]['tax_rate_percentage']", "value": "line_items[0]['tax_rate_percentage']" },
+                { "label": "line_items[0]['unit_price']", "value": "line_items[0]['unit_price']" },
+                { "label": "line_items[0]['unit_price_includes_tax']", "value": "line_items[0]['unit_price_includes_tax']" }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjwhLS0gQ3JlYXRlZCB3aXRoIElua3NjYXBlIChodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy8pIC0tPgoKPHN2ZwogICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiCiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyIKICAgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiCiAgIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIgogICB3aWR0aD0iNzYuMDAyMDI5bW0iCiAgIGhlaWdodD0iMjkuNTUxNTMxbW0iCiAgIHZpZXdCb3g9IjAgMCA3Ni4wMDIwMjkgMjkuNTUxNTMxIgogICB2ZXJzaW9uPSIxLjEiCiAgIGlkPSJzdmcyNjIzIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIwLjkyLjAgcjE1Mjk5IgogICBzb2RpcG9kaTpkb2NuYW1lPSJzYWdlLnN2ZyI+CiAgPGRlZnMKICAgICBpZD0iZGVmczI2MTciIC8+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlkPSJiYXNlIgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxLjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCIKICAgICBpbmtzY2FwZTpwYWdlc2hhZG93PSIyIgogICAgIGlua3NjYXBlOnpvb209IjMuMTY0MzMxMSIKICAgICBpbmtzY2FwZTpjeD0iMTQxLjczNjEyIgogICAgIGlua3NjYXBlOmN5PSI1My45NTU2NDMiCiAgICAgaW5rc2NhcGU6ZG9jdW1lbnQtdW5pdHM9Im1tIgogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImxheWVyMSIKICAgICBzaG93Z3JpZD0iZmFsc2UiCiAgICAgZml0LW1hcmdpbi10b3A9IjAiCiAgICAgZml0LW1hcmdpbi1sZWZ0PSIwIgogICAgIGZpdC1tYXJnaW4tcmlnaHQ9IjAiCiAgICAgZml0LW1hcmdpbi1ib3R0b209IjAiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMjgwIgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9Ijc0NCIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iLTQiCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii00IgogICAgIGlua3NjYXBlOndpbmRvdy1tYXhpbWl6ZWQ9IjEiIC8+CiAgPG1ldGFkYXRhCiAgICAgaWQ9Im1ldGFkYXRhMjYyMCI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgICA8ZGM6dGl0bGU+PC9kYzp0aXRsZT4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGcKICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSIKICAgICBpbmtzY2FwZTpncm91cG1vZGU9ImxheWVyIgogICAgIGlkPSJsYXllcjEiCiAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODUuMTI2MDE0LC0xOTguNTY5NDcpIj4KICAgIDxnCiAgICAgICBpZD0iZzI2NTkiCiAgICAgICB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjUwMDAwMDk4LC0wLjQ5OTk5ODIxKSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMjYyOSIKICAgICAgICAgZD0ibSAtMTkuNzQ3NDczLDE5OS41Njk5OCBjIC01Ljc5NDM3NSwwIC05LjU3NzkxNywzLjk2ODc1IC05LjU3NzkxNywxMC41MzA0MiAwLDguMTQ5MTYgNS43OTQzNzUsMTAuNDc3NSA5Ljk0ODMzNCwxMC40Nzc1IDMuMTIyMDgzLDAgNi4wODU0MTYsLTEuMjcgOC4yMjg1NDEsLTMuNTE4OTYgbCAtMi42NzIyOTIsLTIuNjcyMjkgYyAtMS40Mjg3NSwxLjI3IC0zLjA2OTE2NiwyLjAzNzI5IC01LjUwMzMzMywyLjAzNzI5IC0zLjIyNzkxNiwwIC01LjM5NzUsLTEuODc4NTQgLTUuMzk3NSwtNC40NzE0NiBoIDE0LjM5MzMzMyBjIC0wLjAyNjQ2LC0wLjAyNjUgMi40ODcwODM3LC0xMi4zODI1IC05LjQxOTE2NiwtMTIuMzgyNSBtIC00Ljk3NDE2Nyw4LjgzNzA4IGMgMCwtMy40OTI1IDIuNjQ1ODM0LC01LjE1OTM3IDUuNDc2ODc1LC01LjE1OTM3IDIuODMxMDQyLDAgNS4zOTc1LDEuNzE5NzkgNS4zOTc1LDUuMTU5MzcgeiIKICAgICAgICAgY2xhc3M9InN0MCIKICAgICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIKICAgICAgICAgc3R5bGU9ImZpbGw6IzAwZGMwNjtzdHJva2Utd2lkdGg6MC4yNjQ1ODMzMiIgLz4KICAgICAgPHBhdGgKICAgICAgICAgaWQ9InBhdGgyNjMxIgogICAgICAgICBkPSJtIC03Mi43NDM1MTQsMjA4LjA2MzEgYyAtMS44NTIwODMsLTAuMjM4MTIgLTcuMTcwMjA4LC0wLjAyNjQgLTcuMTcwMjA4LC0yLjQ2MDYyIDAsLTEuNDI4NzUgMi4yNDg5NTgsLTIuMjIyNSA0LjI4NjI1LC0yLjIyMjUgMi4xNjk1ODMsLTAuMDI2NSA0LjI4NjI0OSwwLjU4MjA4IDYuMDg1NDE2LDEuNzQ2MjUgbCAyLjc3ODEyNSwtMi43NTE2NyBjIC0wLjgyMDIwOCwtMC42NjE0NiAtMy44NjI5MTcsLTIuODA0NTggLTguODYzNTQxLC0yLjgwNDU4IC00LjU1MDgzNCwwIC04LjY1MTg3NSwyLjM4MTI1IC04LjY1MTg3NSw2LjE5MTI1IDAsNS44NDcyOSA3LjA2NDM3NSw1Ljg0NzI5IDEwLjAwMTI1LDYuMTM4MzMgMS43OTkxNjYsMC4xODUyMSAzLjQxMzEyNCwwLjI5MTA0IDMuNDEzMTI0LDIuMDM3MjkgMCwxLjY0MDQyIC0yLjQ4NzA4MywyLjU0IC00LjQxODU0MSwyLjU0IC0zLjE0ODU0MiwwIC01LjAyNzA4MywtMS4wMzE4NyAtNi44NzkxNjcsLTIuNjk4NzUgbCAtMi45NjMzMzMsMi45ODk4IGMgMi41NjY0NTgsMi40ODcwOCA2LjAzMjUsMy44MzY0NSA5LjYwNDM3NSwzLjgxIDUuMjkxNjY2LDAgOS4xMjgxMjUsLTIuMzI4MzQgOS4xMjgxMjUsLTcuMDExNDYgMCwtMy4wOTU2MyAtMi4wOTAyMDksLTQuOTQ3NzEgLTYuMzUsLTUuNTAzMzQiCiAgICAgICAgIGNsYXNzPSJzdDAiCiAgICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMGRjMDY7c3Ryb2tlLXdpZHRoOjAuMjY0NTgzMzIiIC8+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoMjYzMyIKICAgICAgICAgZD0ibSAtNTcuNTU2NDMxLDE5OS41Njk5OCBjIC0yLjkzNjg3NSwtMC4wMjY1IC01LjgyMDgzMywwLjk3ODk2IC04LjEyMjcwOCwyLjgwNDU4IGwgMi43NzgxMjUsMi43NzgxMyBjIDEuNTYxMDQxLC0xLjE2NDE3IDMuNDM5NTgzLC0xLjc3MjcxIDUuMzcxMDQxLC0xLjc0NjI1IDMuNTE4OTU5LDAgNC41NzcyOTIsMS40MDIyOSA0LjU3NzI5MiwyLjk4OTc5IHYgMS45ODQzNyBoIC02LjI3MDYyNSBjIC0yLjMyODMzMywwIC02Ljg3OTE2NywwLjU4MjA5IC02Ljg3OTE2Nyw1LjY4ODU1IDAsMy43NTcwOCAyLjE0MzEyNSw2LjUwODc1IDcuMjc2MDQyLDYuNTA4NzUgMi41NjY0NTgsMCA0LjUyNDM3NSwtMC44MjAyMSA1Ljg3Mzc1LC0yLjQzNDE3IHYgMi4wMzcyOSBoIDQuNTUwODMzIHYgLTEzLjQ2NzI5IGMgMCwtNC43MDk1OCAtMi44ODM5NTgsLTcuMTQzNzUgLTkuMTU0NTgzLC03LjE0Mzc1IG0gNC42MzAyMDgsMTMuMjU1NjIgYyAwLDMuODg5MzggLTIuNzc4MTI1LDMuNjc3NzEgLTUuMjM4NzUsMy42Nzc3MSAtMi40NjA2MjUsMCAtNC4xMDEwNDEsLTAuNjYxNDYgLTQuMTAxMDQxLC0yLjQwNzcxIDAsLTEuNjEzOTUgMS4yOTY0NTgsLTIuMTY5NTggMy45OTUyMDgsLTIuMTY5NTggaCA1LjM0NDU4MyB6IgogICAgICAgICBjbGFzcz0ic3QwIgogICAgICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgICAgICBzdHlsZT0iZmlsbDojMDBkYzA2O3N0cm9rZS13aWR0aDowLjI2NDU4MzMyIiAvPgogICAgICA8cGF0aAogICAgICAgICBpZD0icGF0aDI2MzUiCiAgICAgICAgIGQ9Im0gLTM0LjM1MjQ3MywxOTkuOTkzMzEgdiAyLjI0ODk2IGMgLTEuNTYxMDQyLC0xLjc3MjcxIC0zLjQxMzEyNSwtMi42NzIyOSAtNS45MjY2NjcsLTIuNjcyMjkgLTQuMzEyNzA4LDAgLTYuNTM1MjA4LDIuNDA3NzEgLTcuMjc2MDQxLDUuMDAwNjIgLTAuMjkxMDQyLDAuOTUyNSAtMC4zNzA0MTcsMi43NzgxMyAtMC4zNzA0MTcsNS40NzY4OCAwLDIuNTQgMC4wMjY0Niw0Ljg2ODMzIDAuODk5NTg0LDYuNjQxMDQgMS4yNDM1NDEsMi40ODcwOCA0LjIzMzMzMywzLjg4OTM4IDYuNzQ2ODc0LDMuODg5MzggMi40MzQxNjcsMCA0LjQ5NzkxNywtMC45NTI1IDUuOTI2NjY3LC0yLjU5MjkyIHYgMS4yNyBjIDAsMS40ODE2NyAtMC41MDI3MDgsMi40NjA2MiAtMS40NTUyMDgsMy4yMjc5MiAtMC45NTI1LDAuNzY3MjkgLTIuMTQzMTI1LDEuMjQzNTQgLTMuODEsMS4yNDM1NCAtMS41MDgxMjUsMCAtMi45MzY4NzUsLTAuODIwMjEgLTMuNzU3MDg0LC0xLjQwMjI5IGwgLTMuMDY5MTY2LDMuMDY5MTYgYyAxLjk4NDM3NSwxLjYxMzk2IDQuMzM5MTY2LDIuNjk4NzUgNi45MDU2MjUsMi43MjUyMSAyLjQ2MDYyNSwwLjA1MjkgNC44NjgzMzMsLTAuNzQwODMgNi43OTk3OTEsLTIuMzAxODcgMS44MjU2MjUsLTEuNDI4NzUgMi45ODk3OTIsLTQuMTUzOTYgMi45ODk3OTIsLTcuMDExNDYgdiAtMTguODExODggeiBtIDAsMTAuMDU0MTcgYyAwLDEuNTYxMDQgLTAuMDI2NDYsMi43MjUyMSAtMC4xNTg3NSwzLjMzMzc1IC0wLjI5MTA0MiwxLjI5NjQ2IC0xLjc3MjcwOCwzLjAxNjI1IC00LjQ3MTQ1OCwzLjAxNjI1IC0wLjY4NzkxNywwIC00LjEyNzUsLTAuMzk2ODggLTQuNTI0Mzc1LC0zLjM4NjY3IC0wLjEwNTgzNCwtMC45Nzg5NiAtMC4xNTg3NSwtMS45ODQzNyAtMC4xMzIyOTIsLTIuOTYzMzMgMCwtMi4zMjgzMyAwLjEwNTgzMywtMy4wNjkxNyAwLjIxMTY2NywtMy42NTEyNSAwLjIzODEyNSwtMS4xNjQxNyAxLjc3MjcwOCwtMi45MTA0MiA0LjQ0NSwtMi45MTA0MiAzLjI1NDM3NSwwIDQuMzEyNzA4LDIuMjIyNSA0LjQ3MTQ1OCwzLjA5NTYzIDAuMTMyMjkyLDEuMTM3NzEgMC4xODUyMDgsMi4zMDE4NyAwLjE1ODc1LDMuNDY2MDQiCiAgICAgICAgIGNsYXNzPSJzdDAiCiAgICAgICAgIGlua3NjYXBlOmNvbm5lY3Rvci1jdXJ2YXR1cmU9IjAiCiAgICAgICAgIHN0eWxlPSJmaWxsOiMwMGRjMDY7c3Ryb2tlLXdpZHRoOjAuMjY0NTgzMzIiIC8+CiAgICA8L2c+CiAgPC9nPgogIDxzdHlsZQogICAgIGlkPSJzdHlsZTI2MjUiCiAgICAgdHlwZT0idGV4dC9jc3MiPgoJLnN0MHtmaWxsOiMwMERDMDY7fQo8L3N0eWxlPgo8L3N2Zz4K"
+}

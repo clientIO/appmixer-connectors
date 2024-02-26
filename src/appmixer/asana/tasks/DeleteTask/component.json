@@ -1,0 +1,87 @@
+{
+    "name": "appmixer.asana.tasks.DeleteTask",
+    "author": "Jimoh Damilola <jimoh@client.io>",
+    "description": "This component deletes a task.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:asana"
+    },
+    "quota": {
+        "manager": "appmixer:asana",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "workspace": { "type": "string" },
+                    "project": { "type": "string" },
+                    "task": { "type": "string" }
+                },
+                "required": [
+                    "workspace", "project", "task"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "workspace": {
+                        "type": "select",
+                        "label": "Workspace",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/asana/tasks/ListWorkspaces?outPort=workspaces",
+                            "data": {
+                                "transform": "./transformers#workspacesToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select workspace."
+                    },
+                    "project": {
+                        "type": "select",
+                        "label": "Project",
+                        "index": 2,
+                        "source": {
+                            "url": "/component/appmixer/asana/tasks/ListProjects?outPort=projects",
+                            "data": {
+                                "messages": {
+                                    "in/workspace": "inputs/task/workspace"
+                                },
+                                "transform": "./transformers#projectsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select project."
+                    },
+                    "task": {
+                        "type": "select",
+                        "label": "Task",
+                        "index": 3,
+                        "source": {
+                            "url": "/component/appmixer/asana/tasks/ListTasks?outPort=tasks",
+                            "data": {
+                                "properties": {
+                                    "project": "properties/project"
+                                },
+                                "transform": "./transformers#tasksToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select task."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "deleted",
+            "options": [
+                { "label": "gid", "value": "gid" }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAwIiBoZWlnaHQ9IjIzMTEiIHZpZXdCb3g9Ijc4MS4zNjEgMCA5NDQuODkzIDg3My4zNzciPjxyYWRpYWxHcmFkaWVudCBpZD0iYSIgY3g9Ijk0My45OTIiIGN5PSIxMjIxLjQxNiIgcj0iLjY2MyIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCg5NDQuODkzNCAwIDAgLTg3My4zNzcyIC04OTA3MTcuODc1IDEwNjcyMzQuNzUpIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZiOTAwIi8+PHN0b3Agb2Zmc2V0PSIuNiIgc3RvcC1jb2xvcj0iI2Y5NWQ4ZiIvPjxzdG9wIG9mZnNldD0iLjk5OSIgc3RvcC1jb2xvcj0iI2Y5NTM1MyIvPjwvcmFkaWFsR3JhZGllbnQ+PHBhdGggZmlsbD0idXJsKCNhKSIgZD0iTTE1MjAuNzY2IDQ2Mi4zNzFjLTExMy41MDggMC0yMDUuNTA4IDkyLTIwNS41MDggMjA1LjQ4OCAwIDExMy40OTkgOTIgMjA1LjUxOCAyMDUuNTA4IDIwNS41MTggMTEzLjQ4OSAwIDIwNS40ODgtOTIuMDE5IDIwNS40ODgtMjA1LjUxOCAwLTExMy40ODgtOTEuOTk5LTIwNS40ODgtMjA1LjQ4OC0yMDUuNDg4em0tNTMzLjkwNy4wMWMtMTEzLjQ4OS4wMS0yMDUuNDk4IDkxLjk5LTIwNS40OTggMjA1LjQ4OCAwIDExMy40ODkgOTIuMDA5IDIwNS40OTggMjA1LjQ5OCAyMDUuNDk4IDExMy40OTggMCAyMDUuNTA4LTkyLjAwOSAyMDUuNTA4LTIwNS40OTggMC0xMTMuNDk5LTkyLjAxLTIwNS40ODgtMjA1LjUxOC0yMDUuNDg4aC4wMXptNDcyLjQ0Ny0yNTYuODgzYzAgMTEzLjQ4OS05MS45OTkgMjA1LjUxOC0yMDUuNDg4IDIwNS41MTgtMTEzLjUwOCAwLTIwNS41MDgtOTIuMDI5LTIwNS41MDgtMjA1LjUxOFMxMTQwLjMxIDAgMTI1My44MTcgMGMxMTMuNDg5IDAgMjA1LjQ3OSA5Mi4wMDkgMjA1LjQ3OSAyMDUuNDk4aC4wMXoiLz48L3N2Zz4="
+}

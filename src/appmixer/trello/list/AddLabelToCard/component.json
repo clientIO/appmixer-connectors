@@ -1,0 +1,140 @@
+{
+    "name": "appmixer.trello.list.AddLabelToCard",
+    "author": "Robert Beinaravicius <rbeinaravicius@ntrc.eu>",
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
+    "description": "Add an existing label to a specific card.",
+    "private": false,
+    "version": "1.0.1",
+    "auth": {
+        "service": "appmixer:trello"
+    },
+    "quota": {
+        "manager": "appmixer:trello",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "boardId": { "type": "string" },
+                    "boardListCardId": { "type": "string" },
+                    "labelId": { "type": "string" },
+                    "labelColor": {
+                        "enum": [
+                            "none",
+                            "green",
+                            "yellow",
+                            "orange",
+                            "red",
+                            "purple",
+                            "blue",
+                            "turquoise",
+                            "light green",
+                            "pink",
+                            "black"
+                        ]
+                    },
+                    "labelName": { "type": "string", "maxLength": 16384 }
+                },
+                "oneOf": [
+                    { "required": [ "boardListCardId", "labelId" ] },
+                    { "required": [ "boardListCardId", "labelColor", "labelName"] }
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "boardId": {
+                        "type": "select",
+                        "label": "Board",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/trello/list/ListBoards?outPort=boards",
+                            "data": {
+                                "transform": "./transformers#boardsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a board."
+                    },
+                    "boardListCardId": {
+                        "type": "select",
+                        "label": "Card",
+                        "index": 2,
+                        "source": {
+                            "url": "/component/appmixer/trello/list/ListBoardsCards?outPort=cards",
+                            "data": {
+                                "messages": {
+                                    "in/boardId": "inputs/in/boardId",
+                                    "in/isSource": true
+                                },
+                                "transform": "./transformers#cardListsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a card or card ID from previous component."
+                    },
+                    "labelId": {
+                        "type": "select",
+                        "label": "Label",
+                        "index": 3,
+                        "source": {
+                            "url": "/component/appmixer/trello/list/ListBoardLabels?outPort=labels",
+                            "data": {
+                                "messages": {
+                                    "in/boardId": "inputs/in/boardId",
+                                    "in/isSource": true
+                                },
+                                "transform": "./transformers#cardLabelsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a label or label ID from previous component or create new label with color and name using the two inputs below."
+                    },
+                    "labelColor": {
+                        "type": "color-palette",
+                        "options": [
+                            {
+                                "value": "none",
+                                "content": "None",
+                                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGoAAABrCAYAAACffRcyAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAABPxJREFUeNrsnc9rU1kUx+/LS2LTBtI4VMiqjYjiQgQ3IoIUuhvGUmYzUBgV8SdWLS7sooLgxm0XgjKg0P+gMDC7ggjDzGwGOt1psS2WBptioiYVmrbxnviiSc17eaPvvdzz7vcLlyTk5vVyPtzzzv3mtDWq1arYrVwuNyAfxuUYkaNfQEFoWY4ZOaYymczS7jeNRlASUC9NlOMs4tZRTdNGkcCKX4GyID2V4yjipITm5Bisw4oAkrIiFk8tNp9AWekOkNSENVVLfaurq1Q4LCImSisbtao7R5mmWTQMYxPx8l6yRohvb2/3tpk2HrVKcFtA6XT6WSwWKyOk/qlSqfQUCoVTDsBGIk7nJEAKRhRjirXDlP6I024CpGBhUczt3rcFhXtS8HKKeQTh4aHot35Q3vyObW1tpdvNSyQSi8lk8iWu1yFQtGg59rWbJyuZNVzv+4XUx0QABVCa68+/0mJi8oj4/Y99Xlwuioj6BOn8lSHx4UOs9vr0j2vYUYrJ/G++6zOkRKIihn9aQepTzV14viB6Lo5lP0N68mhWnDxRACjFIP1w9YYwNjZMryEBlNeQSmVR7e7e9hoSib44rLasMqLRtb6+vlm7D5ZKpf3ycNfj4qCY2tnZ2dM2t5tmSY4NbtejexKlO9pJBOndbw/ym4cPtd0ArRyMfD4/ZHeo/uaqz61N4vTDGxWPx9dSqdQ8q+tRdXfhGhUOtXRnPH44u3nwwDE/HAykPi9KcB/uSQDFEBJAMYEEUEwgAdT3OA4BQgIoBRwHgGLiOAAUE8fBrXzvmaATPR0W3TgEdPhU5Xo1x+Hy9WbHQR5m5QnZk/XJOa8DAeW2h0A3x8Ht+pD6GJfgAMUcEkDZQSLdmfhbFUgAZQfp9q1/xK+jKyotUXtQTY5DHdLYlZeqrVNrUE2Og8KQtAbV5DgoDklbUI2OAwdIJO16Jhp7HOh1eXLizcbPw1tBrw89E24dB2snSUjZTqwPPRP/pwRXPN3pB4o5JD1AhQBS+EGFBFKoQXFxHLQGxclx0BYUN8dBS1CR9yWRuneflePgVqHpmTCKb83kxWvZyOJSV4PjkJUn0KwK62txgNawZyKfj4vRc0Pi1UpXpx0H9EzYRzAuRn4hSL1hS3fhAaUJJN6gNILEF5RmkFiCoupON0jsQNE5KXnmQlY3SKxAEaS9V2+K+jlJJ0hsQNUhxV4sCB0h1VK+6j0TNcdBprtdjkPgPQ7omQiZ46Bfz4SGJTg/UIDEABQgMQAFSOqD0tVxYAVKZ8eBDSjdHQcWoOA4uFfHeia49Tjo2TMRYschPD0TKMEZgAIkBqAAiQEoQFIfFBwHBqDgODAABceBASg4Dj7cQrzumQhrj0O4eibgODDomUAJzuAeBUhMQF0aOw5IHECVy3FA8lfe/HvXu5P/1h4V+husANVKAMTXmYAACqnPD9EJ3M3hzm0PgW7XCwyU29/6wPWQ+nCPghQAVa1W4whPsHKKuS0oeUPsrVQqPQhfMKJYU8ydQC3bvVkoFE4BVjCQKNYOU5ap6puR46bdrlpfXx82TbNoGMYmQupPunPaSZZm6BveAflkESFTWtlIJpNZkk+mEQtlNU2M6sXEuBxziIlymrPYfKr6JLGifBgELOUgDVpsvpTnDbCQBhVId42QSIasOr6alcvlBqwtNyJHP+IWiJatCnzKqhua1BIUpJ4+CjAAVnYzLhKE5pcAAAAASUVORK5CYII="
+                            },
+                            { "value": "green", "content": "Green" },
+                            { "value": "yellow", "content": "Yellow" },
+                            { "value": "orange", "content": "Orange" },
+                            { "value": "red", "content": "Red" },
+                            { "value": "purple", "content": "Purple" },
+                            { "value": "blue", "content": "Blue" },
+                            { "value": "turquoise", "content": "Turquoise" },
+                            { "value": "light green", "content": "LightGreen" },
+                            { "value": "pink", "content": "Pink" },
+                            { "value": "black", "content": "Black" }
+                        ],
+                        "defaultValue": "none",
+                        "label": "Label color",
+                        "index": 4
+                    },
+                    "labelName": {
+                        "type": "text",
+                        "label": "Label name",
+                        "index": 5
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "label",
+            "options": [
+                { "label": "idLabel", "value": "id" },
+                { "label": "idCard", "value": "idCard" },
+                { "label": "idBoard", "value": "idBoard" },
+                { "label": "name", "value": "name" },
+                { "label": "color", "value": "color" },
+                { "label": "uses", "value": "uses" }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,301 @@
+{
+    "name": "appmixer.zoho.books.ListContacts",
+    "author": "Jiří Hofman <jirka@client.io>",
+    "description": "List all contacts with pagination.",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:zoho:books",
+        "scope": [
+            "ZohoBooks.contacts.READ"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:zoho:books",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "organization_id": { "type": "string" },
+                    "contact_name_value": { "type": "string", "maxLength": 100 },
+                    "contact_name_variant": { "type": "string" },
+                    "company_name_value": { "type": "string", "maxLength": 100 },
+                    "company_name_variant": { "type": "string" },
+                    "first_name_value": { "type": "string", "maxLength": 100 },
+                    "first_name_variant": { "type": "string" },
+                    "last_name_value": { "type": "string", "maxLength": 100 },
+                    "last_name_variant": { "type": "string" },
+                    "address_value": { "type": "string", "maxLength": 100 },
+                    "address_variant": { "type": "string" },
+                    "email_value": { "type": "string", "maxLength": 100 },
+                    "email_variant": { "type": "string" },
+                    "phone_value": { "type": "string", "maxLength": 100 },
+                    "phone_variant": { "type": "string" },
+                    "filter_by": { "type": "string" },
+                    "search_text": { "type": "string", "maxLength": 100 },
+                    "sort_column": { "type": "string" },
+                    "outputType": { "type": "string" }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "organization_id": {
+                        "group": "first",
+                        "type": "select",
+                        "label": "Organization ID",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/zoho/books/ListOrganizations?outPort=out",
+                            "data": {
+                                "transform": "./transformers#organizationsToSelectArray"
+                            }
+                        },
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "Select an organization."
+                            }
+                        }
+                    },
+                    "contact_name_value": {
+                        "group": "contact_name",
+                        "type": "text",
+                        "label": "Contact Name",
+                        "index": 1,
+                        "tooltip": "Search contacts by contact name. Choose search type (variant) below."
+                    },
+                    "contact_name_variant": {
+                        "group": "contact_name",
+                        "type": "select",
+                        "label": "Contact Name search type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "company_name_value": {
+                        "group": "company_name",
+                        "type": "text",
+                        "label": "Company Name",
+                        "index": 1,
+                        "tooltip": "Search contacts by company name. Choose search type (variant) below."
+                    },
+                    "company_name_variant": {
+                        "group": "company_name",
+                        "type": "select",
+                        "label": "Company Name search type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "first_name_value": {
+                        "group": "first_name",
+                        "type": "text",
+                        "label": "First Name",
+                        "index": 1,
+                        "tooltip": "Search contacts by first name. Choose search type (variant) below."
+                    },
+                    "first_name_variant": {
+                        "group": "first_name",
+                        "type": "select",
+                        "label": "First Name search type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "last_name_value": {
+                        "group": "last_name",
+                        "type": "text",
+                        "label": "Last Name",
+                        "index": 1,
+                        "tooltip": "Search contacts by last name. Choose search type (variant) below."
+                    },
+                    "last_name_variant": {
+                        "group": "last_name",
+                        "type": "select",
+                        "label": "Last Name search type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "address_value": {
+                        "group": "address",
+                        "type": "text",
+                        "label": "Address",
+                        "index": 1,
+                        "tooltip": "Search contacts by address. Choose search type (variant) below."
+                    },
+                    "address_variant": {
+                        "group": "address",
+                        "type": "select",
+                        "label": "Address search type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "email_value": {
+                        "group": "email",
+                        "type": "text",
+                        "label": "Email",
+                        "index": 1,
+                        "tooltip": "Search contacts by email. Choose search type (variant) below."
+                    },
+                    "email_variant": {
+                        "group": "email",
+                        "type": "select",
+                        "label": "Email search type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "phone_value": {
+                        "group": "phone",
+                        "type": "text",
+                        "label": "Phone",
+                        "index": 1,
+                        "tooltip": "Search contacts by phone. Choose search type (variant) below."
+                    },
+                    "phone_variant": {
+                        "group": "phone",
+                        "type": "select",
+                        "label": "Phone search type",
+                        "index": 2,
+                        "options": [
+                            { "content": "Exact match", "value": "none" },
+                            { "content": "Starts with", "value": "startswith" },
+                            { "content": "Contains", "value": "contains" }
+                        ]
+                    },
+                    "filter_by": {
+                        "group": "last",
+                        "type": "select",
+                        "label": "Status",
+                        "index": 9,
+                        "tooltip": "Filter contacts by status.",
+                        "options": [
+                            { "clearItem": true, "content": "-- Clear selection --" },
+                            { "label": "All", "value": "Status.All" },
+                            { "label": "Active", "value": "Status.Active" },
+                            { "label": "Inactive", "value": "Status.Inactive" },
+                            { "label": "Duplicate", "value": "Status.Duplicate" },
+                            { "label": "Crm", "value": "Status.Crm" }]
+                    },
+                    "search_text": {
+                        "group": "last",
+                        "type": "text",
+                        "label": "Search Text",
+                        "index": 10,
+                        "tooltip": "Search contacts by contact name or notes"
+                    },
+                    "sort_column": {
+                        "group": "last",
+                        "type": "select",
+                        "label": "Sort Column",
+                        "index": 11,
+                        "defaultValue": "contact_name",
+                        "tooltip": "Sort contacts. Allowed Values: contact_name, first_name, last_name, email, outstanding_receivable_amount, created_time and last_modified_time",
+                        "options": [
+                            { "label": "Contact Name", "value": "contact_name" },
+                            { "label": "First Name", "value": "first_name" },
+                            { "label": "Last Name", "value": "last_name" },
+                            { "label": "Email", "value": "email" },
+                            { "label": "Outstanding Receivable Amount", "value": "outstanding_receivable_amount" },
+                            { "label": "Created Time", "value": "created_time" },
+                            { "label": "Last Modified Time", "value": "last_modified_time" }
+                        ]
+                    },
+                    "outputType": {
+                        "group": "last",
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 12,
+                        "defaultValue": "items",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            { "label": "All at once", "value": "items" },
+                            { "label": "One at a time", "value": "item" },
+                            { "label": "File", "value": "file" }
+                        ]
+                    }
+                },
+                "groups": {
+                    "first": {
+                        "label": "",
+                        "index": 1
+                    },
+                    "contact_name": {
+                        "label": "Contact Name",
+                        "index": 2
+                    },
+                    "company_name": {
+                        "label": "Company Name",
+                        "index": 3
+                    },
+                    "first_name": {
+                        "label": "First Name",
+                        "index": 4
+                    },
+                    "last_name": {
+                        "label": "Last Name",
+                        "index": 5
+                    },
+                    "address": {
+                        "label": "Address",
+                        "index": 6
+                    },
+                    "email": {
+                        "label": "Email",
+                        "index": 7
+                    },
+                    "phone": {
+                        "label": "Phone",
+                        "index": 8
+                    },
+                    "last": {
+                        "label": "",
+                        "index": 9
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/zoho/books/ListContacts?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJsb2dvLWNvbG9yIiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0Ij48cGF0aCBmaWxsPSIjMjI2ZWIzIiBkPSJNNzI5LjU0IDEwMjRIMzBjLTE2LjU3IDAtMzAtMTMuNDMtMzAtMzBWNzM5Ljg0YzAtNTUuNTIgMzUuMjgtMTA0LjkzIDg3LjgtMTIyLjk2bDc3NS4yOC0yNjYuMDlDOTIzLjQ0IDMzMC4wNyA5NjQgMjczLjI2IDk2NCAyMDkuNDQgOTY0IDEyNy4wNCA4OTYuOTYgNjAgODE0LjU2IDYwSDYwdjQ5NC45NmMwIDE2LjU3LTEzLjQzIDMwLTMwIDMwcy0zMC0xMy40My0zMC0zMFYzMEMwIDEzLjQzIDEzLjQzIDAgMzAgMGg3ODQuNTZDOTMwLjA1IDAgMTAyNCA5My45NSAxMDI0IDIwOS40NGMwIDg5LjQ1LTU2Ljg0IDE2OS4wNi0xNDEuNDUgMTk4LjFMMTA3LjI4IDY3My42M0M3OSA2ODMuMzMgNjAgNzA5Ljk0IDYwIDczOS44NFY5NjRoNjY5LjU0YzYyLjYzIDAgMTIxLjUtMjQuMzkgMTY1Ljc5LTY4LjY3QzkzOS42MSA4NTEuMDQgOTY0IDc5Mi4xNyA5NjQgNzI5LjU0YzAtNDQuMzMtMTIuNDktODcuNTYtMzYuMTEtMTI1LjAyLTIzLjM5LTM3LjEtNTYuNTUtNjYuNzktOTUuODktODUuODgtMTQuOTEtNy4yMy0yMS4xMy0yNS4xOC0xMy44OS00MC4wOSA3LjIzLTE0LjkxIDI1LjE4LTIxLjEzIDQwLjA5LTEzLjg5IDQ5LjQyIDIzLjk4IDkxLjA3IDYxLjI4IDEyMC40NSAxMDcuODYgMjkuNjggNDcuMDYgNDUuMzYgMTAxLjM2IDQ1LjM2IDE1Ny4wMyAwIDc4LjY1LTMwLjYzIDE1Mi42LTg2LjI1IDIwOC4yMi01NS42MiA1NS42LTEyOS41NyA4Ni4yMy0yMDguMjIgODYuMjN6IiBvcGFjaXR5PSIuOSIvPjxwYXRoIGZpbGw9IiMyMjZlYjMiIGQ9Ik0zMzcuNTIgNDE5LjgyYy02Ni4xNyAwLTEyMC01My44My0xMjAtMTIwczUzLjgzLTEyMCAxMjAtMTIwIDEyMCA1My44MyAxMjAgMTIwLTUzLjgzIDEyMC0xMjAgMTIwem0wLTE4MGMtMzMuMDggMC02MCAyNi45Mi02MCA2MHMyNi45MiA2MCA2MCA2MCA2MC0yNi45MiA2MC02MC0yNi45Mi02MC02MC02MHpNNjM4LjM0IDg0My41M2MtNjYuMTcgMC0xMjAtNTMuODMtMTIwLTEyMHM1My44My0xMjAgMTIwLTEyMCAxMjAgNTMuODMgMTIwIDEyMC01My44MyAxMjAtMTIwIDEyMHptMC0xODBjLTMzLjA4IDAtNjAgMjYuOTItNjAgNjBzMjYuOTIgNjAgNjAgNjAgNjAtMjYuOTIgNjAtNjAtMjYuOTItNjAtNjAtNjB6IiBvcGFjaXR5PSIuOSIvPjwvc3ZnPgo="
+}

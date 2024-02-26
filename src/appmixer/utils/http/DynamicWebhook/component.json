@@ -1,0 +1,109 @@
+{
+    "name": "appmixer.utils.http.DynamicWebhook",
+    "author": "David Durman <david@client.io>",
+    "description": "The component subscribes its own webhook URL and then fires any time a request is delivered to that URL.",
+    "trigger": true,
+    "webhook": true,
+    "private": false,
+    "inPorts": [],
+    "outPorts": [
+        {
+            "name": "request",
+            "options": [
+                { "label": "method", "value": "method" },
+                { "label": "data", "value": "data" },
+                { "label": "query", "value": "query" },
+                { "label": "headers", "value": "headers" }
+            ]
+        }
+    ],
+    "properties": {
+        "schema": {
+            "properties": {
+                "onStartRequestUrl": { "type": "string" },
+                "onStartRequestMethod": { "type": "string" },
+                "onStartRequestHeaders": { "type": "string" },
+                "onStartRequestBody": { "type": "string" },
+                "onStopRequestUrl": { "type": "string" },
+                "onStopRequestMethod": { "type": "string" },
+                "onStopRequestHeaders": { "type": "string" },
+                "onStopRequestBody": { "type": "string" },
+                "immediateResponse": { "type": "boolean", "default": true }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "onStartRequestUrl": {
+                    "type": "text",
+                    "label": "Flow Start Request Webhook URL",
+                    "index": 1,
+                    "tooltip": "An endpoint URL that will be called when the flow starts to subscribe a new webhook."
+                },
+                "onStartRequestMethod": {
+                    "type": "select",
+                    "label": "Flow Start Request Method",
+                    "defaultValue": "post",
+                    "index": 2,
+                    "options": [
+                        { "content": "POST", "value": "post" },
+                        { "content": "PUT", "value": "put" },
+                        { "content": "GET", "value": "get" },
+                        { "content": "PATCH", "value": "patch" }
+                    ],
+                    "tooltip": "An HTTP method to use when subscribing a webhook."
+                },
+                "onStartRequestHeaders": {
+                    "type": "textarea",
+                    "label": "Flow Start Request headers",
+                    "index": 3,
+                    "tooltip": "HTTP headers of the request that will be sent to subscribe the webhook. To pass the webhook URL of this component, use the \"Webhook URL\" variable from the \"General\" section of the variables picker."
+                },
+                "onStartRequestBody": {
+                    "type": "textarea",
+                    "label": "Flow Start Request Body",
+                    "index": 4,
+                    "tooltip": "A body of the HTTP request that will be sent to subscribe the webhook. To pass the webhook URL of this component, use the \"Webhook URL\" variable from the \"General\" section of the variables picker."
+                },
+                "onStopRequestUrl": {
+                    "type": "text",
+                    "label": "Flow Stop Request URL",
+                    "index": 5,
+                    "tooltip": "An endpoint URL that will be called when the flow stops to unsubscribe an existing webhook. Use the OpenAPI v3 Runtime expressions to refer to the response body and headers from the Flow Start request. E.g. <code>http://my.server.com/webhook-unsubscribe/{$response.body#/id}</code>. See <a target=\"_blank\" href=\"https://swagger.io/specification/#runtime-expressions\">spec</a> for details."
+                },
+                "onStopRequestMethod": {
+                    "type": "select",
+                    "label": "Flow Stop Request Method",
+                    "defaultValue": "delete",
+                    "index": 6,
+                    "options": [
+                        { "content": "DELETE", "value": "delete" },
+                        { "content": "POST", "value": "post" },
+                        { "content": "PUT", "value": "put" },
+                        { "content": "GET", "value": "get" },
+                        { "content": "PATCH", "value": "patch" }
+                    ],
+                    "tooltip": "An HTTP method to use when unsubscribing a webhook."
+                },
+                "onStopRequestHeaders": {
+                    "type": "textarea",
+                    "label": "Flow Stop Request Headers",
+                    "index": 7,
+                    "tooltip": "HTTP headers of the request that will be sent to unsubscribe an existing webhook. Use the OpenAPI v3 Runtime expressions to refer to the response body and headers from the Flow Start request. E.g. <code>{ \"HeaderWebhookId\": \"{$response.body#/id}\" }</code>. See <a target=\"_blank\" href=\"https://swagger.io/specification/#runtime-expressions\">spec</a> for details."
+                },
+                "onStopRequestBody": {
+                    "type": "textarea",
+                    "label": "Flow Stop Request Body",
+                    "index": 8,
+                    "tooltip": "A body of the HTTP request that will be sent to unsubscribe an existing webhook. Use the OpenAPI v3 Runtime expressions to refer to the response body and headers from the Flow Start request. E.g. <code>{ \"webhookId\": \"{$response.body#/id}\" }</code>. See <a target=\"_blank\" href=\"https://swagger.io/specification/#runtime-expressions\">spec</a> for details."
+                },
+                "immediateResponse": {
+                    "type": "toggle",
+                    "label": "Immediate response",
+                    "index": 9,
+                    "tooltip": "Set if you want the webhook to send a response immediately instead of using the Response component later down the flow."
+                }
+            }
+        }
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMi4zNTkgMzEuOTciPjxkZWZzPjxzdHlsZT4uYXtmaWxsOiMwZjE1MjQ7fTwvc3R5bGU+PC9kZWZzPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00LjgyIC0wLjAzKSI+PHBhdGggY2xhc3M9ImEiIGQ9Ik0xOC44NDIuMDNsLjMxOCwxLjk3NS02LC45NjhMMTIuODQxLDFsNi0uOTY4WiIvPjxwYXRoIGNsYXNzPSJhIiBkPSJNMjcuMTgsMjdINC44Mkw3LDEzLjg4NWE5LDksMCwwLDEsMTgtLjAxWm0tMjAtMkgyNC44MkwyMywxMy45NTlBNyw3LDAsMCwwLDksMTMuOTdsLS4wMTQuMTY0TDcuMTgsMjVaIi8+PHBhdGggY2xhc3M9ImEiIGQ9Ik0xMS45OTEsMjIuMTMxbC0xLjk4Mi0uMjYyTDExLDEzLjk3OUE1LDUsMCwwLDEsMTYsOXYyYTIuOTkzLDIuOTkzLDAsMCwwLTMsMi45NzlsLS4wMDkuNTc5LTEsNy41NzNaIi8+PHBhdGggY2xhc3M9ImEiIGQ9Ik0xNiwzMmEzLDMsMCwwLDEtMy0zaDJhMSwxLDAsMCwwLDIsMGgyQTMsMywwLDAsMSwxNiwzMloiLz48L2c+PC9zdmc+"
+}

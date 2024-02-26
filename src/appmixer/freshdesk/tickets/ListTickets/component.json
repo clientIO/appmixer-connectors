@@ -1,0 +1,234 @@
+{
+    "name": "appmixer.freshdesk.tickets.ListTickets",
+    "author": "Camilo Manrique <camilo@client.io>",
+    "description": "List tickets from your Freshdesk.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:freshdesk"
+    },
+    "quota": {
+        "manager": "appmixer:freshdesk",
+        "resources": "tickets.polling",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "withFilters": {
+                        "type": "boolean"
+                    },
+                    "limit": {
+                        "type": "number",
+                        "max": 9000
+                    },
+                    "filters": {},
+                    "allAtOnce": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "withFilters",
+                    "allAtOnce"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "withFilters": {
+                        "type": "toggle",
+                        "label": "Filter tickets",
+                        "index": 1,
+                        "defaultValue": false
+                    },
+                    "limit": {
+                        "type": "number",
+                        "label": "Limit",
+                        "index": 2,
+                        "tooltip": "The number of results you want to retrieve (max 9000). The total number of ticket you can get depends on your Freshdesk plan - Blossom/Garden/Estate/Forest. With the basic Blossom plan, you cannot get more than 5000 tickets per one call from Freshdesk, so if the component starts failing, you should lower limit or raise your Freshdesk plan.",
+                        "defaultValue": 100
+                    },
+                    "filters": {
+                        "when": {"eq": { "withFilters":  true }},
+                        "type": "expression",
+                        "index": 3,
+                        "label": "Filters",
+                        "fields": {
+                            "field": {
+                                "type": "select",
+                                "index": 1,
+                                "label": "Field",
+                                "options": [
+                                    { "label": "Agent", "value": "agentId" },
+                                    { "label": "Priority", "value": "priority" },
+                                    { "label": "Status", "value": "status" },
+                                    { "label": "Tag", "value": "tag" },
+                                    { "label": "Due by", "value": "dueBy" },
+                                    { "label": "First response due by", "value": "frDueBy" },
+                                    { "label": "Created at", "value": "createdAt" },
+                                    { "label": "Updated at", "value": "updatedAt" }
+                                ]
+                            },
+                            "agentId": {
+                                "when": { "eq": {"./field": "agentId" }},
+                                "type": "select",
+                                "label": "Agent",
+                                "index": 2,
+                                "group": "ticket",
+                                "source": {
+                                    "url": "/component/appmixer/freshdesk/agents/ListAgents?outPort=agents",
+                                    "data": {
+                                        "transform": "./ListAgents#agentsToSelectArray"
+                                    }
+                                }
+                            },
+                            "priorityOperator": {
+                                "when": { "eq": { "./field": "priority" }},
+                                "type": "select",
+                                "label": "Operator",
+                                "index": 3,
+                                "options": [
+                                    { "clearItem": true, "content": "-- Clear selection --" },
+                                    { "label": "=", "value": "=" },
+                                    { "label": ">", "value": ">" },
+                                    { "label": "<", "value": "<" }
+                                ]
+                            },
+                            "priorityValue": {
+                                "when": { "eq": { "./field": "priority" }},
+                                "type": "select",
+                                "label": "Value",
+                                "index": 4,
+                                "options": [
+                                    { "clearItem": true, "content": "-- Clear selection --" },
+                                    { "label": "Low", "value": 1 },
+                                    { "label": "Medium", "value": 2 },
+                                    { "label": "High", "value": 3 },
+                                    { "label": "Urgent", "value": 4 }
+                                ]
+                            },
+                            "status": {
+                                "when": { "eq": { "./field": "status" }},
+                                "type": "select",
+                                "group": "ticket",
+                                "label": "Status",
+                                "index": 5,
+                                "options": [
+                                    { "clearItem": true, "content": "-- Clear selection --" },
+                                    { "label": "Open", "value": 2 },
+                                    { "label": "Pending", "value": 3 },
+                                    { "label": "Resolved", "value": 4 },
+                                    { "label": "Closed", "value": 5 }
+                                ]
+                            },
+                            "tag": {
+                                "when": { "eq": { "./field": "tag" }},
+                                "type": "text",
+                                "label": "Tag",
+                                "index": 6
+                            },
+                            "dueByOperator": {
+                                "when": { "eq": { "./field": "dueBy" }},
+                                "type": "select",
+                                "label": "Operator",
+                                "index": 7,
+                                "options": [
+                                    { "clearItem": true, "content": "-- Clear selection --" },
+                                    { "label": "=", "value": "=" },
+                                    { "label": ">", "value": ">" },
+                                    { "label": "<", "value": "<" }
+                                ]
+                            },
+                            "dueByValue": {
+                                "when": { "eq": { "./field": "dueBy" }},
+                                "type": "date-time",
+                                "label": "Value",
+                                "index": 8
+                            },
+                            "frDueByOperator": {
+                                "when": { "eq": { "./field": "frDueBy" }},
+                                "type": "select",
+                                "label": "Operator",
+                                "index": 9,
+                                "options": [
+                                    { "clearItem": true, "content": "-- Clear selection --" },
+                                    { "label": "=", "value": "=" },
+                                    { "label": ">", "value": ">" },
+                                    { "label": "<", "value": "<" }
+                                ]
+                            },
+                            "frDueByValue": {
+                                "when": { "eq": { "./field": "frDueBy" }},
+                                "type": "date-time",
+                                "label": "Value",
+                                "index": 10
+                            },
+                            "createdAtOperator": {
+                                "when": { "eq": { "./field": "createdAt" }},
+                                "type": "select",
+                                "label": "Operator",
+                                "index": 11,
+                                "options": [
+                                    { "clearItem": true, "content": "-- Clear selection --" },
+                                    { "label": "=", "value": "=" },
+                                    { "label": ">", "value": ">" },
+                                    { "label": "<", "value": "<" }
+                                ]
+                            },
+                            "createdAtValue": {
+                                "when": { "eq": { "./field": "createdAt" }},
+                                "type": "date-time",
+                                "label": "Value",
+                                "index": 12
+                            },
+                            "updatedAtOperator": {
+                                "when": { "eq": { "./field": "updatedAt" }},
+                                "type": "select",
+                                "label": "Operator",
+                                "index": 13,
+                                "options": [
+                                    { "clearItem": true, "content": "-- Clear selection --" },
+                                    { "label": "=", "value": "=" },
+                                    { "label": ">", "value": ">" },
+                                    { "label": "<", "value": "<" }
+                                ]
+                            },
+                            "updatedAtValue": {
+                                "when": { "eq": { "./field": "updatedAt" }},
+                                "type": "date-time",
+                                "label": "Value",
+                                "index": 14
+                            }
+                        }
+                    },
+                    "allAtOnce": {
+                        "type": "toggle",
+                        "defaultValue": true,
+                        "index": 4,
+                        "label": "All tickets at once",
+                        "tooltip": "If set to true, all the tickets will be sent as an array in one message, otherwise each ticket will be sent in a separate message"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "tickets",
+            "source": {
+                "url": "/component/appmixer/freshdesk/tickets/GenerateTicketsOutput?outPort=out",
+                "data": {
+                    "properties": {
+                        "operation": 1,
+                        "allAtOnce": "inputs/in/allAtOnce"
+                    },
+                    "transform": "./GenerateTicketsOutput#getOutputOptions"
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHBhdGggZD0iTTMxLjkgMGgyNC4wMzZBOCA4IDAgMCAxIDY0IDguMDczVjMyLjFDNjQgNDkuNzIyIDQ5LjcyMiA2NCAzMi4xIDY0aC0uMTgyQTMxLjg5IDMxLjg5IDAgMCAxIDAgMzIuMTA5QzAgMTQuNDM3IDE0LjI1NC4xODIgMzEuOSAweiIgZmlsbD0iIzI1YzE2ZiIvPjxwYXRoIGQ9Ik0zMS45IDE0LjI1NWMtOC4wOTMgMC0xNC42NTQgNi41Ni0xNC42NTQgMTQuNjU0djkuOTY0Yy4wNTggMi42NjcgMi4yMDYgNC44MTUgNC44NzMgNC44NzNoNC4xNDVWMzIuM2gtNS42di0zLjJjLjM0LTYuMDI2IDUuMzI3LTEwLjc0IDExLjM2NC0xMC43NFM0My4wNCAyMy4wNjUgNDMuMzggMjkuMXYzLjJIMzcuN3YxMS40NTRoMy43NDV2LjE4MmMtLjA0IDIuNDc0LTIuMDM1IDQuNDctNC41IDQuNWgtNC40NzNjLS4zNjQgMC0uNzY0LjE4Mi0uNzY0LjU0NWEuOC44IDAgMCAwIC43NjQuNzY0aDQuNWMzLjIwNS0uMDIgNS43OTgtMi42MTMgNS44MTgtNS44MTh2LS4zNjRhNC44IDQuOCAwIDAgMCAzLjc0NS00LjcyN1YyOS4xYy4xODItOC4yNTQtNi4zNjQtMTQuODM2LTE0LjY1NC0xNC44MzZ6IiBmaWxsPSIjZmZmIi8+PC9zdmc+"
+}

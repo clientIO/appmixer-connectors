@@ -1,0 +1,2650 @@
+[
+    {
+        "op": "remove",
+        "jsonpath": "$..parameters[?(@.name==\"clientId\" && @.in == \"header\")]"
+    },
+    {
+        "op": "add",
+        "path": "/info/x-connector-icon",
+        "value": "https://www.connectwise.com/globalassets/media/archive/brand-guidelines-2021/2021-icons/color/CW-icon-Blue.png"
+    },
+    {
+        "op": "add",
+        "path": "/info/x-connector-service",
+        "value": "connectwise"
+    },
+    {
+        "op": "add",
+        "path": "/info/x-connector-module",
+        "value": "core"
+    },
+    {
+        "op": "add",
+        "path": "/x-connector-connection",
+        "value": {
+            "auth": {
+                "environment": {
+                    "type": "select",
+                    "name": "Environment",
+                    "options": [
+                        {
+                            "content": "Australia",
+                            "value": "au"
+                        },
+                        {
+                            "content": "Europe",
+                            "value": "eu"
+                        },
+                        {
+                            "content": "North America",
+                            "value": "na"
+                        },
+                        {
+                            "content": "Staging",
+                            "value": "staging"
+                        }
+                    ]
+                },
+                "clientId": {
+                    "type": "text",
+                    "name": "Client ID",
+                    "tooltip": "Client Id is used to authentication all requests using the ClientId HTTP header."
+                },
+                "companyId": {
+                    "type": "text",
+                    "name": "Company ID"
+                },
+                "publicKey": {
+                    "type": "text",
+                    "name": "Public Key"
+                },
+                "privateKey": {
+                    "type": "text",
+                    "name": "Private Key"
+                }
+            },
+            "accountNameFromProfileInfo": "companyId",
+            "httpRequestTransform": "req.headers.Authorization = `Basic ${btoa(context.auth.companyId + '+' + context.auth.publicKey + ':' + context.auth.privateKey)}`; req.headers.ClientId = context.auth.clientId;",
+            "baseUrlTransform": "(context.auth.environment === 'staging') ? 'https://api-staging.connectwisedev.com/v4_6_release/apis/3.0/' : `https://api-${context.auth.environment}.myconnectwise.net/v4_6_release/apis/3.0/`",
+            "validate": "function(context) { const url = (context.environment === 'staging') ? 'https://api-staging.connectwisedev.com/v4_6_release/apis/3.0/system/info' : `https://api-${context.environment}.myconnectwise.net/v4_6_release/apis/3.0/system/info`; const headers = {}; headers.Authorization = `Basic ${btoa(context.companyId + '+' + context.publicKey + ':' + context.privateKey)}`; headers.ClientId = context.clientId; return context.httpRequest.get(url, { headers }); }"
+        }
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1service~1tickets/post/requestBody/content/application~1json/schema/required/-",
+        "value": "company.id"
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1company~1companies/post/requestBody/content/application~1json/schema/required/-",
+        "value": "site.name"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsSearch')]",
+        "path": "x-connector-label",
+        "value": "FindServiceTickets"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsSearch')]",
+        "path": "x-connector-description",
+        "value": "Search service tickets."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsSearch')].parameters[?(@.name == 'conditions')]",
+        "path": "description",
+        "value": "Examples: summary contains 'my ticket', id=27, sla/id in (37, 45, 52), respondMinutes > 60"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyContacts')]",
+        "path": "x-connector-label",
+        "value": "FindContacts"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyContacts')]",
+        "path": "x-connector-description",
+        "value": "Search company contacts."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyContacts')].parameters[?(@.name == 'conditions')]",
+        "path": "description",
+        "value": "Examples: companyLocation/name contains 'Tampa', lastName='Doe', company/id in (37, 45, 52), title contains 'MBA', portalSecurityLevel > 3"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postCompanyContacts')]",
+        "path": "x-connector-label",
+        "value": "CreateContact"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postCompanyContacts')]",
+        "path": "x-connector-description",
+        "value": "Create a new company contact."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postCompanyContacts')].responses['201'].content['application/vnd.connectwise.com+json; version=2022.1'].schema.properties",
+        "path": "id",
+        "value": {
+            "type": "integer"
+        }
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'deleteCompanyContactsById')]",
+        "path": "x-connector-label",
+        "value": "DeleteContact"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'deleteCompanyContactsById')]",
+        "path": "x-connector-description",
+        "value": "Delete an existing company contact."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTickets')]",
+        "path": "x-connector-label",
+        "value": "CreateServiceTicket"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTickets')]",
+        "path": "x-connector-description",
+        "value": "Create a new service ticket."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postCompanyCompanies')]",
+        "path": "x-connector-label",
+        "value": "CreateCompany"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postCompanyCompanies')]",
+        "path": "x-connector-description",
+        "value": "Create a new company."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'deleteCompanyCompaniesById')]",
+        "path": "x-connector-label",
+        "value": "DeleteCompany"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'deleteCompanyCompaniesById')]",
+        "path": "x-connector-description",
+        "value": "Delete an existing company."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'putServiceTicketsById')]",
+        "path": "x-connector-label",
+        "value": "UpdateServiceTicket"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'putServiceTicketsById')]",
+        "path": "x-connector-description",
+        "value": "Update an existing service ticket. Note that this component is designed to completely replace the existing ticket. Any field that has not been specified will be overridden with the system defaults or set to Null."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsByParentIdNotes')]",
+        "path": "x-connector-label",
+        "value": "CreateServiceTicketNote"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsByParentIdNotes')]",
+        "path": "x-connector-description",
+        "value": "Create a service ticket note."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyCompanies')]",
+        "path": "x-connector-label",
+        "value": "FindCompanies"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyCompanies')].parameters[?(@.name == 'conditions')]",
+        "path": "description",
+        "value": "Examples: name contains 'mycompany', id=27, parentCompany/id in (37, 45, 52), numberOfEmployees > 500"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyCompanies')]",
+        "path": "x-connector-description",
+        "value": "Search companies."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'deleteServiceTicketsById')]",
+        "path": "x-connector-label",
+        "value": "DeleteServiceTicket"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'deleteServiceTicketsById')]",
+        "path": "x-connector-description",
+        "value": "Delete a service ticket."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getServiceBoards')]",
+        "path": "x-connector-label",
+        "value": "FindServiceBoards"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getServiceBoards')]",
+        "path": "x-connector-description",
+        "value": "Search service boards."
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsSearch')]",
+        "path": "x-connector-pagination",
+        "value": {
+            "type": "link-header",
+            "parameters": {
+                "page": "page",
+                "limit": "pageSize",
+                "cursor": "pageId"
+            }
+        }
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyCompanies')]",
+        "path": "x-connector-pagination",
+        "value": {
+            "type": "link-header",
+            "parameters": {
+                "page": "page",
+                "limit": "pageSize",
+                "cursor": "pageId"
+            }
+        }
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getCompanyContacts')]",
+        "path": "x-connector-pagination",
+        "value": {
+            "type": "link-header",
+            "parameters": {
+                "page": "page",
+                "limit": "pageSize",
+                "cursor": "pageId"
+            }
+        }
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'getServiceBoards')]",
+        "path": "x-connector-pagination",
+        "value": {
+            "type": "link-header",
+            "parameters": {
+                "page": "page",
+                "limit": "pageSize",
+                "cursor": "pageId"
+            }
+        }
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTickets')].requestBody.content['application/json'].schema.properties.board.properties.id",
+        "path": "x-connector-source",
+        "value": {
+            "operationId": "getServiceBoards",
+            "transform": "result[].{value: id, label: name}"
+        }
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTickets')].requestBody.content['application/json'].schema.properties.id"
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postCompanyCompanies')].requestBody.content['application/json'].schema.properties.id"
+    },
+    {
+        "op": "add",
+        "jsonpath": "$.paths.*[?(@.operationId == 'putServiceTickets')].requestBody.content['application/json'].schema.properties.board.properties.id",
+        "path": "x-connector-source",
+        "value": {
+            "operationId": "getServiceBoards",
+            "transform": "result[].{value: id, label: name}"
+        }
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsByParentIdNotes')].requestBody.content['application/json'].schema.properties.id"
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postServiceTicketsByParentIdNotes')].requestBody.content['application/json'].schema.properties.ticketId"
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId == 'postCompanyContacts')].requestBody.content['application/json'].schema.properties.id"
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1company~1contacts/x-connector-webhook-create",
+        "value": {
+            "tags": [
+                "Contacts"
+            ],
+            "x-connector-type": "trigger",
+            "x-connector-webhook": {
+                "type": "subscription",
+                "subscribeRequestUrl": "{$baseUrl}/system/callbacks",
+                "subscribeRequestMethod": "POST",
+                "subscribeRequestBody": {
+                    "url": "{$webhookUrl}",
+                    "objectId": "{$parameters.objectId}",
+                    "type": "Contact",
+                    "level": "{$parameters.level}"
+                },
+                "unsubscribeRequestUrl": "{$baseUrl}/system/callbacks/{$response.body#/id}",
+                "unsubscribeRequestMethod": "DELETE",
+                "unsubscribeRequestBody": null,
+                "output": "$request.body",
+                "outputCondition": "$boolean(Action='added')",
+                "outputTransform": "$eval(Entity)"
+            },
+            "operationId": "NewContact",
+            "description": "Triggers when a new company contact was created.",
+            "parameters": [
+                {
+                    "name": "level",
+                    "in": "body",
+                    "description": "When set to owner, all ConnectWise PSA contacts are returned. When set to type, all contacts of the specified type are returned. When set to territory, all contacts of the specified territory are returned. When set to company, all contacts of the specified company are returned. When set to contact, the specified contact is returned.",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "Owner",
+                            "Type",
+                            "Territory",
+                            "Company",
+                            "Contact"
+                        ],
+                        "default": "Owner"
+                    }
+                },
+                {
+                    "name": "objectId",
+                    "in": "body",
+                    "description": "The ObjectId should be the Id of whatever record you are subscribing to. This should be set to 1 when using a level of Owner.",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "default": 1
+                    }
+                }
+            ],
+            "responses": {
+                "201": {
+                    "description": "New Contact Created",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "firstName": {
+                                        "type": "string"
+                                    },
+                                    "lastName": {
+                                        "type": "string"
+                                    },
+                                    "company": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "site": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "addressLine1": {
+                                        "type": "string"
+                                    },
+                                    "addressLine2": {
+                                        "type": "string"
+                                    },
+                                    "city": {
+                                        "type": "string"
+                                    },
+                                    "state": {
+                                        "type": "string"
+                                    },
+                                    "zip": {
+                                        "type": "string"
+                                    },
+                                    "country": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "relationship": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "relationshipOverride": {
+                                        "type": "string"
+                                    },
+                                    "department": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "inactiveFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "defaultMergeContactId": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "securityIdentifier": {
+                                        "type": "string"
+                                    },
+                                    "managerContact": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "assistantContact": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "school": {
+                                        "type": "string"
+                                    },
+                                    "nickName": {
+                                        "type": "string"
+                                    },
+                                    "marriedFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "childrenFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "children": {
+                                        "type": "string"
+                                    },
+                                    "significantOther": {
+                                        "type": "string"
+                                    },
+                                    "portalPassword": {
+                                        "type": "string"
+                                    },
+                                    "portalSecurityLevel": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "disablePortalLoginFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "unsubscribeFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "gender": {
+                                        "enum": [
+                                            "Female",
+                                            "Male"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "birthDay": {
+                                        "type": "string"
+                                    },
+                                    "anniversary": {
+                                        "type": "string"
+                                    },
+                                    "presence": {
+                                        "enum": [
+                                            "NoAgent",
+                                            "Online",
+                                            "DoNotDisturb",
+                                            "Away",
+                                            "Offline"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "mobileGuid": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "facebookUrl": {
+                                        "type": "string"
+                                    },
+                                    "twitterUrl": {
+                                        "type": "string"
+                                    },
+                                    "linkedInUrl": {
+                                        "type": "string"
+                                    },
+                                    "defaultPhoneType": {
+                                        "type": "string"
+                                    },
+                                    "defaultPhoneNbr": {
+                                        "type": "string"
+                                    },
+                                    "defaultPhoneExtension": {
+                                        "type": "string"
+                                    },
+                                    "defaultBillingFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "defaultFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "userDefinedField1": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField2": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField3": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField4": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField5": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField6": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField7": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField8": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField9": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "userDefinedField10": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "companyLocation": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "communicationItems": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "type": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "nullable": true
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "_info": {
+                                                            "type": "object",
+                                                            "additionalProperties": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "extension": {
+                                                    "type": "string"
+                                                },
+                                                "defaultFlag": {
+                                                    "type": "boolean",
+                                                    "nullable": true
+                                                },
+                                                "domain": {
+                                                    "type": "string"
+                                                },
+                                                "communicationType": {
+                                                    "enum": [
+                                                        "Email",
+                                                        "Fax",
+                                                        "Phone"
+                                                    ],
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "types": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "_info": {
+                                                    "type": "object",
+                                                    "additionalProperties": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "integratorTags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "customFields": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "caption": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "enum": [
+                                                        "TextArea",
+                                                        "Button",
+                                                        "Currency",
+                                                        "Date",
+                                                        "Hyperlink",
+                                                        "IPAddress",
+                                                        "Checkbox",
+                                                        "Number",
+                                                        "Percent",
+                                                        "Text",
+                                                        "Password"
+                                                    ],
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "entryMethod": {
+                                                    "enum": [
+                                                        "Date",
+                                                        "EntryField",
+                                                        "List",
+                                                        "Option"
+                                                    ],
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "numberOfDecimals": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "value": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "photo": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "ignoreDuplicates": {
+                                        "type": "boolean"
+                                    },
+                                    "_info": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "typeIds": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "description": "Integrer array of Contact_Type_Recids to be assigned to contact that can be passed in only during new contact creation (post)\n            To update existing contacts type, use the /company/contactTypeAssociations or /company/contacts/{ID}/typeAssociations endpoints"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1service~1tickets/x-connector-webhook-create",
+        "value": {
+            "tags": [
+                "Tickets"
+            ],
+            "x-connector-type": "trigger",
+            "x-connector-webhook": {
+                "type": "subscription",
+                "subscribeRequestUrl": "{$baseUrl}/system/callbacks",
+                "subscribeRequestMethod": "POST",
+                "subscribeRequestBody": {
+                    "url": "{$webhookUrl}",
+                    "objectId": "{$parameters.objectId}",
+                    "type": "Ticket",
+                    "level": "{$parameters.level}"
+                },
+                "unsubscribeRequestUrl": "{$baseUrl}/system/callbacks/{$response.body#/id}",
+                "unsubscribeRequestMethod": "DELETE",
+                "unsubscribeRequestBody": null,
+                "output": "$request.body",
+                "outputCondition": "$boolean(Action='added')",
+                "outputTransform": "$eval(Entity)"
+            },
+            "operationId": "NewServiceTicket",
+            "description": "Triggers when a new service ticket was created.",
+            "parameters": [
+                {
+                    "name": "level",
+                    "in": "body",
+                    "description": "When set to owner, all ConnectWise PSA tickets are returned. When set to board, all tickets of the specified board are returned. When set to project, all tickets of the specified project are returned. When set to phase, all tickets of the specified project phase are returned. When set to status, all tickets of the specified status are returned. When set to ticket, the specified ticket is returned.",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "Owner",
+                            "Board",
+                            "Project",
+                            "Phase",
+                            "Status",
+                            "Ticket",
+                            "IntegratorTag"
+                        ],
+                        "default": "Owner"
+                    }
+                },
+                {
+                    "name": "objectId",
+                    "in": "body",
+                    "description": "The ObjectId should be the Id of whatever record you are subscribing to. This should be set to 1 when using a level of Owner.",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "default": 1
+                    }
+                }
+            ],
+            "responses": {
+                "201": {
+                    "description": "New Service Ticket Created",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "summary"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "summary": {
+                                        "type": "string",
+                                        "description": " Max length: 100;"
+                                    },
+                                    "recordType": {
+                                        "enum": [
+                                            "ProjectIssue",
+                                            "ProjectTicket",
+                                            "ServiceTicket"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "board": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "workRole": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "workType": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "company": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "site": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "siteName": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "addressLine1": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "addressLine2": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "stateIdentifier": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "zip": {
+                                        "type": "string",
+                                        "description": " Max length: 12;"
+                                    },
+                                    "country": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "contact": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "contactName": {
+                                        "type": "string",
+                                        "description": " Max length: 62;"
+                                    },
+                                    "contactPhoneNumber": {
+                                        "type": "string",
+                                        "description": " Max length: 20;"
+                                    },
+                                    "contactPhoneExtension": {
+                                        "type": "string",
+                                        "description": " Max length: 15;"
+                                    },
+                                    "contactEmailAddress": {
+                                        "type": "string",
+                                        "description": " Max length: 250;"
+                                    },
+                                    "type": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "subType": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "item": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "team": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "owner": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "priority": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "sort": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "serviceLocation": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "source": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "requiredDate": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "budgetHours": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "opportunity": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "agreement": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "type": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "severity": {
+                                        "enum": [
+                                            "Low",
+                                            "Medium",
+                                            "High"
+                                        ],
+                                        "type": "string",
+                                        "description": " Required On Updates;",
+                                        "nullable": true
+                                    },
+                                    "impact": {
+                                        "enum": [
+                                            "Low",
+                                            "Medium",
+                                            "High"
+                                        ],
+                                        "type": "string",
+                                        "description": " Required On Updates;",
+                                        "nullable": true
+                                    },
+                                    "externalXRef": {
+                                        "type": "string",
+                                        "description": " Max length: 100;"
+                                    },
+                                    "poNumber": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "knowledgeBaseCategoryId": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "knowledgeBaseSubCategoryId": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "allowAllClientsPortalView": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "customerUpdatedFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "automaticEmailContactFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "automaticEmailResourceFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "automaticEmailCcFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "automaticEmailCc": {
+                                        "type": "string",
+                                        "description": " Max length: 1000;"
+                                    },
+                                    "initialDescription": {
+                                        "type": "string",
+                                        "description": "Only available for POST, will not be returned in the response"
+                                    },
+                                    "initialInternalAnalysis": {
+                                        "type": "string",
+                                        "description": "Only available for POST, will not be returned in the response"
+                                    },
+                                    "initialResolution": {
+                                        "type": "string",
+                                        "description": "Only available for POST, will not be returned in the response"
+                                    },
+                                    "initialDescriptionFrom": {
+                                        "type": "string"
+                                    },
+                                    "contactEmailLookup": {
+                                        "type": "string"
+                                    },
+                                    "processNotifications": {
+                                        "type": "boolean",
+                                        "description": "Can be set to false to skip notification processing when adding or updating a ticket (Defaults to True)",
+                                        "nullable": true
+                                    },
+                                    "skipCallback": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "closedDate": {
+                                        "type": "string"
+                                    },
+                                    "closedBy": {
+                                        "type": "string"
+                                    },
+                                    "closedFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "actualHours": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "approved": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "estimatedExpenseCost": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedExpenseRevenue": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedProductCost": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedProductRevenue": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedTimeCost": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedTimeRevenue": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "billingMethod": {
+                                        "enum": [
+                                            "ActualRates",
+                                            "FixedFee",
+                                            "NotToExceed",
+                                            "OverrideRate"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "billingAmount": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "hourlyRate": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "subBillingMethod": {
+                                        "enum": [
+                                            "ActualRates",
+                                            "FixedFee",
+                                            "NotToExceed",
+                                            "OverrideRate"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "subBillingAmount": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "subDateAccepted": {
+                                        "type": "string"
+                                    },
+                                    "dateResolved": {
+                                        "type": "string"
+                                    },
+                                    "dateResplan": {
+                                        "type": "string"
+                                    },
+                                    "dateResponded": {
+                                        "type": "string"
+                                    },
+                                    "resolveMinutes": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "resPlanMinutes": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "respondMinutes": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "isInSla": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "knowledgeBaseLinkId": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "resources": {
+                                        "type": "string"
+                                    },
+                                    "parentTicketId": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "hasChildTicket": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "hasMergedChildTicketFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "knowledgeBaseLinkType": {
+                                        "enum": [
+                                            "Activity",
+                                            "ProjectIssue",
+                                            "KnowledgeBaseArticle",
+                                            "ProjectTicket",
+                                            "ServiceTicket",
+                                            "Time"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "billTime": {
+                                        "enum": [
+                                            "Billable",
+                                            "DoNotBill",
+                                            "NoCharge",
+                                            "NoDefault"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "billExpenses": {
+                                        "enum": [
+                                            "Billable",
+                                            "DoNotBill",
+                                            "NoCharge",
+                                            "NoDefault"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "billProducts": {
+                                        "enum": [
+                                            "Billable",
+                                            "DoNotBill",
+                                            "NoCharge",
+                                            "NoDefault"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "predecessorType": {
+                                        "enum": [
+                                            "Ticket",
+                                            "Phase"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "predecessorId": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "predecessorClosedFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "lagDays": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "lagNonworkingDaysFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "estimatedStartDate": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "duration": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "location": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "department": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "mobileGuid": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "sla": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "slaStatus": {
+                                        "type": "string"
+                                    },
+                                    "currency": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "symbol": {
+                                                "type": "string"
+                                            },
+                                            "currencyCode": {
+                                                "type": "string"
+                                            },
+                                            "decimalSeparator": {
+                                                "type": "string"
+                                            },
+                                            "numberOfDecimals": {
+                                                "type": "integer"
+                                            },
+                                            "thousandsSeparator": {
+                                                "type": "string"
+                                            },
+                                            "negativeParenthesesFlag": {
+                                                "type": "boolean"
+                                            },
+                                            "displaySymbolFlag": {
+                                                "type": "boolean"
+                                            },
+                                            "currencyIdentifier": {
+                                                "type": "string"
+                                            },
+                                            "displayIdFlag": {
+                                                "type": "boolean"
+                                            },
+                                            "rightAlign": {
+                                                "type": "boolean"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "mergedParentTicket": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "summary": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "integratorTags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "_info": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "customFields": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "caption": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "enum": [
+                                                        "TextArea",
+                                                        "Button",
+                                                        "Currency",
+                                                        "Date",
+                                                        "Hyperlink",
+                                                        "IPAddress",
+                                                        "Checkbox",
+                                                        "Number",
+                                                        "Percent",
+                                                        "Text",
+                                                        "Password"
+                                                    ],
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "entryMethod": {
+                                                    "enum": [
+                                                        "Date",
+                                                        "EntryField",
+                                                        "List",
+                                                        "Option"
+                                                    ],
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "numberOfDecimals": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "value": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        "op": "add",
+        "path": "/paths/~1project~1projects/x-connector-webhook-create",
+        "value": {
+            "tags": [
+                "Tickets"
+            ],
+            "x-connector-type": "trigger",
+            "x-connector-webhook": {
+                "type": "subscription",
+                "subscribeRequestUrl": "{$baseUrl}/system/callbacks",
+                "subscribeRequestMethod": "POST",
+                "subscribeRequestBody": {
+                    "url": "{$webhookUrl}",
+                    "objectId": "{$parameters.objectId}",
+                    "type": "Project",
+                    "level": "{$parameters.level}"
+                },
+                "unsubscribeRequestUrl": "{$baseUrl}/system/callbacks/{$response.body#/id}",
+                "unsubscribeRequestMethod": "DELETE",
+                "unsubscribeRequestBody": null,
+                "output": "$request.body",
+                "outputCondition": "$boolean(Action='added')",
+                "outputTransform": "$eval(Entity)"
+            },
+            "operationId": "NewProject",
+            "description": "Triggers when a new project was created.",
+            "parameters": [
+                {
+                    "name": "level",
+                    "in": "body",
+                    "description": "When set to owner, all ConnectWise PSA projects are returned. When set to board, all projects of the specified board are returned. When set to project, the specified project is returned.",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "Owner",
+                            "Status",
+                            "Board",
+                            "Project"
+                        ],
+                        "default": "Owner"
+                    }
+                },
+                {
+                    "name": "objectId",
+                    "in": "body",
+                    "description": "The ObjectId should be the Id of whatever record you are subscribing to. This should be set to 1 when using a level of Owner.",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "default": 1
+                    }
+                }
+            ],
+            "responses": {
+                "201": {
+                    "description": "New Project Created",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "billingMethod",
+                                    "estimatedEnd",
+                                    "estimatedStart",
+                                    "name"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "_info": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "actualEnd": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "actualHours": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "actualStart": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "agreement": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "type": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "billExpenses": {
+                                        "enum": [
+                                            "Billable",
+                                            "DoNotBill",
+                                            "NoCharge",
+                                            "NoDefault"
+                                        ],
+                                        "type": "string",
+                                        "description": " Required On Updates;",
+                                        "nullable": true
+                                    },
+                                    "billingAmount": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "billingAttention": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "billingMethod": {
+                                        "enum": [
+                                            "ActualRates",
+                                            "FixedFee",
+                                            "NotToExceed",
+                                            "OverrideRate"
+                                        ],
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "billingRateType": {
+                                        "enum": [
+                                            "StaffMember",
+                                            "WorkRole"
+                                        ],
+                                        "type": "string",
+                                        "description": " Required On Updates;",
+                                        "nullable": true
+                                    },
+                                    "billingTerms": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "billProducts": {
+                                        "enum": [
+                                            "Billable",
+                                            "DoNotBill",
+                                            "NoCharge",
+                                            "NoDefault"
+                                        ],
+                                        "type": "string",
+                                        "description": " Required On Updates;",
+                                        "nullable": true
+                                    },
+                                    "billProjectAfterClosedFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "billTime": {
+                                        "enum": [
+                                            "Billable",
+                                            "DoNotBill",
+                                            "NoCharge",
+                                            "NoDefault"
+                                        ],
+                                        "type": "string",
+                                        "description": " Required On Updates;",
+                                        "nullable": true
+                                    },
+                                    "billToCompany": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "billToContact": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "billToSite": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "billUnapprovedTimeAndExpense": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "board": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "budgetAnalysis": {
+                                        "enum": [
+                                            "ActualHours",
+                                            "BillableHours"
+                                        ],
+                                        "type": "string",
+                                        "description": " Required On Updates;",
+                                        "nullable": true
+                                    },
+                                    "budgetFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "budgetHours": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "company": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "contact": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "customerPO": {
+                                        "type": "string",
+                                        "description": " Max length: 50;"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "currency": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "symbol": {
+                                                "type": "string"
+                                            },
+                                            "currencyCode": {
+                                                "type": "string"
+                                            },
+                                            "decimalSeparator": {
+                                                "type": "string"
+                                            },
+                                            "numberOfDecimals": {
+                                                "type": "integer"
+                                            },
+                                            "thousandsSeparator": {
+                                                "type": "string"
+                                            },
+                                            "negativeParenthesesFlag": {
+                                                "type": "boolean"
+                                            },
+                                            "displaySymbolFlag": {
+                                                "type": "boolean"
+                                            },
+                                            "currencyIdentifier": {
+                                                "type": "string"
+                                            },
+                                            "displayIdFlag": {
+                                                "type": "boolean"
+                                            },
+                                            "rightAlign": {
+                                                "type": "boolean"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "downpayment": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedEnd": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "percentComplete": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedExpenseRevenue": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedHours": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedProductRevenue": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedStart": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "estimatedTimeRevenue": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "expenseApprover": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "includeDependenciesFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "includeEstimatesFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "location": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "department": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "manager": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "description": " Max length: 100;"
+                                    },
+                                    "opportunity": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "projectTemplateId": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "restrictDownPaymentFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "scheduledEnd": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "scheduledHours": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "scheduledStart": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "shipToCompany": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "shipToContact": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "shipToSite": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "site": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "status": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "closedFlag": {
+                                        "type": "boolean"
+                                    },
+                                    "timeApprover": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "identifier": {
+                                                "type": "string"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "type": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "doNotDisplayInPortalFlag": {
+                                        "type": "boolean",
+                                        "nullable": true
+                                    },
+                                    "billingStartDate": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "estimatedTimeCost": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedExpenseCost": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "estimatedProductCost": {
+                                        "type": "number",
+                                        "nullable": true
+                                    },
+                                    "taxCode": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "companyLocation": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "_info": {
+                                                "type": "object",
+                                                "additionalProperties": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "customFields": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "caption": {
+                                                    "type": "string"
+                                                },
+                                                "type": {
+                                                    "enum": [
+                                                        "TextArea",
+                                                        "Button",
+                                                        "Currency",
+                                                        "Date",
+                                                        "Hyperlink",
+                                                        "IPAddress",
+                                                        "Checkbox",
+                                                        "Number",
+                                                        "Percent",
+                                                        "Text",
+                                                        "Password"
+                                                    ],
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "entryMethod": {
+                                                    "enum": [
+                                                        "Date",
+                                                        "EntryField",
+                                                        "List",
+                                                        "Option"
+                                                    ],
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "numberOfDecimals": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "value": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        "op": "remove",
+        "jsonpath": "$.paths.*[?(@.operationId != 'postServiceTickets' && @.operationId != 'getCompanyCompanies' && @.operationId != 'postServiceTicketsSearch' && @.operationId != 'getServiceBoards' && @.operationId != 'deleteServiceTicketsById' && @.operationId != 'putServiceTicketsById' && @.operationId != 'postServiceTicketsByParentIdNotes' && @.operationId != 'postCompanyCompanies' && @.operationId != 'deleteCompanyCompaniesById' && @.operationId != 'getCompanyContacts' && @.operationId != 'postCompanyContacts' && @.operationId != 'deleteCompanyContactsById')]"
+    }
+]

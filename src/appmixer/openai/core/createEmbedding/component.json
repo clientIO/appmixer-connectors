@@ -1,0 +1,167 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.openai.core.createEmbedding",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Creates an embedding vector representing the input text.</p></label>",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "model",
+                    "input"
+                ],
+                "properties": {
+                    "input": {
+                        "type": "string",
+                        "title": "string",
+                        "description": "The string that will be turned into an embedding.",
+                        "default": "",
+                        "example": "This is a test.",
+                        "path": "input"
+                    },
+                    "model": {
+                        "description": "ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API to see all of your available models, or see our [Model overview](/docs/models/overview) for descriptions of them.\n",
+                        "example": "text-embedding-ada-002",
+                        "x-oaiTypeLabel": "string",
+                        "type": "string",
+                        "path": "model"
+                    },
+                    "encoding_format": {
+                        "description": "The format to return the embeddings in. Can be either `float` or [`base64`](https://pypi.org/project/pybase64/).",
+                        "example": "float",
+                        "default": "float",
+                        "type": "string",
+                        "enum": [
+                            "float",
+                            "base64"
+                        ],
+                        "path": "encoding_format"
+                    },
+                    "user": {
+                        "type": "string",
+                        "example": "user-1234",
+                        "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n",
+                        "path": "user"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "input": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "Input",
+                        "tooltip": "<p>The string that will be turned into an embedding. Example: This is a test.</p>",
+                        "defaultValue": ""
+                    },
+                    "model": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Model",
+                        "tooltip": "<p>ID of the model to use. You can use the <a href=\"https://platform.openai.com/docs/api-reference/models/list\" rel=\"noopener noreferrer\" target=\"_blank\">List models</a> API to see all of your available models, or see our <a href=\"https://platform.openai.com/docs/models/overview\" rel=\"noopener noreferrer\" target=\"_blank\">Model overview</a> for descriptions of them.\n Example: text-embedding-ada-002</p>"
+                    },
+                    "encoding_format": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Encoding Format",
+                        "tooltip": "<p>The format to return the embeddings in. Can be either <code>float</code> or <a href=\"https://pypi.org/project/pybase64/\" rel=\"noopener noreferrer\" target=\"_blank\"><code>base64</code></a>. Example: float</p>",
+                        "options": [
+                            {
+                                "content": "float",
+                                "value": "float"
+                            },
+                            {
+                                "content": "base64",
+                                "value": "base64"
+                            }
+                        ],
+                        "defaultValue": "float"
+                    },
+                    "user": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "User",
+                        "tooltip": "<p>A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. <a href=\"https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids\" rel=\"noopener noreferrer\" target=\"_blank\">Learn more</a>.\n Example: user-1234</p>"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Data",
+                    "value": "data",
+                    "schema": {
+                        "type": "array",
+                        "description": "The list of embeddings generated by the model.",
+                        "items": {
+                            "type": "object",
+                            "description": "Represents an embedding vector returned by embedding endpoint.\n",
+                            "required": [
+                                "index",
+                                "object",
+                                "embedding"
+                            ],
+                            "x-oaiMeta": {
+                                "name": "The embedding object",
+                                "example": "{\n  \"object\": \"embedding\",\n  \"embedding\": [\n    0.0023064255,\n    -0.009327292,\n    .... (1536 floats total for ada-002)\n    -0.0028842222,\n  ],\n  \"index\": 0\n}\n"
+                            },
+                            "properties": {
+                                "index": {
+                                    "type": "integer",
+                                    "description": "The index of the embedding in the list of embeddings."
+                                },
+                                "embedding": {
+                                    "type": "array",
+                                    "description": "The embedding vector, which is a list of floats. The length of vector depends on the model as listed in the [embedding guide](/docs/guides/embeddings).\n",
+                                    "items": {
+                                        "type": "number"
+                                    }
+                                },
+                                "object": {
+                                    "type": "string",
+                                    "description": "The object type, which is always \"embedding\".",
+                                    "enum": [
+                                        "embedding"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Model",
+                    "value": "model"
+                },
+                {
+                    "label": "Object",
+                    "value": "object"
+                },
+                {
+                    "label": "Usage",
+                    "value": "usage"
+                },
+                {
+                    "label": "Usage Prompt Tokens",
+                    "value": "usage.prompt_tokens"
+                },
+                {
+                    "label": "Usage Total Tokens",
+                    "value": "usage.total_tokens"
+                }
+            ]
+        }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:openai"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNHB4IiBoZWlnaHQ9IjI0cHgiIGZpbGw9ImN1cnJlbnRDb2xvciIgdmlld0JveD0iMCAwIDI0IDI0IiBjb2xvcj0iYmxhY2siPjxwYXRoIGQ9Ik0yMi40MTggOS44MjJhNS45MDMgNS45MDMgMCAwIDAtLjUyLTQuOTEgNi4xIDYuMSAwIDAgMC0yLjgyMi0yLjUxMyA2LjIwNCA2LjIwNCAwIDAgMC0zLjc4LS4zODlBNi4wNTUgNi4wNTUgMCAwIDAgMTMuMjMyLjUxOCA2LjEyOSA2LjEyOSAwIDAgMCAxMC43MjYgMGE2LjE4NSA2LjE4NSAwIDAgMC0zLjYxNSAxLjE1M0E2LjA1MiA2LjA1MiAwIDAgMCA0Ljg4IDQuMTg3YTYuMTAyIDYuMTAyIDAgMCAwLTIuMzQ0IDEuMDE4QTYuMDA4IDYuMDA4IDAgMCAwIC44MjggNy4wODdhNS45ODEgNS45ODEgMCAwIDAgLjc1NCA3LjA5IDUuOTA0IDUuOTA0IDAgMCAwIC41MiA0LjkxMSA2LjEwMSA2LjEwMSAwIDAgMCAyLjgyMSAyLjUxMyA2LjIwNSA2LjIwNSAwIDAgMCAzLjc4LjM4OSA2LjA1NyA2LjA1NyAwIDAgMCAyLjA2NSAxLjQ5MiA2LjEzIDYuMTMgMCAwIDAgMi41MDUuNTE4IDYuMTg1IDYuMTg1IDAgMCAwIDMuNjE3LTEuMTU0IDYuMDUyIDYuMDUyIDAgMCAwIDIuMjMyLTMuMDM1IDYuMTAxIDYuMTAxIDAgMCAwIDIuMzQzLTEuMDE4IDYuMDA5IDYuMDA5IDAgMCAwIDEuNzA5LTEuODgzIDUuOTgxIDUuOTgxIDAgMCAwLS43NTYtNy4wODhabS05LjE0MyAxMi42MDlhNC41ODMgNC41ODMgMCAwIDEtMi45MTgtMS4wNGMuMDM3LS4wMi4xMDItLjA1Ni4xNDQtLjA4MWw0Ljg0NC0yLjc2YS43ODMuNzgzIDAgMCAwIC4zOTctLjY4di02LjczOEwxNy43OSAxMi4zYS4wNzIuMDcyIDAgMCAxIC4wNC4wNTV2NS41OGE0LjQ3MyA0LjQ3MyAwIDAgMS0xLjMzNSAzLjE3NiA0LjU5NiA0LjU5NiAwIDAgMS0zLjIxOSAxLjMyMVptLTkuNzkzLTQuMTI3YTQuNDMyIDQuNDMyIDAgMCAxLS41NDQtMy4wMTRjLjAzNi4wMjEuMDk5LjA2LjE0NC4wODVsNC44NDMgMi43NmEuNzk2Ljc5NiAwIDAgMCAuNzk1IDBsNS45MTMtMy4zNjlWMTcuMWEuMDcxLjA3MSAwIDAgMS0uMDI5LjA2Mkw5LjcwOCAxOS45NWE0LjYxNyA0LjYxNyAwIDAgMS0zLjQ1OC40NDcgNC41NTYgNC41NTYgMCAwIDEtMi43NjgtMi4wOTNaTTIuMjA4IDcuODcyQTQuNTI3IDQuNTI3IDAgMCAxIDQuNTggNS45bC0uMDAyLjE2NHY1LjUyYS43NjguNzY4IDAgMCAwIC4zOTcuNjhsNS45MTMgMy4zNjktMi4wNDcgMS4xNjZhLjA3NS4wNzUgMCAwIDEtLjA2OS4wMDZsLTQuODk2LTIuNzkyYTQuNTEgNC41MSAwIDAgMS0yLjEyLTIuNzMgNC40NSA0LjQ1IDAgMCAxIC40NTItMy40MTFabTE2LjgxOCAzLjg2MS01LjkxMy0zLjM2OCAyLjA0Ny0xLjE2NmEuMDc0LjA3NCAwIDAgMSAuMDctLjAwNmw0Ljg5NiAyLjc4OWE0LjUyNiA0LjUyNiAwIDAgMSAxLjc2MiAxLjgxNSA0LjQ0OCA0LjQ0OCAwIDAgMS0uNDE4IDQuODA4IDQuNTU2IDQuNTU2IDAgMCAxLTIuMDQ5IDEuNDk0di01LjY4NmEuNzY3Ljc2NyAwIDAgMC0uMzk1LS42OFptMi4wMzgtMy4wMjVhNi44NzQgNi44NzQgMCAwIDAtLjE0NC0uMDg1bC00Ljg0My0yLjc2YS43OTcuNzk3IDAgMCAwLS43OTYgMEw5LjM2OCA5LjIzVjYuOWEuMDcyLjA3MiAwIDAgMSAuMDMtLjA2Mmw0Ljg5NS0yLjc4N2E0LjYwOCA0LjYwOCAwIDAgMSA0Ljg4NS4yMDcgNC41MSA0LjUxIDAgMCAxIDEuNTk5IDEuOTU1Yy4zMzMuNzg4LjQzMyAxLjY1NC4yODcgMi40OTZaTTguMjU1IDEyLjg2NSA2LjIwOCAxMS43YS4wNzEuMDcxIDAgMCAxLS4wNC0uMDU2di01LjU4YzAtLjg1NC4yNDgtMS42OS43MTMtMi40MTJhNC41NCA0LjU0IDAgMCAxIDEuOTEzLTEuNjU4IDQuNjE0IDQuNjE0IDAgMCAxIDQuODUuNjE2Yy0uMDM3LjAyLS4xMDIuMDU1LS4xNDQuMDhMOC42NTcgNS40NTJhLjc4Mi43ODIgMCAwIDAtLjM5OC42OGwtLjAwNCA2LjczNFpNOS4zNjcgMTAuNSAxMi4wMDEgOWwyLjYzMyAxLjV2M0wxMi4wMDEgMTVsLTIuNjM0LTEuNXYtM1oiLz48L3N2Zz4="
+}

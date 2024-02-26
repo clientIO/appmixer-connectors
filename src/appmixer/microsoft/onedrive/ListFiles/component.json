@@ -1,0 +1,252 @@
+{
+  "name": "appmixer.microsoft.onedrive.ListFiles",
+  "author": "Harsha Surisetty <harsha@client.io>",
+  "description": "List files in Microsoft OneDrive.",
+  "version": "1.1.0",
+  "dependencies": {
+    "module": "1.1.0"
+  },
+  "private": false,
+  "auth": {
+    "service": "appmixer:microsoft",
+    "scope": ["Files.Read.All"]
+  },
+  "inPorts": [
+    {
+      "name": "in",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "driveId": {
+            "type": "string"
+          },
+          "siteId": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "drive": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          },
+          "itemPath": {
+            "type": "string"
+          },
+          "select": {
+            "type": "string"
+          },
+          "orderby": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "string"
+          },
+          "outputType": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "number"
+          }
+        }
+      },
+      "inspector": {
+        "inputs": {
+          "drive": {
+            "type": "select",
+            "index": 1,
+            "label": "Drive",
+            "group": "drive",
+            "defaultValue": "me",
+            "tooltip": "Select the drive type.",
+            "options": [
+              { "label": "My Drive", "value": "me" },
+              { "label": "User's Drive", "value": "user" },
+              { "label": "Site's Drive", "value": "site" },
+              { "label": "Group's Drive", "value": "group" },
+              { "label": "Any Drive", "value": "drive" }
+            ]
+          },
+          "driveId": {
+            "type": "text",
+            "index": 2,
+            "label": "Drive ID",
+            "group": "drive",
+            "tooltip": "ID of the drive where the file is located.",
+            "when": { "eq": { "drive": "drive" } },
+            "source": {
+              "url": "/component/appmixer/microsoft/onedrive/ListDrives?outPort=out",
+              "data": {
+                "properties": {
+                  "variableFetch": true
+                },
+                "transform": "./ListDrives#sitesToSelectArray"
+              }
+            }
+          },
+          "siteId": {
+            "type": "text",
+            "index": 3,
+            "label": "Site ID",
+            "group": "drive",
+            "tooltip": "ID of the site where the file is located.",
+            "when": { "eq": { "drive": "site" } },
+            "source": {
+              "url": "/component/appmixer/microsoft/onedrive/ListSites?outPort=out",
+              "data": {
+                "properties": {
+                  "variableFetch": true
+                },
+                "transform": "./ListSites#sitesToSelectArray"
+              }
+            }
+          },
+          "groupId": {
+            "type": "text",
+            "index": 4,
+            "label": "Group ID",
+            "group": "drive",
+            "tooltip": "ID of the group where the file is located.",
+            "when": { "eq": { "drive": "group" } },
+            "source": {
+              "url": "/component/appmixer/microsoft/onedrive/ListGroups?outPort=out",
+              "data": {
+                "properties": {
+                  "variableFetch": true
+                },
+                "transform": "./ListGroups#sitesToSelectArray"
+              }
+            }
+          },
+          "userId": {
+            "type": "text",
+            "index": 5,
+            "label": "User ID",
+            "group": "drive",
+            "tooltip": "ID of the user where the file is located.",
+            "when": { "eq": { "drive": "user" } },
+            "source": {
+              "url": "/component/appmixer/microsoft/onedrive/ListUsers?outPort=out",
+              "data": {
+                "properties": {
+                  "variableFetch": true
+                },
+                "transform": "./ListUsers#sitesToSelectArray"
+              }
+            }
+          },
+          "itemId": {
+            "type": "text",
+            "index": 6,
+            "label": "Folder ID",
+            "group": "item",
+            "tooltip": "ID assigned to a folder in OneDrive."
+          },
+          "itemPath": {
+            "type": "text",
+            "index": 7,
+            "label": "Folder Path",
+            "group": "item",
+            "tooltip": "Path of a folder in OneDrive<b>(Ignored if 'Folder ID' is set)</b>. Example: <code>path/to/file/file.pdf</code>"
+          },
+          "select": {
+            "type": "text",
+            "label": "Select",
+            "tooltip": "Comma-separated list of properties to include in the response.",
+            "group": "filters",
+            "index": 8
+          },
+          "orderby": {
+            "type": "text",
+            "label": "Order By",
+            "group": "filters",
+            "tooltip": "Comma-separated list of properties used to sort the order of items in the response collection.",
+            "index": 9
+          },
+          "filter": {
+            "type": "text",
+            "label": "Filter",
+            "group": "filters",
+            "tooltip": "Filter string to filter the response based on a set of criteria.",
+            "index": 10
+          },
+          "outputType": {
+            "type": "select",
+            "label": "Output Type",
+            "index": 11,
+            "defaultValue": "items",
+            "group": "outputType",
+            "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+            "options": [
+              {
+                "label": "All at once",
+                "value": "items"
+              },
+              {
+                "label": "One at a time",
+                "value": "item"
+              },
+              {
+                "label": "Save To File",
+                "value": "file"
+              }
+            ]
+          },
+          "limit": {
+            "type": "number",
+            "label": "Limit",
+            "tooltip": "Limit the number of returned files. If you leave this field empty, first 100 files will be returned.",
+            "defaultValue": 100,
+            "group": "outputType",
+            "index": 12
+          }
+        },
+        "groups": {
+          "drive": {
+            "label": "Drive",
+            "index": 1
+          },
+          "item": {
+            "label": "Item",
+            "index": 2
+          },
+          "filters": {
+            "label": "Filters",
+            "index": 3
+          },
+          "outputType": {
+            "label": "Output Type",
+            "index": 4
+          }
+        }
+      }
+    }
+  ],
+  "outPorts": [
+    {
+      "name": "out",
+      "source": {
+        "url": "/component/appmixer/microsoft/onedrive/ListFiles?outPort=out",
+        "data": {
+          "properties": {
+            "generateOutputPortOptions": true
+          },
+          "messages": {
+            "in/drive": "inputs/in/drive",
+            "in/driveId": "inputs/in/driveId",
+            "in/itemId": "inputs/in/itemId",
+            "in/itemPath": "inputs/in/itemPath",
+            "in/limit": "inputs/in/limit",
+            "in/outputType": "inputs/in/outputType"
+          }
+        }
+      }
+    }
+  ],
+  "icon": "data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOm5vbmU7fS5jbHMtMntmaWxsOiMwMzY0Yjg7fS5jbHMtM3tmaWxsOiMwMDc4ZDQ7fS5jbHMtNHtmaWxsOiMxNDkwZGY7fS5jbHMtNXtmaWxsOiMyOGE4ZWE7fTwvc3R5bGU+PC9kZWZzPjx0aXRsZT5PbmVEcml2ZV8yNHg8L3RpdGxlPjxnIGlkPSJPbmVEcml2ZSI+PHJlY3QgY2xhc3M9ImNscy0xIiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0xNC41LDE1bDQuOTUtNC43NEE3LjUsNy41LDAsMCwwLDUuOTIsOEM2LDgsMTQuNSwxNSwxNC41LDE1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMyIgZD0iTTkuMTUsOC44OWgwQTYsNiwwLDAsMCw2LDhINS45MmE2LDYsMCwwLDAtNC44NCw5LjQzTDguNSwxNi41bDUuNjktNC41OVoiLz48cGF0aCBjbGFzcz0iY2xzLTQiIGQ9Ik0xOS40NSwxMC4yNmgtLjMyYTQuODQsNC44NCwwLDAsMC0xLjk0LjRoMGwtMywxLjI2TDE3LjUsMTZsNS45MiwxLjQ0YTQuODgsNC44OCwwLDAsMC00LTcuMThaIi8+PHBhdGggY2xhc3M9ImNscy01IiBkPSJNMS4wOCwxNy40M0E2LDYsMCwwLDAsNiwyMEgxOS4xM2E0Ljg5LDQuODksMCwwLDAsNC4yOS0yLjU2bC05LjIzLTUuNTNaIi8+PC9nPjwvc3ZnPg=="
+}

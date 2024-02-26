@@ -1,0 +1,98 @@
+{
+    "name": "appmixer.google.drive.ListFiles",
+    "author": "David Durman <david@client.io>",
+    "description": "List files in a folder.",
+    "private": false,
+    "version": "1.0.2",
+    "auth": {
+        "service": "appmixer:google",
+        "scope": [
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.appdata",
+            "https://www.googleapis.com/auth/drive.file"
+        ]
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "folderLocation": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "object" }
+                        ]
+                    },
+                    "query": { "type": "string" },
+                    "searchType": { "type": "string" },
+                    "outputType": { "type": "string" }
+                },
+                "required": ["folderLocation"]
+            },
+            "inspector": {
+                "inputs": {
+                    "folderLocation": {
+                        "type": "googlepicker",
+                        "index": 1,
+                        "label": "Folder Location",
+                        "placeholder": "Choose a folder...",
+                        "tooltip": "Choose a folder to list files from.",
+                        "view": "FOLDERS"
+                    },
+                    "query": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Query",
+                        "tooltip": "Provide a search query. Depending on the search type, it can be either a full or part of a file/folder name or a text that a file contains (fullText search)."
+                    },
+                    "searchType": {
+                        "type": "select",
+                        "options": [
+                            { "content": "Exact file name", "value": "fileNameExact" },
+                            { "content": "Exact folder name", "value": "folderNameExact" },
+                            { "content": "File name containing search query", "value": "fileNameContains" },
+                            { "content": "Folder name containing search query", "value": "folderNameContains" },
+                            { "content": "Fulltext search", "value": "fullText" },
+                            { "content": "Custom search query", "value": "customQuery" }
+                        ],
+                        "defaultValue": "fileNameExact",
+                        "index": 3,
+                        "label": "Search Type",
+                        "tooltip": "Type of search. The search will either search based on file/folder names (exact or non-exact) or it can be a fullText search (file content) or you can provide a custom search query (advanced use)."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 4,
+                        "defaultValue": "items",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            { "label": "All at once", "value": "items" },
+                            { "label": "One at a time", "value": "item" },
+                            { "label": "File", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/google/drive/ListFiles?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/folderLocation": "inputs/in/folderLocation"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMC8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvVFIvMjAwMS9SRUMtU1ZHLTIwMDEwOTA0L0RURC9zdmcxMC5kdGQnPjxzdmcgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzIgMzIiIGhlaWdodD0iMzJweCIgaWQ9IkxheWVyXzEiIHZlcnNpb249IjEuMCIgdmlld0JveD0iMCAwIDMyIDMyIiB3aWR0aD0iMzJweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGc+PHBvbHlsaW5lIGZpbGw9IiM1MzdBQkQiIHBvaW50cz0iMzEuODY4LDIxIDkuODY4LDIxIDQuODY4LDMwIDI2LjU1NiwzMCAgIi8+PHBvbHlsaW5lIGZpbGw9IiMyRUI2NzIiIHBvaW50cz0iMTAuOTYyLDIgLTAuMDM4LDIwIDQuOTYyLDMwIDE1LjY4MywxMC4zNDUgICIvPjxwb2x5bGluZSBmaWxsPSIjRkVEMTRCIiBwb2ludHM9IjIwLjk2MiwyIDEwLjk2MiwyIDIxLjcxMiwyMSAzMS45NjIsMjEgMjAuOTYyLDIgICIvPjwvZz48Zy8+PGcvPjxnLz48Zy8+PGcvPjxnLz48L3N2Zz4="
+}

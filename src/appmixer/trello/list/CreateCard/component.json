@@ -1,0 +1,140 @@
+{
+    "name": "appmixer.trello.list.CreateCard",
+    "author": "Robert Beinaravicius <rbeinaravicius@ntrc.eu>",
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
+    "description": "Create a new card in Trello on a specific board and list.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:trello"
+    },
+    "quota": {
+        "manager": "appmixer:trello",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "boardId": { "type": "string" },
+                    "name": { "type": "string" },
+                    "boardListId": { "type": "string" },
+                    "description": { "type": "string", "maxLength": 16384 },
+                    "position": { "enum": [ "top", "bottom" ] },
+                    "dueDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "labels": { "type": "string" }
+                },
+                "required": [
+                    "name",
+                    "boardListId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "boardId": {
+                        "type": "select",
+                        "label": "Board",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/trello/list/ListBoards?outPort=boards",
+                            "data": {
+                                "transform": "./transformers#boardsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a board."
+                    },
+                    "boardListId": {
+                        "type": "select",
+                        "label": "Board list",
+                        "index": 2,
+                        "source": {
+                            "url": "/component/appmixer/trello/list/ListBoardsList?outPort=lists",
+                            "data": {
+                                "messages": {
+                                    "in/boardId": "inputs/in/boardId",
+                                    "in/isSource": true
+                                },
+                                "transform": "./transformers#boardListsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a list."
+                    },
+                    "name": {
+                        "type": "text",
+                        "label": "Card name",
+                        "index": 3
+                    },
+                    "description": {
+                        "type": "text",
+                        "label": "Card description",
+                        "index": 4
+                    },
+                    "position": {
+                        "type": "select",
+                        "options": [
+                            { "value": "top", "content": "top"},
+                            { "value": "bottom", "content": "bottom"}
+                        ],
+                        "defaultValue": "bottom",
+                        "label": "Card position",
+                        "index": 5
+                    },
+                    "dueDate": {
+                        "type": "date-time",
+                        "label": "Due date",
+                        "index": 6,
+                        "tooltip": "The card due date. It must be in the RFC3339 format. <br/><br/>Example: <i>2017-04-12T23:20:50.52Z</i> <br/> <br/>represents 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 2017 in UTC."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "card",
+            "options": [
+                { "label": "id", "value": "id" },
+                { "label": "badges", "value": "badges" },
+                { "label": "badges.votes", "value": "badges.votes" },
+                { "label": "badges.viewingMemberVoted", "value": "badges.viewingMemberVoted" },
+                { "label": "badges.subscribed", "value": "badges.subscribed" },
+                { "label": "badges.fogbugz", "value": "badges.fogbugz" },
+                { "label": "badges.checkItems", "value": "badges.checkItems" },
+                { "label": "badges.checkItemsChecked", "value": "badges.checkItemsChecked" },
+                { "label": "badges.comments", "value": "badges.comments" },
+                { "label": "badges.attachments", "value": "badges.attachments" },
+                { "label": "badges.description", "value": "badges.description" },
+                { "label": "badges.due", "value": "badges.due" },
+                { "label": "badges.dueComplete", "value": "badges.dueComplete" },
+                { "label": "checkItemStates", "value": "checkItemStates" },
+                { "label": "closed", "value": "closed" },
+                { "label": "dateLastActivity", "value": "dateLastActivity" },
+                { "label": "desc", "value": "desc" },
+                { "label": "descData", "value": "descData" },
+                { "label": "due", "value": "due" },
+                { "label": "dueComplete", "value": "dueComplete" },
+                { "label": "email", "value": "email" },
+                { "label": "idBoard", "value": "idBoard" },
+                { "label": "idChecklists", "value": "idChecklists" },
+                { "label": "idLabels", "value": "idLabels" },
+                { "label": "idList", "value": "idList" },
+                { "label": "idMembers", "value": "idMembers" },
+                { "label": "idShort", "value": "idShort" },
+                { "label": "idAttachmentCover", "value": "idAttachmentCover" },
+                { "label": "manualCoverAttachment", "value": "manualCoverAttachment" },
+                { "label": "labels", "value": "labels" },
+                { "label": "name", "value": "name" },
+                { "label": "pos", "value": "pos" },
+                { "label": "shortUrl", "value": "shortUrl" },
+                { "label": "url", "value": "url" }
+            ]
+        }
+    ]
+}
