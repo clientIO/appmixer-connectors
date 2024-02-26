@@ -27,7 +27,7 @@ module.exports = {
 
         google.options({ auth: commons.getOauth2Client(context.auth) });
         const sheets = await listSheets(
-            { q: `mimeType='application/vnd.google-apps.spreadsheet'`, pageSize: 1000 }
+            { q: 'mimeType=\'application/vnd.google-apps.spreadsheet\'', pageSize: 1000 }
         );
         return context.sendJson(sheets, 'out');
     },

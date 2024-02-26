@@ -16,8 +16,7 @@ module.exports = {
             let refreshToken;
             try {
                 refreshToken = context.refreshToken;
-            }
-            catch (err) {
+            } catch (err) {
                 throw new context.InvalidTokenError('Invalid token');
             }
 

@@ -1,7 +1,7 @@
 'use strict';
 
-const { SnowflakeDB } = require("../../common");
-const snowflake = new SnowflakeDB()
+const { SnowflakeDB } = require('../../common');
+const snowflake = new SnowflakeDB();
 module.exports = {
 
     async start(context) {
@@ -20,7 +20,7 @@ module.exports = {
 
         const { schema, table } = context.properties;
         const data = await snowflake.consumeStream(context, schema, table, 'update');
-        const mid = data.length / 2
+        const mid = data.length / 2;
         for (let i = 0; i < mid; i++) {
 
             const { METADATA$ACTION: oldAction, METADATA$ISUPDATE: oldUpdate, METADATA$ROW_ID: oldId, ...oldRow } = data[i + mid];

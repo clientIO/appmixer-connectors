@@ -30,6 +30,6 @@ module.exports = {
             }
         }).then(() => {
             return context.sendJson({}, 'deleted');
-        })
+        });
     }
 };

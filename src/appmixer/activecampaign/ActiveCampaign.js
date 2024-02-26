@@ -65,7 +65,7 @@ class ActiveCampaign {
 
     getNumberOfPages(limit) {
 
-        return Math.ceil(limit/this.getPageLimit(limit));
+        return Math.ceil(limit / this.getPageLimit(limit));
     }
 
     paginatedCall(method, path, data = {}, limit = 100, assembler) {
@@ -80,7 +80,7 @@ class ActiveCampaign {
                 ...data,
                 offset
             });
-        }
+        };
 
         return this.accumulativeCall(nPages, callFn, assembler);
     }
@@ -93,7 +93,7 @@ class ActiveCampaign {
                 const { contacts = [] } = response.data || {};
                 return acc.concat(contacts);
             }, []);
-        }
+        };
 
         return this.paginatedCall('get', 'contacts', params, limit, assembler);
     }
@@ -106,7 +106,7 @@ class ActiveCampaign {
                 const { deals = [] } = response.data || {};
                 return acc.concat(deals);
             }, []);
-        }
+        };
 
         return this.paginatedCall('get', 'deals', params, limit, assembler);
     }
@@ -119,7 +119,7 @@ class ActiveCampaign {
                 const { dealTasks = [] } = response.data || {};
                 return acc.concat(dealTasks);
             }, []);
-        }
+        };
 
         return this.paginatedCall('get', 'dealTasks', params, limit, assembler);
     }

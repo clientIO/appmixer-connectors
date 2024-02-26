@@ -94,7 +94,7 @@ module.exports = {
                 Buffer.from(attachment.data, 'base64')
             ).then(res => {
                 return Object.assign(res, { subject: attachment.subject });
-            })
+            });
         });
 
         await Promise.map(saved, savedFile => {

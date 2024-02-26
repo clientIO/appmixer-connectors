@@ -38,37 +38,37 @@ module.exports = {
                 },
                 inputs: {
                     schema: {
-                        type: "select",
-                        label: "Schema",
+                        type: 'select',
+                        label: 'Schema',
                         index: 1,
                         source: {
-                            url: "/component/appmixer/snowflake/db/ListSchemas?outPort=schemas",
+                            url: '/component/appmixer/snowflake/db/ListSchemas?outPort=schemas',
                             data: {
                                 properties: {
                                     sendWholeArray: true
                                 },
-                                transform: "./ListSchemas#schemasToSelectArray"
+                                transform: './ListSchemas#schemasToSelectArray'
                             }
                         },
-                        tooltip: "Select a schema."
+                        tooltip: 'Select a schema.'
                     },
                     table: {
-                        type: "text",
+                        type: 'text',
                         index: 2,
-                        label: "Table",
+                        label: 'Table',
                         source: {
-                            url: "/component/appmixer/snowflake/db/ListTables?outPort=tables",
+                            url: '/component/appmixer/snowflake/db/ListTables?outPort=tables',
                             data: {
                                 properties: {
                                     sendWholeArray: true
                                 },
                                 messages: {
-                                    "in/schema": "inputs/in/schema"
+                                    'in/schema': 'inputs/in/schema'
                                 },
-                                transform: "./ListTables#tablesToSelectArray"
+                                transform: './ListTables#tablesToSelectArray'
                             }
                         },
-                        tooltip: "Select a table."
+                        tooltip: 'Select a table.'
                     }
                 }
             };
@@ -82,7 +82,7 @@ module.exports = {
 
         const { schema, table, ...columnValues } = context.messages.in.content;
 
-        const snowflake = new SnowflakeDB()
+        const snowflake = new SnowflakeDB();
         const row = await snowflake.addRow(context.auth, schema, table, Object.keys(columnValues), Object.values(columnValues));
         return context.sendJson({ row: columnValues }, 'out');
     },
@@ -113,7 +113,7 @@ module.exports = {
                     label: `Row.${key}`,
                     value: `row.${key}`
                 }
-            )
+            );
         }
         return context.sendJson(options, 'out');
     }

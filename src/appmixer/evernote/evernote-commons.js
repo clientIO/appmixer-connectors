@@ -35,6 +35,7 @@ function EvernoteError(message, data, code) {
     this.name = 'EvernoteError';
     Error.captureStackTrace(this, EvernoteError);
 }
+
 EvernoteError.prototype = Object.create(Error.prototype);
 EvernoteError.prototype.constructor = EvernoteError;
 

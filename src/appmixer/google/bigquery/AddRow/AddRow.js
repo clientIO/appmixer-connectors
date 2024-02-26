@@ -1,6 +1,6 @@
 'use strict';
 const { BigQuery } = require('@google-cloud/bigquery');
-const commons = require("../../google-commons");
+const commons = require('../../google-commons');
 
 async function streamingInsert(context) {
 
@@ -37,11 +37,11 @@ async function streamingInsert(context) {
         'tableId',
         'insertMode',
         ...optionKeys
-    ]
+    ];
 
     const row = Object.entries(context.messages.in.content).reduce((acc, [key, value]) => {
         if (!excludedKeys.includes(key)) {
-            acc[key] = value
+            acc[key] = value;
         }
         return acc;
     }, {});
@@ -93,11 +93,11 @@ async function writeInsert(context) {
         'tableId',
         'insertMode',
         ...optionKeys
-    ]
+    ];
 
     const row = Object.entries(context.messages.in.content).reduce((acc, [key, value]) => {
         if (!excludedKeys.includes(key)) {
-            acc[key] = value
+            acc[key] = value;
         }
         return acc;
     }, {});
@@ -127,11 +127,11 @@ async function writeInsert(context) {
             clusteringOptions
         }).on('complete', async (job) => {
             // The job has completed successfully.
-            await context.sendJson({ row }, 'out')
+            await context.sendJson({ row }, 'out');
             resolve(job);
         }).on('error', err => {
             reject(err);
-        })
+        });
 
         writeStream.end(JSON.stringify(row));
     });
@@ -149,4 +149,4 @@ module.exports = {
             await writeInsert(context);
         }
     }
-}
+};

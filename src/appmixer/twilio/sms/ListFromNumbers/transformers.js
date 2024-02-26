@@ -1,9 +1,9 @@
 'use strict';
 
-function fromNumbersToSelectArray (numbers) {
+function fromNumbersToSelectArray(numbers) {
 
     return (numbers || []).map(number => {
-        return { label: number.phoneNumber, value: number.phoneNumber }
+        return { label: number.phoneNumber, value: number.phoneNumber };
     });
 }
 
@@ -24,4 +24,4 @@ module.exports = {
 
         return fromNumbersToSelectArray(voiceCapable);
     }
-}
+};

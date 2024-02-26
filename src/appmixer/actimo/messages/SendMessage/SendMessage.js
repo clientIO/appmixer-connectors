@@ -15,10 +15,10 @@ module.exports = {
             url: apiUrl + 'messages',
             headers: {
                 'api-key': context.auth.apiKey
-            }, 
+            },
             body: {
                 modules: [
-                    { type: "text", text }
+                    { type: 'text', text }
                 ]
             },
             json: true
@@ -30,7 +30,7 @@ module.exports = {
             url: apiUrl + 'messages/' + id.toString() + '/send',
             headers: {
                 'api-key': context.auth.apiKey
-            }, 
+            },
             body: {
                 id,
                 contacts,

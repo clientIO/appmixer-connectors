@@ -13,11 +13,11 @@ module.exports = {
             method: 'POST',
             url: PUSH_URL,
             json: {
-                "frames": [
+                'frames': [
                     {
-                        "text": notification.text,
-                        "icon": notification.icon || null,
-                        "index": 0
+                        'text': notification.text,
+                        'icon': notification.icon || null,
+                        'index': 0
                     }
                 ]
             },

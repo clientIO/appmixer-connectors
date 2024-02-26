@@ -79,8 +79,8 @@ module.exports = {
             assignees: data.assignees,
             grading_group_ids: data.grading_group_ids,
             links: data.links
-        }
+        };
 
         return context.sendJson(output, 'out');
     }
-}
+};

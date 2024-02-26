@@ -27,7 +27,7 @@ async function setWorksheetHeader(context, sheet, csvHeader, append, autoMatch, 
             throw new context.CancelError('Missing header row in the Spreadsheet.');
         }
     } else {
-        if (!defineColumns) throw new context.CancelError(`The 'defineColumns' parameter cannot be empty.`);
+        if (!defineColumns) throw new context.CancelError('The \'defineColumns\' parameter cannot be empty.');
         headerRow = defineColumns;
     }
 

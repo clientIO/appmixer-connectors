@@ -15,7 +15,7 @@ module.exports = {
             context.httpRequest
         );
 
-        client.setAccessToken(context.auth.accessToken)
+        client.setAccessToken(context.auth.accessToken);
         const data = await client.callApi('get', `/v1/courses/${courseId}/contents`);
         return context.sendJson({ contents: data.results }, 'out');
     },
@@ -24,4 +24,4 @@ module.exports = {
 
         return contents.map(c => ({ label: c.title, value: c.id }));
     }
-}
+};

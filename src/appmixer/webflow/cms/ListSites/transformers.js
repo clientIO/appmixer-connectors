@@ -5,7 +5,7 @@
  */
 module.exports.sitesToSelectArray = items => {
 
-    var transformed = [];
+    let transformed = [];
     if (!items) {
         return transformed;
     }

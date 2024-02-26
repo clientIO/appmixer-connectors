@@ -1,6 +1,6 @@
 'use strict';
 
-const Canvas = require("../../canvas-sdk");
+const Canvas = require('../../canvas-sdk');
 module.exports = {
 
     async receive(context) {
@@ -14,4 +14,4 @@ module.exports = {
 
         return context.sendJson({ courses: data }, 'out');
     }
-}
+};

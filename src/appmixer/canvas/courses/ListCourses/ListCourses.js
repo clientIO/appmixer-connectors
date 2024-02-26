@@ -1,6 +1,6 @@
 'use strict';
 
-const Canvas = require("../../canvas-sdk");
+const Canvas = require('../../canvas-sdk');
 module.exports = {
 
     async receive(context) {
@@ -16,7 +16,7 @@ module.exports = {
 
     toSelectArray({ courses }) {
         return courses.map(course => {
-            return { label: course.name, value: course.id }
-        })
+            return { label: course.name, value: course.id };
+        });
     }
-}
+};

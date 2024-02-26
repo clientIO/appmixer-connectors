@@ -43,7 +43,7 @@ module.exports = {
         if (customFieldsValues.length > 0) {
             customFieldsValues.forEach(customField => {
                 fieldValues.push({ customFieldId: customField.field, fieldValue: customField.value });
-            })
+            });
             payload.deal.fields = fieldValues;
         }
 

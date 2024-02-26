@@ -47,7 +47,7 @@ module.exports = {
             },
 
             validate: async context => {
-                const snowflake = new SnowflakeDB()
+                const snowflake = new SnowflakeDB();
                 const conn = await snowflake.getConnection(context);
                 return conn ? true : false;
             }

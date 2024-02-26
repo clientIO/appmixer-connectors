@@ -68,7 +68,7 @@ module.exports = {
             options.params = {
                 top: Math.min(PAGE_SIZE, MAX_LIMIT - totalEvents),
                 nextLink
-            }
+            };
             context.log({ step: 'Making request', options });
 
             const { data: result } = await context.httpRequest(options);
@@ -354,4 +354,4 @@ module.exports = {
             return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
         }
     }
-}
+};

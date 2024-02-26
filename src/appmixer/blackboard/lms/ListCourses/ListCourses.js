@@ -13,7 +13,7 @@ module.exports = {
             context.httpRequest
         );
 
-        client.setAccessToken(context.auth.accessToken)
+        client.setAccessToken(context.auth.accessToken);
         const data = await client.callApi('get', '/v3/courses');
         return context.sendJson({ courses: data.results }, 'out');
     },
@@ -22,4 +22,4 @@ module.exports = {
 
         return courses.map(c => ({ label: c.name, value: c.id }));
     }
-}
+};

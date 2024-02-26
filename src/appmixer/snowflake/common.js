@@ -41,7 +41,7 @@ class SnowflakeDB {
         const data = await this.collectRows(context, {
             sqlText
         });
-        return data
+        return data;
     }
     async listTables(context, schema) {
 
@@ -67,7 +67,7 @@ class SnowflakeDB {
     }
     async createStream(context, schema, tableName) {
 
-        const sqlText = `create or replace stream  ${schema}.${tableName}_change_${context.componentId.replace(/-/gi, '')} on table ${schema}.${tableName};`
+        const sqlText = `create or replace stream  ${schema}.${tableName}_change_${context.componentId.replace(/-/gi, '')} on table ${schema}.${tableName};`;
 
         const statement = {
             sqlText
@@ -80,13 +80,13 @@ class SnowflakeDB {
         let sqlText = `select * from  ${schema}.${tableName}_change_${componentId} WHERE `;
         switch (triggerType) {
             case 'insert':
-                sqlText += `metadata$action = 'INSERT' AND metadata$isupdate = 'FALSE';`;
+                sqlText += 'metadata$action = \'INSERT\' AND metadata$isupdate = \'FALSE\';';
                 break;
             case 'update':
-                sqlText += `(metadata$action = 'INSERT' AND metadata$isupdate = 'TRUE') OR (metadata$action = 'DELETE' AND metadata$isupdate = 'TRUE');`;
+                sqlText += '(metadata$action = \'INSERT\' AND metadata$isupdate = \'TRUE\') OR (metadata$action = \'DELETE\' AND metadata$isupdate = \'TRUE\');';
                 break;
             case 'delete':
-                sqlText += `metadata$action = 'DELETE' AND metadata$isupdate = 'FALSE';`;
+                sqlText += 'metadata$action = \'DELETE\' AND metadata$isupdate = \'FALSE\';';
                 break;
             default:
                 sqlText = `select * from  ${schema}.${tableName}_change_${componentId};`;
@@ -95,14 +95,14 @@ class SnowflakeDB {
         if (data.length) {
             const { METADATA$ACTION, METADATA$ISUPDATE, METADATA$ROW_ID, ...columns } = data[0];
             const columnsNames = Object.keys(columns).join();
-            const dummyQuery = `insert into ${schema}.${tableName} select ${columnsNames}  from ${schema}.${tableName}_change_${componentId} where false;`
+            const dummyQuery = `insert into ${schema}.${tableName} select ${columnsNames}  from ${schema}.${tableName}_change_${componentId} where false;`;
             await this.collectRows(context.auth, { sqlText: dummyQuery });
         }
         return data || [];
     }
     async dropStream(context, schema, tableName) {
 
-        const sqlText = `drop stream ${schema}.${tableName}_change_${context.componentId.replace(/-/gi, '')};`
+        const sqlText = `drop stream ${schema}.${tableName}_change_${context.componentId.replace(/-/gi, '')};`;
         const statement = {
             sqlText
         };
@@ -111,4 +111,4 @@ class SnowflakeDB {
 
 };
 
-module.exports = { SnowflakeDB }
+module.exports = { SnowflakeDB };

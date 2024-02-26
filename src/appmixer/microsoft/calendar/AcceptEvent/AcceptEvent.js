@@ -22,4 +22,4 @@ module.exports = {
 
         return context.sendJson({}, 'out');
     }
-}
+};

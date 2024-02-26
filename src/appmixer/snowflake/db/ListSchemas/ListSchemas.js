@@ -4,7 +4,7 @@ const { SnowflakeDB } = require('../../common');
 module.exports = {
 
     async receive(context) {
-        const snowflake = new SnowflakeDB()
+        const snowflake = new SnowflakeDB();
         const schemas = await snowflake.listSchemas(context.auth);
         return context.sendJson({ schemas }, 'schemas');
     },

@@ -17,4 +17,4 @@ module.exports = {
         });
         return context.sendJson(res, 'out');
     }
-}
+};

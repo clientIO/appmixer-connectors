@@ -11,4 +11,4 @@ class SlackAPIError extends Error {
 
 module.exports = {
     SlackAPIError
-}
+};

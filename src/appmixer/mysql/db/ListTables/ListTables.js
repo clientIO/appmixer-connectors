@@ -6,7 +6,7 @@ module.exports = {
 
     async receive(context) {
 
-        const query = `SHOW TABLES`;
+        const query = 'SHOW TABLES';
 
         const opt = {
             user: context.auth.dbUser,

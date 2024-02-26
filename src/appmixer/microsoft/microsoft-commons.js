@@ -156,10 +156,10 @@ module.exports = {
     },
 
     getDeltaLink({
-                     driveId,
-                     parentId,
-                     parentPath
-                 }) {
+        driveId,
+        parentId,
+        parentPath
+    }) {
 
         if (parentId) {
             return `/drives/${driveId}/items/${parentId}/delta`;

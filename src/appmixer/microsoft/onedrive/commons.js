@@ -6,10 +6,10 @@ const listItems = async (context, apiUrl) => {
 
     const { driveType } = await oneDriveAPI.items.customEndpoint({
         accessToken: context.auth.accessToken,
-        url: `me/drive`,
+        url: 'me/drive',
         method: 'GET'
     });
-    if(driveType !== 'business') return [];
+    if (driveType !== 'business') return [];
 
     const { limit } = context.messages.in.content;
     const MAX_LIMIT = limit || 100;

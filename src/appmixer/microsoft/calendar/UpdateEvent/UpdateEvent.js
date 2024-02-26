@@ -27,7 +27,7 @@ module.exports = {
                     content: body
                 },
                 isAllDay,
-                subject,
+                subject
             },
             headers: {
                 Authorization: `Bearer ${context.auth?.accessToken || context.accessToken}`,
@@ -59,4 +59,4 @@ module.exports = {
 
         return context.sendJson(data, 'out');
     }
-}
+};

@@ -16,4 +16,4 @@ module.exports = {
 
         return gradingGroups.map(group => ({ label: group.title, value: group.id }));
     }
-}
+};

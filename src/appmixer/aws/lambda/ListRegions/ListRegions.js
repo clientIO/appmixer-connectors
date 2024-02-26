@@ -37,4 +37,4 @@ module.exports = {
             { "content": "AWS GovCloud (US-West)", "value": "us-gov-west-1" }
         ], 'out');
     }
-}
+};

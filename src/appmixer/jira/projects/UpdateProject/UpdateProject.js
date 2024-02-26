@@ -13,8 +13,8 @@ module.exports = {
             const result = await commons.put(`${apiUrl}project/${id}`, auth, project);
             return context.sendJson(result, 'project');
         } catch (err) {
-            const freePlanUpdateError = 'Changing permission schemes is not allowed on the Jira Software or Work Management Free plans.'
-            const forbiddenUpdateError = 'Changing permission schemes is not allowed on the Jira Software or Core Free plans.'
+            const freePlanUpdateError = 'Changing permission schemes is not allowed on the Jira Software or Work Management Free plans.';
+            const forbiddenUpdateError = 'Changing permission schemes is not allowed on the Jira Software or Core Free plans.';
             if (err.statusCode === 400 && err.message.includes(freePlanUpdateError)) {
                 throw new Error('Due to limitations within JIRA API, updating projects is not working within Free plans.');
             }

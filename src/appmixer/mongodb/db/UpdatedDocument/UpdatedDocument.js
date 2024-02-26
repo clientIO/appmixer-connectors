@@ -10,12 +10,12 @@ module.exports = {
             // await context.log({ isReplicaSet, start: true });
             await context.stateSet('isReplicaSet', isReplicaSet);
             if (isReplicaSet) {
-                await setOperationalTimestamp(context)
+                await setOperationalTimestamp(context);
                 return;
             }
 
             const storeId = await ensureStore(context, 'UpdatedDoc-' + context.componentId);
-            await processDocuments({ client, context, storeId })
+            await processDocuments({ client, context, storeId });
             await context.store.registerWebhook(storeId, ['insert', 'update']);
         } finally {
             await client.close();
@@ -70,8 +70,8 @@ module.exports = {
 
                 try {
                     while (await changeStream.hasNext()) {
-                        const next = await changeStream.next()
-                        const jsonDoc = JSON.parse(JSON.stringify(next.documentKey))
+                        const next = await changeStream.next();
+                        const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
                         await context.sendJson({ document: { ...jsonDoc, ...next.updateDescription } }, 'out');
                         await context.stateSet('resumeToken', changeStream.resumeToken['_data']);
 
@@ -87,7 +87,7 @@ module.exports = {
                 await processDocuments({ lock, client, context, storeId });
             }
         } finally {
-            await client.close()
+            await client.close();
             lock && await lock.unlock();
         }
     }

@@ -5,7 +5,7 @@
  */
 module.exports.organizationsToSelectArray = (organizations) => {
 
-    var transformed = [];
+    let transformed = [];
 
     if (Array.isArray(organizations)) {
         organizations.forEach((organization) => {

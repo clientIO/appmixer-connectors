@@ -58,4 +58,4 @@ module.exports = {
 
         return context.sendJson(data, 'out');
     }
-}
+};

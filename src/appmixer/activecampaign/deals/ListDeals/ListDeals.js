@@ -22,7 +22,7 @@ module.exports = {
         if (filter) {
             if (search) {
                 params['filters[search]'] = search;
-                params['filters[search_field]'] = 'all'
+                params['filters[search_field]'] = 'all';
             }
             params['filters[status]'] = status;
             params['filters[stage]'] = stage;

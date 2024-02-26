@@ -5,7 +5,7 @@
 */
 module.exports.viewsToSelectArray = (message) => {
 
-    var transformed = [];
+    let transformed = [];
 
     if (Array.isArray(message.items)) {
         message.items.forEach((viewItem) => {

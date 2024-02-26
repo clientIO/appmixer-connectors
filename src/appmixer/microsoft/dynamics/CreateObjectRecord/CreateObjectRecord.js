@@ -60,7 +60,7 @@ module.exports = {
                 newObjectId = odataEntityId.split('(')[1].split(')')[0];
             }
 
-            return context.sendJson({ objectName, data, id: newObjectId, link: odataEntityId, status, statusText }, 'out');            
+            return context.sendJson({ objectName, data, id: newObjectId, link: odataEntityId, status, statusText }, 'out');
         } catch (error) {
             // If Axios throws an error, the response is in error.response.data.
             const axiosError = error.response?.data;

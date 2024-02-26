@@ -57,8 +57,8 @@ module.exports = {
                 description: deal.description,
                 createdDate: moment(deal.cdate).toISOString(),
                 value: deal.value / 100,
-                currency: deal.currency,
-            }
+                currency: deal.currency
+            };
 
             const { fieldValues = [] } = getDeal;
             if (fieldValues.length > 0) {

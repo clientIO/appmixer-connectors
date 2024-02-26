@@ -6,21 +6,21 @@
  * @return {Object} shareObject
  */
 function buildPost(context) {
-    
+
     const { visibility, text, url, title, description, specificLink } = context.messages.in.content;
 
-      const shareObject = {
-            author: `urn:li:person:${context.auth.profileInfo.sub}`,
-            commentary: text,
-            visibility: visibility || 'PUBLIC',
-            distribution: {
-            feedDistribution: "MAIN_FEED",
+    const shareObject = {
+        author: `urn:li:person:${context.auth.profileInfo.sub}`,
+        commentary: text,
+        visibility: visibility || 'PUBLIC',
+        distribution: {
+            feedDistribution: 'MAIN_FEED',
             targetEntities: [],
             thirdPartyDistributionChannels: []
-            },
-            lifecycleState: "PUBLISHED",
-            isReshareDisabledByAuthor: false
-      };
+        },
+        lifecycleState: 'PUBLISHED',
+        isReshareDisabledByAuthor: false
+    };
 
     if (specificLink) {
 
@@ -30,7 +30,7 @@ function buildPost(context) {
                 title,
                 description
             }
-        }
+        };
     }
 
     return shareObject;
@@ -50,7 +50,7 @@ module.exports = {
             headers: {
                 'X-Restli-Protocol-Version': '2.0.0',
                 'Authorization': `Bearer ${context.auth.accessToken}`,
-                'LinkedIn-Version': '202304',
+                'LinkedIn-Version': '202304'
             },
             data: buildPost(context)
         });

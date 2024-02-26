@@ -1,6 +1,6 @@
 'use strict';
 
-const { SnowflakeDB } = require("../../common");
+const { SnowflakeDB } = require('../../common');
 
 const snowflake = new SnowflakeDB();
 

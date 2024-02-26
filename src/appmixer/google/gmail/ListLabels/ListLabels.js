@@ -10,7 +10,7 @@ module.exports = {
     async receive(context) {
 
         const listLabel = promisify(gmail.users.labels.list.bind(gmail.users.labels.list));
-        const { labels} = await listLabel({
+        const { labels } = await listLabel({
             auth: commons.getOauth2Client(context.auth),
             userId: 'me',
             quotaUser: context.auth.userId
@@ -18,10 +18,10 @@ module.exports = {
         return context.sendJson(labels, 'out');
     },
 
-    labelsToSelectArray (labels) {
+    labelsToSelectArray(labels) {
 
         let transformed = [];
-    
+
         if (Array.isArray(labels)) {
             labels.forEach(label => {
                 let item = {

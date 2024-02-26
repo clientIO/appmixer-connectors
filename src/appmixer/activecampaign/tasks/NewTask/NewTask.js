@@ -57,7 +57,7 @@ module.exports = {
                 assignee: dealTask.assignee,
                 due: moment(dealTask.duedate).toISOString(),
                 edate: moment(dealTask.edate).toISOString()
-            }
+            };
 
             await context.sendJson({ ...task }, 'task');
             return context.response();

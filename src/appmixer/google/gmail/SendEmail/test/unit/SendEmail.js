@@ -4,12 +4,12 @@ var SendEmail = require('../../SendEmail');
 
 describe('SendEmail', function() {
 
-    var component;
+    let component;
 
     before(function() {
 
         // minimal constructor for the SendEmail component
-        var constructor = {
+        let constructor = {
 
             'id': 'Doesn\'t matter, but required.',
             'coordinatorId': 'Doesn\'t matter, but required.',
@@ -31,7 +31,7 @@ describe('SendEmail', function() {
         component.setAuth(constructor.manifest.auth);
 
         // SendEmail doesn't need any property
-        var properties = {};
+        let properties = {};
         component.configure(properties);
     });
 
@@ -39,7 +39,7 @@ describe('SendEmail', function() {
 
         this.timeout(10000);
 
-        var inMessages = {
+        let inMessages = {
             in: Buffer.from(JSON.stringify({
                 'sender': 'tomas.waldauf@gmail.com',
                 'from': 'Grid',

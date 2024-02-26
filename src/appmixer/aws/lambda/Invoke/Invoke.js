@@ -33,15 +33,15 @@ module.exports = {
     getOutputPortOptions(context, invocationType) {
 
         if (invocationType === 'Event' || invocationType === 'DryRun') {
-            return context.sendJson([{ "label": "StatusCode", "value": "StatusCode" }], 'out');
+            return context.sendJson([{ 'label': 'StatusCode', 'value': 'StatusCode' }], 'out');
         } else {
             // RequestResponse
             return context.sendJson([
-                { "label": "StatusCode", "value": "StatusCode" },
-                { "label": "FunctionError", "value": "FunctionError" },
-                { "label": "LogResult", "value": "LogResult" },
-                { "label": "Payload", "value": "Payload" },
-                { "label": "ExecutedVersion", "value": "ExecutedVersion" }
+                { 'label': 'StatusCode', 'value': 'StatusCode' },
+                { 'label': 'FunctionError', 'value': 'FunctionError' },
+                { 'label': 'LogResult', 'value': 'LogResult' },
+                { 'label': 'Payload', 'value': 'Payload' },
+                { 'label': 'ExecutedVersion', 'value': 'ExecutedVersion' }
             ], 'out');
         }
     }

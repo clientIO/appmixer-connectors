@@ -14,7 +14,7 @@ module.exports = {
                 const { section = [] } = response || {};
                 return acc.concat(section);
             }, []);
-        }
+        };
 
         const data = await client.paginatedCall('get', `/courses/${courseId}/sections`, 200, assembler);
         return context.sendJson({ sections: data }, 'out');
@@ -22,6 +22,6 @@ module.exports = {
 
     toSelectArray({ sections }) {
 
-        return sections.map(section => ({ label: section.section_title, value: section.id }))
+        return sections.map(section => ({ label: section.section_title, value: section.id }));
     }
-}
+};

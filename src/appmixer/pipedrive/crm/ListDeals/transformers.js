@@ -5,7 +5,7 @@
  */
 module.exports.dealsToSelectArray = (deals) => {
 
-    var transformed = [];
+    let transformed = [];
 
     if (Array.isArray(deals)) {
         deals.forEach(deal => {

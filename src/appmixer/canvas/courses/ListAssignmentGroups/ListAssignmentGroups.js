@@ -1,6 +1,6 @@
 'use strict';
 
-const Canvas = require("../../canvas-sdk");
+const Canvas = require('../../canvas-sdk');
 module.exports = {
 
     async receive(context) {
@@ -18,7 +18,7 @@ module.exports = {
 
     toSelectArray({ assigmentGroups }) {
         return assigmentGroups.map(group => {
-            return { label: group.name, value: group.id }
-        })
+            return { label: group.name, value: group.id };
+        });
     }
-}
+};

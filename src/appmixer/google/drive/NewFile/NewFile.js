@@ -59,16 +59,16 @@ module.exports = {
         await new Promise(resolve => {
             setTimeout(() => {
                 resolve();
-            }, 1000)
+            }, 1000);
         });
 
         const { folder = {} } = context.properties;
 
         let lock = null;
         try {
-            try{
+            try {
                 lock = await context.lock(context.componentId, { retryDelay: 4000 });
-            }catch(e) {
+            } catch (e) {
                 return;
             }
             const { startPageToken, lastChangeFileIDs } = await context.loadState();
@@ -116,7 +116,7 @@ module.exports = {
                 await lock.unlock();
             }
         }
-        
+
         return context.response();
     },
 

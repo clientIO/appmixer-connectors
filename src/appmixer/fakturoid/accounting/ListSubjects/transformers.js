@@ -6,7 +6,7 @@
  */
 module.exports.subjectsToSelectArray = (subjects) => {
 
-    var transformed = [];
+    let transformed = [];
 
     if (Array.isArray(subjects)) {
         subjects.forEach((subject) => {

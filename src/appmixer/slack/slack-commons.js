@@ -68,7 +68,7 @@ class SlackAPI {
                 name,
                 'is_private': privateChannel
             }
-        })
+        });
 
         return response.channel;
     }
@@ -137,7 +137,7 @@ class SlackAPI {
                 'text': entities.decode(message),
                 'as_user': true
             }
-        })
+        });
 
         return response.message;
     }
