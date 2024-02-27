@@ -1,0 +1,294 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.smartsheetapireference.core.automationrules-list",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>List All Automation Rules</p></label><br/><p>Returns all automation rules associated with the specified sheet.</p>\n<p>Multistep workflows are not returned via the API.\nInstead, you'll see an error 400 - 1266: This rule is not accessible through the API.\nOnly single-action notifications, approval requests, or update requests qualify.</p>\n<p>For users of Smartsheet for Slack, note that Slack notifications are not returned.</p>",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "includeAll": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "page": {
+                        "type": "number",
+                        "default": 1
+                    },
+                    "pageSize": {
+                        "type": "number",
+                        "default": 100
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "includeAll": {
+                        "type": "toggle",
+                        "index": 0,
+                        "label": "Include All",
+                        "tooltip": "<p>If true, include all results, that is, do not paginate. Mutually exclusive with page and pageSize (they are ignored if includeAll=true is specified).</p>",
+                        "defaultValue": false
+                    },
+                    "page": {
+                        "type": "number",
+                        "index": 1,
+                        "label": "Page",
+                        "tooltip": "<p>Which page to return. Defaults to 1 if not specified. If you specify a value greater than the total number of pages, the last page of results is returned.</p>",
+                        "defaultValue": 1
+                    },
+                    "pageSize": {
+                        "type": "number",
+                        "index": 2,
+                        "label": "Page Size",
+                        "tooltip": "<p>The maximum number of items to return per page. Unless otherwise stated for a specific endpoint, defaults to 100. If neither pageSize nor page is specified, returns all rows in the sheet. If only page is specified, defaults to a page size of 100.</p>",
+                        "defaultValue": 100
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Page Number",
+                    "value": "pageNumber"
+                },
+                {
+                    "label": "Page Size",
+                    "value": "pageSize"
+                },
+                {
+                    "label": "Total Pages",
+                    "value": "totalPages"
+                },
+                {
+                    "label": "Total Count",
+                    "value": "totalCount"
+                },
+                {
+                    "label": "Data",
+                    "value": "data",
+                    "schema": {
+                        "description": "list of Automation Rules",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "description": "AutomationRule Id.",
+                                    "type": "number"
+                                },
+                                "action": {
+                                    "description": "AutomationAction object containing information for this rule, such as type, recipients, and frequency.",
+                                    "type": "object",
+                                    "oneOf": [
+                                        {
+                                            "properties": {
+                                                "notifyAllSharedUsers": {
+                                                    "description": "If true, notifications are sent to all users shared to the sheet.",
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "properties": {
+                                                "recipients": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "description": "Specifies the recipient of an email. The recipient may be either an individual or a group. To specify an individual, set the email attribute; to specify a group, set the groupId attribute. Either email and groupId may be set, but not both.\n",
+                                                        "oneOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "description": "Specifies the recipient of an [Email]($ref: 'Email.yaml#/components/schemas/Email'). The recipient may be either an individual or a group. To specify an individual, set the **email** attribute; to specify a group, set the **groupId** attribute. Either **email** and **groupId** may be set, but not both.\n",
+                                                                "properties": {
+                                                                    "email": {
+                                                                        "description": "The email address of an individual recipient.",
+                                                                        "type": "string",
+                                                                        "format": "email",
+                                                                        "example": "john.doe@smartsheet.com"
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "description": "Specifies the recipient of an [Email]($ref: 'Email.yaml#/components/schemas/Email'). The recipient may be either an individual or a group. To specify an individual, set the **email** attribute; to specify a group, set the **groupId** attribute. Either **email** and **groupId** may be set, but not both.\n",
+                                                                "properties": {
+                                                                    "groupId": {
+                                                                        "description": "The Id of a group recipient.",
+                                                                        "type": "number",
+                                                                        "example": 2258118617917316
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "properties": {
+                                                "recipientColumnIds": {
+                                                    "description": "Array of column Ids from which to collect email recipients.",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ],
+                                    "properties": {
+                                        "includedColumnIds": {
+                                            "description": "Specifies which columns to include in message.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "number"
+                                            }
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "APPROVAL_REQUEST_ACTION",
+                                                "NOTIFICATION_ACTION",
+                                                "UPDATE_REQUEST_ACTION"
+                                            ]
+                                        },
+                                        "frequency": {
+                                            "type": "string",
+                                            "enum": [
+                                                "DAILY",
+                                                "HOURLY",
+                                                "IMMEDIATELY",
+                                                "WEEKLY"
+                                            ]
+                                        },
+                                        "includeAllColumns": {
+                                            "description": "If true, all columns are included in email contents.",
+                                            "type": "boolean",
+                                            "default": true
+                                        },
+                                        "includeAttachments": {
+                                            "description": "If true, all attachments are included in email contents.",
+                                            "type": "string"
+                                        },
+                                        "includeDiscussions": {
+                                            "description": "If true, all discussions are included in email contents.",
+                                            "type": "boolean"
+                                        },
+                                        "message": {
+                                            "description": "Email body.",
+                                            "type": "string"
+                                        },
+                                        "subject": {
+                                            "description": "Email subject line.",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "createdAt": {
+                                    "description": "A timestamp of when the rule was originally added.",
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        {
+                                            "type": "number"
+                                        }
+                                    ],
+                                    "readOnly": true
+                                },
+                                "createdBy": {
+                                    "description": "`User` object containing `name` and `email` of the creator of this rule.\n",
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {
+                                            "type": "string",
+                                            "format": "email",
+                                            "example": "jane.doe@smartsheet.com"
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "readOnly": true,
+                                            "example": "Jane Doe"
+                                        }
+                                    }
+                                },
+                                "disabledReason": {
+                                    "description": "Machine-readable reason a rule is disabled:\n* `APPROVAL_COLUMN_MISSING` This rule's approval status column has been deleted.\n\n* `APPROVAL_COLUMN_WRONG_TYPE` The approval column must be a dropdown column.\n\n* `AUTOMATION_NOT_ENABLED_FOR_ORG` To create or edit automated actions,\nyou need to upgrade your organization account to a Business or Enterprise plan.\n\n* `COLUMN_MISSING` A column referenced by this rule has been deleted.\n\n* `COLUMN_TYPE_INCOMPATIBLE` A column referenced by this rule has been changed to an incompatible column type.\n\n* `NO_POTENTIAL_RECIPIENTS` This rule has no recipients that will be able to receive\nnotifications based on this sheet's permission settings or this account's approved domain sharing list.\n\n* `NO_VALID_SELECTED_COLUMNS` All selected columns for this rule have been deleted.\n",
+                                    "type": "string",
+                                    "enum": [
+                                        "APPROVAL_COLUMN_MISSING",
+                                        "APPROVAL_COLUMN_WRONG_TYPE",
+                                        "AUTOMATION_NOT_ENABLED_FOR_ORG",
+                                        "COLUMN_MISSING",
+                                        "COLUMN_TYPE_INCOMPATIBLE",
+                                        "NO_POTENTIAL_RECIPIENTS",
+                                        "NO_VALID_SELECTED_COLUMNS"
+                                    ]
+                                },
+                                "disabledReasonText": {
+                                    "description": "Descriptive reason a rule is disabled.",
+                                    "type": "string"
+                                },
+                                "enabled": {
+                                    "description": "If true, indicates that the rule is active.",
+                                    "type": "boolean"
+                                },
+                                "modifiedAt": {
+                                    "description": "The datetime for when the change was made to the rule.",
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        {
+                                            "type": "number"
+                                        }
+                                    ],
+                                    "readOnly": true
+                                },
+                                "modifiedBy": {
+                                    "description": "`User` object containing the `name` and `email` of the user that made the change.\n",
+                                    "type": "object",
+                                    "properties": {
+                                        "email": {
+                                            "type": "string",
+                                            "format": "email",
+                                            "example": "jane.doe@smartsheet.com"
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "readOnly": true,
+                                            "example": "Jane Doe"
+                                        }
+                                    }
+                                },
+                                "name": {
+                                    "description": "Rule name as shown in the UI.",
+                                    "type": "string"
+                                },
+                                "userCanModify": {
+                                    "description": "If true, indicates that the current user can modify the rule.",
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:smartsheetapireference"
+    },
+    "icon": "data:image/png;base64,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"
+}
