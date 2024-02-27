@@ -16,12 +16,30 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}/rows`;
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = { };
+        const inputMapping = [];
+        input.rows?.AND?.map(row => {
+            let cells = [];
+            for (let columnId of Object.keys(row)) {
+                cells.push({
+                    'columnId': columnId,
+                    'value': row[columnId]
+                });
+            }
+            inputMapping.push({
+                'cells': cells,
+                'toTop': true
+            });
+
+        });
+
+        const queryParameters = { 'accessApiLevel': input['accessApiLevel'],
+            'allowPartialSuccess': input['allowPartialSuccess'],
+            'overrideValidation': input['overrideValidation'] };
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {
@@ -33,7 +51,8 @@ module.exports = {
 
         const req = {
             url: url,
-            method: 'GET',
+            method: 'POST',
+            data: inputMapping,
             headers: headers
         };
 

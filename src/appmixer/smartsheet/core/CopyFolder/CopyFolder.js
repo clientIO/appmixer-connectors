@@ -16,12 +16,22 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + `/folders/${input['folderId']}/copy`;
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = { };
+        const inputMapping = {
+            'destinationId': input['destinationType'] === 'home' ? null : input['destinationFolderId'] || input['destinationWorkspaceId'],
+            'destinationType': input['destinationType'],
+            'newName': input['newName']
+        };
+        let requestBody = {};
+        lib.setProperties(requestBody, inputMapping);
+
+        const queryParameters = { 'include': input['include'],
+            'exclude': input['exclude'],
+            'skipRemap': input['skipRemap'] };
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {
@@ -33,7 +43,8 @@ module.exports = {
 
         const req = {
             url: url,
-            method: 'GET',
+            method: 'POST',
+            data: requestBody,
             headers: headers
         };
 

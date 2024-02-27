@@ -1,0 +1,165 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.smartsheet.core.AddRowsToSheet",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Inserts one or more rows into the sheet.",
+    "private": false,
+   
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "sheetId"
+                ],
+                "properties": {
+                    "sheetId": {
+                        "type": "number"
+                    },
+                    "rows": {
+                        "type": "object"
+                    }
+                }
+            },
+            "source": {
+                "url": "/component/appmixer/smartsheet/core/ListColumnsOnSheet?outPort=out",
+                "data": {
+                    "transform": "./ListColumnsOnSheet#columnsToInspector",
+                    "messages": {
+                        "in/sheetId": "inputs/in/sheetId"
+                    }
+
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "sheetId": {
+                        "type": "number",
+                        "index": 0,
+                        "label": "Sheet Id",
+                        "tooltip": "<p>Sheet Id of the sheet being accessed.</p>",
+                        "source": {
+                            "url": "/component/appmixer/smartsheet/core/ListSheets?outPort=out",
+                            "data": {
+                                "transform": "./ListSheets#sheetsToSelectArray"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Message",
+                    "value": "message"
+                },
+                {
+                    "label": "Result Code",
+                    "value": "resultCode"
+                },
+                {
+                    "label": "Result",
+                    "value": "result",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "description": "Row Id.",
+                                    "type": "number"
+                                },
+                                "sheetId": {
+                                    "description": "Parent sheet Id.",
+                                    "type": "number"
+                                },
+                                "rowNumber": {
+                                    "description": "Row number within the sheet.",
+                                    "type": "number",
+                                    "minimum": 1
+                                },
+                                "expanded": {
+                                    "description": "Indicates whether the row is expanded or collapsed.",
+                                    "type": "boolean"
+                                },
+                                "createdAt": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        {
+                                            "type": "number"
+                                        }
+                                    ],
+                                    "readOnly": true
+                                },
+                                "modifiedAt": {
+                                    "oneOf": [
+                                        {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        {
+                                            "type": "number"
+                                        }
+                                    ],
+                                    "readOnly": true
+                                },
+                                "cells": {
+                                    "description": "Cells objects.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "columnId": {
+                                                "type": "number",
+                                                "description": "The Id of the column that the cell is located in."
+                                            },
+                                            "columnType": {
+                                                "type": "string",
+                                                "description": "Only returned if the include query string parameter contains **columnType**."
+                                            },
+                                            "value": {
+                                                "anyOf": [
+                                                    {
+                                                        "type": "string"
+                                                    },
+                                                    {
+                                                        "type": "number"
+                                                    },
+                                                    {
+                                                        "type": "boolean"
+                                                    }
+                                                ],
+                                                "description": "A string, number, or a Boolean value -- depending on the cell type and the data in the cell. Cell values larger than 4000 characters are silently truncated. An empty cell returns no value."
+                                            },
+                                            "displayValue": {
+                                                "type": "string",
+                                                "description": "Visual representation of cell contents, as presented to the user in the UI."
+                                            }
+                                        }
+                                    }
+                                },
+                                "version": {
+                                    "description": "Sheet version number that is incremented every time a sheet is modified.",
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+   
+    "auth": {
+        "service": "appmixer:smartsheet"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEyMzggMTUxNCIgd2lkdGg9IjEyMzgiIGhlaWdodD0iMTUxNCI+Cgk8dGl0bGU+c21hcnRzaGVldC1sb2dvLWJsdWUtbmV3LXN2ZzwvdGl0bGU+Cgk8c3R5bGU+CgkJLnMwIHsgZmlsbDogIzBlMjk0NyB9IAoJPC9zdHlsZT4KCTxnIGlkPSJMYXllciI+CgkJPGcgaWQ9IkxheWVyIj4KCQkJPHBhdGggaWQ9IkxheWVyIiBjbGFzcz0iczAiIGQ9Im02MTUgMTIwNGMwIDAgMjYzLjQtNjU3LjggNjIyLjktMTA5Ni4zIDAgMTgwLjkgMCA1MzkuOSAwIDgxMS4zIDAgMTUwLjctNS41IDI3NC0xMSAzMjguOC01LjUgNTQuOS0xOS4yIDkwLjUtNDEuMSA5Ni0xNi41IDIuNy00My45LTIuOC05Ni4xLTYzLjEtNDYuNi01NC44LTkzLjMtMTU2LjItOTMuMy0xNTYuMmwtNS41LTExLTguMiA4LjNjLTIuNyAwLTE0NS40IDE0Mi41LTUxNS45IDI3NC0yMDguNSA3NC00MTEuNSAxMDkuNy00NjYuNCAxMTcuOSA1LjUtMjEuOSAxNi40LTc2LjggMTYuNC0xNTAuOCAwLTk1LjkgMC0xMjQ2LjkgMC0xMzYyLjFoMTIxNS42Yy0xOTcuNiAxODYuNC00NDEuOCA0NjYtNTg5LjkgNzk0LjgtMTYuNS0zNS42LTEyMy41LTI3NC0yNTgtMjcxLjMtODUgMi44LTE1MC45IDkzLjItMTUwLjkgOTMuMiAyMDguNi0yLjcgMzgxLjQgNTg2LjUgMzgxLjQgNTg2LjV6Ii8+CgkJPC9nPgoJPC9nPgo8L3N2Zz4="
+}

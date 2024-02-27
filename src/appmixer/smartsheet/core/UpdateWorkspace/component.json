@@ -1,0 +1,134 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.smartsheet.core.UpdateWorkspace",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Update Workspace</p></label><br/><p>Updates a workspace.</p>",
+    "private": false,
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "workspaceId"
+                ],
+                "properties": {
+                    
+                    "workspaceId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "workspaceId": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "Workspace Id",
+                        "tooltip": "<p>WorkspaceID of the worksheet being accessed.</p>",
+                        "source": {
+                            "url": "/component/appmixer/smartsheet/core/ListWorkspaces?outPort=out",
+                            "data": {
+                                "transform": "./ListWorkspaces#workspacesToSelectArray"
+                            }
+                        }
+                    },
+                    "name": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Name",
+                        "tooltip": "<p>Name of the workspace.</p>"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Version",
+                    "value": "version"
+                },
+                {
+                    "label": "Failed Items",
+                    "value": "failedItems",
+                    "schema": {
+                        "description": "Array of BulkItemFailure objects which represents the items that failed to be added or updated. See [Partial Success](/partial-success) for more information. Applicable only for bulk operations that support partial success.",
+                        "type": "array",
+                        "nullable": true,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "rowId": {
+                                    "description": "The Id of the row that failed. Applicable only to bulk row operations.",
+                                    "type": "number",
+                                    "nullable": true
+                                },
+                                "error": {
+                                    "description": "The error caused by the failed item.",
+                                    "type": "object",
+                                    "properties": {
+                                        "refId": {
+                                            "description": "The Id of the specific error occurrence. Please include this information when contacting Smartsheet support.",
+                                            "type": "string"
+                                        },
+                                        "errorCode": {
+                                            "description": "Custom error code from Smartsheet. See the complete [Error Code List](../#section/Error-Code-List).",
+                                            "type": "number"
+                                        },
+                                        "message": {
+                                            "description": "Descriptive error message.",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "index": {
+                                    "description": "The index of the failed item in the bulk request array.",
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Message",
+                    "value": "message"
+                },
+                {
+                    "label": "Result Code",
+                    "value": "resultCode"
+                },
+                {
+                    "label": "Result",
+                    "value": "result"
+                },
+                {
+                    "label": "Result Id",
+                    "value": "result.id"
+                },
+                {
+                    "label": "Result Name",
+                    "value": "result.name"
+                },
+                {
+                    "label": "Result Access Level",
+                    "value": "result.accessLevel"
+                },
+                {
+                    "label": "Result Permalink",
+                    "value": "result.permalink"
+                }
+            ]
+        }
+    ],
+   
+    "auth": {
+        "service": "appmixer:smartsheet"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEyMzggMTUxNCIgd2lkdGg9IjEyMzgiIGhlaWdodD0iMTUxNCI+Cgk8dGl0bGU+c21hcnRzaGVldC1sb2dvLWJsdWUtbmV3LXN2ZzwvdGl0bGU+Cgk8c3R5bGU+CgkJLnMwIHsgZmlsbDogIzBlMjk0NyB9IAoJPC9zdHlsZT4KCTxnIGlkPSJMYXllciI+CgkJPGcgaWQ9IkxheWVyIj4KCQkJPHBhdGggaWQ9IkxheWVyIiBjbGFzcz0iczAiIGQ9Im02MTUgMTIwNGMwIDAgMjYzLjQtNjU3LjggNjIyLjktMTA5Ni4zIDAgMTgwLjkgMCA1MzkuOSAwIDgxMS4zIDAgMTUwLjctNS41IDI3NC0xMSAzMjguOC01LjUgNTQuOS0xOS4yIDkwLjUtNDEuMSA5Ni0xNi41IDIuNy00My45LTIuOC05Ni4xLTYzLjEtNDYuNi01NC44LTkzLjMtMTU2LjItOTMuMy0xNTYuMmwtNS41LTExLTguMiA4LjNjLTIuNyAwLTE0NS40IDE0Mi41LTUxNS45IDI3NC0yMDguNSA3NC00MTEuNSAxMDkuNy00NjYuNCAxMTcuOSA1LjUtMjEuOSAxNi40LTc2LjggMTYuNC0xNTAuOCAwLTk1LjkgMC0xMjQ2LjkgMC0xMzYyLjFoMTIxNS42Yy0xOTcuNiAxODYuNC00NDEuOCA0NjYtNTg5LjkgNzk0LjgtMTYuNS0zNS42LTEyMy41LTI3NC0yNTgtMjcxLjMtODUgMi44LTE1MC45IDkzLjItMTUwLjkgOTMuMiAyMDguNi0yLjcgMzgxLjQgNTg2LjUgMzgxLjQgNTg2LjV6Ii8+CgkJPC9nPgoJPC9nPgo8L3N2Zz4="
+}
