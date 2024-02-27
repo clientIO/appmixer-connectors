@@ -27,16 +27,36 @@ paths:
         parameters:
           offset: skip
           limit: take
-          page: 100
+          # Ticket objects are quite large, so we limit the number of items per page
+          page: 10
           results: result.data
-          count: result.count
+          count: total
       parameters:
+        - name: q
+          in: query
+          required: false
+          description: Search query.
+          schema:
+            type: string
         - name: filter
           in: query
           required: false
           description: Filter tickets. See [Daktela API documentation](https://democz.daktela.com/external/apihelp/v6/working-with/tickets#example-1-url) for more information.
           schema:
+            type: array
+            example: [{"field":"status","operator":"eq","value":"OPEN"}]
+            items:
+              type: object
+        - name: sort
+          in: query
+          required: false
+          description: |
+            Sorting is defined as an array of columns by which the data can be sorted. Each array has its own sorting name and each item within its range has two properties:
+            - field - string - Name of the column by which you want to sort
+            - dir - string - Direction of sorting 'asc' (sort in a ascending order) or 'desc' (sort in a descending order)
+          schema:
             type: string
+          example: {"sort": [{"field":"firstname", "dir":"desc"},{"field":"lastname", "dir":"asc"}]}
       responses:
         '200':
           description: A list of tickets

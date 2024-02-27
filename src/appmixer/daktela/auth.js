@@ -41,7 +41,12 @@ module.exports = {
         }
     },
 
-    // This function is called in every component to get the access token from the login endpoint.
+    /**
+     * Function called in every component to get the access token from the login endpoint.
+     * It is cached so that we don't have to call the login endpoint in every component.
+     * Access token changes only when the user changes the password.
+     * @returns Access token
+     */
     getAccessTokenFromLoginEndpoint: async function(context) {
 
         const cacheKey = `daktela-access-token-${context.username || context.auth.username}`;

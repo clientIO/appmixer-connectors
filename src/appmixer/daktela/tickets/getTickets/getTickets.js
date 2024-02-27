@@ -2,6 +2,7 @@
 
 const lib = require('../../lib');
 const { getAccessTokenFromLoginEndpoint } = require('../../auth');
+const qs = require('qs');
 
 module.exports = {
 
@@ -13,7 +14,7 @@ module.exports = {
 
         const limit = context.messages.in.content.xConnectorPaginationLimit;
         const query = {
-            'take':  100 ,
+            'take':  10 ,
             'skip': 0
         };
         let data;
@@ -29,7 +30,7 @@ module.exports = {
         result = page.slice(0, limit);
 
         hasMore = result.length > 0;
-        const countExpression = lib.jsonata('result.count');
+        const countExpression = lib.jsonata('total');
         let count = await countExpression.evaluate(data);
         hasMore = hasMore && result.length < count;
         needMore = result.length < limit;
@@ -37,7 +38,7 @@ module.exports = {
         let failsafe = 0;
         // Repeat for other pages.
         while (hasMore && needMore && failsafe < limit) {
-            query['skip'] += 100;
+            query['skip'] += 10;
             ({ data } = await this.httpRequest(context, { query }));
             page = await pageExpression.evaluate(data);
             result = result.concat(page);
@@ -66,7 +67,11 @@ module.exports = {
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = { 'filter': input['filter'] };
+        const queryParameters = {
+            q: input['q'],
+            // 'filter': input['filter'], Done separately
+            'sort': input['sort']
+        };
 
         if (override?.query) {
             Object.keys(override.query).forEach(parameter => {
@@ -94,7 +99,21 @@ module.exports = {
         if (override.headers) req.headers = override.headers;
         if (override.method) req.method = override.method;
 
-        const queryString = query.toString();
+        let queryString = query.toString();
+        const inputFilter = input['filter']?.trim();
+        if (inputFilter) {
+            try {
+                const filterObject = JSON.parse(input['filter']);
+                const qsFilter = qs.stringify(filterObject, { encode: true });
+                if (qsFilter) {
+                    queryString += '&' + qsFilter;
+                }
+            } catch (e) {
+                // context.log({ step: 'Error parsing filter object', error: e });
+                throw new context.CancelError('Error parsing filter object', e);
+            }
+        }
+
         if (queryString) {
             req.url += '?' + queryString;
         }
@@ -123,7 +142,7 @@ module.exports = {
                 step: 'http-request-error',
                 request: {
                     url: req.url,
-                    method: req.method,
+
                     headers: req.headers,
                     data: req.data
                 },
