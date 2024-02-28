@@ -33,6 +33,7 @@ module.exports = function(context) {
                 }
                 return {
                     clientId: context.config.clientId,
+                    redirectUri: context.config.redirectUri,
                     loginHint: account.profileInfo.userPrincipalName
                 };
             }
