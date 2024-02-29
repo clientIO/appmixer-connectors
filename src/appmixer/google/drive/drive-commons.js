@@ -23,8 +23,33 @@ let defaultExportFormats = {
     }
 };
 
+const x = function(data = []) {
+
+    const MAX_GROUP_COUNT = 3;
+    return {
+        has(id) {
+            return data.find(group => group.ids[id]);
+        },
+        add(group, id) {
+            const groupData = data.find(groupData => groupData.group === group);
+            if (!groupData) {
+                const ids = {};
+                ids[id] = true;
+                data.push({ group, ids });
+            } else {
+                groupData.ids[id] = true;
+            }
+        },
+        export() {
+            return data.slice(-MAX_GROUP_COUNT);
+        }
+
+    };
+};
+
 module.exports = {
 
+    x,
     defaultExportFormats,
 
     getOauth2Client(auth) {
