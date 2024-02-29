@@ -68,9 +68,9 @@ module.exports = {
         const query = new URLSearchParams;
 
         const queryParameters = {
-            q: input['q'],
+            q: input['q']
             // 'filter': input['filter'], Done separately
-            'sort': input['sort']
+            // 'sort': input['sort'], Done separately
         };
 
         if (override?.query) {
@@ -111,6 +111,20 @@ module.exports = {
             } catch (e) {
                 // context.log({ step: 'Error parsing filter object', error: e });
                 throw new context.CancelError('Error parsing filter object', e);
+            }
+        }
+
+        const inputSort = input['sort']?.trim();
+        if (inputSort) {
+            try {
+                const sortObject = JSON.parse(input['sort']);
+                const qsSort = qs.stringify(sortObject, { encode: true });
+                if (qsSort) {
+                    queryString += '&' + qsSort;
+                }
+            } catch (e) {
+                // context.log({ step: 'Error parsing sort object', error: e });
+                throw new context.CancelError('Error parsing sort object', e);
             }
         }
 
