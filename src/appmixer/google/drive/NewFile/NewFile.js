@@ -1,4 +1,3 @@
-const Promise = require('bluebird');
 const moment = require('moment');
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
@@ -38,15 +37,12 @@ const detectNewFiles = async function(context) {
     try {
         lock = await context.lock(context.componentId, { maxRetryCount: 0 });
     } catch (err) {
-        context.log({ stage: 'lock error' });
         await context.stateSet('hasSkippedMessage', true);
         return context.response();
     }
 
     try {
-
-        const { startPageToken, lastChangeFileIDs = {}, processedFiles = [] } = await context.loadState();
-
+        const { startPageToken, processedFiles = [] } = await context.loadState();
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
 
@@ -54,20 +50,16 @@ const detectNewFiles = async function(context) {
 
         await context.stateSet('hasSkippedMessage', false);
 
-        const processedFilesSet = x(processedFiles);
+        const processedFilesSet = commons.processedItemsBuffer(processedFiles);
 
         for (let file of newFiles) {
-            lastChangeFileIDs[file.name] = lastChangeFileIDs[file.name] || [];
-            lastChangeFileIDs[file.name].push(newStartPageToken);
             if (!processedFilesSet.has(file.id)) {
-                processedFilesSet.add(newStartPageToken, file.id)
-                lastChangeFileIDs[file.name].push('triggered!!!!');
+                processedFilesSet.add(newStartPageToken, file.id);
                 await context.sendJson(file, 'file');
             }
         }
 
         await context.stateSet('startPageToken', newStartPageToken);
-        await context.stateSet('lastChangeFileIDs', lastChangeFileIDs);
         await context.stateSet('processedFiles', processedFilesSet.export());
 
     } finally {
@@ -112,7 +104,8 @@ module.exports = {
         const { expiration, hasSkippedMessage } = await context.loadState();
 
         if (hasSkippedMessage) {
-            context.log({ stage: 'XXXXXXXXXXXXXXXXXXXXX', });
+            // a message came when we were processing results,
+            // we have to check for new files again
             await detectNewFiles(context);
         }
 

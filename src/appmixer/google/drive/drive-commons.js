@@ -23,7 +23,7 @@ let defaultExportFormats = {
     }
 };
 
-const x = function(data = []) {
+const processedItemsBuffer = function(data = []) {
 
     const MAX_GROUP_COUNT = 3;
     return {
@@ -43,13 +43,12 @@ const x = function(data = []) {
         export() {
             return data.slice(-MAX_GROUP_COUNT);
         }
-
     };
 };
 
 module.exports = {
 
-    x,
+    processedItemsBuffer,
     defaultExportFormats,
 
     getOauth2Client(auth) {
