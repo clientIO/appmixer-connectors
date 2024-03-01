@@ -57,11 +57,11 @@ const detectNewFiles = async function(context) {
             if (!processedFilesSet.has(file.id)) {
                 processedFilesSet.add(newStartPageToken, file.id);
                 await context.sendJson(file, 'file');
+                await context.stateSet('processedFiles', processedFilesSet.export());
             }
         }
 
         await context.stateSet('startPageToken', newStartPageToken);
-        await context.stateSet('processedFiles', processedFilesSet.export());
 
     } finally {
         if (lock) {
