@@ -75,6 +75,24 @@ paths:
                       count:
                         type: integer
                         description: Total number of tickets
+    post:
+      operationId: createTicket
+      security:
+        - accessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketRequestBody'
+        description: Ticket object
+      responses:
+        '200':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
 components:
   securitySchemes:
     accessToken:
@@ -82,6 +100,7 @@ components:
       in: query
       name: accessToken
   schemas:
+    # Ticket object schema for responses
     Ticket:
       type: object
       properties:
@@ -211,3 +230,71 @@ components:
         customFields:
           type: string
           description: Custom fields
+    # Ticket object schema for request body
+    TicketRequestBody:
+      type: object
+      required:
+        - title
+      properties:
+        # In Daktela's UI
+        title:
+          type: string
+          description: Subject of ticket
+        sla_deadtime:
+          type: string
+          format: date-time
+          description: If ticket is answered (first answer) the close deadline is shown. Otherwise the first answer deadline is shown.
+        reopen:
+          type: string
+          format: date-time
+          description: Date when the ticket will be automatically re-opened.
+        user:
+          type: string
+          description: 'User.'
+          example: "<code>users_6579aef829370638460281</code>"
+        followers:
+          type: array
+          items:
+            type: string
+          description: Followers
+          example: ['users_6579aef829370638460281']
+        category:
+          type: string
+          description: Category.
+          example: "<code>categories_6579aef829370638460281</code>"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: Level of priority
+        stage:
+          type: string
+          enum: [OPEN, WAIT, CLOSE]
+          description: Stage
+        statuses:
+          type: array
+          items:
+            type: string
+          description: Statuses.
+          example: <code>["statuses_6579aef829370638460281"]</code>
+        description:
+          type: string
+          description: Optional description
+        contact:
+          type: string
+          description: Contact.
+          example: "<code>contacts_6579aef829370638460281</code>"
+        comment:
+          type: string
+          description: Comment
+        # The rest, C + R
+        name:
+          type: integer
+          description: Unique name
+        email:
+          type: string
+          format: email
+          description: Email
+        parentTicket:
+          type: string
+          description: Parent ticket
+          example: "<code>tickets_6579aef829370638460281</code>"
