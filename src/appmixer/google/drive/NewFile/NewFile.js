@@ -1,6 +1,7 @@
 const moment = require('moment');
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
+const DEBUG = false;
 
 const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
@@ -43,7 +44,7 @@ const detectNewFiles = async function(context) {
     }
 
     try {
-        const { startPageToken, processedFiles = [] } = await context.loadState();
+        const { startPageToken, processedFiles = [], debugInfo = {} } = await context.loadState();
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
 
@@ -58,7 +59,17 @@ const detectNewFiles = async function(context) {
                 processedFilesSet.add(newStartPageToken, file.id);
                 await context.sendJson(file, 'file');
                 await context.stateSet('processedFiles', processedFilesSet.export());
+
+                if (DEBUG) {
+                    debugInfo[file.name] = debugInfo[file.name] || [];
+                    debugInfo[file.name].push(newStartPageToken);
+                }
             }
+        }
+
+        if (DEBUG) {
+            await context.log(debugInfo);
+            await context.stateSet('debugInfo', debugInfo);
         }
 
         await context.stateSet('startPageToken', newStartPageToken);
@@ -92,8 +103,6 @@ module.exports = {
             // sync messages can be ignored
             return context.response();
         }
-
-        context.log({ w: context.messages.webhook });
 
         await detectNewFiles(context);
 
