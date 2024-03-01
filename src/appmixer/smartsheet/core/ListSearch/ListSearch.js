@@ -16,12 +16,16 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + '/search';
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = { };
+        const queryParameters = { 'query': input['query'],
+            'location': input['location'],
+            'modifiedSince': input['modifiedSince'],
+            'include': input['include'],
+            'scopes': input['scopes'] };
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {

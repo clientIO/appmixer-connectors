@@ -1,0 +1,245 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.smartsheet.core.CopyFolder",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Copy Folder</p></label><br/><p>Copies a folder.</p>",
+    "private": false,
+   
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "folderId"
+                ],
+                "properties": {
+                    "folderId": {
+                        "type": "number"
+                    },
+                    "include": {
+                        "type": "string",
+                        "enum": [
+                            "attachments",
+                            "cellLinks",
+                            "data",
+                            "discussions",
+                            "filters",
+                            "forms",
+                            "ruleRecipients",
+                            "rules",
+                            "shares"
+                        ]
+                    },
+                    "exclude": {
+                        "type": "string",
+                        "enum": [
+                            "sheetHyperlinks"
+                        ]
+                    },
+                    "skipRemap": {
+                        "type": "string",
+                        "enum": [
+                            "cellLinks",
+                            "reports",
+                            "sheetHyperlinks",
+                            "sights"
+                        ]
+                    },
+                    "destinationFolderId": {
+                        "type": "number"
+                    },
+                    "destinationWorkspaceId": {
+                        "type": "number"
+                    },
+                    "destinationType": {
+                        "type": "string",
+                        "enum": [
+                            "folder",
+                            "workspace",
+                            "home"
+                        ]
+                    },
+                    "newName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "folderId": {
+                        "type": "number",
+                        "index": 0,
+                        "label": "Folder Id",
+                        "tooltip": "<p>Folder Id where you can create sheets, sights, reports, templates, and other folders.</p>",
+                        "source": {
+                            "url": "/component/appmixer/smartsheet/core/HomeListFolders?outPort=out",
+                            "data": {
+                                "transform": "./HomeListFolders#foldersToSelectArray"
+                            }
+                        }
+                    },
+                    
+                    "include": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Include",
+                        "tooltip": "<p>A comma-separated list of elements to copy:</p>\n<ul>\n<li><strong>attachments</strong></li>\n<li><strong>cellLinks</strong> - includes cross-sheet references</li>\n<li><strong>data</strong> - includes formatting</li>\n<li><strong>discussions</strong> - includes comments</li>\n<li><strong>filters</strong></li>\n<li><strong>forms</strong></li>\n<li><strong>ruleRecipients</strong> -- includes notification recipients, must also include\nrules when using this attribute</li>\n<li><strong>rules</strong> -- includes notifications and workflow rules</li>\n<li><strong>shares</strong> |\nNOTE: Cell history is not copied, regardless of which include parameter values are specified.</li>\n</ul>",
+                        "options": [
+                            {
+                                "content": "Attachments",
+                                "value": "attachments"
+                            },
+                            {
+                                "content": "CellLinks",
+                                "value": "cellLinks"
+                            },
+                            {
+                                "content": "Data",
+                                "value": "data"
+                            },
+                            {
+                                "content": "Discussions",
+                                "value": "discussions"
+                            },
+                            {
+                                "content": "Filters",
+                                "value": "filters"
+                            },
+                            {
+                                "content": "Forms",
+                                "value": "forms"
+                            },
+                            {
+                                "content": "RuleRecipients",
+                                "value": "ruleRecipients"
+                            },
+                            {
+                                "content": "Rules",
+                                "value": "rules"
+                            },
+                            {
+                                "content": "Shares",
+                                "value": "shares"
+                            }
+                        ]
+                    },
+                    "exclude": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Exclude",
+                        "tooltip": "<p>When specified with a value of <strong>sheetHyperlinks</strong>, excludes this category from the response</p>",
+                        "options": [
+                            {
+                                "content": "Sheet Hyperlinks",
+                                "value": "sheetHyperlinks"
+                            }
+                        ]
+                    },
+                    "skipRemap": {
+                        "type": "select",
+                        "index": 4,
+                        "label": "Skip Remap",
+                        "tooltip": "<p>A comma-separated list of references to NOT re-map for the newly created folder.</p>",
+                        "options": [
+                            {
+                                "content": "Cell Links",
+                                "value": "cellLinks"
+                            },
+                            {
+                                "content": "Reports",
+                                "value": "reports"
+                            },
+                            {
+                                "content": "Sheet Hyperlinks",
+                                "value": "sheetHyperlinks"
+                            },
+                            {
+                                "content": "Sights",
+                                "value": "sights"
+                            }
+                        ]
+                    },
+                    "destinationType": {
+                        "type": "select",
+                        "index": 5,
+                        "label": "Destination Type",
+                        "tooltip": "<p>Type of the destination container.</p>",
+                        "options": [
+                            {
+                                "content": "Folder",
+                                "value": "folder"
+                            },
+                            {
+                                "content": "home",
+                                "value": "home"
+                            },
+                            {
+                                "content": "Workspace",
+                                "value": "workspace"
+                            }
+                        ]
+                    },
+                        
+                    "destinationFolderId": {
+                        "when": { "eq": { "destinationType": "folder" } },
+                        "type": "number",
+                        "index": 6,
+                        "label": "Destination Id",
+                        "tooltip": "<p>Folder Id where you can create sheets, sights, reports, templates, and other folders.</p>",
+                        "source": {
+                            "url": "/component/appmixer/smartsheet/core/HomeListFolders?outPort=out",
+                            "data": {
+                                "transform": "./HomeListFolders#foldersToSelectArray"
+                            }
+                        }
+                        
+                    },
+                    "destinationWorkspaceId": {
+                        "when": { "eq": { "destinationType": "workspace" } },
+                        "type": "number",
+                        "index": 7,
+                        "label": "Destination Id",
+                        "tooltip": "<p>Workspace Id where you can create sheets, sights, reports, templates, and other folders.</p>",
+                        "source": {
+                            "url": "/component/appmixer/smartsheet/core/ListWorkspaces?outPort=out",
+                            "data": {
+                                "transform": "./ListWorkspaces#workspacesToSelectArray"
+                            }
+                        }
+                    },
+                    "newName": {
+                        "type": "text",
+                        "index": 8,
+                        "label": "New Name",
+                        "tooltip": "<p>New name for the folder.</p>"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Destination Id",
+                    "value": "destinationId"
+                },
+                {
+                    "label": "Destination Type",
+                    "value": "destinationType"
+                },
+                {
+                    "label": "New Name",
+                    "value": "newName"
+                }
+            ]
+        }
+    ],
+   
+    "auth": {
+        "service": "appmixer:smartsheet"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEyMzggMTUxNCIgd2lkdGg9IjEyMzgiIGhlaWdodD0iMTUxNCI+Cgk8dGl0bGU+c21hcnRzaGVldC1sb2dvLWJsdWUtbmV3LXN2ZzwvdGl0bGU+Cgk8c3R5bGU+CgkJLnMwIHsgZmlsbDogIzBlMjk0NyB9IAoJPC9zdHlsZT4KCTxnIGlkPSJMYXllciI+CgkJPGcgaWQ9IkxheWVyIj4KCQkJPHBhdGggaWQ9IkxheWVyIiBjbGFzcz0iczAiIGQ9Im02MTUgMTIwNGMwIDAgMjYzLjQtNjU3LjggNjIyLjktMTA5Ni4zIDAgMTgwLjkgMCA1MzkuOSAwIDgxMS4zIDAgMTUwLjctNS41IDI3NC0xMSAzMjguOC01LjUgNTQuOS0xOS4yIDkwLjUtNDEuMSA5Ni0xNi41IDIuNy00My45LTIuOC05Ni4xLTYzLjEtNDYuNi01NC44LTkzLjMtMTU2LjItOTMuMy0xNTYuMmwtNS41LTExLTguMiA4LjNjLTIuNyAwLTE0NS40IDE0Mi41LTUxNS45IDI3NC0yMDguNSA3NC00MTEuNSAxMDkuNy00NjYuNCAxMTcuOSA1LjUtMjEuOSAxNi40LTc2LjggMTYuNC0xNTAuOCAwLTk1LjkgMC0xMjQ2LjkgMC0xMzYyLjFoMTIxNS42Yy0xOTcuNiAxODYuNC00NDEuOCA0NjYtNTg5LjkgNzk0LjgtMTYuNS0zNS42LTEyMy41LTI3NC0yNTgtMjcxLjMtODUgMi44LTE1MC45IDkzLjItMTUwLjkgOTMuMiAyMDguNi0yLjcgMzgxLjQgNTg2LjUgMzgxLjQgNTg2LjV6Ii8+CgkJPC9nPgoJPC9nPgo8L3N2Zz4="
+}

@@ -16,31 +16,25 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}/move`;
 
         const headers = {};
-        const query = new URLSearchParams;
 
-        const queryParameters = { };
-
-        Object.keys(queryParameters).forEach(parameter => {
-            if (queryParameters[parameter]) {
-                query.append(parameter, queryParameters[parameter]);
-            }
-        });
+        const inputMapping = {
+            'destinationId': input['destinationId'],
+            'destinationType': input['destinationType']
+        };
+        let requestBody = {};
+        lib.setProperties(requestBody, inputMapping);
 
         headers['Authorization'] = 'Bearer ' + context.auth.accessToken;
 
         const req = {
             url: url,
-            method: 'GET',
+            method: 'POST',
+            data: requestBody,
             headers: headers
         };
-
-        const queryString = query.toString();
-        if (queryString) {
-            req.url += '?' + queryString;
-        }
 
         try {
             const response = await context.httpRequest(req);

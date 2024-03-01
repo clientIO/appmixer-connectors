@@ -8,7 +8,7 @@ module.exports = {
 
         const { data } = await this.httpRequest(context);
 
-        return context.sendJson(data, 'out');
+        return context.sendJson({ sheets: data.data }, 'out');
     },
 
     httpRequest: async function(context) {
@@ -16,12 +16,13 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + '/sheets';
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = { };
+        const queryParameters = { 'include': input['include'],
+            'includeAll': true };
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {
@@ -80,6 +81,12 @@ module.exports = {
             await context.log(log);
             throw err;
         }
+    },
+    sheetsToSelectArray: function({ sheets }) {
+
+        return sheets.map(sheet => {
+            return { label: sheet.name, value: sheet.id };
+        });
     }
 
 };

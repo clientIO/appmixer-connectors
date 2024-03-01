@@ -8,7 +8,7 @@ module.exports = {
 
         const { data } = await this.httpRequest(context);
 
-        return context.sendJson(data, 'out');
+        return context.sendJson({ folders: data.data }, 'out');
     },
 
     httpRequest: async function(context) {
@@ -16,12 +16,12 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + '/home/folders';
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = { };
+        const queryParameters = { 'includeAll': true };
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {
@@ -80,6 +80,12 @@ module.exports = {
             await context.log(log);
             throw err;
         }
+    },
+    foldersToSelectArray({ folders }) {
+
+        return folders.map(folder => {
+            return { label: folder.name, value: folder.id };
+        });
     }
 
 };

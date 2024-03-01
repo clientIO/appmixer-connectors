@@ -16,12 +16,20 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}/rows/move`;
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const queryParameters = { };
+        const inputMapping = {
+            'rowIds': input['rowIds'],
+            'to.sheetId': input['to|sheetId']
+        };
+        let requestBody = {};
+        lib.setProperties(requestBody, inputMapping);
+
+        const queryParameters = { 'include': input['include'],
+            'ignoreRowsNotFound': input['ignoreRowsNotFound'] };
 
         Object.keys(queryParameters).forEach(parameter => {
             if (queryParameters[parameter]) {
@@ -33,7 +41,8 @@ module.exports = {
 
         const req = {
             url: url,
-            method: 'GET',
+            method: 'POST',
+            data: requestBody,
             headers: headers
         };
 

@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('./lib');
+
 module.exports = {
 
     type: 'oauth2',
@@ -22,13 +24,39 @@ module.exports = {
                 try {
                     str = str.replaceAll('{' + variableName + '}', context[variableName]);
                 } catch (error) {
-                    context.log({ msg: 'Failed to replace variable ' + variableName + '.', error });
+                    // no-op, keep the original string
                 }
             });
             return str;
         },
 
-        validate: context => {
+        accountNameFromProfileInfo: 'email',
+
+        requestProfileInfo: async context => {
+
+            const user = await context.httpRequest({
+                url: lib.getBaseUrl(context) + '/users/me',
+                method: 'GET',
+                data: null,
+                headers: {
+                    'Authorization': 'Bearer ' + context.accessToken
+
+                }
+            });
+            return user.data;
+        },
+
+        validate: async context => {
+
+            await context.httpRequest({
+                url: lib.getBaseUrl(context) + '/users/me',
+                method: 'GET',
+                data: null,
+                headers: {
+                    'Authorization': 'Bearer ' + context.accessToken
+
+                }
+            });
             return true;
         }
     }

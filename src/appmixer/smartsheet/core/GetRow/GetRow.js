@@ -7,7 +7,22 @@ module.exports = {
     receive: async function(context) {
 
         const { data } = await this.httpRequest(context);
+        const columns = await context.componentStaticCall('appmixer.smartsheet.core.ListColumnsOnSheet', 'out', {
+            messages: { in: { sheetId: context.messages.in.content.sheetId } },
+            transform: './ListColumnsOnSheet#columnsToSelectArray'
+        });
 
+        const columnMap = columns.reduce((acc, column) => {
+            acc[column.value] = column.label;
+            return acc;
+        }, {});
+
+        data.cells.forEach(cell => {
+            const columnTitle = columnMap[cell.columnId];
+            if (columnTitle) {
+                cell.columnTitle = columnTitle;
+            }
+        });
         return context.sendJson(data, 'out');
     },
 
@@ -16,7 +31,7 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}`;
+        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}/rows/${input['rowId']}`;
 
         const headers = {};
         const query = new URLSearchParams;
@@ -80,6 +95,26 @@ module.exports = {
             await context.log(log);
             throw err;
         }
-    }
+    },
+    rowToInspector: function(row) {
 
+        let inspector = {
+            inputs: {
+                row: {
+                }
+            }
+        };
+        row['cells'].forEach((cell, i) => {
+
+            const index = i + 1;
+
+            inspector.inputs[cell['columnId']] = {
+                type: 'text',
+                label: cell['columnTitle'],
+                defaultValue: cell['value'],
+                index
+            };
+        });
+        return inspector;
+    }
 };
