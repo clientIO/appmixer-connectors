@@ -38,7 +38,7 @@ const detectNewFiles = async function(context) {
         lock = await context.lock(context.componentId, { maxRetryCount: 0 });
     } catch (err) {
         await context.stateSet('hasSkippedMessage', true);
-        return context.response();
+        return;
     }
 
     try {
@@ -148,7 +148,7 @@ module.exports = {
                 includeRemoved: false,
                 pageToken,
                 requestBody: {
-                    address: context.getWebhookUrl(),
+                    address: context.getWebhookUrl() + '?enqueueOnly=true',
                     id: context.componentId,
                     payload: true,
                     token: context.componentId,
