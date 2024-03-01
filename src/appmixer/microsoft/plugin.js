@@ -16,6 +16,7 @@ module.exports = function(context) {
             auth: false
         }
     });
+
     context.http.router.register({
         method: 'POST',
         path: '/OneDrivePicker',
