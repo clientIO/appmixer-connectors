@@ -6,7 +6,8 @@ const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
     const { data: { changes, newStartPageToken, nextPageToken } } = await drive.changes.list({
         pageToken,
-        fields: '*'
+        fields: '*',
+        includeRemoved: false
     });
 
     changes.forEach(change => {
