@@ -103,7 +103,7 @@ module.exports = {
                 type: 'string',
                 index: 0,
                 label: 'Identifier',
-                tooltip: '<p>Identifier of the contact.</p>'
+                tooltip: '<p>Identifier of the contact. For more details, see <a href="https://docs.naxai.com/docs/add-and-update-contacts-using-the-api" target="_blank">Naxai documentation</a>.</p>'
             },
             email: {
                 type: 'string',
@@ -139,7 +139,7 @@ module.exports = {
                 type: 'number',
                 index: 6,
                 label: 'Created At',
-                tooltip: ''
+                tooltip: 'The date of creation of the contact in seconds. Example: 1671179612'
             }
         };
 
