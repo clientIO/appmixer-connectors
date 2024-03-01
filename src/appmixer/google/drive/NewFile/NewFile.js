@@ -47,9 +47,9 @@ const detectNewFiles = async function(context) {
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
 
-        const { newFiles, newStartPageToken } = await getNewFiles(lock, drive, folder.id, startPageToken);
-
         await context.stateSet('hasSkippedMessage', false);
+
+        const { newFiles, newStartPageToken } = await getNewFiles(lock, drive, folder.id, startPageToken);
 
         const processedFilesSet = commons.processedItemsBuffer(processedFiles);
 
