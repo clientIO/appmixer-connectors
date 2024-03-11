@@ -22,15 +22,19 @@ module.exports = (context, options) => {
 
                 const event = req.params.event;
                 const data = req.payload;
+                const query = req.query || {};
                 const user = await context.http.auth.getUser(req);
                 const userId = user.getId();
 
-                const triggers = await AppEventTrigger.find({ event, userId });
+                const triggersQuery = { event, userId };
+                if (query.flowId) {
+                    triggersQuery.flowId = query.flowId;
+                }
+                const triggers = await AppEventTrigger.find(triggersQuery);
                 if (!triggers || !triggers.length) {
                     return { triggers: [] };
                 }
 
-                const query = req.query || {};
                 // Use enqueueOnly=true in query to enqueue message to Appmixer ASAP without waiting
                 // for the entire receive() to finish.
                 query.enqueueOnly = true;

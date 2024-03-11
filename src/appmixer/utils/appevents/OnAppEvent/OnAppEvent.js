@@ -45,7 +45,7 @@ module.exports = {
             const eventDataExampleJson = JSON.parse(eventDataExample);
             schema = GenerateSchema.json('App Event Data', eventDataExampleJson);
         } catch (err) {
-            context.log({ step: 'Generate output variables from Event Data Example.', err: err.message, eventDataExample });
+            // noop
         }
 
         const output = [
