@@ -1,7 +1,6 @@
 const moment = require('moment');
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
-const DEBUG = false;
 
 const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
@@ -33,6 +32,7 @@ const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
 const detectNewFiles = async function(context) {
 
+    const DEBUG = context.config.DEBUG !== 'false' || false;
     const { folder = {} } = context.properties;
 
     let lock = null;
@@ -68,8 +68,13 @@ const detectNewFiles = async function(context) {
         }
 
         if (DEBUG) {
-            await context.log(debugInfo);
-            await context.stateSet('debugInfo', debugInfo);
+            await context.log({ 'DEBUG': debugInfo });
+            if (Object.keys(debugInfo).length > 10000) {
+                await context.log({ 'DEBUG': 'Clearing debug log, maximum count of records reached.' });
+                await context.stateSet('debugInfo', {});
+            } else {
+                await context.stateSet('debugInfo', debugInfo);
+            }
         }
 
         await context.stateSet('startPageToken', newStartPageToken);
