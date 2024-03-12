@@ -8,7 +8,7 @@ module.exports = async context => {
     const lock = await context.lock('app-events-init');
 
     try {
-        await require('./AppEventTriggerModel')(context).createIndex({ userId: 1, event: 1 });
+        await require('./AppEventTriggerModel')(context).createIndex({ userId: 1, event: 1, flowId: 1 });
     } finally {
         lock.unlock();
     }
