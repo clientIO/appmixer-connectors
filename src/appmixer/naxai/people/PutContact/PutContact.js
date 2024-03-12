@@ -103,7 +103,7 @@ module.exports = {
                 type: 'string',
                 index: 0,
                 label: 'Identifier',
-                tooltip: '<p>Identifier of the contact. For more details, see <a href="https://docs.naxai.com/docs/add-and-update-contacts-using-the-api" target="_blank">Naxai documentation</a>.</p>'
+                tooltip: '<p>Identifier of the contact. For more details, see <a href="https://docs.naxai.com/docs/add-and-update-contacts-using-the-api" target="_blank">Naxai documentation</a>. If your contact identifier is set to <code>email</code>, use the email address as the identifier. If your contact identifier is set to <code>phone</code>, use the phone number as the identifier.</p>'
             },
             email: {
                 type: 'string',
@@ -115,7 +115,7 @@ module.exports = {
                 type: 'string',
                 index: 2,
                 label: 'Phone',
-                tooltip: ''
+                tooltip: 'Expected pattern: <code>^[0-9]{6,20}$</code>. Example: <code>32499010203</code>'
             },
             externalId: {
                 type: 'string',
@@ -133,7 +133,7 @@ module.exports = {
                 type: 'string',
                 index: 5,
                 label: 'Language',
-                tooltip: ''
+                tooltip: 'Enter <a href="https://en.wikipedia.org/wiki/ISO_639-1" target="_blank">ISO 639-1</a> code. Example: <code>en</code>.'
             },
             createdAt: {
                 type: 'number',
