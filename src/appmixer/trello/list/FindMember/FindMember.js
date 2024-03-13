@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for finding specific member of a board.
@@ -8,47 +7,43 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let getRequest = Promise.promisify(client.get, { context: client });
         let { name, boardId } = context.messages.in.content;
+        let boards = [];
 
-        return new Promise((resolve, reject) => {
-
-            if (!boardId) {
-                return getRequest('/1/members/me/boards')
-                    .then(boards => {
-                        return resolve(boards.map(board => {
-                            return board.id;
-                        }));
-                    });
-            }
-            resolve([boardId]);
-        }).then(boards => {
-            return Promise.map(boards, boardId => {
-                return getRequest(`/1/boards/${boardId}/members`);
+        if (!boardId) {
+            const { data } = await context.httpRequest({
+                headers: { 'Content-Type': 'application/json' },
+                url: `https://api.trello.com/1/members/me/boards?${commons.getAuthQueryParams(context)}`
             });
-        }).then(members => {
-            // we get array of arrays of objects, let get one array of members
-            members = [].concat(...members).filter((member, index, arr) => {
-                return arr.findIndex(m => m.id === member.id) === index;
-            });
+            boards = data.map(board => board.id);
+        } else {
+            boards = [boardId];
+        }
 
-            // we get array of members, let find member by name
-            members = members.filter(member => {
-                return name === member['fullName'];
+        let members = [];
+        for (const boardId of boards) {
+            const { data } = await context.httpRequest({
+                headers: { 'Content-Type': 'application/json' },
+                url: `https://api.trello.com/1/boards/${boardId}/members?${commons.getAuthQueryParams(context)}`
             });
+            members.push(...data);
+        }
 
-            if (!members.length) {
-                return context.sendJson({ name }, 'notFound');
-            }
+        members = members.filter((member, index, arr) => arr.findIndex(m => m.id === member.id) === index);
+        members = members.filter(member => name === member['fullName']);
 
-            return Promise.map(members, member => {
-                return getRequest(`/1/members/${member['id']}`).then(res => {
-                    return context.sendJson(res, 'member');
-                });
+        if (!members.length) {
+            return context.sendJson({ name }, 'notFound');
+        }
+
+        for (const member of members) {
+            const { data } = await context.httpRequest({
+                headers: { 'Content-Type': 'application/json' },
+                url: `https://api.trello.com/1/members/${member['id']}?${commons.getAuthQueryParams(context)}`
             });
-        });
+            context.sendJson(data, 'member');
+        }
     }
 };

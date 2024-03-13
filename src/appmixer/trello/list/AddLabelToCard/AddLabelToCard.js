@@ -23,14 +23,13 @@ function buildLabel(label) {
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         let labelInfo = context.messages.in.content;
         let boardListCardId = labelInfo.boardListCardId;
         delete labelInfo.boardListCardId;
         let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
         let addLabelToCard = Promise.promisify(client.post, { context: client });
-        let getLabelDetails = Promise.promisify(client.get, { context: client });
 
         let url;
         let query;
@@ -42,13 +41,14 @@ module.exports = {
             query = buildLabel(labelInfo);
         }
 
-        return addLabelToCard(url, query).then(result => {
+        return addLabelToCard(url, query).then(async result => {
             if (Array.isArray(result)) {
-                return getLabelDetails('/1/labels/' + labelInfo.labelId)
-                    .then(labelDetails => {
-                        labelDetails.idCard = boardListCardId;
-                        return labelDetails;
-                    });
+                const { data } = await context.httpRequest({
+                    headers: { 'Content-Type': 'application/json' },
+                    url: `https://api.trello.com/1/labels/${labelInfo.labelId}?${commons.getAuthQueryParams(context)}`
+                });
+                data.idCard = boardListCardId;
+                return data;
             }
 
             result.idCard = boardListCardId;

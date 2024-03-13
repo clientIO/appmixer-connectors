@@ -6,6 +6,7 @@ module.exports = {
 
     /**
      * Get new TrelloAPI
+     * @deprecated Use `context.httpRequest` instead. Can't be used for GET requests. See https://developer.atlassian.com/changelog/#CHANGE-1459.
      * @param {string} key
      * @param {string} token
      * @returns {*}
@@ -13,6 +14,14 @@ module.exports = {
     getTrelloAPI(key, token) {
 
         return new TrelloAPI(key, token);
+    },
+
+    getAuthQueryParams(context) {
+
+        return new URLSearchParams({
+            key: context.auth.consumerKey,
+            token: context.auth.accessToken
+        });
     },
 
     isAppmixerVariable(variable) {
@@ -32,7 +41,7 @@ module.exports = {
             await context.sendJson(records, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.
-            const headers = Object.keys(records[0]);
+            const headers = Object.keys(records[0] || {});
             let csvRows = [];
             csvRows.push(headers.join(','));
             for (const record of records) {
