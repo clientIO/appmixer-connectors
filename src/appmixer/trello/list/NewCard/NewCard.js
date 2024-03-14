@@ -45,9 +45,9 @@ module.exports = {
         res.forEach(processCards.bind(null, known, actual, diff));
 
         if (diff.size) {
-            await Promise.map(diff, card => {
+            await Promise.all(Array.from(diff).map(card => {
                 return context.sendJson(card, 'card');
-            });
+            }));
         }
         await context.saveState({ known: Array.from(actual) });
     }

@@ -64,9 +64,9 @@ module.exports = {
         res.forEach(processActivities.bind(null, known, actual, diff));
 
         if (diff.size) {
-            await Promise.map(diff, activity => {
+            await Promise.all(Array.from(diff).map(activity => {
                 return context.sendJson(activity, 'activity');
-            });
+            }));
         }
         await context.saveState({ known: Array.from(actual) });
     }

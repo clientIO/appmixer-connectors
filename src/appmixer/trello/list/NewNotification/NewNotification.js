@@ -36,9 +36,9 @@ module.exports = {
         res.forEach(processNotifications.bind(null, known, actual, diff));
 
         if (diff.size) {
-            await Promise.map(diff, notification => {
+            await Promise.all(Array.from(diff).map(notification => {
                 return context.sendJson(notification, 'notification');
-            });
+            }));
         }
         await context.saveState({ known: Array.from(actual) });
     }
