@@ -25,7 +25,7 @@ module.exports = {
             await context.sendJson(records, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.
-            const headers = Object.keys(records[0]);
+            const headers = Object.keys(records[0] || {});
             let csvRows = [];
             csvRows.push(headers.join(','));
             for (const record of records) {
