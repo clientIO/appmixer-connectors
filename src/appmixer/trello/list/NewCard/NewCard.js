@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Process cards to find newly added.
@@ -27,8 +26,6 @@ module.exports = {
     async tick(context) {
 
         let { boardId, boardListId } = context.properties;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let newCard = Promise.promisify(client.get, { context: client });
 
         let url;
         if (boardListId) {
@@ -37,7 +34,10 @@ module.exports = {
             url = '/1/boards/' + boardId + '/cards';
         }
 
-        let res = await newCard(url);
+        const { data: res } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            url: `https://api.trello.com${url}?${commons.getAuthQueryParams(context)}`
+        });
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();

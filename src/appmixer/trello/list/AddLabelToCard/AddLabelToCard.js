@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Build label data.
@@ -28,8 +27,6 @@ module.exports = {
         let labelInfo = context.messages.in.content;
         let boardListCardId = labelInfo.boardListCardId;
         delete labelInfo.boardListCardId;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let addLabelToCard = Promise.promisify(client.post, { context: client });
 
         let url;
         let query;
@@ -41,21 +38,24 @@ module.exports = {
             query = buildLabel(labelInfo);
         }
 
-        return addLabelToCard(url, query).then(async result => {
-            if (Array.isArray(result)) {
-                const { data } = await context.httpRequest({
-                    headers: { 'Content-Type': 'application/json' },
-                    url: `https://api.trello.com/1/labels/${labelInfo.labelId}?${commons.getAuthQueryParams(context)}`
-                });
-                data.idCard = boardListCardId;
-                return data;
-            }
-
-            result.idCard = boardListCardId;
-            return result;
-        }).then(result => {
-            return context.sendJson(result, 'label');
+        const { data: result } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            url: `https://api.trello.com${url}?${commons.getAuthQueryParams(context)}`,
+            data: query
         });
+
+        if (Array.isArray(result)) {
+            const { data } = await context.httpRequest({
+                headers: { 'Content-Type': 'application/json' },
+                url: `https://api.trello.com/1/labels/${labelInfo.labelId}?${commons.getAuthQueryParams(context)}`
+            });
+            data.idCard = boardListCardId;
+            return context.sendJson(data, 'label');
+        } else {
+            result.idCard = boardListCardId;
+        }
+
+        return context.sendJson(result, 'label');
     }
 };
-

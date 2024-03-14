@@ -1,20 +1,8 @@
 'use strict';
-const TrelloAPI = require('node-trello');
+
 const pathModule = require('path');
 
 module.exports = {
-
-    /**
-     * Get new TrelloAPI
-     * @deprecated Use `context.httpRequest` instead. Can't be used for GET requests. See https://developer.atlassian.com/changelog/#CHANGE-1459.
-     * @param {string} key
-     * @param {string} token
-     * @returns {*}
-     */
-    getTrelloAPI(key, token) {
-
-        return new TrelloAPI(key, token);
-    },
 
     getAuthQueryParams(context) {
 
