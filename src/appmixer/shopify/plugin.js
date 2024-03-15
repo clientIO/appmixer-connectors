@@ -1,37 +1,22 @@
-const path = require('path');
+module.exports = async function(context) {
 
-module.exports = function(context) {
+    const lock = await context.lock('shopify-plugin-init');
 
-    context.http.router.register({
-        method: 'POST',
-        path: '/customers/data_request',
-        options: {
-            handler: (request, h) => {
-                return {}
-            },
-            auth: false
+    let secret;
+    try {
+        secret = await context.service.stateGet('secret');
+        if (!secret) {
+
+            await require('./CustomerDataRequest')(context).createIndex({ status: 1 });
+            await require('./CustomerRedactRequest')(context).createIndex({ status: 1 });
+            await require('./ShopRedactRequest')(context).createIndex({ status: 1 });
+
+            secret = require('crypto').randomBytes(128).toString('base64');
+            await context.service.stateSet('secret', secret);
         }
-    });
+    } finally {
+        lock.unlock();
+    }
 
-    context.http.router.register({
-        method: 'POST',
-        path: '/customers/redact',
-        options: {
-            handler: (request, h) => {
-                return {}
-            },
-            auth: false
-        }
-    });
-
-    context.http.router.register({
-        method: 'POST',
-        path: '/shop/redact',
-        options: {
-            handler: (request, h) => {
-                return {}
-            },
-            auth: false
-        }
-    });
+    require('./routes')(context);
 };
