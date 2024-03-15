@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for remove a label from card
@@ -8,16 +7,14 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let removeLabel = Promise.promisify(client.del, { context: client });
-
-        return removeLabel(
-            `/1/cards/${context.messages.in.content.boardListCardId}/idLabels/` +
-            `${context.messages.in.content.labelId}`
-        ).then(res => {
-            return context.sendJson(res, 'out');
+        const { data } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            method: 'DELETE',
+            url: `https://api.trello.com/1/cards/${context.messages.in.content.boardListCardId}/idLabels/${context.messages.in.content.labelId}?${commons.getAuthQueryParams(context)}`
         });
+
+        return context.sendJson(data, 'out');
     }
 };
