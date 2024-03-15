@@ -60,6 +60,7 @@ module.exports = {
                             if (exp.input % exp.divisor === 0) {
                                 okCount++;
                             }
+                            break;
                         case 'empty':
                             if (!isNotEmpty(exp.input)) {
                                 okCount++;

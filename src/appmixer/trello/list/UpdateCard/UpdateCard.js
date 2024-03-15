@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Build card data.
@@ -45,19 +44,18 @@ function buildCard(card) {
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         let cardInfo = context.messages.in.content;
         let boardListCardId = cardInfo.boardListCardId;
         delete cardInfo.boardListCardId;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let updateCard = Promise.promisify(client.put, { context: client });
-
-        return updateCard(
-            '/1/cards/' + boardListCardId,
-            buildCard(cardInfo)
-        ).then(updatedCard => {
-            return context.sendJson(updatedCard, 'card');
+        const { data: updatedCard } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            method: 'PUT',
+            url: `https://api.trello.com/1/cards/${boardListCardId}?${commons.getAuthQueryParams(context)}`,
+            data: buildCard(cardInfo)
         });
+
+        return context.sendJson(updatedCard, 'card');
     }
 };

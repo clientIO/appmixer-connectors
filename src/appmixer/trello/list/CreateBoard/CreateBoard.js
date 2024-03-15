@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for adding a board.
@@ -8,21 +7,20 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         let boardInfo = context.messages.in.content;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let createBoard = Promise.promisify(client.post, { context: client });
-
-        return createBoard(
-            '/1/boards',
-            {
+        const { data: newBoard } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            url: `https://api.trello.com/1/boards?${commons.getAuthQueryParams(context)}`,
+            data: {
                 name: boardInfo['name'],
                 desc: boardInfo['description']
             }
-        ).then(newBoard => {
-            return context.sendJson(newBoard, 'board');
         });
+
+        return context.sendJson(newBoard, 'board');
     }
 };
 

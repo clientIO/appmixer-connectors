@@ -98,7 +98,7 @@ module.exports = {
 
                     googleApi.refreshAccessToken((error, tokens) => {
                         if (error && error.message === 'invalid_grant') {
-                            return reject(new context.InvalidTokenError(`invalid_grant while refreshing`, {
+                            return reject(new context.InvalidTokenError('invalid_grant while refreshing', {
                                 googleErr: error
                             }));
                         }
@@ -125,7 +125,7 @@ module.exports = {
                         ['access_token']: context.accessToken
                     }, (error, response) => {
                         if (error && error.message === 'invalid_grant') {
-                            return reject(new context.InvalidTokenError(`invalid_grant while validating`, {
+                            return reject(new context.InvalidTokenError('invalid_grant while validating', {
                                 googleErr: error
                             }));
                         }

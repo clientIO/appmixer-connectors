@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for fetching list of members of board
@@ -8,7 +7,7 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { boardId, outputType, isSource } = context.messages.in.content;
@@ -28,18 +27,16 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let getListOfCards = Promise.promisify(client.get, { context: client });
+        const { data } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            url: `https://api.trello.com/1/boards/${boardId}/cards?${commons.getAuthQueryParams(context)}`
+        });
 
-        return getListOfCards(
-            '/1/boards/' + boardId + '/cards'
-        ).then(res => {
-            return commons.sendArrayOutput({
-                context,
-                outputPortName: 'cards',
-                outputType,
-                records: res
-            });
+        return commons.sendArrayOutput({
+            context,
+            outputPortName: 'cards',
+            outputType,
+            records: data
         });
     },
 

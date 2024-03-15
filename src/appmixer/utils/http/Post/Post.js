@@ -45,7 +45,7 @@ const sendFormData = async (context, url, headers) => {
             case 'filepicker':
                 const fileInfo = await context.getFileInfo(value);
                 const stream = await context.getFileReadStream(value);
-                formData.append('file', stream, {
+                formData.append(name, stream, {
                     filename: fileInfo.filename,
                     contentType: fileInfo.contentType,
                     knownLength: fileInfo.length

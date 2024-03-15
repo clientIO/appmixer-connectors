@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Build attachment data.
@@ -23,20 +22,20 @@ function buildAttach(attachment) {
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         let attachInfo = context.messages.in.content;
         let boardListCardId = attachInfo.boardListCardId;
         delete attachInfo.boardListCardId;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let addAttachmentToCard = Promise.promisify(client.post, { context: client });
 
-        return addAttachmentToCard(
-            '/1/cards/' + boardListCardId + '/attachments',
-            buildAttach(attachInfo)
-        ).then(newAttachment => {
-            return context.sendJson(newAttachment, 'attachment');
+        const { data } = await context.httpRequest({
+            data: buildAttach(attachInfo),
+            headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            url: `https://api.trello.com/1/cards/${boardListCardId}/attachments?${commons.getAuthQueryParams(context)}`
         });
+
+        return context.sendJson(data, 'attachment');
     }
 };
 

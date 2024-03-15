@@ -21,7 +21,7 @@ async function makeRequest(options, context) {
         accessToken,
         url: endpointUrl,
         method,
-        body: body ? JSON.parse(body) : undefined,
+        body: body ? JSON.parse(body) : undefined
     };
     // Call the SharePoint API endpoint and handle errors
     const apiResponse = await commons.formatError(async () => {

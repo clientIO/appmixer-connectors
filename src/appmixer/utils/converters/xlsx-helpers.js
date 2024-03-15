@@ -34,6 +34,16 @@ module.exports.CSV2Workbook = async function(readStream) {
             reject(err);
         }).on('end', () => {
             try {
+                // Is there BOM at the beginning of the file?
+                const isBom = buffers[0].readUInt8(0) === 0xEF
+                    && buffers[0].readUInt8(1) === 0xBB
+                    && buffers[0].readUInt8(2) === 0xBF;
+
+                if (!isBom) {
+                    // If there is no BOM, we need to add it. See #1717.
+                    const bom = Buffer.from([0xEF, 0xBB, 0xBF]);
+                    buffers[0] = Buffer.concat([bom, buffers[0]]);
+                }
                 const buffer = Buffer.concat(buffers);
                 const workbook = xlsx.read(buffer, { type: 'buffer' });
                 resolve(workbook);

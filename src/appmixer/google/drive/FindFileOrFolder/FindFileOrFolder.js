@@ -20,9 +20,9 @@ module.exports = {
         }
 
         const queryParentsSuffix = folderLocation ? ` and '${folderId}' in parents` : '';
-        const querySuffix = ` and trashed=false` + queryParentsSuffix;
-        const queryFolderSuffix = ` and mimeType = 'application/vnd.google-apps.folder'`;
-        const queryFileSuffix = ` and mimeType != 'application/vnd.google-apps.folder'`;
+        const querySuffix = ' and trashed=false' + queryParentsSuffix;
+        const queryFolderSuffix = ' and mimeType = \'application/vnd.google-apps.folder\'';
+        const queryFileSuffix = ' and mimeType != \'application/vnd.google-apps.folder\'';
 
         let q;
         if (searchType === 'fileNameExact') {
@@ -56,6 +56,6 @@ module.exports = {
             }, 'out');
 
         }
-        return context.sendJson({query:query}, 'notFound');
+        return context.sendJson({ query:query }, 'notFound');
     }
 };

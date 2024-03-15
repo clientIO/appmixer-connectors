@@ -1,0 +1,129 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.smartsheet.core.GetWorkspace",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "<label><p>Get Workspace</p></label><br/><p>Gets a Workspace object.</p>",
+    "private": false,
+   
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "workspaceId"
+                ],
+                "properties": {
+                    
+                    "workspaceId": {
+                        "type": "string"
+                    },
+                    "accessApiLevel": {
+                        "type": "number",
+                        "default": 0
+                    },
+                    "include": {
+                        "type": "string",
+                        "enum": [
+                            "source",
+                            "distributionLink",
+                            "ownerInfo",
+                            "sheetVersion",
+                            "permalinks"
+                        ]
+                    },
+                    "loadAll": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "workspaceId": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "Workspace Id",
+                        "tooltip": "<p>WorkspaceID of the worksheet being accessed.</p>",
+                        "source": {
+                            "url": "/component/appmixer/smartsheet/core/ListWorkspaces?outPort=out",
+                            "data": {
+                                "transform": "./ListWorkspaces#workspacesToSelectArray"
+                            }
+                        }
+                    },
+                    "accessApiLevel": {
+                        "type": "number",
+                        "index": 1,
+                        "label": "Access Api Level",
+                        "tooltip": "<p>Allows COMMENTER access for inputs and return values. For backwards-compatibility, VIEWER is the default. For example, to see whether a user has COMMENTER access for a sheet, use accessApiLevel=1.</p>",
+                        "defaultValue": 0
+                    },
+                    "include": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Include",
+                        "tooltip": "<p>A comma-separated list of optional elements to include in the response:</p>\n<ul>\n<li><strong>source</strong> - adds the Source object indicating which object the folder\nwas created from, if any</li>\n<li><strong>distributionLink</strong></li>\n<li><strong>ownerInfo</strong></li>\n<li><strong>sheetVersion</strong></li>\n<li><strong>permalinks</strong></li>\n</ul>",
+                        "options": [
+                            {
+                                "content": "source",
+                                "value": "source"
+                            },
+                            {
+                                "content": "distributionLink",
+                                "value": "distributionLink"
+                            },
+                            {
+                                "content": "ownerInfo",
+                                "value": "ownerInfo"
+                            },
+                            {
+                                "content": "sheetVersion",
+                                "value": "sheetVersion"
+                            },
+                            {
+                                "content": "permalinks",
+                                "value": "permalinks"
+                            }
+                        ]
+                    },
+                    "loadAll": {
+                        "type": "toggle",
+                        "index": 3,
+                        "label": "Load All",
+                        "tooltip": "<p>Set to <strong>true</strong> to see nested folders. A value of <strong>false</strong> returns top-level folders only.</p>",
+                        "defaultValue": false
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Id",
+                    "value": "id"
+                },
+                {
+                    "label": "Name",
+                    "value": "name"
+                },
+                {
+                    "label": "Access Level",
+                    "value": "accessLevel"
+                },
+                {
+                    "label": "Permalink",
+                    "value": "permalink"
+                }
+            ]
+        }
+    ],
+   
+    "auth": {
+        "service": "appmixer:smartsheet"
+    },
+    "icon": "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEyMzggMTUxNCIgd2lkdGg9IjEyMzgiIGhlaWdodD0iMTUxNCI+Cgk8dGl0bGU+c21hcnRzaGVldC1sb2dvLWJsdWUtbmV3LXN2ZzwvdGl0bGU+Cgk8c3R5bGU+CgkJLnMwIHsgZmlsbDogIzBlMjk0NyB9IAoJPC9zdHlsZT4KCTxnIGlkPSJMYXllciI+CgkJPGcgaWQ9IkxheWVyIj4KCQkJPHBhdGggaWQ9IkxheWVyIiBjbGFzcz0iczAiIGQ9Im02MTUgMTIwNGMwIDAgMjYzLjQtNjU3LjggNjIyLjktMTA5Ni4zIDAgMTgwLjkgMCA1MzkuOSAwIDgxMS4zIDAgMTUwLjctNS41IDI3NC0xMSAzMjguOC01LjUgNTQuOS0xOS4yIDkwLjUtNDEuMSA5Ni0xNi41IDIuNy00My45LTIuOC05Ni4xLTYzLjEtNDYuNi01NC44LTkzLjMtMTU2LjItOTMuMy0xNTYuMmwtNS41LTExLTguMiA4LjNjLTIuNyAwLTE0NS40IDE0Mi41LTUxNS45IDI3NC0yMDguNSA3NC00MTEuNSAxMDkuNy00NjYuNCAxMTcuOSA1LjUtMjEuOSAxNi40LTc2LjggMTYuNC0xNTAuOCAwLTk1LjkgMC0xMjQ2LjkgMC0xMzYyLjFoMTIxNS42Yy0xOTcuNiAxODYuNC00NDEuOCA0NjYtNTg5LjkgNzk0LjgtMTYuNS0zNS42LTEyMy41LTI3NC0yNTgtMjcxLjMtODUgMi44LTE1MC45IDkzLjItMTUwLjkgOTMuMiAyMDguNi0yLjcgMzgxLjQgNTg2LjUgMzgxLjQgNTg2LjV6Ii8+CgkJPC9nPgoJPC9nPgo8L3N2Zz4="
+}

@@ -1,0 +1,1072 @@
+{
+    "name": "appmixer.utils.weather.GetWeatherForecast",
+    "author": "David Durman <david@client.io>",
+    "description": "This action gets a 5 day weather forecast by 3 hour intervals for a location.",
+    "quota": {
+        "manager": "appmixer:utils:weather",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "location",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "city": { "type": "string" },
+                    "coordinates": {
+                        "type": "string",
+                        "pattern": "^[-+]?([1-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*[-+]?(180(\\.0+)?|((1[0-7]\\d)|([1-9]?\\d))(\\.\\d+)?)$"
+                    },
+                    "units": { "enum": [ "metric", "imperial", "standard" ] }
+                },
+                "oneOf": [
+                    { "required": [ "city" ] },
+                    { "required": [ "coordinates" ] }
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "city": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "City name",
+                        "tooltip": "City name or city name and country code. E.g. London or London,UK."
+                    },
+                    "coordinates": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Latitude and Longitude",
+                        "tooltip": "Geographic coordinates in the form of comma separated latitude and longitude. Longitude must be in the range [-180, 180], latitude in the range [-90, 90]. Example: <i>51.51,-0.13</i>."
+                    },
+                    "units": {
+                        "type": "select",
+                        "options": [ "metric", "standard", "imperial" ],
+                        "index": 3,
+                        "label": "Units",
+                        "tooltip": "Standard (Kelvin), metric (Celsius), and imperial (Fahrenheit) units are available."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "weather",
+            "options": [
+                { "label": "City name", "value": "city.name" },
+                { "label": "City latitude", "value": "city.coord.lat" },
+                { "label": "City longitude", "value": "city.coord.lon" },
+                { "label": "Country code", "value": "city.country" },
+                { "label": "+3 hours: time of data forecasted as timestamp", "value": "3h.dt" },
+                { "label": "+3 hours: time of data forecasted in text", "value": "3h.dt_txt" },
+                { "label": "+3 hours: Temperature", "value": "3h.main.temp" },
+                { "label": "+3 hours: Pressure", "value": "3h.main.pressure" },
+                { "label": "+3 hours: Humidity", "value": "3h.main.humidity" },
+                { "label": "+3 hours: Minimum temperature", "value": "3h.main.temp_min" },
+                { "label": "+3 hours: Maximum temperature", "value": "3h.main.temp_max" },
+                { "label": "+3 hours: Atmospheric pressure on the sea level, hPa", "value": "3h.main.sea_level" },
+                { "label": "+3 hours: Atmospheric pressure on the ground level, hPa", "value": "3h.main.grnd_level" },
+                { "label": "+3 hours: Wind speed", "value": "3h.wind.speed" },
+                { "label": "+3 hours: Wind direction (degrees)", "value": "3h.wind.deg" },
+                { "label": "+3 hours: Cloudiness (%)", "value": "3h.clouds.all" },
+                { "label": "+3 hours: Rain volume for the last 3 hours", "value": "3h.rain.3h" },
+                { "label": "+3 hours: Snow volume for the last 3 hours", "value": "3h.snow.3h" },
+                {
+                    "label": "+3 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3h.weather.[0].main"
+                },
+                { "label": "+3 hours: Weather description", "value": "3h.weather.[0].description" },
+                { "label": "+3 hours: Weather icon code", "value": "3h.weather.[0].icon" },
+                { "label": "+3 hours: Weather icon URL", "value": "3h.weather.[0].iconUrl" },
+                { "label": "+6 hours: time of data forecasted as timestamp", "value": "6h.dt" },
+                { "label": "+6 hours: time of data forecasted in text", "value": "6h.dt_txt" },
+                { "label": "+6 hours: Temperature", "value": "6h.main.temp" },
+                { "label": "+6 hours: Pressure", "value": "6h.main.pressure" },
+                { "label": "+6 hours: Humidity", "value": "6h.main.humidity" },
+                { "label": "+6 hours: Minimum temperature", "value": "6h.main.temp_min" },
+                { "label": "+6 hours: Maximum temperature", "value": "6h.main.temp_max" },
+                { "label": "+6 hours: Atmospheric pressure on the sea level, hPa", "value": "6h.main.sea_level" },
+                { "label": "+6 hours: Atmospheric pressure on the ground level, hPa", "value": "6h.main.grnd_level" },
+                { "label": "+6 hours: Wind speed", "value": "6h.wind.speed" },
+                { "label": "+6 hours: Wind direction (degrees)", "value": "6h.wind.deg" },
+                { "label": "+6 hours: Cloudiness (%)", "value": "6h.clouds.all" },
+                { "label": "+6 hours: Rain volume for the last 3 hours", "value": "6h.rain.3h" },
+                { "label": "+6 hours: Snow volume for the last 3 hours", "value": "6h.snow.3h" },
+                {
+                    "label": "+6 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "6h.weather.[0].main"
+                },
+                { "label": "+6 hours: Weather description", "value": "6h.weather.[0].description" },
+                { "label": "+6 hours: Weather icon code", "value": "6h.weather.[0].icon" },
+                { "label": "+6 hours: Weather icon URL", "value": "6h.weather.[0].iconUrl" },
+                { "label": "+9 hours: time of data forecasted as timestamp", "value": "9h.dt" },
+                { "label": "+9 hours: time of data forecasted in text", "value": "9h.dt_txt" },
+                { "label": "+9 hours: Temperature", "value": "9h.main.temp" },
+                { "label": "+9 hours: Pressure", "value": "9h.main.pressure" },
+                { "label": "+9 hours: Humidity", "value": "9h.main.humidity" },
+                { "label": "+9 hours: Minimum temperature", "value": "9h.main.temp_min" },
+                { "label": "+9 hours: Maximum temperature", "value": "9h.main.temp_max" },
+                { "label": "+9 hours: Atmospheric pressure on the sea level, hPa", "value": "9h.main.sea_level" },
+                { "label": "+9 hours: Atmospheric pressure on the ground level, hPa", "value": "9h.main.grnd_level" },
+                { "label": "+9 hours: Wind speed", "value": "9h.wind.speed" },
+                { "label": "+9 hours: Wind direction (degrees)", "value": "9h.wind.deg" },
+                { "label": "+9 hours: Cloudiness (%)", "value": "9h.clouds.all" },
+                { "label": "+9 hours: Rain volume for the last 3 hours", "value": "9h.rain.3h" },
+                { "label": "+9 hours: Snow volume for the last 3 hours", "value": "9h.snow.3h" },
+                {
+                    "label": "+9 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "9h.weather.[0].main"
+                },
+                { "label": "+9 hours: Weather description", "value": "9h.weather.[0].description" },
+                { "label": "+9 hours: Weather icon code", "value": "9h.weather.[0].icon" },
+                { "label": "+9 hours: Weather icon URL", "value": "9h.weather.[0].iconUrl" },
+                { "label": "+12 hours: time of data forecasted as timestamp", "value": "12h.dt" },
+                { "label": "+12 hours: time of data forecasted in text", "value": "12h.dt_txt" },
+                { "label": "+12 hours: Temperature", "value": "12h.main.temp" },
+                { "label": "+12 hours: Pressure", "value": "12h.main.pressure" },
+                { "label": "+12 hours: Humidity", "value": "12h.main.humidity" },
+                { "label": "+12 hours: Minimum temperature", "value": "12h.main.temp_min" },
+                { "label": "+12 hours: Maximum temperature", "value": "12h.main.temp_max" },
+                { "label": "+12 hours: Atmospheric pressure on the sea level, hPa", "value": "12h.main.sea_level" },
+                { "label": "+12 hours: Atmospheric pressure on the ground level, hPa", "value": "12h.main.grnd_level" },
+                { "label": "+12 hours: Wind speed", "value": "12h.wind.speed" },
+                { "label": "+12 hours: Wind direction (degrees)", "value": "12h.wind.deg" },
+                { "label": "+12 hours: Cloudiness (%)", "value": "12h.clouds.all" },
+                { "label": "+12 hours: Rain volume for the last 3 hours", "value": "12h.rain.3h" },
+                { "label": "+12 hours: Snow volume for the last 3 hours", "value": "12h.snow.3h" },
+                {
+                    "label": "+12 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "12h.weather.[0].main"
+                },
+                { "label": "+12 hours: Weather description", "value": "12h.weather.[0].description" },
+                { "label": "+12 hours: Weather icon code", "value": "12h.weather.[0].icon" },
+                { "label": "+12 hours: Weather icon URL", "value": "12h.weather.[0].iconUrl" },
+                { "label": "+15 hours: time of data forecasted as timestamp", "value": "15h.dt" },
+                { "label": "+15 hours: time of data forecasted in text", "value": "15h.dt_txt" },
+                { "label": "+15 hours: Temperature", "value": "15h.main.temp" },
+                { "label": "+15 hours: Pressure", "value": "15h.main.pressure" },
+                { "label": "+15 hours: Humidity", "value": "15h.main.humidity" },
+                { "label": "+15 hours: Minimum temperature", "value": "15h.main.temp_min" },
+                { "label": "+15 hours: Maximum temperature", "value": "15h.main.temp_max" },
+                { "label": "+15 hours: Atmospheric pressure on the sea level, hPa", "value": "15h.main.sea_level" },
+                { "label": "+15 hours: Atmospheric pressure on the ground level, hPa", "value": "15h.main.grnd_level" },
+                { "label": "+15 hours: Wind speed", "value": "15h.wind.speed" },
+                { "label": "+15 hours: Wind direction (degrees)", "value": "15h.wind.deg" },
+                { "label": "+15 hours: Cloudiness (%)", "value": "15h.clouds.all" },
+                { "label": "+15 hours: Rain volume for the last 3 hours", "value": "15h.rain.3h" },
+                { "label": "+15 hours: Snow volume for the last 3 hours", "value": "15h.snow.3h" },
+                {
+                    "label": "+15 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "15h.weather.[0].main"
+                },
+                { "label": "+15 hours: Weather description", "value": "15h.weather.[0].description" },
+                { "label": "+15 hours: Weather icon code", "value": "15h.weather.[0].icon" },
+                { "label": "+15 hours: Weather icon URL", "value": "15h.weather.[0].iconUrl" },
+                { "label": "+18 hours: time of data forecasted as timestamp", "value": "18h.dt" },
+                { "label": "+18 hours: time of data forecasted in text", "value": "18h.dt_txt" },
+                { "label": "+18 hours: Temperature", "value": "18h.main.temp" },
+                { "label": "+18 hours: Pressure", "value": "18h.main.pressure" },
+                { "label": "+18 hours: Humidity", "value": "18h.main.humidity" },
+                { "label": "+18 hours: Minimum temperature", "value": "18h.main.temp_min" },
+                { "label": "+18 hours: Maximum temperature", "value": "18h.main.temp_max" },
+                { "label": "+18 hours: Atmospheric pressure on the sea level, hPa", "value": "18h.main.sea_level" },
+                { "label": "+18 hours: Atmospheric pressure on the ground level, hPa", "value": "18h.main.grnd_level" },
+                { "label": "+18 hours: Wind speed", "value": "18h.wind.speed" },
+                { "label": "+18 hours: Wind direction (degrees)", "value": "18h.wind.deg" },
+                { "label": "+18 hours: Cloudiness (%)", "value": "18h.clouds.all" },
+                { "label": "+18 hours: Rain volume for the last 3 hours", "value": "18h.rain.3h" },
+                { "label": "+18 hours: Snow volume for the last 3 hours", "value": "18h.snow.3h" },
+                {
+                    "label": "+18 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "18h.weather.[0].main"
+                },
+                { "label": "+18 hours: Weather description", "value": "18h.weather.[0].description" },
+                { "label": "+18 hours: Weather icon code", "value": "18h.weather.[0].icon" },
+                { "label": "+18 hours: Weather icon URL", "value": "18h.weather.[0].iconUrl" },
+                { "label": "+21 hours: time of data forecasted as timestamp", "value": "21h.dt" },
+                { "label": "+21 hours: time of data forecasted in text", "value": "21h.dt_txt" },
+                { "label": "+21 hours: Temperature", "value": "21h.main.temp" },
+                { "label": "+21 hours: Pressure", "value": "21h.main.pressure" },
+                { "label": "+21 hours: Humidity", "value": "21h.main.humidity" },
+                { "label": "+21 hours: Minimum temperature", "value": "21h.main.temp_min" },
+                { "label": "+21 hours: Maximum temperature", "value": "21h.main.temp_max" },
+                { "label": "+21 hours: Atmospheric pressure on the sea level, hPa", "value": "21h.main.sea_level" },
+                { "label": "+21 hours: Atmospheric pressure on the ground level, hPa", "value": "21h.main.grnd_level" },
+                { "label": "+21 hours: Wind speed", "value": "21h.wind.speed" },
+                { "label": "+21 hours: Wind direction (degrees)", "value": "21h.wind.deg" },
+                { "label": "+21 hours: Cloudiness (%)", "value": "21h.clouds.all" },
+                { "label": "+21 hours: Rain volume for the last 3 hours", "value": "21h.rain.3h" },
+                { "label": "+21 hours: Snow volume for the last 3 hours", "value": "21h.snow.3h" },
+                {
+                    "label": "+21 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "21h.weather.[0].main"
+                },
+                { "label": "+21 hours: Weather description", "value": "21h.weather.[0].description" },
+                { "label": "+21 hours: Weather icon code", "value": "21h.weather.[0].icon" },
+                { "label": "+21 hours: Weather icon URL", "value": "21h.weather.[0].iconUrl" },
+                { "label": "+1 day: time of data forecasted as timestamp", "value": "1d.dt" },
+                { "label": "+1 day: time of data forecasted in text", "value": "1d.dt_txt" },
+                { "label": "+1 day: Temperature", "value": "1d.main.temp" },
+                { "label": "+1 day: Pressure", "value": "1d.main.pressure" },
+                { "label": "+1 day: Humidity", "value": "1d.main.humidity" },
+                { "label": "+1 day: Minimum temperature", "value": "1d.main.temp_min" },
+                { "label": "+1 day: Maximum temperature", "value": "1d.main.temp_max" },
+                { "label": "+1 day: Atmospheric pressure on the sea level, hPa", "value": "1d.main.sea_level" },
+                { "label": "+1 day: Atmospheric pressure on the ground level, hPa", "value": "1d.main.grnd_level" },
+                { "label": "+1 day: Wind speed", "value": "1d.wind.speed" },
+                { "label": "+1 day: Wind direction (degrees)", "value": "1d.wind.deg" },
+                { "label": "+1 day: Cloudiness (%)", "value": "1d.clouds.all" },
+                { "label": "+1 day: Rain volume for the last 3 hours", "value": "1d.rain.3h" },
+                { "label": "+1 day: Snow volume for the last 3 hours", "value": "1d.snow.3h" },
+                {
+                    "label": "+1 day: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d.weather.[0].main"
+                },
+                { "label": "+1 day: Weather description", "value": "1d.weather.[0].description" },
+                { "label": "+1 day: Weather icon code", "value": "1d.weather.[0].icon" },
+                { "label": "+1 day: Weather icon URL", "value": "1d.weather.[0].iconUrl" },
+                { "label": "+1 day and 3 hours: time of data forecasted as timestamp", "value": "1d3h.dt" },
+                { "label": "+1 day and 3 hours: time of data forecasted in text", "value": "1d3h.dt_txt" },
+                { "label": "+1 day and 3 hours: Temperature", "value": "1d3h.main.temp" },
+                { "label": "+1 day and 3 hours: Pressure", "value": "1d3h.main.pressure" },
+                { "label": "+1 day and 3 hours: Humidity", "value": "1d3h.main.humidity" },
+                { "label": "+1 day and 3 hours: Minimum temperature", "value": "1d3h.main.temp_min" },
+                { "label": "+1 day and 3 hours: Maximum temperature", "value": "1d3h.main.temp_max" },
+                {
+                    "label": "+1 day and 3 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "1d3h.main.sea_level"
+                },
+                {
+                    "label": "+1 day and 3 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "1d3h.main.grnd_level"
+                },
+                { "label": "+1 day and 3 hours: Wind speed", "value": "1d3h.wind.speed" },
+                { "label": "+1 day and 3 hours: Wind direction (degrees)", "value": "1d3h.wind.deg" },
+                { "label": "+1 day and 3 hours: Cloudiness (%)", "value": "1d3h.clouds.all" },
+                { "label": "+1 day and 3 hours: Rain volume for the last 3 hours", "value": "1d3h.rain.3h" },
+                { "label": "+1 day and 3 hours: Snow volume for the last 3 hours", "value": "1d3h.snow.3h" },
+                {
+                    "label": "+1 day and 3 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d3h.weather.[0].main"
+                },
+                { "label": "+1 day and 3 hours: Weather description", "value": "1d3h.weather.[0].description" },
+                { "label": "+1 day and 3 hours: Weather icon code", "value": "1d3h.weather.[0].icon" },
+                { "label": "+1 day and 3 hours: Weather icon URL", "value": "1d3h.weather.[0].iconUrl" },
+                { "label": "+1 day and 6 hours: time of data forecasted as timestamp", "value": "1d6h.dt" },
+                { "label": "+1 day and 6 hours: time of data forecasted in text", "value": "1d6h.dt_txt" },
+                { "label": "+1 day and 6 hours: Temperature", "value": "1d6h.main.temp" },
+                { "label": "+1 day and 6 hours: Pressure", "value": "1d6h.main.pressure" },
+                { "label": "+1 day and 6 hours: Humidity", "value": "1d6h.main.humidity" },
+                { "label": "+1 day and 6 hours: Minimum temperature", "value": "1d6h.main.temp_min" },
+                { "label": "+1 day and 6 hours: Maximum temperature", "value": "1d6h.main.temp_max" },
+                {
+                    "label": "+1 day and 6 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "1d6h.main.sea_level"
+                },
+                {
+                    "label": "+1 day and 6 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "1d6h.main.grnd_level"
+                },
+                { "label": "+1 day and 6 hours: Wind speed", "value": "1d6h.wind.speed" },
+                { "label": "+1 day and 6 hours: Wind direction (degrees)", "value": "1d6h.wind.deg" },
+                { "label": "+1 day and 6 hours: Cloudiness (%)", "value": "1d6h.clouds.all" },
+                { "label": "+1 day and 6 hours: Rain volume for the last 3 hours", "value": "1d6h.rain.3h" },
+                { "label": "+1 day and 6 hours: Snow volume for the last 3 hours", "value": "1d6h.snow.3h" },
+                {
+                    "label": "+1 day and 6 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d6h.weather.[0].main"
+                },
+                { "label": "+1 day and 6 hours: Weather description", "value": "1d6h.weather.[0].description" },
+                { "label": "+1 day and 6 hours: Weather icon code", "value": "1d6h.weather.[0].icon" },
+                { "label": "+1 day and 6 hours: Weather icon URL", "value": "1d6h.weather.[0].iconUrl" },
+                { "label": "+1 day and 9 hours: time of data forecasted as timestamp", "value": "1d9h.dt" },
+                { "label": "+1 day and 9 hours: time of data forecasted in text", "value": "1d9h.dt_txt" },
+                { "label": "+1 day and 9 hours: Temperature", "value": "1d9h.main.temp" },
+                { "label": "+1 day and 9 hours: Pressure", "value": "1d9h.main.pressure" },
+                { "label": "+1 day and 9 hours: Humidity", "value": "1d9h.main.humidity" },
+                { "label": "+1 day and 9 hours: Minimum temperature", "value": "1d9h.main.temp_min" },
+                { "label": "+1 day and 9 hours: Maximum temperature", "value": "1d9h.main.temp_max" },
+                {
+                    "label": "+1 day and 9 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "1d9h.main.sea_level"
+                },
+                {
+                    "label": "+1 day and 9 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "1d9h.main.grnd_level"
+                },
+                { "label": "+1 day and 9 hours: Wind speed", "value": "1d9h.wind.speed" },
+                { "label": "+1 day and 9 hours: Wind direction (degrees)", "value": "1d9h.wind.deg" },
+                { "label": "+1 day and 9 hours: Cloudiness (%)", "value": "1d9h.clouds.all" },
+                { "label": "+1 day and 9 hours: Rain volume for the last 3 hours", "value": "1d9h.rain.3h" },
+                { "label": "+1 day and 9 hours: Snow volume for the last 3 hours", "value": "1d9h.snow.3h" },
+                {
+                    "label": "+1 day and 9 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d9h.weather.[0].main"
+                },
+                { "label": "+1 day and 9 hours: Weather description", "value": "1d9h.weather.[0].description" },
+                { "label": "+1 day and 9 hours: Weather icon code", "value": "1d9h.weather.[0].icon" },
+                { "label": "+1 day and 9 hours: Weather icon URL", "value": "1d9h.weather.[0].iconUrl" },
+                { "label": "+1 day and 12 hours: time of data forecasted as timestamp", "value": "1d12h.dt" },
+                { "label": "+1 day and 12 hours: time of data forecasted in text", "value": "1d12h.dt_txt" },
+                { "label": "+1 day and 12 hours: Temperature", "value": "1d12h.main.temp" },
+                { "label": "+1 day and 12 hours: Pressure", "value": "1d12h.main.pressure" },
+                { "label": "+1 day and 12 hours: Humidity", "value": "1d12h.main.humidity" },
+                { "label": "+1 day and 12 hours: Minimum temperature", "value": "1d12h.main.temp_min" },
+                { "label": "+1 day and 12 hours: Maximum temperature", "value": "1d12h.main.temp_max" },
+                {
+                    "label": "+1 day and 12 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "1d12h.main.sea_level"
+                },
+                {
+                    "label": "+1 day and 12 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "1d12h.main.grnd_level"
+                },
+                { "label": "+1 day and 12 hours: Wind speed", "value": "1d12h.wind.speed" },
+                { "label": "+1 day and 12 hours: Wind direction (degrees)", "value": "1d12h.wind.deg" },
+                { "label": "+1 day and 12 hours: Cloudiness (%)", "value": "1d12h.clouds.all" },
+                { "label": "+1 day and 12 hours: Rain volume for the last 3 hours", "value": "1d12h.rain.3h" },
+                { "label": "+1 day and 12 hours: Snow volume for the last 3 hours", "value": "1d12h.snow.3h" },
+                {
+                    "label": "+1 day and 12 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d12h.weather.[0].main"
+                },
+                { "label": "+1 day and 12 hours: Weather description", "value": "1d12h.weather.[0].description" },
+                { "label": "+1 day and 12 hours: Weather icon code", "value": "1d12h.weather.[0].icon" },
+                { "label": "+1 day and 12 hours: Weather icon URL", "value": "1d12h.weather.[0].iconUrl" },
+                { "label": "+1 day and 15 hours: time of data forecasted as timestamp", "value": "1d15h.dt" },
+                { "label": "+1 day and 15 hours: time of data forecasted in text", "value": "1d15h.dt_txt" },
+                { "label": "+1 day and 15 hours: Temperature", "value": "1d15h.main.temp" },
+                { "label": "+1 day and 15 hours: Pressure", "value": "1d15h.main.pressure" },
+                { "label": "+1 day and 15 hours: Humidity", "value": "1d15h.main.humidity" },
+                { "label": "+1 day and 15 hours: Minimum temperature", "value": "1d15h.main.temp_min" },
+                { "label": "+1 day and 15 hours: Maximum temperature", "value": "1d15h.main.temp_max" },
+                {
+                    "label": "+1 day and 15 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "1d15h.main.sea_level"
+                },
+                {
+                    "label": "+1 day and 15 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "1d15h.main.grnd_level"
+                },
+                { "label": "+1 day and 15 hours: Wind speed", "value": "1d15h.wind.speed" },
+                { "label": "+1 day and 15 hours: Wind direction (degrees)", "value": "1d15h.wind.deg" },
+                { "label": "+1 day and 15 hours: Cloudiness (%)", "value": "1d15h.clouds.all" },
+                { "label": "+1 day and 15 hours: Rain volume for the last 3 hours", "value": "1d15h.rain.3h" },
+                { "label": "+1 day and 15 hours: Snow volume for the last 3 hours", "value": "1d15h.snow.3h" },
+                {
+                    "label": "+1 day and 15 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d15h.weather.[0].main"
+                },
+                { "label": "+1 day and 15 hours: Weather description", "value": "1d15h.weather.[0].description" },
+                { "label": "+1 day and 15 hours: Weather icon code", "value": "1d15h.weather.[0].icon" },
+                { "label": "+1 day and 15 hours: Weather icon URL", "value": "1d15h.weather.[0].iconUrl" },
+                { "label": "+1 day and 18 hours: time of data forecasted as timestamp", "value": "1d18h.dt" },
+                { "label": "+1 day and 18 hours: time of data forecasted in text", "value": "1d18h.dt_txt" },
+                { "label": "+1 day and 18 hours: Temperature", "value": "1d18h.main.temp" },
+                { "label": "+1 day and 18 hours: Pressure", "value": "1d18h.main.pressure" },
+                { "label": "+1 day and 18 hours: Humidity", "value": "1d18h.main.humidity" },
+                { "label": "+1 day and 18 hours: Minimum temperature", "value": "1d18h.main.temp_min" },
+                { "label": "+1 day and 18 hours: Maximum temperature", "value": "1d18h.main.temp_max" },
+                {
+                    "label": "+1 day and 18 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "1d18h.main.sea_level"
+                },
+                {
+                    "label": "+1 day and 18 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "1d18h.main.grnd_level"
+                },
+                { "label": "+1 day and 18 hours: Wind speed", "value": "1d18h.wind.speed" },
+                { "label": "+1 day and 18 hours: Wind direction (degrees)", "value": "1d18h.wind.deg" },
+                { "label": "+1 day and 18 hours: Cloudiness (%)", "value": "1d18h.clouds.all" },
+                { "label": "+1 day and 18 hours: Rain volume for the last 3 hours", "value": "1d18h.rain.3h" },
+                { "label": "+1 day and 18 hours: Snow volume for the last 3 hours", "value": "1d18h.snow.3h" },
+                {
+                    "label": "+1 day and 18 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d18h.weather.[0].main"
+                },
+                { "label": "+1 day and 18 hours: Weather description", "value": "1d18h.weather.[0].description" },
+                { "label": "+1 day and 18 hours: Weather icon code", "value": "1d18h.weather.[0].icon" },
+                { "label": "+1 day and 18 hours: Weather icon URL", "value": "1d18h.weather.[0].iconUrl" },
+                { "label": "+1 day and 21 hours: time of data forecasted as timestamp", "value": "1d21h.dt" },
+                { "label": "+1 day and 21 hours: time of data forecasted in text", "value": "1d21h.dt_txt" },
+                { "label": "+1 day and 21 hours: Temperature", "value": "1d21h.main.temp" },
+                { "label": "+1 day and 21 hours: Pressure", "value": "1d21h.main.pressure" },
+                { "label": "+1 day and 21 hours: Humidity", "value": "1d21h.main.humidity" },
+                { "label": "+1 day and 21 hours: Minimum temperature", "value": "1d21h.main.temp_min" },
+                { "label": "+1 day and 21 hours: Maximum temperature", "value": "1d21h.main.temp_max" },
+                {
+                    "label": "+1 day and 21 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "1d21h.main.sea_level"
+                },
+                {
+                    "label": "+1 day and 21 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "1d21h.main.grnd_level"
+                },
+                { "label": "+1 day and 21 hours: Wind speed", "value": "1d21h.wind.speed" },
+                { "label": "+1 day and 21 hours: Wind direction (degrees)", "value": "1d21h.wind.deg" },
+                { "label": "+1 day and 21 hours: Cloudiness (%)", "value": "1d21h.clouds.all" },
+                { "label": "+1 day and 21 hours: Rain volume for the last 3 hours", "value": "1d21h.rain.3h" },
+                { "label": "+1 day and 21 hours: Snow volume for the last 3 hours", "value": "1d21h.snow.3h" },
+                {
+                    "label": "+1 day and 21 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "1d21h.weather.[0].main"
+                },
+                { "label": "+1 day and 21 hours: Weather description", "value": "1d21h.weather.[0].description" },
+                { "label": "+1 day and 21 hours: Weather icon code", "value": "1d21h.weather.[0].icon" },
+                { "label": "+1 day and 21 hours: Weather icon URL", "value": "1d21h.weather.[0].iconUrl" },
+                { "label": "+2 days: time of data forecasted as timestamp", "value": "2d.dt" },
+                { "label": "+2 days: time of data forecasted in text", "value": "2d.dt_txt" },
+                { "label": "+2 days: Temperature", "value": "2d.main.temp" },
+                { "label": "+2 days: Pressure", "value": "2d.main.pressure" },
+                { "label": "+2 days: Humidity", "value": "2d.main.humidity" },
+                { "label": "+2 days: Minimum temperature", "value": "2d.main.temp_min" },
+                { "label": "+2 days: Maximum temperature", "value": "2d.main.temp_max" },
+                { "label": "+2 days: Atmospheric pressure on the sea level, hPa", "value": "2d.main.sea_level" },
+                { "label": "+2 days: Atmospheric pressure on the ground level, hPa", "value": "2d.main.grnd_level" },
+                { "label": "+2 days: Wind speed", "value": "2d.wind.speed" },
+                { "label": "+2 days: Wind direction (degrees)", "value": "2d.wind.deg" },
+                { "label": "+2 days: Cloudiness (%)", "value": "2d.clouds.all" },
+                { "label": "+2 days: Rain volume for the last 3 hours", "value": "2d.rain.3h" },
+                { "label": "+2 days: Snow volume for the last 3 hours", "value": "2d.snow.3h" },
+                {
+                    "label": "+2 days: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d.weather.[0].main"
+                },
+                { "label": "+2 days: Weather description", "value": "2d.weather.[0].description" },
+                { "label": "+2 days: Weather icon code", "value": "2d.weather.[0].icon" },
+                { "label": "+2 days: Weather icon URL", "value": "2d.weather.[0].iconUrl" },
+                { "label": "+2 days and 3 hours: time of data forecasted as timestamp", "value": "2d3h.dt" },
+                { "label": "+2 days and 3 hours: time of data forecasted in text", "value": "2d3h.dt_txt" },
+                { "label": "+2 days and 3 hours: Temperature", "value": "2d3h.main.temp" },
+                { "label": "+2 days and 3 hours: Pressure", "value": "2d3h.main.pressure" },
+                { "label": "+2 days and 3 hours: Humidity", "value": "2d3h.main.humidity" },
+                { "label": "+2 days and 3 hours: Minimum temperature", "value": "2d3h.main.temp_min" },
+                { "label": "+2 days and 3 hours: Maximum temperature", "value": "2d3h.main.temp_max" },
+                {
+                    "label": "+2 days and 3 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "2d3h.main.sea_level"
+                },
+                {
+                    "label": "+2 days and 3 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "2d3h.main.grnd_level"
+                },
+                { "label": "+2 days and 3 hours: Wind speed", "value": "2d3h.wind.speed" },
+                { "label": "+2 days and 3 hours: Wind direction (degrees)", "value": "2d3h.wind.deg" },
+                { "label": "+2 days and 3 hours: Cloudiness (%)", "value": "2d3h.clouds.all" },
+                { "label": "+2 days and 3 hours: Rain volume for the last 3 hours", "value": "2d3h.rain.3h" },
+                { "label": "+2 days and 3 hours: Snow volume for the last 3 hours", "value": "2d3h.snow.3h" },
+                {
+                    "label": "+2 days and 3 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d3h.weather.[0].main"
+                },
+                { "label": "+2 days and 3 hours: Weather description", "value": "2d3h.weather.[0].description" },
+                { "label": "+2 days and 3 hours: Weather icon code", "value": "2d3h.weather.[0].icon" },
+                { "label": "+2 days and 3 hours: Weather icon URL", "value": "2d3h.weather.[0].iconUrl" },
+                { "label": "+2 days and 6 hours: time of data forecasted as timestamp", "value": "2d6h.dt" },
+                { "label": "+2 days and 6 hours: time of data forecasted in text", "value": "2d6h.dt_txt" },
+                { "label": "+2 days and 6 hours: Temperature", "value": "2d6h.main.temp" },
+                { "label": "+2 days and 6 hours: Pressure", "value": "2d6h.main.pressure" },
+                { "label": "+2 days and 6 hours: Humidity", "value": "2d6h.main.humidity" },
+                { "label": "+2 days and 6 hours: Minimum temperature", "value": "2d6h.main.temp_min" },
+                { "label": "+2 days and 6 hours: Maximum temperature", "value": "2d6h.main.temp_max" },
+                {
+                    "label": "+2 days and 6 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "2d6h.main.sea_level"
+                },
+                {
+                    "label": "+2 days and 6 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "2d6h.main.grnd_level"
+                },
+                { "label": "+2 days and 6 hours: Wind speed", "value": "2d6h.wind.speed" },
+                { "label": "+2 days and 6 hours: Wind direction (degrees)", "value": "2d6h.wind.deg" },
+                { "label": "+2 days and 6 hours: Cloudiness (%)", "value": "2d6h.clouds.all" },
+                { "label": "+2 days and 6 hours: Rain volume for the last 3 hours", "value": "2d6h.rain.3h" },
+                { "label": "+2 days and 6 hours: Snow volume for the last 3 hours", "value": "2d6h.snow.3h" },
+                {
+                    "label": "+2 days and 6 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d6h.weather.[0].main"
+                },
+                { "label": "+2 days and 6 hours: Weather description", "value": "2d6h.weather.[0].description" },
+                { "label": "+2 days and 6 hours: Weather icon code", "value": "2d6h.weather.[0].icon" },
+                { "label": "+2 days and 6 hours: Weather icon URL", "value": "2d6h.weather.[0].iconUrl" },
+                { "label": "+2 days and 9 hours: time of data forecasted as timestamp", "value": "2d9h.dt" },
+                { "label": "+2 days and 9 hours: time of data forecasted in text", "value": "2d9h.dt_txt" },
+                { "label": "+2 days and 9 hours: Temperature", "value": "2d9h.main.temp" },
+                { "label": "+2 days and 9 hours: Pressure", "value": "2d9h.main.pressure" },
+                { "label": "+2 days and 9 hours: Humidity", "value": "2d9h.main.humidity" },
+                { "label": "+2 days and 9 hours: Minimum temperature", "value": "2d9h.main.temp_min" },
+                { "label": "+2 days and 9 hours: Maximum temperature", "value": "2d9h.main.temp_max" },
+                {
+                    "label": "+2 days and 9 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "2d9h.main.sea_level"
+                },
+                {
+                    "label": "+2 days and 9 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "2d9h.main.grnd_level"
+                },
+                { "label": "+2 days and 9 hours: Wind speed", "value": "2d9h.wind.speed" },
+                { "label": "+2 days and 9 hours: Wind direction (degrees)", "value": "2d9h.wind.deg" },
+                { "label": "+2 days and 9 hours: Cloudiness (%)", "value": "2d9h.clouds.all" },
+                { "label": "+2 days and 9 hours: Rain volume for the last 3 hours", "value": "2d9h.rain.3h" },
+                { "label": "+2 days and 9 hours: Snow volume for the last 3 hours", "value": "2d9h.snow.3h" },
+                {
+                    "label": "+2 days and 9 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d9h.weather.[0].main"
+                },
+                { "label": "+2 days and 9 hours: Weather description", "value": "2d9h.weather.[0].description" },
+                { "label": "+2 days and 9 hours: Weather icon code", "value": "2d9h.weather.[0].icon" },
+                { "label": "+2 days and 9 hours: Weather icon URL", "value": "2d9h.weather.[0].iconUrl" },
+                { "label": "+2 days and 12 hours: time of data forecasted as timestamp", "value": "2d12h.dt" },
+                { "label": "+2 days and 12 hours: time of data forecasted in text", "value": "2d12h.dt_txt" },
+                { "label": "+2 days and 12 hours: Temperature", "value": "2d12h.main.temp" },
+                { "label": "+2 days and 12 hours: Pressure", "value": "2d12h.main.pressure" },
+                { "label": "+2 days and 12 hours: Humidity", "value": "2d12h.main.humidity" },
+                { "label": "+2 days and 12 hours: Minimum temperature", "value": "2d12h.main.temp_min" },
+                { "label": "+2 days and 12 hours: Maximum temperature", "value": "2d12h.main.temp_max" },
+                {
+                    "label": "+2 days and 12 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "2d12h.main.sea_level"
+                },
+                {
+                    "label": "+2 days and 12 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "2d12h.main.grnd_level"
+                },
+                { "label": "+2 days and 12 hours: Wind speed", "value": "2d12h.wind.speed" },
+                { "label": "+2 days and 12 hours: Wind direction (degrees)", "value": "2d12h.wind.deg" },
+                { "label": "+2 days and 12 hours: Cloudiness (%)", "value": "2d12h.clouds.all" },
+                { "label": "+2 days and 12 hours: Rain volume for the last 3 hours", "value": "2d12h.rain.3h" },
+                { "label": "+2 days and 12 hours: Snow volume for the last 3 hours", "value": "2d12h.snow.3h" },
+                {
+                    "label": "+2 days and 12 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d12h.weather.[0].main"
+                },
+                { "label": "+2 days and 12 hours: Weather description", "value": "2d12h.weather.[0].description" },
+                { "label": "+2 days and 12 hours: Weather icon code", "value": "2d12h.weather.[0].icon" },
+                { "label": "+2 days and 12 hours: Weather icon URL", "value": "2d12h.weather.[0].iconUrl" },
+                { "label": "+2 days and 15 hours: time of data forecasted as timestamp", "value": "2d15h.dt" },
+                { "label": "+2 days and 15 hours: time of data forecasted in text", "value": "2d15h.dt_txt" },
+                { "label": "+2 days and 15 hours: Temperature", "value": "2d15h.main.temp" },
+                { "label": "+2 days and 15 hours: Pressure", "value": "2d15h.main.pressure" },
+                { "label": "+2 days and 15 hours: Humidity", "value": "2d15h.main.humidity" },
+                { "label": "+2 days and 15 hours: Minimum temperature", "value": "2d15h.main.temp_min" },
+                { "label": "+2 days and 15 hours: Maximum temperature", "value": "2d15h.main.temp_max" },
+                {
+                    "label": "+2 days and 15 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "2d15h.main.sea_level"
+                },
+                {
+                    "label": "+2 days and 15 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "2d15h.main.grnd_level"
+                },
+                { "label": "+2 days and 15 hours: Wind speed", "value": "2d15h.wind.speed" },
+                { "label": "+2 days and 15 hours: Wind direction (degrees)", "value": "2d15h.wind.deg" },
+                { "label": "+2 days and 15 hours: Cloudiness (%)", "value": "2d15h.clouds.all" },
+                { "label": "+2 days and 15 hours: Rain volume for the last 3 hours", "value": "2d15h.rain.3h" },
+                { "label": "+2 days and 15 hours: Snow volume for the last 3 hours", "value": "2d15h.snow.3h" },
+                {
+                    "label": "+2 days and 15 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d15h.weather.[0].main"
+                },
+                { "label": "+2 days and 15 hours: Weather description", "value": "2d15h.weather.[0].description" },
+                { "label": "+2 days and 15 hours: Weather icon code", "value": "2d15h.weather.[0].icon" },
+                { "label": "+2 days and 15 hours: Weather icon URL", "value": "2d15h.weather.[0].iconUrl" },
+                { "label": "+2 days and 18 hours: time of data forecasted as timestamp", "value": "2d18h.dt" },
+                { "label": "+2 days and 18 hours: time of data forecasted in text", "value": "2d18h.dt_txt" },
+                { "label": "+2 days and 18 hours: Temperature", "value": "2d18h.main.temp" },
+                { "label": "+2 days and 18 hours: Pressure", "value": "2d18h.main.pressure" },
+                { "label": "+2 days and 18 hours: Humidity", "value": "2d18h.main.humidity" },
+                { "label": "+2 days and 18 hours: Minimum temperature", "value": "2d18h.main.temp_min" },
+                { "label": "+2 days and 18 hours: Maximum temperature", "value": "2d18h.main.temp_max" },
+                {
+                    "label": "+2 days and 18 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "2d18h.main.sea_level"
+                },
+                {
+                    "label": "+2 days and 18 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "2d18h.main.grnd_level"
+                },
+                { "label": "+2 days and 18 hours: Wind speed", "value": "2d18h.wind.speed" },
+                { "label": "+2 days and 18 hours: Wind direction (degrees)", "value": "2d18h.wind.deg" },
+                { "label": "+2 days and 18 hours: Cloudiness (%)", "value": "2d18h.clouds.all" },
+                { "label": "+2 days and 18 hours: Rain volume for the last 3 hours", "value": "2d18h.rain.3h" },
+                { "label": "+2 days and 18 hours: Snow volume for the last 3 hours", "value": "2d18h.snow.3h" },
+                {
+                    "label": "+2 days and 18 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d18h.weather.[0].main"
+                },
+                { "label": "+2 days and 18 hours: Weather description", "value": "2d18h.weather.[0].description" },
+                { "label": "+2 days and 18 hours: Weather icon code", "value": "2d18h.weather.[0].icon" },
+                { "label": "+2 days and 18 hours: Weather icon URL", "value": "2d18h.weather.[0].iconUrl" },
+                { "label": "+2 days and 21 hours: time of data forecasted as timestamp", "value": "2d21h.dt" },
+                { "label": "+2 days and 21 hours: time of data forecasted in text", "value": "2d21h.dt_txt" },
+                { "label": "+2 days and 21 hours: Temperature", "value": "2d21h.main.temp" },
+                { "label": "+2 days and 21 hours: Pressure", "value": "2d21h.main.pressure" },
+                { "label": "+2 days and 21 hours: Humidity", "value": "2d21h.main.humidity" },
+                { "label": "+2 days and 21 hours: Minimum temperature", "value": "2d21h.main.temp_min" },
+                { "label": "+2 days and 21 hours: Maximum temperature", "value": "2d21h.main.temp_max" },
+                {
+                    "label": "+2 days and 21 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "2d21h.main.sea_level"
+                },
+                {
+                    "label": "+2 days and 21 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "2d21h.main.grnd_level"
+                },
+                { "label": "+2 days and 21 hours: Wind speed", "value": "2d21h.wind.speed" },
+                { "label": "+2 days and 21 hours: Wind direction (degrees)", "value": "2d21h.wind.deg" },
+                { "label": "+2 days and 21 hours: Cloudiness (%)", "value": "2d21h.clouds.all" },
+                { "label": "+2 days and 21 hours: Rain volume for the last 3 hours", "value": "2d21h.rain.3h" },
+                { "label": "+2 days and 21 hours: Snow volume for the last 3 hours", "value": "2d21h.snow.3h" },
+                {
+                    "label": "+2 days and 21 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "2d21h.weather.[0].main"
+                },
+                { "label": "+2 days and 21 hours: Weather description", "value": "2d21h.weather.[0].description" },
+                { "label": "+2 days and 21 hours: Weather icon code", "value": "2d21h.weather.[0].icon" },
+                { "label": "+2 days and 21 hours: Weather icon URL", "value": "2d21h.weather.[0].iconUrl" },
+                { "label": "+3 days: time of data forecasted as timestamp", "value": "3d.dt" },
+                { "label": "+3 days: time of data forecasted in text", "value": "3d.dt_txt" },
+                { "label": "+3 days: Temperature", "value": "3d.main.temp" },
+                { "label": "+3 days: Pressure", "value": "3d.main.pressure" },
+                { "label": "+3 days: Humidity", "value": "3d.main.humidity" },
+                { "label": "+3 days: Minimum temperature", "value": "3d.main.temp_min" },
+                { "label": "+3 days: Maximum temperature", "value": "3d.main.temp_max" },
+                { "label": "+3 days: Atmospheric pressure on the sea level, hPa", "value": "3d.main.sea_level" },
+                { "label": "+3 days: Atmospheric pressure on the ground level, hPa", "value": "3d.main.grnd_level" },
+                { "label": "+3 days: Wind speed", "value": "3d.wind.speed" },
+                { "label": "+3 days: Wind direction (degrees)", "value": "3d.wind.deg" },
+                { "label": "+3 days: Cloudiness (%)", "value": "3d.clouds.all" },
+                { "label": "+3 days: Rain volume for the last 3 hours", "value": "3d.rain.3h" },
+                { "label": "+3 days: Snow volume for the last 3 hours", "value": "3d.snow.3h" },
+                {
+                    "label": "+3 days: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d.weather.[0].main"
+                },
+                { "label": "+3 days: Weather description", "value": "3d.weather.[0].description" },
+                { "label": "+3 days: Weather icon code", "value": "3d.weather.[0].icon" },
+                { "label": "+3 days: Weather icon URL", "value": "3d.weather.[0].iconUrl" },
+                { "label": "+3 days and 3 hours: time of data forecasted as timestamp", "value": "3d3h.dt" },
+                { "label": "+3 days and 3 hours: time of data forecasted in text", "value": "3d3h.dt_txt" },
+                { "label": "+3 days and 3 hours: Temperature", "value": "3d3h.main.temp" },
+                { "label": "+3 days and 3 hours: Pressure", "value": "3d3h.main.pressure" },
+                { "label": "+3 days and 3 hours: Humidity", "value": "3d3h.main.humidity" },
+                { "label": "+3 days and 3 hours: Minimum temperature", "value": "3d3h.main.temp_min" },
+                { "label": "+3 days and 3 hours: Maximum temperature", "value": "3d3h.main.temp_max" },
+                {
+                    "label": "+3 days and 3 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "3d3h.main.sea_level"
+                },
+                {
+                    "label": "+3 days and 3 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "3d3h.main.grnd_level"
+                },
+                { "label": "+3 days and 3 hours: Wind speed", "value": "3d3h.wind.speed" },
+                { "label": "+3 days and 3 hours: Wind direction (degrees)", "value": "3d3h.wind.deg" },
+                { "label": "+3 days and 3 hours: Cloudiness (%)", "value": "3d3h.clouds.all" },
+                { "label": "+3 days and 3 hours: Rain volume for the last 3 hours", "value": "3d3h.rain.3h" },
+                { "label": "+3 days and 3 hours: Snow volume for the last 3 hours", "value": "3d3h.snow.3h" },
+                {
+                    "label": "+3 days and 3 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d3h.weather.[0].main"
+                },
+                { "label": "+3 days and 3 hours: Weather description", "value": "3d3h.weather.[0].description" },
+                { "label": "+3 days and 3 hours: Weather icon code", "value": "3d3h.weather.[0].icon" },
+                { "label": "+3 days and 3 hours: Weather icon URL", "value": "3d3h.weather.[0].iconUrl" },
+                { "label": "+3 days and 6 hours: time of data forecasted as timestamp", "value": "3d6h.dt" },
+                { "label": "+3 days and 6 hours: time of data forecasted in text", "value": "3d6h.dt_txt" },
+                { "label": "+3 days and 6 hours: Temperature", "value": "3d6h.main.temp" },
+                { "label": "+3 days and 6 hours: Pressure", "value": "3d6h.main.pressure" },
+                { "label": "+3 days and 6 hours: Humidity", "value": "3d6h.main.humidity" },
+                { "label": "+3 days and 6 hours: Minimum temperature", "value": "3d6h.main.temp_min" },
+                { "label": "+3 days and 6 hours: Maximum temperature", "value": "3d6h.main.temp_max" },
+                {
+                    "label": "+3 days and 6 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "3d6h.main.sea_level"
+                },
+                {
+                    "label": "+3 days and 6 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "3d6h.main.grnd_level"
+                },
+                { "label": "+3 days and 6 hours: Wind speed", "value": "3d6h.wind.speed" },
+                { "label": "+3 days and 6 hours: Wind direction (degrees)", "value": "3d6h.wind.deg" },
+                { "label": "+3 days and 6 hours: Cloudiness (%)", "value": "3d6h.clouds.all" },
+                { "label": "+3 days and 6 hours: Rain volume for the last 3 hours", "value": "3d6h.rain.3h" },
+                { "label": "+3 days and 6 hours: Snow volume for the last 3 hours", "value": "3d6h.snow.3h" },
+                {
+                    "label": "+3 days and 6 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d6h.weather.[0].main"
+                },
+                { "label": "+3 days and 6 hours: Weather description", "value": "3d6h.weather.[0].description" },
+                { "label": "+3 days and 6 hours: Weather icon code", "value": "3d6h.weather.[0].icon" },
+                { "label": "+3 days and 6 hours: Weather icon URL", "value": "3d6h.weather.[0].iconUrl" },
+                { "label": "+3 days and 9 hours: time of data forecasted as timestamp", "value": "3d9h.dt" },
+                { "label": "+3 days and 9 hours: time of data forecasted in text", "value": "3d9h.dt_txt" },
+                { "label": "+3 days and 9 hours: Temperature", "value": "3d9h.main.temp" },
+                { "label": "+3 days and 9 hours: Pressure", "value": "3d9h.main.pressure" },
+                { "label": "+3 days and 9 hours: Humidity", "value": "3d9h.main.humidity" },
+                { "label": "+3 days and 9 hours: Minimum temperature", "value": "3d9h.main.temp_min" },
+                { "label": "+3 days and 9 hours: Maximum temperature", "value": "3d9h.main.temp_max" },
+                {
+                    "label": "+3 days and 9 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "3d9h.main.sea_level"
+                },
+                {
+                    "label": "+3 days and 9 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "3d9h.main.grnd_level"
+                },
+                { "label": "+3 days and 9 hours: Wind speed", "value": "3d9h.wind.speed" },
+                { "label": "+3 days and 9 hours: Wind direction (degrees)", "value": "3d9h.wind.deg" },
+                { "label": "+3 days and 9 hours: Cloudiness (%)", "value": "3d9h.clouds.all" },
+                { "label": "+3 days and 9 hours: Rain volume for the last 3 hours", "value": "3d9h.rain.3h" },
+                { "label": "+3 days and 9 hours: Snow volume for the last 3 hours", "value": "3d9h.snow.3h" },
+                {
+                    "label": "+3 days and 9 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d9h.weather.[0].main"
+                },
+                { "label": "+3 days and 9 hours: Weather description", "value": "3d9h.weather.[0].description" },
+                { "label": "+3 days and 9 hours: Weather icon code", "value": "3d9h.weather.[0].icon" },
+                { "label": "+3 days and 9 hours: Weather icon URL", "value": "3d9h.weather.[0].iconUrl" },
+                { "label": "+3 days and 12 hours: time of data forecasted as timestamp", "value": "3d12h.dt" },
+                { "label": "+3 days and 12 hours: time of data forecasted in text", "value": "3d12h.dt_txt" },
+                { "label": "+3 days and 12 hours: Temperature", "value": "3d12h.main.temp" },
+                { "label": "+3 days and 12 hours: Pressure", "value": "3d12h.main.pressure" },
+                { "label": "+3 days and 12 hours: Humidity", "value": "3d12h.main.humidity" },
+                { "label": "+3 days and 12 hours: Minimum temperature", "value": "3d12h.main.temp_min" },
+                { "label": "+3 days and 12 hours: Maximum temperature", "value": "3d12h.main.temp_max" },
+                {
+                    "label": "+3 days and 12 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "3d12h.main.sea_level"
+                },
+                {
+                    "label": "+3 days and 12 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "3d12h.main.grnd_level"
+                },
+                { "label": "+3 days and 12 hours: Wind speed", "value": "3d12h.wind.speed" },
+                { "label": "+3 days and 12 hours: Wind direction (degrees)", "value": "3d12h.wind.deg" },
+                { "label": "+3 days and 12 hours: Cloudiness (%)", "value": "3d12h.clouds.all" },
+                { "label": "+3 days and 12 hours: Rain volume for the last 3 hours", "value": "3d12h.rain.3h" },
+                { "label": "+3 days and 12 hours: Snow volume for the last 3 hours", "value": "3d12h.snow.3h" },
+                {
+                    "label": "+3 days and 12 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d12h.weather.[0].main"
+                },
+                { "label": "+3 days and 12 hours: Weather description", "value": "3d12h.weather.[0].description" },
+                { "label": "+3 days and 12 hours: Weather icon code", "value": "3d12h.weather.[0].icon" },
+                { "label": "+3 days and 12 hours: Weather icon URL", "value": "3d12h.weather.[0].iconUrl" },
+                { "label": "+3 days and 15 hours: time of data forecasted as timestamp", "value": "3d15h.dt" },
+                { "label": "+3 days and 15 hours: time of data forecasted in text", "value": "3d15h.dt_txt" },
+                { "label": "+3 days and 15 hours: Temperature", "value": "3d15h.main.temp" },
+                { "label": "+3 days and 15 hours: Pressure", "value": "3d15h.main.pressure" },
+                { "label": "+3 days and 15 hours: Humidity", "value": "3d15h.main.humidity" },
+                { "label": "+3 days and 15 hours: Minimum temperature", "value": "3d15h.main.temp_min" },
+                { "label": "+3 days and 15 hours: Maximum temperature", "value": "3d15h.main.temp_max" },
+                {
+                    "label": "+3 days and 15 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "3d15h.main.sea_level"
+                },
+                {
+                    "label": "+3 days and 15 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "3d15h.main.grnd_level"
+                },
+                { "label": "+3 days and 15 hours: Wind speed", "value": "3d15h.wind.speed" },
+                { "label": "+3 days and 15 hours: Wind direction (degrees)", "value": "3d15h.wind.deg" },
+                { "label": "+3 days and 15 hours: Cloudiness (%)", "value": "3d15h.clouds.all" },
+                { "label": "+3 days and 15 hours: Rain volume for the last 3 hours", "value": "3d15h.rain.3h" },
+                { "label": "+3 days and 15 hours: Snow volume for the last 3 hours", "value": "3d15h.snow.3h" },
+                {
+                    "label": "+3 days and 15 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d15h.weather.[0].main"
+                },
+                { "label": "+3 days and 15 hours: Weather description", "value": "3d15h.weather.[0].description" },
+                { "label": "+3 days and 15 hours: Weather icon code", "value": "3d15h.weather.[0].icon" },
+                { "label": "+3 days and 15 hours: Weather icon URL", "value": "3d15h.weather.[0].iconUrl" },
+                { "label": "+3 days and 18 hours: time of data forecasted as timestamp", "value": "3d18h.dt" },
+                { "label": "+3 days and 18 hours: time of data forecasted in text", "value": "3d18h.dt_txt" },
+                { "label": "+3 days and 18 hours: Temperature", "value": "3d18h.main.temp" },
+                { "label": "+3 days and 18 hours: Pressure", "value": "3d18h.main.pressure" },
+                { "label": "+3 days and 18 hours: Humidity", "value": "3d18h.main.humidity" },
+                { "label": "+3 days and 18 hours: Minimum temperature", "value": "3d18h.main.temp_min" },
+                { "label": "+3 days and 18 hours: Maximum temperature", "value": "3d18h.main.temp_max" },
+                {
+                    "label": "+3 days and 18 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "3d18h.main.sea_level"
+                },
+                {
+                    "label": "+3 days and 18 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "3d18h.main.grnd_level"
+                },
+                { "label": "+3 days and 18 hours: Wind speed", "value": "3d18h.wind.speed" },
+                { "label": "+3 days and 18 hours: Wind direction (degrees)", "value": "3d18h.wind.deg" },
+                { "label": "+3 days and 18 hours: Cloudiness (%)", "value": "3d18h.clouds.all" },
+                { "label": "+3 days and 18 hours: Rain volume for the last 3 hours", "value": "3d18h.rain.3h" },
+                { "label": "+3 days and 18 hours: Snow volume for the last 3 hours", "value": "3d18h.snow.3h" },
+                {
+                    "label": "+3 days and 18 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d18h.weather.[0].main"
+                },
+                { "label": "+3 days and 18 hours: Weather description", "value": "3d18h.weather.[0].description" },
+                { "label": "+3 days and 18 hours: Weather icon code", "value": "3d18h.weather.[0].icon" },
+                { "label": "+3 days and 18 hours: Weather icon URL", "value": "3d18h.weather.[0].iconUrl" },
+                { "label": "+3 days and 21 hours: time of data forecasted as timestamp", "value": "3d21h.dt" },
+                { "label": "+3 days and 21 hours: time of data forecasted in text", "value": "3d21h.dt_txt" },
+                { "label": "+3 days and 21 hours: Temperature", "value": "3d21h.main.temp" },
+                { "label": "+3 days and 21 hours: Pressure", "value": "3d21h.main.pressure" },
+                { "label": "+3 days and 21 hours: Humidity", "value": "3d21h.main.humidity" },
+                { "label": "+3 days and 21 hours: Minimum temperature", "value": "3d21h.main.temp_min" },
+                { "label": "+3 days and 21 hours: Maximum temperature", "value": "3d21h.main.temp_max" },
+                {
+                    "label": "+3 days and 21 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "3d21h.main.sea_level"
+                },
+                {
+                    "label": "+3 days and 21 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "3d21h.main.grnd_level"
+                },
+                { "label": "+3 days and 21 hours: Wind speed", "value": "3d21h.wind.speed" },
+                { "label": "+3 days and 21 hours: Wind direction (degrees)", "value": "3d21h.wind.deg" },
+                { "label": "+3 days and 21 hours: Cloudiness (%)", "value": "3d21h.clouds.all" },
+                { "label": "+3 days and 21 hours: Rain volume for the last 3 hours", "value": "3d21h.rain.3h" },
+                { "label": "+3 days and 21 hours: Snow volume for the last 3 hours", "value": "3d21h.snow.3h" },
+                {
+                    "label": "+3 days and 21 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "3d21h.weather.[0].main"
+                },
+                { "label": "+3 days and 21 hours: Weather description", "value": "3d21h.weather.[0].description" },
+                { "label": "+3 days and 21 hours: Weather icon code", "value": "3d21h.weather.[0].icon" },
+                { "label": "+3 days and 21 hours: Weather icon URL", "value": "3d21h.weather.[0].iconUrl" },
+                { "label": "+4 days: time of data forecasted as timestamp", "value": "4d.dt" },
+                { "label": "+4 days: time of data forecasted in text", "value": "4d.dt_txt" },
+                { "label": "+4 days: Temperature", "value": "4d.main.temp" },
+                { "label": "+4 days: Pressure", "value": "4d.main.pressure" },
+                { "label": "+4 days: Humidity", "value": "4d.main.humidity" },
+                { "label": "+4 days: Minimum temperature", "value": "4d.main.temp_min" },
+                { "label": "+4 days: Maximum temperature", "value": "4d.main.temp_max" },
+                { "label": "+4 days: Atmospheric pressure on the sea level, hPa", "value": "4d.main.sea_level" },
+                { "label": "+4 days: Atmospheric pressure on the ground level, hPa", "value": "4d.main.grnd_level" },
+                { "label": "+4 days: Wind speed", "value": "4d.wind.speed" },
+                { "label": "+4 days: Wind direction (degrees)", "value": "4d.wind.deg" },
+                { "label": "+4 days: Cloudiness (%)", "value": "4d.clouds.all" },
+                { "label": "+4 days: Rain volume for the last 3 hours", "value": "4d.rain.3h" },
+                { "label": "+4 days: Snow volume for the last 3 hours", "value": "4d.snow.3h" },
+                {
+                    "label": "+4 days: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d.weather.[0].main"
+                },
+                { "label": "+4 days: Weather description", "value": "4d.weather.[0].description" },
+                { "label": "+4 days: Weather icon code", "value": "4d.weather.[0].icon" },
+                { "label": "+4 days: Weather icon URL", "value": "4d.weather.[0].iconUrl" },
+                { "label": "+4 days and 3 hours: time of data forecasted as timestamp", "value": "4d3h.dt" },
+                { "label": "+4 days and 3 hours: time of data forecasted in text", "value": "4d3h.dt_txt" },
+                { "label": "+4 days and 3 hours: Temperature", "value": "4d3h.main.temp" },
+                { "label": "+4 days and 3 hours: Pressure", "value": "4d3h.main.pressure" },
+                { "label": "+4 days and 3 hours: Humidity", "value": "4d3h.main.humidity" },
+                { "label": "+4 days and 3 hours: Minimum temperature", "value": "4d3h.main.temp_min" },
+                { "label": "+4 days and 3 hours: Maximum temperature", "value": "4d3h.main.temp_max" },
+                {
+                    "label": "+4 days and 3 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "4d3h.main.sea_level"
+                },
+                {
+                    "label": "+4 days and 3 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "4d3h.main.grnd_level"
+                },
+                { "label": "+4 days and 3 hours: Wind speed", "value": "4d3h.wind.speed" },
+                { "label": "+4 days and 3 hours: Wind direction (degrees)", "value": "4d3h.wind.deg" },
+                { "label": "+4 days and 3 hours: Cloudiness (%)", "value": "4d3h.clouds.all" },
+                { "label": "+4 days and 3 hours: Rain volume for the last 3 hours", "value": "4d3h.rain.3h" },
+                { "label": "+4 days and 3 hours: Snow volume for the last 3 hours", "value": "4d3h.snow.3h" },
+                {
+                    "label": "+4 days and 3 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d3h.weather.[0].main"
+                },
+                { "label": "+4 days and 3 hours: Weather description", "value": "4d3h.weather.[0].description" },
+                { "label": "+4 days and 3 hours: Weather icon code", "value": "4d3h.weather.[0].icon" },
+                { "label": "+4 days and 3 hours: Weather icon URL", "value": "4d3h.weather.[0].iconUrl" },
+                { "label": "+4 days and 6 hours: time of data forecasted as timestamp", "value": "4d6h.dt" },
+                { "label": "+4 days and 6 hours: time of data forecasted in text", "value": "4d6h.dt_txt" },
+                { "label": "+4 days and 6 hours: Temperature", "value": "4d6h.main.temp" },
+                { "label": "+4 days and 6 hours: Pressure", "value": "4d6h.main.pressure" },
+                { "label": "+4 days and 6 hours: Humidity", "value": "4d6h.main.humidity" },
+                { "label": "+4 days and 6 hours: Minimum temperature", "value": "4d6h.main.temp_min" },
+                { "label": "+4 days and 6 hours: Maximum temperature", "value": "4d6h.main.temp_max" },
+                {
+                    "label": "+4 days and 6 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "4d6h.main.sea_level"
+                },
+                {
+                    "label": "+4 days and 6 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "4d6h.main.grnd_level"
+                },
+                { "label": "+4 days and 6 hours: Wind speed", "value": "4d6h.wind.speed" },
+                { "label": "+4 days and 6 hours: Wind direction (degrees)", "value": "4d6h.wind.deg" },
+                { "label": "+4 days and 6 hours: Cloudiness (%)", "value": "4d6h.clouds.all" },
+                { "label": "+4 days and 6 hours: Rain volume for the last 3 hours", "value": "4d6h.rain.3h" },
+                { "label": "+4 days and 6 hours: Snow volume for the last 3 hours", "value": "4d6h.snow.3h" },
+                {
+                    "label": "+4 days and 6 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d6h.weather.[0].main"
+                },
+                { "label": "+4 days and 6 hours: Weather description", "value": "4d6h.weather.[0].description" },
+                { "label": "+4 days and 6 hours: Weather icon code", "value": "4d6h.weather.[0].icon" },
+                { "label": "+4 days and 6 hours: Weather icon URL", "value": "4d6h.weather.[0].iconUrl" },
+                { "label": "+4 days and 9 hours: time of data forecasted as timestamp", "value": "4d9h.dt" },
+                { "label": "+4 days and 9 hours: time of data forecasted in text", "value": "4d9h.dt_txt" },
+                { "label": "+4 days and 9 hours: Temperature", "value": "4d9h.main.temp" },
+                { "label": "+4 days and 9 hours: Pressure", "value": "4d9h.main.pressure" },
+                { "label": "+4 days and 9 hours: Humidity", "value": "4d9h.main.humidity" },
+                { "label": "+4 days and 9 hours: Minimum temperature", "value": "4d9h.main.temp_min" },
+                { "label": "+4 days and 9 hours: Maximum temperature", "value": "4d9h.main.temp_max" },
+                {
+                    "label": "+4 days and 9 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "4d9h.main.sea_level"
+                },
+                {
+                    "label": "+4 days and 9 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "4d9h.main.grnd_level"
+                },
+                { "label": "+4 days and 9 hours: Wind speed", "value": "4d9h.wind.speed" },
+                { "label": "+4 days and 9 hours: Wind direction (degrees)", "value": "4d9h.wind.deg" },
+                { "label": "+4 days and 9 hours: Cloudiness (%)", "value": "4d9h.clouds.all" },
+                { "label": "+4 days and 9 hours: Rain volume for the last 3 hours", "value": "4d9h.rain.3h" },
+                { "label": "+4 days and 9 hours: Snow volume for the last 3 hours", "value": "4d9h.snow.3h" },
+                {
+                    "label": "+4 days and 9 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d9h.weather.[0].main"
+                },
+                { "label": "+4 days and 9 hours: Weather description", "value": "4d9h.weather.[0].description" },
+                { "label": "+4 days and 9 hours: Weather icon code", "value": "4d9h.weather.[0].icon" },
+                { "label": "+4 days and 9 hours: Weather icon URL", "value": "4d9h.weather.[0].iconUrl" },
+                { "label": "+4 days and 12 hours: time of data forecasted as timestamp", "value": "4d12h.dt" },
+                { "label": "+4 days and 12 hours: time of data forecasted in text", "value": "4d12h.dt_txt" },
+                { "label": "+4 days and 12 hours: Temperature", "value": "4d12h.main.temp" },
+                { "label": "+4 days and 12 hours: Pressure", "value": "4d12h.main.pressure" },
+                { "label": "+4 days and 12 hours: Humidity", "value": "4d12h.main.humidity" },
+                { "label": "+4 days and 12 hours: Minimum temperature", "value": "4d12h.main.temp_min" },
+                { "label": "+4 days and 12 hours: Maximum temperature", "value": "4d12h.main.temp_max" },
+                {
+                    "label": "+4 days and 12 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "4d12h.main.sea_level"
+                },
+                {
+                    "label": "+4 days and 12 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "4d12h.main.grnd_level"
+                },
+                { "label": "+4 days and 12 hours: Wind speed", "value": "4d12h.wind.speed" },
+                { "label": "+4 days and 12 hours: Wind direction (degrees)", "value": "4d12h.wind.deg" },
+                { "label": "+4 days and 12 hours: Cloudiness (%)", "value": "4d12h.clouds.all" },
+                { "label": "+4 days and 12 hours: Rain volume for the last 3 hours", "value": "4d12h.rain.3h" },
+                { "label": "+4 days and 12 hours: Snow volume for the last 3 hours", "value": "4d12h.snow.3h" },
+                {
+                    "label": "+4 days and 12 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d12h.weather.[0].main"
+                },
+                { "label": "+4 days and 12 hours: Weather description", "value": "4d12h.weather.[0].description" },
+                { "label": "+4 days and 12 hours: Weather icon code", "value": "4d12h.weather.[0].icon" },
+                { "label": "+4 days and 12 hours: Weather icon URL", "value": "4d12h.weather.[0].iconUrl" },
+                { "label": "+4 days and 15 hours: time of data forecasted as timestamp", "value": "4d15h.dt" },
+                { "label": "+4 days and 15 hours: time of data forecasted in text", "value": "4d15h.dt_txt" },
+                { "label": "+4 days and 15 hours: Temperature", "value": "4d15h.main.temp" },
+                { "label": "+4 days and 15 hours: Pressure", "value": "4d15h.main.pressure" },
+                { "label": "+4 days and 15 hours: Humidity", "value": "4d15h.main.humidity" },
+                { "label": "+4 days and 15 hours: Minimum temperature", "value": "4d15h.main.temp_min" },
+                { "label": "+4 days and 15 hours: Maximum temperature", "value": "4d15h.main.temp_max" },
+                {
+                    "label": "+4 days and 15 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "4d15h.main.sea_level"
+                },
+                {
+                    "label": "+4 days and 15 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "4d15h.main.grnd_level"
+                },
+                { "label": "+4 days and 15 hours: Wind speed", "value": "4d15h.wind.speed" },
+                { "label": "+4 days and 15 hours: Wind direction (degrees)", "value": "4d15h.wind.deg" },
+                { "label": "+4 days and 15 hours: Cloudiness (%)", "value": "4d15h.clouds.all" },
+                { "label": "+4 days and 15 hours: Rain volume for the last 3 hours", "value": "4d15h.rain.3h" },
+                { "label": "+4 days and 15 hours: Snow volume for the last 3 hours", "value": "4d15h.snow.3h" },
+                {
+                    "label": "+4 days and 15 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d15h.weather.[0].main"
+                },
+                { "label": "+4 days and 15 hours: Weather description", "value": "4d15h.weather.[0].description" },
+                { "label": "+4 days and 15 hours: Weather icon code", "value": "4d15h.weather.[0].icon" },
+                { "label": "+4 days and 15 hours: Weather icon URL", "value": "4d15h.weather.[0].iconUrl" },
+                { "label": "+4 days and 18 hours: time of data forecasted as timestamp", "value": "4d18h.dt" },
+                { "label": "+4 days and 18 hours: time of data forecasted in text", "value": "4d18h.dt_txt" },
+                { "label": "+4 days and 18 hours: Temperature", "value": "4d18h.main.temp" },
+                { "label": "+4 days and 18 hours: Pressure", "value": "4d18h.main.pressure" },
+                { "label": "+4 days and 18 hours: Humidity", "value": "4d18h.main.humidity" },
+                { "label": "+4 days and 18 hours: Minimum temperature", "value": "4d18h.main.temp_min" },
+                { "label": "+4 days and 18 hours: Maximum temperature", "value": "4d18h.main.temp_max" },
+                {
+                    "label": "+4 days and 18 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "4d18h.main.sea_level"
+                },
+                {
+                    "label": "+4 days and 18 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "4d18h.main.grnd_level"
+                },
+                { "label": "+4 days and 18 hours: Wind speed", "value": "4d18h.wind.speed" },
+                { "label": "+4 days and 18 hours: Wind direction (degrees)", "value": "4d18h.wind.deg" },
+                { "label": "+4 days and 18 hours: Cloudiness (%)", "value": "4d18h.clouds.all" },
+                { "label": "+4 days and 18 hours: Rain volume for the last 3 hours", "value": "4d18h.rain.3h" },
+                { "label": "+4 days and 18 hours: Snow volume for the last 3 hours", "value": "4d18h.snow.3h" },
+                {
+                    "label": "+4 days and 18 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d18h.weather.[0].main"
+                },
+                { "label": "+4 days and 18 hours: Weather description", "value": "4d18h.weather.[0].description" },
+                { "label": "+4 days and 18 hours: Weather icon code", "value": "4d18h.weather.[0].icon" },
+                { "label": "+4 days and 18 hours: Weather icon URL", "value": "4d18h.weather.[0].iconUrl" },
+                { "label": "+4 days and 21 hours: time of data forecasted as timestamp", "value": "4d21h.dt" },
+                { "label": "+4 days and 21 hours: time of data forecasted in text", "value": "4d21h.dt_txt" },
+                { "label": "+4 days and 21 hours: Temperature", "value": "4d21h.main.temp" },
+                { "label": "+4 days and 21 hours: Pressure", "value": "4d21h.main.pressure" },
+                { "label": "+4 days and 21 hours: Humidity", "value": "4d21h.main.humidity" },
+                { "label": "+4 days and 21 hours: Minimum temperature", "value": "4d21h.main.temp_min" },
+                { "label": "+4 days and 21 hours: Maximum temperature", "value": "4d21h.main.temp_max" },
+                {
+                    "label": "+4 days and 21 hours: Atmospheric pressure on the sea level, hPa",
+                    "value": "4d21h.main.sea_level"
+                },
+                {
+                    "label": "+4 days and 21 hours: Atmospheric pressure on the ground level, hPa",
+                    "value": "4d21h.main.grnd_level"
+                },
+                { "label": "+4 days and 21 hours: Wind speed", "value": "4d21h.wind.speed" },
+                { "label": "+4 days and 21 hours: Wind direction (degrees)", "value": "4d21h.wind.deg" },
+                { "label": "+4 days and 21 hours: Cloudiness (%)", "value": "4d21h.clouds.all" },
+                { "label": "+4 days and 21 hours: Rain volume for the last 3 hours", "value": "4d21h.rain.3h" },
+                { "label": "+4 days and 21 hours: Snow volume for the last 3 hours", "value": "4d21h.snow.3h" },
+                {
+                    "label": "+4 days and 21 hours: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "4d21h.weather.[0].main"
+                },
+                { "label": "+4 days and 21 hours: Weather description", "value": "4d21h.weather.[0].description" },
+                { "label": "+4 days and 21 hours: Weather icon code", "value": "4d21h.weather.[0].icon" },
+                { "label": "+4 days and 21 hours: Weather icon URL", "value": "4d21h.weather.[0].iconUrl" },
+                { "label": "+5 days: time of data forecasted as timestamp", "value": "5d.dt" },
+                { "label": "+5 days: time of data forecasted in text", "value": "5d.dt_txt" },
+                { "label": "+5 days: Temperature", "value": "5d.main.temp" },
+                { "label": "+5 days: Pressure", "value": "5d.main.pressure" },
+                { "label": "+5 days: Humidity", "value": "5d.main.humidity" },
+                { "label": "+5 days: Minimum temperature", "value": "5d.main.temp_min" },
+                { "label": "+5 days: Maximum temperature", "value": "5d.main.temp_max" },
+                { "label": "+5 days: Atmospheric pressure on the sea level, hPa", "value": "5d.main.sea_level" },
+                { "label": "+5 days: Atmospheric pressure on the ground level, hPa", "value": "5d.main.grnd_level" },
+                { "label": "+5 days: Wind speed", "value": "5d.wind.speed" },
+                { "label": "+5 days: Wind direction (degrees)", "value": "5d.wind.deg" },
+                { "label": "+5 days: Cloudiness (%)", "value": "5d.clouds.all" },
+                { "label": "+5 days: Rain volume for the last 3 hours", "value": "5d.rain.3h" },
+                { "label": "+5 days: Snow volume for the last 3 hours", "value": "5d.snow.3h" },
+                {
+                    "label": "+5 days: Group of weather parameters (Rain, Snow, Extreme etc.)",
+                    "value": "5d.weather.[0].main"
+                },
+                { "label": "+5 days: Weather description", "value": "5d.weather.[0].description" },
+                { "label": "+5 days: Weather icon code", "value": "5d.weather.[0].icon" },
+                { "label": "+5 days: Weather icon URL", "value": "5d.weather.[0].iconUrl" }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8ZyBpZD0iR3JvdXBfNTA4IiBkYXRhLW5hbWU9Ikdyb3VwIDUwOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTI2OCAtNDg4LjUpIj4KICAgIDxyZWN0IGlkPSJSZWN0YW5nbGVfMzM1MCIgZGF0YS1uYW1lPSJSZWN0YW5nbGUgMzM1MCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjggNDg4LjUpIiBmaWxsPSJub25lIi8+CiAgICA8ZyBpZD0iYXBwLnV0aWxzLndlYXRoZXIiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI3MCA0OTEpIj4KICAgICAgPHBhdGggaWQ9ImNsb3VkLXJhaW4iIGQ9Ik01LDE0QTUsNSwwLDEsMSw2LjU2MSw0LjI0OSw3LDcsMCwxLDEsMTMsMTRabTAtMmg4QTUsNSwwLDEsMCw4LjQsNS4wMzVMNy42OCw2LjcyMSw1LjkzOCw2LjE0OUEzLDMsMCwxLDAsNSwxMlptMSwzYTEsMSwwLDAsMSwxLDF2MmExLDEsMCwwLDEtMiwwVjE2QTEsMSwwLDAsMSw2LDE1Wm00LDBhMSwxLDAsMCwxLDEsMXYzYTEsMSwwLDAsMS0yLDBWMTZBMSwxLDAsMCwxLDEwLDE1Wm00LDBhMSwxLDAsMCwxLDEsMXYxYTEsMSwwLDAsMS0yLDBWMTZBMSwxLDAsMCwxLDE0LDE1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTAuMDAzIC0wLjAwMikiLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo="
+}
