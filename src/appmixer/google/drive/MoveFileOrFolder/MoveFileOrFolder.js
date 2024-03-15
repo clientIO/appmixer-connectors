@@ -30,7 +30,7 @@ module.exports = {
             return parent.id;
         }).join(',');
 
-        const files = await drive.files.update({
+        await drive.files.update({
             fileId: fileId,
             addParents: folderId,
             removeParents: previousParents,

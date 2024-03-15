@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Component for archive card
@@ -8,15 +7,16 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         let cardInfo = context.messages.in.content;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let archiveCard = Promise.promisify(client.put, { context: client });
+        const { data: archivedCard } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            method: 'PUT',
+            url: `https://api.trello.com/1/cards/${cardInfo.boardCardId}?closed=true&${commons.getAuthQueryParams(context)}`,
+            data: {}
+        });
 
-        return archiveCard(`/1/cards/${cardInfo.boardCardId}?closed=true`)
-            .then(archivedCard => {
-                return context.sendJson(archivedCard, 'card');
-            });
+        return context.sendJson(archivedCard, 'card');
     }
 };

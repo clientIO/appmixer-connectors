@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../trello-commons');
-const Promise = require('bluebird');
 
 /**
  * Process activities to find newly added.
@@ -53,12 +52,11 @@ module.exports = {
     async tick(context) {
 
         let { boardId, boardListId, boardListCardId } = context.properties;
-        let client = commons.getTrelloAPI(context.auth.consumerKey, context.auth.accessToken);
-        let newActivity = Promise.promisify(client.get, { context: client });
 
-        let res = await newActivity(
-            buildUrl(boardId, boardListId, boardListCardId)
-        );
+        let { data: res } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            url: `https://api.trello.com${buildUrl(boardId, boardListId, boardListCardId)}?${commons.getAuthQueryParams(context)}`
+        });
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
@@ -66,9 +64,9 @@ module.exports = {
         res.forEach(processActivities.bind(null, known, actual, diff));
 
         if (diff.size) {
-            await Promise.map(diff, activity => {
+            await Promise.all(Array.from(diff).map(activity => {
                 return context.sendJson(activity, 'activity');
-            });
+            }));
         }
         await context.saveState({ known: Array.from(actual) });
     }

@@ -17,7 +17,7 @@ module.exports = {
             }),
             drive.files.get({
                 fileId: fileId,
-                alt: 'media',
+                alt: 'media'
             })
         ]);
 
@@ -27,7 +27,7 @@ module.exports = {
             fileName: metadata.name,
             mimeType: metadata.mimeType,
             webViewLink: metadata.webViewLink,
-            createdTime: metadata.createdTime,
+            createdTime: metadata.createdTime
         }, 'out');
     }
 };
