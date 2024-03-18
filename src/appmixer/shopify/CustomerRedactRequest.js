@@ -3,7 +3,7 @@ module.exports = context => {
     class CustomerRedactRequest extends context.db.Model {
 
         static get collection() {
-            return 'customerRedactsRequests_temp_1';
+            return 'customerRedactsRequests';
         }
 
         static get idProperty() {
