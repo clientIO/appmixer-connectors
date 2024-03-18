@@ -14,7 +14,7 @@ module.exports = function(context) {
 
                 return new CustomerDataRequest().populate({
                     request: payload,
-                    created: new Date(),
+                    created: new Date()
                 }).save();
             },
             auth: false
@@ -31,7 +31,7 @@ module.exports = function(context) {
 
                 return new CustomerRedactRequest().populate({
                     request: payload,
-                    created: new Date(),
+                    created: new Date()
                 }).save();
             },
             auth: false
@@ -48,7 +48,7 @@ module.exports = function(context) {
 
                 return new ShopRedactRequest().populate({
                     request: payload,
-                    created: new Date(),
+                    created: new Date()
                 }).save();
             },
             auth: false
@@ -59,7 +59,7 @@ module.exports = function(context) {
         method: 'GET',
         path: '/customers/data_request',
         options: {
-            handler: (request, h) => {
+            handler: () => {
                 return CustomerDataRequest.find() || [];
             },
             auth: false
@@ -92,7 +92,7 @@ module.exports = function(context) {
         method: 'GET',
         path: '/',
         options: {
-            handler: (request, h) => {
+            handler: () => {
                 return {
                     version: '1.0',
                     published: new Date().toISOString()
