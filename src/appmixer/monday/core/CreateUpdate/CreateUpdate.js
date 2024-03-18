@@ -1,4 +1,3 @@
-'use strict';
 const commons = require('../../monday-commons');
 
 /**
@@ -9,8 +8,8 @@ module.exports = {
 
     async receive(context) {
 
-        const CreateUpdate =  
-        `mutation create_update (
+        const CreateUpdate =
+            `mutation create_update (
             $itemId: ID
             $body: String!
         ) {
@@ -22,7 +21,7 @@ module.exports = {
         }
         }`;
 
-        const {id, body} = context.messages.in.content;
+        const { id, body } = context.messages.in.content;
         const data = await commons.makeRequest({
             query: CreateUpdate,
             options: {
