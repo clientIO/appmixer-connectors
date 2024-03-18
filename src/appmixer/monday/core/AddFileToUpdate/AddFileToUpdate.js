@@ -11,7 +11,7 @@ module.exports = {
         const { fileId, fileName, updateId } = context.messages.file.content;
         const query = 'mutation add_file_to_update($file: File!) { add_file_to_update (update_id: ' + updateId + ', file: $file) {id}}';
 
-        var filestream = await context.getFileReadStream(fileId);
+        const filestream = await context.getFileReadStream(fileId);
 
         let form = new FormData();
         form.append('variables[file]', filestream, fileName);
