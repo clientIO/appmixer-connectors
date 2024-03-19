@@ -46,7 +46,7 @@ module.exports = {
                 }
             }
         }`,
-    findItems : `
+    findItems: `
     query items_page_by_column_values (
         $limit: Int,
         $boardId: ID!,
@@ -164,7 +164,7 @@ module.exports = {
             }
         }
     }`,
-    CreateItem : `
+    CreateItem: `
     mutation create_item (
         $boardId: ID!,
         $groupId: String,
@@ -183,7 +183,7 @@ module.exports = {
         }
     }
     `,
-    DeleteItem : `
+    DeleteItem: `
     mutation delete_item (
         $itemId: ID!
     ) {
@@ -194,7 +194,7 @@ module.exports = {
         }
     }
     `,
-    CreateBoard : `
+    CreateBoard: `
     mutation create_board (
         $workspaceId: ID
         $boardName: String!
@@ -209,7 +209,7 @@ module.exports = {
         }
     }
     `,
-    DeleteBoard : `
+    DeleteBoard: `
     mutation delete_board (
         $boardId: ID!
     ) {
@@ -220,7 +220,7 @@ module.exports = {
         }
     }
     `,
-    ArchiveBoard : `
+    ArchiveBoard: `
     mutation archive_board (
         $boardId: ID!
     ) {
@@ -231,7 +231,7 @@ module.exports = {
         }
     }
     `,
-    RegisterAWebhook : `
+    RegisterAWebhook: `
     mutation create_webhook (
         $boardId: ID!
         $webhookUrl: String!
@@ -244,7 +244,7 @@ module.exports = {
         }
     }
     `,
-    UnregisterAWebhook : `
+    UnregisterAWebhook: `
     mutation delete_webhook (
         $id: ID!
     ) {
@@ -328,5 +328,18 @@ module.exports = {
         }
         email
         }
-    }`
+    }`,
+    createUpdate:
+        `mutation create_update (
+            $itemId: ID
+            $body: String!
+        ) {
+        create_update (
+            item_id: $itemId
+            body: $body 
+        ) {
+            id
+        }
+        }`,
+    addFileToUpdate: ({ updatedId }) => `mutation add_file_to_update($file: File!) { add_file_to_update (update_id: ${updateId} file: $file) {id}}`
 };

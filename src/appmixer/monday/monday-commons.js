@@ -6,7 +6,7 @@ module.exports = {
     async makeRequest({ query, options, apiKey }) {
 
         const monday = mondaySdk();
-        monday.setApiVersion('2023-10');
+        monday.setApiVersion('2024-01');
         monday.setToken(apiKey);
 
         const {
