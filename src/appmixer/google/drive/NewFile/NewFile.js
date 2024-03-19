@@ -32,7 +32,7 @@ const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
 const detectNewFiles = async function(context) {
 
-    const DEBUG = context.config.DEBUG !== 'false' || false;
+    const DEBUG = commons.isDebug(context);
     const { folder = {} } = context.properties;
 
     let lock = null;

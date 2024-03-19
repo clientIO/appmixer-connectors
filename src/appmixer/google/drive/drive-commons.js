@@ -72,5 +72,9 @@ module.exports = {
             accessToken: credentials.accessToken,
             expiryDate: credentials.expDate
         };
+    },
+
+    isDebug(context) {
+        return context.config.DEBUG !== 'false' || false;
     }
 };

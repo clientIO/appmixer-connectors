@@ -6,6 +6,8 @@ module.exports = {
 
     async receive(context) {
 
+        const DEBUG = commons.isDebug(context);
+
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         let { fileId, destinationFolder } = context.messages.in.content;
@@ -26,16 +28,22 @@ module.exports = {
         });
 
         // Move the file to the new folder
-        const previousParents = file.data.parents.map(function(parent) {
-            return parent.id;
-        }).join(',');
+        const previousParents = file.data.parents
+            .map(parent => parent?.id || parent)
+            .join(',');
 
-        await drive.files.update({
+        const params = {
             fileId: fileId,
             addParents: folderId,
             removeParents: previousParents,
             fields: 'id, parents'
-        });
+        };
+
+        if (DEBUG) {
+            await context.log({ stage: 'DEBUG', fileMetadata: file, request: params });
+        }
+
+        await drive.files.update(params);
         return context.sendJson({}, 'out');
     }
 };
