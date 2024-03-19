@@ -24,8 +24,7 @@ module.exports = {
             messageId
         });
 
-        const buffer = Buffer.from(attachment.data, 'base64');
-        const { fileId } = await context.saveFileStream(fileName, buffer);
+        const { fileId } = await context.saveFileStream(fileName, attachment.data);
         return context.sendJson({
             fileId
         }, 'out');
