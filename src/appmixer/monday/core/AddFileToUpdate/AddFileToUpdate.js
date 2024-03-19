@@ -10,7 +10,7 @@ module.exports = {
     async receive(context) {
 
         const { fileId, fileName, updateId } = context.messages.file.content;
-        const query = queries.addFileToUpdate({ updatedId });
+        const query = queries.addFileToUpdate({ updateId });
 
         const filestream = await context.getFileReadStream(fileId);
 
