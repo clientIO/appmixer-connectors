@@ -1,4 +1,5 @@
 const commons = require('../../monday-commons');
+const { createUpdate } = require('../../queries');
 
 /**
  * Component for making API requests.
@@ -8,22 +9,9 @@ module.exports = {
 
     async receive(context) {
 
-        const CreateUpdate =
-            `mutation create_update (
-            $itemId: ID
-            $body: String!
-        ) {
-        create_update (
-            item_id: $itemId
-            body: $body 
-        ) {
-            id
-        }
-        }`;
-
         const { id, body } = context.messages.in.content;
         const data = await commons.makeRequest({
-            query: CreateUpdate,
+            query: createUpdate,
             options: {
                 variables: {
                     itemId: +id,
