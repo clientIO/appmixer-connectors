@@ -340,5 +340,6 @@ module.exports = {
         ) {
             id
         }
-        }`
+        }`,
+    addFileToUpdate: ({ updatedId }) => `mutation add_file_to_update($file: File!) { add_file_to_update (update_id: ${updateId} file: $file) {id}}`
 };

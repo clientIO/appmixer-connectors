@@ -1,4 +1,5 @@
 const FormData = require('form-data');
+const queries = require('../../queries');
 
 /**
  * Component for making API requests.
@@ -9,11 +10,11 @@ module.exports = {
     async receive(context) {
 
         const { fileId, fileName, updateId } = context.messages.file.content;
-        const query = 'mutation add_file_to_update($file: File!) { add_file_to_update (update_id: ' + updateId + ', file: $file) {id}}';
+        const query = queries.addFileToUpdate({ updatedId });
 
         const filestream = await context.getFileReadStream(fileId);
 
-        let form = new FormData();
+        const form = new FormData();
         form.append('variables[file]', filestream, fileName);
         form.append('query', query);
         const { data } = await context.httpRequest({
