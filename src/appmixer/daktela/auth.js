@@ -2,7 +2,7 @@
 
 module.exports = {
 
-    type: 'apiKey',
+    type: 'pwd',
 
     definition: {
 
@@ -26,7 +26,7 @@ module.exports = {
 
         requestProfileInfo: async context => {
 
-            const { result } = await daktelaWhoim(context);
+            const { result } = await daktelaValidate(context);
 
             return { name: result.user.title || result.user.alias };
         },
@@ -35,41 +35,14 @@ module.exports = {
 
         validate: async context => {
 
-            await daktelaWhoim(context);
+            const { result } = await daktelaValidate(context);
 
-            return;
+            return { token: result.accessToken };
         }
-    },
-
-    /**
-     * Function called in every component to get the access token from the login endpoint.
-     * It is cached so that we don't have to call the login endpoint in every component.
-     * Access token changes only when the user changes the password.
-     * @returns Access token
-     */
-    getAccessTokenFromLoginEndpoint: async function(context) {
-
-        const cacheKey = `daktela-access-token-${context.username || context.auth.username}`;
-        const cachedAccessToken = await context.staticCache.get(cacheKey);
-        if (cachedAccessToken) {
-            return cachedAccessToken;
-        }
-
-        const { result } = await daktelaWhoim(context);
-        const accessToken = result.accessToken;
-
-        // Cache the access token so that we don't have to call the login endpoint in every component.
-        await context.staticCache.set(
-            cacheKey,
-            accessToken,
-            context.config.accessTokenCacheTTL || (60 * 60 * 24 * 1000) // 24 hours
-        );
-
-        return accessToken;
     }
 };
 
-async function daktelaWhoim(context) {
+async function daktelaValidate(context) {
 
     const { data } = await context.httpRequest({
         url: `https://${context.instance || context.auth.instance}.daktela.com/api/v6/login.json`,

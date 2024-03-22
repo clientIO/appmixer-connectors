@@ -1,7 +1,6 @@
 'use strict';
 
 const lib = require('../../lib');
-const { getAccessTokenFromLoginEndpoint } = require('../../auth');
 
 module.exports = {
 
@@ -42,8 +41,7 @@ module.exports = {
         let requestBody = {};
         lib.setProperties(requestBody, inputMapping);
 
-        const accessToken = await getAccessTokenFromLoginEndpoint(context);
-        query.append('accessToken', accessToken);
+        query.append('accessToken', context.auth.token);
 
         const req = {
             url: url,
