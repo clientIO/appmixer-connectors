@@ -84,11 +84,43 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TicketRequestBody'
+              allOf:
+                # Access: All
+                - $ref: '#/components/schemas/TicketRequestBody'
+                - type: object
+                  properties:
+                    # Access: C + R
+                    name:
+                      type: integer
+                      description: Unique name
+                    email:
+                      type: string
+                      format: email
+                      description: Email
         description: Ticket object
       responses:
         '200':
           description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+  /api/v6/tickets/{name}.json:
+    put:
+      operationId: updateTicket
+      security:
+        - accessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # Access: All
+              $ref: '#/components/schemas/TicketRequestBody'
+        description: Ticket object
+      responses:
+        '200':
+          description: Ticket updated
           content:
             application/json:
               schema:
@@ -293,11 +325,3 @@ components:
           type: string
           description: Parent ticket
           example: "<code>tickets_6579aef829370638460281</code>"
-        # The rest, C + R
-        name:
-          type: integer
-          description: Unique name
-        email:
-          type: string
-          format: email
-          description: Email
