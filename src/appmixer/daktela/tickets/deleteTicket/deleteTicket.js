@@ -16,35 +16,16 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + '/api/v6/tickets/' + input['name'] + '.json';
+        let url = lib.getBaseUrl(context) + `/api/v6/tickets/${input['name']}.json`;
 
         const headers = {};
         const query = new URLSearchParams;
-
-        const inputMapping = {
-            'title': input['title'],
-            'sla_deadtime': input['sla_deadtime'],
-            'reopen': input['reopen'],
-            'user': input['user'],
-            'followers': !!input['followers'] ? JSON.parse(input['followers']) : undefined,
-            'category': input['category'],
-            'priority': input['priority'],
-            'stage': input['stage'],
-            'statuses': !!input['statuses'] ? JSON.parse(input['statuses']) : undefined,
-            'description': input['description'],
-            'contact': input['contact'],
-            'comment': input['comment'],
-            'parentTicket': input['parentTicket']
-        };
-        let requestBody = {};
-        lib.setProperties(requestBody, inputMapping);
 
         query.append('accessToken', context.auth.token);
 
         const req = {
             url: url,
-            method: 'PUT',
-            data: requestBody,
+            method: 'DELETE',
             headers: headers
         };
 
