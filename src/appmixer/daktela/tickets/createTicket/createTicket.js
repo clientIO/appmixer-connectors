@@ -8,7 +8,7 @@ module.exports = {
 
         const { data } = await this.httpRequest(context);
 
-        return context.sendJson(data, 'out');
+        return context.sendJson(data.result, 'out');
     },
 
     httpRequest: async function(context) {
@@ -94,5 +94,4 @@ module.exports = {
             throw err;
         }
     }
-
 };
