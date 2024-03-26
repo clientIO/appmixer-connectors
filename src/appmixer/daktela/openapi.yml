@@ -1,0 +1,356 @@
+openapi: 3.0.0
+servers:
+  - url: 'https://{instance}.daktela.com'
+    description: Daktela instance
+    variables:
+      instance:
+        description: Daktela instance
+        default: 'https://democz.daktela.com'
+
+security:
+  - accessToken: []
+
+info:
+  title: Daktela
+  version: 1.0.0
+  description: Multichannel Ticketing System application with a modern web interface for user-friendly processing of customers’ requests and internal corporate tasks.
+  x-connector-icon: data:image/octet-stream;base64,UklGRqYEAABXRUJQVlA4TJkEAAAv78A7EOJQ3LaNY++/dnq7e0bEBOC+FHhmRJrWxdi0hvxYSbVtu5ZyHZSCXAqCgNjNBYpyUkQvp3f3qeCJeO7g7xb1N0EFAjiE7neAn9Lxm1j4ElBB72jAQs4NN7Ftu8rpSKayjJ/PPh9wgoYM6uiggvK5sW1bTV7FzBwqdzqS0eEyJ7okuG642vafX67//wTM0VaTudXkOgDbtdttnuw6CNds27b745kASLVty1GeiLLEtJJ3b0AkNhmmOUMkIARHVwG9ARwwihL6xgDCGLZt40j7r3vl+xNCG0mSpOKySN4uRy+d439Qtm07Jo0n2TPJtp3M3TZ97ca4Sc1INv4Bk23btvVMgPr+7/v/kJWDSxZdos/0+jV9or4pk3Kk+Og6quFuvKMfZxgHJhcs8O0/0Ae+Yh0+S/mHHsbtdnTZwz4/meck6AdYy1bpmatHdfG1732TuoSnGiyqJK/mTjQ2ClZJ+gZmUsSrQbNKIo5budWgYCXmUuTRSqxLOUFaiTRWDYvWJOhroSmAlbxac4MjgJX0uSCSaeXPtNPKbm2c+KPDSszTaLW00veCCNDKg5REK3qASKOVGymdVvQCE6GVf+GmFfExevJoxTr+oLWbQVpJU4LrRdZGK+KyGhytV9FCK39t3bRiLnBFFON6qIZMK6YZ19UoGa2IAVz97F87PFoxjbj093beP4HW3uTRirSG66+tllZsK3GZK1w5RYtLVOAye7heq8Fvh1JCsfWveD88FtJuwmLtD8Rmmj1TO98VRVfurrV33bv9bbH1bdHi1qfFzq+JO1O7WMD4te7Cjf7udX6zf3gvVWfvuPosaEGT80pYPY84Xmp4M+uLVTG9O8IC5y+u9AVjkzafFpTQ4pxSVu9j3OkDi4WYshEInMflPmds0eZ/k/NKaaAaEa0vkUgrUgEu0YRLjOISu7isB1zW6xMt6+2alvVVDY1Wv/tXjQBXNfxL/x0WrmKcLkOjBWwBtXTtjnK+sAUkVP6wtWvBlR9s/fvBlmr+0IXYTbYMoxawZShxd7nLKCozqxlNTmvO0quPu9ebaoRLVRTu9HbDD07slpzebGjy7HLHxdNpbrGUMo+Var5zK0vKrIawVLrjD86+xP4ebR4cYLVm9Y7Auo1w1moa2nsIRG2whaOgZEu3/foIthBDdGEQnWx9BJ6CLBn6kq3ObLf9hi0hVoItIP0LW0UhQJwGWQKKvrBVFELEbZAloPgLW/oZbAFxX9gSYjnZ+nfLL9gSUPWCLVmsJltm2lvDkyBLiIyOH2wJMZJs6VWwBVMa3oIswdyDIEuI+EGQpYrMYZAlIHsYZMmQc4cvQZbMEm/7RZCliljEb5AlmN5wmWTpHTDHloSoGQRZqhZmeEiydGQYHAVXEhCBeEyypPeDJEtFIQdGhsmVBLMBM5+TKwkDHaIP/H8yqJK6EBnKDbujDKYkAW6gu/Pv7UUkU5IQQYhWxNmLiCRK0jtDCtCJ2B5VflT+fMkMb4aOXu2uRWE2JBiqDf2GWeDQ4sXiE/Fl+Ov4+v0Ogbae7p5H74pCVhS6otC6fVkUUgb6/u/7/8m+AA==
+  x-connector-module: tickets
+paths:
+  /api/v6/tickets.json:
+    get:
+      operationId: getTickets
+      security:
+        - accessToken: []
+      x-connector-pagination:
+        type: page
+        parameters:
+          offset: skip
+          limit: take
+          # Ticket objects are quite large, so we limit the number of items per page
+          page: 10
+          results: result.data
+          count: total
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Search query.
+          schema:
+            type: string
+        - name: filter
+          in: query
+          required: false
+          description: Filter tickets. See [Daktela API documentation](https://democz.daktela.com/external/apihelp/v6/working-with/tickets#example-1-url) for more information.
+          schema:
+            type: array
+            example: [{"field":"status","operator":"eq","value":"OPEN"}]
+            items:
+              type: object
+        - name: sort
+          in: query
+          required: false
+          description: |
+            Sorting is defined as an array of columns by which the data can be sorted. Each array has its own sorting name and each item within its range has two properties:
+            - field - string - Name of the column by which you want to sort
+            - dir - string - Direction of sorting 'asc' (sort in a ascending order) or 'desc' (sort in a descending order)
+          schema:
+            type: string
+          example: {"sort": [{"field":"firstname", "dir":"desc"},{"field":"lastname", "dir":"asc"}]}
+      responses:
+        '200':
+          description: A list of tickets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Ticket'
+                      count:
+                        type: integer
+                        description: Total number of tickets
+    post:
+      operationId: createTicket
+      security:
+        - accessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                # Access: All
+                - $ref: '#/components/schemas/TicketRequestBody'
+                - type: object
+                  properties:
+                    # Access: C + R
+                    name:
+                      type: integer
+                      description: Unique name
+                    email:
+                      type: string
+                      format: email
+                      description: Email
+        description: Ticket object
+      responses:
+        '200':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+  /api/v6/tickets/{name}.json:
+    get:
+      operationId: getTicket
+      security:
+        - accessToken: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: 'Ticket name. Example: 602'
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ticket found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+    put:
+      operationId: updateTicket
+      security:
+        - accessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              # Access: All
+              $ref: '#/components/schemas/TicketRequestBody'
+        description: Ticket object
+      responses:
+        '200':
+          description: Ticket updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+    delete:
+      operationId: deleteTicket
+      security:
+        - accessToken: []
+      responses:
+        '200':
+          description: Ticket deleted
+          content:
+            application/json:
+              schema:
+                
+components:
+  securitySchemes:
+    accessToken:
+      type: apiKey
+      in: query
+      name: accessToken
+  schemas:
+    # Ticket object schema for responses
+    Ticket:
+      type: object
+      properties:
+        name:
+          type: integer
+          description: Unique name
+        title:
+          type: string
+          description: Subject of ticket
+        id_merge:
+          type: string
+          description: Merge ID
+        category:
+          type: string
+          description: Category
+        user:
+          type: string
+          description: User
+        email:
+          type: string
+          format: email
+          description: Email
+        contact:
+          type: string
+          description: Contact
+        parentTicket:
+          type: string
+          description: Parent ticket
+        isParent:
+          type: boolean
+          description: Parent flag
+        description:
+          type: string
+          description: Optional description
+        stage:
+          type: string
+          enum: [OPEN, WAIT, CLOSE]
+          description: Stage
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: Level of priority
+        sla_overdue:
+          type: integer
+          description: SLA overdue in seconds
+        sla_deadtime:
+          type: string
+          format: date-time
+          description: Deadline
+        sla_close_deadline:
+          type: string
+          format: date-time
+          description: Ticket deadline
+        sla_change:
+          type: string
+          format: date-time
+          description: Sla change
+        sla_duration:
+          type: integer
+          description: Sla duration
+        sla_custom:
+          type: boolean
+          description: Sla custom
+        interaction_activity_count:
+          type: integer
+          description: Activity count
+        reopen:
+          type: string
+          format: date-time
+          description: Reopen
+        created:
+          type: string
+          format: date-time
+          description: Date of creation
+        created_by:
+          type: string
+          description: Created by
+        edited:
+          type: string
+          format: date-time
+          description: Date of last modification
+        edited_by:
+          type: string
+          description: Edited by
+        first_answer:
+          type: string
+          format: date-time
+          description: Date of first answer
+        first_answer_duration:
+          type: integer
+          description: First answer duration
+        first_answer_deadline:
+          type: string
+          format: date-time
+          description: First answer deadline
+        first_answer_overdue:
+          type: integer
+          description: First answer overdue in seconds
+        closed:
+          type: string
+          format: date-time
+          description: Date when the ticket was closed
+        unread:
+          type: boolean
+          description: Unread
+        has_attachment:
+          type: boolean
+          description: Has attachment
+        followers:
+          type: string
+          description: Followers
+        statuses:
+          type: string
+          description: Statuses
+        last_activity:
+          type: string
+          format: date-time
+          description: Last Activity
+        last_activity_operator:
+          type: string
+          format: date-time
+          description: Last Activity of Operator
+        last_activity_client:
+          type: string
+          format: date-time
+          description: Last Activity of Client
+        customFields:
+          type: string
+          description: Custom fields
+    # Ticket object schema for request body
+    TicketRequestBody:
+      type: object
+      required:
+        - title
+        - category
+        - stage
+        - priority
+      properties:
+        # In Daktela's UI
+        title:
+          type: string
+          description: Subject of ticket
+        sla_deadtime:
+          type: string
+          format: date-time
+          description: If ticket is answered (first answer) the close deadline is shown. Otherwise the first answer deadline is shown.
+        reopen:
+          type: string
+          format: date-time
+          description: Date when the ticket will be automatically re-opened.
+        user:
+          type: string
+          description: 'User.'
+          example: "<code>users_6579aef829370638460281</code>"
+        followers:
+          type: array
+          items:
+            type: string
+          description: Followers
+          example: ['users_6579aef829370638460281']
+        category:
+          type: string
+          description: Category.
+          example: "<code>categories_6579aef829370638460281</code>"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+          description: Level of priority
+        stage:
+          type: string
+          enum: [OPEN, WAIT, CLOSE, ARCHIVE]
+          description: Stage
+        statuses:
+          type: array
+          items:
+            type: string
+          description: Statuses.
+          example: <code>["statuses_6579aef829370638460281"]</code>
+        description:
+          type: string
+          description: Optional description
+        contact:
+          type: string
+          description: Contact.
+          example: "<code>contacts_6579aef829370638460281</code>"
+        comment:
+          type: string
+          description: Comment
+        parentTicket:
+          type: string
+          description: Parent ticket
+          example: "<code>601</code>"
