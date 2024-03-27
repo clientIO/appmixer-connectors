@@ -39,8 +39,7 @@ module.exports = function(context) {
                     created: new Date()
                 }).save();
             },
-            auth: false,
-
+            auth: false
         }
     });
 
