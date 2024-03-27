@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 module.exports = function(context) {
 
     const CustomerDataRequest = require('./CustomerDataRequest')(context);
@@ -9,6 +10,8 @@ module.exports = function(context) {
         path: '/customers/data_request',
         options: {
             handler: (req) => {
+
+                verifyHmac(req, context.config.clientSecret);
 
                 const { payload } = req;
 
@@ -27,6 +30,8 @@ module.exports = function(context) {
         options: {
             handler: (req) => {
 
+                verifyHmac(req, context.config.clientSecret);
+
                 const { payload } = req;
 
                 return new CustomerRedactRequest().populate({
@@ -34,7 +39,8 @@ module.exports = function(context) {
                     created: new Date()
                 }).save();
             },
-            auth: false
+            auth: false,
+
         }
     });
 
@@ -43,6 +49,8 @@ module.exports = function(context) {
         path: '/shop/redact',
         options: {
             handler: (req) => {
+
+                verifyHmac(req, context.config.clientSecret);
 
                 const { payload } = req;
 
@@ -101,4 +109,23 @@ module.exports = function(context) {
             auth: false
         }
     });
+
+    const getSignature = function(data, secret) {
+        return crypto
+            .createHmac('sha256', secret)
+            .update(data)
+            .digest('base64');
+
+    };
+
+    const verifyHmac = function(req, secret) {
+
+        const expected = req.headers['x-shopify-hmac-sha256'];
+        const current = getSignature(JSON.stringify(req.payload), secret);
+
+        if (current !== expected) {
+            throw context.http.HttpError.unauthorized('Invalid HMAC. ' + current + ' ' + expected);
+        }
+    };
 };
+
