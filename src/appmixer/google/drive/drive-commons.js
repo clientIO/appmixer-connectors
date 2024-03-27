@@ -75,6 +75,6 @@ module.exports = {
     },
 
     isDebug(context) {
-        return context.config.DEBUG !== 'false' || false;
+        return context.config.DEBUG === 'true' || false;
     }
 };
