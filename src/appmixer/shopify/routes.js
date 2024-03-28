@@ -20,10 +20,10 @@ module.exports = function(context) {
 
                 const { shop } = req.query;
                 const clientId = encodeURIComponent(context.config.clientId);
-                const redirect_uri = encodeURIComponent(context.config.appStoreInstallRedirectUri);
+                const redirectUrl = encodeURIComponent(context.config.appStoreInstallRedirectUri);
                 const scopes = encodeURIComponent(auth.definition.scope.join(','));
 
-                const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scopes}`;
+                const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUrl}&scope=${scopes}`;
 
                 return h.redirect(authUrl);
             },
