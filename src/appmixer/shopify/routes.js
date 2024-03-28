@@ -68,8 +68,7 @@ module.exports = function(context) {
         options: {
             handler: () => {
                 return CustomerDataRequest.find() || [];
-            },
-            auth: false
+            }
         }
     });
 
@@ -79,8 +78,7 @@ module.exports = function(context) {
         options: {
             handler: () => {
                 return CustomerRedactRequest.find() || [];
-            },
-            auth: false
+            }
         }
     });
 
@@ -90,8 +88,7 @@ module.exports = function(context) {
         options: {
             handler: () => {
                 return ShopRedactRequest.find() || [];
-            },
-            auth: false
+            }
         }
     });
 
@@ -117,6 +114,12 @@ module.exports = function(context) {
 
     };
 
+    /**
+     * verify HMAC token from Shopify
+     * https://shopify.dev/docs/apps/webhooks/configuration/https#step-5-verify-the-webhook
+     * @param req
+     * @param secret
+     */
     const verifyHmac = function(req, secret) {
 
         const expected = req.headers['x-shopify-hmac-sha256'];
