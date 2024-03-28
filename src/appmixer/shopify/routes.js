@@ -1,9 +1,35 @@
 const crypto = require('crypto');
+const auth = require('./auth');
+
 module.exports = function(context) {
 
     const CustomerDataRequest = require('./CustomerDataRequest')(context);
     const CustomerRedactRequest = require('./CustomerRedactRequest')(context);
     const ShopRedactRequest = require('./ShopRedactRequest')(context);
+
+    /**
+     * Shopify install link, Shopify calls this link to install the app:
+     * https://api.qa.appmixer.com/plugins/appmixer/shopify/install?shop=appmixer.myshopify.com
+     * Set the base url (https://api.qa.appmixer.com/plugins/appmixer/shopify) in the Shopify app settings.
+     */
+    context.http.router.register({
+        method: 'GET',
+        path: '/install',
+        options: {
+            handler: (req, h) => {
+
+                const { shop } = req.query;
+                const clientId = encodeURIComponent(context.config.clientId);
+                const redirect_uri = encodeURIComponent(context.config.appStoreInstallRedirectUri);
+                const scopes = encodeURIComponent(auth.definition.scope.join(','));
+
+                const authUrl = `https://${shop}/admin/oauth/authorize?client_id=${clientId}&redirect_uri=${redirect_uri}&scope=${scopes}`;
+
+                return h.redirect(authUrl);
+            },
+            auth: false
+        }
+    });
 
     context.http.router.register({
         method: 'POST',
