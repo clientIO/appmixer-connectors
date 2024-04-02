@@ -8,7 +8,7 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { query, searchType, folderLocation } = context.messages.in.content;
+        let { query, searchType, folderLocation, supportsAllDrives = true } = context.messages.in.content;
 
         let folderId;
         if (folderLocation) {
@@ -41,7 +41,7 @@ module.exports = {
 
         await context.log({ q: q });
 
-        const { data } = await drive.files.list({ q, fields: 'files(id, name, mimeType, webViewLink, createdTime)' });
+        const { data } = await drive.files.list({ q, fields: 'files(id, name, mimeType, webViewLink, createdTime)', supportsAllDrives });
         const { files = [] } = data;
         if (files.length > 0) {
             const file = files[0];

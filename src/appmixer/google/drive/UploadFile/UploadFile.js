@@ -10,7 +10,13 @@ module.exports = {
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         const { userId } = context.auth;
-        let { fileId, fileName: fileNameInput, folder, replace } = context.messages.in.content;
+        let {
+            fileId,
+            fileName: fileNameInput,
+            folder,
+            replace,
+            supportsAllDrives = true
+        } = context.messages.in.content;
 
         let filename;
         let contentType;
@@ -43,7 +49,8 @@ module.exports = {
         if (replace) {
             const query = `name='${filename}' and parents in '${folder ? folderId : 'root'}' and trashed=false`;
             const { data } = await drive.files.list({
-                q: query
+                q: query,
+                supportsAllDrives
             });
             const { files = [] } = data;
             if (files.length > 0) {
@@ -55,7 +62,8 @@ module.exports = {
                         mimeType: contentType,
                         body: fileStream
                     },
-                    fields: 'id, name, mimeType, webViewLink, createdTime'
+                    fields: 'id, name, mimeType, webViewLink, createdTime',
+                    supportsAllDrives
                 });
             } else {
                 // If no file exists, just create new file
@@ -66,7 +74,8 @@ module.exports = {
                         mimeType: contentType,
                         body: fileStream
                     },
-                    fields: 'id, name, mimeType, webViewLink, createdTime'
+                    fields: 'id, name, mimeType, webViewLink, createdTime',
+                    supportsAllDrives
                 });
             }
         } else {
@@ -77,7 +86,8 @@ module.exports = {
                     mimeType: contentType,
                     body: fileStream
                 },
-                fields: 'id, name, mimeType, webViewLink, createdTime'
+                fields: 'id, name, mimeType, webViewLink, createdTime',
+                supportsAllDrives
             });
         }
 

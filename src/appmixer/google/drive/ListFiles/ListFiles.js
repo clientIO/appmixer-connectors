@@ -13,7 +13,7 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { query, searchType, folderLocation, outputType } = context.messages.in.content;
+        let { query, searchType, folderLocation, outputType, supportsAllDrives = true  } = context.messages.in.content;
 
         let folderId;
         if (folderLocation) {
@@ -49,11 +49,17 @@ module.exports = {
         const pageSize = 1000;
         const fields = 'nextPageToken, files(id, name, mimeType, webViewLink, createdTime)';
         // First page.
-        const { data } = await drive.files.list({ q, pageSize, fields });
+        const { data } = await drive.files.list({ q, pageSize, fields, supportsAllDrives });
 
         // While there are more pages, keep fetching them.
         while (data.nextPageToken) {
-            const nextPage = await drive.files.list({ q, pageToken: data.nextPageToken, pageSize, fields });
+            const nextPage = await drive.files.list({
+                q,
+                pageToken: data.nextPageToken,
+                pageSize,
+                fields,
+                supportsAllDrives
+            });
             data.files = data.files.concat(nextPage.data.files);
             data.nextPageToken = nextPage.data.nextPageToken;
         }

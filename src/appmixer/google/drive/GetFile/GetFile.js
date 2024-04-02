@@ -8,16 +8,18 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        const { fileId } = context.messages.in.content;
+        const { fileId, supportsAllDrives = true } = context.messages.in.content;
 
         const [{ data: metadata }, { data: content }] = await Promise.all([
             drive.files.get({
                 fileId: fileId,
-                fields: 'id,name,mimeType,webViewLink,createdTime'
+                fields: 'id,name,mimeType,webViewLink,createdTime',
+                supportsAllDrives
             }),
             drive.files.get({
                 fileId: fileId,
-                alt: 'media'
+                alt: 'media',
+                supportsAllDrives
             })
         ]);
 

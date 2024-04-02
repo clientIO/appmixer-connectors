@@ -8,7 +8,7 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { fileId, fileName, folderLocation } = context.messages.in.content;
+        let { fileId, fileName, folderLocation, supportsAllDrives = true } = context.messages.in.content;
 
         const resource = {
             name: fileName
@@ -27,7 +27,8 @@ module.exports = {
         const response = await drive.files.copy({
             fileId,
             resource,
-            fields: 'id, name, mimeType, webViewLink, createdTime'
+            fields: 'id, name, mimeType, webViewLink, createdTime',
+            supportsAllDrives
         });
         return context.sendJson({
             fileId: response.data.id,
