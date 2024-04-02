@@ -1,5 +1,7 @@
 'use strict';
 
+const { BASE_URL } = require('./constants');
+
 module.exports = {
 
     type: 'oauth2',
@@ -26,7 +28,7 @@ module.exports = {
 
         requestProfileInfo: {
             method: 'GET',
-            url: 'https://api.linkedin.com/v2/userinfo',
+            url: `${BASE_URL}v2/userinfo`,
             auth: {
                 bearer: '{{accessToken}}'
             }
@@ -34,7 +36,7 @@ module.exports = {
 
         validateAccessToken: {
             method: 'GET',
-            url: 'https://api.linkedin.com/v2/userinfo',
+            url: `${BASE_URL}v2/userinfo`,
             auth: {
                 bearer: '{{accessToken}}'
             }

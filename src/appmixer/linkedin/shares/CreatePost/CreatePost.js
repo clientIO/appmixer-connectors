@@ -1,4 +1,7 @@
 'use strict';
+
+const { BASE_URL, VERSION_PATH, VERSION_HEADER } = require('../../constants');
+
 /**
  * Build post.
  * @param {Context} context
@@ -46,14 +49,14 @@ module.exports = {
 
         const response = await context.httpRequest({
             method: 'POST',
-            url: 'https://api.linkedin.com/v2/posts',
+            url: `${BASE_URL}${VERSION_PATH}/posts`,
             headers: {
                 'X-Restli-Protocol-Version': '2.0.0',
                 'Authorization': `Bearer ${context.auth.accessToken}`,
-                'LinkedIn-Version': '202304'
+                'LinkedIn-Version': VERSION_HEADER
             },
             data: buildPost(context)
         });
-        return context.sendJson({ status: response.status }, 'out');
+        return context.sendJson({ status: response.status, postId: response.headers['x-restli-id'] }, 'out');
     }
 };

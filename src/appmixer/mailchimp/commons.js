@@ -111,7 +111,7 @@ const unregisterWebhook = async (context) => {
 
     if (webhookId) {
         let listId = context.properties.listId;
-        await makeMailchimpRequest(context, 'DELETE', `/lists/${listId}/webhooks/${webhookId}`, args);
+        await makeMailchimpRequest(context, 'DELETE', `/lists/${listId}/webhooks/${webhookId}`);
     }
 };
 

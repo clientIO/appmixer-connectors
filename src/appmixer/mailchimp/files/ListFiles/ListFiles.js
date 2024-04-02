@@ -1,5 +1,6 @@
 'use strict';
 const aggregators = require('../../aggregators');
+const { sendArrayOutput } = require('../../commons');
 
 /**
  * Component listing lists
