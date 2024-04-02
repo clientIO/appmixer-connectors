@@ -15,7 +15,7 @@ module.exports = {
     toSelectArray({ projects }) {
 
         return projects.map(project => {
-            return { label: project.projectId, value: project.projectId };
+            return { label: project.id, value: project.id };
         });
     }
 
