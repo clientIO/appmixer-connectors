@@ -1,59 +1,94 @@
 'use strict';
 
-async function getErrors(context, now, errors = [], from = 0, size = 100) {
+async function fetchErrorsPage(context, lock, limit, logId = null, lastGridTimestamp = null, size = 100, errors = []) {
 
-    const result = await context.callAppmixer({
-        endPoint: '/logs',
-        method: 'GET',
-        qs: {
-            from,
-            size,
-            sort: 'gridTimestamp:asc',
-            query: `@timestamp:[${context.state.since} TO ${now}] AND severity:error`,
-            flowId: context.flowId
-        }
-    });
+    const qs = {
+        size: Math.min(limit, size),
+        query: 'severity:error',
+        flowId: context.flowId
+    };
 
-    errors = errors.concat(result.hits);
-
-    if (result.hits.length === 0 || result.hits.length < size) {
-        return errors;
+    if (logId && lastGridTimestamp) {
+        qs.searchAfter = [logId, lastGridTimestamp];
     }
 
-    return getErrors(context, now, errors, result.nextFrom, size);
+    while (true) {
+        try {
+            const result = await context.callAppmixer({
+                endPoint: '/logs',
+                method: 'GET',
+                qs
+            });
+
+            if (!(result.hits && result.hits.length > 0 && limit > result.hits.length)) {
+                break;
+            }
+
+            lock.extend(parseInt(context.config.lockTTL, 10) || 1000 * 60 * 2);
+            const lastLog = result.hits[result.hits.length - 1];
+            errors.push(...result.hits);
+
+            if (errors.length >= limit) {
+                break;
+            }
+
+            qs.searchAfter = [lastLog['_id'], lastLog['gridTimestamp']];
+        } catch (error) {
+            console.error('Error fetching errors:', error);
+            await context.log({ level: 'error', error: error.message || error });
+            break;
+        }
+    }
+
+    return errors;
 }
 
-/**
- * Add Flow name and component labels to those errors.
- * @param {Context} context
- * @param {Array} errors
- */
+// Adds labels to errors for better identification
 function addLabels(context, errors) {
 
-    return errors.map(err => {
-        return Object.assign(
-            err,
-            {
-                flowName: context.flowInfo.flowName
-            },
-            err.componentId ? {
-                componentLabel: context.flowDescriptor[err.componentId].label || err.componentType.split('.')[3]
-            } : {});
-    });
+    return errors.map(err => ({
+        ...err,
+        flowName: context.flowInfo.flowName,
+        componentLabel: err.componentId ? (context.flowDescriptor[err.componentId]?.label || err.componentType.split('.')[3]) : undefined
+    }));
 }
 
 module.exports = {
 
-    async start(context) {
-
-        return context.saveState({ since: new Date().toISOString() });
-    },
-
     async tick(context) {
 
-        const now = new Date().toISOString();
-        const errors = await getErrors(context, now);
-        await context.sendArray(addLabels(context, errors), 'out');
-        return context.saveState({ since: now });
+        const lockName = `errorProcessingLock-${context.componentId}`; // Define a unique lock name
+        let lock;
+        try {
+            lock = await context.lock(lockName, { ttl: context.config.lockTTL || 1000 * 60 * 5, maxRetryCount: 0 });
+            const { lastLogId, gridTimestamp } = context.state;
+            // ensure that if there is a limit set by context.config.limit
+            const limit = context.properties.limit
+                ? Math.min(
+                    parseInt(context.properties.limit),
+                    parseInt(context.config.limit) || Infinity
+                )
+                : parseInt(context.config.limit) || 100;
+
+            const result = await fetchErrorsPage(context, lock, limit, lastLogId, gridTimestamp);
+
+            if (result?.length > 0) {
+                // Process and send the errors to outport
+                const labeledErrors = addLabels(context, result);
+                await context.sendArray(labeledErrors, 'out');
+
+                // Update state with the _id of the last log in the page
+                const newLastLogId = result[result.length - 1]['_id'];
+                const newGridTimestamp = result[result.length - 1]['gridTimestamp'];
+                return context.saveState({ lastLogId: newLastLogId, gridTimestamp: newGridTimestamp });
+            }
+        } catch (error) {
+            await context.log({ level: 'error', message: error.message || error });
+        } finally {
+            if (lock) {
+                // Release the lock when done
+                lock.unlock();
+            }
+        }
     }
 };
