@@ -17,7 +17,7 @@ module.exports = {
         {
             limit: 10,
             window: 1000,
-            scope: 'projectId',
+            scope: 'userId',
             resource: 'projects.list'
         }
     ]
