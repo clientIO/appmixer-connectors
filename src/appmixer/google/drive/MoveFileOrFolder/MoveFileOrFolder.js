@@ -10,7 +10,7 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { fileId, destinationFolder } = context.messages.in.content;
+        let { fileId, destinationFolder, supportsAllDrives = true } = context.messages.in.content;
 
         let folderId;
         if (destinationFolder) {
@@ -24,7 +24,8 @@ module.exports = {
         // Retrieve the existing parents to remove
         const file = await drive.files.get({
             fileId: fileId,
-            fields: 'parents'
+            fields: 'parents',
+            supportsAllDrives
         });
 
         // Move the file to the new folder
@@ -36,7 +37,8 @@ module.exports = {
             fileId: fileId,
             addParents: folderId,
             removeParents: previousParents,
-            fields: 'id, parents'
+            fields: 'id, parents',
+            supportsAllDrives
         };
 
         if (DEBUG) {

@@ -8,9 +8,9 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { fileId } = context.messages.in.content;
+        let { fileId, supportsAllDrives = true } = context.messages.in.content;
 
-        await drive.files.delete({ fileId });
+        await drive.files.delete({ fileId, supportsAllDrives });
         return context.sendJson({ fileId }, 'out');
     }
 };

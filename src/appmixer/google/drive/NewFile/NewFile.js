@@ -2,12 +2,13 @@ const moment = require('moment');
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
 
-const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
+const getNewFiles = async (lock, drive, folder, pageToken, supportsAllDrives, newFiles = []) => {
 
     const { data: { changes, newStartPageToken, nextPageToken } } = await drive.changes.list({
         pageToken,
         fields: '*',
-        includeRemoved: false
+        includeRemoved: false,
+        supportsAllDrives
     });
 
     changes.forEach(change => {
@@ -24,7 +25,7 @@ const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
     if (nextPageToken) {
         await lock.extend(20000);
-        return getNewFiles(lock, drive, folder, nextPageToken, newFiles);
+        return getNewFiles(lock, drive, folder, nextPageToken, supportsAllDrives, newFiles);
     }
 
     return { newFiles, newStartPageToken };
@@ -33,7 +34,7 @@ const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 const detectNewFiles = async function(context) {
 
     const DEBUG = commons.isDebug(context);
-    const { folder = {} } = context.properties;
+    const { folder = {}, supportsAllDrives = true } = context.properties;
 
     let lock = null;
     try {
@@ -50,7 +51,13 @@ const detectNewFiles = async function(context) {
 
         await context.stateSet('hasSkippedMessage', false);
 
-        const { newFiles, newStartPageToken } = await getNewFiles(lock, drive, folder.id, startPageToken);
+        const { newFiles, newStartPageToken } = await getNewFiles(
+            lock,
+            drive,
+            folder.id,
+            startPageToken,
+            supportsAllDrives
+        );
 
         const processedFilesSet = commons.processedItemsBuffer(processedFiles);
 
@@ -161,6 +168,7 @@ module.exports = {
             const { data } = await drive.changes.watch({
                 quotaUser: userId,
                 includeRemoved: false,
+                supportsAllDrives: context.properties.supportsAllDrives || true,
                 pageToken,
                 requestBody: {
                     address: context.getWebhookUrl() + '?enqueueOnly=true',

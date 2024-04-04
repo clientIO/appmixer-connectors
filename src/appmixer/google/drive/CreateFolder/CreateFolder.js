@@ -9,7 +9,7 @@ module.exports = {
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         const { userId } = context.auth;
-        let { folderName, folderLocation, useExisting } = context.messages.in.content;
+        let { folderName, folderLocation, useExisting, supportsAllDrives = true } = context.messages.in.content;
 
         const resource = {
             name: folderName,
@@ -28,7 +28,8 @@ module.exports = {
         if (useExisting) {
             const query = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and parents in '${folderLocation ? folderId : 'root'}' and trashed=false`;
             const { data } = await drive.files.list({
-                q: query
+                q: query,
+                supportsAllDrives
             });
             await context.log({ query, data });
             const { files = [] } = data;
@@ -47,7 +48,8 @@ module.exports = {
         const response = await drive.files.create({
             quotaUser: userId,
             resource,
-            fields: 'id, name, mimeType, webViewLink, createdTime'
+            fields: 'id, name, mimeType, webViewLink, createdTime',
+            supportsAllDrives
         });
 
         return context.sendJson({
