@@ -23,7 +23,7 @@ module.exports = {
             parseNumbers,
             parseBooleans
         });
-
+        const lock = await context.lock(fileId, { retryDelay: 1000 });
         await processor.loadHeaders();
 
         let rowAsArray;
@@ -50,7 +50,7 @@ module.exports = {
         const savedFile = await processor.addRow(rowAsArray, (idx, currentRow, isEndOfFile) => {
             return isEndOfFile;
         });
-
+        lock && await lock.unlock();
         return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
 };

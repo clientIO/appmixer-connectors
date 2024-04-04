@@ -369,7 +369,6 @@ module.exports = class CSVProcessor {
      */
     async addRow(newRow, closure) {
 
-        const lock = await this.context.lock(this.fileId);
         const stream = await this.loadFile();
 
         let idx = 0;
@@ -385,7 +384,6 @@ module.exports = class CSVProcessor {
                 stream.destroy(err);
             }
         }).on('error', (err) => {
-            lock.unlock();
             stream.destroy(err);
         }).on('end', async () => {
             if (closure(idx, null, true)) {
@@ -394,11 +392,7 @@ module.exports = class CSVProcessor {
             writeStream.end();
         });
 
-        try {
-            return await this.context.replaceFileStream(this.fileId, writeStream);
-        } finally {
-            lock.unlock();
-        }
+        return await this.context.replaceFileStream(this.fileId, writeStream);
     }
 
     /**
