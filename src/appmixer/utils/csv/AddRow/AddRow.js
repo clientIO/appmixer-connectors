@@ -23,34 +23,38 @@ module.exports = {
             parseNumbers,
             parseBooleans
         });
-        const lock = await context.lock(fileId, { retryDelay: 1000 });
-        await processor.loadHeaders();
+        let lock;
+        try {
+            lock = await context.lock(fileId, { retryDelay: 1000 });
+            await processor.loadHeaders();
 
-        let rowAsArray;
+            let rowAsArray;
 
-        if (withHeaders) {
-            const headers = processor.getHeaders();
-            const parsed = expressionTransformer(rowWithColumns);
-            rowAsArray = headers.map(item => '');
-            parsed.forEach(item => {
-                const idx = processor.getHeaderIndex(item.column);
-                rowAsArray[idx] = item.value;
-            });
-        } else {
-            rowAsArray = row.split(delimiter);
-        }
-
-        for (let i = 0; i < rowAsArray.length; i++) {
-            const item = rowAsArray[i];
-            if (item === undefined || item === null) {
-                rowAsArray[i] = '';
+            if (withHeaders) {
+                const headers = processor.getHeaders();
+                const parsed = expressionTransformer(rowWithColumns);
+                rowAsArray = headers.map(item => '');
+                parsed.forEach(item => {
+                    const idx = processor.getHeaderIndex(item.column);
+                    rowAsArray[idx] = item.value;
+                });
+            } else {
+                rowAsArray = row.split(delimiter);
             }
-        }
 
-        const savedFile = await processor.addRow(rowAsArray, (idx, currentRow, isEndOfFile) => {
-            return isEndOfFile;
-        });
-        lock && await lock.unlock();
-        return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
+            for (let i = 0; i < rowAsArray.length; i++) {
+                const item = rowAsArray[i];
+                if (item === undefined || item === null) {
+                    rowAsArray[i] = '';
+                }
+            }
+
+            const savedFile = await processor.addRow(rowAsArray, (idx, currentRow, isEndOfFile) => {
+                return isEndOfFile;
+            });
+            return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
+        } finally {
+            lock && await lock.unlock();
+        }
     }
 };
