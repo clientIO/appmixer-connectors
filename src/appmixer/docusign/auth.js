@@ -19,7 +19,7 @@ module.exports = {
         authUrl: (context) => {
             return context.config.production ?
                 'https://account.docusign.com/oauth/auth' :
-                'https://account-d.docusign.com/oauth/auth'
+                'https://account-d.docusign.com/oauth/auth';
         },
 
         requestAccessToken: async context => {
