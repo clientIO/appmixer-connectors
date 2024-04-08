@@ -46,23 +46,24 @@ const processedItemsBuffer = function(data = []) {
     };
 };
 
-const escapeFolderName = (folderName) => {
+const escapeSpecialCharacters = (string) => {
+
+    if (!string) return string;
 
     const specialCharacters = ['\\', '"', "'", '\`'];
-
     // Escape special characters with backslash
     specialCharacters.forEach(char => {
-        folderName = folderName.replace(new RegExp(`\\${char}`, 'g'), `\\${char}`);
+        string = string.replace(new RegExp(`\\${char}`, 'g'), `\\${char}`);
     });
 
-    return folderName;
+    return string;
 };
 
 module.exports = {
 
     processedItemsBuffer,
     defaultExportFormats,
-    escapeFolderName,
+    escapeSpecialCharacters,
 
     getOauth2Client(auth) {
 

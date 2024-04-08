@@ -10,9 +10,9 @@ module.exports = {
         const drive = google.drive({ version: 'v3', auth });
         const { userId } = context.auth;
         let { folderName, folderLocation, useExisting } = context.messages.in.content;
-        const folderNameEscaped = commons.escapeFolderName(folderName);
+        const escapedFolderName = commons.escapeSpecialCharacters(folderName);
         const resource = {
-            name: folderNameEscaped,
+            name: folderName,
             mimeType: 'application/vnd.google-apps.folder'
         };
         let folderId;
@@ -26,7 +26,7 @@ module.exports = {
         }
 
         if (useExisting) {
-            const query = `name='${folderNameEscaped}' and mimeType='application/vnd.google-apps.folder' and parents in '${folderLocation ? folderId : 'root'}' and trashed=false`;
+            const query = `name='${escapedFolderName}' and mimeType='application/vnd.google-apps.folder' and parents in '${folderLocation ? folderId : 'root'}' and trashed=false`;
             const { data } = await drive.files.list({
                 q: query
             });
