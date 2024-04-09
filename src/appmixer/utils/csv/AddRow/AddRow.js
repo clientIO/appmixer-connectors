@@ -24,8 +24,9 @@ module.exports = {
             parseBooleans
         });
         let lock;
+        let lockExtendInterval;
         try {
-            lock = await context.lock(fileId, { retryDelay: 1000 });
+            lock = await context.lock(fileId, { ttl: 1000 * 60 * 1, maxRetryCount: 0 });
             await processor.loadHeaders();
 
             let rowAsArray;
@@ -48,13 +49,18 @@ module.exports = {
                     rowAsArray[i] = '';
                 }
             }
-
+            lockExtendInterval = setInterval(async () => {
+                if (lock) {
+                    await lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 1);
+                }
+            }, 30000);
             const savedFile = await processor.addRow(rowAsArray, (idx, currentRow, isEndOfFile) => {
                 return isEndOfFile;
             });
             return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
         } finally {
             lock && await lock.unlock();
+            clearInterval(lockExtendInterval);
         }
     }
 };
