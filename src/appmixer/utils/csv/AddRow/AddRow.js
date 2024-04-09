@@ -26,7 +26,10 @@ module.exports = {
         let lock;
         let lockExtendInterval;
         try {
-            lock = await context.lock(fileId, { ttl: 1000 * 60 * 1, maxRetryCount: 0 });
+            lock = await context.lock(fileId, {
+                ttl: parseInt(context.config.lockTTL, 10) || 1000 * 60 * 1,
+                retryDelay: 1000
+            });
             await processor.loadHeaders();
 
             let rowAsArray;
@@ -53,7 +56,7 @@ module.exports = {
                 if (lock) {
                     await lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 1);
                 }
-            }, 30000);
+            }, parseInt(context.config.lockExtendInterval, 10) || 30000);
             const savedFile = await processor.addRow(rowAsArray, (idx, currentRow, isEndOfFile) => {
                 return isEndOfFile;
             });
