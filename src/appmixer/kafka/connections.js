@@ -63,8 +63,7 @@ const addConnection = async (context, component) => {
                     );
                 } catch (err) {
                     if (err.message === 'Flow stopped.' || err.message === 'Missing flow.') {
-                        await connection.disconnect();
-                        delete openConnections[connectionId];
+                        await removeConnection({ flowId, componentId });
                         break;
                     }
                 }
