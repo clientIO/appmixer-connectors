@@ -41,37 +41,43 @@ const addConnection = async (context, component) => {
     const connectionId = `${flowId}:${componentId}`;
     if (openConnections[connectionId]) return; // Connection already exists, do nothing
 
-    const connection = initializeKafkaConsumer(component);
-    openConnections[connectionId] = connection;
+    let connection;
+    try {
+        connection = initializeKafkaConsumer(component);
+        openConnections[connectionId] = connection;
 
+        await connection.connect();
+        await connection.subscribe({ topics: topicSubscriptions, fromBeginning: fromBeginning || false });
 
-    await connection.connect();
-    await connection.subscribe({ topics: topicSubscriptions, fromBeginning: fromBeginning || false });
+        await connection.run({
+            eachBatchAutoResolve: false,
+            eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
+                for (const message of batch.messages) {
+                    if (!isRunning() || isStale()) break;
 
-    await connection.run({
-        eachBatchAutoResolve: false,
-        eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
-            for (const message of batch.messages) {
-                if (!isRunning() || isStale()) break;
-
-                try {
-                    await context.triggerComponent(
-                        flowId,
-                        componentId,
-                        processMessageData(message),
-                        { enqueueOnly: true }
-                    );
-                } catch (err) {
-                    if (err.message === 'Flow stopped.' || err.message === 'Missing flow.') {
-                        await removeConnection({ flowId, componentId });
-                        break;
+                    try {
+                        await context.triggerComponent(
+                            flowId,
+                            componentId,
+                            processMessageData(message),
+                            { enqueueOnly: true }
+                        );
+                    } catch (err) {
+                        if (err.message === 'Flow stopped.' || err.message === 'Missing flow.') {
+                            await removeConnection({ flowId, componentId });
+                            break;
+                        }
                     }
+                    resolveOffset(message.offset);
+                    await heartbeat();
                 }
-                resolveOffset(message.offset);
-                await heartbeat();
             }
-        }
-    });
+        });
+    } catch (error) {
+        // Remove the connection from openConnections if an exception occurs
+        await removeConnection({ flowId, componentId });
+        throw error; // Re-throw the error to propagate it to the NewMessage component
+    }
 };
 
 const removeConnection = async (component) => {
