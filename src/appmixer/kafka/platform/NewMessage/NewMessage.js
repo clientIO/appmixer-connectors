@@ -1,3 +1,4 @@
+// NewMessage.js
 'use strict';
 
 module.exports = {
@@ -6,7 +7,7 @@ module.exports = {
 
         const { componentId, flowId, properties: { topics, groupId, fromBeginning } } = context;
         return context.callAppmixer({
-            endPoint: '/plugins/appmixer/kafka/connection',
+            endPoint: '/plugins/appmixer/kafka/connect/consumer',
             method: 'POST',
             body: {
                 authDetails: context.auth,
@@ -22,16 +23,15 @@ module.exports = {
     stop(context) {
 
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafka/connection/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafka/connect/consumer/${context.flowId}/${context.componentId}`,
             method: 'DELETE'
         });
     },
 
-    async receive(context) {
+    receive(context) {
 
         if (context.messages.webhook) {
-            await context.sendJson(context.messages.webhook.content.data, 'out');
-            return context.response();
+            return context.sendJson(context.messages.webhook.content.data, 'out');
         }
     }
 };

@@ -2,22 +2,32 @@
 const { CompressionTypes, CompressionCodecs } = require('kafkajs');
 const SnappyCodec = require('kafkajs-snappy');
 
-const { kafka } = require('../../common');
+function registerCompressionCodec(compression) {
 
-const registerCompressionCodec = (type) => {
-
-    switch (type) {
+    switch (compression) {
         case 'Snappy':
             CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
             break;
         default:
             break;
     }
-};
+}
 
 module.exports = {
 
+    async stop(context) {
+
+        return context.callAppmixer({
+            endPoint: `/plugins/appmixer/kafka/connect/producer/${context.flowId}/${context.componentId}`,
+            method: 'DELETE'
+        });
+    },
+
     async receive(context) {
+
+        if (context.messages.webhook) {
+            return context.sendJson(context.messages.webhook.content.data, 'out');
+        }
 
         const {
             topic,
@@ -34,6 +44,7 @@ module.exports = {
         if (compression) registerCompressionCodec(compression);
 
         const options = {
+            authDetails: context.auth,
             topic,
             messages: [
                 {
@@ -46,15 +57,16 @@ module.exports = {
             ],
             acks,
             timeout,
-            compression: compression && CompressionTypes[compression]
+            compression: compression && CompressionTypes[compression],
+            componentId: context.componentId,
+            flowId: context.flowId
         };
 
-        const kafkaMaster = kafka();
-        kafkaMaster.init(context.auth);
-        kafkaMaster.createProducer();
-        await kafkaMaster.connectProducer();
-        await kafkaMaster.send(options);
-        await kafkaMaster.disconnectProducer();
-        return await context.sendJson(context.messages.in.content, 'out');
+        return context.callAppmixer({
+
+            endPoint: '/plugins/appmixer/kafka/connect/producer',
+            method: 'POST',
+            body: options
+        });
     }
 };

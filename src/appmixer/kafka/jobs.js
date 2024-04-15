@@ -31,23 +31,32 @@ module.exports = async (context) => {
                 const connectionId = `${component.flowId}:${component.componentId}`;
                 if (!existingConnections.includes(connectionId)) {
                     await context.log('info', `Connecting component: ${connectionId}`);
-                    await connections.addConnection(context, component.value);
+                    const latestState = await context.service.stateGet(connectionId);
+                    // Check if the component is still registered
+                    if (latestState) {
+                        await connections.addConnection(context, component.value);
+                    }
                 }
             };
 
             // Map over the registered components with concurrency limit
-            await Promise.all(registeredComponents.map(component => limit(() => connectComponent(component))));
+            await Promise.allSettled(registeredComponents.map(component => limit(() => connectComponent(component))));
 
             // Disconnect components that are in the existing connections but not in the service state
-            await Promise.all(existingConnections.map(connectionId => limit(async () => {
+            await Promise.allSettled(existingConnections.map(connectionId => limit(async () => {
                 if (!registeredComponentsKeys.has(connectionId)) {
                     await context.log('info', `Disconnecting component: ${connectionId}`);
-                    await connections.removeConnection({
-                        flowId: connectionId.split(':')[0],
-                        componentId: connectionId.split(':')[1]
-                    });
+                    const latestState = await context.service.stateGet(connectionId);
+                    // Check if the component is still registered
+                    if (latestState) {
+                        await connections.removeConnection({
+                            flowId: connectionId.split(':')[0],
+                            componentId: connectionId.split(':')[1]
+                        });
+                    }
                 }
             })));
+
         } catch (error) {
             await context.log('error', `Error occurred during connection sync job: ${error.message}`);
         } finally {

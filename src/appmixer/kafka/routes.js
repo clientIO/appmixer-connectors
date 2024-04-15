@@ -5,14 +5,14 @@ module.exports = (context) => {
 
     context.http.router.register({
         method: 'POST',
-        path: '/connection',
+        path: '/connect/{mode}',
         options: {
             handler: async (req, h) => {
 
                 const { flowId, componentId } = req.payload;
-                await connections.removeConnection({ flowId, componentId });
+                await connections.removeConnection({ flowId, componentId }, req.params.mode);
                 await context.service.stateSet(`${flowId}:${componentId}`, req.payload);
-                await connections.addConnection(context, req.payload);
+                await connections.addConnection(context, req.payload, req.params.mode);
                 return h.response({});
             }
         }
@@ -20,14 +20,14 @@ module.exports = (context) => {
 
     context.http.router.register({
         method: 'DELETE',
-        path: '/connection/{flowId}/{componentId}',
+        path: '/connect/{mode}/{flowId}/{componentId}',
         options: {
             handler: async (req, h) => {
 
-                const { flowId, componentId } = req.params;
+                const { flowId, componentId, mode } = req.params;
 
                 await context.service.stateUnset(`${flowId}:${componentId}`);
-                await connections.removeConnection({ flowId, componentId });
+                await connections.removeConnection({ flowId, componentId }, mode);
                 return h.response({});
             }
         }
