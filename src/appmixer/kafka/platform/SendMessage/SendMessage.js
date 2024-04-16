@@ -62,11 +62,13 @@ module.exports = {
             flowId: context.flowId
         };
 
-        return context.callAppmixer({
+        await context.callAppmixer({
 
             endPoint: '/plugins/appmixer/kafka/connect/producer',
             method: 'POST',
             body: options
         });
+
+        return context.sendJson(context.messages.in.content, 'out');
     }
 };

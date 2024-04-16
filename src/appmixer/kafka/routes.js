@@ -10,7 +10,9 @@ module.exports = (context) => {
             handler: async (req, h) => {
 
                 const { flowId, componentId } = req.payload;
-                await connections.removeConnection({ flowId, componentId }, req.params.mode);
+                if (req.params.mode === 'consumer') {
+                    await connections.removeConnection({ flowId, componentId }, req.params.mode);
+                }
                 await context.service.stateSet(`${flowId}:${componentId}`, req.payload);
                 await connections.addConnection(context, req.payload, req.params.mode);
                 return h.response({});

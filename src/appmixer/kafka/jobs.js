@@ -30,10 +30,10 @@ module.exports = async (context) => {
             const connectComponent = async (component) => {
                 const connectionId = `${component.flowId}:${component.componentId}`;
                 if (!existingConnections.includes(connectionId)) {
-                    await context.log('info', `Connecting component: ${connectionId}`);
                     const latestState = await context.service.stateGet(connectionId);
                     // Check if the component is still registered
                     if (latestState) {
+                        await context.log('info', `Connecting component: ${connectionId}`);
                         await connections.addConnection(context, component.value);
                     }
                 }
@@ -45,10 +45,10 @@ module.exports = async (context) => {
             // Disconnect components that are in the existing connections but not in the service state
             await Promise.allSettled(existingConnections.map(connectionId => limit(async () => {
                 if (!registeredComponentsKeys.has(connectionId)) {
-                    await context.log('info', `Disconnecting component: ${connectionId}`);
                     const latestState = await context.service.stateGet(connectionId);
                     // Check if the component is still registered
                     if (latestState) {
+                        await context.log('info', `Disconnecting component: ${connectionId}`);
                         await connections.removeConnection({
                             flowId: connectionId.split(':')[0],
                             componentId: connectionId.split(':')[1]
