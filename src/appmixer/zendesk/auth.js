@@ -15,25 +15,39 @@ module.exports = {
             return context.profileInfo['email'];
         },
 
-        pre: {
-            zendeskId: {
-                type: 'text',
-                name: 'Client ID',
-                tooltip: 'Enter your Zendesk client ID',
-                required: true
-            },
-            zendeskSecret: {
-                type: 'text',
-                name: 'Client Secret',
-                tooltip: 'Enter your Zendesk client secret',
-                required: true
-            },
-            subdomain: {
+        pre: function(context) {
+
+            console.log(context.config);
+            console.log(context.callbackUrl);
+            console.log(arguments, new Error().stack);
+
+            const fields = {};
+
+            const subdomain = {
                 type: 'text',
                 name: 'Subdomain',
                 tooltip: 'Your Zendesk subdomain - e.g. if the domain is <i>https://example.zendesk.com</i> just type <b>example</b> inside this field',
                 required: true
+            };
+
+            if (context.config?.private || true) {
+
+                fields.zendeskId = {
+                    type: 'text',
+                    name: 'Client ID',
+                    tooltip: 'Enter your Zendesk client ID',
+                    required: true
+                };
+
+                fields.zendeskSecret = {
+                    type: 'text',
+                    name: 'Client Secret',
+                    tooltip: 'Enter your Zendesk client secret',
+                    required: true
+                };
             }
+
+            return { ...fields, subdomain };
         },
 
         authUrl: context => {
