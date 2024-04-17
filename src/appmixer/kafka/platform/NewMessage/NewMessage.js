@@ -28,10 +28,11 @@ module.exports = {
         });
     },
 
-    receive(context) {
+    async receive(context) {
 
         if (context.messages.webhook) {
-            return context.sendJson(context.messages.webhook.content.data, 'out');
+            await context.sendJson(context.messages.webhook.content.data, 'out');
+            return context.response({});
         }
     }
 };

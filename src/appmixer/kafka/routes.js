@@ -10,11 +10,15 @@ module.exports = (context) => {
             handler: async (req, h) => {
 
                 const { flowId, componentId } = req.payload;
-                if (req.params.mode === 'consumer') {
-                    await connections.removeConnection({ flowId, componentId }, req.params.mode);
+                const { mode } = req.params;
+                if (mode === 'consumer') {
+                    await connections.removeConnection({ flowId, componentId }, mode);
                 }
-                await context.service.stateSet(`${flowId}:${componentId}`, req.payload);
-                await connections.addConnection(context, req.payload, req.params.mode);
+                await connections.addConnection(context, req.payload, mode);
+                if (mode === 'producer') {
+                    await connections.sendMessage({ flowId, componentId, payload: req.payload });
+                }
+                await context.service.stateSet(`${flowId}:${componentId}`, { ...req.payload, mode });
                 return h.response({});
             }
         }
@@ -27,7 +31,6 @@ module.exports = (context) => {
             handler: async (req, h) => {
 
                 const { flowId, componentId, mode } = req.params;
-
                 await context.service.stateUnset(`${flowId}:${componentId}`);
                 await connections.removeConnection({ flowId, componentId }, mode);
                 return h.response({});

@@ -12,6 +12,7 @@ const kafka = () => {
         const config = {
             clientId,
             brokers: brokers.split(',').map(broker => broker.trim()),
+            connectionTimeout: 10000,
             ssl: ssl ? ssl.toLowerCase() === 'true' : !!saslMechanism,
             sasl: saslMechanism
                 ? {

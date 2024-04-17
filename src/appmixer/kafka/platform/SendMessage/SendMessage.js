@@ -25,10 +25,6 @@ module.exports = {
 
     async receive(context) {
 
-        if (context.messages.webhook) {
-            return context.sendJson(context.messages.webhook.content.data, 'out');
-        }
-
         const {
             topic,
             key,

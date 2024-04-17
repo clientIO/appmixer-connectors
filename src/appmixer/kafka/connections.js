@@ -41,57 +41,97 @@ const processMessageData = (message) => {
 
 const addConnection = async (context, component, mode) => {
 
-    const { topics, flowId, componentId, fromBeginning, authDetails, groupId, ...producerPayload } = component;
+    const { topics, flowId, componentId, fromBeginning, authDetails, groupId } = component;
+
+    try {
+        if (mode === 'consumer') {
+            await addConsumerConnection(
+                context,
+                flowId,
+                componentId,
+                groupId,
+                authDetails,
+                topics,
+                fromBeginning
+            );
+        } else if (mode === 'producer') {
+            await addProducerConnection(flowId, componentId, authDetails);
+        }
+    } catch (error) {
+        await handleConnectionError({ flowId, componentId }, error);
+        throw error; // Re-throw the error to propagate it to the caller
+    }
+};
+
+const addConsumerConnection = async (
+    context,
+    flowId,
+    componentId,
+    groupId,
+    authDetails,
+    topics,
+    fromBeginning
+) => {
+
     const topicSubscriptions = topics?.AND.map(topic =>
         topic.topic.startsWith('/') ? RegexParser(topic.topic) : topic.topic
     );
     const connectionId = `${flowId}:${componentId}`;
-
     if (openConnections[connectionId]) return; // Connection already exists, do nothing
+    const connection = initializeKafkaConsumer({ groupId, authDetails });
+    openConnections[connectionId] = connection;
+    await connection.connect();
+    await connection.subscribe({
+        topics: topicSubscriptions,
+        fromBeginning: fromBeginning || false
+    });
 
-    let connection;
-    try {
-        if (mode === 'consumer') {
-            connection = initializeKafkaConsumer({ groupId, authDetails });
-            openConnections[connectionId] = connection;
-
-            await connection.connect();
-            await connection.subscribe({ topics: topicSubscriptions, fromBeginning: fromBeginning || false });
-
-            await connection.run({
-                eachBatchAutoResolve: false,
-                eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
-                    for (const message of batch.messages) {
-                        if (!isRunning() || isStale()) break;
-
-                        try {
-                            await context.triggerComponent(
-                                flowId,
-                                componentId,
-                                processMessageData(message),
-                                { enqueueOnly: true }
-                            );
-                        } catch (err) {
-                            if (err.message === 'Flow stopped.' || err.message === 'Missing flow.') {
-                                await removeConnection({ flowId, componentId });
-                                break;
-                            }
-                        }
-                        resolveOffset(message.offset);
-                        await heartbeat();
-                    }
+    await connection.run({
+        eachBatchAutoResolve: false,
+        eachBatch: async ({
+            batch,
+            resolveOffset,
+            heartbeat,
+            isRunning,
+            isStale
+        }) => {
+            for (const message of batch.messages) {
+                if (!isRunning() || isStale()) break;
+                try {
+                    await context.triggerComponent(
+                        flowId,
+                        componentId,
+                        processMessageData(message),
+                        { enqueueOnly: true }
+                    );
+                } catch (err) {
+                    await handleTriggerComponentError({ flowId, componentId }, err);
+                    break;
                 }
-            });
-        } else if (mode === 'producer') {
-            const kafkaProducer = initializeKafkaProducer(authDetails);
-            openConnections[connectionId] = kafkaProducer;
-            await kafkaProducer.connect();
-            await kafkaProducer.send(producerPayload);
+                resolveOffset(message.offset);
+                await heartbeat();
+            }
         }
+    });
+};
+
+const addProducerConnection = async (flowId, componentId, authDetails) => {
+
+    const kafkaProducer = initializeKafkaProducer(authDetails);
+    openConnections[`${flowId}:${componentId}`] = kafkaProducer;
+    await kafkaProducer.connect();
+};
+
+const sendMessage = async ({ flowId, componentId, payload }) => {
+
+    const connectionId = `${flowId}:${componentId}`;
+    const connection = openConnections[connectionId];
+    if (!connection) return; // Connection doesn't exist, do nothing
+
+    try {
+        await connection.send(payload);
     } catch (error) {
-        // Remove the connection from openConnections if an exception occurs
-        await removeConnection({ flowId, componentId });
-        throw error; // Re-throw the error to propagate it to the NewMessage component
+        await handleSendMessageError(connection, payload, error);
     }
 };
 
@@ -103,9 +143,31 @@ const removeConnection = async (component) => {
 
     await connection.disconnect();
     delete openConnections[connectionId];
-
 };
 
 const listConnections = () => Object.keys(openConnections);
 
-module.exports = { addConnection, removeConnection, listConnections };
+// Error handling functions
+const handleConnectionError = async (component, error) => {
+
+    await removeConnection(component);
+};
+
+const handleTriggerComponentError = async (component, error) => {
+
+    if (error.message === 'Flow stopped.' || error.message === 'Missing flow.') {
+        await removeConnection(component);
+    }
+};
+
+const handleSendMessageError = async (connection, payload, error) => {
+
+    try {
+        await connection.connect();
+        await connection.send(payload);
+    } catch (error) {
+        throw error;
+    }
+};
+
+module.exports = { addConnection, removeConnection, listConnections, sendMessage };
