@@ -17,10 +17,6 @@ module.exports = {
 
         pre: function(context) {
 
-            console.log(context.config);
-            console.log(context.callbackUrl);
-            console.log(arguments, new Error().stack);
-
             const fields = {};
 
             const subdomain = {
@@ -30,7 +26,9 @@ module.exports = {
                 required: true
             };
 
-            if (context.config?.private || true) {
+            const globalKeys = context.config?.globalKeys === 'true' || false;
+
+            if (!globalKeys) {
 
                 fields.zendeskId = {
                     type: 'text',
