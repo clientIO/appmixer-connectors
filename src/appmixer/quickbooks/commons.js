@@ -35,10 +35,6 @@ function getCSVValue(value) {
 
 module.exports = {
 
-    jsonata: require('jsonata'),
-
-    jsonPointer: require('json-pointer'),
-
     async makeRequest({ context, options }) {
 
         return context.httpRequest({
@@ -127,50 +123,5 @@ module.exports = {
         }
     },
 
-    getBaseUrl,
-
-    async replaceRuntimeExpressions(template, context, response, request) {
-
-        if (template === '$request.body') {
-            return request.data;
-        }
-
-        let result = typeof template === 'string' ? template : JSON.stringify(template);
-
-        result = result.replace(/{\$webhookUrl}/g, context.getWebhookUrl());
-        result = result.replace(/{\$baseUrl}/g, this.getBaseUrl(context));
-
-        result = result.replace(/{\$response.body#([^}]*)}/g, (match, pointer) => {
-            return this.jsonPointer.get(response.data, pointer);
-        });
-
-        result = result.replace(/{\$parameters\.([^}]*)}/g, (match, pointer) => {
-            return this.jsonPointer.get(context.properties, '/' + pointer);
-        });
-
-        result = result.replace(/{\$connection.profile\.([^}]*)}/g, (match, pointer) => {
-            return this.jsonPointer.get(context.auth.profileInfo, '/' + pointer);
-        });
-        result = result.replace(/{\$connection.profile#([^}]*)}/g, (match, pointer) => {
-            context.log({ step: 'replaceRuntimeExpressions - profile', pointer });
-            context.log({ step: 'profileInfo', profileInfo: context.auth.profileInfo });
-            context.log({ step: 'auth', auth: context.auth });
-            return this.jsonPointer.get(context.auth.profileInfo, pointer);
-        });
-
-        const responseTransformPromises = [];
-        const responseTransformRegex = /{\$response.transform#(.*(?<!\\))}/g;
-        result.replace(responseTransformRegex, (match, exp) => {
-            const expression = this.jsonata(exp);
-            responseTransformPromises.push(expression.evaluate(response));
-        });
-        const replacements = await Promise.all(responseTransformPromises);
-        result = result.replace(responseTransformRegex, () => replacements.shift());
-
-        result = result.replace(/{\$response.header\.([^}]*)}/g, (match, pointer) => {
-            return this.jsonPointer.get(response.headers, '/' + pointer);
-        });
-
-        return typeof template === 'string' ? result : JSON.parse(result);
-    }
+    getBaseUrl
 };
