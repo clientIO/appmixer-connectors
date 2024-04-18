@@ -8,11 +8,19 @@ const kafka = () => {
 
     const init = (options = {}) => {
 
-        const { clientId, brokers, ssl, saslMechanism, saslUsername, saslPassword } = options;
+        const {
+            clientId,
+            brokers,
+            ssl,
+            saslMechanism,
+            saslUsername,
+            saslPassword,
+            connectionTimeout = 10000
+        } = options;
         const config = {
             clientId,
             brokers: brokers.split(',').map(broker => broker.trim()),
-            connectionTimeout: 10000,
+            connectionTimeout: options.config?.connectionTimeout || connectionTimeout,
             ssl: ssl ? ssl.toLowerCase() === 'true' : !!saslMechanism,
             sasl: saslMechanism
                 ? {

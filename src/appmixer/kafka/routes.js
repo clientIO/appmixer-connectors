@@ -18,7 +18,6 @@ module.exports = (context) => {
                 if (mode === 'producer') {
                     await connections.sendMessage({ flowId, componentId, payload: req.payload });
                 }
-                await context.service.stateSet(`${flowId}:${componentId}`, { ...req.payload, mode });
                 return h.response({});
             }
         }

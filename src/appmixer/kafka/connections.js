@@ -42,7 +42,12 @@ const processMessageData = (message) => {
 const addConnection = async (context, component, mode) => {
 
     const { topics, flowId, componentId, fromBeginning, authDetails, groupId } = component;
+    authDetails.connectionTimeout = context.config.connectionTimeout;
 
+    const connectionId = `${flowId}:${componentId}`;
+    if (openConnections[connectionId]) return; // Connection already exists, do nothing
+
+    await context.service.stateSet(connectionId, { ...component, mode });
     try {
         if (mode === 'consumer') {
             await addConsumerConnection(
@@ -73,11 +78,12 @@ const addConsumerConnection = async (
     fromBeginning
 ) => {
 
+    const connectionId = `${flowId}:${componentId}`;
+
     const topicSubscriptions = topics?.AND.map(topic =>
         topic.topic.startsWith('/') ? RegexParser(topic.topic) : topic.topic
     );
-    const connectionId = `${flowId}:${componentId}`;
-    if (openConnections[connectionId]) return; // Connection already exists, do nothing
+
     const connection = initializeKafkaConsumer({ groupId, authDetails });
     openConnections[connectionId] = connection;
     await connection.connect();
@@ -117,8 +123,9 @@ const addConsumerConnection = async (
 
 const addProducerConnection = async (flowId, componentId, authDetails) => {
 
+    const connectionId = `${flowId}:${componentId}`;
     const kafkaProducer = initializeKafkaProducer(authDetails);
-    openConnections[`${flowId}:${componentId}`] = kafkaProducer;
+    openConnections[connectionId] = kafkaProducer;
     await kafkaProducer.connect();
 };
 
