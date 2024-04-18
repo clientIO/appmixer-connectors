@@ -1,6 +1,5 @@
 'use strict';
 const CSVProcessor = require('../CSVProcessor');
-const { expressionTransformer } = require('../helpers');
 
 module.exports = {
 
@@ -23,47 +22,10 @@ module.exports = {
             parseNumbers,
             parseBooleans
         });
-        let lock;
-        let lockExtendInterval;
-        try {
-            lock = await context.lock(fileId, {
-                ttl: parseInt(context.config.lockTTL, 10) || 1000 * 60 * 1,
-                retryDelay: 1000
-            });
-            await processor.loadHeaders();
+        const savedFile = await processor.addRow({ row, rowWithColumns }, (idx, currentRow, isEndOfFile) => {
+            return isEndOfFile;
+        });
 
-            let rowAsArray;
-
-            if (withHeaders) {
-                const headers = processor.getHeaders();
-                const parsed = expressionTransformer(rowWithColumns);
-                rowAsArray = headers.map(item => '');
-                parsed.forEach(item => {
-                    const idx = processor.getHeaderIndex(item.column);
-                    rowAsArray[idx] = item.value;
-                });
-            } else {
-                rowAsArray = row.split(delimiter);
-            }
-
-            for (let i = 0; i < rowAsArray.length; i++) {
-                const item = rowAsArray[i];
-                if (item === undefined || item === null) {
-                    rowAsArray[i] = '';
-                }
-            }
-            lockExtendInterval = setInterval(async () => {
-                if (lock) {
-                    await lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 1);
-                }
-            }, parseInt(context.config.lockExtendInterval, 10) || 30000);
-            const savedFile = await processor.addRow(rowAsArray, (idx, currentRow, isEndOfFile) => {
-                return isEndOfFile;
-            });
-            return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
-        } finally {
-            lock && await lock.unlock();
-            clearInterval(lockExtendInterval);
-        }
+        return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
 };
