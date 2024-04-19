@@ -3,7 +3,7 @@
 const RegexParser = require('regex-parser');
 const { kafka } = require('./common.js');
 
-let openConnections = {};
+const openConnections = {};
 const inProgress = {};
 const callbacks = {};
 
