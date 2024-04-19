@@ -4,6 +4,8 @@ const RegexParser = require('regex-parser');
 const { kafka } = require('./common.js');
 
 let openConnections = {};
+let inProgress = false;
+const callbacks = [];
 
 const initializeKafkaConsumer = ({ groupId, authDetails }) => {
 
@@ -45,10 +47,19 @@ const addConnection = async (context, component, mode) => {
     authDetails.connectionTimeout = context.config.connectionTimeout;
 
     const connectionId = `${flowId}:${componentId}`;
-    if (openConnections[connectionId]) return; // Connection already exists, do nothing
 
-    await context.service.stateSet(connectionId, { ...component, mode });
+    // If another connection operation is in progress, wait for it to complete
+    if (inProgress) {
+        return new Promise((resolve, reject) => {
+            callbacks.push({ resolve, reject });
+        });
+    }
+
+    inProgress = true;
+
     try {
+        await context.service.stateSet(connectionId, { ...component, mode });
+
         if (mode === 'consumer') {
             await addConsumerConnection(
                 context,
@@ -61,8 +72,21 @@ const addConnection = async (context, component, mode) => {
             );
         } else if (mode === 'producer') {
             await addProducerConnection(flowId, componentId, authDetails);
+        } else {
+            throw new Error(`Invalid mode: ${mode}`);
+        }
+
+        // Once the operation is complete, reset inProgress flag and resolve pending callbacks
+        inProgress = false;
+        while (callbacks.length > 0) {
+            callbacks.pop().resolve();
         }
     } catch (error) {
+        // If an error occurs, reset inProgress flag, reject pending callbacks, and throw the error
+        inProgress = false;
+        while (callbacks.length > 0) {
+            callbacks.pop().reject(error);
+        }
         await handleConnectionError({ flowId, componentId }, error);
         throw error; // Re-throw the error to propagate it to the caller
     }
