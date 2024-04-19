@@ -23,7 +23,7 @@ module.exports = {
             const { data } = await makeRequest({ context, options });
 
             // Empty response: {"CDCResponse": [{"QueryResponse": [{}]}],"time": "2024-04-18T05:12:07.655-07:00"}
-            if (data.CDCResponse[0].QueryResponse.length > 0 && data.CDCResponse[0].QueryResponse[0].Customer) {
+            if (data.CDCResponse[0].QueryResponse[0].Customer) {
                 for (const entity of data.CDCResponse[0].QueryResponse[0].Customer) {
                     // Compare MetaData.CreateTime with MetaData.LastUpdatedTime to determine if the entity is new or updated
                     const isNew = entity.MetaData.CreateTime === entity.MetaData.LastUpdatedTime;
