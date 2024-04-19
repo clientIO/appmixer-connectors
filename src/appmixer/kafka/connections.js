@@ -4,8 +4,8 @@ const RegexParser = require('regex-parser');
 const { kafka } = require('./common.js');
 
 let openConnections = {};
-let inProgress = false;
-const callbacks = [];
+const inProgress = {};
+const callbacks = {};
 
 const initializeKafkaConsumer = ({ groupId, authDetails }) => {
 
@@ -48,14 +48,15 @@ const addConnection = async (context, component, mode) => {
 
     const connectionId = `${flowId}:${componentId}`;
 
-    // If another connection operation is in progress, wait for it to complete
-    if (inProgress) {
+    // If another connection operation is in progress for this connection ID, wait for it to complete
+    if (inProgress[connectionId]) {
         return new Promise((resolve, reject) => {
-            callbacks.push({ resolve, reject });
+            callbacks[connectionId].push({ resolve, reject });
         });
     }
 
-    inProgress = true;
+    inProgress[connectionId] = true;
+    callbacks[connectionId] = [];
 
     try {
         await context.service.stateSet(connectionId, { ...component, mode });
@@ -76,16 +77,16 @@ const addConnection = async (context, component, mode) => {
             throw new Error(`Invalid mode: ${mode}`);
         }
 
-        // Once the operation is complete, reset inProgress flag and resolve pending callbacks
-        inProgress = false;
-        while (callbacks.length > 0) {
-            callbacks.pop().resolve();
+        // Once the operation is complete, reset inProgress flag for this connection ID and resolve pending callbacks
+        inProgress[connectionId] = false;
+        while (callbacks[connectionId].length > 0) {
+            callbacks[connectionId].pop().resolve();
         }
     } catch (error) {
-        // If an error occurs, reset inProgress flag, reject pending callbacks, and throw the error
-        inProgress = false;
-        while (callbacks.length > 0) {
-            callbacks.pop().reject(error);
+        // If an error occurs, reset inProgress flag for this connection ID, reject pending callbacks, remove the connection, and throw the error
+        inProgress[connectionId] = false;
+        while (callbacks[connectionId].length > 0) {
+            callbacks[connectionId].pop().reject(error);
         }
         await handleConnectionError({ flowId, componentId }, error);
         throw error; // Re-throw the error to propagate it to the caller
