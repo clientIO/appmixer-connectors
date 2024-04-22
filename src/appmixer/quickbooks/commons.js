@@ -151,6 +151,11 @@ module.exports = {
             try {
                 const { data } = await module.exports.makeRequest({ context, options });
 
+                if (!Array.isArray(data.CDCResponse) || !Array.isArray(data.CDCResponse[0].QueryResponse)) {
+                    await context.log({ step: 'Invalid response from QuickBooks API', data });
+                    throw new context.CancelError('Invalid response from QuickBooks API');
+                }
+
                 if (data.CDCResponse[0].QueryResponse[0][entityName]) {
                     for (const entity of data.CDCResponse[0].QueryResponse[0][entityName]) {
                         // Compare MetaData.CreateTime with MetaData.LastUpdatedTime to determine if the entity is new or updated
