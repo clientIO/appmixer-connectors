@@ -123,5 +123,59 @@ module.exports = {
         }
     },
 
+    /**
+     * Get latest changes for an entity and process it based on changeType
+     * @see https://developer.intuit.com/app/developer/qbo/docs/learn/explore-the-quickbooks-online-api/change-data-capture
+     * @param {*} context Context object
+     * @param {string} entityName eg: 'Customer' or 'Invoice'
+     * @param {string} changeType eg: 'new' or 'updated'
+     */
+    processEntityCDC: async function(context, entityName, changeType) {
+
+        let lock;
+        try {
+            lock = await context.lock(context.componentId, { maxRetryCount: 0 });
+            let { changedSince } = await context.stateGet('changedSince') || {};
+
+            if (!changedSince) {
+                // On first tick, fetch only the most recent update to set changedSince
+                changedSince = new Date();
+                await context.stateSet('changedSince', { changedSince });
+            }
+
+            const options = {
+                path: `v3/company/${context.profileInfo.companyId}/cdc?entities=${entityName}&changedSince=${changedSince.toISOString()}`,
+                method: 'GET'
+            };
+
+            try {
+                const { data } = await module.exports.makeRequest({ context, options });
+
+                if (data.CDCResponse[0].QueryResponse[0][entityName]) {
+                    for (const entity of data.CDCResponse[0].QueryResponse[0][entityName]) {
+                        // Compare MetaData.CreateTime with MetaData.LastUpdatedTime to determine if the entity is new or updated
+                        const isNew = entity?.MetaData?.CreateTime === entity?.MetaData?.LastUpdatedTime;
+                        if (isNew && changeType === 'new') {
+                            await context.sendJson(entity, 'out');
+                        } else if (!isNew && changeType === 'updated') {
+                            await context.sendJson(entity, 'out');
+                        }
+                    }
+                }
+
+                // Finally update changedSince to the latest time in the response
+                changedSince = new Date(data.time);
+                await context.stateSet('changedSince', { changedSince });
+            } catch (error) {
+                await context.log({ step: 'Error executing query', error });
+                throw new context.CancelError('Error executing query: ' + error);
+            }
+        } finally {
+            if (lock) {
+                await lock.unlock();
+            }
+        }
+    },
+
     getBaseUrl
 };
