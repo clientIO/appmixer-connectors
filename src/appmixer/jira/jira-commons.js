@@ -99,6 +99,7 @@ module.exports = {
         };
     },
 
+    // See IssueMetadata.js
     toInspector(fields, excludeFields) {
 
         const inspector = {
