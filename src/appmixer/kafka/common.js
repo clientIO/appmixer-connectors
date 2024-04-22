@@ -8,10 +8,19 @@ const kafka = () => {
 
     const init = (options = {}) => {
 
-        const { clientId, brokers, ssl, saslMechanism, saslUsername, saslPassword } = options;
+        const {
+            clientId,
+            brokers,
+            ssl,
+            saslMechanism,
+            saslUsername,
+            saslPassword,
+            connectionTimeout = 10000
+        } = options;
         const config = {
             clientId,
             brokers: brokers.split(',').map(broker => broker.trim()),
+            connectionTimeout: options.config?.connectionTimeout || connectionTimeout,
             ssl: ssl ? ssl.toLowerCase() === 'true' : !!saslMechanism,
             sasl: saslMechanism
                 ? {
@@ -54,9 +63,9 @@ const kafka = () => {
     const createProducer = ({ createPartitioner = undefined, retry = undefined } = {}) => {
 
         if (!kafkaClient) throw new Error('Kafka client not created');
-        if (!producer) {
-            producer = kafkaClient.producer({ createPartitioner, retry });
-        }
+        if (producer) throw new Error('Producer already created');
+        producer = kafkaClient.producer({ createPartitioner, retry });
+        return producer;
     };
 
     // Connect producer, producer must exists(use createProducer).
@@ -74,10 +83,10 @@ const kafka = () => {
     };
 
     // Send message, Producer must be connected(use connectProducer).
-    const send = async ({ topic, messages }) => {
+    const send = async (params) => {
 
         if (!producer) throw new Error('Producer not created');
-        await producer.send({ topic, messages });
+        await producer.send(params);
     };
 
     const createConsumer = ({ groupId }) => {
