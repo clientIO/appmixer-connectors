@@ -375,8 +375,14 @@ module.exports = class CSVProcessor {
             retryDelay: 500
         };
         const lock = await this.context.lock(this.fileId, lockOptions);
+        let lockExtendInterval;
 
         try {
+            lockExtendInterval = setInterval(async () => {
+
+                await lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 1);
+            }, context.config.lockExtendInterval || 30000);
+
             const stream = await this.loadFile();
             await this.loadHeaders();
 
@@ -409,11 +415,6 @@ module.exports = class CSVProcessor {
                     writeStream.write(rowAsArray.join(this.delimiter) + '\n');
                 }
                 idx++;
-
-                // Extend lock periodically
-                if (idx % 1000 === 0) {
-                    lock.extend(parseInt(config.lockExtendTime, 10) || 120000); // Default 2 minutes extend time
-                }
             });
 
             stream.on('error', (err) => {
@@ -434,6 +435,7 @@ module.exports = class CSVProcessor {
         } catch (err) {
             throw err; // Propagate the error
         } finally {
+            clearInterval(lockExtendInterval);
             lock.unlock();
         }
     }
