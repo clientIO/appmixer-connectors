@@ -41,6 +41,7 @@ module.exports = {
         let response;
 
         if (replace) {
+            filename = commons.escapeSpecialCharacters(filename);
             const query = `name='${filename}' and parents in '${folder ? folderId : 'root'}' and trashed=false`;
             const { data } = await drive.files.list({
                 q: query
