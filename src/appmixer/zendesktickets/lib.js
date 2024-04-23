@@ -12,9 +12,8 @@ module.exports = {
 
     getBaseUrl: function(context) {
 
-        let url = 'https://{subdomain}.{domain}.com';
-        url = url.replaceAll('{domain}', context.auth?.domain || context.config?.domain || 'zendesk');
-        url = url.replaceAll('{subdomain}', context.auth?.subdomain || context.config?.subdomain || 'example');
+        let url = 'https://{subdomain}.zendesk.com';
+        url = url.replaceAll('{subdomain}', context.subdomain || 'example');
         return url;
     },
 
