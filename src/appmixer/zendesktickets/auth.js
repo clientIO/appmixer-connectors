@@ -3,7 +3,7 @@
 const lib = require('./lib');
 
 const hasGlobalKeys = function(context) {
-    return context.config?.globalKeys === 'true' || false;
+    return context.config?.globalKeys === true || context.config?.globalKeys === 'true' || false;
 };
 
 module.exports = {
