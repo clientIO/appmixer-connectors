@@ -402,6 +402,68 @@ module.exports = class CSVProcessor {
     }
 
     /**
+     * Add multiple rows to the CSV.
+     * @param {Array} rows Array of rows to add.
+     * @param {Function} closure Closure to determine whether to add each row.
+     * @returns {Promise<unknown>}
+     */
+    async addRows(rows, closure) {
+
+        const config = this.context.config;
+        const lockOptions = {
+            ttl: parseInt(config.lockTTL, 10) || 60000, // Default 1 minute TTL
+            retryDelay: 500
+        };
+        const lock = await this.context.lock(this.fileId, lockOptions);
+        let lockExtendInterval;
+
+        try {
+            lockExtendInterval = setInterval(async () => {
+                await lock.extend(parseInt(this.context.config.lockExtendTime, 10) || 1000 * 60 * 1);
+            }, this.context.config.lockExtendInterval || 30000);
+
+            const stream = await this.loadFile();
+            await this.loadHeaders();
+
+            let idx = 0;
+            const writeStream = new PassThrough();
+
+            stream.on('data', (rowData) => {
+                writeStream.write(rowData.join(this.delimiter) + '\n');
+                if (closure(idx, rowData, false)) {
+                    rows.forEach(newRow => {
+                        writeStream.write(newRow.join(this.delimiter) + '\n');
+                    });
+                }
+                idx++;
+            });
+
+            stream.on('error', (err) => {
+                lock.unlock();
+                writeStream.end();
+                throw err; // Propagate the error
+            });
+
+            stream.on('end', () => {
+                if (closure(idx, null, true)) {
+                    rows.forEach(newRow => {
+                        writeStream.write(newRow.join(this.delimiter) + '\n');
+                    });
+                }
+                writeStream.end();
+            });
+
+            // Replace file stream with writeStream
+            return await this.context.replaceFileStream(this.fileId, writeStream);
+        } catch (err) {
+            throw err; // Propagate the error
+        } finally {
+            clearInterval(lockExtendInterval);
+            lock.unlock();
+        }
+    }
+
+    /**
      * @return {Promise<Stream>}
      * @protected
      */
