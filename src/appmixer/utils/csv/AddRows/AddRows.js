@@ -21,8 +21,20 @@ module.exports = {
             parseNumbers,
             parseBooleans
         });
-
-        const savedFile = await processor.addRow(rows, (idx, currentRow, isEndOfFile) => {
+        let rowsArray = rows;
+        if (typeof rows === 'string') {
+            // Try to parse string as JSON.
+            try {
+                rowsArray = JSON.parse(rows);
+            } catch (error) {
+                throw new context.CancelError(
+                    'Property \'rows\' should be array or well formed JSON array string. ' +
+                    'In case of CSV string, use modifier \'Split\' to create an Array.',
+                    error
+                );
+            }
+        }
+        const savedFile = await processor.addRows(rowsArray, (idx, currentRow, isEndOfFile) => {
             return isEndOfFile;
         });
 
