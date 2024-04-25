@@ -20,7 +20,6 @@ module.exports = async context => {
             auth: false,
             payload: {
                 parse: false
-                // allow: ['application/json charset=utf-8', 'application/json']
             },
             handler: async (req, h) => {
                 return module.exports.webhookHandler(context, req, h);

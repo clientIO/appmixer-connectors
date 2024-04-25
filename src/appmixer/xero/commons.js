@@ -64,7 +64,6 @@ module.exports = {
             }
             for (const chunk of chunks) {
                 const chunkRecords = await xc.requestPaginated('GET', endpoint, { params: { IDs: chunk.join(','), includeArchived: true, summaryOnly: false } });
-                await context.log({ step: 'Received Xero data', records: chunkRecords });
 
                 // Send the data out. Await it so that we don't get ContextNotFoundError.
                 await context.sendArray(chunkRecords, 'out');
