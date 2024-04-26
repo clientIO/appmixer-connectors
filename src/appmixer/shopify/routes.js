@@ -118,20 +118,6 @@ module.exports = function(context) {
         }
     });
 
-    context.http.router.register({
-        method: 'GET',
-        path: '/',
-        options: {
-            handler: () => {
-                return {
-                    version: '1.0',
-                    published: new Date().toISOString()
-                };
-            },
-            auth: false
-        }
-    });
-
     const getSignature = function(data, secret) {
         return crypto
             .createHmac('sha256', secret)
