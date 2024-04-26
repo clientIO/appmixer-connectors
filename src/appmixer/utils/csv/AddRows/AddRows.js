@@ -5,12 +5,11 @@ module.exports = {
 
     async receive(context) {
 
-        const { withHeaders } = context.properties;
-
         const {
             fileId,
             delimiter = ',',
             rows,
+            withHeaders = false,
             parseNumbers,
             parseBooleans
         } = context.messages.in.content;
@@ -34,7 +33,7 @@ module.exports = {
                 );
             }
         }
-        const savedFile = await processor.addRows(rowsArray, (idx, currentRow, isEndOfFile) => {
+        const savedFile = await processor.addRows({ rows: rowsArray }, (idx, currentRow, isEndOfFile) => {
             return isEndOfFile;
         });
 

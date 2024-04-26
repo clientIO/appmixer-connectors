@@ -17,6 +17,17 @@ function transformAndObject(andObject) {
     return result;
 }
 
+function convertRowWithColumnsToObject(rowWithColumns) {
+    const rowObject = {};
+    if (rowWithColumns?.AND) {
+        rowWithColumns.AND?.forEach(columnValuePair => {
+            const [columnName, columnValue] = columnValuePair;
+            rowObject[columnName] = columnValue;
+        });
+    }
+    return rowObject;
+}
+
 function expressionTransformer(expressionInput) {
 
     const result = [];
@@ -153,6 +164,7 @@ function indexExpressionToArray(indexExpression) {
 
 module.exports = {
     expressionTransformer,
+    convertRowWithColumnsToObject,
     mapExpressionValues,
     passesFilter,
     passesIndexFilter,
