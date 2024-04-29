@@ -182,5 +182,45 @@ module.exports = {
         }
     },
 
+    /**
+     * Handles a webhook message from QuickBooks plugin for contacts and invoices.
+     * @param {string} entity The QuickBooks entity to fetch data from. E.g. 'Invoice'.
+     * @returns {Promise<void>}
+     */
+    async webhookHandler(context, entity) {
+
+        const realmId = context.profileInfo.companyId;
+        await context.log({ step: 'Received webhook', entity, realmId, webhook: context.messages.webhook });
+
+        let lock;
+        try {
+            lock = await context.lock(context.componentId, { maxRetryCount: 0 });
+
+            const IDs = context.messages.webhook.content.data;
+            // There might be hundreds of IDs in one webhook, so we need to fetch them in chunks of 40.
+            // The limit here is the URL length, which is 2048 characters. This is a safe limit of 1440 characters.
+            const chunkSize = 40;
+            const chunks = [];
+            for (let i = 0; i < IDs.length; i += chunkSize) {
+                chunks.push(IDs.slice(i, i + chunkSize));
+            }
+            for (const chunk of chunks) {
+                /** A query for filtering the results. */
+                const query = `select * from ${entity} where Id in ('${chunk.join("','")}')`;
+                const options = {
+                    path: `v3/company/${context.profileInfo.companyId}/query?query=${encodeURIComponent(query)}`,
+                    method: 'GET'
+                };
+                const chunkRecords = await module.exports.makeRequest({ context, options });
+                // Send the data out. Await it so that we don't get ContextNotFoundError.
+                await context.sendArray(chunkRecords?.data?.QueryResponse[entity], 'out');
+            }
+        } finally {
+            if (lock) {
+                await lock.unlock();
+            }
+        }
+    },
+
     getBaseUrl
 };
