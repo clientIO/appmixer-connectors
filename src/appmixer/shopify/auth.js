@@ -31,8 +31,8 @@ module.exports = {
         pre: {
             store: {
                 type: 'text',
-                name: 'Store Address',
-                tooltip: 'Enter your Shopify store address (without .myshopify.com)',
+                name: 'Store Name',
+                tooltip: 'Enter your Shopify store name (without .myshopify.com)',
                 required: true
             }
         },
