@@ -427,7 +427,7 @@ module.exports = class CSVProcessor {
                         writeStream.write(newRow.join(this.delimiter) + '\n', (err) => {
                             if (err) {
                                 clearInterval(lockExtendInterval);
-                                lock.unlock();
+                                lock && lock.unlock();
                                 writeStream.end();
                                 throw err; // Propagate the error
                             }
@@ -441,7 +441,7 @@ module.exports = class CSVProcessor {
             return await this.context.replaceFileStream(this.fileId, writeStream);
         } finally {
             clearInterval(lockExtendInterval);
-            lock.unlock();
+            lock && lock.unlock();
         }
     }
 
