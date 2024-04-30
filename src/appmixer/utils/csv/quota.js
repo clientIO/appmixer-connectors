@@ -8,6 +8,13 @@ module.exports = {
             throttling: 'limit-concurrency',
             queueing: 'fifo',
             resource: 'loadFiles'
+        },
+        {
+            limit: 5,
+            throttling: 'limit-concurrency',
+            queueing: 'fifo',
+            resource: 'loadFiles',
+            scope: 'userId'
         }
     ]
 };
