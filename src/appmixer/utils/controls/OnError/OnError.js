@@ -63,14 +63,15 @@ module.exports = {
 
             for await (const batch of fetchErrorsGenerator(context, lock, limit, lastLogId, gridTimestamp)) {
                 if (batch.length > 0) {
-                    // Update state with the _id of the last log in the page
-                    const newLastLogId = batch[batch.length - 1]['_id'];
-                    const newGridTimestamp = batch[batch.length - 1]['gridTimestamp'];
-                    await context.saveState({ lastLogId: newLastLogId, gridTimestamp: newGridTimestamp });
 
                     // Process and send the errors to outport
                     const labeledErrors = addLabels(context, batch);
                     await context.sendArray(labeledErrors, 'out');
+
+                    // Update state with the _id of the last log in the page
+                    const newLastLogId = batch[batch.length - 1]['_id'];
+                    const newGridTimestamp = batch[batch.length - 1]['gridTimestamp'];
+                    await context.saveState({ lastLogId: newLastLogId, gridTimestamp: newGridTimestamp });
                 }
             }
         } finally {
