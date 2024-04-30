@@ -424,7 +424,14 @@ module.exports = class CSVProcessor {
             stream.on('end', () => {
                 if (closure(idx, null, true)) {
                     rowsToAdd.forEach(newRow => {
-                        writeStream.write(newRow.join(this.delimiter) + '\n');
+                        writeStream.write(newRow.join(this.delimiter) + '\n', (err) => {
+                            if (err) {
+                                clearInterval(lockExtendInterval);
+                                lock.unlock();
+                                writeStream.end();
+                                throw err; // Propagate the error
+                            }
+                        });
                     });
                 }
                 writeStream.end();

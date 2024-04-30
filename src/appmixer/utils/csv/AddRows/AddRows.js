@@ -9,10 +9,12 @@ module.exports = {
             fileId,
             delimiter = ',',
             rows,
-            withHeaders = false,
             parseNumbers,
             parseBooleans
         } = context.messages.in.content;
+
+        // check if it withHeaders or not(if rows is an array of array string or array of objects)
+        const withHeaders = !Array.isArray(rows[0]);
 
         const processor = new CSVProcessor(context, fileId, {
             withHeaders,
