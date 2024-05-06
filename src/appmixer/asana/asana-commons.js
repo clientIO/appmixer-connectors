@@ -25,7 +25,7 @@ module.exports = {
             await context.sendJson(records, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.
-            const headers = Object.keys(records[0]);
+            const headers = Object.keys(records[0] || {});
             let csvRows = [];
             csvRows.push(headers.join(','));
             for (const record of records) {
@@ -38,7 +38,7 @@ module.exports = {
             }
             const csvString = csvRows.join('\n');
             let buffer = Buffer.from(csvString, 'utf8');
-            const componentName = context.flowDescriptor[context.componentId].label;
+            const componentName = context.flowDescriptor[context.componentId].label || context.componentId;
             const fileName = `${context.config.outputFilePrefix || 'asana-export'}-${componentName}.csv`;
             const savedFile = await context.saveFileStream(pathModule.normalize(fileName), buffer);
             await context.log({ step: 'File was saved', fileName, fileId: savedFile.fileId });

@@ -13,8 +13,8 @@ module.exports = {
             projectId
         });
 
-        const [ datasets ] = await client.getDatasets();
-        return context.sendJson({ datasets }, 'out')
+        const [datasets] = await client.getDatasets();
+        return context.sendJson({ datasets }, 'out');
     },
 
     toSelectArray({ datasets }) {

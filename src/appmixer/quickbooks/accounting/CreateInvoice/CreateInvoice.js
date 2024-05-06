@@ -47,6 +47,13 @@ module.exports = {
             };
         });
 
+        let lineItemsJSONArray;
+        try {
+            lineItemsJSONArray = JSON.parse(lineItemsJSON);
+        } catch (e) {
+            throw new context.CancelError('Invalid JSON in "Line Items JSON"');
+        }
+
         const options = {
             path: `v3/company/${context.profileInfo.companyId}/invoice?minorversion=${minorVersion}`,
             method: 'POST',
@@ -54,7 +61,7 @@ module.exports = {
                 CustomerRef: {
                     value: customerId
                 },
-                Line: lineItemsArray || JSON.parse(lineItemsJSON),
+                Line: lineItemsArray || lineItemsJSONArray,
                 CurrencyRef: {
                     value: currency
                 },

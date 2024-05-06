@@ -1,7 +1,7 @@
 'use strict';
-const {BigQuery} = require('@google-cloud/bigquery');
+const { BigQuery } = require('@google-cloud/bigquery');
 const commons = require('../../google-commons');
-const { StreamProcessor} = require('../common')
+const { StreamProcessor } = require('../common');
 const moduleCommons = require('../common');
 
 async function processUpdateRowStream(rowsStream, context, storeId, idField, lock) {
@@ -45,7 +45,7 @@ async function startRoutine(context) {
         await context.store.registerWebhook(storeId, webhookEvents);
     }
 
-    let lock
+    let lock;
     try {
         lock = await context.lock('BigQueryUpdatedRow-' + context.componentId, {
             ttl: parseInt(context.config.lockTTL, 10) || 1000 * 60 * 5,

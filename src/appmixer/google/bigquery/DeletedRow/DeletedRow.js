@@ -90,5 +90,5 @@ module.exports = {
 
         const [job] = await client.createQueryJob({ query });
         return job.getQueryResultsStream();
-    },
+    }
 };

@@ -1,6 +1,6 @@
 'use strict';
 const { BigQuery } = require('@google-cloud/bigquery');
-const commons = require("../../google-commons");
+const commons = require('../../google-commons');
 
 function parseInput(field, value) {
 
@@ -10,7 +10,7 @@ function parseInput(field, value) {
         'date',
         'time',
         'datetime'
-    ]
+    ];
 
     return quotedTypes.includes(field) ? `"${value}"` : value;
 }
@@ -49,4 +49,4 @@ module.exports = {
 
         return context.sendJson({}, 'out');
     }
-}
+};

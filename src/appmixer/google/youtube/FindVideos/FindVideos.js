@@ -85,7 +85,7 @@ module.exports = {
         }
 
         if (outputType === 'items') {
-            return context.sendJson({ videos }, 'out');
+            return context.sendJson({ items: videos }, 'out');
         }
 
         const headers = Object.keys(videos[0]);

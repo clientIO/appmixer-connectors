@@ -87,7 +87,7 @@ module.exports = {
                         },
                         transform: './ListGroups#groupsToSelectArray'
                     }
-                }
+                };
             }
 
             return context.sendJson({

@@ -12,7 +12,6 @@ module.exports = {
 
             tokenType: 'authentication-token',
 
-            // TODO do dokumentace, ze to musi sedet s jednim z authUrl
             accountNameFromProfileInfo: 'accountSID',
 
             auth: {

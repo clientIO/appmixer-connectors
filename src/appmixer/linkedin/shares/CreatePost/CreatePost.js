@@ -1,4 +1,7 @@
 'use strict';
+
+const { BASE_URL, VERSION_PATH, VERSION_HEADER } = require('../../constants');
+
 /**
  * Build post.
  * @param {Context} context
@@ -6,21 +9,21 @@
  * @return {Object} shareObject
  */
 function buildPost(context) {
-    
+
     const { visibility, text, url, title, description, specificLink } = context.messages.in.content;
 
-      const shareObject = {
-            author: `urn:li:person:${context.auth.profileInfo.sub}`,
-            commentary: text,
-            visibility: visibility || 'PUBLIC',
-            distribution: {
-            feedDistribution: "MAIN_FEED",
+    const shareObject = {
+        author: `urn:li:person:${context.auth.profileInfo.sub}`,
+        commentary: text,
+        visibility: visibility || 'PUBLIC',
+        distribution: {
+            feedDistribution: 'MAIN_FEED',
             targetEntities: [],
             thirdPartyDistributionChannels: []
-            },
-            lifecycleState: "PUBLISHED",
-            isReshareDisabledByAuthor: false
-      };
+        },
+        lifecycleState: 'PUBLISHED',
+        isReshareDisabledByAuthor: false
+    };
 
     if (specificLink) {
 
@@ -30,7 +33,7 @@ function buildPost(context) {
                 title,
                 description
             }
-        }
+        };
     }
 
     return shareObject;
@@ -46,14 +49,14 @@ module.exports = {
 
         const response = await context.httpRequest({
             method: 'POST',
-            url: 'https://api.linkedin.com/v2/posts',
+            url: `${BASE_URL}${VERSION_PATH}/posts`,
             headers: {
                 'X-Restli-Protocol-Version': '2.0.0',
                 'Authorization': `Bearer ${context.auth.accessToken}`,
-                'LinkedIn-Version': '202304',
+                'LinkedIn-Version': VERSION_HEADER
             },
             data: buildPost(context)
         });
-        return context.sendJson({ status: response.status }, 'out');
+        return context.sendJson({ status: response.status, postId: response.headers['x-restli-id'] }, 'out');
     }
 };

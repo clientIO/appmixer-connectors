@@ -21,7 +21,9 @@ module.exports = {
         let current = [];
         let diff = [];
 
-        lists.forEach(context.utils.processItem.bind(null, known, current, diff, list => list.id));
+        if (Array.isArray(lists)) {
+            lists.forEach(context.utils.processItem.bind(null, known, current, diff, list => list.id));
+        }
 
         await Promise.all(diff.map((list) => {
             return context.sendJson(list, 'list');
