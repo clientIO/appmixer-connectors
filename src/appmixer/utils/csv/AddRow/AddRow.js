@@ -1,5 +1,6 @@
 'use strict';
 const CSVProcessor = require('../CSVProcessor');
+const { convertRowWithColumnsToObject } = require('../helpers');
 
 module.exports = {
 
@@ -22,10 +23,12 @@ module.exports = {
             parseNumbers,
             parseBooleans
         });
-        const savedFile = await processor.addRow({ row, rowWithColumns }, (idx, currentRow, isEndOfFile) => {
-            return isEndOfFile;
-        });
-
+        const savedFile = await processor.addRows(
+            { rows: withHeaders ? [convertRowWithColumnsToObject(rowWithColumns)] : row.split(delimiter) },
+            (idx, currentRow, isEndOfFile) => {
+                return isEndOfFile;
+            }
+        );
         return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
 };

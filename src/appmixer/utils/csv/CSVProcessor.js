@@ -3,7 +3,7 @@ const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
 const stream = require('stream');
 const { PassThrough, pipeline } = stream;
-const { passesFilter, indexExpressionToArray, passesIndexFilter, expressionTransformer } = require('./helpers');
+const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
 module.exports = class CSVProcessor {
 
@@ -362,57 +362,55 @@ module.exports = class CSVProcessor {
     }
 
     /**
-     * @param newRow
+     * @param rows
      * @param closure
      * @return {Promise<*>}
      * @public
      */
-    async addRow({ row, rowWithColumns }, closure) {
+    async addRows({ rows }, closure) {
 
         const config = this.context.config;
         const lockOptions = {
             ttl: parseInt(config.lockTTL, 10) || 60000, // Default 1 minute TTL
             retryDelay: 500
         };
+
         const lock = await this.context.lock(this.fileId, lockOptions);
         let lockExtendInterval;
 
         try {
             lockExtendInterval = setInterval(async () => {
-
-                await lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 1);
-            }, context.config.lockExtendInterval || 30000);
+                await lock.extend(parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1);
+            }, config.lockExtendInterval || 30000);
 
             const stream = await this.loadFile();
+
             await this.loadHeaders();
 
-            let rowAsArray;
+            let rowsToAdd = [];
 
-            // Process row data based on whether headers are included
             if (this.withHeaders) {
                 const headers = this.getHeaders();
-                const parsed = expressionTransformer(rowWithColumns);
-                rowAsArray = headers.map(() => ''); // Initialize rowAsArray with empty strings
-                parsed.forEach(({ column, value }) => {
-                    const idx = this.getHeaderIndex(column);
-                    if (idx !== -1) { // Ensure the column exists in headers
-                        rowAsArray[idx] = value;
-                    }
+
+                rowsToAdd = rows.map(rowObj => {
+                    const newRow = [];
+                    headers.forEach(header => {
+                        newRow.push(rowObj[header] || '');
+                    });
+                    return newRow;
                 });
             } else {
-                rowAsArray = row.split(this.delimiter);
+                rowsToAdd = rows;
             }
-
-            // Ensure each item in rowAsArray is not undefined or null
-            rowAsArray = rowAsArray.map(item => item ?? '');
-
             let idx = 0;
             const writeStream = new PassThrough();
 
             stream.on('data', (rowData) => {
                 writeStream.write(rowData.join(this.delimiter) + '\n');
                 if (closure(idx, rowData, false)) {
-                    writeStream.write(rowAsArray.join(this.delimiter) + '\n');
+                    rowsToAdd.forEach(newRow => {
+                        writeStream.write(newRow.join(this.delimiter) + '\n');
+                    });
                 }
                 idx++;
             });
@@ -425,21 +423,27 @@ module.exports = class CSVProcessor {
 
             stream.on('end', () => {
                 if (closure(idx, null, true)) {
-                    writeStream.write(rowAsArray.join(this.delimiter) + '\n');
+                    rowsToAdd.forEach(newRow => {
+                        writeStream.write(newRow.join(this.delimiter) + '\n', (err) => {
+                            if (err) {
+                                clearInterval(lockExtendInterval);
+                                lock && lock.unlock();
+                                writeStream.end();
+                                throw err; // Propagate the error
+                            }
+                        });
+                    });
                 }
                 writeStream.end();
             });
 
             // Replace file stream with writeStream
             return await this.context.replaceFileStream(this.fileId, writeStream);
-        } catch (err) {
-            throw err; // Propagate the error
         } finally {
             clearInterval(lockExtendInterval);
-            lock.unlock();
+            lock && lock.unlock();
         }
     }
-
 
     /**
      * @return {Promise<Stream>}
