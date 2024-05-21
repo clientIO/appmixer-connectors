@@ -369,7 +369,7 @@ module.exports = class CSVProcessor {
      */
     async addRows({ rows }, closure) {
 
-        const config = this.context.config;
+        const config = this.context.config;/**/
         const lockOptions = {
             ttl: parseInt(config.lockTTL, 10) || 60000, // Default 1 minute TTL
             retryDelay: 500
