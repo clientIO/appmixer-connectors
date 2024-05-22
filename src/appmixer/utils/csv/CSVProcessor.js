@@ -367,7 +367,7 @@ module.exports = class CSVProcessor {
      * @return {Promise<*>}
      * @public
      */
-    async addRows({ rows }, closure) {
+    async addRows({ rows }, closure, context) {
 
         const config = this.context.config;
         const lockOptions = {
@@ -375,13 +375,36 @@ module.exports = class CSVProcessor {
             retryDelay: 500
         };
 
-        const lock = await this.context.lock(this.fileId, lockOptions);
+        let id = '777' + this.fileId;
+        const lock = await this.context.lock(id, lockOptions);
         let lockExtendInterval;
 
+        const dispose  = function() {
+
+        }
+
         try {
-            lockExtendInterval = setInterval(async () => {
-                await lock.extend(parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1);
-            }, config.lockExtendInterval || 30000);
+            const max = 5;
+            let i = 0;
+            setTimeout(() => {
+
+                if (lock) {
+                    lock.unlock();
+                }
+                context.log({ stage: '02 unlock', rows });
+
+            }, 10000);
+
+            // lockExtendInterval = setInterval(async () => {
+            //     context.log({ stage: id, rows });
+            //     i++;
+            //     if (i > max) {
+            //         clearInterval(lockExtendInterval);
+            //         lock && lock.unlock();
+            //         return;
+            //     }
+            //     await lock.extend(parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1);
+            // }, config.lockExtendInterval || 10000);
 
             const stream = await this.loadFile();
 
@@ -418,17 +441,46 @@ module.exports = class CSVProcessor {
             stream.on('error', (err) => {
                 lock.unlock();
                 writeStream.end();
+
+                context.log({ stage: '--ERRR stream ', err });
+                throw err; // Propagate the error
+            });
+
+            writeStream.on('error', (err) => {
+
+                context.log({ stage: '--ERRR wstream begin', err });
+
+                if (lock) {
+                    lock.unlock();
+                }
+                // if (lockExtendInterval) {
+                //
+                // }
+
+                if (stream) {
+                    stream.destroy();
+                }
+
+                context.log({ stage: '--ERRR wstream end', err });
                 throw err; // Propagate the error
             });
 
             stream.on('end', () => {
+
+
+                kladsjfkldslfkjdsjfkl = 'sdfsdf'
                 if (closure(idx, null, true)) {
                     rowsToAdd.forEach(newRow => {
+                        context.log({ stage: 'END-row-item', newRow, x: newRow.join(this.delimiter) + '\n' });
+
                         writeStream.write(newRow.join(this.delimiter) + '\n', (err) => {
+                            context.log({ stage: 'END-row-item OK', newRow });
+
                             if (err) {
                                 clearInterval(lockExtendInterval);
                                 lock && lock.unlock();
                                 writeStream.end();
+                                context.log({ stage: 'ENDERRR', err });
                                 throw err; // Propagate the error
                             }
                         });
@@ -439,8 +491,11 @@ module.exports = class CSVProcessor {
 
             // Replace file stream with writeStream
             return await this.context.replaceFileStream(this.fileId, writeStream);
+        } catch (err) {
+            context.log({ stage: 'www error ... ', err });
+            throw err;
         } finally {
-            clearInterval(lockExtendInterval);
+            // clearInterval(lockExtendInterval);
             lock && lock.unlock();
         }
     }

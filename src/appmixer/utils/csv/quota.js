@@ -4,7 +4,7 @@ module.exports = {
 
     rules: [
         {
-            limit: 5,
+            limit: 15,
             throttling: 'limit-concurrency',
             queueing: 'fifo',
             resource: 'loadFiles'
