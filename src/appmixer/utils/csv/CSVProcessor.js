@@ -459,8 +459,7 @@ module.exports = class CSVProcessor {
                 destroy();
                 reject(err);
             } finally {
-                // clearInterval(lockExtendInterval);
-                lock && lock.unlock();
+                destroy();
                 resolve();
             }
         });
