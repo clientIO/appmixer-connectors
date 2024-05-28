@@ -367,137 +367,104 @@ module.exports = class CSVProcessor {
      * @return {Promise<*>}
      * @public
      */
-    async addRows({ rows }, closure, context) {
+    async addRows({ rows }, closure) {
 
         const config = this.context.config;
-        const lockOptions = {
+        const lock = await this.context.lock(this.fileId, {
             ttl: parseInt(config.lockTTL, 10) || 60000, // Default 1 minute TTL
             retryDelay: 500
+        });
+
+        let lockExtendInterval;
+        let writeStream;
+        let stream;
+
+        const destroy = function() {
+
+            if (lock) lock.unlock();
+            if (stream) stream.destroy();
+            if (writeStream) writeStream.destroy();
+            if (lockExtendInterval) clearInterval(lockExtendInterval);
         };
 
-        let id = '777' + this.fileId;
-        const lock = await this.context.lock(id, lockOptions);
-        let lockExtendInterval;
+        return new Promise(async (resolve, reject) => {
 
-        const dispose  = function() {
+            try {
+                const lockExtendTime = parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1;
+                const max = Math.ceil((1000 * 60 * 60) / lockExtendTime); // max execution time 1 hour
+                let i = 0;
 
-        }
+                lockExtendInterval = setInterval(async () => {
+                    i++;
+                    if (i > max) {
+                        destroy();
+                        reject({ message: 'Lock extend failed. Max attempts reached.' });
+                        return;
+                    }
+                    await lock.extend(lockExtendTime);
+                }, config.lockExtendInterval || 10000);
 
-        try {
-            const max = 5;
-            let i = 0;
-            setTimeout(() => {
+                stream = await this.loadFile();
+                writeStream = new PassThrough();
 
-                if (lock) {
-                    lock.unlock();
-                }
-                context.log({ stage: '02 unlock', rows });
+                await this.loadHeaders();
 
-            }, 10000);
+                const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
 
-            // lockExtendInterval = setInterval(async () => {
-            //     context.log({ stage: id, rows });
-            //     i++;
-            //     if (i > max) {
-            //         clearInterval(lockExtendInterval);
-            //         lock && lock.unlock();
-            //         return;
-            //     }
-            //     await lock.extend(parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1);
-            // }, config.lockExtendInterval || 10000);
-
-            const stream = await this.loadFile();
-
-            await this.loadHeaders();
-
-            let rowsToAdd = [];
-
-            if (this.withHeaders) {
-                const headers = this.getHeaders();
-
-                rowsToAdd = rows.map(rowObj => {
-                    const newRow = [];
-                    headers.forEach(header => {
-                        newRow.push(rowObj[header] || '');
-                    });
-                    return newRow;
+                let idx = 0;
+                stream.on('data', (rowData) => {
+                    try {
+                        writeStream.write(rowData.join(this.delimiter) + '\n');
+                        if (closure(idx, rowData, false)) {
+                            rowsToAdd.forEach(newRow => {
+                                const line = newRow.join(this.delimiter) + '\n';
+                                return writeStream.write(line);
+                            });
+                        }
+                        idx++;
+                    } catch (err) {
+                        destroy();
+                        reject({ error: err, row: rowData });
+                    }
                 });
-            } else {
-                rowsToAdd = rows;
+
+                stream.on('end', () => {
+                    try {
+                        if (closure(idx, null, true)) {
+                            rowsToAdd.forEach(newRow => {
+                                const line = newRow.join(this.delimiter) + '\n';
+                                writeStream.write(line);
+                            });
+                        }
+                        writeStream.end();
+                    } catch (err) {
+                        destroy();
+                        reject({ error: err });
+                    }
+                });
+
+                stream.on('error', (err) => {
+                    destroy();
+                    reject(err);
+                });
+
+                writeStream.on('error', (err) => {
+                    destroy();
+                    reject(err);
+                });
+
+                // Replace file stream with writeStream
+                return await this.context.replaceFileStream(this.fileId, writeStream);
+            } catch (err) {
+                destroy();
+                reject(err);
+            } finally {
+                // clearInterval(lockExtendInterval);
+                lock && lock.unlock();
+                resolve();
             }
-            let idx = 0;
-            const writeStream = new PassThrough();
+        });
 
-            stream.on('data', (rowData) => {
-                writeStream.write(rowData.join(this.delimiter) + '\n');
-                if (closure(idx, rowData, false)) {
-                    rowsToAdd.forEach(newRow => {
-                        writeStream.write(newRow.join(this.delimiter) + '\n');
-                    });
-                }
-                idx++;
-            });
-
-            stream.on('error', (err) => {
-                lock.unlock();
-                writeStream.end();
-
-                context.log({ stage: '--ERRR stream ', err });
-                throw err; // Propagate the error
-            });
-
-            writeStream.on('error', (err) => {
-
-                context.log({ stage: '--ERRR wstream begin', err });
-
-                if (lock) {
-                    lock.unlock();
-                }
-                // if (lockExtendInterval) {
-                //
-                // }
-
-                if (stream) {
-                    stream.destroy();
-                }
-
-                context.log({ stage: '--ERRR wstream end', err });
-                throw err; // Propagate the error
-            });
-
-            stream.on('end', () => {
-
-
-                kladsjfkldslfkjdsjfkl = 'sdfsdf'
-                if (closure(idx, null, true)) {
-                    rowsToAdd.forEach(newRow => {
-                        context.log({ stage: 'END-row-item', newRow, x: newRow.join(this.delimiter) + '\n' });
-
-                        writeStream.write(newRow.join(this.delimiter) + '\n', (err) => {
-                            context.log({ stage: 'END-row-item OK', newRow });
-
-                            if (err) {
-                                clearInterval(lockExtendInterval);
-                                lock && lock.unlock();
-                                writeStream.end();
-                                context.log({ stage: 'ENDERRR', err });
-                                throw err; // Propagate the error
-                            }
-                        });
-                    });
-                }
-                writeStream.end();
-            });
-
-            // Replace file stream with writeStream
-            return await this.context.replaceFileStream(this.fileId, writeStream);
-        } catch (err) {
-            context.log({ stage: 'www error ... ', err });
-            throw err;
-        } finally {
-            // clearInterval(lockExtendInterval);
-            lock && lock.unlock();
-        }
     }
 
     /**
@@ -562,4 +529,21 @@ module.exports = class CSVProcessor {
         }
         return rowArray;
     }
+
+    /**
+     * @param rows
+     * @param headers
+     * @returns {*}
+     * @protected
+     */
+    addHeaders(rows, headers) {
+        return rows.map(rowObj => {
+            const newRow = [];
+            headers.forEach(header => {
+                newRow.push(rowObj[header] || '');
+            });
+            return newRow;
+        });
+    };
 };
+

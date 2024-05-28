@@ -37,7 +37,7 @@ module.exports = {
         }
         const savedFile = await processor.addRows({ rows: rowsArray }, (idx, currentRow, isEndOfFile) => {
             return isEndOfFile;
-        }, context);
+        });
 
         return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
