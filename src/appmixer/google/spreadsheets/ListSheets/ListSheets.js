@@ -2,7 +2,8 @@
 const commons = require('../../google-commons');
 const google = require('googleapis');
 const Promise = require('bluebird');
-const drive = google.drive('v3');
+
+const drive = google.drive('v4');
 const listFiles = Promise.promisify(drive.files.list);
 
 const listSheets = async function(args, sheets = [], nextPageToken = null) {
