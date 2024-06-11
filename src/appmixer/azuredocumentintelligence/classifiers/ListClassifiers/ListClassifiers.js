@@ -29,5 +29,15 @@ module.exports = {
         }
 
         await sendArrayOutput({ context, outputType, records: modelsInAccount });
+    },
+
+    toSelectArray(models) {
+
+        if (models && Array.isArray(models.result)) {
+            return models.result.map(model => ({
+                value: model.classifierId,
+                label: model.classifierId
+            }));
+        }
     }
 };

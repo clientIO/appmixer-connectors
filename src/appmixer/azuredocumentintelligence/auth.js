@@ -35,9 +35,9 @@ module.exports = {
             const client = DocumentIntelligence(context.endpoint, { key: context.apiKey });
             const response = await client.path('/info').get();
 
-            if (response.status === 200) return true;
+            if (response.status === '200') return true;
 
-            throw response.body.error;
+            throw response.body.error || response.body;
         }
     }
 };
