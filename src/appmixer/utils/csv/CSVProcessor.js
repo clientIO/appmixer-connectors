@@ -371,10 +371,12 @@ module.exports = class CSVProcessor {
 
         const config = this.context.config;
         const lock = await this.context.lock(this.fileId, {
-            ttl: parseInt(config.lockTTL, 10) || 60000, // Default 1 minute TTL
+            ttl: parseInt(config.lockTTL, 10) || 60000 // Default 1 minute TTL
         });
 
-        let stream, writeStream, lockExtendInterval;
+        let stream;
+        let writeStream;
+        let lockExtendInterval;
 
         const destroy = function() {
 
