@@ -27,8 +27,11 @@ module.exports = {
             { rows: withHeaders ? [convertRowWithColumnsToObject(rowWithColumns)] : row.split(delimiter) },
             (idx, currentRow, isEndOfFile) => {
                 return isEndOfFile;
-            }
+            },
+            context
         );
+
+        await context.log({ stage: 'savedFile', savedFile})
         return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
 };

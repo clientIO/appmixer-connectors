@@ -367,7 +367,7 @@ module.exports = class CSVProcessor {
      * @return {Promise<*>}
      * @public
      */
-    async addRows({ rows }, closure) {
+    async addRows({ rows }, closure, context) {
 
         const config = this.context.config;
         const lock = await this.context.lock(this.fileId, {
@@ -454,16 +454,14 @@ module.exports = class CSVProcessor {
                 });
 
                 // Replace file stream with writeStream
-                return await this.context.replaceFileStream(this.fileId, writeStream);
+                const savedFile = await this.context.replaceFileStream(this.fileId, writeStream);
+                destroy();
+                resolve(savedFile);
             } catch (err) {
                 destroy();
                 reject(err);
-            } finally {
-                destroy();
-                resolve();
             }
         });
-
     }
 
     /**
