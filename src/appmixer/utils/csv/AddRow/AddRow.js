@@ -23,15 +23,9 @@ module.exports = {
             parseNumbers,
             parseBooleans
         });
-        const savedFile = await processor.addRows(
-            { rows: withHeaders ? [convertRowWithColumnsToObject(rowWithColumns)] : row.split(delimiter) },
-            (idx, currentRow, isEndOfFile) => {
-                return isEndOfFile;
-            },
-            context
-        );
 
-        await context.log({ stage: 'savedFile', savedFile})
+        const rows = withHeaders ? [convertRowWithColumnsToObject(rowWithColumns)] : [row.split(delimiter)];
+        const savedFile = await processor.addRows({ rows });
         return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
 };

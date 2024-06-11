@@ -13,15 +13,6 @@ module.exports = {
             parseBooleans
         } = context.messages.in.content;
 
-        // check if it withHeaders or not(if rows is an array of array string or array of objects)
-        const withHeaders = !Array.isArray(rows[0]);
-
-        const processor = new CSVProcessor(context, fileId, {
-            withHeaders,
-            delimiter,
-            parseNumbers,
-            parseBooleans
-        });
         let rowsArray = rows;
         if (typeof rows === 'string') {
             // Try to parse string as JSON.
@@ -35,10 +26,18 @@ module.exports = {
                 );
             }
         }
-        const savedFile = await processor.addRows({ rows: rowsArray }, (idx, currentRow, isEndOfFile) => {
-            return isEndOfFile;
+
+        // check if it withHeaders or not(if rows is an array of array string or array of objects)
+        const withHeaders = !Array.isArray(rowsArray[0]);
+
+        const processor = new CSVProcessor(context, fileId, {
+            withHeaders,
+            delimiter,
+            parseNumbers,
+            parseBooleans
         });
 
+        const savedFile = await processor.addRows({ rows: rowsArray });
         return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
 };
