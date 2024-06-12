@@ -60,7 +60,6 @@ module.exports = async context => {
                     return {};
                 }
 
-                // commented for testing purposes
                 const response = await context.httpRequest({
                     method: 'POST',
                     url: 'https://slack.com/api/apps.event.authorizations.list',
