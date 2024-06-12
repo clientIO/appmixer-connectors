@@ -1,7 +1,33 @@
 'use strict';
-const Promise = require('bluebird');
 
 module.exports = async context => {
+
+    context.onListenerAdded(async listener => {
+
+        // Components have to send the accessToken (not directly the Slack user_id) and
+        // the accessToken is used to get the user_id. This way it is ensured that the
+        // registered user_id belongs to the owner of the accessToken.
+
+        const response = await context.httpRequest({
+            method: 'GET',
+            url: 'https://slack.com/api/auth.test',
+            headers: {
+                Authorization: `Bearer ${listener.params.accessToken}`
+            }
+        });
+
+        if (response?.data?.ok === false) {
+            throw new Error(response?.data?.error);
+        }
+
+        if (!response?.data['user_id']) {
+            throw new Error('Missing user_id property.');
+        }
+
+        listener.params = {
+            userId: response.data['user_id']
+        };
+    });
 
     context.http.router.register({
         method: 'POST',
@@ -34,30 +60,30 @@ module.exports = async context => {
                     return {};
                 }
 
-                const registeredComponents = await context.service.stateGet(channelId);
-                if (!registeredComponents) {
+                // commented for testing purposes
+                const response = await context.httpRequest({
+                    method: 'POST',
+                    url: 'https://slack.com/api/apps.event.authorizations.list',
+                    headers: {
+                        Authorization: `Bearer ${context.config.authToken}`
+                    },
+                    data: {
+                        event_context: req.payload.event_context
+                    }
+                });
+
+                if (response?.data?.ok === false) {
+                    context.log('error', response?.data?.error);
                     return {};
                 }
 
-                // we cannot wait for the results, 200 response has to be sent to slack within 3
-                // seconds, otherwise they're gonna send retries
-                Promise.map(registeredComponents, registered => {
-                    return Promise.resolve(context.triggerComponent(
-                        registered.flowId,
-                        registered.componentId,
-                        event,
-                        req.query, {
-                            method: 'POST',
-                            hostname: req.info.hostname,
-                            headers: req.headers
-                        }
-                    )).reflect();
-                }, { concurrency: 100 }).each(inspection => {
-                    if (!inspection.isFulfilled()) {
-                        context.log('error', inspection.reason());
+                const authorizedUsers = response.data.authorizations.map(item => item['user_id']);
+                await context.triggerListeners({
+                    eventName: channelId,
+                    payload: event,
+                    filter: listener => {
+                        return authorizedUsers.indexOf(listener.params.userId) !== -1
                     }
-                }).catch(err => {
-                    context.log('error', err.message, err);
                 });
 
                 return {};
