@@ -41,8 +41,6 @@ module.exports = {
         }
 
         const poller = await getLongRunningPoller(client, initialResponse);
-        await context.log({ step: 'Polling for result', result: initialResponse.body });
-
         const analyzeResult = (await poller.pollUntilDone()).body.analyzeResult;
 
         await context.sendJson(analyzeResult, 'out');
