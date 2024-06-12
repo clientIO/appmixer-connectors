@@ -27,7 +27,7 @@ module.exports = {
             }
         }
 
-        // check if it withHeaders or not(if rows is an array of array string or array of objects)
+        // true if the first row represents column names (CSV header) and you want to use them to identify the columns
         const withHeaders = !Array.isArray(rowsArray[0]);
 
         const processor = new CSVProcessor(context, fileId, {
