@@ -1,3 +1,6 @@
+'use strict';
+const pathModule = require('path');
+
 module.exports = {
 
     // TODO: Move to appmixer-lib
