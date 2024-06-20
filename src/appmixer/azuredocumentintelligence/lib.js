@@ -1,6 +1,20 @@
 'use strict';
 const pathModule = require('path');
 
+// TODO: Move to appmixer-lib
+function getCSVValue(value) {
+    if (typeof value === 'object') {
+        try {
+            value = JSON.stringify(value);
+            // Make stringified JSON valid CSV value.
+            value = value.replace(/"/g, '""');
+        } catch (e) {
+            value = '';
+        }
+    }
+    return `"${value}"`;
+}
+
 module.exports = {
 
     // TODO: Move to appmixer-lib
@@ -19,8 +33,7 @@ module.exports = {
             csvRows.push(headers.join(','));
             for (const record of records) {
                 const values = headers.map(header => {
-                    const val = record[header];
-                    return `"${val}"`;
+                    return getCSVValue(record[header]);
                 });
                 // To add ',' separator between each value
                 csvRows.push(values.join(','));
