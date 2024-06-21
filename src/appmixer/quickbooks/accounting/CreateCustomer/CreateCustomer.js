@@ -17,20 +17,25 @@ module.exports = {
                 PrimaryEmailAddr: {
                     Address: optionalInputs['primaryEmailAddrAddress']
                 },
-                WebAddr: {
-                    URI: optionalInputs['webAddrURI']
-                },
+                DisplayName: optionalInputs['displayName'],
+                ResaleNum: optionalInputs['resaleNum'],
+                PreferredDeliveryMethod: optionalInputs['preferredDeliveryMethod'],
+                GivenName: optionalInputs['givenName'],
+                BillWithParent: optionalInputs['billWithParent'],
+                Job: optionalInputs['job'],
                 PrimaryPhone: {
                     FreeFormNumber: optionalInputs['primaryPhoneFreeFormNumber']
                 },
-                DisplayName: optionalInputs['displayName'],
+                WebAddr: {
+                    URI: optionalInputs['webAddrURI']
+                },
                 Suffix: optionalInputs['suffix'],
                 Title: optionalInputs['title'],
                 Mobile: {
                     FreeFormNumber: optionalInputs['mobileFreeFormNumber']
                 },
                 FamilyName: optionalInputs['familyName'],
-                TaxIdentifier: optionalInputs['taxIdentifier'],
+                PrimaryTaxIdentifier: optionalInputs['primaryTaxIdentifier'],
                 CompanyName: optionalInputs['companyName'],
                 BillAddr: {
                     CountrySubDivisionCode: optionalInputs['billAddrCountrySubDivisionCode'],
@@ -39,7 +44,6 @@ module.exports = {
                     Line1: optionalInputs['billAddrLine1'],
                     Country: optionalInputs['billAddrCountry']
                 },
-                GivenName: optionalInputs['givenName'],
                 PrintOnCheckName: optionalInputs['printOnCheckName']
             }
         };
