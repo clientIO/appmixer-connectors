@@ -67,8 +67,10 @@ module.exports = {
 
             requestProfileInfo: async context => {
 
-                return { 'id': userId + (teamName ? ' - ' + teamName : '')
-                    || Math.random().toString().replace('0.', '') };
+                return {
+                    'id': userId + (teamName ? ' - ' + teamName : '')
+                        || Math.random().toString().replace('0.', '')
+                };
             },
 
             validateAccessToken: context => {
