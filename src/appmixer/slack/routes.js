@@ -81,7 +81,7 @@ module.exports = async context => {
                     eventName: channelId,
                     payload: event,
                     filter: listener => {
-                        return authorizedUsers.indexOf(listener.params.userId) !== -1
+                        return authorizedUsers.indexOf(listener.params.userId) !== -1;
                     }
                 });
 
