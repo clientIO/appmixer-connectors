@@ -117,9 +117,9 @@ const addConsumerConnection = async (
         fromBeginning: fromBeginning || false
     });
 
-    connection.on(connection.events.CRASH,  (error) => {
+    connection.on(connection.events.CRASH, (error) => {
         throw error;
-    })
+    });
 
     await connection.run({
         eachBatchAutoResolve: false,
