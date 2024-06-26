@@ -46,8 +46,7 @@ module.exports = {
                 if (commons.isNewInboxEmail(email.labelIds)) {
                     await context.sendJson(commons.normalizeEmail(email), 'out');
                 }
-            }
-            
+            }          
         });
 
         return context.saveState(newState);

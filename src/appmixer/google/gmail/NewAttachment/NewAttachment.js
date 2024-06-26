@@ -86,14 +86,13 @@ module.exports = {
                 // this is the case, when new email was deleted before we could get it's details in previous step
                 return [];
             }
-             // Filter emails based on selected labels
+            // Filter emails based on selected labels
             if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
-                
                 return downloadAttachments(auth, context, email);
             }
 
                 return [];
-        });
+            });
 
         attachments = attachments.reduce((a, b) => a.concat(b), []);
 
