@@ -53,6 +53,10 @@ module.exports = {
         let auth = commons.getOauth2Client(context.auth);
         let newState = {};
 
+        const { labels: { AND: labels } = { AND: [] } } = context.properties;
+
+        const isLabelsEmpty = !labels.some(label => label.name);
+
         let result = await commons.listNewMessages(
             { auth: auth, userId: 'me', quotaUser: context.auth.userId },
             context.state.id || null);
@@ -82,7 +86,13 @@ module.exports = {
                 // this is the case, when new email was deleted before we could get it's details in previous step
                 return [];
             }
-            return downloadAttachments(auth, context, email);
+             // Filter emails based on selected labels
+            if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
+                
+                return downloadAttachments(auth, context, email);
+            }
+
+                return [];
         });
 
         attachments = attachments.reduce((a, b) => a.concat(b), []);

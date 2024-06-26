@@ -19,6 +19,10 @@ module.exports = {
         let auth = commons.getOauth2Client(context.auth);
         let { userId } = context.auth;
 
+        const { labels: { AND: labels } = { AND: [] } } = context.properties;
+
+        const isLabelsEmpty = !labels.some(label => label.name);
+
         const data = await commons.listNewMessages({ auth, userId: 'me', quotaUser: userId },
             context.state.id || null);
 
@@ -38,9 +42,12 @@ module.exports = {
             if (!email.labelIds) {
                 await context.sendError('Invalid email label, ' + JSON.stringify(email));
             }
-            if (commons.isNewInboxEmail(email.labelIds)) {
-                await context.sendJson(commons.normalizeEmail(email), 'out');
+            if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
+                if (commons.isNewInboxEmail(email.labelIds)) {
+                    await context.sendJson(commons.normalizeEmail(email), 'out');
+                }
             }
+            
         });
 
         return context.saveState(newState);
