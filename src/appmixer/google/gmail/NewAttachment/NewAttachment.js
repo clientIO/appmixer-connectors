@@ -91,8 +91,8 @@ module.exports = {
                 return downloadAttachments(auth, context, email);
             }
 
-                return [];
-            });
+            return [];
+        });
 
         attachments = attachments.reduce((a, b) => a.concat(b), []);
 
