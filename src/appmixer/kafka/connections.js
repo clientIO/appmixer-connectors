@@ -35,8 +35,8 @@ const processMessageHeaders = (headers) => {
 const processMessageData = (message) => {
 
     return {
-        key: message.key.toString(),
-        value: message.value.toString(),
+        key: message.key ? message.key.toString() : null,
+        value: message.value ? message.value.toString() : null,
         headers: processMessageHeaders(message.headers)
     };
 };
@@ -116,6 +116,10 @@ const addConsumerConnection = async (
         topics: topicSubscriptions,
         fromBeginning: fromBeginning || false
     });
+
+    connection.on(connection.events.CRASH,  (error) => {
+        throw error;
+    })
 
     await connection.run({
         eachBatchAutoResolve: false,
