@@ -22,12 +22,12 @@ module.exports = async (context) => {
             // All registered connections, throughout the cluster.
             const registeredConnections = await context.service.loadState(); // [{key, value}]
             // Live connections that are registered in this specific node of the cluster.
-            const existingConnections = connections.listConnections();
+            const openConnections = connections.listConnections();
 
             await Promise.allSettled(registeredConnections.forEach(async (conn) => {
                 const connectionId = conn.key;
                 const connectionParameters = conn.value;
-                if (!existingConnections[connectionId]) {
+                if (!openConnections[connectionId]) {
                     // The connection is not created on this node in the cluster. Create it but before that check
                     // if it's really needed (still registered in the cluster).
                     const stillNeeded = await context.service.stateGet(connectionId);
@@ -56,7 +56,7 @@ module.exports = async (context) => {
             }));
 
             // If the connection is live on this node but it is not desired anymore (not registered in the cluster), remove it.
-            await Promise.allSettled(existingConnections.keys().forEach(async (connectionId) => {
+            await Promise.allSettled(openConnections.keys().forEach(async (connectionId) => {
                 const conn = await context.service.stateGet(connectionId);
                 if (!conn) {
                     if (connectionId.startsWith('consumer')) {
