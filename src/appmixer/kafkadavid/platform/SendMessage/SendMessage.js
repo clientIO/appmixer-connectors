@@ -19,7 +19,7 @@ module.exports = {
     async stop(context) {
 
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafkadavid/connections/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafkadavid/producers/${context.flowId}/${context.componentId}`,
             method: 'DELETE'
         });
     },

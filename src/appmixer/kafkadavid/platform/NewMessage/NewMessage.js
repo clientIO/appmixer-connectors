@@ -22,7 +22,7 @@ module.exports = {
     stop(context) {
 
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafkadavid/connections/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafkadavid/consumers/${context.flowId}/${context.componentId}`,
             method: 'DELETE'
         });
     },

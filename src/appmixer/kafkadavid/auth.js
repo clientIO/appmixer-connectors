@@ -49,7 +49,7 @@ module.exports = {
 
             validate: async context => {
 
-                const client = connections.initClient(context.auth);
+                const client = connections.initClient(context);
                 const testProducer = client.producer();
                 await testProducer.connect();
                 await testProducer.disconnect();

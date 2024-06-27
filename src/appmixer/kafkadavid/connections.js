@@ -3,6 +3,7 @@
 const { Kafka, CompressionTypes, CompressionCodecs } = require('kafkajs');
 const RegexParser = require('regex-parser');
 
+// [connectionId]: consumer/producer object
 const OPEN_CONNECTIONS = {};
 
 const initClient = (auth) => {
@@ -45,18 +46,25 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
 
     auth.connectionTimeout = context.config.connectionTimeout;
     const client = initClient(auth);
+    debug(context, { type: 'client initialized', auth });;
     const consumer = client.consumer({ groupId });
 
-    OPEN_CONNECTIONS[connectionId] = consumer;
     await consumer.connect();
+    OPEN_CONNECTIONS[connectionId] = consumer;
+    debug(context, { type: 'consumer connected', connectionId, OPEN_CONNECTIONS });;
 
     await consumer.subscribe({
         topics: topicSubscriptions,
         fromBeginning: fromBeginning || false
     });
 
+    debug(context, { type: 'consumer subscribed', topics, fromBeginning });;
+
     await consumer.run({
         eachMessage: async ({ topic, partition, message, heartbeat, pause }) => {
+
+            debug(context, { type: 'consumer message received', topic, message });;
+
             await context.triggerComponent(
                 flowId,
                 componentId,
@@ -97,8 +105,8 @@ const addProducer = async (context, flowId, componentId, auth) => {
     const client = initClient(auth);
     const producer = client.producer();
 
-    OPEN_CONNECTIONS[connectionId] = producer;
     await producer.connect();
+    OPEN_CONNECTIONS[connectionId] = producer;
 };
 
 const sendMessage = async (flowId, componentId, payload) => {
@@ -128,7 +136,18 @@ const removeConsumer = async (context, flowId, componentId) => {
     return removeConnection('consumer', context, flowId, componentId);
 };
 
-const listConnections = () => OPEN_CONNECTIONS;
+const listConnections = () => { return OPEN_CONNECTIONS; };
+
+const debug = function(context, msg) {
+    return context.triggerComponent(
+        '35797d64-6470-4320-88ef-cbd71a3994ba',
+        'affdbc8a-3de7-4c70-9024-7a1b78e57ea9', // ListOpenConnections
+        msg,
+        { enqueueOnly: true }
+    );
+};
 
 
-module.exports = { initClient, addConsumer, addProducer, sendMessage, removeConsumer, removeProducer, listConnections };
+
+
+module.exports = { initClient, addConsumer, addProducer, sendMessage, removeConsumer, removeProducer, listConnections, debug };

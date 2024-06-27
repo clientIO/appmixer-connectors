@@ -11,6 +11,12 @@ module.exports = async (context) => {
     // This job synchronizes the connections between the cluster nodes.
     await context.scheduleJob('syncConnectionsJob', config.syncConnectionsJob.schedule, async () => {
 
+        connections.debug(context, {
+            type: 'syncConnectionsJob',
+            status: 'running',
+            isConnectionSyncInProgress
+        });
+
         if (isConnectionSyncInProgress) {
             await context.log('info', 'Kafka connections sync job is already in progress. Skipping...');
             return;
@@ -56,7 +62,7 @@ module.exports = async (context) => {
             }));
 
             // If the connection is live on this node but it is not desired anymore (not registered in the cluster), remove it.
-            await Promise.allSettled(openConnections.keys().forEach(async (connectionId) => {
+            await Promise.allSettled(Object.keys(openConnections).forEach(async (connectionId) => {
                 const conn = await context.service.stateGet(connectionId);
                 if (!conn) {
                     if (connectionId.startsWith('consumer')) {
