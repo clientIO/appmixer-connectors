@@ -30,6 +30,13 @@ module.exports = async (context) => {
             // Live connections that are registered in this specific node of the cluster.
             const openConnections = connections.listConnections();
 
+            connections.debug(context, {
+                type: 'syncConnectionsJob',
+                status: 'syncing',
+                registeredConnections,
+                openConnections
+            });
+
             await Promise.allSettled(registeredConnections.forEach(async (conn) => {
                 const connectionId = conn.key;
                 const connectionParameters = conn.value;
@@ -37,6 +44,13 @@ module.exports = async (context) => {
                     // The connection is not created on this node in the cluster. Create it but before that check
                     // if it's really needed (still registered in the cluster).
                     const stillNeeded = await context.service.stateGet(connectionId);
+
+                    connections.debug(context, {
+                        type: 'syncConnectionsJob',
+                        status: 'notopen-creating',
+                        conn
+                    });
+
                     if (stillNeeded) {
                         await context.log('info', `Connecting component: ${connectionId}`);
                         if (connectionId.startsWith('consumer:')) {

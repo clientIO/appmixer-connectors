@@ -4,7 +4,13 @@ const { Kafka, CompressionTypes, CompressionCodecs } = require('kafkajs');
 const RegexParser = require('regex-parser');
 
 // [connectionId]: consumer/producer object
-const OPEN_CONNECTIONS = {};
+
+let OPEN_CONNECTIONS;
+if (process.OPEN_CONNECTIONS) {
+    OPEN_CONNECTIONS = process.OPEN_CONNECTIONS;
+} else {
+    process.OPEN_CONNECTIONS = OPEN_CONNECTIONS = {};
+}
 
 const initClient = (auth) => {
 
@@ -36,6 +42,11 @@ const initClient = (auth) => {
 const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth) => {
 
     const connectionId = `consumer:${flowId}:${componentId}`;
+
+    // TODO: Check if we already have a connectionId in OPEN_CONNECTIONS. If yes, that means that the connection removal didn't take place
+    // during the flow stop method (something might have failed). In that case, we should first remove the old connection before
+    // creating a new one.
+
     await context.service.stateSet(connectionId, {
         topics, flowId, componentId, groupId, fromBeginning, auth
     });
@@ -60,15 +71,28 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
 
     debug(context, { type: 'consumer subscribed', topics, fromBeginning });;
 
+    consumer.on(consumer.events.CRASH, async (error) => {
+
+        await context.log('info', 'Kafka consumer CRASH. Removing consumer from open connections list.');
+
+        debug(context, { type: 'consumer CRASH', error });
+
+        delete OPEN_CONNECTIONS[connectionId];
+    });
+
     await consumer.run({
         eachMessage: async ({ topic, partition, message, heartbeat, pause }) => {
 
             debug(context, { type: 'consumer message received', topic, message });;
 
+            const normalizedMessage = normalizeMessageData(message);
+            normalizedMessage.partition = partition;
+            normalizedMessage.pid = process.pid;
+
             await context.triggerComponent(
                 flowId,
                 componentId,
-                normalizeMessageData(message),
+                normalizedMessage,
                 { enqueueOnly: true }
             );
         }
@@ -89,8 +113,8 @@ const normalizeMessageHeaders = (headers) => {
 const normalizeMessageData = (message) => {
 
     return {
-        key: message.key.toString(),
-        value: message.value.toString(),
+        key: message.key ? message.key.toString() : null,
+        value: message.value ? message.value.toString() : null,
         headers: normalizeMessageHeaders(message.headers)
     };
 };

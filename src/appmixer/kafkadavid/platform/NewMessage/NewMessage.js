@@ -1,5 +1,7 @@
 'use strict';
 
+const connections = require('../../connections');
+
 module.exports = {
 
     start(context) {
@@ -30,7 +32,15 @@ module.exports = {
     async receive(context) {
 
         if (context.messages.webhook) {
-            await context.sendJson(context.messages.webhook.content.data, 'out');
+
+
+            await context.log({ step: 'STEP_NewMessage', openConnections: Object.keys(connections.listConnections()) });
+
+            const data = context.messages.webhook.content.data;
+
+            data.gridInstanceId = context.gridInstanceId;
+
+            await context.sendJson(data, 'out');
             return context.response({});
         }
     }
