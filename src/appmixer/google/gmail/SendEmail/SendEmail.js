@@ -17,6 +17,7 @@ const build = (mail) => {
     });
 };
 const send = Promise.promisify(gmail.users.messages.send, { context: gmail.users.messages });
+const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.users.messages });
 
 /**
  * GMail send email component.
@@ -34,6 +35,14 @@ module.exports = {
             mail.from = `${mail.sender} <${mail.from}>`;
         } else if (mail.sender) {
             mail.from = `${mail.sender} <${context.profileInfo.email}>`;
+        }
+
+        if (context.messages.in.content.cc) {
+            mail.cc = context.messages.in.content.cc;
+        }
+
+        if (context.messages.in.content.bcc) {
+            mail.bcc = context.messages.in.content.bcc;
         }
 
         const { attachments = {} } = context.messages.in.content;
@@ -55,6 +64,21 @@ module.exports = {
             // URI-safe base64
             resource: { raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_') }
         });
+
+        if (context.messages.in.content.labels && result.id) {
+            await modify({
+                auth: commons.getOauth2Client(context.auth),
+                userId: 'me',
+                id: result.id,
+                resource: {
+                    addLabelIds: context.messages.in.content.labels.AND.map(label => label.name)
+                }
+            });
+        }
+        else {
+            await context.sendError('Invalid email label, ' + JSON.stringify(email));
+        }
+        
         return context.sendJson(result, 'email');
     }
 };

@@ -7,7 +7,8 @@
         "service": "appmixer:google",
         "scope": [
             "https://www.googleapis.com/auth/gmail.compose",
-            "https://www.googleapis.com/auth/gmail.send"
+            "https://www.googleapis.com/auth/gmail.send",
+            "https://www.googleapis.com/auth/gmail.modify"
         ]
     },
     "quota": {
@@ -41,29 +42,65 @@
                         "label": "To",
                         "tooltip": "The email address of the message's recipient."
                     },
-                    "subject": {
+                    "cc": {
                         "type": "text",
                         "index": 4,
+                        "label": "CC",
+                        "tooltip": "The email address of the message's carbon copy recipient."
+                    },
+                    "bcc": {
+                        "type": "text",
+                        "index": 5,
+                        "label": "BCC",
+                        "tooltip": "The email address of the message's blind carbon copy recipient."
+                    },
+                    "subject": {
+                        "type": "text",
+                        "index": 6,
                         "label": "Subject",
                         "tooltip": "The subject of the message."
                     },
                     "text": {
                         "type": "textarea",
-                        "index": 5,
+                        "index": 7,
                         "label": "Text",
                         "tooltip": "The body of the message."
                     },
                     "html": {
                         "type": "textarea",
-                        "index": 6,
+                        "index": 8,
                         "label": "HTML",
                         "tooltip": "HTML body of the message."
+                    },
+                    "labels": {
+                        "type": "expression",
+                        "label": "Labels",
+                        "levels": [
+                            "AND"
+                        ],
+                        "index": 9,
+                        "tooltip": "Add labels to the email.",
+                        "fields": {
+                            "name": {
+                                "type": "select",
+                                "label": "Name",
+                                "index": 1,
+                                "tooltip": "Select a name of the existing label.",
+                                "source": { 
+                                    "url": "/component/appmixer/google/gmail/ListLabels?outPort=out",
+                                    "data": {
+                                        "properties": { "sendWholeArray": true },
+                                        "transform": "./ListLabels#labelsToSelectArray"
+                                    }
+                                }
+                            }
+                        }
                     },
                     "attachments": {
                         "type": "expression",
                         "label": "Attachments",
                         "tooltip": "Attachments for the email message.",
-                        "index": 7,
+                        "index": 8,
                         "levels": [ "ADD" ],
                         "fields": {
                             "fileId": {
@@ -90,6 +127,14 @@
                         "type": "string",
                         "format": "email"
                     },
+                    "cc": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "bcc": {
+                        "type": "string",
+                        "format": "email"
+                    },
                     "subject": {
                         "type": "string"
                     },
@@ -98,6 +143,9 @@
                     },
                     "html": {
                         "type": "string"
+                    },
+                    "labels": {
+                        "type": "object"
                     },
                     "attachments": {}
                 },
