@@ -4,13 +4,14 @@ const commons = require('../../google-commons');
 const Promise = require('bluebird');
 const mailcomposer = require('mailcomposer');
 
-// GoogleApi initialization & promisify of some api function for convenience
+// GoogleApi initialization & promisify of some API functions for convenience
 const gmail = GoogleApi.gmail('v1');
 const createDraft = Promise.promisify(gmail.users.drafts.create, { context: gmail.users.drafts });
+const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.users.messages });
 
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         /**
          * @type MailComposer
@@ -22,15 +23,36 @@ module.exports = {
             mail.from = `${mail.sender} <${context.profileInfo.email}>`;
         }
 
+        if (context.messages.in.content.cc) {
+            mail.cc = context.messages.in.content.cc;
+        }
+
+        if (context.messages.in.content.bcc) {
+            mail.bcc = context.messages.in.content.bcc;
+        }
+
+        const { attachments = {} } = context.messages.in.content;
+        const fileIds = (attachments.ADD || [])
+            .map(attachment => (attachment.fileId || null))
+            .filter(fileId => fileId !== null);
+
+        mail.attachments = await Promise.map(fileIds, async (fileId) => {
+            const fileInfo = await context.getFileInfo(fileId);
+            const fileStream = await context.getFileReadStream(fileId);
+            return { filename: fileInfo.filename, content: fileStream };
+        });
+
+        console.log('Mail object before building:', mail); // Debugging
+
         return new Promise((resolve, reject) => {
-            mailcomposer(mail).build((err, email) => {
+            mailcomposer({ ...mail, keepBcc: true }).build((err, email) => {  // Added keepBcc option
                 if (err) {
                     return reject(err);
                 }
                 resolve(email);
             });
-        }).then(email => {
-            return createDraft({
+        }).then(async email => {
+            const result = await createDraft({
                 auth: commons.getOauth2Client(context.auth),
                 userId: 'me',
                 quotaUser: context.auth.userId,
@@ -40,9 +62,21 @@ module.exports = {
                         raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_')
                     }
                 }
-            }).then(result => {
-                return context.sendJson(result, 'draft');
             });
+
+            // Add labels to the draft
+            if (context.messages.in.content.labels && result.id) {
+                await modify({
+                    auth: commons.getOauth2Client(context.auth),
+                    userId: 'me',
+                    id: result.message.id,
+                    resource: {
+                        addLabelIds: context.messages.in.content.labels.AND.map(label => label.name)
+                    }
+                });
+            }
+
+            return context.sendJson(result, 'draft');
         });
     }
 };
