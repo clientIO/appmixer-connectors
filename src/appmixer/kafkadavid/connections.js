@@ -164,8 +164,8 @@ const listConnections = () => { return OPEN_CONNECTIONS; };
 
 const debug = function(context, msg) {
     return context.triggerComponent(
-        '35797d64-6470-4320-88ef-cbd71a3994ba',
-        'affdbc8a-3de7-4c70-9024-7a1b78e57ea9', // ListOpenConnections
+        context.config.debugFlowId || '35797d64-6470-4320-88ef-cbd71a3994ba',
+        context.config.debugComponentId || 'affdbc8a-3de7-4c70-9024-7a1b78e57ea9', // ListOpenConnections
         msg,
         { enqueueOnly: true }
     );
