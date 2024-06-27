@@ -65,7 +65,7 @@ module.exports = {
             resource: { raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_') }
         });
 
-        if (context.messages.in.content.labels && result.id) {
+        if (context.messages.in.content.labels && result.id){
             await modify({
                 auth: commons.getOauth2Client(context.auth),
                 userId: 'me',
@@ -77,8 +77,7 @@ module.exports = {
         }
         else {
             await context.sendError('Invalid email label, ' + JSON.stringify(email));
-        }
-        
+        }        
         return context.sendJson(result, 'email');
     }
 };
