@@ -42,8 +42,6 @@ module.exports = {
             return { filename: fileInfo.filename, content: fileStream };
         });
 
-        console.log('Mail object before building:', mail); // Debugging
-
         return new Promise((resolve, reject) => {
             mailcomposer({ ...mail, keepBcc: true }).build((err, email) => {  // Added keepBcc option
                 if (err) {
