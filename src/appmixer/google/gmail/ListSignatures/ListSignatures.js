@@ -1,7 +1,7 @@
 'use strict';
-const GoogleApi = require('googleapis');
-const commons = require('../../google-commons'); //endpoint call in google common function
-const { promisify } = require('util');
+//const GoogleApi = require('googleapis');
+//const commons = require('../../google-commons'); //endpoint call in google common function
+//const { promisify } = require('util');
 
 // GoogleApi initialization & promisify of some api function for convenience
 // const gmail = GoogleApi.gmail('v1');
@@ -9,8 +9,8 @@ const { promisify } = require('util');
 module.exports = {
     async receive(context) {
         const params = {
-            method: "GET",
-            url: `https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs`,
+            method: 'GET',
+            url: 'https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs',
             headers: {
                 Authorization: `Bearer ${context.auth.accessToken}`
             }
