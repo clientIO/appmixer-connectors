@@ -35,7 +35,7 @@ module.exports = {
     },
 
     labelsToSelectArrayFiltered(labels) {
-        let transformed = [];    
+        let transformed = [];
         if (Array.isArray(labels)) {
             transformed = labels.reduce((result, label) => {
                 if (label.name !== 'SENT' && label.name !== 'DRAFT') {
