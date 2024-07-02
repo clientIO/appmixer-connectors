@@ -1,5 +1,6 @@
-// NewMessage.js
 'use strict';
+
+const connections = require('../../connections');
 
 module.exports = {
 
@@ -7,10 +8,10 @@ module.exports = {
 
         const { componentId, flowId, properties: { topics, groupId, fromBeginning } } = context;
         return context.callAppmixer({
-            endPoint: '/plugins/appmixer/kafka/connect/consumer',
+            endPoint: '/plugins/appmixer/kafka/consumers',
             method: 'POST',
             body: {
-                authDetails: context.auth,
+                auth: context.auth,
                 groupId: groupId || `group-${componentId}:${flowId}`,
                 topics,
                 fromBeginning,
@@ -23,7 +24,7 @@ module.exports = {
     stop(context) {
 
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafka/connect/consumer/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafka/consumers/${context.flowId}/${context.componentId}`,
             method: 'DELETE'
         });
     },
