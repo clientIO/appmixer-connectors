@@ -81,7 +81,7 @@ module.exports = async (context) => {
             }
 
         } catch (error) {
-            await context.log('error', `[KAFKA] Error occurred during connection sync job: ${error.message}`);
+            await context.log('error', `[KAFKA] Error occurred during connection sync job: ${error.message}.`);
         } finally {
             isConnectionSyncInProgress = false;
         }

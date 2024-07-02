@@ -152,8 +152,6 @@ const addProducer = async (context, flowId, componentId, auth) => {
     const client = initClient(context, auth);
     const producer = client.producer();
 
-    // What if producer crashes? Why producer.events.CRASH does not exist?
-
     await producer.connect();
     OPEN_CONNECTIONS[connectionId] = producer;
 };
