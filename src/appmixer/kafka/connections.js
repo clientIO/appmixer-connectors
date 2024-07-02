@@ -27,7 +27,7 @@ const initClient = (context, auth) => {
     } = auth;
     const config = {
         clientId,
-        logLevel: auth.config?.logLevel ? logLevel[auth.config.logLevel.toUpperCase()] : logLevel.INFO,
+        logLevel: context.config?.logLevel ? logLevel[context.config.logLevel.toUpperCase()] : logLevel.INFO,
         logCreator: (level) => {
             return ({ namespace, level, label, log }) => {
                 if (context.log) {
