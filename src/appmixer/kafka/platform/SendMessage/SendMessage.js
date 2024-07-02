@@ -37,17 +37,20 @@ module.exports = {
             headers
         } = context.messages.in.content;
 
+        const message = {
+            value,
+            partition,
+            timestamp: timestamp && new Date(timestamp).getTime(),
+            headers: headers && JSON.parse(headers)
+        };
+
+        if (key) {
+            message.key = key;
+        }
+
         const payload = {
             topic,
-            messages: [
-                {
-                    key,
-                    value,
-                    partition,
-                    timestamp: timestamp && new Date(timestamp).getTime(),
-                    headers: headers && JSON.parse(headers)
-                }
-            ],
+            messages: [message],
             acks,
             timeout
         };
