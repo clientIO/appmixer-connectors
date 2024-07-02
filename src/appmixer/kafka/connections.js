@@ -65,9 +65,12 @@ const initClient = (context, auth) => {
     return new Kafka(config);
 };
 
-const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth) => {
+const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth, connId) => {
 
-    const connectionId = `consumer:${flowId}:${componentId}`;
+    // Genereate a unique consumer connection ID that differes between flow runs. Therefore, one setting
+    // of the consumer followed by a flow stop and restart is not going to cause the job or message consumption
+    // to consider the consumer is valid.
+    const connectionId = connId || `consumer:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
 
     await context.service.stateSet(connectionId, {
         topics, flowId, componentId, groupId, fromBeginning, auth
@@ -121,6 +124,8 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
             }
         }
     });
+
+    return connectionId;
 };
 
 const normalizeMessageHeaders = (headers) => {
@@ -143,9 +148,9 @@ const normalizeMessageData = (message) => {
     };
 };
 
-const addProducer = async (context, flowId, componentId, auth) => {
+const addProducer = async (context, flowId, componentId, auth, connId) => {
 
-    const connectionId = `producer:${flowId}:${componentId}`;
+    const connectionId = connId || `producer:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
     await context.service.stateSet(connectionId, {
         flowId, componentId, auth
     });
@@ -154,15 +159,18 @@ const addProducer = async (context, flowId, componentId, auth) => {
 
     await producer.connect();
     OPEN_CONNECTIONS[connectionId] = producer;
+
+    return connectionId;
 };
 
-const sendMessage = async (context, flowId, componentId, payload) => {
+const sendMessage = async (context, flowId, componentId, connectionId, payload) => {
 
-    const connectionId = `producer:${flowId}:${componentId}`;
+    await context.log('info', `[KAFKA] sendMessage ${connectionId}. OPEN_CONNECTIONS: ${JSON.stringify(OPEN_CONNECTIONS)}. service state: ${JSON.stringify(await context.service.loadState())}`);
+
     let producer = OPEN_CONNECTIONS[connectionId];
     if (!producer) {
         const connection = await context.service.stateGet(connectionId);
-        await addProducer(context, flowId, componentId, connection.auth);
+        await addProducer(context, flowId, componentId, connection.auth, connectionId);
         producer = OPEN_CONNECTIONS[connectionId];
     }
     await producer.send(payload);

@@ -7,11 +7,11 @@ module.exports = (context) => {
         method: 'POST',
         path: '/consumers',
         options: {
-            handler: async (req, h) => {
+            handler: async (req) => {
 
                 const { flowId, componentId, topics, groupId, fromBeginning, auth } = req.payload;
-                await connections.addConsumer(context, topics, flowId, componentId, groupId, fromBeginning, auth);
-                return h.response({});
+                const connectionId = await connections.addConsumer(context, topics, flowId, componentId, groupId, fromBeginning, auth);
+                return { connectionId };
             }
         }
     });
@@ -20,52 +20,50 @@ module.exports = (context) => {
         method: 'POST',
         path: '/producers',
         options: {
-            handler: async (req, h) => {
+            handler: async (req) => {
 
                 const { flowId, componentId, auth } = req.payload;
-                await connections.addProducer(context, flowId, componentId, auth);
-                return h.response({});
+                const connectionId = await connections.addProducer(context, flowId, componentId, auth);
+                return { connectionId };
             }
         }
     });
 
     context.http.router.register({
         method: 'POST',
-        path: '/producers/{flowId}/{componentId}/send',
+        path: '/producers/{connectionId}/send',
         options: {
-            handler: async (req, h) => {
+            handler: async (req) => {
 
-                const { flowId, componentId } = req.params;
-                await connections.sendMessage(context, flowId, componentId, req.payload);
-                return h.response({});
+                const { flowId, componentId, connectionId } = req.params;
+                await connections.sendMessage(context, flowId, componentId, connectionId, req.payload);
+                return {};
             }
         }
     });
 
     context.http.router.register({
         method: 'DELETE',
-        path: '/producers/{flowId}/{componentId}',
+        path: '/producers/{connectionId}',
         options: {
-            handler: async (req, h) => {
+            handler: async (req) => {
 
-                const { flowId, componentId } = req.params;
-                const connectionId = `producer:${flowId}:${componentId}`;
+                const { connectionId } = req.params;
                 await connections.removeConnection(context, connectionId);
-                return h.response({});
+                return {};
             }
         }
     });
 
     context.http.router.register({
         method: 'DELETE',
-        path: '/consumers/{flowId}/{componentId}',
+        path: '/consumers/{connectionId}',
         options: {
-            handler: async (req, h) => {
+            handler: async (req) => {
 
-                const { flowId, componentId } = req.params;
-                const connectionId = `consumer:${flowId}:${componentId}`;
+                const { connectionId } = req.params;
                 await connections.removeConnection(context, connectionId);
-                return h.response({});
+                return {};
             }
         }
     });

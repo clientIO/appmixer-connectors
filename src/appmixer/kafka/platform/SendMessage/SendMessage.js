@@ -2,10 +2,10 @@
 
 module.exports = {
 
-    start(context) {
+    async start(context) {
 
         const { flowId, componentId, auth } = context;
-        return context.callAppmixer({
+        const { connectionId } = await context.callAppmixer({
             endPoint: '/plugins/appmixer/kafka/producers',
             method: 'POST',
             body: {
@@ -14,12 +14,20 @@ module.exports = {
                 auth
             }
         });
+
+        await context.log({ step: 'sendMessage.start', connectionId });
+
+        await context.stateSet('connectionId', connectionId);
     },
 
     async stop(context) {
 
+        const connectionId = await context.stateGet('connectionId');
+
+        await context.log({ step: 'sendMessage.stop', connectionId });
+
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafka/producers/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafka/producers/${connectionId}`,
             method: 'DELETE'
         });
     },
@@ -55,9 +63,13 @@ module.exports = {
             timeout
         };
 
+        const connectionId = await context.stateGet('connectionId');
+
+        await context.log({ step: 'sendMessage.receive', connectionId, key, value });
+
         await context.callAppmixer({
 
-            endPoint: `/plugins/appmixer/kafka/producers/${context.flowId}/${context.componentId}/send`,
+            endPoint: `/plugins/appmixer/kafka/producers/${connectionId}/send`,
             method: 'POST',
             body: payload
         });

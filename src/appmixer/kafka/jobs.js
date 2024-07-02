@@ -57,14 +57,16 @@ module.exports = async (context) => {
                                 connectionParameters.componentId,
                                 connectionParameters.groupId,
                                 connectionParameters.fromBeginning,
-                                connectionParameters.auth
+                                connectionParameters.auth,
+                                connectionId
                             );
                         } else {
                             await connections.addProducer(
                                 context,
                                 connectionParameters.flowId,
                                 connectionParameters.componentId,
-                                connectionParameters.auth
+                                connectionParameters.auth,
+                                connectionId
                             );
                         }
                     }

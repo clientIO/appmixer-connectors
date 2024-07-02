@@ -2,10 +2,10 @@
 
 module.exports = {
 
-    start(context) {
+    async start(context) {
 
         const { componentId, flowId, properties: { topics, groupId, fromBeginning } } = context;
-        return context.callAppmixer({
+        const { connectionId } = await context.callAppmixer({
             endPoint: '/plugins/appmixer/kafka/consumers',
             method: 'POST',
             body: {
@@ -17,12 +17,14 @@ module.exports = {
                 flowId
             }
         });
+        return context.stateSet('connectionId', connectionId);
     },
 
-    stop(context) {
+    async stop(context) {
 
+        const connectionId = await context.stateGet('connectionId');
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafka/consumers/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafka/consumers/${connectionId}`,
             method: 'DELETE'
         });
     },
