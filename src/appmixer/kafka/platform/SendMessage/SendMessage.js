@@ -32,7 +32,6 @@ module.exports = {
             value,
             acks,
             timeout,
-            compression,
             partition,
             timestamp,
             headers

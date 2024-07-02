@@ -28,7 +28,7 @@ module.exports = async (context) => {
                 '[KAFKA] Syncing Kafka connections. ',
                 '# of open Connections: ' + Object.keys(openConnections).length,
                 '# of registered Connections: ' + registeredConnections.length
-            ].join('; ');
+            ].join('; '));
 
             for (const conn of registeredConnections) {
                 const connectionId = conn.key;

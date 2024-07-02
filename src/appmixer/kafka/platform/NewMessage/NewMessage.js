@@ -1,7 +1,5 @@
 'use strict';
 
-const connections = require('../../connections');
-
 module.exports = {
 
     start(context) {

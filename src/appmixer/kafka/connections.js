@@ -4,8 +4,8 @@ const { Kafka, logLevel } = require('kafkajs');
 const RegexParser = require('regex-parser');
 
 // Note that we cannot simply define with `const OPEN_CONNECTIONS = {}; `. This is because the Appmixer engine clears the "require" cache
-// when loading individual component code. Therefore, different Kafka componnets will not share the same OPEN_CONNECTIONS object even on the same node!
-// Therefore, we take advantage of the global `process` object to get the variable if it exists, or create it if it doesn't.
+// when loading individual component code. Therefore, different Kafka componnets will not share the same OPEN_CONNECTIONS object
+// even on the same node! Therefore, we take advantage of the global `process` object to get the variable if it exists, or create it if it doesn't.
 // [connectionId]: consumer/producer object
 let OPEN_CONNECTIONS;
 if (process.OPEN_CONNECTIONS) {
@@ -60,7 +60,7 @@ const initClient = (context, auth) => {
                 username: saslUsername,
                 password: saslPassword
             }
-        : undefined
+            : undefined
     };
     return new Kafka(config);
 };
@@ -187,4 +187,12 @@ const listConnections = () => { return OPEN_CONNECTIONS; };
 
 const isConsumerConnection = (connectionId) => connectionId.startsWith('consumer:');
 
-module.exports = { initClient, addConsumer, addProducer, sendMessage, removeConnection, listConnections, isConsumerConnection };
+module.exports = {
+    initClient,
+    addConsumer,
+    addProducer,
+    sendMessage,
+    removeConnection,
+    listConnections,
+    isConsumerConnection
+};
