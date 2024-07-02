@@ -32,5 +32,23 @@ module.exports = {
             });
         }
         return transformed;
+    },
+
+    labelsToSelectArrayFiltered(labels) {
+        let transformed = [];
+    
+        if (Array.isArray(labels)) {
+            transformed = labels.reduce((result, label) => {
+                if (label.name !== 'SENT' && label.name !== 'DRAFT') {
+                    const item = {
+                        label: label.name,
+                        value: label.id
+                    };
+                    result.push(item);
+                }
+                return result;
+            }, []);
+        }
+        return transformed;
     }
 };
