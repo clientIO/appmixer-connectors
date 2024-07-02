@@ -1,6 +1,6 @@
 'use strict';
 
-const { kafka } = require('./common');
+const connections = require('./connections');
 
 module.exports = {
 
@@ -49,9 +49,11 @@ module.exports = {
 
             validate: async context => {
 
-                let kafkaMaster = kafka();
-                kafkaMaster.init(context);
-                return await kafkaMaster.authenticateAdmin();
+                const client = connections.initClient(context, context);
+                const testProducer = client.producer();
+                await testProducer.connect();
+                await testProducer.disconnect();
+                return true;
             }
         };
     }

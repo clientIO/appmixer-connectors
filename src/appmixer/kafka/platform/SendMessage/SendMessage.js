@@ -1,24 +1,33 @@
 'use strict';
-const { CompressionTypes, CompressionCodecs } = require('kafkajs');
-const SnappyCodec = require('kafkajs-snappy');
-
-function registerCompressionCodec(compression) {
-
-    switch (compression) {
-        case 'Snappy':
-            CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
-            break;
-        default:
-            break;
-    }
-}
 
 module.exports = {
 
+    async start(context) {
+
+        const { flowId, componentId, auth } = context;
+        const { connectionId } = await context.callAppmixer({
+            endPoint: '/plugins/appmixer/kafka/producers',
+            method: 'POST',
+            body: {
+                flowId,
+                componentId,
+                auth
+            }
+        });
+
+        await context.log({ step: 'sendMessage.start', connectionId });
+
+        await context.stateSet('connectionId', connectionId);
+    },
+
     async stop(context) {
 
+        const connectionId = await context.stateGet('connectionId');
+
+        await context.log({ step: 'sendMessage.stop', connectionId });
+
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafka/connect/producer/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafka/producers/${connectionId}`,
             method: 'DELETE'
         });
     },
@@ -31,38 +40,38 @@ module.exports = {
             value,
             acks,
             timeout,
-            compression,
             partition,
             timestamp,
             headers
         } = context.messages.in.content;
 
-        if (compression) registerCompressionCodec(compression);
-
-        const options = {
-            authDetails: context.auth,
-            topic,
-            messages: [
-                {
-                    key,
-                    value,
-                    partition,
-                    timestamp: timestamp && new Date(timestamp).getTime(),
-                    headers: headers && JSON.parse(headers)
-                }
-            ],
-            acks,
-            timeout,
-            compression: compression && CompressionTypes[compression],
-            componentId: context.componentId,
-            flowId: context.flowId
+        const message = {
+            value,
+            partition,
+            timestamp: timestamp && new Date(timestamp).getTime(),
+            headers: headers && JSON.parse(headers)
         };
+
+        if (key) {
+            message.key = key;
+        }
+
+        const payload = {
+            topic,
+            messages: [message],
+            acks,
+            timeout
+        };
+
+        const connectionId = await context.stateGet('connectionId');
+
+        await context.log({ step: 'sendMessage.receive', connectionId, key, value });
 
         await context.callAppmixer({
 
-            endPoint: '/plugins/appmixer/kafka/connect/producer',
+            endPoint: `/plugins/appmixer/kafka/producers/${connectionId}/send`,
             method: 'POST',
-            body: options
+            body: payload
         });
 
         return context.sendJson(context.messages.in.content, 'out');
