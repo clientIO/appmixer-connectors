@@ -52,7 +52,7 @@ const initClient = (context, auth) => {
             };
         },
         brokers: brokers.split(',').map(broker => broker.trim()),
-        connectionTimeout: auth.config?.connectionTimeout || connectionTimeout,
+        connectionTimeout: context.config?.connectionTimeout || connectionTimeout,
         ssl: ssl ? ssl.toLowerCase() === 'true' : !!saslMechanism,
         sasl: saslMechanism
             ? {
@@ -77,7 +77,6 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         topic.topic.startsWith('/') ? RegexParser(topic.topic) : topic.topic
     );
 
-    auth.connectionTimeout = context.config.connectionTimeout;
     const client = initClient(context, auth);
     const consumer = client.consumer({ groupId });
 
@@ -150,7 +149,6 @@ const addProducer = async (context, flowId, componentId, auth) => {
     await context.service.stateSet(connectionId, {
         flowId, componentId, auth
     });
-    auth.connectionTimeout = context.config.connectionTimeout;
     const client = initClient(context, auth);
     const producer = client.producer();
 
