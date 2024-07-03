@@ -33,8 +33,8 @@ module.exports = {
             });
 
             return result;
-            
         }, []) : [];
+
     }
-    
+
 };
