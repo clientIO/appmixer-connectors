@@ -1,10 +1,4 @@
 'use strict';
-//const GoogleApi = require('googleapis');
-//const commons = require('../../google-commons'); //endpoint call in google common function
-//const { promisify } = require('util');
-
-// GoogleApi initialization & promisify of some api function for convenience
-// const gmail = GoogleApi.gmail('v1');
 
 module.exports = {
     async receive(context) {
@@ -16,7 +10,6 @@ module.exports = {
             }
         };
         const { data } = await context.httpRequest(params);
-        context.log({ data });
 
         // Extract signatures from sendAs
         const signatures = data.sendAs.map(item => ({
@@ -28,16 +21,20 @@ module.exports = {
     },
 
     signaturesToSelectArray(signatures) {
-        let transformed = [];
-        if (Array.isArray(signatures)) {
-            signatures.forEach(sign => {
-                let item = {
-                    label: sign.email,
-                    value: sign.signature
-                };
-                transformed.push(item);
+        return Array.isArray(signatures) ? signatures.reduce((result, sign) => {
+
+            let plainSignature = sign.signature
+                .replace(/<\/div><div[^>]*>/g, '\n')
+                .replace(/<[^>]+>/g, '');
+
+            result.push({
+                label: `${sign.email} ( ${plainSignature} )`,
+                value: sign.signature
             });
-        }
-        return transformed;
+
+            return result;
+            
+        }, []) : [];
     }
+    
 };

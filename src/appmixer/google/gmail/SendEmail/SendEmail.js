@@ -56,6 +56,18 @@ module.exports = {
             return { filename: fileInfo.filename, content: fileStream };
         });
 
+        // Add signature to the email content if provided
+        if (context.messages.in.content.signature) {
+            if (mail.html) {
+                mail.html += `<br><br>${context.messages.in.content.signature}`;
+            } else if (mail.text) {
+                mail.html = `${mail.text.replace(/\n/g, '<br>')}<br><br>${context.messages.in.content.signature}`;
+                delete mail.text;
+            } else {
+                mail.html = context.messages.in.content.signature;
+            }
+        }
+
         const email = await build(mail);
         const result = await send({
             auth: commons.getOauth2Client(context.auth),
