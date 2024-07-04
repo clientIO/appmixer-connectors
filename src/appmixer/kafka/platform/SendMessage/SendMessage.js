@@ -59,7 +59,7 @@ module.exports = {
 
         const connectionId = await context.stateGet('connectionId');
         if (!connectionId) {
-            context.log({ step: 'connecting', message: 'Connection not yet established. Waiting for connectionId.' });
+            context.log({ step: 'connecting', message: 'Connection to Kafka not yet established. Waiting for connectionId.' });
             // It might have happened that the connectionId was not yet stored to the state in the start() method.
             // This can occur if another component sent a message to our SendMessage before our start() method finished.
             // See e.g. the implementation of OnStart (https://github.com/clientIO/appmixer-connectors/blob/dev/src/appmixer/utils/controls/OnStart/OnStart.js).
@@ -74,8 +74,6 @@ module.exports = {
                     } else if (new Date - checkStartTime > maxWaitTime) {
                         clearInterval(intervalId);
                         reject(new Error('Connection not established.'));
-                    } else {
-                        context.log({ step: 'connecting', message: 'Connection not yet established. Waiting for connectionId.' });
                     }
                 }, 500);
             });
