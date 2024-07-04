@@ -1,16 +1,15 @@
-// NewMessage.js
 'use strict';
 
 module.exports = {
 
-    start(context) {
+    async start(context) {
 
         const { componentId, flowId, properties: { topics, groupId, fromBeginning } } = context;
-        return context.callAppmixer({
-            endPoint: '/plugins/appmixer/kafka/connect/consumer',
+        const { connectionId } = await context.callAppmixer({
+            endPoint: '/plugins/appmixer/kafka/consumers',
             method: 'POST',
             body: {
-                authDetails: context.auth,
+                auth: context.auth,
                 groupId: groupId || `group-${componentId}:${flowId}`,
                 topics,
                 fromBeginning,
@@ -18,12 +17,14 @@ module.exports = {
                 flowId
             }
         });
+        return context.stateSet('connectionId', connectionId);
     },
 
-    stop(context) {
+    async stop(context) {
 
+        const connectionId = await context.stateGet('connectionId');
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/kafka/connect/consumer/${context.flowId}/${context.componentId}`,
+            endPoint: `/plugins/appmixer/kafka/consumers/${connectionId}`,
             method: 'DELETE'
         });
     },
