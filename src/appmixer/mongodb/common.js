@@ -31,27 +31,13 @@ module.exports = {
         } catch (error) {
             if (context.tlsCAFileContent) {
                 // Removing the temporary file and directory if the connection fails
-                await new Promise((resolve, reject) => {
-                    fs.rm(tmpDir.name, { recursive: true }, (err) => {
-                        if (err) {
-                            reject(err);
-                        }
-                        resolve();
-                    });
-                });
+                await removeTmpFolder(tmpDir);
             }
             throw error;
         }
 
         if (context.tlsCAFileContent) {
-            await new Promise((resolve, reject) => {
-                fs.rm(tmpDir.name, { recursive: true }, (err) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    resolve();
-                });
-            });
+            await removeTmpFolder(tmpDir);
         }
         return client;
     },
@@ -141,3 +127,17 @@ module.exports = {
         }
     }
 };
+
+async function removeTmpFolder(tmpDir) {
+
+    await new Promise((resolve, reject) => {
+
+        fs.rm(tmpDir.name, { recursive: true }, (err) => {
+
+            if (err) {
+                reject(err);
+            }
+            resolve();
+        });
+    });
+}
