@@ -12,7 +12,7 @@ module.exports = {
 
         try {
             const createdChannel = await client.deleteMessage(channel, ts);
-            return context.sendJson(createdChannel, 'newChannel');
+            return context.sendJson(createdChannel, 'out');
         } catch (err) {
             if (err instanceof SlackAPIError) {
                 throw new context.CancelError(err.apiError);
