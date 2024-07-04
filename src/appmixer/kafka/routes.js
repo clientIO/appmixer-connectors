@@ -10,6 +10,7 @@ module.exports = (context) => {
             handler: async (req) => {
 
                 const { flowId, componentId, topics, groupId, fromBeginning, auth } = req.payload;
+                // eslint-disable-next-line max-len
                 const connectionId = await connections.addConsumer(context, topics, flowId, componentId, groupId, fromBeginning, auth);
                 return { connectionId };
             }
