@@ -165,8 +165,6 @@ const addProducer = async (context, flowId, componentId, auth, connId) => {
 
 const sendMessage = async (context, flowId, componentId, connectionId, payload) => {
 
-    await context.log('info', `[KAFKA] sendMessage ${connectionId}. OPEN_CONNECTIONS: ${JSON.stringify(OPEN_CONNECTIONS)}. service state: ${JSON.stringify(await context.service.loadState())}`);
-
     let producer = OPEN_CONNECTIONS[connectionId];
     if (!producer) {
         const connection = await context.service.stateGet(connectionId);
