@@ -1,205 +1,200 @@
 'use strict';
 
+const { Kafka, logLevel } = require('kafkajs');
 const RegexParser = require('regex-parser');
-const { kafka } = require('./common.js');
 
-const openConnections = {};
-const inProgress = {};
-const callbacks = {};
+// Note that we cannot simply define with `const OPEN_CONNECTIONS = {}; `. This is because the Appmixer engine clears the "require" cache
+// when loading individual component code. Therefore, different Kafka componnets will not share the same OPEN_CONNECTIONS object
+// even on the same node! Therefore, we take advantage of the global `process` object to get the variable if it exists, or create it if it doesn't.
+// [connectionId]: consumer/producer object
+let OPEN_CONNECTIONS;
+if (process.OPEN_CONNECTIONS) {
+    OPEN_CONNECTIONS = process.OPEN_CONNECTIONS;
+} else {
+    process.OPEN_CONNECTIONS = OPEN_CONNECTIONS = {};
+}
 
-const initializeKafkaConsumer = ({ groupId, authDetails }) => {
+const initClient = (context, auth) => {
 
-    const kafkaMaster = kafka();
-    kafkaMaster.init(authDetails);
-    return kafkaMaster.createConsumer({ groupId });
-};
-
-const initializeKafkaProducer = (authDetails) => {
-
-    const kafkaMaster = kafka();
-    kafkaMaster.init(authDetails);
-    return kafkaMaster.createProducer();
-};
-
-const processMessageHeaders = (headers) => {
-
-    const processedHeaders = {};
-    if (headers) {
-        Object.entries(headers).forEach(([key, value]) => {
-            processedHeaders[key] = Buffer.isBuffer(value) ? value.toString('utf8') : value || '';
-        });
-    }
-    return processedHeaders;
-};
-
-const processMessageData = (message) => {
-
-    return {
-        key: message.key.toString(),
-        value: message.value.toString(),
-        headers: processMessageHeaders(message.headers)
+    const {
+        clientId,
+        brokers,
+        ssl,
+        saslMechanism,
+        saslUsername,
+        saslPassword,
+        connectionTimeout = 10000
+    } = auth;
+    const config = {
+        clientId,
+        logLevel: context.config?.logLevel ? logLevel[context.config.logLevel.toUpperCase()] : logLevel.INFO,
+        logCreator: (level) => {
+            return ({ namespace, level, label, log }) => {
+                if (context.log) {
+                    let logString;
+                    try {
+                        if (typeof log === 'string') {
+                            logString = log;
+                        } else {
+                            logString = JSON.stringify(log);
+                        }
+                    } catch (e) {
+                        logString = Object.keys(log || {}).join(', ');
+                    }
+                    context.log('info', '[KAFKA] ' + [
+                        'namespace: ' + namespace,
+                        'level: ' + level,
+                        'label: ' + label,
+                        'gridInstanceId: ' + context.gridInstanceId,
+                        'log: ' + logString
+                    ].join('; '));
+                }
+            };
+        },
+        brokers: brokers.split(',').map(broker => broker.trim()),
+        connectionTimeout: context.config?.connectionTimeout || connectionTimeout,
+        ssl: ssl ? ssl.toLowerCase() === 'true' : !!saslMechanism,
+        sasl: saslMechanism
+            ? {
+                mechanism: saslMechanism,
+                username: saslUsername,
+                password: saslPassword
+            }
+            : undefined
     };
+    return new Kafka(config);
 };
 
-const addConnection = async (context, component, mode) => {
+const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth, connId) => {
 
-    const { topics, flowId, componentId, fromBeginning, authDetails, groupId } = component;
-    authDetails.connectionTimeout = context.config.connectionTimeout;
+    // Genereate a unique consumer connection ID that differes between flow runs. Therefore, one setting
+    // of the consumer followed by a flow stop and restart is not going to cause the job or message consumption
+    // to consider the consumer is valid.
+    const connectionId = connId || `consumer:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
 
-    const connectionId = `${flowId}:${componentId}`;
-
-    // If another connection operation is in progress for this connection ID, wait for it to complete
-    if (inProgress[connectionId]) {
-        return new Promise((resolve, reject) => {
-            callbacks[connectionId].push({ resolve, reject });
-        });
-    }
-
-    inProgress[connectionId] = true;
-    callbacks[connectionId] = [];
-
-    try {
-        await context.service.stateSet(connectionId, { ...component, mode });
-
-        if (mode === 'consumer') {
-            await addConsumerConnection(
-                context,
-                flowId,
-                componentId,
-                groupId,
-                authDetails,
-                topics,
-                fromBeginning
-            );
-        } else if (mode === 'producer') {
-            await addProducerConnection(flowId, componentId, authDetails);
-        } else {
-            throw new Error(`Invalid mode: ${mode}`);
-        }
-
-        // Once the operation is complete, reset inProgress flag for this connection ID and resolve pending callbacks
-        inProgress[connectionId] = false;
-        while (callbacks[connectionId].length > 0) {
-            callbacks[connectionId].pop().resolve();
-        }
-    } catch (error) {
-        // If an error occurs, reset inProgress flag for this connection ID, reject pending callbacks, remove the connection, and throw the error
-        inProgress[connectionId] = false;
-        while (callbacks[connectionId].length > 0) {
-            callbacks[connectionId].pop().reject(error);
-        }
-        await handleConnectionError({ flowId, componentId }, error);
-        throw error; // Re-throw the error to propagate it to the caller
-    }
-};
-
-const addConsumerConnection = async (
-    context,
-    flowId,
-    componentId,
-    groupId,
-    authDetails,
-    topics,
-    fromBeginning
-) => {
-
-    const connectionId = `${flowId}:${componentId}`;
+    await context.service.stateSet(connectionId, {
+        topics, flowId, componentId, groupId, fromBeginning, auth
+    });
 
     const topicSubscriptions = topics?.AND.map(topic =>
         topic.topic.startsWith('/') ? RegexParser(topic.topic) : topic.topic
     );
 
-    const connection = initializeKafkaConsumer({ groupId, authDetails });
-    openConnections[connectionId] = connection;
-    await connection.connect();
-    await connection.subscribe({
+    const client = initClient(context, auth);
+    const consumer = client.consumer({ groupId });
+
+    await consumer.connect();
+    OPEN_CONNECTIONS[connectionId] = consumer;
+
+    await consumer.subscribe({
         topics: topicSubscriptions,
         fromBeginning: fromBeginning || false
     });
 
-    await connection.run({
+    consumer.on(consumer.events.CRASH, async (error) => {
+        await context.log('info', '[KAFKA] Kafka consumer CRASH (' + connectionId + '). Removing consumer from local connections.');
+        await consumer.disconnect();
+        delete OPEN_CONNECTIONS[connectionId];
+    });
+
+    await consumer.run({
         eachBatchAutoResolve: false,
-        eachBatch: async ({
-            batch,
-            resolveOffset,
-            heartbeat,
-            isRunning,
-            isStale
-        }) => {
-            for (const message of batch.messages) {
+        // eachBatch has to be used instead of eachMessage because we don't want to resolve the
+        // offset if connection to the consumer was removed from the cluster state.
+        eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
+            for (let message of batch.messages) {
                 if (!isRunning() || isStale()) break;
-                try {
-                    await context.triggerComponent(
-                        flowId,
-                        componentId,
-                        processMessageData(message),
-                        { enqueueOnly: true }
-                    );
-                } catch (err) {
-                    await handleTriggerComponentError({ flowId, componentId }, err);
-                    break;
-                }
+
+                // First, make sure the consumer is still needed. The flow might have stopped
+                // which disconnected the consumer from open connections but only on one node in the cluster.
+                const connection = await context.service.stateGet(connectionId);
+                if (!connection) break;
+
+                const normalizedMessage = normalizeMessageData(message);
+
+                await context.triggerComponent(
+                    flowId,
+                    componentId,
+                    normalizedMessage,
+                    { enqueueOnly: true }
+                );
+
                 resolveOffset(message.offset);
                 await heartbeat();
             }
         }
     });
+
+    return connectionId;
 };
 
-const addProducerConnection = async (flowId, componentId, authDetails) => {
+const normalizeMessageHeaders = (headers) => {
 
-    const connectionId = `${flowId}:${componentId}`;
-    const kafkaProducer = initializeKafkaProducer(authDetails);
-    openConnections[connectionId] = kafkaProducer;
-    await kafkaProducer.connect();
-};
-
-const sendMessage = async ({ flowId, componentId, payload }) => {
-
-    const connectionId = `${flowId}:${componentId}`;
-    const connection = openConnections[connectionId];
-    if (!connection) return; // Connection doesn't exist, do nothing
-
-    try {
-        await connection.send(payload);
-    } catch (error) {
-        await handleSendMessageError(connection, payload, error);
+    const normalizedHeaders = {};
+    if (headers) {
+        Object.entries(headers).forEach(([key, value]) => {
+            normalizedHeaders[key] = Buffer.isBuffer(value) ? value.toString('utf8') : value || '';
+        });
     }
+    return normalizedHeaders;
 };
 
-const removeConnection = async (component) => {
+const normalizeMessageData = (message) => {
 
-    const connectionId = `${component.flowId}:${component.componentId}`;
-    const connection = openConnections[connectionId];
+    return {
+        key: message.key ? message.key.toString() : null,
+        value: message.value ? message.value.toString() : null,
+        headers: normalizeMessageHeaders(message.headers || {})
+    };
+};
+
+const addProducer = async (context, flowId, componentId, auth, connId) => {
+
+    const connectionId = connId || `producer:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
+    await context.service.stateSet(connectionId, {
+        flowId, componentId, auth
+    });
+    const client = initClient(context, auth);
+    const producer = client.producer();
+
+    await producer.connect();
+    OPEN_CONNECTIONS[connectionId] = producer;
+
+    return connectionId;
+};
+
+const sendMessage = async (context, flowId, componentId, connectionId, payload) => {
+
+    let producer = OPEN_CONNECTIONS[connectionId];
+    if (!producer) {
+        const connection = await context.service.stateGet(connectionId);
+        await addProducer(context, flowId, componentId, connection.auth, connectionId);
+        producer = OPEN_CONNECTIONS[connectionId];
+    }
+    await producer.send(payload);
+};
+
+const removeConnection = async (context, connectionId) => {
+
+    await context.log('info', `[KAFKA] Removing connection ${connectionId}.`);
+    await context.service.stateUnset(connectionId);
+    const connection = OPEN_CONNECTIONS[connectionId];
     if (!connection) return; // Connection doesn't exist, do nothing
 
     await connection.disconnect();
-    delete openConnections[connectionId];
+    delete OPEN_CONNECTIONS[connectionId];
 };
 
-const listConnections = () => Object.keys(openConnections);
+const listConnections = () => { return OPEN_CONNECTIONS; };
 
-// Error handling functions
-const handleConnectionError = async (component, error) => {
+const isConsumerConnection = (connectionId) => connectionId.startsWith('consumer:');
 
-    await removeConnection(component);
+module.exports = {
+    initClient,
+    addConsumer,
+    addProducer,
+    sendMessage,
+    removeConnection,
+    listConnections,
+    isConsumerConnection
 };
-
-const handleTriggerComponentError = async (component, error) => {
-
-    if (error.message === 'Flow stopped.' || error.message === 'Missing flow.') {
-        await removeConnection(component);
-    }
-};
-
-const handleSendMessageError = async (connection, payload, error) => {
-
-    try {
-        await connection.connect();
-        await connection.send(payload);
-    } catch (error) {
-        throw error;
-    }
-};
-
-module.exports = { addConnection, removeConnection, listConnections, sendMessage };
