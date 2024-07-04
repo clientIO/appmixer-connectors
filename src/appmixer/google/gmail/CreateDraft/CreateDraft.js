@@ -12,7 +12,6 @@ const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.u
 module.exports = {
 
     async receive(context) {
-
         /**
          * @type MailComposer
          */
@@ -55,7 +54,10 @@ module.exports = {
         }
 
         return new Promise((resolve, reject) => {
-            mailcomposer({ ...mail, keepBcc: true }).build((err, email) => {
+            const mailOptions = { ...mail };
+            const composer = mailcomposer(mailOptions);
+            composer.keepBcc = true;
+            composer.build((err, email) => {
                 if (err) {
                     return reject(err);
                 }

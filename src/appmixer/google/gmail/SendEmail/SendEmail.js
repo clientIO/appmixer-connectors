@@ -6,16 +6,6 @@ const Promise = require('bluebird');
 
 // GoogleApi initialization & promisify of some api function for convenience
 const gmail = GoogleApi.gmail('v1');
-const build = (mail) => {
-    return new Promise((resolve, reject) => {
-        mailcomposer(mail).build((err, email) => {
-            if (err) {
-                return reject(err);
-            }
-            resolve(email);
-        });
-    });
-};
 const send = Promise.promisify(gmail.users.messages.send, { context: gmail.users.messages });
 const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.users.messages });
 
@@ -68,28 +58,39 @@ module.exports = {
             }
         }
 
-        const email = await build(mail);
-        const result = await send({
-            auth: commons.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId,
-            // URI-safe base64
-            resource: { raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_') }
-        });
-
-        if (context.messages.in.content.labels && result.id) {
-            await modify({
+        return new Promise((resolve, reject) => {
+            const mailOptions = { ...mail };
+            const composer = mailcomposer(mailOptions);
+            composer.keepBcc = true;
+            composer.build((err, email) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(email);
+            });
+        }).then(async email => {
+            const result = await send({
                 auth: commons.getOauth2Client(context.auth),
                 userId: 'me',
-                id: result.id,
-                resource: {
-                    addLabelIds: context.messages.in.content.labels.AND.map(label => label.name)
-                }
+                quotaUser: context.auth.userId,
+                // URI-safe base64
+                resource: { raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_') }
             });
-        } else {
-            await context.sendError('Invalid email label, ' + JSON.stringify(email));
-        }
 
-        return context.sendJson(result, 'email');
+            if (context.messages.in.content.labels && result.id) {
+                await modify({
+                    auth: commons.getOauth2Client(context.auth),
+                    userId: 'me',
+                    id: result.id,
+                    resource: {
+                        addLabelIds: context.messages.in.content.labels.AND.map(label => label.name)
+                    }
+                });
+            } else {
+                await context.sendError('Invalid email label, ' + JSON.stringify(email));
+            }
+
+            return context.sendJson(result, 'email');
+        });
     }
 };

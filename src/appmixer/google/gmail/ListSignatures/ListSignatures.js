@@ -1,4 +1,5 @@
 'use strict';
+const commons = require('../gmail-commons');
 
 module.exports = {
     async receive(context) {
@@ -9,7 +10,7 @@ module.exports = {
                 Authorization: `Bearer ${context.auth.accessToken}`
             }
         };
-        const { data } = await context.httpRequest(params);
+        const { data } = await commons.fetchData(context, params);
 
         // Extract signatures from sendAs
         const signatures = data.sendAs.map(item => ({
