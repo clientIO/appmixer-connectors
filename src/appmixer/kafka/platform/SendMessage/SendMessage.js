@@ -57,9 +57,11 @@ module.exports = {
             timeout
         };
 
-        const connectionId = await context.stateGet('connectionId');
+        let connectionId = await context.stateGet('connectionId');
+
         if (!connectionId) {
-            context.log({ step: 'connecting', message: 'Connection to Kafka not yet established. Waiting for connectionId.' });
+
+            await context.log({ step: 'connecting', message: 'Connection to Kafka not yet established. Waiting for connectionId.' });
             // It might have happened that the connectionId was not yet stored to the state in the start() method.
             // This can occur if another component sent a message to our SendMessage before our start() method finished.
             // See e.g. the implementation of OnStart (https://github.com/clientIO/appmixer-connectors/blob/dev/src/appmixer/utils/controls/OnStart/OnStart.js).
@@ -67,9 +69,10 @@ module.exports = {
             const maxWaitTime = 10000;  // 10 seconds
             await new Promise((resolve, reject) => {
                 const intervalId = setInterval(async () => {
-                    const connectionId = await context.stateGet('connectionId');
+                    connectionId = await context.stateGet('connectionId');
                     if (connectionId) {
                         clearInterval(intervalId);
+                        await context.log({ step: 'connected', message: 'Connection to Kafka established.' });
                         resolve();
                     } else if (new Date - checkStartTime > maxWaitTime) {
                         clearInterval(intervalId);
@@ -80,7 +83,6 @@ module.exports = {
         }
 
         await context.callAppmixer({
-
             endPoint: `/plugins/appmixer/kafka/producers/${connectionId}/send`,
             method: 'POST',
             body: payload
