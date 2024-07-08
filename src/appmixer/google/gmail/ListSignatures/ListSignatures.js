@@ -3,14 +3,13 @@ const commons = require('../gmail-commons');
 
 module.exports = {
     async receive(context) {
-        const params = {
+        const endpoint = '/users/me/settings/sendAs';
+        const options = {
             method: 'GET',
-            url: 'https://gmail.googleapis.com/gmail/v1/users/me/settings/sendAs',
-            headers: {
-                Authorization: `Bearer ${context.auth.accessToken}`
-            }
+            headers: {}
         };
-        const { data } = await commons.fetchData(context, params);
+        
+        const { data } = await commons.fetchData(context, endpoint, options);
 
         // Extract signatures from sendAs
         const signatures = data.sendAs.map(item => ({
@@ -23,7 +22,6 @@ module.exports = {
 
     signaturesToSelectArray(signatures) {
         return Array.isArray(signatures) ? signatures.reduce((result, sign) => {
-
             let plainSignature = sign.signature
                 .replace(/<\/div><div[^>]*>/g, '\n')
                 .replace(/<[^>]+>/g, '');
@@ -35,7 +33,5 @@ module.exports = {
 
             return result;
         }, []) : [];
-
     }
-
 };
