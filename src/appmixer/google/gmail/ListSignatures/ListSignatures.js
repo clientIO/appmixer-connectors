@@ -24,7 +24,8 @@ module.exports = {
         return Array.isArray(signatures) ? signatures.reduce((result, sign) => {
             let plainSignature = sign.signature
                 .replace(/<\/div><div[^>]*>/g, '\n')
-                .replace(/<[^>]+>/g, '');
+                .replace(/<[^>]+>/g, '')
+                .substring(0, 50);
 
             result.push({
                 label: `${sign.email} ( ${plainSignature} )`,
