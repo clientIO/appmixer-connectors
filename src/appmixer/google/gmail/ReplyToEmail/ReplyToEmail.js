@@ -78,7 +78,7 @@ module.exports = {
                 userId: 'me',
                 quotaUser: context.auth.userId,
                 // URI-safe base64
-                resource: { 
+                resource: {
                     raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_'),
                     threadId: mail.threadId
                 }

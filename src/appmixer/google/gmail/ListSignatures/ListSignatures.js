@@ -8,7 +8,7 @@ module.exports = {
             method: 'GET',
             headers: {}
         };
-        
+     
         const { data } = await commons.fetchData(context, endpoint, options);
 
         // Extract signatures from sendAs
