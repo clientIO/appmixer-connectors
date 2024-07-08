@@ -1,10 +1,7 @@
 'use strict';
 
 const { WebClient } = require('@slack/web-api');
-/**
- * Component for uploading files to Slack.
- * @extends {Component}
- */
+
 module.exports = {
 
     async receive(context) {
