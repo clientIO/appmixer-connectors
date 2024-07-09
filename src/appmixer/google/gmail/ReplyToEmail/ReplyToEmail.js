@@ -9,62 +9,49 @@ const gmail = GoogleApi.gmail('v1');
 const send = Promise.promisify(gmail.users.messages.send, { context: gmail.users.messages });
 const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.users.messages });
 
-/**
- * GMail send email component.
- * @extends {Component}
- */
 module.exports = {
-
     async receive(context) {
+        const {
+            thread,
+            from = context.profileInfo.email,
+            sender,
+            to,
+            cc,
+            bcc,
+            subject,
+            text,
+            html,
+            signature,
+            labels,
+            attachments = {}
+        } = context.messages.in.content;
 
-        /**
-         * @type MailComposer
-         */
-        let mail = Object.assign({}, context.messages.in.content);
-        if (mail.from && mail.sender) {
-            mail.from = `${mail.sender} <${mail.from}>`;
-        } else if (mail.sender) {
-            mail.from = `${mail.sender} <${context.profileInfo.email}>`;
-        }
-
-        if (context.messages.in.content.cc) {
-            mail.cc = context.messages.in.content.cc;
-        }
-
-        if (context.messages.in.content.bcc) {
-            mail.bcc = context.messages.in.content.bcc;
-        }
-
-        const { attachments = {} } = context.messages.in.content;
-        const fileIds = (attachments.ADD || [])
-            .map(attachment => (attachment.fileId || null))
-            .filter(fileId => fileId !== null);
-
-        mail.attachments = await Promise.map(fileIds, async (fileId) => {
-            const fileInfo = await context.getFileInfo(fileId);
-            const fileStream = await context.getFileReadStream(fileId);
-            return { filename: fileInfo.filename, content: fileStream };
-        });
+        const mail = {
+            from: sender ? `${sender} <${from}>` : from,
+            to,
+            cc,
+            bcc,
+            subject,
+            text,
+            html,
+            attachments: await getAttachmentsContent(context, attachments),
+            threadId: thread
+        };
 
         // Add signature to the email content if provided
-        if (context.messages.in.content.signature) {
+        if (signature) {
             if (mail.html) {
-                mail.html += `<br><br>${context.messages.in.content.signature}`;
+                mail.html += `<br><br>${signature}`;
             } else if (mail.text) {
-                mail.html = `${mail.text.replace(/\n/g, '<br>')}<br><br>${context.messages.in.content.signature}`;
+                mail.html = `${mail.text.replace(/\n/g, '<br>')}<br><br>${signature}`;
                 delete mail.text;
             } else {
-                mail.html = context.messages.in.content.signature;
+                mail.html = signature;
             }
         }
 
-        if (context.messages.in.content.thread) {
-            mail.threadId = context.messages.in.content.thread;
-        }
-
         return new Promise((resolve, reject) => {
-            const mailOptions = { ...mail };
-            const composer = mailcomposer(mailOptions);
+            const composer = mailcomposer(mail);
             composer.keepBcc = true;
             composer.build((err, email) => {
                 if (err) {
@@ -77,27 +64,34 @@ module.exports = {
                 auth: commons.getOauth2Client(context.auth),
                 userId: 'me',
                 quotaUser: context.auth.userId,
-                // URI-safe base64
                 resource: {
                     raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_'),
                     threadId: mail.threadId
                 }
             });
 
-            if (context.messages.in.content.labels && result.id) {
+            if (labels && labels.AND && labels.AND.some(label => label.name)) {
                 await modify({
                     auth: commons.getOauth2Client(context.auth),
                     userId: 'me',
                     id: result.id,
                     resource: {
-                        addLabelIds: context.messages.in.content.labels.AND.map(label => label.name)
+                        addLabelIds: labels.AND.filter(label => label.name).map(label => label.name)
                     }
                 });
-            } else {
-                await context.sendError('Invalid email label, ' + JSON.stringify(email));
             }
 
             return context.sendJson(result, 'email');
         });
     }
 };
+
+async function getAttachmentsContent(context, attachments) {
+    const fileIds = (attachments.ADD || []).map(attachment => attachment.fileId || null).filter(fileId => fileId !== null);
+
+    return await Promise.map(fileIds, async (fileId) => {
+        const fileInfo = await context.getFileInfo(fileId);
+        const fileStream = await context.getFileReadStream(fileId);
+        return { filename: fileInfo.filename, content: fileStream };
+    });
+}

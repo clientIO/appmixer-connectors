@@ -4,11 +4,8 @@ const commons = require('../gmail-commons');
 module.exports = {
     async receive(context) {
         const endpoint = '/users/me/settings/sendAs';
-        const options = {
-            method: 'GET',
-            headers: {}
-        };
-        const { data } = await commons.fetchData(context, endpoint, options);
+        const { data } = await commons.fetchData(context, endpoint);
+
         // Extract signatures from sendAs
         const signatures = data.sendAs.map(item => ({
             email: item.sendAsEmail,

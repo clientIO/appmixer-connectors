@@ -1,20 +1,17 @@
 'use strict';
-const GoogleApi = require('googleapis');
-const commons = require('../../google-commons');
-const { promisify } = require('util');
-
-// GoogleApi initialization & promisify of some api function for convenience
-const gmail = GoogleApi.gmail('v1');
+const commons = require('../gmail-commons');
 
 module.exports = {
     async receive(context) {
+        const endpoint = '/users/me/threads';
+        const { data } = await commons.fetchData(context, endpoint);
 
-        const listThread = promisify(gmail.users.threads.list.bind(gmail.users.threads));
-        const { threads } = await listThread({
-            auth: commons.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId
-        });
+        // Extract thread details
+        const threads = data.threads.map(item => ({
+            id: item.id,
+            snippet: item.snippet
+        }));
+
         return context.sendJson(threads, 'out');
     },
 

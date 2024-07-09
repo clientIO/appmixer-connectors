@@ -10,52 +10,46 @@ const createDraft = Promise.promisify(gmail.users.drafts.create, { context: gmai
 const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.users.messages });
 
 module.exports = {
-
     async receive(context) {
-        /**
-         * @type MailComposer
-         */
-        let mail = context.messages.in.content;
-        if (mail.from && mail.sender) {
-            mail.from = `${mail.sender} <${mail.from}>`;
-        } else if (mail.sender) {
-            mail.from = `${mail.sender} <${context.profileInfo.email}>`;
-        }
+        const {
+            from = context.profileInfo.email,
+            sender,
+            to,
+            cc,
+            bcc,
+            subject,
+            text,
+            html,
+            signature,
+            labels,
+            attachments = {}
+        } = context.messages.in.content;
 
-        if (context.messages.in.content.cc) {
-            mail.cc = context.messages.in.content.cc;
-        }
-
-        if (context.messages.in.content.bcc) {
-            mail.bcc = context.messages.in.content.bcc;
-        }
-
-        const { attachments = {} } = context.messages.in.content;
-        const fileIds = (attachments.ADD || [])
-            .map(attachment => (attachment.fileId || null))
-            .filter(fileId => fileId !== null);
-
-        mail.attachments = await Promise.map(fileIds, async (fileId) => {
-            const fileInfo = await context.getFileInfo(fileId);
-            const fileStream = await context.getFileReadStream(fileId);
-            return { filename: fileInfo.filename, content: fileStream };
-        });
+        const mail = {
+            from: sender ? `${sender} <${from}>` : from,
+            to,
+            cc,
+            bcc,
+            subject,
+            text,
+            html,
+            attachments: await getAttachmentsContent(context, attachments)
+        };
 
         // Add signature to the email content if provided
-        if (context.messages.in.content.signature) {
+        if (signature) {
             if (mail.html) {
-                mail.html += `<br><br>${context.messages.in.content.signature}`;
+                mail.html += `<br><br>${signature}`;
             } else if (mail.text) {
-                mail.html = `${mail.text.replace(/\n/g, '<br>')}<br><br>${context.messages.in.content.signature}`;
+                mail.html = `${mail.text.replace(/\n/g, '<br>')}<br><br>${signature}`;
                 delete mail.text;
             } else {
-                mail.html = context.messages.in.content.signature;
+                mail.html = signature;
             }
         }
 
         return new Promise((resolve, reject) => {
-            const mailOptions = { ...mail };
-            const composer = mailcomposer(mailOptions);
+            const composer = mailcomposer(mail);
             composer.keepBcc = true;
             composer.build((err, email) => {
                 if (err) {
@@ -77,13 +71,13 @@ module.exports = {
             });
 
             // Add labels to the draft
-            if (context.messages.in.content.labels && result.id) {
+            if (labels && labels.AND && labels.AND.some(label => label.name)) {
                 await modify({
                     auth: commons.getOauth2Client(context.auth),
                     userId: 'me',
                     id: result.message.id,
                     resource: {
-                        addLabelIds: context.messages.in.content.labels.AND.map(label => label.name)
+                        addLabelIds: labels.AND.filter(label => label.name).map(label => label.name)
                     }
                 });
             }
@@ -92,3 +86,13 @@ module.exports = {
         });
     }
 };
+
+async function getAttachmentsContent(context, attachments) {
+    const fileIds = (attachments.ADD || []).map(attachment => attachment.fileId || null).filter(fileId => fileId !== null);
+
+    return await Promise.map(fileIds, async (fileId) => {
+        const fileInfo = await context.getFileInfo(fileId);
+        const fileStream = await context.getFileReadStream(fileId);
+        return { filename: fileInfo.filename, content: fileStream };
+    });
+}
