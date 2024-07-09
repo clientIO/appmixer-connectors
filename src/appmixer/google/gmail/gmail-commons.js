@@ -22,9 +22,11 @@ module.exports = {
         const response = await context.httpRequest(params);
         return response;
     },
-    
+
     async addAttachments(context, attachments) {
-        const fileIds = (attachments.ADD || []).map(attachment => attachment.fileId || null).filter(fileId => fileId !== null);
+        const fileIds = (attachments.ADD || [])
+            .map(attachment => attachment.fileId || null)
+            .filter(fileId => fileId !== null);
 
         return await Promise.map(fileIds, async (fileId) => {
             const fileInfo = await context.getFileInfo(fileId);

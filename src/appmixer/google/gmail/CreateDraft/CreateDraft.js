@@ -1,7 +1,7 @@
 'use strict';
 const GoogleApi = require('googleapis');
 const commons = require('../../google-commons');
-const email_commons = require('../gmail-commons');
+const emailCommons = require('../gmail-commons');
 const Promise = require('bluebird');
 
 // GoogleApi initialization & promisify of some API functions for convenience
@@ -33,12 +33,12 @@ module.exports = {
             subject,
             text,
             html,
-            attachments: await email_commons.addAttachments(context, attachments)
+            attachments: await emailCommons.addAttachments(context, attachments)
         };
 
-        email_commons.addSignature(mail, signature);
+        emailCommons.addSignature(mail, signature);
 
-        const email = await email_commons.buildEmail(mail);
+        const email = await emailCommons.buildEmail(mail);
 
         const result = await createDraft({
             auth: commons.getOauth2Client(context.auth),
