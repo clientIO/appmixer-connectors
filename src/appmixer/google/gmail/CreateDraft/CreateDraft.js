@@ -1,8 +1,8 @@
 'use strict';
 const GoogleApi = require('googleapis');
 const commons = require('../../google-commons');
+const email_commons = require('../gmail-commons');
 const Promise = require('bluebird');
-const mailcomposer = require('mailcomposer');
 
 // GoogleApi initialization & promisify of some API functions for convenience
 const gmail = GoogleApi.gmail('v1');
@@ -33,68 +33,35 @@ module.exports = {
             subject,
             text,
             html,
-            attachments: await getAttachmentsContent(context, attachments)
+            attachments: await email_commons.addAttachments(context, attachments)
         };
 
-        // Add signature to the email content if provided
-        if (signature) {
-            if (mail.html) {
-                mail.html += `<br><br>${signature}`;
-            } else if (mail.text) {
-                mail.html = `${mail.text.replace(/\n/g, '<br>')}<br><br>${signature}`;
-                delete mail.text;
-            } else {
-                mail.html = signature;
-            }
-        }
+        email_commons.addSignature(mail, signature);
 
-        return new Promise((resolve, reject) => {
-            const composer = mailcomposer(mail);
-            composer.keepBcc = true;
-            composer.build((err, email) => {
-                if (err) {
-                    return reject(err);
+        const email = await email_commons.buildEmail(mail);
+
+        const result = await createDraft({
+            auth: commons.getOauth2Client(context.auth),
+            userId: 'me',
+            quotaUser: context.auth.userId,
+            resource: {
+                message: {
+                    raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_')
                 }
-                resolve(email);
-            });
-        }).then(async email => {
-            const result = await createDraft({
+            }
+        });
+
+        if (labels && labels.AND && labels.AND.some(label => label.name)) {
+            await modify({
                 auth: commons.getOauth2Client(context.auth),
                 userId: 'me',
-                quotaUser: context.auth.userId,
+                id: result.message.id,
                 resource: {
-                    message: {
-                        // URI-safe base64
-                        raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_')
-                    }
+                    addLabelIds: labels.AND.filter(label => label.name).map(label => label.name)
                 }
             });
+        }
 
-            // Add labels to the draft
-            if (labels && labels.AND && labels.AND.some(label => label.name)) {
-                await modify({
-                    auth: commons.getOauth2Client(context.auth),
-                    userId: 'me',
-                    id: result.message.id,
-                    resource: {
-                        addLabelIds: labels.AND.filter(label => label.name).map(label => label.name)
-                    }
-                });
-            }
-
-            return context.sendJson(result, 'draft');
-        });
+        return context.sendJson(result, 'draft');
     }
 };
-
-async function getAttachmentsContent(context, attachments) {
-    const fileIds = (attachments.ADD || [])
-        .map(attachment => attachment.fileId || null)
-        .filter(fileId => fileId !== null);
-
-    return await Promise.map(fileIds, async (fileId) => {
-        const fileInfo = await context.getFileInfo(fileId);
-        const fileStream = await context.getFileReadStream(fileId);
-        return { filename: fileInfo.filename, content: fileStream };
-    });
-}
