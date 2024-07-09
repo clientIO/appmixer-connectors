@@ -89,8 +89,8 @@ module.exports = {
 
 async function getAttachmentsContent(context, attachments) {
     const fileIds = (attachments.ADD || [])
-    .map(attachment => attachment.fileId || null)
-    .filter(fileId => fileId !== null);
+        .map(attachment => attachment.fileId || null)
+        .filter(fileId => fileId !== null);
 
     return await Promise.map(fileIds, async (fileId) => {
         const fileInfo = await context.getFileInfo(fileId);
