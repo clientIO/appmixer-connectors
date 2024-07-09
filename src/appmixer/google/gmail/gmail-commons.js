@@ -34,7 +34,7 @@ module.exports = {
             return { filename: fileInfo.filename, content: fileStream };
         });
     },
-    
+
     addSignature(mail, signature) {
         if (signature) {
             if (mail.html) {
@@ -47,11 +47,11 @@ module.exports = {
             }
         }
     },
-    
+
     async buildEmail(mail) {
         return new Promise((resolve, reject) => {
             const mailOptions = { ...mail };
-            const composer = mailcomposer(mailOptions)
+            const composer = mailcomposer(mailOptions);
             composer.keepBcc = true;
             composer.build((err, email) => {
                 if (err) {
