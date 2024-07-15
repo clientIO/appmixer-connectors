@@ -15,7 +15,7 @@ module.exports = {
         // Initialize Slack Web API client
         const web = new WebClient(context.auth.accessToken);
         const result = await web.filesUploadV2({
-            channels: channel,
+            channel_id: channel,
             file: fileStream,
             filename: filename || fileInfo.filename,
             initial_comment: initialComment,
