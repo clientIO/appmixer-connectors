@@ -1,7 +1,7 @@
 {
     "name": "appmixer.google.gmail.ReplyToEmail",
     "author": "Sayam Nasir <sayam@client.io>",
-    "description": "Send a reply to an existing email thread",
+    "description": "Send a reply to an existing email",
     "version": "1.0.1",
     "auth": {
         "service": "appmixer:google",
@@ -24,16 +24,20 @@
             "name": "in",
             "inspector": {
                 "inputs": {
-                    "thread": {
+                    "email": {
                         "type": "text",
-                        "label": "Thread",
+                        "label": "Email",
                         "index": 1,
-                        "tooltip": "Select the thread to reply",
+                        "tooltip": "Select an Email to reply",
                         "source": { 
-                            "url": "/component/appmixer/google/gmail/ListThreads?outPort=out",
+                            "url": "/component/appmixer/google/gmail/ListEmails?outPort=out",
                             "data": {
+                                "messages": {
+                                    "in/limit": "20",
+                                    "in/outputType": "emails"
+                                },
                                 "properties": { "sendWholeArray": true },
-                                "transform": "./ListThreads#threadsToSelectArray"
+                                "transform": "./ListEmails#emailsToSelectArray"
                             }
                         }
                     },
@@ -66,12 +70,6 @@
                         "index": 6,
                         "label": "BCC",
                         "tooltip": "The email address of the message's blind carbon copy recipient."
-                    },
-                    "subject": {
-                        "type": "text",
-                        "index": 7,
-                        "label": "Subject",
-                        "tooltip": "The subject of the message."
                     },
                     "text": {
                         "type": "textarea",
@@ -142,7 +140,7 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "thread": {
+                    "email": {
                         "type": "string"
                     },
                     "from": {
@@ -163,9 +161,6 @@
                     "bcc": {
                         "type": "string",
                         "format": "email"
-                    },
-                    "subject": {
-                        "type": "string"
                     },
                     "text": {
                         "type": "string"
@@ -189,7 +184,7 @@
     ],
     "outPorts": [
         {
-            "name": "email",
+            "name": "out",
             "options": [
                 { "label": "id", "value": "id" },
                 { "label": "threadId", "value": "threadId" }

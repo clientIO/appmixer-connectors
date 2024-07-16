@@ -3,7 +3,7 @@ const GoogleApi = require('googleapis');
 const commons = require('../../google-commons');
 const { promisify } = require('util');
 
-// GoogleApi initialization & promisify of some api function for convenience
+// GoogleApi initialization & promisify of some API functions for convenience
 const gmail = GoogleApi.gmail('v1');
 
 module.exports = {
@@ -18,6 +18,7 @@ module.exports = {
         }
         const pageSize = 100; // Number of emails to retrieve per page
         const listEmails = promisify(gmail.users.messages.list.bind(gmail.users.messages));
+        const getMessage = promisify(gmail.users.messages.get.bind(gmail.users.messages));
 
         let emails = [];
         let nextPageToken = null;
@@ -32,8 +33,20 @@ module.exports = {
                 maxResults: Math.min(pageSize, maxLimit - totalEmails)
             });
 
-            emails = emails.concat(result.messages);
-            totalEmails += emails.length;
+            if (result.messages) {
+                for (const message of result.messages) {
+                    const emailDetails = await getMessage({
+                        auth: commons.getOauth2Client(context.auth),
+                        userId: 'me',
+                        id: message.id,
+                        format: 'metadata',
+                        metadataHeaders: ['snippet']
+                    });
+                    emails.push(emailDetails);
+                }
+            }
+
+            totalEmails += result.messages ? result.messages.length : 0;
             nextPageToken = result.nextPageToken;
         } while (nextPageToken && totalEmails < maxLimit);
 
@@ -53,7 +66,7 @@ module.exports = {
             }
         }
 
-        if (outputType == 'file') {
+        if (outputType === 'file') {
             const csvString = csvRows.join('\n');
             const buffer = Buffer.from(csvString, 'utf8');
             const filename = `gmail-listemails-${context.componentId}.csv`;
@@ -108,5 +121,11 @@ module.exports = {
             // file
             return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
         }
+    },
+
+    emailsToSelectArray({emails}) {
+        return emails.map(mail => {
+            return { label: `${mail.snippet}`, value: `${mail.id}` };
+        });
     }
 };

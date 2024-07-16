@@ -29,7 +29,9 @@ module.exports = {
                 threadId: messageDetails.data.threadId,
                 labelIds: messageDetails.data.labelIds
             };
+            return context.sendJson(email, 'out');
+        } else {
+            return context.sendJson({}, 'notFound');
         }
-        return context.sendJson(email, 'out');
     }
 };
