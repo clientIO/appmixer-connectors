@@ -30,7 +30,6 @@ module.exports = {
                 labelIds: messageDetails.data.labelIds
             };
         }
-   
         return context.sendJson(email, 'out');
     }
 };
