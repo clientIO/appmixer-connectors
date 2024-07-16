@@ -5,22 +5,22 @@ const Promise = require('bluebird');
 const BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
 
 module.exports = {
-    async fetchData(context, endpoint, options = {}) {
-        const defaultHeaders = {
-            Authorization: `Bearer ${context.auth.accessToken}`
-        };
-
-        const headers = { ...defaultHeaders, ...options.headers };
-
-        const params = {
-            method: options.method,
+    async fetchData(context, endpoint, {
+        method = 'GET',
+        params = {},
+        headers = {}
+    } = {}) {
+        const options = {
+            method,
             url: `${BASE_URL}${endpoint}`,
-            headers: headers,
-            params: options.params || {}
+            headers: {
+                Authorization: `Bearer ${context.auth.accessToken}`,
+                ...headers
+            },
+            params
         };
 
-        const response = await context.httpRequest(params);
-        return response;
+        return await context.httpRequest(options);
     },
 
     async addAttachments(context, attachments) {
