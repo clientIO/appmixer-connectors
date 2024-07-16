@@ -123,7 +123,7 @@ module.exports = {
         }
     },
 
-    emailsToSelectArray({emails}) {
+    emailsToSelectArray({ emails }) {
         return emails.map(mail => {
             return { label: `${mail.snippet}`, value: `${mail.id}` };
         });
