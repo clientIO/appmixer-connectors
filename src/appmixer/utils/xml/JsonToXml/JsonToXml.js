@@ -1,6 +1,14 @@
 'use strict';
 const { XMLBuilder } = require('fast-xml-parser');
 
+function parseInputJSON(context, jsonString) {
+    try {
+        return typeof jsonString === 'string' ? JSON.parse(jsonString) : jsonString;
+    } catch (e) {
+        throw new context.CancelError(`The input JSON is invalid: ${jsonString}`);
+    }
+}
+
 module.exports = {
 
     async receive(context) {
@@ -45,7 +53,9 @@ module.exports = {
         };
 
         const builder = new XMLBuilder(options);
-        const xml = builder.build(json);
+
+        const xml = builder.build(parseInputJSON(context, json));
+
         return context.sendJson({ xml }, 'out');
     }
 };
