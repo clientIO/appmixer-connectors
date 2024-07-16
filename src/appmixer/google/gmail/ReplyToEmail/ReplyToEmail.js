@@ -74,6 +74,6 @@ module.exports = {
             });
         }
 
-        return context.sendJson(result, 'email');
+        return context.sendJson(result, 'out');
     }
 };
