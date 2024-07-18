@@ -9,9 +9,9 @@ const gmail = GoogleApi.gmail('v1');
 module.exports = {
 
     async receive(context) {
-
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { outputType, limit } = context.messages.in.content;
+        const variableFetch = context.properties.variableFetch;
         const maxLimit = limit || 100;
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
@@ -35,14 +35,20 @@ module.exports = {
 
             if (result.messages) {
                 for (const message of result.messages) {
-                    const emailDetails = await getMessage({
-                        auth: commons.getOauth2Client(context.auth),
-                        userId: 'me',
-                        id: message.id,
-                        format: 'metadata',
-                        metadataHeaders: ['snippet']
-                    });
-                    emails.push(emailDetails);
+                    if (variableFetch) {
+                        const emailDetails = await getMessage({
+                            auth: commons.getOauth2Client(context.auth),
+                            userId: 'me',
+                            id: message.id,
+                            format: 'full'
+                        });
+                        emails.push(emailDetails);
+                    } else {
+                        emails.push({
+                            id: message.id,
+                            threadId: message.threadId
+                        });
+                    }
                 }
             }
 

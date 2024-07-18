@@ -40,7 +40,7 @@ module.exports = {
 
         await Promise.each(emails || [], async email => {
             if (!email.labelIds) {
-                await context.sendError('Invalid email label, ' + JSON.stringify(email));
+                throw new context.CancelError('Invalid email label');
             }
             if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
                 if (commons.isNewInboxEmail(email.labelIds)) {

@@ -5,9 +5,10 @@ const Promise = require('bluebird');
 const BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
 
 module.exports = {
-    async fetchData(context, endpoint, {
-        method = 'GET',
+    async callEndpoint(context, endpoint, {
+        method,
         params = {},
+        data = null,
         headers = {}
     } = {}) {
         const options = {
@@ -19,6 +20,10 @@ module.exports = {
             },
             params
         };
+
+        if (data) {
+            options.data = data;
+        }
 
         return await context.httpRequest(options);
     },
@@ -60,5 +65,15 @@ module.exports = {
                 resolve(email);
             });
         });
+    },
+
+    getHeaderValue(headers, names) {
+        for (let name of names) {
+            const header = headers.find(header => header.name.toLowerCase() === name.toLowerCase());
+            if (header) {
+                return header.value;
+            }
+        }
+        return null;
     }
 };
