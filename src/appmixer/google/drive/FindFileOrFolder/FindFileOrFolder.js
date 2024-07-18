@@ -8,7 +8,7 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { query, searchType, folderLocation } = context.messages.in.content;
+        let { query, searchType, folderLocation, fileTypes } = context.messages.in.content;
         const escapedQuery = commons.escapeSpecialCharacters(query);
 
         let folderId;
@@ -40,23 +40,31 @@ module.exports = {
             q = query;  // no query suffix, this is a completely custom search.
         }
 
-        await context.log({ q: q });
+        if (fileTypes && fileTypes.length) {
+            const mimeTypeQuery = fileTypes.map(fileType => `mimeType contains '${fileType}'`).join(' or ');
+            q += ` and (${mimeTypeQuery})`;
+        }
 
-        const { data } = await drive.files.list({ q, fields: 'files(id, name, mimeType, webViewLink, createdTime)' });
+        await context.log({ step: 'query', q: q });
+
+        const { data } = await drive.files.list({ q, fields: '*', pageSize: 1 });
         const { files = [] } = data;
         if (files.length > 0) {
             const file = files[0];
             return context.sendJson({
+                isFolder: file.mimeType === 'application/vnd.google-apps.folder',
+                isFile: file.mimeType !== 'application/vnd.google-apps.folder',
+                googleDriveFileMetadata: file,
+                // The fields below are for backward compatibility with the old implementation.
+                // The above googleDriveFileMetadata field should be used instead.
                 googleId: file.id,
                 fileName: file.name,
                 mimeType: file.mimeType,
                 webViewLink: file.webViewLink,
-                createdTime: file.createdTime,
-                isFolder: file.mimeType === 'application/vnd.google-apps.folder',
-                isFile: file.mimeType !== 'application/vnd.google-apps.folder'
+                createdTime: file.createdTime
             }, 'out');
 
         }
-        return context.sendJson({ query:query }, 'notFound');
+        return context.sendJson({ query }, 'notFound');
     }
 };

@@ -45,7 +45,7 @@ module.exports = {
             q += ` and ${query}`;  // no query suffix, this is a completely custom search withinn the folder.
         }
 
-        await context.log({ step: 'Preparing query parameter', q });
+        await context.log({ step: 'query', q });
         const pageSize = 1000;
         const fields = 'nextPageToken, files(id, name, mimeType, webViewLink, createdTime)';
         // First page.
