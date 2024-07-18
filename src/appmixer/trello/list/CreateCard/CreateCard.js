@@ -61,13 +61,14 @@ module.exports = {
 
             // Add checklist items to the checklist
             if (checklistItems) {
-                const checklistItemsArray = checklistItems.split('\n');
+                const items = checklistItems.split('\n');
 
-                if (checklistItemsArray.length > 5) {
+                if (items.length > 5) {
                     throw new context.CancelError('Maximum 5 checklist items are allowed');
                 }
 
-                for (let i = 0; i < checklistItemsArray.length; i++) {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
                     await context.httpRequest({
                         headers: { 'Content-Type': 'application/json' },
                         method: 'POST',
