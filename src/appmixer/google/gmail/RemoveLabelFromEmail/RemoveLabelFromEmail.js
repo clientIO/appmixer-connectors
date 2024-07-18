@@ -5,8 +5,7 @@ module.exports = {
         const {
             emailId,
             labels: { AND: labels }
-        } = context.messages.in.content;
-        
+        } = context.messages.in.content;      
         const endpoint = `/users/me/messages/${emailId}/modify`;
         const options = {
             method: 'POST',
