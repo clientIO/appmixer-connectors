@@ -1,8 +1,8 @@
 {
-    "name": "appmixer.trello.list.AddChecklistToCard",
+    "name": "appmixer.trello.list.ListCardChecklists",
     "author": "Appmixer <info@appmixer.com>",
     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
-    "description": "Add a new checklist to a specific card.",
+    "description": "Get the checklists on a card.",
     "private": false,
     "version": "1.0.0",
     "auth": {
@@ -10,7 +10,7 @@
     },
     "quota": {
         "manager": "appmixer:trello",
-        "resources": "AddChecklistToCard",
+        "resources": "requests",
         "scope": {
             "userId": "{{userId}}"
         }
@@ -23,10 +23,16 @@
                 "properties": {
                     "boardId": { "type": "string" },
                     "boardListCardId": { "type": "string" },
-                    "checklistName": { "type": "string", "maxLength": 16384 },
-                    "checklistItems": { "type": "string" }
+                    "outputType": { "type": "string" }
                 },
-                "required": [ "boardListCardId", "checklistName" ]
+                "if": {
+                    "properties": {
+                        "isSource": { "enum": [true] }
+                    },
+                    "required": ["isSource"]
+                },
+                "then": { "required": [] },
+                "else": { "required": ["boardListCardId"] }
             },
             "inspector": {
                 "inputs": {
@@ -58,32 +64,37 @@
                         },
                         "tooltip": "Select a card or card ID from previous component."
                     },
-                    "checklistName": {
-                        "type": "text",
-                        "label": "Checklist name",
-                        "index": 3
-                    },
-                    "checklistItems": {
-                        "type": "textarea",
-                        "label": "Checklist Items",
-                        "tooltip": "Enter up to 10 checklist items. Each item should be on a new line. If you need to add more items, you can do so after creating the card and using the AddChecklistItemToCard component.",
-                        "index": 4
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 3,
+                        "defaultValue": "items",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            { "label": "All at once", "value": "items" },
+                            { "label": "One at a time", "value": "item" },
+                            { "label": "File", "value": "file" }
+                        ]
                     }
                 }
             }
         }
     ],
     "outPorts": [
-    {
+        {
             "name": "out",
-            "options": [
-                { "label": "Checklist ID", "value": "idChecklist" },
-                { "label": "Card ID", "value": "idCard" },
-                { "label": "Board ID", "value": "idBoard" },
-                { "label": "Checklist Name", "value": "name" },
-                { "label": "Position", "value": "pos" },
-                { "label": "Checklist Items", "value": "items" }
-            ]
+            "source": {
+                "url": "/component/appmixer/trello/list/ListCardChecklists?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/boardListCardId": "inputs/in/boardListCardId"
+                    }
+                }
+            }
         }
     ]
 }
