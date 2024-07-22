@@ -20,8 +20,7 @@ module.exports = {
                 `state=${encodeURIComponent(context.ticket)}&` +
                 `scope=${encodeURIComponent(context.scope.join(' '))}&` +
                 'response_type=code&' +
-                `code_challenge=${context.ticket}
-                &code_challenge_method=plain`;
+                `code_challenge=${context.ticket}&code_challenge_method=plain`;
         },
 
         requestAccessToken,
