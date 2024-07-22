@@ -13,7 +13,7 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { query, searchType, folderLocation, outputType } = context.messages.in.content;
+        let { query, searchType, folderLocation, fileTypes, outputType } = context.messages.in.content;
 
         let folderId;
         if (folderLocation) {
@@ -45,7 +45,13 @@ module.exports = {
             q += ` and ${query}`;  // no query suffix, this is a completely custom search withinn the folder.
         }
 
+        if (fileTypes && fileTypes.length) {
+            const mimeTypeQuery = fileTypes.map(fileType => `mimeType contains '${fileType}'`).join(' or ');
+            q += ` and (${mimeTypeQuery})`;
+        }
+
         await context.log({ step: 'query', q });
+
         const pageSize = 1000;
         const fields = 'nextPageToken, files(id, name, mimeType, webViewLink, createdTime)';
         // First page.
@@ -59,6 +65,7 @@ module.exports = {
         }
 
         const { files = [] } = data;
+
         if (outputType === 'item') {
             // One by one.
             await context.sendArray(files, 'out');
