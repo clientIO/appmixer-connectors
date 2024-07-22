@@ -1,8 +1,8 @@
 {
-    "name": "appmixer.trello.list.ListCardChecklists",
+    "name": "appmixer.trello.checklist.DeleteChecklist",
     "author": "Appmixer <info@appmixer.com>",
     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
-    "description": "Get the checklists on a card.",
+    "description": "Delete a checklist.",
     "private": false,
     "version": "1.0.0",
     "auth": {
@@ -23,16 +23,9 @@
                 "properties": {
                     "boardId": { "type": "string" },
                     "boardListCardId": { "type": "string" },
-                    "outputType": { "type": "string" }
+                    "checklistId": { "type": "string" }
                 },
-                "if": {
-                    "properties": {
-                        "isSource": { "enum": [true] }
-                    },
-                    "required": ["isSource"]
-                },
-                "then": { "required": [] },
-                "else": { "required": ["boardListCardId"] }
+                "required": [ "checklistId" ]
             },
             "inspector": {
                 "inputs": {
@@ -46,7 +39,7 @@
                                 "transform": "./transformers#boardsToSelectArray"
                             }
                         },
-                        "tooltip": "Select a board."
+                        "tooltip": "Select a board to choose a card in the following field. Or use the Checklist ID directly and skip this field."
                     },
                     "boardListCardId": {
                         "type": "select",
@@ -62,19 +55,23 @@
                                 "transform": "./transformers#cardListsToSelectArray"
                             }
                         },
-                        "tooltip": "Select a card or card ID from previous component."
+                        "tooltip": "Select a card from a board from the previous component. Or use the Checklist ID directly and skip this field."
                     },
-                    "outputType": {
+                    "checklistId": {
                         "type": "select",
-                        "label": "Output Type",
-                        "index": 3,
-                        "defaultValue": "items",
-                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
-                        "options": [
-                            { "label": "All at once", "value": "items" },
-                            { "label": "One at a time", "value": "item" },
-                            { "label": "File", "value": "file" }
-                        ]
+                        "label": "Checklist",
+                        "source": {
+                            "url": "/component/appmixer/trello/list/ListCardChecklists?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/boardListCardId": "inputs/in/boardListCardId",
+                                    "in/isSource": true
+                                },
+                                "transform": "./transformers#cardChecklistsToSelectArray"
+                            }
+                        },
+                        "tooltip": "The ID of the checklist to delete.",
+                        "index": 3
                     }
                 }
             }
@@ -83,18 +80,7 @@
     "outPorts": [
         {
             "name": "out",
-            "source": {
-                "url": "/component/appmixer/trello/list/ListCardChecklists?outPort=out",
-                "data": {
-                    "properties": {
-                        "generateOutputPortOptions": true
-                    },
-                    "messages": {
-                        "in/outputType": "inputs/in/outputType",
-                        "in/boardListCardId": "inputs/in/boardListCardId"
-                    }
-                }
-            }
+            "options": []
         }
     ]
 }

@@ -34,7 +34,7 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'item') {
+        if (outputType === 'object') {
             return context.sendJson(
                 [
                     { label: 'ID', value: 'id' },
@@ -43,12 +43,12 @@ module.exports = {
                 ],
                 'out'
             );
-        } else if (outputType === 'items') {
+        } else if (outputType === 'array') {
             return context.sendJson(
                 [
                     {
                         label: 'Checklists',
-                        value: 'items',
+                        value: 'array',
                         schema: {
                             type: 'array',
                             items: {
