@@ -8,7 +8,7 @@ module.exports = {
 
         const { checklistId, name } = context.messages.in.content;
 
-        const data = await context.httpRequest({
+        const { data } = await context.httpRequest({
             headers: { 'Content-Type': 'application/json' },
             method: 'PUT',
             url: `https://api.trello.com/1/checklists/${checklistId}?${commons.getAuthQueryParams(context)}`,

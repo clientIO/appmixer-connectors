@@ -34,10 +34,19 @@
                         "type": "string"
                     }
                 },
-                "anyOf": [
-                    { "required": ["boardListCardId","checklistId"] },
-                    { "required": ["checklistId"] }
-                ]
+                "if": {
+                    "properties": {
+                        "isSource": { "enum": [true] }
+                    },
+                    "required": ["isSource"]
+                },
+                "then": { "required": [] },
+                "else": {
+                    "anyOf": [
+                        { "required": [ "boardListCardId", "checklistId" ] },
+                        { "required": [ "checklistId" ] }
+                    ]
+                }
             },
             "inspector": {
                 "inputs": {
@@ -73,7 +82,7 @@
                         "type": "select",
                         "label": "Checklist",
                         "source": {
-                            "url": "/component/appmixer/trello/list/ListCardChecklists?outPort=out",
+                            "url": "/component/appmixer/trello/checklist/ListCardChecklists?outPort=out",
                             "data": {
                                 "messages": {
                                     "in/boardListCardId": "inputs/in/boardListCardId",
@@ -89,7 +98,7 @@
                         "type": "select",
                         "label": "Output Type",
                         "index": 4,
-                        "defaultValue": "items",
+                        "defaultValue": "array",
                         "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
                         "options": [
                             { "label": "All at once", "value": "array" },
@@ -105,14 +114,14 @@
         {
             "name": "out",
             "source": {
-                "url": "/component/appmixer/trello/list/ListCardChecklists?outPort=out",
+                "url": "/component/appmixer/trello/checklist/ListChecklistItems?outPort=out",
                 "data": {
                     "properties": {
                         "generateOutputPortOptions": true
                     },
                     "messages": {
                         "in/outputType": "inputs/in/outputType",
-                        "in/boardListCardId": "inputs/in/boardListCardId"
+                        "in/checklistId": "1"
                     }
                 }
             }

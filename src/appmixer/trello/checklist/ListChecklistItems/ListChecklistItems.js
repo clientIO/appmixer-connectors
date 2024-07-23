@@ -6,14 +6,14 @@ module.exports = {
     async receive(context) {
 
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
-        const { checklistId, outputType, isSource } = context.messages.in.content;
+        const { checklistId, boardListCardId, outputType, isSource } = context.messages.in.content;
 
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
 
         if (isSource) {
-            if (!checklistId) {
+            if (!checklistId || !boardListCardId) {
                 return context.sendJson({ checklistId: [] }, 'out');
             }
         }
@@ -22,7 +22,6 @@ module.exports = {
             headers: { 'Content-Type': 'application/json' },
             url: `https://api.trello.com/1/checklists/${checklistId}/checkitems?${commons.getAuthQueryParams(context)}`
         });
-context.log({ step: 'receive', data });
 
         return commons.sendArrayOutput({
             context,
@@ -37,14 +36,14 @@ context.log({ step: 'receive', data });
         if (outputType === 'object') {
             return context.sendJson(
                 [
-                    { label: 'Checklist ID', value: 'idChecklist' },
-                    { label: 'Checklist Item ID', value: 'id' },
-                    { label: 'Position', value: 'pos' },
-                    { label: 'State', value: 'state' },
-                    { label: 'Due', value: 'due' },
-                    { label: 'Due Reminder', value: 'dueReminder' },
-                    { label: 'Member ID', value: 'idMember' },
-                    { label: 'Limits', value: 'limits', 'schema': { type: 'object' } }
+                    { label: 'Checklist ID', value: 'idChecklist', schema: { type: 'string' } },
+                    { label: 'Checklist Item ID', value: 'id', schema: { type: 'string' } },
+                    { label: 'Position', value: 'pos', schema: { type: 'string' } },
+                    { label: 'State', value: 'state', schema: { type: 'string' } },
+                    { label: 'Due', value: 'due', schema: { type: 'string' } },
+                    { label: 'Due Reminder', value: 'dueReminder', schema: { type: 'string' } },
+                    { label: 'Member ID', value: 'idMember', schema: { type: 'string' } },
+                    { label: 'Limits', value: 'limits', schema: { type: 'object' } }
                 ],
                 'out'
             );

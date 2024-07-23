@@ -21,10 +21,10 @@ module.exports = {
     // Expects standardized outputType: 'item', 'items', 'file'
     async sendArrayOutput({ context, outputPortName = 'out', outputType = 'items', records = [] }) {
 
-        if (outputType === 'item') {
+        if (outputType === 'item' || outputType === 'object') {
             // One by one.
             await context.sendArray(records, outputPortName);
-        } else if (outputType === 'items') {
+        } else if (outputType === 'items' || outputType === 'array') {
             // All at once.
             await context.sendJson(records, outputPortName);
         } else if (outputType === 'file') {

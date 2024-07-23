@@ -1,4 +1,5 @@
 'use strict';
+
 const commons = require('../../trello-commons');
 
 module.exports = {
@@ -33,7 +34,7 @@ module.exports = {
                     method: 'POST',
                     url: `https://api.trello.com/1/checklists/${data.id}/checkItems?${commons.getAuthQueryParams(context)}`,
                     data: {
-                        'name': item.trim()
+                        name: item.trim()
                     }
                 });
             }
