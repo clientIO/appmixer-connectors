@@ -25,7 +25,10 @@ module.exports = {
             // One by one.
             await context.sendArray(records, outputPortName);
         } else if (outputType === 'items' || outputType === 'array') {
-            // All at once.
+            // All at once. Handling both 'items' and 'array' as 'items'.
+            if (outputType === 'array') {
+                return await context.sendJson({ array: records }, outputPortName);
+            }
             await context.sendJson(records, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.

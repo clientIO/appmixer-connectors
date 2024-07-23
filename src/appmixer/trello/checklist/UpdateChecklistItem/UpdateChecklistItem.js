@@ -6,16 +6,21 @@ module.exports = {
 
     async receive(context) {
 
-        const { checklistId, checklistItemId } = context.messages.in.content;
+        const { boardListCardId, checklistItemId, name, state } = context.messages.in.content;
 
-        const url = `/1/checklists/${checklistId}/checkItems/${checklistItemId.trim()}`;
+        // Using: https://developer.atlassian.com/cloud/trello/rest/api-group-cards/#api-cards-id-checkitem-idcheckitem-put
+        const url = `/1/cards/${boardListCardId}/checkItem/${checklistItemId.trim()}`;
 
-        await context.httpRequest({
+        const { data } = await context.httpRequest({
             headers: { 'Content-Type': 'application/json' },
-            method: 'DELETE',
-            url: `https://api.trello.com${url}?${commons.getAuthQueryParams(context)}`
+            method: 'PUT',
+            url: `https://api.trello.com${url}?${commons.getAuthQueryParams(context)}`,
+            data: {
+                name: name.trim(),
+                state
+            }
         });
 
-        return context.sendJson({}, 'out');
+        return context.sendJson(data, 'out');
     }
 };
