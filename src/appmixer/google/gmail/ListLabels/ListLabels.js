@@ -51,7 +51,7 @@ module.exports = {
         return transformed;
     },
 
-    userLabelsToSelectArray(labels){
+    userLabelsToSelectArray(labels) {
         let transformed = [];
         if (Array.isArray(labels)) {
             transformed = labels.reduce((result, label) => {
