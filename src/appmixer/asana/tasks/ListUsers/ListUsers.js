@@ -7,7 +7,7 @@ const commons = require('../../asana-commons');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { workspace, outputType } = context.messages.in.content;
@@ -18,15 +18,23 @@ module.exports = {
 
         let client = commons.getAsanaAPI(context.auth.accessToken);
 
-        return client.users.findByWorkspace(workspace)
-            .then(res => {
-                return commons.sendArrayOutput({
-                    context,
-                    outputPortName: 'users',
-                    outputType,
-                    records: res.data
-                });
-            });
+        let users;
+
+        try {
+            const res = await client.users.findByWorkspace(workspace);
+            users = res.data;
+        } catch (err) {
+            if (!context.properties.ignoreErrors) {
+                throw err;
+            }
+        }
+
+        return commons.sendArrayOutput({
+            context,
+            outputPortName: 'users',
+            outputType,
+            records: users
+        });
     },
 
     getOutputPortOptions(context, outputType) {
