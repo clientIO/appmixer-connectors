@@ -49,5 +49,22 @@ module.exports = {
             }, []);
         }
         return transformed;
+    },
+
+    userLabelsToSelectArray(labels){
+        let transformed = [];
+        if (Array.isArray(labels)) {
+            transformed = labels.reduce((result, label) => {
+                if (label.type == 'user') {
+                    const item = {
+                        label: label.name,
+                        value: label.id
+                    };
+                    result.push(item);
+                }
+                return result;
+            }, []);
+        }
+        return transformed;
     }
 };
