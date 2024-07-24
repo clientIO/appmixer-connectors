@@ -54,9 +54,9 @@ module.exports = {
                             items: {
                                 type: 'object',
                                 properties: {
-                                    'id': { title: 'ID', type: 'string' },
-                                    'idBoard': { title: 'Board ID', type: 'string' },
-                                    'name': { title: 'Name', type: 'string' }
+                                    id: { title: 'ID', type: 'string' },
+                                    idBoard: { title: 'Board ID', type: 'string' },
+                                    name: { title: 'Name', type: 'string' }
                                 }
                             }
                         }
