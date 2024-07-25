@@ -30,6 +30,10 @@ module.exports = {
         const csvStream = getCSVReadStream();
         const transformer = customHtmlTransforms[transformType];
 
+        if (!transformer) {
+            throw new context.CancelError(`HTML transformer '${transformType}' is not defined. Available transformers: ${Object.keys(customHtmlTransforms).join(',')}`);
+        }
+
         return pipeline(
             readStream,
             csvStream,
@@ -44,6 +48,10 @@ module.exports = {
 
         const readStream = await context.getFileReadStream(sourceFileId);
         const transformer = customHtmlTransforms[transformType];
+
+        if (!transformer) {
+            throw new context.CancelError(`HTML transformer '${transformType}' is not defined. Available transformers: ${Object.keys(customHtmlTransforms).join(',')}`);
+        }
 
         return pipeline(
             readStream,

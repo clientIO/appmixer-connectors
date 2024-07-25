@@ -7,10 +7,11 @@ module.exports = {
     async receive(context) {
 
         const { fileId } = context.messages.in.content;
+        const transformer = context.config.CSV2HTML_TRANSFORMER;
 
         const fileInfo = await context.getFileInfo(fileId);
         const newFileName = path.parse(fileInfo.filename).name + '.html';
-        const stream = await converters.csvToHtml(context, fileId);
+        const stream = await converters.csvToHtml(context, fileId, transformer);
         const savedFile = await context.saveFileStream(newFileName, stream);
 
         return context.sendJson({
