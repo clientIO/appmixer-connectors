@@ -15,9 +15,12 @@ module.exports = {
             scope: 'userId'
         },
 
-        // Special case: CreateCard with possible 6 additional requests for checklist
+        // Special case: CreateCard with possible 11 additional requests for checklist
+        // 1 request for CreateCard
+        // 1 request for adding checklist to the card
+        // 10 requests for adding items to the checklist
         {
-            limit: 10, // 100 / 7 ~= 14 with some room for the `requests` quota category
+            limit: 8, // 100 / 12 ~= 8 with some room for the `requests` quota category
             window: 1000 * 10,
             queueing: 'fifo',
             throttling: 'window-sliding',
@@ -26,6 +29,8 @@ module.exports = {
         },
 
         // Special case: AddChecklistToCard with possible 10 additional requests for checklist
+        // 1 request for AddChecklistToCard
+        // 10 requests for adding items to the checklist
         {
             limit: 9, // 100 / 11 ~= 9
             window: 1000 * 10,
