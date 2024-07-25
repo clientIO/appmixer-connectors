@@ -362,42 +362,80 @@ module.exports = class CSVProcessor {
     }
 
     /**
-     * @param newRow
+     * @param rows
      * @param closure
      * @return {Promise<*>}
      * @public
      */
-    async addRow(newRow, closure) {
+    async addRows({ rows }) {
 
-        const lock = await this.context.lock(this.fileId);
-        const stream = await this.loadFile();
-
-        let idx = 0;
-        const writeStream = new PassThrough();
-        stream.on('data', (row) => {
-            try {
-                writeStream.write(row.join(this.delimiter) + '\n');
-                if (closure(idx, row, false)) {
-                    writeStream.write(newRow.join(this.delimiter) + '\n');
-                }
-                idx += 1;
-            } catch (err) {
-                stream.destroy(err);
-            }
-        }).on('error', (err) => {
-            lock.unlock();
-            stream.destroy(err);
-        }).on('end', async () => {
-            if (closure(idx, null, true)) {
-                writeStream.write(newRow.join(this.delimiter) + '\n');
-            }
-            writeStream.end();
+        const config = this.context.config;
+        const lock = await this.context.lock(this.fileId, {
+            ttl: parseInt(config.lockTTL, 10) || 60000 // Default 1 minute TTL
         });
 
+        let stream;
+        let writeStream;
+        let lockExtendInterval;
+
+        const destroy = function() {
+
+            if (lock) lock.unlock();
+            if (stream) stream.destroy();
+            if (writeStream) writeStream.destroy();
+            if (lockExtendInterval) clearInterval(lockExtendInterval);
+        };
+
         try {
+
+            const lockExtendTime = parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1;
+            const max = Math.ceil((1000 * 60 * 60) / lockExtendTime); // max execution time 1 hour
+            let i = 0;
+
+            lockExtendInterval = setInterval(async () => {
+                i++;
+                if (i > max) {
+                    destroy();
+                    throw new Error('Lock extend failed. Max attempts reached.');
+                }
+                await lock.extend(lockExtendTime);
+            }, config.lockExtendInterval || 10000);
+
+            await this.loadHeaders();
+            stream = await this.loadFile();
+            writeStream = new PassThrough();
+
+            const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
+
+            // append existing rows
+            for await (const rowData of stream) {
+                writeStream.write(this.formatRow(rowData));
+            }
+
+            // append new rows
+            this.writeRows(writeStream, rowsToAdd);
+
+            writeStream.end();
+
             return await this.context.replaceFileStream(this.fileId, writeStream);
+        } catch (err) {
+            destroy();
+            throw err;
         } finally {
             lock.unlock();
+        }
+    }
+
+    formatRow(rowData) {
+        if (!Array.isArray(rowData)) {
+            throw new Error('Unexpected row data format: ' + JSON.stringify(rowData));
+        }
+        return rowData.join(this.delimiter) + '\n';
+    }
+
+    writeRows(writeStream, rows) {
+        for (const row of rows) {
+            writeStream.write(this.formatRow(row));
         }
     }
 
@@ -463,4 +501,21 @@ module.exports = class CSVProcessor {
         }
         return rowArray;
     }
+
+    /**
+     * @param rows
+     * @param headers
+     * @returns {*}
+     * @protected
+     */
+    addHeaders(rows, headers) {
+        return rows.map(rowObj => {
+            const newRow = [];
+            headers.forEach(header => {
+                newRow.push(rowObj[header] || '');
+            });
+            return newRow;
+        });
+    };
 };
+

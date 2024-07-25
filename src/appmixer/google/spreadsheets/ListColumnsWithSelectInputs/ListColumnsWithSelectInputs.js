@@ -14,6 +14,7 @@ function nullOrEmpty(value) {
         || typeof value === 'object' && Object.keys(value).length === 0;
 }
 
+
 function columnName(column, index) {
 
     return nullOrEmpty(column) ? 'column' + index : column;

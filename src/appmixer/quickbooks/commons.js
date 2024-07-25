@@ -123,5 +123,104 @@ module.exports = {
         }
     },
 
+    /**
+     * Get latest changes for an entity and process it based on changeType
+     * @see https://developer.intuit.com/app/developer/qbo/docs/learn/explore-the-quickbooks-online-api/change-data-capture
+     * @param {*} context Context object
+     * @param {string} entityName eg: 'Customer' or 'Invoice'
+     * @param {string} changeType eg: 'new' or 'updated'
+     */
+    processEntityCDC: async function(context, entityName, changeType) {
+
+        let lock;
+        try {
+            lock = await context.lock(context.componentId, { maxRetryCount: 0 });
+            let { changedSince } = await context.stateGet('changedSince') || {};
+
+            if (!changedSince) {
+                // On first tick, fetch only the most recent update to set changedSince
+                changedSince = new Date();
+                await context.stateSet('changedSince', { changedSince });
+            }
+
+            const options = {
+                path: `v3/company/${context.profileInfo.companyId}/cdc?entities=${entityName}&changedSince=${changedSince.toISOString()}`,
+                method: 'GET'
+            };
+
+            try {
+                const { data } = await module.exports.makeRequest({ context, options });
+
+                if (!Array.isArray(data.CDCResponse) || !Array.isArray(data.CDCResponse[0].QueryResponse)) {
+                    await context.log({ step: 'Invalid response from QuickBooks API', data });
+                    throw new context.CancelError('Invalid response from QuickBooks API');
+                }
+
+                if (data.CDCResponse[0].QueryResponse[0][entityName]) {
+                    for (const entity of data.CDCResponse[0].QueryResponse[0][entityName]) {
+                        // Compare MetaData.CreateTime with MetaData.LastUpdatedTime to determine if the entity is new or updated
+                        const isNew = entity?.MetaData?.CreateTime === entity?.MetaData?.LastUpdatedTime;
+                        if (isNew && changeType === 'new') {
+                            await context.sendJson(entity, 'out');
+                        } else if (!isNew && changeType === 'updated') {
+                            await context.sendJson(entity, 'out');
+                        }
+                    }
+                }
+
+                // Finally update changedSince to the latest time in the response
+                changedSince = new Date(data.time);
+                await context.stateSet('changedSince', { changedSince });
+            } catch (error) {
+                await context.log({ step: 'Error executing query', error });
+                throw new context.CancelError('Error executing query: ' + error);
+            }
+        } finally {
+            if (lock) {
+                await lock.unlock();
+            }
+        }
+    },
+
+    /**
+     * Handles a webhook message from QuickBooks plugin for contacts and invoices.
+     * @param {string} entity The QuickBooks entity to fetch data from. E.g. 'Invoice'.
+     * @returns {Promise<void>}
+     */
+    async webhookHandler(context, entity) {
+
+        const realmId = context.profileInfo.companyId;
+        await context.log({ step: 'Received webhook', entity, realmId, webhook: context.messages.webhook });
+
+        let lock;
+        try {
+            lock = await context.lock(context.componentId, { maxRetryCount: 0 });
+
+            const IDs = context.messages.webhook.content.data;
+            // There might be hundreds of IDs in one webhook, so we need to fetch them in chunks of 40.
+            // The limit here is the URL length, which is 2048 characters. This is a safe limit of 1440 characters.
+            const chunkSize = 40;
+            const chunks = [];
+            for (let i = 0; i < IDs.length; i += chunkSize) {
+                chunks.push(IDs.slice(i, i + chunkSize));
+            }
+            for (const chunk of chunks) {
+                /** A query for filtering the results. */
+                const query = `select * from ${entity} where Id in ('${chunk.join("','")}')`;
+                const options = {
+                    path: `v3/company/${context.profileInfo.companyId}/query?query=${encodeURIComponent(query)}`,
+                    method: 'GET'
+                };
+                const chunkRecords = await module.exports.makeRequest({ context, options });
+                // Send the data out. Await it so that we don't get ContextNotFoundError.
+                await context.sendArray(chunkRecords?.data?.QueryResponse[entity], 'out');
+            }
+        } finally {
+            if (lock) {
+                await lock.unlock();
+            }
+        }
+    },
+
     getBaseUrl
 };

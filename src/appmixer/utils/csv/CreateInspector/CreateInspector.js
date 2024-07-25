@@ -346,7 +346,7 @@ module.exports = {
                 type: 'text',
                 label: 'Row',
                 index: 3,
-                tooltip: 'Comma separated row values.'
+                tooltip: 'Row values separated by a specified delimiter. For example: foo,bar,baz'
             };
         }
 

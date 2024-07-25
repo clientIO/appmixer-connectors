@@ -142,6 +142,45 @@ class SlackAPI {
         return response.message;
     }
 
+    async updateMessage(channel, text, ts) {
+
+        let entities = new Entities();
+
+        const response = await this.makeRequest({
+            method: 'POST',
+            url: this.url + 'chat.update',
+            data: {
+                channel,
+                text: entities.decode(text),
+                ts
+            }
+        });
+
+        const data = {
+            ok: response.ok,
+            channel: response.channel,
+            ts: response.ts,
+            text: response.message.text,
+            user: response.message.user
+        };
+
+        return data;
+    }
+
+    async deleteMessage(channel, ts) {
+
+        const response = await this.makeRequest({
+            method: 'POST',
+            url: this.url + 'chat.delete',
+            data: {
+                channel,
+                ts
+            }
+        });
+
+        return response;
+    }
+
     /**
      * Make HTTP request.
      * @param {Object} options

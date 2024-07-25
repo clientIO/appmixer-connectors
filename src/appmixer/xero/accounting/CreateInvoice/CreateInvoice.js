@@ -55,8 +55,7 @@ module.exports = {
                 data.Invoices[0].LineItems = JSON.parse(LineItems);
             } catch (e) {
                 // If the value is not a valid JSON, throw an error.
-                context.log({ step: 'parseLineItems', LineItems });
-                throw context.CancelError('Error parsing LineItems. Please check the syntax.', e);
+                throw new context.CancelError('Error parsing LineItems. Please check the syntax.', e);
             }
         }
 

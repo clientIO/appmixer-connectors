@@ -29,7 +29,14 @@ module.exports = {
 
             refreshAccessToken: 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
 
-            accountNameFromProfileInfo: context => context.profileInfo.email,
+            accountNameFromProfileInfo: context => {
+
+                const { companyId, email } = context.profileInfo;
+                const obfuscatedCompanyId = companyId.replace(/^(.{4}).*(.{4})$/, '$1...$2');
+
+                // Format: info@acme.com (1284...1416)
+                return `${email} (${obfuscatedCompanyId})`;
+            },
 
             processRedirectionCallback: async params => {
 

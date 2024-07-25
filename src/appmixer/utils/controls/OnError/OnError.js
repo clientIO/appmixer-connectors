@@ -1,59 +1,84 @@
 'use strict';
 
-async function getErrors(context, now, errors = [], from = 0, size = 100) {
+async function* fetchErrorsGenerator(context, lock, limit, logId = null, lastGridTimestamp = null, size = 100) {
 
-    const result = await context.callAppmixer({
-        endPoint: '/logs',
-        method: 'GET',
-        qs: {
-            from,
-            size,
-            sort: 'gridTimestamp:asc',
-            query: `@timestamp:[${context.state.since} TO ${now}] AND severity:error`,
-            flowId: context.flowId
+    let remainingLimit = limit;
+
+    while (remainingLimit > 0) {
+
+        const pageSize = Math.min(remainingLimit, size);
+        const qs = {
+            size: pageSize,
+            query: 'severity:error',
+            flowId: context.flowId,
+            sort: ['_id:asc', 'gridTimestamp:asc']
+        };
+
+        if (logId && lastGridTimestamp) {
+            qs.searchAfter = [logId, lastGridTimestamp];
         }
-    });
 
-    errors = errors.concat(result.hits);
+        const result = await context.callAppmixer({
+            endPoint: '/logs',
+            method: 'GET',
+            qs
+        });
 
-    if (result.hits.length === 0 || result.hits.length < size) {
-        return errors;
+        if (result?.hits?.length > 0) {
+
+            await lock.extend(parseInt(context.config.lockTTL, 10) || 1000 * 60 * 2);
+            yield result.hits;
+            remainingLimit -= result.hits.length;
+            const lastHit = result.hits[result.hits.length - 1];
+            logId = lastHit['_id'];
+            lastGridTimestamp = lastHit.gridTimestamp;
+        } else {
+            break; // No more logs to fetch
+        }
     }
-
-    return getErrors(context, now, errors, result.nextFrom, size);
 }
 
-/**
- * Add Flow name and component labels to those errors.
- * @param {Context} context
- * @param {Array} errors
- */
+// Adds labels to errors for better identification
 function addLabels(context, errors) {
 
-    return errors.map(err => {
-        return Object.assign(
-            err,
-            {
-                flowName: context.flowInfo.flowName
-            },
-            err.componentId ? {
-                componentLabel: context.flowDescriptor[err.componentId].label || err.componentType.split('.')[3]
-            } : {});
-    });
+    return errors.map(err => ({
+        ...err,
+        flowName: context.flowInfo.flowName,
+        componentLabel: err.componentId ? (context.flowDescriptor[err.componentId]?.label || err.componentType.split('.')[3]) : undefined
+    }));
 }
 
 module.exports = {
 
-    async start(context) {
-
-        return context.saveState({ since: new Date().toISOString() });
-    },
-
     async tick(context) {
 
-        const now = new Date().toISOString();
-        const errors = await getErrors(context, now);
-        await context.sendArray(addLabels(context, errors), 'out');
-        return context.saveState({ since: now });
+        const lockName = `errorProcessingLock-${context.componentId}`; // Define a unique lock name
+        let lock;
+        try {
+            lock = await context.lock(lockName, { ttl: context.config.lockTTL || 1000 * 60 * 5, maxRetryCount: 0 });
+            const { lastLogId, gridTimestamp } = context.state;
+            const limit = context.properties.limit
+                ? Math.min(parseInt(context.properties.limit), parseInt(context.config.limit) || Infinity)
+                : parseInt(context.config.limit) || 1000;
+
+            for await (const batch of fetchErrorsGenerator(context, lock, limit, lastLogId, gridTimestamp)) {
+                if (batch.length > 0) {
+
+                    // Process and send the errors to outport
+                    const labeledErrors = addLabels(context, batch);
+                    await context.sendArray(labeledErrors, 'out');
+
+                    // Update state with the _id of the last log in the page
+                    const newLastLogId = batch[batch.length - 1]['_id'];
+                    const newGridTimestamp = batch[batch.length - 1]['gridTimestamp'];
+                    await context.saveState({ lastLogId: newLastLogId, gridTimestamp: newGridTimestamp });
+                }
+            }
+        } finally {
+            if (lock) {
+                // Release the lock when done
+                lock.unlock();
+            }
+        }
     }
 };

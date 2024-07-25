@@ -9,6 +9,7 @@ module.exports = {
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         let { query, searchType, folderLocation } = context.messages.in.content;
+        const escapedQuery = commons.escapeSpecialCharacters(query);
 
         let folderId;
         if (folderLocation) {
@@ -26,15 +27,15 @@ module.exports = {
 
         let q;
         if (searchType === 'fileNameExact') {
-            q = `name='${query}'` + querySuffix + queryFileSuffix;
+            q = `name='${escapedQuery}'` + querySuffix + queryFileSuffix;
         } else if (searchType === 'fileNameContains') {
-            q = `name contains '${query}'` + querySuffix + queryFileSuffix;
+            q = `name contains '${escapedQuery}'` + querySuffix + queryFileSuffix;
         } else if (searchType === 'folderNameExact') {
-            q = `name='${query}'` + querySuffix + queryFolderSuffix;
+            q = `name='${escapedQuery}'` + querySuffix + queryFolderSuffix;
         } else if (searchType === 'folderNameContains') {
-            q = `name contains '${query}'` + querySuffix + queryFolderSuffix;
+            q = `name contains '${escapedQuery}'` + querySuffix + queryFolderSuffix;
         } else if (searchType === 'fullText') {
-            q = `fullText contains '${query}'` + querySuffix;
+            q = `fullText contains '${escapedQuery}'` + querySuffix;
         } else {
             q = query;  // no query suffix, this is a completely custom search.
         }

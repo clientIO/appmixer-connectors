@@ -1,0 +1,32 @@
+'use strict';
+
+const { webhookHandler } = require('../../commons');
+const ENTITY_NAME = 'Customer';
+
+module.exports = {
+
+    start: async function(context) {
+
+        const { componentId, flowId } = context;
+        const webhook = `${ENTITY_NAME}.Create:${context.profileInfo.companyId}`;
+        await context.log({ step: 'Registering webhook', webhook });
+        // Subscribe to a static webhook events received via ../../plugin.js.
+        return context.service.stateAddToSet(webhook, { flowId, componentId, webhook });
+    },
+
+    stop: async function(context) {
+
+        const { componentId, flowId } = context;
+        const webhook = `${ENTITY_NAME}.Create:${context.profileInfo.companyId}`;
+        await context.log({ step: 'Unregistering webhook', webhook });
+        // Unsubscribe from a static webhook events received via ../../plugin.js.
+        return context.service.stateRemoveFromSet(webhook, { componentId, flowId });
+    },
+
+    receive: async function(context) {
+
+        await webhookHandler(context, ENTITY_NAME);
+
+        return context.response();
+    }
+};

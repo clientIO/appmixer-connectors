@@ -46,10 +46,24 @@ const processedItemsBuffer = function(data = []) {
     };
 };
 
+const escapeSpecialCharacters = (string) => {
+
+    if (!string) return string;
+
+    const specialCharacters = ['\\', '"', "'", '\`'];
+    // Escape special characters with backslash
+    specialCharacters.forEach(char => {
+        string = string.replace(new RegExp(`\\${char}`, 'g'), `\\${char}`);
+    });
+
+    return string;
+};
+
 module.exports = {
 
     processedItemsBuffer,
     defaultExportFormats,
+    escapeSpecialCharacters,
 
     getOauth2Client(auth) {
 
@@ -75,6 +89,6 @@ module.exports = {
     },
 
     isDebug(context) {
-        return context.config.DEBUG !== 'false' || false;
+        return context.config.DEBUG === 'true' || false;
     }
 };

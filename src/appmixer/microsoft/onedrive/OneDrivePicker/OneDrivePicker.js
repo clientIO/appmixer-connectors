@@ -6,7 +6,8 @@ module.exports = {
 
         return context.sendJson({
             clientId: context.auth.clientId,
-            loginHint: context.auth.profileInfo.userPrincipalName
+            loginHint: context.auth.profileInfo.userPrincipalName,
+            redirectUri: context.auth.redirectUri
         }, 'out');
     }
 };
