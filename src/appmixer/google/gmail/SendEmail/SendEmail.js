@@ -1,18 +1,6 @@
 'use strict';
-const GoogleApi = require('googleapis');
-const commons = require('../../google-commons');
 const emailCommons = require('../gmail-commons');
-const Promise = require('bluebird');
 
-// GoogleApi initialization & promisify of some API functions for convenience
-const gmail = GoogleApi.gmail('v1');
-const send = Promise.promisify(gmail.users.messages.send, { context: gmail.users.messages });
-const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.users.messages });
-
-/**
- * GMail send email component.
- * @extends {Component}
- */
 module.exports = {
     async receive(context) {
         const {
@@ -44,24 +32,28 @@ module.exports = {
 
         const email = await emailCommons.buildEmail(mail);
 
-        const result = await send({
-            auth: commons.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId,
-            resource: { raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_') }
+        const result = await emailCommons.callEndpoint(context, '/users/me/messages/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            data: {
+                raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_').replace(/=+$/, '')
+            }
         });
 
         if (labels && labels.AND && labels.AND.some(label => label.name)) {
-            await modify({
-                auth: commons.getOauth2Client(context.auth),
-                userId: 'me',
-                id: result.id,
-                resource: {
+            await emailCommons.callEndpoint(context, `/users/me/messages/${result.data.id}/modify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: {
                     addLabelIds: labels.AND.filter(label => label.name).map(label => label.name)
                 }
             });
         }
 
-        return context.sendJson(result, 'email');
+        return context.sendJson(result.data, 'email');
     }
 };
