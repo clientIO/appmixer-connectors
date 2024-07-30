@@ -37,6 +37,7 @@ function getGmailPartContent(part, _content) {
 
     return _content;
 }
+
 module.exports = {
     async callEndpoint(context, endpoint, {
         method,

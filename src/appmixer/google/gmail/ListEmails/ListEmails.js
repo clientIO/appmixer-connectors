@@ -1,5 +1,4 @@
 'use strict';
-const commons = require('../../google-commons');
 const emailCommons = require('../gmail-commons');
 
 module.exports = {
