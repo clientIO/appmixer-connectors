@@ -1,6 +1,7 @@
 'use strict';
 const Ftp = require('basic-ftp');
 const Sftp = require('ssh2-sftp-client');
+const lib = require('./lib');
 
 class FtpClient {
 
@@ -14,10 +15,15 @@ class FtpClient {
     constructor(secure, config) {
 
         this.config = config;
-        this.isFtp = FtpClient.isFtp(secure);
-        if (this.isFtp) {
+
+        if (FtpClient.isFtp(secure)) {
+            if (config.privateKey != '') {
+                throw new Error('Cant use the secure option in combination with a private key');
+            }
+            this.isFtp = true;
             this.client = new Ftp.Client();
         } else {
+            this.isFtp = false;
             this.client = new Sftp();
         }
     }
@@ -79,7 +85,23 @@ class FtpClient {
      */
     static isFtp(secure) {
 
-        return ['yes', 'implicit', ''].includes(secure);
+        return ['yes', 'implicit'].includes(secure);
+    }
+
+    static createConfig(authContext) {
+        let config = {
+            host: authContext.host,
+            username: authContext.username,
+            secure: lib.getAccessSecureType(authContext.secure),
+            privateKey: authContext.privatekey,
+            password: authContext.password
+        };
+
+        if (authContext.port) {
+            config.port = authContext.port;
+        }
+
+        return config;
     }
 }
 

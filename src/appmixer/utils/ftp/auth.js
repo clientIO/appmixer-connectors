@@ -1,6 +1,5 @@
 'use strict';
 const FtpClient = require('./client');
-const lib = require('./lib');
 
 module.exports = {
 
@@ -29,6 +28,11 @@ module.exports = {
                 name: 'Password',
                 tooltip: 'Password.'
             },
+            privatekey: {
+                type: 'textarea',
+                name: 'PrivateKey',
+                tooltip: 'Private key; either use this or the password field, this only works with sFTP. PEM is the only supported format for keys that can be used.'
+            },
             secure: {
                 type: 'text',
                 name: 'Secure',
@@ -44,15 +48,7 @@ module.exports = {
 
         validate: async context => {
 
-            const config = {
-                host: context.host,
-                user: context.username,
-                password: context.password,
-                secure: lib.getAccessSecureType(context.secure)
-            };
-            if (context.port) {
-                config.port = context.port;
-            }
+            const config = FtpClient.createConfig(context);
             const client = await FtpClient.getClientAndConnect(context.secure, config);
             await client.close();
             return true;
