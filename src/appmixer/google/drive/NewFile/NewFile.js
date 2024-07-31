@@ -2,7 +2,7 @@ const moment = require('moment');
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
 
-const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
+const getNewFiles = async (lock, drive, folder, fileTypesRestriction, pageToken, newFiles = []) => {
 
     const { data: { changes, newStartPageToken, nextPageToken } } = await drive.changes.list({
         pageToken,
@@ -12,19 +12,40 @@ const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 
     changes.forEach(change => {
         if (change.changeType === 'file' && !change.removed && !change.file?.trashed && new Date(change.file?.createdTime) >= new Date(change.file?.modifiedTime)) {
-            if (!folder) {
-                // we're not interested in the folder, take all new files
-                // sometimes the same file change may occur multiple times in the change list
-                !newFiles.find(file => file.id === change.file.id) && newFiles.push(change.file);
-            } else if (change.file?.parents?.includes(folder)) {
-                !newFiles.find(file => file.id === change.file.id) && newFiles.push(change.file);
+
+            if (newFiles.find(file => file.id === change.file.id)) {
+                // We've already processed this file (sometimes the same file change may occur multiple times in the change list).
+                return;
             }
+
+            const mimeType = change.file?.mimeType;
+            const isFolder = mimeType === 'application/vnd.google-apps.folder';
+
+            // Check for location folder match.
+            if (folder && !change.file?.parents?.includes(folder)) {
+                return;
+            }
+
+
+            // Check for file type restrictions.
+            if (fileTypesRestriction && fileTypesRestriction.length) {
+
+                let isAllowed = false;
+                for (let i = 0; i < fileTypesRestriction.length; i++) {
+                    const allowedType = fileTypesRestriction[i];
+                    isAllowed = allowedType === '#FILE' ? false : mimeType.startsWith(allowedType);
+                    if (isAllowed) break; // No need to search further since we found a match.
+                }
+                if (!isAllowed) return;
+            }
+
+            newFiles.push(change.file);
         }
     });
 
     if (nextPageToken) {
         await lock.extend(20000);
-        return getNewFiles(lock, drive, folder, nextPageToken, newFiles);
+        return getNewFiles(lock, drive, folder, fileTypesRestriction, nextPageToken, newFiles);
     }
 
     return { newFiles, newStartPageToken };
@@ -33,7 +54,7 @@ const getNewFiles = async (lock, drive, folder, pageToken, newFiles = []) => {
 const detectNewFiles = async function(context) {
 
     const DEBUG = commons.isDebug(context);
-    const { folder = {} } = context.properties;
+    const { folder = {}, fileTypesRestriction } = context.properties;
 
     let lock = null;
     try {
@@ -50,7 +71,7 @@ const detectNewFiles = async function(context) {
 
         await context.stateSet('hasSkippedMessage', false);
 
-        const { newFiles, newStartPageToken } = await getNewFiles(lock, drive, folder.id, startPageToken);
+        const { newFiles, newStartPageToken } = await getNewFiles(lock, drive, folder.id, fileTypesRestriction, startPageToken);
 
         const processedFilesSet = commons.processedItemsBuffer(processedFiles);
 
