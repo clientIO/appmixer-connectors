@@ -10,7 +10,7 @@ module.exports = {
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         const { userId } = context.auth;
-        let { fileId, fileName: fileNameInput, folder, replace } = context.messages.in.content;
+        let { fileId, fileName: fileNameInput, folder, replace, convertToDocument } = context.messages.in.content;
 
         let filename;
         let contentType;
@@ -25,6 +25,12 @@ module.exports = {
         }
 
         const resource = { name: filename };
+
+        if (convertToDocument && contentType in conversionTypes) {
+            const conversionType = conversionTypes[contentType];
+            resource.mimeType = conversionType;
+        }
+
         let folderId;
         if (folder) {
             if (typeof folder === 'string') {
@@ -56,7 +62,7 @@ module.exports = {
                         mimeType: contentType,
                         body: fileStream
                     },
-                    fields: 'id, name, mimeType, webViewLink, createdTime'
+                    fields: '*'
                 });
             } else {
                 // If no file exists, just create new file
@@ -67,7 +73,7 @@ module.exports = {
                         mimeType: contentType,
                         body: fileStream
                     },
-                    fields: 'id, name, mimeType, webViewLink, createdTime'
+                    fields: '*'
                 });
             }
         } else {
@@ -78,12 +84,14 @@ module.exports = {
                     mimeType: contentType,
                     body: fileStream
                 },
-                fields: 'id, name, mimeType, webViewLink, createdTime'
+                fields: '*'
             });
         }
 
         return context.sendJson({
             fileId,
+            googleDriveFileMetadata: response.data,
+            // Below fields are for backward compatibility.
             googleDriveFileId: response.data.id,
             fileName: response.data.name,
             mimeType: response.data.mimeType,
@@ -91,4 +99,20 @@ module.exports = {
             createdTime: response.data.createdTime
         }, 'out');
     }
+};
+
+const conversionTypes = {
+    'application/msword' : 'application/vnd.google-apps.document',  // doc
+    'application/rtf' : 'application/vnd.google-apps.document',  // rtf
+    'text/plain' : 'application/vnd.google-apps.document',  // txt
+    'application/vnd.oasis.opendocument.text': 'application/vnd.google-apps.document',  // odt
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'application/vnd.google-apps.document', // docx
+
+    'text/csv' : 'application/vnd.google-apps.spreadsheet',  // csv
+    'text/tab-separated-values': 'application/vnd.google-apps.spreadsheet',  // tsv
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'application/vnd.google-apps.spreadsheet',  // xlsx
+    'application/x-vnd.oasis.opendocument.spreadsheet': 'application/vnd.google-apps.spreadsheet',  // ods
+
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'application/vnd.google-apps.presentation',  // pptx
+    'application/vnd.oasis.opendocument.presentation': 'application/vnd.google-apps.presentation'  // odp
 };

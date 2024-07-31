@@ -57,7 +57,16 @@ const detectNewFiles = async function(context) {
         for (let file of newFiles) {
             if (!processedFilesSet.has(file.id)) {
                 processedFilesSet.add(newStartPageToken, file.id);
-                await context.sendJson(file, 'file');
+                const out = {
+                    id: file.id,
+                    name: file.name,
+                    mimeType: file.mimeType,
+                    createdTime: file.createdTime,
+                    webViewLink: file.webViewLink,
+                    webContentLink: file.webContentLink,
+                    googleDriveFileMetadata: file
+                };
+                await context.sendJson(out, 'file');
                 await context.stateSet('processedFiles', processedFilesSet.export());
 
                 if (DEBUG) {
