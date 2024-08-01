@@ -7,8 +7,7 @@ module.exports = {
     async tick(context) {
         let newState = {};
         let auth = commons.getOauth2Client(context.auth);
-        let { userId } = context.auth;
-
+        
         // Retrieve all starred message IDs
         const messages = await commons.getAllMessageIds({
             auth: auth,

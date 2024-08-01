@@ -1,13 +1,5 @@
 'use strict';
-const GoogleApi = require('googleapis');
-const commons = require('../../google-commons');
 const emailCommons = require('../gmail-commons');
-const Promise = require('bluebird');
-
-// GoogleApi initialization & promisify of some API functions for convenience
-const gmail = GoogleApi.gmail('v1');
-const createDraft = Promise.promisify(gmail.users.drafts.create, { context: gmail.users.drafts });
-const modify = Promise.promisify(gmail.users.messages.modify, { context: gmail.users.messages });
 
 module.exports = {
     async receive(context) {
@@ -38,30 +30,26 @@ module.exports = {
 
         emailCommons.addSignature(mail, signature);
 
-        const email = await emailCommons.buildEmail(mail);
+        const emailContent = await emailCommons.buildEmail(mail);
 
-        const result = await createDraft({
-            auth: commons.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId,
-            resource: {
+        const result = await emailCommons.callEndpoint(context, '/users/me/drafts', {
+            method: 'POST',
+            data: {
                 message: {
-                    raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_')
+                    raw: emailContent.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_').replace(/=+$/, '')
                 }
             }
         });
 
         if (labels && labels.AND && labels.AND.some(label => label.name)) {
-            await modify({
-                auth: commons.getOauth2Client(context.auth),
-                userId: 'me',
-                id: result.message.id,
-                resource: {
+            await emailCommons.callEndpoint(context, `/users/me/messages/${result.data.message.id}/modify`, {
+                method: 'POST',
+                data: {
                     addLabelIds: labels.AND.filter(label => label.name).map(label => label.name)
                 }
             });
         }
 
-        return context.sendJson(result, 'draft');
+        return context.sendJson(result.data, 'draft');
     }
 };
