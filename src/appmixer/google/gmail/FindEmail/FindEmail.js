@@ -1,6 +1,5 @@
 'use strict';
 const emailCommons = require('../gmail-commons');
-const commons = require('../../google-commons');
 
 module.exports = {
     async receive(context) {
@@ -25,7 +24,7 @@ module.exports = {
                     format: 'full'
                 }
             });
-            const normalizedEmail = commons.normalizeEmail(messageDetails.data);
+            const normalizedEmail = emailCommons.normalizeEmail(messageDetails.data);
             return context.sendJson(normalizedEmail, 'out');
         } else {
             return context.sendJson({}, 'notFound');

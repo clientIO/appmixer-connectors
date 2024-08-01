@@ -39,7 +39,7 @@ module.exports = {
             }
             if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
                 if (commons.isNewInboxEmail(email.labelIds)) {
-                    await context.sendJson(commons.normalizeEmail(email), 'out');
+                    await context.sendJson(emailCommons.normalizeEmail(email), 'out');
                 }
             }
         });

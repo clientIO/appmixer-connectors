@@ -1,5 +1,4 @@
 'use strict';
-const commons = require('../../google-commons');
 const emailCommons = require('../gmail-commons');
 
 module.exports = {
@@ -12,7 +11,7 @@ module.exports = {
                 format: 'full'
             }
         });
-        const normalizedEmail = commons.normalizeEmail(messageDetails.data);
+        const normalizedEmail = emailCommons.normalizeEmail(messageDetails.data);
         context.log({ normalizedEmail });
 
         const attachments = normalizedEmail.attachments.map(attachment => ({

@@ -1,5 +1,4 @@
 'use strict';
-const commons = require('../../google-commons');
 const emailCommons = require('../gmail-commons');
 
 module.exports = {
@@ -14,7 +13,7 @@ module.exports = {
             headers: { 'Content-Type': 'application/json' }
         });
 
-        const normalizedEmail = commons.normalizeEmail(emailDetails.data);
+        const normalizedEmail = emailCommons.normalizeEmail(emailDetails.data);
         return context.sendJson(normalizedEmail, 'out');
     }
 };
