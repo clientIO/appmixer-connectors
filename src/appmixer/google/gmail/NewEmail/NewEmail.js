@@ -1,26 +1,16 @@
 'use strict';
 const commons = require('../../google-commons');
-const GoogleApi = commons.GoogleApi;
+const emailCommons = require('../gmail-commons');
 const Promise = require('bluebird');
 
-// GoogleApi initialization & promisify of some api function for convenience
-const gmail = GoogleApi.gmail('v1');
-const getMessage = Promise.promisify(gmail.users.messages.get, { context: gmail.users.messages });
-
-/**
- * Trigger for GMail when new email appears.
- * @extends {Component}
- */
 module.exports = {
 
     async tick(context) {
-
         let newState = {};
         let auth = commons.getOauth2Client(context.auth);
         let { userId } = context.auth;
 
         const { labels: { AND: labels } = { AND: [] } } = context.properties;
-
         const isLabelsEmpty = !labels.some(label => label.name);
 
         const data = await commons.listNewMessages({ auth, userId: 'me', quotaUser: userId },
@@ -28,19 +18,24 @@ module.exports = {
 
         // latest message or there are no messages in the inbox
         newState.id = data.lastMessageId;
-        const emails = await Promise.map(data.newMessages, message => {
-            return getMessage({
-                auth,
-                userId: 'me',
-                quotaUser: userId,
-                format: 'full',
-                id: message.id
+
+        const emails = await Promise.map(data.newMessages, async message => {
+            return emailCommons.callEndpoint(context, `/users/me/messages/${message.id}`, {
+                method: 'GET',
+                params: { format: 'full' }
+            }).then(response => response.data).catch(err => {
+                // email can be deleted (permanently) in gmail between listNewMessages call and
+                // this getMessage call, in such case - ignore it and return null
+                if (err && err.response && err.response.status === 404) {
+                    return null;
+                }
+                throw err;
             });
         }, { concurrency: 10 });
 
         await Promise.each(emails || [], async email => {
-            if (!email.labelIds) {
-                throw new context.CancelError('Invalid email label');
+            if (!email || !email.labelIds) {
+                throw new context.CancelError('Invalid email or email label');
             }
             if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
                 if (commons.isNewInboxEmail(email.labelIds)) {
