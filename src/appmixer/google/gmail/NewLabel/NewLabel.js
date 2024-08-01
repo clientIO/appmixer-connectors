@@ -7,7 +7,7 @@ module.exports = {
     async tick(context) {
         let newState = {};
 
-        const listLabels = await emailCommons.callEndpoint(context, `/users/me/labels`, {
+        const listLabels = await emailCommons.callEndpoint(context, '/users/me/labels', {
             method: 'GET'
         }).then(response => response.data.labels);
 
