@@ -1,17 +1,9 @@
 'use strict';
-const mandrill = require('mandrill-api/mandrill');
 
-async function sendEmail(context, mailClient, recipients, subject, text, html) {
-
-    const to = recipients.map(recipient => {
-        return {
-            'email': recipient,
-            'type': 'to'
-        };
-    });
+async function sendEmail(context, recipients, subject, text, html) {
 
     const message = {
-        to,
+        to: recipients,
         from_email: context.config.fromEmail || 'no_reply@appmixer.com',
         from_name: context.config.fromName || 'Appmixer',
         subject,
@@ -19,25 +11,10 @@ async function sendEmail(context, mailClient, recipients, subject, text, html) {
         text
     };
 
-    return new Promise((resolve, reject) => {
-        mailClient.messages.send(
-            { message },
-            (result) => {
-                if (!result) {
-                    return reject('Invalid response from mandrill.');
-                }
-                if (['sent', 'queued', 'scheduled'].indexOf(result[0].status) > -1) {
-                    return resolve(result);
-                }
-                reject(new Error('Email status: ' + result[0].status +
-                    (result[0].status === 'rejected' ? ', reason: ' + result[0]['reject_reason'] : '')
-                ));
-            },
-            err => {
-                reject(err);
-            }
-        );
+    const result = await context.componentStaticCall('appmixer.utils.email.SendEmail', 'out', {
+        messages: { in: message }
     });
+    await context.log({ step: 'Email sent', message, result });
 }
 
 async function storeResult(context, storeId, key, value) {
@@ -49,14 +26,11 @@ module.exports = {
 
     async receive(context) {
 
-        const API_KEY = context.config.apiKey || 'bzjR9BOFhPkojdmK_SCh1A';
-        let client = new mandrill.Mandrill(API_KEY);
         const { successStoreId, failedStoreId } = context.properties;
         let { content } = context.messages.in;
         const { flowId, appmixerApiUrl } = context;
-        // Hack to use the https://my.<tenant>.appmixer.com subdomain for the appmixerApiUrl instead of https://api.<tenant>.appmixer.com.
+        // Use https://my.<tenant>.appmixer.com subdomain for the appmixerApiUrl instead of https://api.<tenant>.appmixer.com.
         const baseUrl = appmixerApiUrl.replace(/\/\/api\./, '//my.');
-        let recipients = content.recipients.split(',');
 
         const { testCase, result } = content;
 
@@ -99,7 +73,7 @@ module.exports = {
                         `).join('')}
                 </table>`;
             await storeResult(context, failedStoreId, testCase, result);
-            await sendEmail(context, client, recipients, subject, text, getHTML(metadata, details));
+            await sendEmail(context, content.recipients, subject, text, getHTML(metadata, details));
             return;
         }
 
@@ -141,7 +115,7 @@ module.exports = {
             const text = `The following errors were found:\n\n${JSON.stringify(failedAsserts)}\n\nFull test results `
                 + `were:\n\n${JSON.stringify(arrayResults)}`;
             await storeResult(context, failedStoreId, testCase, result);
-            await sendEmail(context, client, recipients, subject, text, getHTML(metadata, details));
+            await sendEmail(context, content.recipients, subject, text, getHTML(metadata, details));
         } else {
             await storeResult(context, successStoreId, testCase, result);
         }
