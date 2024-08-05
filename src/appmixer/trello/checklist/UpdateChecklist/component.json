@@ -1,10 +1,10 @@
 {
-    "name": "appmixer.trello.list.AddAttachmentToCard",
-    "author": "Robert Beinaravicius <rbeinaravicius@ntrc.eu>",
+    "name": "appmixer.trello.checklist.UpdateChecklist",
+    "author": "Appmixer <info@appmixer.com>",
     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
-    "description": "Add an attachment to a specific card.",
+    "description": "Update an existing checklist.",
     "private": false,
-    "version": "1.0.1",
+    "version": "1.0.0",
     "auth": {
         "service": "appmixer:trello"
     },
@@ -22,17 +22,11 @@
                 "type": "object",
                 "properties": {
                     "boardId": { "type": "string" },
-                    "url": { "type": "string" },
-                    "name": {
-                        "type": "string",
-                        "maxLength": 256
-                    },
-                    "boardListCardId": { "type": "string" }
+                    "boardListCardId": { "type": "string" },
+                    "checklistId": { "type": "string" },
+                    "name": { "type": "string", "maxLength": 16384 }
                 },
-                "required": [
-                    "url",
-                    "boardListCardId"
-                ]
+                "required": [ "checklistId", "name" ]
             },
             "inspector": {
                 "inputs": {
@@ -46,7 +40,7 @@
                                 "transform": "./transformers#boardsToSelectArray"
                             }
                         },
-                        "tooltip": "Select a board."
+                        "tooltip": "Select a board to choose a card in the following field. Or use the Checklist ID directly and skip this field."
                     },
                     "boardListCardId": {
                         "type": "select",
@@ -56,44 +50,50 @@
                             "url": "/component/appmixer/trello/list/ListBoardsCards?outPort=cards",
                             "data": {
                                 "messages": {
-                                    "in/boardId": "inputs/in/boardId"
+                                    "in/boardId": "inputs/in/boardId",
+                                    "in/isSource": true
                                 },
                                 "transform": "./transformers#cardListsToSelectArray"
                             }
                         },
-                        "tooltip": "Select a card."
+                        "tooltip": "Select a card from a board from the previous component. Or use the Checklist ID directly and skip this field."
                     },
-                    "url": {
-                        "type": "text",
-                        "label": "Attach a Link",
-                        "index": 3,
-                        "tooltip": "Paste any link here."
+                    "checklistId": {
+                        "type": "select",
+                        "label": "Checklist",
+                        "source": {
+                            "url": "/component/appmixer/trello/checklist/ListCardChecklists?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/boardListCardId": "inputs/in/boardListCardId",
+                                    "in/isSource": true
+                                },
+                                "transform": "./transformers#cardChecklistsToSelectArray"
+                            }
+                        },
+                        "tooltip": "The ID of the checklist to update.",
+                        "index": 3
                     },
                     "name": {
                         "type": "text",
-                        "label": "Attachment Name",
-                        "tooltip": "The name for the attachment.",
-                        "index": 4
+                        "label": "Checklist Name",
+                        "index": 4,
+                        "tooltip": "Name of the new checklist being created."
                     }
                 }
             }
         }
     ],
     "outPorts": [
-        {
-            "name": "attachment",
+    {
+            "name": "out",
             "options": [
-                { "label": "id", "value": "id" },
-                { "label": "bytes", "value": "bytes" },
-                { "label": "date", "value": "date" },
-                { "label": "edgeColor", "value": "edgeColor" },
-                { "label": "idMember", "value": "idMember" },
-                { "label": "isUpload", "value": "isUpload" },
-                { "label": "mimeType", "value": "mimeType" },
-                { "label": "name", "value": "name" },
-                { "label": "previews", "value": "previews" },
-                { "label": "url", "value": "url" },
-                { "label": "pos", "value": "pos" }
+                { "label": "Checklist ID", "value": "id", "schema": { "type": "string" } },
+                { "label": "Card ID", "value": "idCard", "schema": { "type": "string" } },
+                { "label": "Board ID", "value": "idBoard", "schema": { "type": "string" } },
+                { "label": "Checklist Name", "value": "name", "schema": { "type": "string" } },
+                { "label": "Position", "value": "pos", "schema": { "type": "string" } },
+                { "label": "Checklist Items", "value": "items", "schema": { "type": "string" } }
             ]
         }
     ]

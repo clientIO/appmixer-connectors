@@ -29,8 +29,16 @@ module.exports = {
 
     async receive(context) {
 
-        let cardInfo = context.messages.in.content;
-        let boardListId = cardInfo.boardListId;
+        const cardInfo = context.messages.in.content;
+        const boardListId = cardInfo.boardListId;
+        const checklistName = cardInfo.checklistName?.trim();
+        const checklistItems = cardInfo.checklistItems?.trim();
+
+        // Stop execution if checklist name is not provided but checklist items are provided
+        if (!checklistName && checklistItems) {
+            throw new context.CancelError('Checklist name is required to add checklist items');
+        }
+
         delete cardInfo.boardListId;
         const { data: newCard } = await context.httpRequest({
             headers: { 'Content-Type': 'application/json' },
@@ -38,6 +46,40 @@ module.exports = {
             url: `https://api.trello.com/1/cards?${commons.getAuthQueryParams(context)}`,
             data: buildCard(cardInfo, boardListId)
         });
+
+        // If there is checklist data, add checklist to the card
+        if (checklistName) {
+            const { data: newChecklist } = await context.httpRequest({
+                headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                url: `https://api.trello.com/1/checklists?${commons.getAuthQueryParams(context)}`,
+                data: {
+                    'name': checklistName,
+                    'idCard': newCard.id
+                }
+            });
+
+            // Add checklist items to the checklist
+            if (checklistItems) {
+                const items = checklistItems.split('\n');
+
+                if (items.length > 10) {
+                    throw new context.CancelError('Maximum 5 checklist items are allowed');
+                }
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    await context.httpRequest({
+                        headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        url: `https://api.trello.com/1/checklists/${newChecklist.id}/checkItems?${commons.getAuthQueryParams(context)}`,
+                        data: {
+                            'name': item.trim()
+                        }
+                    });
+                }
+            }
+        }
 
         return context.sendJson(newCard, 'card');
     }
