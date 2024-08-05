@@ -38,6 +38,7 @@ module.exports = {
 
     async stop(context) {
 
+        let lock;
         try {
             // Lock common for all instances of this component. There can be only one process updating the config.
             lock = await context.lock('OnAnyFlowComponentError');
