@@ -21,7 +21,7 @@ module.exports = {
         } = context.messages.in.content;
 
         const { data: metadata } = await drive.files.get({
-            fileId: fileId === 'string' ? fileId : fileId.id,
+            fileId: typeof fileId === 'string' ? fileId : fileId.id,
             fields: '*'
         });
 

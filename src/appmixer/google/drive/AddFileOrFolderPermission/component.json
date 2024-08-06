@@ -1,0 +1,168 @@
+{
+    "name": "appmixer.google.drive.AddFileOrFolderPermission",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Add a permission to a file or folder in Google Drive.",
+    "private": false,
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:google",
+        "scope": [
+            "https://www.googleapis.com/auth/drive",
+            "https://www.googleapis.com/auth/drive.file"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:google:drive",
+        "resources": "readandwrite",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+        "name": "in",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "googleDriveFileId": {
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "object" }
+                    ]
+                },
+                "type": {
+                    "enum": ["user", "group", "domain", "anyone"]
+                },
+                "role": {
+                    "enum": ["organizer", "fileOrganizer", "writer", "commenter", "reader"]
+                },
+                "emailAddress": {
+                    "type": "string"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "googleDriveFileId": {
+                    "type": "googlepicker",
+                    "view": ["DOCS", "FOLDERS"],
+                    "index": 1,
+                    "label": "Google Drive File or Folder ID",
+                    "placeholder": "Choose a Google Drive file or folder...",
+                    "tooltip": "The ID of the Google Drive file or folder you wish to add a sharing permission for. You can use the Google Picker utility to select the file or folder or the variables picker to enter a variable referencing a Google Drive File or Folder ID."
+                },
+                "type": {
+                    "type": "select",
+                    "index": 2,
+                    "label": "Permission Type",
+                    "options": [
+                        { "label": "User", "value": "user" },
+                        { "label": "Group", "value": "group" },
+                        { "label": "Domain", "value": "domain" },
+                        { "label": "Anyone", "value": "anyone" }
+                    ],
+                    "tooltip": "The type of permission to add. The value can be 'user', 'group', 'domain', or 'anyone'."
+                },
+                "role": {
+                    "type": "select",
+                    "index": 3,
+                    "label": "Permission Role",
+                    "options": [
+                        { "label": "Writer", "value": "writer" },
+                        { "label": "Commenter", "value": "commenter" },
+                        { "label": "Reader", "value": "reader" },
+                        { "label": "Organizer", "value": "organizer" },
+                        { "label": "File Organizer", "value": "fileOrganizer" }
+                    ],
+                    "tooltip": "The role of the permission. The value can be 'organizer', 'fileOrganizer', 'writer', 'commenter', or 'reader'."
+                },
+                "emailAddress": {
+                    "type": "text",
+                    "index": 4,
+                    "label": "Email Address",
+                    "tooltip": "An email address of the user or group to whom you want to grant the permission.",
+                    "when": {
+                        "or": [
+                            { "eq": { "type": "user" } },
+                            { "eq": { "type": "group" } }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    ],
+    "outPorts": [
+        {
+        "name": "out",
+        "options": [
+            {
+            "label": "GDrive File or Folder ID",
+            "value": "fileId"
+        },
+            {
+            "label": "GDrive Permission",
+            "value": "permission",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "kind": {
+                        "type": "string"
+                    },
+                    "permissionDetails": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "permissionType": { "type": "string" },
+                                "inheritedFrom": { "type": "string" },
+                                "role": { "type": "string" },
+                                "inherited": { "type": "boolean" }
+                            }
+                        }
+                    },
+                    "photoLink": {
+                        "type": "string"
+                    },
+                    "emailAddress": {
+                        "type": "string"
+                    },
+                    "role": {
+                        "type": "string"
+                    },
+                    "allowFileDiscovery": {
+                        "type": "boolean"
+                    },
+                    "domain": {
+                        "type": "string"
+                    },
+                    "expirationTime": {
+                        "type": "string"
+                    },
+                    "deleted": {
+                        "type": "boolean"
+                    },
+                    "view": {
+                        "type": "string"
+                    },
+                    "pendingOwner": {
+                        "type": "boolean"
+                    }
+                }
+            }
+        }
+        ]
+    }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMC8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvVFIvMjAwMS9SRUMtU1ZHLTIwMDEwOTA0L0RURC9zdmcxMC5kdGQnPjxzdmcgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzIgMzIiIGhlaWdodD0iMzJweCIgaWQ9IkxheWVyXzEiIHZlcnNpb249IjEuMCIgdmlld0JveD0iMCAwIDMyIDMyIiB3aWR0aD0iMzJweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGc+PHBvbHlsaW5lIGZpbGw9IiM1MzdBQkQiIHBvaW50cz0iMzEuODY4LDIxIDkuODY4LDIxIDQuODY4LDMwIDI2LjU1NiwzMCAgIi8+PHBvbHlsaW5lIGZpbGw9IiMyRUI2NzIiIHBvaW50cz0iMTAuOTYyLDIgLTAuMDM4LDIwIDQuOTYyLDMwIDE1LjY4MywxMC4zNDUgICIvPjxwb2x5bGluZSBmaWxsPSIjRkVEMTRCIiBwb2ludHM9IjIwLjk2MiwyIDEwLjk2MiwyIDIxLjcxMiwyMSAzMS45NjIsMjEgMjAuOTYyLDIgICIvPjwvZz48Zy8+PGcvPjxnLz48Zy8+PGcvPjxnLz48L3N2Zz4="
+}
+
