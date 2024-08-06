@@ -1,16 +1,16 @@
 {
-    "name": "appmixer.trello.list.AddAttachmentToCard",
-    "author": "Robert Beinaravicius <rbeinaravicius@ntrc.eu>",
+    "name": "appmixer.trello.checklist.AddChecklistToCard",
+    "author": "Appmixer <info@appmixer.com>",
     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
-    "description": "Add an attachment to a specific card.",
+    "description": "Add a new checklist to a specific card.",
     "private": false,
-    "version": "1.0.1",
+    "version": "1.0.0",
     "auth": {
         "service": "appmixer:trello"
     },
     "quota": {
         "manager": "appmixer:trello",
-        "resources": "requests",
+        "resources": "AddChecklistToCard",
         "scope": {
             "userId": "{{userId}}"
         }
@@ -22,17 +22,11 @@
                 "type": "object",
                 "properties": {
                     "boardId": { "type": "string" },
-                    "url": { "type": "string" },
-                    "name": {
-                        "type": "string",
-                        "maxLength": 256
-                    },
-                    "boardListCardId": { "type": "string" }
+                    "boardListCardId": { "type": "string" },
+                    "checklistName": { "type": "string", "maxLength": 16384 },
+                    "checklistItems": { "type": "string" }
                 },
-                "required": [
-                    "url",
-                    "boardListCardId"
-                ]
+                "required": [ "boardListCardId", "checklistName" ]
             },
             "inspector": {
                 "inputs": {
@@ -56,23 +50,24 @@
                             "url": "/component/appmixer/trello/list/ListBoardsCards?outPort=cards",
                             "data": {
                                 "messages": {
-                                    "in/boardId": "inputs/in/boardId"
+                                    "in/boardId": "inputs/in/boardId",
+                                    "in/isSource": true
                                 },
                                 "transform": "./transformers#cardListsToSelectArray"
                             }
                         },
-                        "tooltip": "Select a card."
+                        "tooltip": "Select a card or card ID from previous component."
                     },
-                    "url": {
+                    "checklistName": {
                         "type": "text",
-                        "label": "Attach a Link",
-                        "index": 3,
-                        "tooltip": "Paste any link here."
+                        "label": "Checklist Name",
+                        "tooltip": "The name of the checklist.",
+                        "index": 3
                     },
-                    "name": {
-                        "type": "text",
-                        "label": "Attachment Name",
-                        "tooltip": "The name for the attachment.",
+                    "checklistItems": {
+                        "type": "textarea",
+                        "label": "Checklist Items",
+                        "tooltip": "Enter up to 10 checklist items. Each item should be on a new line. If you need to add more items, you can do so after creating the card and using the AddChecklistItemToCard component.",
                         "index": 4
                     }
                 }
@@ -80,20 +75,15 @@
         }
     ],
     "outPorts": [
-        {
-            "name": "attachment",
+    {
+            "name": "out",
             "options": [
-                { "label": "id", "value": "id" },
-                { "label": "bytes", "value": "bytes" },
-                { "label": "date", "value": "date" },
-                { "label": "edgeColor", "value": "edgeColor" },
-                { "label": "idMember", "value": "idMember" },
-                { "label": "isUpload", "value": "isUpload" },
-                { "label": "mimeType", "value": "mimeType" },
-                { "label": "name", "value": "name" },
-                { "label": "previews", "value": "previews" },
-                { "label": "url", "value": "url" },
-                { "label": "pos", "value": "pos" }
+                { "label": "Checklist ID", "value": "idChecklist", "schema": { "type": "string" } },
+                { "label": "Card ID", "value": "idCard", "schema": { "type": "string" } },
+                { "label": "Board ID", "value": "idBoard", "schema": { "type": "string" } },
+                { "label": "Checklist Name", "value": "name", "schema": { "type": "string" } },
+                { "label": "Position", "value": "pos", "schema": { "type": "string" } },
+                { "label": "Checklist Items", "value": "items", "schema": { "type": "string" } }
             ]
         }
     ]

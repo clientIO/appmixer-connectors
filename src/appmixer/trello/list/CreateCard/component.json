@@ -4,13 +4,13 @@
     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
     "description": "Create a new card in Trello on a specific board and list.",
     "private": false,
-    "version": "1.0.1",
+    "version": "1.1.0",
     "auth": {
         "service": "appmixer:trello"
     },
     "quota": {
         "manager": "appmixer:trello",
-        "resources": "requests",
+        "resources": "CreateCard",
         "scope": {
             "userId": "{{userId}}"
         }
@@ -30,6 +30,8 @@
                         "type": "string",
                         "format": "date-time"
                     },
+                    "checklistName": { "type": "string", "maxLength": 16384 },
+                    "checklistItems": { "type": "string" },
                     "labels": { "type": "string" }
                 },
                 "required": [
@@ -53,7 +55,7 @@
                     },
                     "boardListId": {
                         "type": "select",
-                        "label": "Board list",
+                        "label": "Board List",
                         "index": 2,
                         "source": {
                             "url": "/component/appmixer/trello/list/ListBoardsList?outPort=lists",
@@ -69,12 +71,14 @@
                     },
                     "name": {
                         "type": "text",
-                        "label": "Card name",
+                        "label": "Card Name",
+                        "tooltip": "The name for the card.",
                         "index": 3
                     },
                     "description": {
                         "type": "text",
-                        "label": "Card description",
+                        "label": "Card Description",
+                        "tooltip": "The description for the card.",
                         "index": 4
                     },
                     "position": {
@@ -84,14 +88,27 @@
                             { "value": "bottom", "content": "bottom"}
                         ],
                         "defaultValue": "bottom",
-                        "label": "Card position",
+                        "label": "Card Position",
+                        "tooltip": "The position of the new card.",
                         "index": 5
                     },
                     "dueDate": {
                         "type": "date-time",
-                        "label": "Due date",
+                        "label": "Due Date",
                         "index": 6,
                         "tooltip": "The card due date. It must be in the RFC3339 format. <br/><br/>Example: <i>2017-04-12T23:20:50.52Z</i> <br/> <br/>represents 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 2017 in UTC."
+                    },
+                    "checklistName": {
+                        "type": "text",
+                        "label": "Checklist Name",
+                        "tooltip": "The name of the checklist.",
+                        "index": 7
+                    },
+                    "checklistItems": {
+                        "type": "textarea",
+                        "label": "Checklist Items",
+                        "tooltip": "Enter up to 10 checklist items. Each item should be on a new line. If you need to add more items, you can do so after creating the card and using the AddChecklistToCard or AddChecklistItemToCard components.",
+                        "index": 8
                     }
                 }
             }

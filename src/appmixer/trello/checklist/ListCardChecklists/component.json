@@ -1,10 +1,10 @@
 {
-    "name": "appmixer.trello.list.AddAttachmentToCard",
-    "author": "Robert Beinaravicius <rbeinaravicius@ntrc.eu>",
+    "name": "appmixer.trello.checklist.ListCardChecklists",
+    "author": "Appmixer <info@appmixer.com>",
     "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IHgxPSI1MCUiIHkxPSIwJSIgeDI9IjUwJSIgeTI9IjEwMCUiIGlkPSJhIj48c3RvcCBzdG9wLWNvbG9yPSIjMDA5MUU2IiBvZmZzZXQ9IjAlIi8+PHN0b3Agc3RvcC1jb2xvcj0iIzAwNzlCRiIgb2Zmc2V0PSIxMDAlIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNhKSIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHJ4PSIyNSIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjE0NC42NCIgeT0iMzMuMjgiIHdpZHRoPSI3OC4wOCIgaGVpZ2h0PSIxMTIiIHJ4PSIxMiIvPjxyZWN0IGZpbGw9IiNGRkYiIHg9IjMzLjI4IiB5PSIzMy4yOCIgd2lkdGg9Ijc4LjA4IiBoZWlnaHQ9IjE3NiIgcng9IjEyIi8+PC9zdmc+",
-    "description": "Add an attachment to a specific card.",
+    "description": "Get the checklists on a card.",
     "private": false,
-    "version": "1.0.1",
+    "version": "1.0.0",
     "auth": {
         "service": "appmixer:trello"
     },
@@ -22,17 +22,17 @@
                 "type": "object",
                 "properties": {
                     "boardId": { "type": "string" },
-                    "url": { "type": "string" },
-                    "name": {
-                        "type": "string",
-                        "maxLength": 256
-                    },
-                    "boardListCardId": { "type": "string" }
+                    "boardListCardId": { "type": "string" },
+                    "outputType": { "type": "string" }
                 },
-                "required": [
-                    "url",
-                    "boardListCardId"
-                ]
+                "if": {
+                    "properties": {
+                        "isSource": { "enum": [true] }
+                    },
+                    "required": ["isSource"]
+                },
+                "then": { "required": [] },
+                "else": { "required": ["boardListCardId"] }
             },
             "inspector": {
                 "inputs": {
@@ -56,24 +56,25 @@
                             "url": "/component/appmixer/trello/list/ListBoardsCards?outPort=cards",
                             "data": {
                                 "messages": {
-                                    "in/boardId": "inputs/in/boardId"
+                                    "in/boardId": "inputs/in/boardId",
+                                    "in/isSource": true
                                 },
                                 "transform": "./transformers#cardListsToSelectArray"
                             }
                         },
-                        "tooltip": "Select a card."
+                        "tooltip": "Select a card or card ID from previous component."
                     },
-                    "url": {
-                        "type": "text",
-                        "label": "Attach a Link",
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
                         "index": 3,
-                        "tooltip": "Paste any link here."
-                    },
-                    "name": {
-                        "type": "text",
-                        "label": "Attachment Name",
-                        "tooltip": "The name for the attachment.",
-                        "index": 4
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            { "label": "All at once", "value": "array" },
+                            { "label": "One at a time", "value": "object" },
+                            { "label": "File", "value": "file" }
+                        ]
                     }
                 }
             }
@@ -81,20 +82,19 @@
     ],
     "outPorts": [
         {
-            "name": "attachment",
-            "options": [
-                { "label": "id", "value": "id" },
-                { "label": "bytes", "value": "bytes" },
-                { "label": "date", "value": "date" },
-                { "label": "edgeColor", "value": "edgeColor" },
-                { "label": "idMember", "value": "idMember" },
-                { "label": "isUpload", "value": "isUpload" },
-                { "label": "mimeType", "value": "mimeType" },
-                { "label": "name", "value": "name" },
-                { "label": "previews", "value": "previews" },
-                { "label": "url", "value": "url" },
-                { "label": "pos", "value": "pos" }
-            ]
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/trello/checklist/ListCardChecklists?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/boardListCardId": "1"
+                    }
+                }
+            }
         }
     ]
 }
