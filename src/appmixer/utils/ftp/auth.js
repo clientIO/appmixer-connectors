@@ -31,7 +31,7 @@ module.exports = {
             privatekey: {
                 type: 'textarea',
                 name: 'PrivateKey',
-                tooltip: 'Private key; either use this or the password field, this only works with sFTP. PEM is the only supported format for keys that can be used.'
+                tooltip: 'Private key; either use this or the password field. This only works with SFTP. PEM is the only supported format for keys that can be used.'
             },
             secure: {
                 type: 'text',

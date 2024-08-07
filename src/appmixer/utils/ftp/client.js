@@ -18,7 +18,7 @@ class FtpClient {
 
         if (FtpClient.isFtp(secure)) {
             if (config.privateKey != '') {
-                throw new Error('Cant use the secure option in combination with a private key');
+                throw new Error('Private key can be used only for SFTP');
             }
             this.isFtp = true;
             this.client = new Ftp.Client();
