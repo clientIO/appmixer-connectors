@@ -3,15 +3,16 @@
 const { Kafka, logLevel } = require('kafkajs');
 const RegexParser = require('regex-parser');
 
-// Note that we cannot simply define with `const OPEN_CONNECTIONS = {}; `. This is because the Appmixer engine clears the "require" cache
+// Note that we cannot simply define with `const KAFKA_CONNECTOR_OPEN_CONNECTIONS = {}; `.
+// This is because the Appmixer engine clears the "require" cache
 // when loading individual component code. Therefore, different Kafka componnets will not share the same OPEN_CONNECTIONS object
 // even on the same node! Therefore, we take advantage of the global `process` object to get the variable if it exists, or create it if it doesn't.
 // [connectionId]: consumer/producer object
-let OPEN_CONNECTIONS;
-if (process.OPEN_CONNECTIONS) {
-    OPEN_CONNECTIONS = process.OPEN_CONNECTIONS;
+let KAFKA_CONNECTOR_OPEN_CONNECTIONS;
+if (process.KAFKA_CONNECTOR_OPEN_CONNECTIONS) {
+    KAFKA_CONNECTOR_OPEN_CONNECTIONS = process.KAFKA_CONNECTOR_OPEN_CONNECTIONS;
 } else {
-    process.OPEN_CONNECTIONS = OPEN_CONNECTIONS = {};
+    process.KAFKA_CONNECTOR_OPEN_CONNECTIONS = KAFKA_CONNECTOR_OPEN_CONNECTIONS = {};
 }
 
 const initClient = (context, auth) => {
@@ -84,7 +85,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
     const consumer = client.consumer({ groupId });
 
     await consumer.connect();
-    OPEN_CONNECTIONS[connectionId] = consumer;
+    KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId] = consumer;
 
     await consumer.subscribe({
         topics: topicSubscriptions,
@@ -94,7 +95,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
     consumer.on(consumer.events.CRASH, async (error) => {
         await context.log('info', '[KAFKA] Kafka consumer CRASH (' + connectionId + '). Removing consumer from local connections.');
         await consumer.disconnect();
-        delete OPEN_CONNECTIONS[connectionId];
+        delete KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     });
 
     await consumer.run({
@@ -158,34 +159,50 @@ const addProducer = async (context, flowId, componentId, auth, connId) => {
     const producer = client.producer();
 
     await producer.connect();
-    OPEN_CONNECTIONS[connectionId] = producer;
+    KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId] = producer;
 
     return connectionId;
 };
 
 const sendMessage = async (context, flowId, componentId, connectionId, payload) => {
 
-    let producer = OPEN_CONNECTIONS[connectionId];
+    let producer = KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     if (!producer) {
         const connection = await context.service.stateGet(connectionId);
         await addProducer(context, flowId, componentId, connection.auth, connectionId);
-        producer = OPEN_CONNECTIONS[connectionId];
+        producer = KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     }
-    await producer.send(payload);
+
+    /**
+     When acks is set to 0, the promise is not resolved causing `connection.sendMessage` call timeout.
+     Considering the nature of `acks=0`, we can assume the message has been sent (unless no exceptions are thrown).
+     From the Kafka docs:
+     If (acks) set to zero then the producer will not wait for any acknowledgment from the server at all.
+     The record will be immediately added to the socket buffer and considered sent.
+     No guarantee can be made that the server has received the record in this case, and the
+
+     https://kafka.apache.org/documentation/#producerconfigs_acks
+     */
+    if (payload.acks === '0') {
+        producer.send(payload);
+        return Promise.resolve({});
+    }
+
+    return await producer.send(payload);
 };
 
 const removeConnection = async (context, connectionId) => {
 
     await context.log('info', `[KAFKA] Removing connection ${connectionId}.`);
     await context.service.stateUnset(connectionId);
-    const connection = OPEN_CONNECTIONS[connectionId];
+    const connection = KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     if (!connection) return; // Connection doesn't exist, do nothing
 
     await connection.disconnect();
-    delete OPEN_CONNECTIONS[connectionId];
+    delete KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
 };
 
-const listConnections = () => { return OPEN_CONNECTIONS; };
+const listConnections = () => { return KAFKA_CONNECTOR_OPEN_CONNECTIONS; };
 
 const isConsumerConnection = (connectionId) => connectionId.startsWith('consumer:');
 
