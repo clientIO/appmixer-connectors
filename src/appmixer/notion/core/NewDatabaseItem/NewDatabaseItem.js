@@ -19,8 +19,8 @@ module.exports = {
             data: {
                 sorts: [
                     {
-                        "timestamp": 'created_time',
-                        "direction": 'descending'
+                        'timestamp': 'created_time',
+                        'direction': 'descending'
                     }
                 ]
             }
