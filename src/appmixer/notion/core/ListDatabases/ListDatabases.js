@@ -33,7 +33,7 @@ module.exports = {
         await context.sendJson({ databases }, 'out');
     },
 
-    databaseToSelectArray({databases}) {
+    databaseToSelectArray({ databases }) {
         return databases.map(database => {
             return { label: database.title, value: database.id };
         });
