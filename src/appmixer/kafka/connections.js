@@ -172,7 +172,23 @@ const sendMessage = async (context, flowId, componentId, connectionId, payload) 
         await addProducer(context, flowId, componentId, connection.auth, connectionId);
         producer = KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     }
-    await producer.send(payload);
+
+    /**
+     When acks is set to 0, the promise is not resolved causing `connection.sendMessage` call timeout.
+     Considering the nature of `acks=0`, we can assume the message has been sent (unless no exceptions are thrown).
+     From the Kafka docs:
+     If (acks) set to zero then the producer will not wait for any acknowledgment from the server at all.
+     The record will be immediately added to the socket buffer and considered sent.
+     No guarantee can be made that the server has received the record in this case, and the
+
+     https://kafka.apache.org/documentation/#producerconfigs_acks
+     */
+    if (payload.acks === '0') {
+        producer.send(payload);
+        return Promise.resolve({});
+    }
+
+    return await producer.send(payload);
 };
 
 const removeConnection = async (context, connectionId) => {
