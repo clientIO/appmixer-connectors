@@ -5,7 +5,8 @@ module.exports = {
         const databaseId = context.properties.databaseId;
         const authHeader = `Bearer ${context.auth.accessToken}`;
         const apiVersion = '2022-06-28';
-        let newState = context.state.lastKnownState || {};
+        let newState = {};
+        let knownItems = new Set(context.state.known || []);
 
         const response = await context.httpRequest({
             method: 'POST',
@@ -14,18 +15,35 @@ module.exports = {
                 'Authorization': authHeader,
                 'Notion-Version': apiVersion,
                 'Content-Type': 'application/json'
+            },
+            data: {
+                sorts: [
+                    {
+                        "timestamp": "created_time",
+                        "direction": "descending"
+                    }
+                ]
             }
         });
 
-        const newItems = response.data.results.filter(item => {
-            return new Date(item.created_time) > new Date(newState.lastCheckTime || 0);
+        const currentItems = [];
+        const newItems = [];
+
+        response.data.results.forEach(item => {
+            currentItems.push(item.id);
+            if (!knownItems.has(item.id)) {
+                if (context.state.known) { // Only consider it new if state.known is already set
+                    newItems.push(item);
+                }
+            }
         });
 
-        for (const newItem of newItems) {
-            await context.sendJson(newItem, 'out');
-        }
+        newState.known = currentItems;
 
-        newState.lastCheckTime = new Date().toISOString();
         await context.saveState(newState);
+
+        if (context.state.known) { // Only send new items if state.known is already set
+            await Promise.all(newItems.map(newItem => context.sendJson(newItem, 'out')));
+        }
     }
 };
