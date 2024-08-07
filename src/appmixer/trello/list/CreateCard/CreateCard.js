@@ -10,9 +10,9 @@ const commons = require('../../trello-commons');
 function buildCard(card, boardListId) {
 
     let cardObject = {
-        'name': card['name'],
-        'pos': card['position'],
-        'idList': boardListId
+        name: card['name']?.trim(),
+        pos: card['position'],
+        idList: boardListId
     };
 
     cardObject['due'] = card['dueDate'] ? card['dueDate'] : null;
@@ -33,6 +33,12 @@ module.exports = {
         const boardListId = cardInfo.boardListId;
         const checklistName = cardInfo.checklistName?.trim();
         const checklistItems = cardInfo.checklistItems?.trim();
+        const card = buildCard(cardInfo, boardListId);
+
+        // Stop execution if card name is not provided
+        if (!card.name) {
+            throw new context.CancelError('Card name is required');
+        }
 
         // Stop execution if checklist name is not provided but checklist items are provided
         if (!checklistName && checklistItems) {
@@ -44,7 +50,7 @@ module.exports = {
             headers: { 'Content-Type': 'application/json' },
             method: 'POST',
             url: `https://api.trello.com/1/cards?${commons.getAuthQueryParams(context)}`,
-            data: buildCard(cardInfo, boardListId)
+            data: card
         });
 
         // If there is checklist data, add checklist to the card
