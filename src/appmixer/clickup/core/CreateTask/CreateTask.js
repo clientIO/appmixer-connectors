@@ -9,7 +9,6 @@ module.exports = {
             listId,
             name,
             description,
-            assignees,
             tags,
             status,
             priority,
@@ -26,7 +25,6 @@ module.exports = {
         const taskData = {
             name,
             description,
-            assignees: assignees?.split(',').map(item => item.trim()) ?? [],
             tags: tags?.split(',').map(item => item.trim()) ?? [],
             status,
             priority,

@@ -9,7 +9,7 @@ module.exports = {
 
         if (outputType === 'object') {
             // One by one.
-            await context.sendJson(records[0], outputPortName);
+            await context.sendArray(records, outputPortName);
         } else if (outputType === 'array') {
             // All at once.
             await context.sendJson({ tasks: records }, outputPortName);

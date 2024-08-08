@@ -11,8 +11,6 @@ module.exports = {
             taskId,
             name,
             description,
-            assigneesToAdd,
-            assigneesToRemove,
             status,
             priority,
             dueDate,
@@ -29,7 +27,6 @@ module.exports = {
         const taskData = {
             name,
             description,
-            assignees: { add: parseStringToArray(assigneesToAdd), rem: parseStringToArray(assigneesToRemove) },
             status,
             priority,
             due_date: dueDate && Date.parse(dueDate),
