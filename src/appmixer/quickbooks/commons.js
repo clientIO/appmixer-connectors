@@ -9,10 +9,12 @@ function getBaseUrl(context, auth) {
     const prodBaseURL = 'https://accounts.platform.intuit.com';
     const prodApiURL = 'https://quickbooks.api.intuit.com';
 
-    const baseUrl = context.config.sandbox ?
+    const isSandbox = context.config.sandbox === true || context.config.sandbox === 'true'; // Ensure sandbox is correctly interpreted
+
+    const baseUrl = isSandbox ?
         context.config.sandboxBaseURL || sandboxBaseURL :
         context.config.prodBaseURL || prodBaseURL;
-    const apiUrl = context.config.sandbox ?
+    const apiUrl = isSandbox ?
         context.config.sandboxApiURL || sandboxApiURL :
         context.config.prodApiUrl || prodApiURL;
 

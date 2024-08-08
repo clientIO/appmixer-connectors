@@ -2,24 +2,15 @@
 const pathModule = require('path');
 const { PassThrough } = require('stream');
 const FtpClient = require('../client');
-const lib = require('../lib');
 const Promise = require('bluebird');
 
 module.exports = {
 
     async receive(context) {
 
-        const { host, username, password, secure, port } = context.auth;
-        const config = {
-            host: host,
-            user: username,
-            password: password,
-            secure: lib.getAccessSecureType(secure)
-        };
+        const { secure } = context.auth;
+        const config = FtpClient.createConfig(context.auth);
 
-        if (port) {
-            config.port = port;
-        }
         const client = await FtpClient.getClientAndConnect(secure, config);
         const { path } = context.messages.in.content;
 
