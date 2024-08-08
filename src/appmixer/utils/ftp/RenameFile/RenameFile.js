@@ -1,23 +1,15 @@
 'use strict';
 const FtpClient = require('../client');
-const lib = require('../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { host, username, password, secure, port } = context.auth;
+        const { secure } = context.auth;
         const { path, newPath } = context.messages.in.content;
 
-        const config = {
-            host: host,
-            user: username,
-            password: password,
-            secure: lib.getAccessSecureType(secure)
-        };
-        if (port) {
-            config.port = port;
-        }
+        const config = FtpClient.createConfig(context.auth);
+
         const client = await FtpClient.getClientAndConnect(secure, config);
         try {
             await client.rename(path, newPath);
