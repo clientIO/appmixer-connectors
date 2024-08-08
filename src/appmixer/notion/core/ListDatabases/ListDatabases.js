@@ -1,21 +1,11 @@
 'use strict';
+const notionCommons = require('../../notion-commons');
 
 module.exports = {
     async receive(context) {
-        const apiVersion = '2022-06-28';
-        const authHeader = `Bearer ${context.auth.accessToken}`;
-        const url = 'https://api.notion.com/v1/search';
-
-        const response = await context.httpRequest({
+        const response = await notionCommons.callEndpoint(context, '/search', {
             method: 'POST',
-            url: url,
-            headers: {
-                'Authorization': authHeader,
-                'Notion-Version': apiVersion,
-                'Content-Type': 'application/json'
-            },
             data: {
-                query: '',
                 filter: {
                     value: 'database',
                     property: 'object'

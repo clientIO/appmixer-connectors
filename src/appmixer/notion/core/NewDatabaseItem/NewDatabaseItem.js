@@ -1,21 +1,14 @@
 'use strict';
+const notionCommons = require('../../notion-commons');
 
 module.exports = {
     async tick(context) {
         const databaseId = context.properties.databaseId;
-        const authHeader = `Bearer ${context.auth.accessToken}`;
-        const apiVersion = '2022-06-28';
         let newState = {};
         let knownItems = new Set(context.state.known || []);
 
-        const response = await context.httpRequest({
+        const response = await notionCommons.callEndpoint(context, `/databases/${databaseId}/query`, {
             method: 'POST',
-            url: `https://api.notion.com/v1/databases/${databaseId}/query`,
-            headers: {
-                'Authorization': authHeader,
-                'Notion-Version': apiVersion,
-                'Content-Type': 'application/json'
-            },
             data: {
                 sorts: [
                     {
