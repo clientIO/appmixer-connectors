@@ -16,7 +16,7 @@ module.exports = {
             port: {
                 type: 'text',
                 name: 'Port',
-                tooltip: 'Default 21.'
+                tooltip: 'Default 21. For SFTP the default is 22.'
             },
             username: {
                 type: 'text',
