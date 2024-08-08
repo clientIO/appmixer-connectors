@@ -1,8 +1,6 @@
 'use strict';
 const ClickUpClient = require('../../ClickUpClient');
 
-const parseStringToArray = (s) => s?.split(',').map(item => item.trim()) ?? [];
-
 module.exports = {
 
     async receive(context) {
