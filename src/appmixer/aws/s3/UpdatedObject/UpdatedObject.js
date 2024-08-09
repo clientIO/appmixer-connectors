@@ -57,6 +57,9 @@ module.exports = {
                         object.Bucket = bucket;
                         object.EventType = record.eventName;
 
+                        const normalizedObjectKey = decodeURIComponent(object.key.replace(/\+/g, ' '));
+                        object.key = normalizedObjectKey;
+
                         return context.sendJson(object, 'object');
                     }
                 }
