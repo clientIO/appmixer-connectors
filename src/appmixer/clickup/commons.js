@@ -5,11 +5,16 @@ module.exports = {
 
     // TODO: Move to appmixer-lib
     // Expects standardized outputType: 'item', 'items', 'file'
-    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
+    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'first', records = [] }) {
 
-        if (outputType === 'object') {
+        if (outputType === 'first') {
+            // First item found only.
+            if (records.length > 0) {
+                await context.sendJson(records[0], outputPortName);
+            }
+        } else if (outputType === 'object') {
             // One by one.
-            await context.sendJson(records[0], outputPortName);
+            await context.sendArray(records, outputPortName);
         } else if (outputType === 'array') {
             // All at once.
             await context.sendJson({ tasks: records }, outputPortName);
