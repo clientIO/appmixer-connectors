@@ -6,7 +6,7 @@ module.exports = {
 
     init(context) {
 
-        const region = context.messages.in.content.region || context.properties.region;
+        const region = context.messages.in?.content?.region || context.properties.region;
 
         AWS.config.update({
             signatureVersion: 'v4',
