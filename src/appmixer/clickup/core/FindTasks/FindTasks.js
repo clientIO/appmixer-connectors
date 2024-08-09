@@ -20,6 +20,11 @@ module.exports = {
         const cu = new ClickUpClient(context);
 
         const tasks = await cu.requestPaginated('GET', `/list/${listId}/task`, { dataKey: 'tasks', countLimit: limit, params: { assignees: commaSeparatedStringToArray(assigneeIds), statuses, tags: commaSeparatedStringToArray(tags), order_by: orderBy, paramsSerializer: { indexes: false } } });
+
+        if (!tasks || tasks.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
+
         return sendArrayOutput({
             context,
             outputPortName,
@@ -30,7 +35,7 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'object') {
+        if (outputType === 'object' || outputType === 'first') {
             return context.sendJson([
                 { label: 'Task ID', value: 'id' },
                 { label: 'Name', value: 'name' },
@@ -80,51 +85,54 @@ module.exports = {
                     label: 'Tasks',
                     value: 'tasks',
                     schema: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'string', title: 'Task ID' },
-                            name: { type: 'string', title: 'Name' },
-                            status: { type: 'string', title: 'Status' },
-                            'creator.id': { type: 'number', title: 'Creator ID' },
-                            'creator.username': { type: 'string', title: 'Creator Username' },
-                            'creator.email': { type: 'string', title: 'Creator Email' },
-                            assignees: {
-                                title: 'Assignees',
-                                schema: {
-                                    type: 'array',
-                                    items: {
-                                        type: 'object',
-                                        properties: {
-                                            id: { type: 'string', title: 'ID' },
-                                            username: { type: 'string', title: 'Username' },
-                                            email: { type: 'string', title: 'Email' }
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                id: { type: 'string', title: 'Task ID' },
+                                name: { type: 'string', title: 'Name' },
+                                status: { type: 'string', title: 'Status' },
+                                'creator.id': { type: 'number', title: 'Creator ID' },
+                                'creator.username': { type: 'string', title: 'Creator Username' },
+                                'creator.email': { type: 'string', title: 'Creator Email' },
+                                assignees: {
+                                    title: 'Assignees',
+                                    schema: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string', title: 'ID' },
+                                                username: { type: 'string', title: 'Username' },
+                                                email: { type: 'string', title: 'Email' }
+                                            }
                                         }
                                     }
-                                }
-                            },
-                            watchers: {
-                                title: 'Watchers',
-                                schema: {
-                                    type: 'array',
-                                    items: {
-                                        type: 'object',
-                                        properties: {
-                                            id: { type: 'string', title: 'ID' },
-                                            username: { type: 'string', title: 'Username' },
-                                            email: { type: 'string', title: 'Email' }
+                                },
+                                watchers: {
+                                    title: 'Watchers',
+                                    schema: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: {
+                                                id: { type: 'string', title: 'ID' },
+                                                username: { type: 'string', title: 'Username' },
+                                                email: { type: 'string', title: 'Email' }
+                                            }
                                         }
                                     }
-                                }
-                            },
-                            dueDate: { type: 'string', title: 'Due Date' },
-                            url: { type: 'string', title: 'URL' },
-                            'list.id': { type: 'string', title: 'List ID' },
-                            'list.name': { type: 'string', title: 'List Name' },
-                            'project.id': { type: 'string', title: 'Project ID' },
-                            'project.name': { type: 'string', title: 'Project Name' },
-                            'folder.id': { type: 'string', title: 'Folder ID' },
-                            'folder.name': { type: 'string', title: 'Folder Name' },
-                            'space.id': { type: 'string', title: 'Space ID' }
+                                },
+                                dueDate: { type: 'string', title: 'Due Date' },
+                                url: { type: 'string', title: 'URL' },
+                                'list.id': { type: 'string', title: 'List ID' },
+                                'list.name': { type: 'string', title: 'List Name' },
+                                'project.id': { type: 'string', title: 'Project ID' },
+                                'project.name': { type: 'string', title: 'Project Name' },
+                                'folder.id': { type: 'string', title: 'Folder ID' },
+                                'folder.name': { type: 'string', title: 'Folder Name' },
+                                'space.id': { type: 'string', title: 'Space ID' }
+                            }
                         }
                     }
                 }
