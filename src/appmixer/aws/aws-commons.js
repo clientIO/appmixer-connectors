@@ -60,58 +60,65 @@ module.exports = {
         const { bucket } = context.properties;
         const url = context.getWebhookUrl();
 
-        const lock = await context.lock(context.auth.userId.toString(), {
-            ttl: 1000 * 60,
-            retryDelay: 500,
-            maxRetryCount: 60
-        });
-
-        const { TopicConfigurations } = await s3.getBucketNotificationConfiguration({ Bucket: bucket }).promise();
-        const filteredTopics = TopicConfigurations.filter(topic => topic.TopicArn.includes(payload.topicPrefix));
-
         let topicARN;
-        if (filteredTopics.length > 0) {
-            topicARN = filteredTopics[0].TopicArn;
 
-            const state = await context.loadState();
-            state.notificationInBucket = true;
-            await context.saveState(state);
-        } else {
-            const response = await sns.createTopic({
-                Name: `${payload.topicPrefix}${crypto.randomBytes(10).toString('hex')}`
-            }).promise();
-            topicARN = response.TopicArn;
+        let lock;
+        try {
+            lock = await context.lock(context.auth.userId.toString(), {
+                ttl: 1000 * 60,
+                retryDelay: 500,
+                maxRetryCount: 60
+            });
 
-            await sns.setTopicAttributes({
-                TopicArn: topicARN,
-                AttributeName: 'Policy',
-                AttributeValue: `{"Version":"2008-10-17","Id":"__default_policy_ID","Statement":[{"Sid":"__console_pub_0",
+            const { TopicConfigurations } = await s3.getBucketNotificationConfiguration({ Bucket: bucket }).promise();
+            const filteredTopics = TopicConfigurations.filter(topic => topic.TopicArn.includes(payload.topicPrefix));
+
+
+            if (filteredTopics.length > 0) {
+                topicARN = filteredTopics[0].TopicArn;
+
+                const state = await context.loadState();
+                state.notificationInBucket = true;
+                await context.saveState(state);
+            } else {
+                const response = await sns.createTopic({
+                    Name: `${payload.topicPrefix}${crypto.randomBytes(10).toString('hex')}`
+                }).promise();
+                topicARN = response.TopicArn;
+
+                await sns.setTopicAttributes({
+                    TopicArn: topicARN,
+                    AttributeName: 'Policy',
+                    AttributeValue: `{"Version":"2008-10-17","Id":"__default_policy_ID","Statement":[{"Sid":"__console_pub_0",
                     "Effect":"Allow","Principal":{"AWS":"*"},"Action":"SNS:Publish","Resource":"${topicARN}"},
                     {"Sid":"__console_sub_0","Effect":"Allow","Principal":{"AWS":"*"},"Action":["SNS:Subscribe","SNS:Receive"],
                     "Resource":"${topicARN}"}]}`
-            }).promise();
+                }).promise();
 
-            const topicConfigurations = TopicConfigurations.filter(topic => {
-                const events = topic.Events.filter(arr => !arr.includes(payload.eventPrefix));
-                return events.length > 0;
-            });
+                const topicConfigurations = TopicConfigurations.filter(topic => {
+                    const events = topic.Events.filter(arr => !arr.includes(payload.eventPrefix));
+                    return events.length > 0;
+                });
 
-            topicConfigurations.push({
-                TopicArn: topicARN,
-                Events: [
-                    payload.eventType
-                ]
-            });
+                topicConfigurations.push({
+                    TopicArn: topicARN,
+                    Events: [
+                        payload.eventType
+                    ]
+                });
 
-            await s3.putBucketNotificationConfiguration({
-                Bucket: bucket,
-                NotificationConfiguration: {
-                    TopicConfigurations: topicConfigurations
-                }
-            }).promise();
+                await s3.putBucketNotificationConfiguration({
+                    Bucket: bucket,
+                    NotificationConfiguration: {
+                        TopicConfigurations: topicConfigurations
+                    }
+                }).promise();
+            }
+        } finally {
+            if (lock) {
+                await lock.unlock();
+            }
         }
-
-        await lock.unlock();
 
         return sns.subscribe({ TopicArn: topicARN, Protocol: 'https', Endpoint: url }).promise();
     },
@@ -135,22 +142,29 @@ module.exports = {
             sns.unsubscribe({ SubscriptionArn: subscriptionArn }).promise()
         ];
         if (!notificationInBucket) {
-            const lock = await context.lock(context.auth.userId.toString(), {
-                ttl: 1000 * 60,
-                retryDelay: 500,
-                maxRetryCount: 60
-            });
 
-            const { TopicConfigurations } = await s3.getBucketNotificationConfiguration({ Bucket: bucket }).promise();
-            const filteredTopics = TopicConfigurations.filter(topic => topic.TopicArn !== topicARN);
-            await s3.putBucketNotificationConfiguration({
-                Bucket: bucket,
-                NotificationConfiguration: {
-                    TopicConfigurations: filteredTopics
+            let lock;
+
+            try {
+                lock = await context.lock(context.auth.userId.toString(), {
+                    ttl: 1000 * 60,
+                    retryDelay: 500,
+                    maxRetryCount: 60
+                });
+
+                const { TopicConfigurations } = await s3.getBucketNotificationConfiguration({ Bucket: bucket }).promise();
+                const filteredTopics = TopicConfigurations.filter(topic => topic.TopicArn !== topicARN);
+                await s3.putBucketNotificationConfiguration({
+                    Bucket: bucket,
+                    NotificationConfiguration: {
+                        TopicConfigurations: filteredTopics
+                    }
+                }).promise();
+            } finally {
+                if (lock) {
+                    await lock.unlock();
                 }
-            }).promise();
-
-            await lock.unlock();
+            }
 
             promises.push(sns.deleteTopic({ TopicArn: topicARN }).promise());
         }
