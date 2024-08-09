@@ -152,6 +152,7 @@ module.exports = {
                     maxRetryCount: 60
                 });
 
+                // eslint-disable-next-line max-len
                 const { TopicConfigurations } = await s3.getBucketNotificationConfiguration({ Bucket: bucket }).promise();
                 const filteredTopics = TopicConfigurations.filter(topic => topic.TopicArn !== topicARN);
                 await s3.putBucketNotificationConfiguration({
