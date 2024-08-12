@@ -12,14 +12,12 @@ module.exports = {
             }
         });
         const normalizedEmail = emailCommons.normalizeEmail(messageDetails.data);
-        context.log({ normalizedEmail });
 
         const attachments = normalizedEmail.attachments.map(attachment => ({
             filename: attachment.filename,
             attachmentId: attachment.id
         }));
 
-        context.log({ attachments });
         return context.sendJson({ attachments }, 'out');
     },
 

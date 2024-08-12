@@ -1,17 +1,15 @@
 'use strict';
-const commons = require('../../google-commons');
 const emailCommons = require('../gmail-commons');
 const Promise = require('bluebird');
 
 module.exports = {
     async tick(context) {
         let newState = {};
-        let auth = commons.getOauth2Client(context.auth);
+
         // Retrieve all starred message IDs
-        const messages = await commons.getAllMessageIds({
-            auth: auth,
+        const messages = await emailCommons.getAllMessageIds({
+            context,
             userId: 'me',
-            quotaUser: context.auth.userId,
             labelIds: ['STARRED']
         });
 
@@ -22,7 +20,7 @@ module.exports = {
         messages.forEach(message => {
             currentMessages.push(message.id);
             if (!knownMessages.has(message.id)) {
-                if (context.state.known) { // Only consider it new if state.known is already set
+                if (context.state.known) {
                     newMessages.push(message);
                 }
             }
@@ -32,7 +30,7 @@ module.exports = {
 
         await context.saveState(newState);
 
-        if (context.state.known) { // Only send new messages if state.known is already set
+        if (context.state.known) {
             const emails = await Promise.map(newMessages, async message => {
                 return emailCommons.callEndpoint(context, `/users/me/messages/${message.id}`, {
                     method: 'GET',

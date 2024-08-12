@@ -4,16 +4,10 @@ const Promise = require('bluebird');
 const mimelib = require('mimelib');
 
 const BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
+
 function getGmailPartContent(part, _content) {
+    _content = _content || { text: '', html: '' };
 
-    // _content object is used to collect returned values during the recursive walk.
-    _content = _content || {
-        text: '',
-        html: ''
-    };
-
-    // Note that there could be actual text/plain or text/html file attachments.
-    // These parts, however, don't have the `body.data` object.
     if (part.body && part.body.data) {
         let contentType = (part.headers || []).find(h => {
             return h.name.toLowerCase() === 'content-type';
@@ -39,12 +33,7 @@ function getGmailPartContent(part, _content) {
 }
 
 module.exports = {
-    async callEndpoint(context, endpoint, {
-        method,
-        params = {},
-        data = null,
-        headers = {}
-    } = {}) {
+    async callEndpoint(context, endpoint, { method, params = {}, data = null, headers = {} } = {}) {
         const options = {
             method,
             url: `${BASE_URL}${endpoint}`,
@@ -112,7 +101,6 @@ module.exports = {
     },
 
     normalizeEmail(gmailMessageResource) {
-
         let email = {
             id: gmailMessageResource.id,
             threadId: gmailMessageResource.threadId,
@@ -157,11 +145,31 @@ module.exports = {
             }
         });
 
-        // Recursively walk all the parts in the email and collect text and html content.
         let content = getGmailPartContent(gmailMessageResource.payload);
         email.payload.text = content.text;
         email.payload.html = content.html;
 
         return email;
+    },
+
+    async getAllMessageIds({ context, userId, labelIds, maxResults = 300, pageToken = null }) {
+        let allMessages = [];
+        let endpoint = `/users/${userId}/messages`;
+
+        do {
+            const params = {
+                maxResults,
+                labelIds: labelIds.join(','),
+                pageToken,
+            };
+
+            const response = await this.callEndpoint(context, endpoint, { method: 'GET', params });
+            const messages = response.data.messages || [];
+            allMessages = allMessages.concat(messages);
+            pageToken = response.data.nextPageToken;
+
+        } while (pageToken);
+
+        return allMessages;
     }
 };

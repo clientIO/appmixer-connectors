@@ -10,7 +10,6 @@ module.exports = {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
-
         const buffer = Buffer.from(attachment.data.data, 'base64');
         const { fileId } = await context.saveFileStream(fileName, buffer);
         return context.sendJson({ fileId }, 'out');
