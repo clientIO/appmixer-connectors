@@ -122,8 +122,8 @@ module.exports = {
                 ?.filter((p) => !!p.body?.attachmentId)
                 .map((p) => {
                     return {
-                        id: p.body.attachmentId,
-                        size: p.body.size,
+                        id: p.body?.attachmentId,
+                        size: p.body?.size,
                         filename: p.filename,
                         mimeType: p.mimeType
                     };
