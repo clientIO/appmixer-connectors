@@ -11,7 +11,7 @@ module.exports = {
             return new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
         }
 
-        const url = `https://api.openai.com/v1/images/generations`;
+        const url = 'https://api.openai.com/v1/images/generations';
         const { data } = await context.httpRequest.post(url, {
             model: 'dall-e-3',
             prompt,

@@ -11,7 +11,7 @@ module.exports = {
             return new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
         }
 
-        const url = `https://api.openai.com/v1/chat/completions`;
+        const url = 'https://api.openai.com/v1/chat/completions';
         const { data } = await context.httpRequest.post(url, {
             model: 'gpt-4o',
             messages: [
