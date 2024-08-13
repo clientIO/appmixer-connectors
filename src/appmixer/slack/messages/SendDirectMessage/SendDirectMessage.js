@@ -11,7 +11,10 @@ module.exports = {
         let client = commons.getSlackAPIClient(context.auth.accessToken);
         let ids = userId;
         if (Array.isArray(userIds?.AND)) {
-            ids = userIds.AND.map(user => user.id).join(',');
+            if (userIds.AND.length > 8) {
+                throw new context.CancelError('You can send a message to a maximum of 8 users at once');
+            }
+            ids = userIds.AND.map(a => a.user).join(',');
         }
 
         try {
