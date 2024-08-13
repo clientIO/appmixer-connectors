@@ -1,3 +1,5 @@
+/* eslint-disable quotes */
+
 'use strict';
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
