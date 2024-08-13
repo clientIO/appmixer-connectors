@@ -9,7 +9,6 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        const { userId } = context.auth;
         let { fileName, folder, replace, convertToDocument, content } = context.messages.in.content;
 
         let contentType;
@@ -42,7 +41,6 @@ module.exports = {
                 const file = files[0];
                 response = await drive.files.update({
                     fileId: file.id,
-                    quotaUser: userId,
                     media: {
                         mimeType: contentType,
                         body: content
@@ -52,7 +50,6 @@ module.exports = {
             } else {
                 // If no file exists, just create new file
                 response = await drive.files.create({
-                    quotaUser: userId,
                     resource,
                     media: {
                         mimeType: contentType,
@@ -63,7 +60,6 @@ module.exports = {
             }
         } else {
             response = await drive.files.create({
-                quotaUser: userId,
                 resource,
                 media: {
                     mimeType: contentType,

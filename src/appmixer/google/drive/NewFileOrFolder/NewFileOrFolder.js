@@ -158,7 +158,6 @@ module.exports = {
         try {
             const auth = commons.getOauth2Client(context.auth);
             const drive = google.drive({ version: 'v3', auth });
-            const { userId } = context.auth;
             let pageToken = await context.stateGet('startPageToken');
 
             if (!pageToken) {
@@ -169,7 +168,6 @@ module.exports = {
 
             const expiration = moment().add(1, 'day').valueOf();
             const { data } = await drive.changes.watch({
-                quotaUser: userId,
                 includeRemoved: false,
                 pageToken,
                 requestBody: {
@@ -196,10 +194,8 @@ module.exports = {
         if (webhookId) {
             const auth = commons.getOauth2Client(context.auth);
             const drive = google.drive({ version: 'v3', auth });
-            const { userId } = context.auth;
 
             return drive.channels.stop({
-                quotaUser: userId,
                 requestBody: {
                     resourceId: webhookId,
                     id: context.componentId

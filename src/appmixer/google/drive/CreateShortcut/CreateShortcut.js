@@ -9,7 +9,6 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        const { userId } = context.auth;
         let { fileId, shortcutName, destinationFolder } = context.messages.in.content;
 
 
@@ -32,7 +31,6 @@ module.exports = {
         }
 
         const response = await drive.files.create({
-            quotaUser: userId,
             resource,
             fields: '*'
         });

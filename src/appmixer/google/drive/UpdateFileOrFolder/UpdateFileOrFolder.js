@@ -9,7 +9,6 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        const { userId } = context.auth;
         let { fileId, name, description, starred } = context.messages.in.content;
 
 
@@ -26,7 +25,6 @@ module.exports = {
         }
         const response = await drive.files.update({
             fileId: typeof fileId === 'string' ? fileId : fileId.id,
-            quotaUser: userId,
             resource,
             fields: '*'
         });
