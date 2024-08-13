@@ -1,34 +1,72 @@
 'use strict';
 
 const commons = require('../../slack-commons');
-const { SlackAPIError } = require('../../errors');
+
+const outputPortName = 'out';
+const TTL_USERS = 20 * 1000; // 20 sec
 
 module.exports = {
 
     async receive(context) {
 
-        let client = commons.getSlackAPIClient(context.auth.accessToken);
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
-        let { outputType, limit } = context.messages.in.content;
+        let { outputType, limit, isSource } = context.messages.in.content;
 
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
 
+        const cacheKey = 'slack-list-users-' + context.flowId;
+        let lock;
         try {
-            const users = await client.listUsers({ limit });
-            return commons.sendArrayOutput({ context, outputType, records: users });
-        } catch (err) {
-            if (err instanceof SlackAPIError) {
-                throw new context.CancelError(err.apiError);
+            lock = await context.lock(context.flowId, { retryDelay: 500 });
+
+            if (isSource) {
+                const usersCached = await context.staticCache.get(cacheKey);
+                if (usersCached) {
+                    await commons.sendArrayOutput({ context, outputType, records: usersCached });
+                    return;
+                }
             }
-            throw err;
+
+            const { data } = await context.httpRequest({
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${context.auth.accessToken}`
+                },
+                url: 'https://slack.com/api/users.list',
+                params: { limit }
+            });
+
+            if (!data) {
+                throw new context.CancelError(response.statusText);
+            }
+            if (!data.ok) {
+                throw new context.CancelError(data.error);
+            }
+
+            // Cache the tables for 20 seconds unless specified otherwise in the config.
+            // Note that we only need name and id, so we can save some space in the cache.
+            // Caching only if this is a call from another component.
+            if (isSource) {
+                await context.staticCache.set(
+                    cacheKey,
+                    data.members?.map(item => ({ id: item.id, name: item.real_name || item.name })),
+                    context.config?.listUsersCacheTTL || TTL_USERS
+                );
+            }
+
+            await commons.sendArrayOutput({ context, outputType, records: data.members });
+        } catch (err) {
+            // Look for Slack API error message: https://api.slack.com/web#responses
+            // For example: { "ok": false, "error": "ratelimited" }
+            throw err.response?.data?.error || err;
+        } finally {
+            lock?.unlock();
         }
     },
 
     getOutputPortOptions(context, outputType) {
-
-        const outputPortName = 'out';
 
         if (outputType === 'object' || outputType === 'first') {
             return context.sendJson([

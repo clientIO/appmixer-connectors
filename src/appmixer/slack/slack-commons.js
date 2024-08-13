@@ -142,6 +142,19 @@ class SlackAPI {
         return response.message;
     }
 
+    async openConversation(userId) {
+
+        const response = await this.makeRequest({
+            method: 'POST',
+            url: this.url + 'conversations.open',
+            data: {
+                users: userId
+            }
+        });
+
+        return response.channel;
+    }
+
     async updateMessage(channel, text, ts) {
 
         let entities = new Entities();
@@ -235,7 +248,7 @@ module.exports = {
             await context.sendArray(records, outputPortName);
         } else if (outputType === 'array') {
             // All at once.
-            await context.sendJson({ tasks: records }, outputPortName);
+            await context.sendJson({ records }, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.
             const headers = Object.keys(records[0] || {});

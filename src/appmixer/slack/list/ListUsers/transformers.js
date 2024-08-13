@@ -4,11 +4,11 @@ module.exports.usersToSelectArray = users => {
 
     let transformed = [];
 
-    if (Array.isArray(users)) {
-        users.forEach(user => {
+    if (Array.isArray(users?.records)) {
+        users.records.forEach(user => {
 
             transformed.push({
-                label: user['real_name'],
+                label: user['real_name'] || user['name'],
                 value: user['id']
             });
         });
