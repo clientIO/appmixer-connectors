@@ -7,11 +7,12 @@ module.exports = {
         const { outputType, limit } = context.messages.in.content;
         const variableFetch = context.properties.variableFetch;
         const maxLimit = limit || 100;
+
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
-        const pageSize = 100; // Number of emails to retrieve per page
 
+        const pageSize = 100; // Number of emails to retrieve per page
         let emails = [];
         let nextPageToken = null;
         let totalEmails = 0;
@@ -50,23 +51,26 @@ module.exports = {
             nextPageToken = result.data.nextPageToken;
         } while (nextPageToken && totalEmails < maxLimit);
 
+        if (outputType === 'first') {
+            return context.sendJson(emails[0], 'out');
+        }
         if (outputType === 'emails') {
             return context.sendJson({ emails }, 'out');
         }
 
-        const headers = Object.keys(emails[0]);
-        const csvRows = [headers.join(',')];
-
-        for (const email of emails) {
-            if (outputType === 'email') {
-                await context.sendJson(email, 'out');
-            } else {
-                const row = Object.values(email).join(',');
-                csvRows.push(row);
-            }
+        if (outputType === 'email') {
+            await context.sendArray(emails, 'out');
         }
 
         if (outputType === 'file') {
+            const headers = Object.keys(emails[0]);
+            const csvRows = [headers.join(',')];
+
+            for (const email of emails) {
+                const row = Object.values(email).join(',');
+                csvRows.push(row);
+            }
+
             const csvString = csvRows.join('\n');
             const buffer = Buffer.from(csvString, 'utf8');
             const filename = `gmail-listemails-${context.componentId}.csv`;

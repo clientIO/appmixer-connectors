@@ -47,7 +47,7 @@ module.exports = {
         attachments = attachments.reduce((a, b) => a.concat(b), []);
 
         let saved = await Promise.map(attachments, attachment => {
-            return context.saveFile(
+            return context.saveFileStream(
                 attachment.filename,
                 attachment.mimetype || 'application/octet-stream', // Fallback to 'application/octet-stream' if mimetype is missing
                 Buffer.from(attachment.data, 'base64')
