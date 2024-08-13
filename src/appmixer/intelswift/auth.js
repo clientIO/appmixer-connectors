@@ -1,4 +1,4 @@
-// const { makeRequest } = require('./common');
+const { makeRequest } = require('./commons');
 
 module.exports = {
 
@@ -17,18 +17,26 @@ module.exports = {
             }
         },
 
-        requestProfileInfo: (context) => {
+        requestProfileInfo: async context => {
+
+            const { data } = await makeRequest(context, '/accounts/account', { method: 'POST' });
+
+            if (!data?.data) {
+                throw 'Authentication Failed';
+            }
+
+            const account = data?.data[0];
 
             return {
-                tenantId: context.apiKey,
-                displayName: context.apiKey.substring(0, 15) + '...'
+                tenantId: account.tenantId,
+                displayName: account.email
             };
         },
 
         validate: async context => {
 
-            // await makeRequest({ context, options: { path: '/list/profile' , data: { 'limit': 1 } } });
-            return true;
+            const { data } = await makeRequest(context, '/accounts/account', { method: 'POST' });
+            return !!data?.data;
         }
     }
 };

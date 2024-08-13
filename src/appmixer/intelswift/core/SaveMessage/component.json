@@ -1,65 +1,44 @@
 {
-    "name": "appmixer.intelswift.core.NewContact",
+    "name": "appmixer.intelswift.core.SaveMessage",
     "author": "Vladimir Talas <lades@client.io>",
-    "description": "Triggers when a contact is created.",
+    "description": "Save message.",
     "version": "1.0.0",
     "private": false,
-    "webhook": true,
     "auth": {
         "service": "appmixer:intelswift"
     },
-    "outPorts": [
+    "inPorts": [
         {
-            "name": "out",
-            "options": [
-                { "label": "TenantId", "value": "tenantId" },
-                { "label": "ContactId", "value": "contactId" },
-                { "label": "BotId", "value": "botId" },
-                { "label": "Origin", "value": "origin" },
-                {
-                    "label": "Meta", "value": "meta",
-                    "schema": {
-                        "type": "object"
-                    }
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "text": { "type": "string" },
+                    "contactId": { "type": "string" }
                 },
-                { "label": "UserId", "value": "userId" },
-                { "label": "IsBot", "value": "isBot" },
-                { "label": "BotName", "value": "botName" },
-                { "label": "Email", "value": "email" },
-                { "label": "Segment", "value": "segment" },
-                { "label": "Sentiment", "value": "sentiment" },
-                {
-                    "label": "Notes", "value": "notes",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "contactId": { "label": "contactId", "value": "contactId" },
-                                "content": { "label": "content", "value": "content" },
-                                "agent": {
-                                    "label": "agent", "value": "agent",
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": { "label": "id", "value": "id" },
-                                            "name": { "label": "name", "value": "name" }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                {
-                    "label": "Tags", "value": "tags",
-                    "schema": {
-                        "type": "array",
-                        "items": { "type": "string" }
+                "required": ["text", "contactId"]
+            },
+            "inspector": {
+                "inputs": {
+                    "text": {
+                        "type": "text",
+                        "label": "Message Text",
+                        "index": 1
+                    },
+                    "contactId": {
+                        "type": "text",
+                        "label": "Contact ID",
+                        "index": 2
                     }
                 }
-            ]
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out"
         }
     ],
     "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAbkSURBVEhLdVbLbhzHFb23unveHFJjitSDlAU7sGRJQWDIUAwDgbPQQskmiwRQAvgTHCALb+38g5GV/QMG/AFeGDDiQAkUx1rEMeC3SEmkSJkUSc17+lHX51S3FFGQCzWF6p7uc1/nnmo1M3lsPH6hXKwobDaQ8YFMB1Lk4r1FiTQXpL0gzTnFwIN4Kzz8lHHIAPblBd8SG+/b/TXZW5Phtk4fSD6WdOLTkeUTyb0kXemdkVOXZPW8a825nzJBA94Mfz6yA/TpwP/wteyvaQavM80zyVKfTyWfWTb16UQy7MeW7bt017Uv2IWrdu5XUb0JM08OVzpdoQfHD+74jU9lsMHwo4a4xPAU06AeqzpxzjQyrUkyb40VG3zmbrwnk6EvMZ4YePXhUOTb9m7a/k3Y0aiOnxmhvWqhgFYGBwMawYZyxuL7snTZ//5vunA0rnAOj8eC8ta/Y9P76hJ1EYHoLxyHvwCFUayOYWGNIo0j5x+4lSvym7f0yHKEPFc4h0dlAEDjXUmHztXoIKKhywEXgLwkOiZvRjCDuEZy9nX79RvaXnD+6eAcNIDHs7FkI6Q7oBA6oDM/NIZs0O9gw0VqmcYNvfQXefkPLqlric7yPW3QgHnJhqWDwWXiBq/LWeFixZWzmS69JK+9ac+9TPqDI3DIhScDV56MRQtfFFOZ9aVIwULNZgY6ZjPJp4aVdJxawZuaDhTcP/WqnTiHGlTv55lNh4oezFOLakiXNLv0o/qbBorcCoUBtk8aEIEbDBQzSaeWjvGXJk1bPKPLZ6Xe4mvo58GObH9tW1/I3rcy2mYbopuax+TkK3Lusi6uhEqWBhiel3QgaNd0rPQ9BFGkbJKkLfMnpHtCao0AXcj+ht36j2yiV26Hx7wUhfe5FDPNh5ptaufn9tpf/dlXE+CrL3IkfTKk40mNJlHw0ihaodaSpFHmF+mW/j279W+5c13GP0ACEIf43NDnBWbui1SRZ6zZfQfc371vz71UgwxkX33i1/8Opkh3RVYuyvEXgYuuq+oFIBQ5Hcnm57Z+TQabaH7eRGo94DLzGSrBDeqBPYzB1/R2tHzFX30n0i//kd54x7VPSm3OEEGU6NwJWb1kR58XF1fcO9i0tWu68yVAg3bl8NRyKCtmanQ/M3Ik8x4bXDIUnX7q/vhfjS733kbrxi2KsKsbEiJeh5sOSWseITu3/ifff6yDu6oxxIE8hA3zjhvPKCEwVrDsKCT/wi20tUm+4ZZ+K25GbaCbVAU8jS6DkCU2uqfbX8j6v+TWP1H2oHq4X/YKJvfUjLBnO4UmYbXYRhEEphBUfWTu+C99PqAcVB0beFJr25HTkH5//xsGUelHBQ2NDbiUVXY4tb6ULKLzL3GeZsTiurizl3XulGV9B5JB+pO2Lp+X3vMy3OU5A62GZJZwFWhAoZQCC+1doofog578/y+82F1U7W/ls4ntrMvsgXSXpN2TaV/6W2SCoYbkH6arCpvhJvwIFMIpNNFsgiPVa51qkY91sitZ3/sYZZHZenL1w1iHO/lgy9U6HpmZjWSyj9cCaAZ0UiIwjwbAmUBELXmJDNS61lnyrZ40Oi6pITQ/Hdu9NX/zYz/8Rls/i/70rtN0ku995yASJZfROCXt8hRAwWXYoNcwEHzPKLGNeWs/I/UOaU0djC2KXRRbDKLXZNT3n31QdFbdlT/HELu8f0cne9AMwBG0RMlAcNhglgz6jA7AhHmwudaRmKRilh2hqfO4pI3ERzHEnJ8HtZ4tPZsgddLsVfwrFT9sqJd0DZfgDCAon0DXGKkoWCH6QWHgBkljbaAWcKiwYqqteXf0WbAVZ66BlNI4wgYAHFhCM0Rn7KWbKOmkTwXE+0gmEJE31KMsFSeJYKgiJY+WrLVIWqEPw4Ej0jkmcTMcHRU6DcQIPBZ8HR1sKLQoYFFwyoIZ3afLnA/jYJ1m0lyUepdqSN6SyWi9ROdXkcSQpeA7ylUUsvOd3/ueGukLBWtRatqoiIA7oUilDbIAvSv1eVtYpdNIPgYi4HGHj69aRxdOo2IWwUYsB9v+5jU7WMeni0JqEDVQAmWrPgi+43yuHEd+oCiNBVt6Ef7RabjPNOGoCJaqVkyHdvdz++oj218D4RS9DlaU/cwZkYuseSAPGIWJTPIEdfrMGTv5C0UyyuQ8iqAcoeWNcSxfsN4ZU/DkQUhuSEiZCk+emKGeLGmoKuox4Vfa6iu2evEheoArh3rq7KFBzRLZve2//cTuXpd0T10DGiVxC9FYSS1Kr+PHy9xxO3bBll7Qeqv6OiJ65T0Hvcb9sBwabBCR4b7fWTN8YB/c0hGOBChuDIbY/GlbOCW9Ve0ua1Jnwh8BPEoOh8iPOWJfN5iKMncAAAAASUVORK5CYII="
 }
+
