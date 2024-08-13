@@ -1,5 +1,5 @@
 'use strict';
-const mime = require('mime-types');
+
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
 

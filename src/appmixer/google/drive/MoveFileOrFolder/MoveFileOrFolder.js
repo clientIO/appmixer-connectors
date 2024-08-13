@@ -36,14 +36,14 @@ module.exports = {
             fileId: fileId,
             addParents: folderId,
             removeParents: previousParents,
-            fields: 'id, parents'
+            fields: '*'
         };
 
         if (DEBUG) {
             await context.log({ stage: 'DEBUG', fileMetadata: file, request: params });
         }
 
-        await drive.files.update(params);
-        return context.sendJson({}, 'out');
+        const { data: googleDriveFileMetadata } = await drive.files.update(params);
+        return context.sendJson({ googleDriveFileMetadata }, 'out');
     }
 };
