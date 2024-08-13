@@ -9,7 +9,6 @@ module.exports = {
 
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        const { userId } = context.auth;
         let { googleDriveFileId, type, role, emailAddress } = context.messages.in.content;
 
         const resource = {
