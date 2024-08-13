@@ -19,7 +19,6 @@ const getUpdatedFiles = async (lock, drive, folder, fileTypesRestriction, pageTo
             }
 
             const mimeType = change.file?.mimeType;
-            const isFolder = mimeType === 'application/vnd.google-apps.folder';
 
             // Check for location folder match.
             if (folder && !change.file?.parents?.includes(folder)) {
@@ -70,7 +69,10 @@ const detectUpdatedFiles = async function(context) {
 
         await context.stateSet('hasSkippedMessage', false);
 
-        const { updatedFiles, newStartPageToken } = await getUpdatedFiles(lock, drive, folder.id, fileTypesRestriction, startPageToken);
+        const {
+            updatedFiles,
+            newStartPageToken
+        } = await getUpdatedFiles(lock, drive, folder.id, fileTypesRestriction, startPageToken);
 
         const processedFilesSet = commons.processedItemsBuffer(processedFiles);
 
