@@ -31,10 +31,14 @@
                     "userIds": {},
                     "text": { "type": "string" }
                 },
-                "oneOf": [
-                    { "required": ["userId", "text"] },
-                    { "required": ["userIds", "text"] }
-                ]
+                "if": {
+                    "properties": {
+                        "toggleMultiUserMessage": { "enum": [true] }
+                    },
+                    "required": ["toggleMultiUserMessage"]
+                },
+                "then": { "required": ["userIds", "text"] },
+                "else": { "required": ["userId", "text"] }    
             },
             "inspector": {
                 "inputs": {
@@ -67,15 +71,15 @@
                         "when": { "eq": { "./toggleMultiUserMessage": true } },
                         "type": "expression",
                         "label": "Users",
-                        "exclusiveFields": ["id"],
+                        "tooltip": "Add up to 8 users to send the message to.",
+                        "exclusiveFields": ["user"],
                         "index": 2,
-                        "levels": [
-                            "AND"
-                        ],
+                        "levels": ["AND"],
                         "fields": {
-                            "id": {
+                            "user": {
                                 "type": "select",
                                 "label": "User",
+                                "required": true,
                                 "index": 1,
                                 "source": {
                                     "url": "/component/appmixer/slack/list/ListUsers?outPort=out",
