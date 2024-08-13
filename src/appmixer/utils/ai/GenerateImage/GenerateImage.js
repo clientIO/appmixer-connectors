@@ -13,7 +13,7 @@ module.exports = {
 
         const url = 'https://api.openai.com/v1/images/generations';
         const { data } = await context.httpRequest.post(url, {
-            model: 'dall-e-3',
+            model: context.config.GenerateImageModel || 'dall-e-3',
             prompt,
             size,
             n: 1
