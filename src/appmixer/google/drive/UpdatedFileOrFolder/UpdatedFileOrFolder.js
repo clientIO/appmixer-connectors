@@ -2,7 +2,7 @@ const moment = require('moment');
 const { google } = require('googleapis');
 const commons = require('../drive-commons');
 
-const getNewFiles = async (lock, drive, folder, fileTypesRestriction, pageToken, newFiles = []) => {
+const getUpdatedFiles = async (lock, drive, folder, fileTypesRestriction, pageToken, updatedFiles = []) => {
 
     const { data: { changes, newStartPageToken, nextPageToken } } = await drive.changes.list({
         pageToken,
@@ -11,9 +11,9 @@ const getNewFiles = async (lock, drive, folder, fileTypesRestriction, pageToken,
     });
 
     changes.forEach(change => {
-        if (change.changeType === 'file' && !change.removed && !change.file?.trashed && new Date(change.file?.createdTime) >= new Date(change.file?.modifiedTime)) {
+        if (change.changeType === 'file' && !change.removed && !change.file?.trashed && new Date(change.file?.modifiedTime) > new Date(change.file?.createdTime)) {
 
-            if (newFiles.find(file => file.id === change.file.id)) {
+            if (updatedFiles.find(file => file.id === change.file.id)) {
                 // We've already processed this file (sometimes the same file change may occur multiple times in the change list).
                 return;
             }
@@ -39,21 +39,20 @@ const getNewFiles = async (lock, drive, folder, fileTypesRestriction, pageToken,
                 if (!isAllowed) return;
             }
 
-            newFiles.push(change.file);
+            updatedFiles.push(change.file);
         }
     });
 
     if (nextPageToken) {
         await lock.extend(20000);
-        return getNewFiles(lock, drive, folder, fileTypesRestriction, nextPageToken, newFiles);
+        return getUpdatedFiles(lock, drive, folder, fileTypesRestriction, nextPageToken, updatedFiles);
     }
 
-    return { newFiles, newStartPageToken };
+    return { updatedFiles, newStartPageToken };
 };
 
-const detectNewFiles = async function(context) {
+const detectUpdatedFiles = async function(context) {
 
-    const DEBUG = commons.isDebug(context);
     const { folder = {}, fileTypesRestriction } = context.properties;
 
     let lock = null;
@@ -65,45 +64,26 @@ const detectNewFiles = async function(context) {
     }
 
     try {
-        const { startPageToken, processedFiles = [], debugInfo = {} } = await context.loadState();
+        const { startPageToken, processedFiles = [] } = await context.loadState();
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
 
         await context.stateSet('hasSkippedMessage', false);
 
-        const { newFiles, newStartPageToken } = await getNewFiles(lock, drive, folder.id, fileTypesRestriction, startPageToken);
+        const { updatedFiles, newStartPageToken } = await getUpdatedFiles(lock, drive, folder.id, fileTypesRestriction, startPageToken);
 
         const processedFilesSet = commons.processedItemsBuffer(processedFiles);
 
-        for (let file of newFiles) {
+        for (let file of updatedFiles) {
             if (!processedFilesSet.has(file.id)) {
                 processedFilesSet.add(newStartPageToken, file.id);
                 const out = {
-                    id: file.id,
-                    name: file.name,
-                    mimeType: file.mimeType,
-                    createdTime: file.createdTime,
-                    webViewLink: file.webViewLink,
-                    webContentLink: file.webContentLink,
+                    isFolder: file.mimeType === 'application/vnd.google-apps.folder',
+                    isFile: file.mimeType !== 'application/vnd.google-apps.folder',
                     googleDriveFileMetadata: file
                 };
                 await context.sendJson(out, 'file');
                 await context.stateSet('processedFiles', processedFilesSet.export());
-
-                if (DEBUG) {
-                    debugInfo[file.name] = debugInfo[file.name] || [];
-                    debugInfo[file.name].push(newStartPageToken);
-                }
-            }
-        }
-
-        if (DEBUG) {
-            await context.log({ 'DEBUG': debugInfo });
-            if (Object.keys(debugInfo).length > 10000) {
-                await context.log({ 'DEBUG': 'Clearing debug log, maximum count of records reached.' });
-                await context.stateSet('debugInfo', {});
-            } else {
-                await context.stateSet('debugInfo', debugInfo);
             }
         }
 
@@ -139,7 +119,7 @@ module.exports = {
             return context.response();
         }
 
-        await detectNewFiles(context);
+        await detectUpdatedFiles(context);
 
         return context.response();
     },
@@ -150,8 +130,8 @@ module.exports = {
 
         if (hasSkippedMessage) {
             // a message came when we were processing results,
-            // we have to check for new files again
-            await detectNewFiles(context);
+            // we have to check for updated files again
+            await detectUpdatedFiles(context);
         }
 
         if (expiration) {

@@ -12,11 +12,11 @@ module.exports = {
             fileId
         } = context.messages.in.content;
 
-        const { data: metadata } = await drive.files.get({
+        const { data: googleDriveFileMetadata } = await drive.files.get({
             fileId: fileId === 'string' ? fileId : fileId.id,
             fields: '*'
         });
 
-        return context.sendJson({ googleDriveFileMetadata: metadata }, 'out');
+        return context.sendJson({ googleDriveFileMetadata }, 'out');
     }
 };

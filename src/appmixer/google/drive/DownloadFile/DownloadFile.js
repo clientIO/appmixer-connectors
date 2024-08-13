@@ -57,13 +57,18 @@ module.exports = {
 
         const appmixerFile = await context.saveFileStream(filename, stream);
 
+        const out = {
+            fileId: appmixerFile.fileId,
+            filename: appmixerFile.filename,
+            length: appmixerFile.length,
+            googleDriveFileMetadata: metadata
+        };
+
         if (outputFileData) {
-            appmixerFile.content = (await context.loadFile(appmixerFile.fileId)).toString(outputFileDataEncoding || 'utf8');
+            out.content = (await context.loadFile(appmixerFile.fileId)).toString(outputFileDataEncoding || 'utf8');
         }
 
-        appmixerFile.googleDriveFileMetadata = metadata;
-
-        return context.sendJson(appmixerFile, 'out');
+        return context.sendJson(out, 'out');
     }
 };
 

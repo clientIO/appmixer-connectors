@@ -3,7 +3,7 @@
     "author": "David Durman <david@client.io>",
     "description": "Create a new folder in your drive.",
     "private": false,
-    "version": "1.0.2",
+    "version": "2.0.0",
     "auth": {
         "service": "appmixer:google",
         "scope": [
@@ -21,62 +21,989 @@
     },
     "inPorts": [
         {
-            "name": "in",
+        "name": "in",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "folderName": {
+                    "type": "string"
+                },
+                "folderLocation": {
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "object" }
+                    ]
+                },
+                "useExisting": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "folderName": {
+                    "type": "text",
+                    "index": 1,
+                    "label": "New Folder Name",
+                    "tooltip": "Enter the name for your new folder."
+                },
+                "folderLocation": {
+                    "type": "googlepicker",
+                    "index": 2,
+                    "label": "New Folder Location",
+                    "placeholder": "Choose a folder...",
+                    "tooltip": "Select the parent folder for your new folder. Leave blank to create the folder in the root of your drive.",
+                    "view": "FOLDERS"
+                },
+                "useExisting": {
+                    "type": "toggle",
+                    "index": 3,
+                    "defaultValue": true,
+                    "label": "Use Existing",
+                    "tooltip": "If a folder with the same name already exists, return the existing folder instead of creating a new one."
+                }
+            }
+        }
+    }
+    ],
+    "outPorts": [
+        {
+        "name": "out",
+        "options": [
+            {
+            "label": "GDrive Folder Metadata",
+            "value": "googleDriveFileMetadata",
             "schema": {
                 "type": "object",
                 "properties": {
-                    "folderName": {
+                    "id": {
+                        "type": "string",
+                        "description": "The ID of the file.",
+                        "title": "GDrive Folder.ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the file.",
+                        "title": "GDrive Folder.Name"
+                    },
+                    "mimeType": {
+                        "type": "string",
+                        "description": "The MIME type of the file.",
+                        "title": "GDrive Folder.MIME Type"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "A short description of the file.",
+                        "title": "GDrive Folder.Description"
+                    },
+                    "starred": {
+                        "type": "boolean",
+                        "description": "Whether the file has been starred by the user.",
+                        "title": "GDrive Folder.Starred"
+                    },
+                    "trashed": {
+                        "type": "boolean",
+                        "description": "Whether the file has been trashed.",
+                        "title": "GDrive Folder.Trashed"
+                    },
+                    "kind": {
+                        "type": "string",
+                        "description": "Identifies what kind of resource this is. Value: the fixed string 'drive#file'.",
+                        "title": "GDrive Folder.Kind"
+                    },
+                    "webViewLink": {
+                        "type": "string",
+                        "description": "A link for opening the file in a relevant Google editor or viewer in a browser.",
+                        "title": "GDrive Folder.Web View Link"
+                    },
+                    "webContentLink": {
+                        "type": "string",
+                        "description": "A link for downloading the content of the file in a browser.",
+                        "title": "GDrive Folder.Web Content Link"
+                    },
+                    "driveId": {
+                        "type": "string",
+                        "description": "The ID of the drive.",
+                        "title": "GDrive Folder.Drive ID"
+                    },
+                    "fileExtension": {
+                        "type": "string",
+                        "title": "GDrive Folder.Extension"
+                    },
+                    "size": {
+                        "type": "string",
+                        "title": "GDrive Folder.Size"
+                    },
+                    "iconLink": {
+                        "type": "string",
+                        "description": "A link to the file's icon.",
+                        "title": "GDrive Folder.Icon Link"
+                    },
+                    "thumbnailLink": {
+                        "type": "string",
+                        "description": "A short-lived link to the file's thumbnail, if available.",
+                        "title": "GDrive Folder.Thumbnail Link"
+                    },
+                    "md5Checksum": {
+                        "type": "string",
+                        "title": "GDrive Folder.MD5 Checksum"
+                    },
+                    "sha1Checksum": {
+                        "type": "string",
+                        "title": "GDrive Folder.SHA1 Checksum"
+                    },
+                    "sha256Checksum": {
+                        "type": "string",
+                        "title": "GDrive Folder.SHA256 Checksum"
+                    },
+                    "writersCanShare": {
+                        "type": "boolean",
+                        "title": "GDrive Folder.Writers Can Share"
+                    },
+                    "exportLinks": {
+                        "type": "object",
+                        "title": "GDrive Folder.Export Links",
+                        "description": "Links for exporting Docs Editors files to specific formats."
+                    },
+                    "properties": {
+                        "type": "object",
+                        "title": "GDrive Folder.Properties"
+                    },
+                    "appProperties": {
+                        "type": "object",
+                        "title": "GDrive Folder.App Properties"
+                    },
+                    "copyRequiresWriterPermission": {
+                        "type": "boolean",
+                        "title": "GDrive Folder.Copy Requires Writer Permission",
+                        "description": "Whether the options to copy, print, or download this file, should be disabled for readers and commenters."
+                    },
+                    "isAppAuthorized": {
+                        "type": "boolean",
+                        "description": "Whether the file was created or opened by the requesting app.",
+                        "title": "GDrive Folder.Is App Authorized"
+                    },
+                    "hasAugmentedPermissions": {
+                        "type": "boolean",
+                        "description": "Whether there are permissions directly on this file.",
+                        "title": "GDrive Folder.Has Augmented Permissions"
+                    },
+                    "originalFilename": {
+                        "type": "string",
+                        "description": "The original filename of the uploaded content if available, or else the original value of the name field. This is only available for files with binary content in Google Drive.",
+                        "title": "GDrive Folder.Original Filename"
+                    },
+                    "explicitlyTrashed": {
+                        "type": "boolean",
+                        "description": "Whether the file has been explicitly trashed.",
+                        "title": "GDrive Folder.Explicitly Trashed"
+                    },
+                    "parents": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "The IDs of the parent folders which contain the file.",
+                        "title": "GDrive Folder.Parents"
+                    },
+                    "spaces": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "The spaces which contain the file.",
+                        "title": "GDrive Folder.Spaces"
+                    },
+                    "permissionIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "List of permission IDs for users with access to this file.",
+                        "title": "GDrive Folder.Permission IDs"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "description": "A monotonically increasing version number for the file.",
+                        "title": "GDrive Folder.Version"
+                    },
+                    "folderColorRgb": {
+                        "type": "string",
+                        "description": "The color for a folder or a shortcut to a folder as an RGB hex string.",
+                        "title": "GDrive Folder.Folder Color RGB"
+                    },
+                    "resourceKey": {
+                        "type": "string",
+                        "description": "A key needed to access the item via a shared link.",
+                        "title": "GDrive Folder.Resource Key"
+                    },
+                    "linkShareMetadata": {
+                        "type": "object",
+                        "properties": {
+                            "securityUpdateEligible": {
+                                "title": "GDrive Folder.Link Share Metadata.Security Update Eligible",
+                                "type": "boolean"
+                            },
+                            "securityUpdateEnabled": {
+                                "title": "GDrive Folder.Link Share Metadata.Security Update Enabled",
+                                "type": "boolean"
+                            }
+                        },
+                        "description": "Contains details about the link URLs that clients are using to refer to this item.",
+                        "title": "GDrive Folder.Link Share Metadata"
+                    },
+                    "labelInfo": {
+                        "type": "object",
+                        "properties": {
+                            "labels": {
+                                "title": "GDrive Folder.Label Info.Labels",
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": { "type": "string" },
+                                        "revisionId": { "type": "string" },
+                                        "kind": { "type": "string" },
+                                        "fields": { "type": "object" }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "An overview of the labels on the file.",
+                        "title": "GDrive Folder.Label Info"
+                    },
+                    "hasThumbnail": {
+                        "type": "boolean",
+                        "description": "Whether the file has a thumbnail.",
+                        "title": "GDrive Folder.Has Thumbnail"
+                    },
+                    "thumbnailVersion": {
+                        "type": "string",
+                        "description": "The thumbnail version for use in thumbnail cache invalidation.",
+                        "title": "GDrive Folder.Thumbnail Version"
+                    },
+                    "trashedTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The time that the item was trashed.",
+                        "title": "GDrive Folder.Trashed Time"
+                    },
+                    "fullFileExtension": {
+                        "type": "string",
+                        "description": "The full file extension extracted from the name field. May contain multiple concatenated extensions, such as \"tar.gz\". This is only available for files with binary content in Google Drive.",
+                        "title": "GDrive Folder.Full File Extension"
+                    },
+                    "viewedByMe": {
+                        "type": "boolean",
+                        "description": "Whether the file has been viewed by the user.",
+                        "title": "GDrive Folder.Viewed By Me"
+                    },
+                    "ownedByMe": {
+                        "type": "boolean",
+                        "description": "Whether the user owns the file.",
+                        "title": "GDrive Folder.Owned By Me"
+                    },
+                    "viewedByMeTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The last time the file was viewed by the user.",
+                        "title": "GDrive Folder.Viewed By Me Time"
+                    },
+                    "createdTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The time at which the file was created.",
+                        "title": "GDrive Folder.Created Time"
+                    },
+                    "modifiedTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The last time the file was modified by anyone.",
+                        "title": "GDrive Folder.Modified Time"
+                    },
+                    "modifiedByMeTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The last time the file was modified by the user.",
+                        "title": "GDrive Folder.Modified By Me Time"
+                    },
+                    "modifiedByMe": {
+                        "type": "boolean",
+                        "description": "Whether the file has been modified by this user.",
+                        "title": "GDrive Folder.Modified By"
+                    },
+                    "sharedWithMeTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "The time at which the file was shared with the user.",
+                        "title": "GDrive Folder.Shared With Me Time"
+                    },
+                    "quotaBytesUsed": {
+                        "type": "string",
+                        "description": "The number of storage quota bytes used by the file.",
+                        "title": "GDrive Folder.Quota Bytes Used"
+                    },
+                    "permissions": {
+                        "title": "GDrive Folder.Permissions",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "displayName": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                },
+                                "kind": {
+                                    "type": "string"
+                                },
+                                "permissionDetails": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "permissionType": { "type": "string" },
+                                            "inheritedFrom": { "type": "string" },
+                                            "role": { "type": "string" },
+                                            "inherited": { "type": "boolean" }
+                                        }
+                                    }
+                                },
+                                "teamDrivePermissionDetails": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "teamDrivePermissionType": { "type": "string" },
+                                            "inheritedFrom": { "type": "string" },
+                                            "role": { "type": "string" },
+                                            "inherited": { "type": "boolean" }
+                                        }
+                                    }
+                                },
+                                "photoLink": {
+                                    "type": "string"
+                                },
+                                "emailAddress": {
+                                    "type": "string"
+                                },
+                                "role": {
+                                    "type": "string"
+                                },
+                                "allowFileDiscovery": {
+                                    "type": "boolean"
+                                },
+                                "domain": {
+                                    "type": "string"
+                                },
+                                "expirationTime": {
+                                    "type": "string"
+                                },
+                                "deleted": {
+                                    "type": "boolean"
+                                },
+                                "view": {
+                                    "type": "string"
+                                },
+                                "pendingOwner": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "contentRestrictions": {
+                        "title": "GDrive Folder.Content Restrictions",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "readOnly": {
+                                    "type": "boolean",
+                                    "description": "Whether the content is read-only."
+                                },
+                                "reason": {
+                                    "type": "string",
+                                    "description": "The reason for the restriction."
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "description": "The type of restriction."
+                                },
+                                "restrictingUser": {
+                                    "type": "object",
+                                    "description": "The user who applied the restriction.",
+                                    "properties": {
+                                        "kind": {
+                                            "type": "string",
+                                            "description": "Identifies the user."
+                                        },
+                                        "displayName": {
+                                            "type": "string",
+                                            "description": "The name of the user."
+                                        },
+                                        "photoLink": {
+                                            "type": "string",
+                                            "description": "A link to the user's profile photo."
+                                        },
+                                        "me": {
+                                            "type": "boolean",
+                                            "description": "Whether this is the authenticated user."
+                                        },
+                                        "permissionId": {
+                                            "type": "string",
+                                            "description": "The user's ID."
+                                        },
+                                        "emailAddress": {
+                                            "type": "string",
+                                            "description": "The email address of the user."
+                                        }
+                                    },
+                                    "required": ["kind", "displayName"]
+                                },
+                                "restrictionTime": {
+                                    "type": "string",
+                                    "description": "The time when the restriction was applied.",
+                                    "format": "date-time"
+                                },
+                                "ownerRestricted": {
+                                    "type": "boolean",
+                                    "description": "Whether the owner applied the restriction."
+                                },
+                                "systemRestricted": {
+                                    "type": "boolean",
+                                    "description": "Whether the restriction was applied by the system."
+                                }
+                            }
+                        }
+                    },
+                    "shortcutDetails": {
+                        "title": "GDrive Folder.Shortcut Details",
+                        "type": "object",
+                        "properties": {
+                            "targetId": {
+                                "title": "GDrive Folder.Shortcut Details.Target ID",
+                                "type": "string",
+                                "description": "The ID of the target file."
+                            },
+                            "targetMimeType": {
+                                "title": "GDrive Folder.Shortcut Details.Target MIME Type",
+                                "type": "string",
+                                "description": "The MIME type of the target file."
+                            },
+                            "targetResourceKey": {
+                                "title": "GDrive Folder.Shortcut Details.Target Resource Key",
+                                "type": "string",
+                                "description": "The resource key of the target file."
+                            }
+                        }
+                    },
+                    "videoMediaMetadata": {
+                        "title": "GDrive Folder.Video Media Metadata",
+                        "type": "object",
+                        "properties": {
+                            "width": {
+                                "title": "GDrive Folder.Video Media Metadata.Width",
+                                "type": "integer",
+                                "description": "The width of the video in pixels."
+                            },
+                            "height": {
+                                "title": "GDrive Folder.Video Media Metadata.Height",
+                                "type": "integer",
+                                "description": "The height of the video in pixels."
+                            },
+                            "durationMillis": {
+                                "title": "GDrive Folder.Video Media Metadata.Duration Millis",
+                                "type": "string",
+                                "description": "The duration of the video in milliseconds."
+                            }
+                        }
+                    },
+                    "imageMediaMetadata": {
+                        "title": "GDrive Folder.Image Media Metadata",
+                        "type": "object",
+                        "properties": {
+                            "flashUsed": {
+                                "title": "GDrive Folder.Image Media Metadata.Flash Used",
+                                "type": "boolean",
+                                "description": "Indicates whether the flash was used."
+                            },
+                            "meteringMode": {
+                                "title": "GDrive Folder.Image Media Metadata.Metering Mode",
+                                "type": "string",
+                                "description": "The metering mode used."
+                            },
+                            "sensor": {
+                                "title": "GDrive Folder.Image Media Metadata.Sensor",
+                                "type": "string",
+                                "description": "The type of sensor used."
+                            },
+                            "exposureMode": {
+                                "title": "GDrive Folder.Image Media Metadata.Exposure Mode",
+                                "type": "string",
+                                "description": "The exposure mode used."
+                            },
+                            "colorSpace": {
+                                "title": "GDrive Folder.Image Media Metadata.Color Space",
+                                "type": "string",
+                                "description": "The color space used."
+                            },
+                            "whiteBalance": {
+                                "title": "GDrive Folder.Image Media Metadata.White Balance",
+                                "type": "string",
+                                "description": "The white balance setting."
+                            },
+                            "width": {
+                                "title": "GDrive Folder.Image Media Metadata.Width",
+                                "type": "integer",
+                                "description": "The width of the image in pixels."
+                            },
+                            "height": {
+                                "title": "GDrive Folder.Image Media Metadata.Height",
+                                "type": "integer",
+                                "description": "The height of the image in pixels."
+                            },
+                            "location": {
+                                "title": "GDrive Folder.Image Media Metadata.Location",
+                                "type": "object",
+                                "properties": {
+                                    "latitude": {
+                                        "title": "GDrive Folder.Image Media Metadata.Location.Latitude",
+                                        "type": "number",
+                                        "description": "The latitude where the photo was taken."
+                                    },
+                                    "longitude": {
+                                        "title": "GDrive Folder.Image Media Metadata.Location.Longitude",
+                                        "type": "number",
+                                        "description": "The longitude where the photo was taken."
+                                    },
+                                    "altitude": {
+                                        "title": "GDrive Folder.Image Media Metadata.Location.Altitude",
+                                        "type": "number",
+                                        "description": "The altitude where the photo was taken."
+                                    }
+                                }
+                            },
+                            "rotation": {
+                                "title": "GDrive Folder.Image Media Metadata.Rotation",
+                                "type": "integer",
+                                "description": "The rotation of the image in degrees."
+                            },
+                            "time": {
+                                "title": "GDrive Folder.Image Media Metadata.Time",
+                                "type": "string",
+                                "description": "The time the photo was taken."
+                            },
+                            "cameraMake": {
+                                "title": "GDrive Folder.Image Media Metadata.Camera Make",
+                                "type": "string",
+                                "description": "The make of the camera."
+                            },
+                            "cameraModel": {
+                                "title": "GDrive Folder.Image Media Metadata.Camera Model",
+                                "type": "string",
+                                "description": "The model of the camera."
+                            },
+                            "exposureTime": {
+                                "title": "GDrive Folder.Image Media Metadata.Exposure Time",
+                                "type": "number",
+                                "description": "The exposure time in seconds."
+                            },
+                            "aperture": {
+                                "title": "GDrive Folder.Image Media Metadata.Aperture",
+                                "type": "number",
+                                "description": "The aperture value."
+                            },
+                            "focalLength": {
+                                "title": "GDrive Folder.Image Media Metadata.Focal Length",
+                                "type": "number",
+                                "description": "The focal length of the lens in millimeters."
+                            },
+                            "isoSpeed": {
+                                "title": "GDrive Folder.Image Media Metadata.ISO Speed",
+                                "type": "integer",
+                                "description": "The ISO speed."
+                            },
+                            "exposureBias": {
+                                "title": "GDrive Folder.Image Media Metadata.Exposure Bias",
+                                "type": "number",
+                                "description": "The exposure bias."
+                            },
+                            "maxApertureValue": {
+                                "title": "GDrive Folder.Image Media Metadata.Max Aperture Value",
+                                "type": "number",
+                                "description": "The maximum aperture value."
+                            },
+                            "subjectDistance": {
+                                "title": "GDrive Folder.Image Media Metadata.Subject Distance",
+                                "type": "integer",
+                                "description": "The distance to the subject in meters."
+                            },
+                            "lens": {
+                                "title": "GDrive Folder.Image Media Metadata.Lens",
+                                "type": "string",
+                                "description": "The lens used."
+                            }
+                        }
+                    },
+                    "capabilities": {
+                        "title": "GDrive Folder.Capabilities",
+                        "type": "object",
+                        "properties": {
+                            "canChangeViewersCanCopyContent": {
+                                "title": "GDrive Folder.Capabilities.Can Change Viewers Can Copy Content",
+                                "type": "boolean",
+                                "description": "Whether the user can change if viewers can copy content."
+                            },
+                            "canMoveChildrenOutOfDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Children Out Of Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move children out of Google Drive."
+                            },
+                            "canReadDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Read Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can read the Drive."
+                            },
+                            "canEdit": {
+                                "title": "GDrive Folder.Capabilities.Can Edit",
+                                "type": "boolean",
+                                "description": "Whether the user can edit the file."
+                            },
+                            "canCopy": {
+                                "title": "GDrive Folder.Capabilities.Can Copy",
+                                "type": "boolean",
+                                "description": "Whether the user can copy the file."
+                            },
+                            "canComment": {
+                                "title": "GDrive Folder.Capabilities.Can Comment",
+                                "type": "boolean",
+                                "description": "Whether the user can comment on the file."
+                            },
+                            "canAddChildren": {
+                                "title": "GDrive Folder.Capabilities.Can Add Children",
+                                "type": "boolean",
+                                "description": "Whether the user can add children to the file."
+                            },
+                            "canDelete": {
+                                "title": "GDrive Folder.Capabilities.Can Delete",
+                                "type": "boolean",
+                                "description": "Whether the user can delete the file."
+                            },
+                            "canDownload": {
+                                "title": "GDrive Folder.Capabilities.Can Download",
+                                "type": "boolean",
+                                "description": "Whether the user can download the file."
+                            },
+                            "canListChildren": {
+                                "title": "GDrive Folder.Capabilities.Can List Children",
+                                "type": "boolean",
+                                "description": "Whether the user can list children of the file."
+                            },
+                            "canRemoveChildren": {
+                                "title": "GDrive Folder.Capabilities.Can Remove Children",
+                                "type": "boolean",
+                                "description": "Whether the user can remove children from the file."
+                            },
+                            "canRename": {
+                                "title": "GDrive Folder.Capabilities.Can Rename",
+                                "type": "boolean",
+                                "description": "Whether the user can rename the file."
+                            },
+                            "canTrash": {
+                                "title": "GDrive Folder.Capabilities.Can Trash",
+                                "type": "boolean",
+                                "description": "Whether the user can move the file to trash."
+                            },
+                            "canReadRevisions": {
+                                "title": "GDrive Folder.Capabilities.Can Read Revisions",
+                                "type": "boolean",
+                                "description": "Whether the user can read revisions of the file."
+                            },
+                            "canReadTeamDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Read Team Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can read the Team Drive."
+                            },
+                            "canMoveTeamDriveItem": {
+                                "title": "GDrive Folder.Capabilities.Can Move Team Drive Item",
+                                "type": "boolean",
+                                "description": "Whether the user can move items within Team Drive."
+                            },
+                            "canChangeCopyRequiresWriterPermission": {
+                                "title": "GDrive Folder.Capabilities.Can Change Copy Requires Writer Permission",
+                                "type": "boolean",
+                                "description": "Whether the user can change the setting that copy requires writer permission."
+                            },
+                            "canMoveItemIntoTeamDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Item Into Team Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move the item into Team Drive."
+                            },
+                            "canUntrash": {
+                                "title": "GDrive Folder.Capabilities.Can Untrash",
+                                "type": "boolean",
+                                "description": "Whether the user can restore the file from trash."
+                            },
+                            "canModifyContent": {
+                                "title": "GDrive Folder.Capabilities.Can Modify Content",
+                                "type": "boolean",
+                                "description": "Whether the user can modify the content of the file."
+                            },
+                            "canMoveItemWithinTeamDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Item Within Team Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move the item within Team Drive."
+                            },
+                            "canMoveItemOutOfTeamDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Item Out Of Team Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move the item out of Team Drive."
+                            },
+                            "canDeleteChildren": {
+                                "title": "GDrive Folder.Capabilities.Can Delete Children",
+                                "type": "boolean",
+                                "description": "Whether the user can delete children of the file."
+                            },
+                            "canMoveChildrenOutOfTeamDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Children Out Of Team Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move children out of Team Drive."
+                            },
+                            "canMoveChildrenWithinTeamDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Children Within Team Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move children within Team Drive."
+                            },
+                            "canTrashChildren": {
+                                "title": "GDrive Folder.Capabilities.Can Trash Children",
+                                "type": "boolean",
+                                "description": "Whether the user can move children to trash."
+                            },
+                            "canMoveItemOutOfDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Item Out Of Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move the item out of Google Drive."
+                            },
+                            "canAddMyDriveParent": {
+                                "title": "GDrive Folder.Capabilities.Can Add My Drive Parent",
+                                "type": "boolean",
+                                "description": "Whether the user can add a My Drive parent to the file."
+                            },
+                            "canRemoveMyDriveParent": {
+                                "title": "GDrive Folder.Capabilities.Can Remove My Drive Parent",
+                                "type": "boolean",
+                                "description": "Whether the user can remove a My Drive parent from the file."
+                            },
+                            "canMoveItemWithinDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Item Within Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move the item within Google Drive."
+                            },
+                            "canShare": {
+                                "title": "GDrive Folder.Capabilities.Can Share",
+                                "type": "boolean",
+                                "description": "Whether the user can share the file."
+                            },
+                            "canMoveChildrenWithinDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Move Children Within Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can move children within Google Drive."
+                            },
+                            "canModifyContentRestriction": {
+                                "title": "GDrive Folder.Capabilities.Can Modify Content Restriction",
+                                "type": "boolean",
+                                "description": "Whether the user can modify content restrictions."
+                            },
+                            "canAddFolderFromAnotherDrive": {
+                                "title": "GDrive Folder.Capabilities.Can Add Folder From Another Drive",
+                                "type": "boolean",
+                                "description": "Whether the user can add a folder from another Drive."
+                            },
+                            "canChangeSecurityUpdateEnabled": {
+                                "title": "GDrive Folder.Capabilities.Can Change Security Update Enabled",
+                                "type": "boolean",
+                                "description": "Whether the user can change the security update setting."
+                            },
+                            "canAcceptOwnership": {
+                                "title": "GDrive Folder.Capabilities.Can Accept Ownership",
+                                "type": "boolean",
+                                "description": "Whether the user can accept ownership of the file."
+                            },
+                            "canReadLabels": {
+                                "title": "GDrive Folder.Capabilities.Can Read Labels",
+                                "type": "boolean",
+                                "description": "Whether the user can read labels on the file."
+                            },
+                            "canModifyLabels": {
+                                "title": "GDrive Folder.Capabilities.Can Modify Labels",
+                                "type": "boolean",
+                                "description": "Whether the user can modify labels on the file."
+                            },
+                            "canModifyEditorContentRestriction": {
+                                "title": "GDrive Folder.Capabilities.Can Modify Editor Content Restriction",
+                                "type": "boolean",
+                                "description": "Whether the user can modify editor content restrictions."
+                            },
+                            "canModifyOwnerContentRestriction": {
+                                "title": "GDrive Folder.Capabilities.Can Modify Owner Content Restriction",
+                                "type": "boolean",
+                                "description": "Whether the user can modify owner content restrictions."
+                            },
+                            "canRemoveContentRestriction": {
+                                "title": "GDrive Folder.Capabilities.Can Remove Content Restriction",
+                                "type": "boolean",
+                                "description": "Whether the user can remove content restrictions."
+                            }
+                        }
+                    },
+                    "lastModifyingUser": {
+                        "title": "GDrive Folder.Last Modifying User",
+                        "type": "object",
+                        "properties": {
+                            "kind": {
+                                "title": "GDrive Folder.Last Modifying User.Kind",
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "title": "GDrive Folder.Last Modifying User.Display Name",
+                                "type": "string"
+                            },
+                            "photoLink": {
+                                "title": "GDrive Folder.Last Modifying User.Photo Link",
+                                "type": "string"
+                            },
+                            "me": {
+                                "title": "GDrive Folder.Last Modifying User.Me",
+                                "type": "boolean"
+                            },
+                            "permissionId": {
+                                "title": "GDrive Folder.Last Modifying User.Permission Id",
+                                "type": "string"
+                            },
+                            "emailAddress": {
+                                "title": "GDrive Folder.Last Modifying User.Email Address",
+                                "type": "string"
+                            }
+                        },
+                        "description": "The user who last modified the file."
+                    },
+                    "sharingUser": {
+                        "title": "GDrive Folder.Sharing User",
+                        "type": "object",
+                        "properties": {
+                            "kind": {
+                                "title": "GDrive Folder.Sharing User.Kind",
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "title": "GDrive Folder.Sharing User.Display Name",
+                                "type": "string"
+                            },
+                            "photoLink": {
+                                "title": "GDrive Folder.Sharing User.Photo Link",
+                                "type": "string"
+                            },
+                            "me": {
+                                "title": "GDrive Folder.Sharing User.Me",
+                                "type": "boolean"
+                            },
+                            "permissionId": {
+                                "title": "GDrive Folder.Sharing User.Permission Id",
+                                "type": "string"
+                            },
+                            "emailAddress": {
+                                "title": "GDrive Folder.Sharing User.Email Address",
+                                "type": "string"
+                            }
+                        },
+                        "description": "The user who shared the file with the requesting user, if applicable."
+                    },
+                    "trashingUser": {
+                        "title": "GDrive Folder.Trashing User",
+                        "type": "object",
+                        "properties": {
+                            "kind": {
+                                "title": "GDrive Folder.Trashing User.Kind",
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "title": "GDrive Folder.Trashing User.Display Name",
+                                "type": "string"
+                            },
+                            "photoLink": {
+                                "title": "GDrive Folder.Trashing User.Photo Link",
+                                "type": "string"
+                            },
+                            "me": {
+                                "title": "GDrive Folder.Trashing User.Me",
+                                "type": "boolean"
+                            },
+                            "permissionId": {
+                                "title": "GDrive Folder.Trashing User.Permission Id",
+                                "type": "string"
+                            },
+                            "emailAddress": {
+                                "title": "GDrive Folder.Trashing User.Email Address",
+                                "type": "string"
+                            }
+                        },
+                        "description": "If the file has been explicitly trashed, the user who trashed it."
+                    },
+                    "headRevisionId": {
+                        "title": "GDrive Folder.Head Revision ID",
                         "type": "string"
                     },
-                    "folderLocation": {
-                        "oneOf": [
-                            { "type": "string" },
-                            { "type": "object" }
-                        ]
+                    "shared": {
+                        "title": "GDrive Folder.Shared",
+                        "type": "boolean",
+                        "description": "Whether the file has been shared."
                     },
-                    "useExisting": {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "inspector": {
-                "inputs": {
-                    "folderName": {
-                        "type": "text",
-                        "index": 1,
-                        "label": "New Folder Name",
-                        "tooltip": "Enter the name for your new folder."
-                    },
-                    "folderLocation": {
-                        "type": "googlepicker",
-                        "index": 2,
-                        "label": "New Folder Location",
-                        "placeholder": "Choose a folder...",
-                        "tooltip": "Select the parent folder for your new folder. Leave blank to create the folder in the root of your drive.",
-                        "view": "FOLDERS"
-                    },
-                    "useExisting": {
-                        "type": "toggle",
-                        "index": 3,
-                        "defaultValue": true,
-                        "label": "Use Existing",
-                        "tooltip": "If a folder with the same name already exists, return the existing folder instead of creating a new one."
+                    "owners": {
+                        "title": "GDrive Folder.Owners",
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "kind": {
+                                    "type": "string",
+                                    "description": "Identifies what kind of resource this is. Value: the fixed string 'drive#user'."
+                                },
+                                "displayName": {
+                                    "type": "string",
+                                    "description": "The display name of the user."
+                                },
+                                "photoLink": {
+                                    "type": "string",
+                                    "description": "A link to the user's profile photo, if available."
+                                },
+                                "me": {
+                                    "type": "boolean",
+                                    "description": "Whether this user is the authenticated user for whom the request is being made."
+                                },
+                                "permissionId": {
+                                    "type": "string",
+                                    "description": "The user's ID as visible in Permission resources."
+                                },
+                                "emailAddress": {
+                                    "type": "string",
+                                    "description": "The email address of the user."
+                                }
+                            },
+                            "required": ["kind", "displayName", "permissionId", "emailAddress"],
+                            "description": "The owners of the file."
+                        },
+                        "description": "The owners of the file."
                     }
                 }
             }
         }
-    ],
-    "outPorts": [
-        {
-            "name": "out",
-            "options": [
-                { "label": "Folder ID", "value": "folderId" },
-                { "label": "Folder Name", "value": "folderName" },
-                { "label": "Mime Type", "value": "mimeType" },
-                { "label": "Web Link", "value": "webViewLink" },
-                { "label": "Time Created", "value": "createdTime" }
-            ]
-        }
+        ]
+    }
     ],
     "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMC8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvVFIvMjAwMS9SRUMtU1ZHLTIwMDEwOTA0L0RURC9zdmcxMC5kdGQnPjxzdmcgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzIgMzIiIGhlaWdodD0iMzJweCIgaWQ9IkxheWVyXzEiIHZlcnNpb249IjEuMCIgdmlld0JveD0iMCAwIDMyIDMyIiB3aWR0aD0iMzJweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGc+PHBvbHlsaW5lIGZpbGw9IiM1MzdBQkQiIHBvaW50cz0iMzEuODY4LDIxIDkuODY4LDIxIDQuODY4LDMwIDI2LjU1NiwzMCAgIi8+PHBvbHlsaW5lIGZpbGw9IiMyRUI2NzIiIHBvaW50cz0iMTAuOTYyLDIgLTAuMDM4LDIwIDQuOTYyLDMwIDE1LjY4MywxMC4zNDUgICIvPjxwb2x5bGluZSBmaWxsPSIjRkVEMTRCIiBwb2ludHM9IjIwLjk2MiwyIDEwLjk2MiwyIDIxLjcxMiwyMSAzMS45NjIsMjEgMjAuOTYyLDIgICIvPjwvZz48Zy8+PGcvPjxnLz48Zy8+PGcvPjxnLz48L3N2Zz4="
 }
+

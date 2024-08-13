@@ -25,12 +25,7 @@ module.exports = {
 
         let folderId;
         if (folder) {
-            if (typeof folder === 'string') {
-                folderId = folder;
-            } else {
-                folderId = folder.id;
-            }
-
+            folderId = typeof folder === 'string' ? folder : folder.id;
             resource.parents = [folderId];
         }
 

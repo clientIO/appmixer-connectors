@@ -6,24 +6,20 @@ module.exports = {
 
     async receive(context) {
 
-        const DEBUG = commons.isDebug(context);
-
         const auth = commons.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         let { fileId, destinationFolder } = context.messages.in.content;
 
+        const normalizedFileId = typeof fileId === 'string' ? fileId : fileId.id;
+
         let folderId;
         if (destinationFolder) {
-            if (typeof destinationFolder === 'string') {
-                folderId = destinationFolder;
-            } else {
-                folderId = destinationFolder.id;
-            }
+            folderId = typeof destinationFolder === 'string' ? destinationFolder : destinationFolder.id;
         }
 
         // Retrieve the existing parents to remove
         const file = await drive.files.get({
-            fileId: fileId,
+            fileId: normalizedFileId,
             fields: 'parents'
         });
 
@@ -33,15 +29,11 @@ module.exports = {
             .join(',');
 
         const params = {
-            fileId: fileId,
+            fileId: normalizedFileId,
             addParents: folderId,
             removeParents: previousParents,
             fields: '*'
         };
-
-        if (DEBUG) {
-            await context.log({ stage: 'DEBUG', fileMetadata: file, request: params });
-        }
 
         const { data: googleDriveFileMetadata } = await drive.files.update(params);
         return context.sendJson({ googleDriveFileMetadata }, 'out');

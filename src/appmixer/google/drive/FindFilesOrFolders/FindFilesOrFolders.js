@@ -17,11 +17,7 @@ module.exports = {
 
         let folderId;
         if (folderLocation) {
-            if (typeof folderLocation === 'string') {
-                folderId = folderLocation;
-            } else {
-                folderId = folderLocation.id;
-            }
+            folderId = typeof folderLocation === 'string' ? folderLocation : folderLocation.id;
         }
 
         const queryParentsSuffix = folderLocation ? ` and '${folderId}' in parents` : '';
@@ -48,8 +44,6 @@ module.exports = {
             const mimeTypeQuery = fileTypes.map(fileType => `mimeType contains '${fileType}'`).join(' or ');
             q += ` and (${mimeTypeQuery})`;
         }
-
-        await context.log({ step: 'query', q: q });
 
         const pageSize = outputType === 'firstItem' ? 1 : 1000;
 
@@ -114,7 +108,7 @@ module.exports = {
             }
             const csvString = csvRows.join('\n');
             let buffer = Buffer.from(csvString, 'utf8');
-            const savedFile = await context.saveFileStream(`google-drive-FindFileOrFolder-${(new Date).toISOString()}.csv`, buffer);
+            const savedFile = await context.saveFileStream(`google-drive-FindFilesOrFolders-${(new Date).toISOString()}.csv`, buffer);
             return context.sendJson({ fileId: savedFile.fileId }, 'out');
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
@@ -125,14 +119,7 @@ module.exports = {
         return {
             isFolder: item.mimeType === 'application/vnd.google-apps.folder',
             isFile: item.mimeType !== 'application/vnd.google-apps.folder',
-            googleDriveFileMetadata: item,
-            // The fields below are for backward compatibility with the old implementation.
-            // The above googleDriveFileMetadata field should be used instead.
-            googleId: item.id,
-            fileName: item.name,
-            mimeType: item.mimeType,
-            webViewLink: item.webViewLink,
-            createdTime: item.createdTime
+            googleDriveFileMetadata: item
         };
     },
 
@@ -141,11 +128,6 @@ module.exports = {
         const { outputType } = context.messages.in.content;
         if (outputType === 'item' || outputType === 'firstItem') {
             const options = [
-                { "label": "Google File ID", "value": "googleId", "schema": { "type": "string" }  },
-                { "label": "File Name", "value": "fileName", "schema": { "type": "string" }  },
-                { "label": "Mime Type", "value": "mimeType", "schema": { "type": "string" }  },
-                { "label": "Web Link", "value": "webViewLink", "schema": { "type": "string" }  },
-                { "label": "Time Created", "value": "createdTime", "schema": { "type": "string", "format": "date-time" }  },
                 { "label": "Is File", "value": "isFile", "schema": { "type": "boolean" } },
                 { "label": "Is Folder", "value": "isFolder", "schema": { "type": "boolean" }  },
                 {
@@ -162,11 +144,6 @@ module.exports = {
                     "items": {
                         "type": "object",
                         "properties": {
-                            "googleId": { "type": "string", "title": "Google File ID" },
-                            "fileName": { "type": "string", "title": "File Name" },
-                            "mimeType": { "type": "string", "title": "Mime Type" },
-                            "webViewLink": { "type": "string", "title": "Web View Link" },
-                            "createdTime": { "type": "string", "format": "date-time", "title": "Created Time" },
                             "isFile": { "type": "boolean", "title": "Is File" },
                             "isFolder": { "type": "boolean", "title": "Is Folder" },
                             "googleDriveFileMetadata": this.googleDriveFileMetadataSchema
@@ -176,7 +153,7 @@ module.exports = {
             ];
             return context.sendJson(options, 'out');
         } else {        // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
+            return context.sendJson([{ label: 'File ID', value: 'fileId', "schema": { "type": "string", "format": "appmixer-file-id" } }], 'out');
         }
     },
 

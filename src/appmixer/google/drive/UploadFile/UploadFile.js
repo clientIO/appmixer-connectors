@@ -90,13 +90,7 @@ module.exports = {
 
         return context.sendJson({
             fileId,
-            googleDriveFileMetadata: response.data,
-            // Below fields are for backward compatibility.
-            googleDriveFileId: response.data.id,
-            fileName: response.data.name,
-            mimeType: response.data.mimeType,
-            webViewLink: response.data.webViewLink,
-            createdTime: response.data.createdTime
+            googleDriveFileMetadata: response.data
         }, 'out');
     }
 };
