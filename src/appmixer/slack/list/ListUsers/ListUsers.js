@@ -7,6 +7,9 @@ const TTL_USERS = 20 * 1000; // 20 sec
 
 module.exports = {
 
+    /**
+     * @link https://api.slack.com/methods/users.list
+     */
     async receive(context) {
 
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
