@@ -192,7 +192,7 @@ module.exports = {
     async listNewMessages(options, lastMessageId, result = {}, limit = null) {
         const maxResults = options.maxResults || 300;
         const endpoint = `/users/${options.userId}/messages`;
-    
+
         do {
             const response = await this.callEndpoint(options.context, endpoint, {
                 method: 'GET',
@@ -201,32 +201,32 @@ module.exports = {
                     pageToken: options.pageToken || ''
                 }
             });
-    
+
             if (!lastMessageId) {
                 return {
                     lastMessageId: response.data.messages ? response.data.messages[0].id : null,
                     newMessages: []
                 };
             }
-    
+
             if (!result.hasOwnProperty('lastMessageId')) {
                 result.lastMessageId = response.data.messages ? response.data.messages[0].id : undefined;
             }
-    
+
             if (!result.hasOwnProperty('newMessages')) {
                 result.newMessages = [];
             }
-    
+
             const diff = this.getNewMessages(lastMessageId, response.data.messages || []);
             result.newMessages = result.newMessages.concat(diff);
-    
+
             if (limit && result.newMessages.length >= limit) {
                 return result;
             }
-    
+
             options.pageToken = response.data.nextPageToken;
         } while (options.pageToken);
-    
+
         return result;
     },
 
