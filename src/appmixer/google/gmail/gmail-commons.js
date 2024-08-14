@@ -152,17 +152,16 @@ module.exports = {
         return email;
     },
 
-    async getAllMessageIds({ context, userId, labelIds, maxResults = 300, pageToken = null }) {
+    async getAllMessageIds({ context, userId, maxResults = 300, pageToken = null }) {
         let allMessages = [];
         let endpoint = `/users/${userId}/messages`;
 
         do {
             const params = {
                 maxResults,
-                labelIds: labelIds.join(','),
                 pageToken
             };
-
+            
             const response = await this.callEndpoint(context, endpoint, { method: 'GET', params });
             const messages = response.data.messages || [];
             allMessages = allMessages.concat(messages);
@@ -171,5 +170,82 @@ module.exports = {
         } while (pageToken);
 
         return allMessages;
+    },
+
+    compareIds(a, b) {
+        let ax = parseInt(a, 16);
+        let bx = parseInt(b, 16);
+
+        if (ax < bx) return -1;
+        if (ax > bx) return 1;
+        return 0;
+    },
+
+    isNewInboxEmail(labelIds) {
+        if (!Array.isArray(labelIds)) {
+            throw new Error('Invalid label IDs array.');
+        }
+
+        return labelIds.length !== 1 || (labelIds.indexOf('SENT') === -1 && labelIds.indexOf('DRAFT') === -1);
+    },
+
+    async listNewMessages(options, lastMessageId, result = {}, limit = null) {
+        const maxResults = options.maxResults || 300;
+        const endpoint = `/users/${options.userId}/messages`;
+    
+        do {
+            const response = await this.callEndpoint(options.context, endpoint, {
+                method: 'GET',
+                params: {
+                    maxResults,
+                    pageToken: options.pageToken || ''
+                }
+            });
+    
+            if (!lastMessageId) {
+                return {
+                    lastMessageId: response.data.messages ? response.data.messages[0].id : null,
+                    newMessages: []
+                };
+            }
+    
+            if (!result.hasOwnProperty('lastMessageId')) {
+                result.lastMessageId = response.data.messages ? response.data.messages[0].id : undefined;
+            }
+    
+            if (!result.hasOwnProperty('newMessages')) {
+                result.newMessages = [];
+            }
+    
+            const diff = this.getNewMessages(lastMessageId, response.data.messages || []);
+            result.newMessages = result.newMessages.concat(diff);
+    
+            if (limit && result.newMessages.length >= limit) {
+                return result;
+            }
+    
+            options.pageToken = response.data.nextPageToken;
+        } while (options.pageToken);
+    
+        return result;
+    },
+
+    getNewMessages(latestMessageId, messages) {
+        let differences = [];
+
+        messages.sort((a, b) => {
+            return -this.compareIds(a.id, b.id);
+        });
+
+        for (let i = 0; i < messages.length; i++) {
+            let message = messages[i];
+            if (this.compareIds(message.id, latestMessageId) === 1) {
+                differences.push(message);
+            } else {
+                return differences;
+            }
+        }
+
+        return differences;
     }
 };
