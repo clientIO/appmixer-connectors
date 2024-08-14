@@ -47,10 +47,10 @@ module.exports = {
         attachments = attachments.reduce((a, b) => a.concat(b), []);
 
         let saved = await Promise.map(attachments, attachment => {
+            const buffer = Buffer.from(attachment.data, 'base64');
             return context.saveFileStream(
                 attachment.filename,
-                attachment.mimetype || 'application/octet-stream', // Fallback to 'application/octet-stream' if mimetype is missing
-                Buffer.from(attachment.data, 'base64')
+                buffer
             ).then(res => {
                 return Object.assign(res, { subject: attachment.subject });
             });
