@@ -32,7 +32,7 @@ module.exports = {
         if (imageUrl) {
             const response = await context.httpRequest.get(imageUrl, { responseType: 'stream' });
             const readStream = response.data;
-            const filename = `generated-image-${new Date}.png`;
+            const filename = `generated-image-${(new Date).toISOString()}.png`;
             const file = await context.saveFileStream(filename, readStream);
             return context.sendJson({ fileId: file.fileId, prompt, size }, 'out');
         }
