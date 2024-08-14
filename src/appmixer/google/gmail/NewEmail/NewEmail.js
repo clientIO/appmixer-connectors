@@ -30,7 +30,6 @@ module.exports = {
                 throw err;
             });
         }, { concurrency: 10 });
-        
         // Filter the emails based on selected labels, if any
         await Promise.each(emails || [], async email => {
             if (!email || !email.labelIds) {

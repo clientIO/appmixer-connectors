@@ -161,7 +161,6 @@ module.exports = {
                 maxResults,
                 pageToken
             };
-            
             const response = await this.callEndpoint(context, endpoint, { method: 'GET', params });
             const messages = response.data.messages || [];
             allMessages = allMessages.concat(messages);
