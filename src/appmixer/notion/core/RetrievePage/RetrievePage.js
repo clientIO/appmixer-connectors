@@ -3,9 +3,9 @@ const notionCommons = require('../../notion-commons');
 
 module.exports = {
     async receive(context) {
-        const databaseId = context.messages.in.content.databaseId;
+        const pageId = context.messages.in.content.pageId;
 
-        const response = await notionCommons.callEndpoint(context, `/databases/${databaseId}`, {
+        const response = await notionCommons.callEndpoint(context, `/pages/${pageId}`, {
             method: 'GET'
         });
 
