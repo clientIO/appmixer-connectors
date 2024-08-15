@@ -45,7 +45,7 @@ module.exports = {
                 const { object } = record.s3;
 
                 if (object) {
-                    const { Versions } = await s3.listObjectVersions({
+                    const { Versions = [] } = await s3.listObjectVersions({
                         Bucket: bucket,
                         Prefix: object.key,
                         MaxKeys: 10
@@ -53,10 +53,15 @@ module.exports = {
 
                     const versions = Versions.filter(version => version.Key === object.key);
 
-                    if (versions.length === 1) {
+                    // We only want to trigger the first time the object is uploaded (i.e. it is the first and only version
+                    // of the object in the bucket). If versioning is not enabled on the bucket, we trigger as well.
+                    if (versions.length === 1 || versions.length === 0) {
                         object.Bucket = bucket;
                         object.EventType = record.eventName;
                         object.ObjectUrl = commons.getObjectUrl(bucket, object.key, context.properties.region);
+
+                        const normalizedObjectKey = decodeURIComponent(object.key.replace(/\+/g, ' '));
+                        object.key = normalizedObjectKey;
 
                         return context.sendJson(object, 'object');
                     }
