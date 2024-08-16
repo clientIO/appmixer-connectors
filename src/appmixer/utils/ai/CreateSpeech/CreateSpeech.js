@@ -4,7 +4,7 @@ module.exports = {
 
     receive: async function(context) {
 
-        const { input, voice, response_format, speed } = context.messages.in.content;
+        const { input, voice, responseFormat, speed } = context.messages.in.content;
         const apiKey = context.config.apiKey;
 
         if (!apiKey) {
@@ -16,7 +16,7 @@ module.exports = {
             model: context.config.CreateSpeechModel || 'tts-1',
             input,
             voice,
-            response_format,
+            response_format: responseFormat,
             speed
         }, {
             responseType: 'stream',
@@ -26,7 +26,7 @@ module.exports = {
             }
         });
 
-        const filename = `generated-audio-${(new Date).toISOString()}.${response_format}`;
+        const filename = `generated-audio-${(new Date).toISOString()}.${responseFormat}`;
         const file = await context.saveFileStream(filename, readStream);
         return context.sendJson({ fileId: file.fileId, input, fileSize: file.length }, 'out');
     }

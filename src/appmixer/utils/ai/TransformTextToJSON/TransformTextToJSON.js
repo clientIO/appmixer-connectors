@@ -4,12 +4,12 @@ module.exports = {
 
     receive: async function(context) {
 
-        const { text, json_schema: json_schema_string } = context.messages.in.content;
+        const { text, jsonSchema: jsonSchemaString } = context.messages.in.content;
 
-        const json_schema = JSON.parse(json_schema_string);
+        const jsonSchema = JSON.parse(jsonSchemaString);
 
         if (context.properties.generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, json_schema);
+            return this.getOutputPortOptions(context, jsonSchema);
         }
 
         const apiKey = context.config.apiKey;
@@ -37,7 +37,7 @@ module.exports = {
                 type: 'json_schema',
                 json_schema: {
                     name: 'json_extraction',
-                    schema: json_schema
+                    schema: jsonSchema
                 }
             }
         }, {
@@ -51,13 +51,13 @@ module.exports = {
         return context.sendJson({ json }, 'out');
     },
 
-    getOutputPortOptions: function(context, json_schema) {
+    getOutputPortOptions: function(context, jsonSchema) {
 
         return context.sendJson([
             {
                 value: 'json',
                 label: 'JSON',
-                schema: json_schema
+                schema: jsonSchema
             },
             {
                 value: 'text',
