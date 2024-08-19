@@ -169,7 +169,7 @@ module.exports = {
             ], outputPortName);
         } else if (outputType === 'file') {
             return context.sendJson([
-                { label: 'File ID', value: 'fileId' }
+                { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
             ], outputPortName);
         } else {
             // Default to array output
