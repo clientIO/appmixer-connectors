@@ -61,6 +61,11 @@ module.exports = {
 
             await commons.sendArrayOutput({ context, outputType, records: data.members });
         } catch (err) {
+            if (isSource) {
+                await commons.sendArrayOutput({ context, outputType, records: [] });
+                return;
+            }
+
             // Look for Slack API error message: https://api.slack.com/web#responses
             // For example: { "ok": false, "error": "ratelimited" }
             throw err.response?.data?.error || err;
