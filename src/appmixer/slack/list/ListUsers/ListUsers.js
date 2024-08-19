@@ -42,10 +42,10 @@ module.exports = {
             });
 
             if (!data) {
-                throw new context.CancelError(response.statusText);
+                throw new Error(response.statusText);
             }
             if (!data.ok) {
-                throw new context.CancelError(data.error);
+                throw new Error(data.error);
             }
 
             // Cache the tables for 20 seconds unless specified otherwise in the config.
