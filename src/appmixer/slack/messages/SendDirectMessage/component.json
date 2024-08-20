@@ -26,54 +26,19 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "toggleMultiUserMessage": { "type": "boolean" },
                     "userId": { "type": "string" },
                     "userIds": {},
                     "text": { "type": "string" }
                 },
-                "if": {
-                    "properties": {
-                        "toggleMultiUserMessage": { "enum": [true] }
-                    },
-                    "required": ["toggleMultiUserMessage"]
-                },
-                "then": { "required": ["userIds", "text"] },
-                "else": { "required": ["userId", "text"] }    
+                "required": ["userIds", "text"]
             },
             "inspector": {
                 "inputs": {
-                    "toggleMultiUserMessage": {
-                        "type": "toggle",
-                        "label": "Multi-user message",
-                        "tooltip": "Send a message to multiple users.",
-                        "defaultValue": false,
-                        "variables": false,
-                        "index": 0
-                    },
-                    "userId": {
-                        "when": { "eq": { "./toggleMultiUserMessage": false } },
-                        "type": "select",
-                        "label": "User",
-                        "tooltip": "Select the user to send the message to.",
-                        "index": 1,
-                        "source": {
-                            "url": "/component/appmixer/slack/list/ListUsers?outPort=out",
-                            "data": {
-                                "transform": "./transformers#usersToSelectArray",
-                                "messages": {
-                                    "in/outputType": "array",
-                                    "in/limit": 200,
-                                    "in/isSource": true
-                                }
-                            }
-                        }
-                    },
                     "userIds": {
-                        "when": { "eq": { "./toggleMultiUserMessage": true } },
                         "type": "multiselect",
                         "label": "Users",
                         "tooltip": "Add up to 8 users to send the message to.",
-                        "index": 2,
+                        "index": 1,
                         "source": {
                             "url": "/component/appmixer/slack/list/ListUsers?outPort=out",
                             "data": {
@@ -88,7 +53,7 @@
                     "text": {
                         "type": "textarea",
                         "label": "Message",
-                        "index": 3
+                        "index": 2
                     }
                 }
             }
@@ -98,7 +63,7 @@
         {
             "name": "out",
             "options": [
-                { "label": "TS", "value": "ts", "schema": { "type": "string"} },
+                { "label": "Message Timestamp", "value": "ts", "schema": { "type": "string"} },
                 { "label": "Type", "value": "type", "schema": { "type": "string"} },
                 { "label": "Text", "value": "text", "schema": { "type": "string"} },
                 { "label": "User", "value": "user", "schema": { "type": "string"} },
