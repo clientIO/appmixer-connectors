@@ -6,6 +6,7 @@ const PARSE_FLOAT_TEST = /^[-+]?\d+(?:\.\d*)?(?:[eE]\+\d+)?$|^(?:\d+)?\.\d+(?:e+
 module.exports = {
     getCSVReadStream: function() {
         return parse({
+            bom: true,
             columns: true,
             cast: function(value) {
 
@@ -37,6 +38,9 @@ module.exports = {
                 }
             },
             final(callback) {
+                if (!this.firstCharWritten) {
+                    this.push('['); // empty csv file
+                }
                 this.push(']');
                 callback();
             }
