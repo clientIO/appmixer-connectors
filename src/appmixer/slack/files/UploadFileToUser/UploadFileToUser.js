@@ -1,12 +1,25 @@
 'use strict';
 
 const { WebClient } = require('@slack/web-api');
+const commons = require('../../slack-commons');
 
 module.exports = {
 
     async receive(context) {
 
-        const { channel, fileId, filename, altTxt, snippetType, initialComment } = context.messages.in.content;
+        const { userIds, fileId, filename, altTxt, snippetType, initialComment } = context.messages.in.content;
+        let client = commons.getSlackAPIClient(context.auth.accessToken);
+        if (userIds.length > 8) {
+            throw new context.CancelError('You can send a message to a maximum of 8 users at once');
+        }
+        let ids = userIds?.join(',');
+
+        // First, open a conversation with the user(s). It will return the channel ID.
+        const channel = await client.openConversation(ids);
+        if (!channel || !channel.id) {
+            const errorDetails = JSON.stringify({ channel, userIds });
+            throw new context.CancelError('Could not open a conversation with a user. Details: ' + errorDetails);
+        }
 
         // Get Appmixer file info
         const fileInfo = await context.getFileInfo(fileId);
