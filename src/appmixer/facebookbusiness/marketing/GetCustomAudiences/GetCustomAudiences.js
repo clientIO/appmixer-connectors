@@ -24,17 +24,17 @@ module.exports = {
     },
 
     fields: {
-        "id": {
-            "type": "string",
-            "title": "ID"
+        id: {
+            type: 'string',
+            title: 'ID'
         },
-        "name": {
-            "type": "string",
-            "title": "Name"
+        name: {
+            type: 'string',
+            title: 'Name'
         },
-        "description": {
-            "type": "integer",
-            "title": "Description"
+        description: {
+            type: 'integer',
+            title: 'Description'
         }
     },
 
