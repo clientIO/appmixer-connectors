@@ -72,7 +72,9 @@ module.exports = {
                 }
             },
             final(callback) {
-                this.push(']');
+                if (this.headerWritten) {
+                    this.push(']');
+                }
                 callback();
             }
         });

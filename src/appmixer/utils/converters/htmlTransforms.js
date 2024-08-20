@@ -34,7 +34,7 @@ module.exports = {
                     }
                 },
                 final(callback) {
-                    if (!this.headWritten) {
+                    if (!this.headerWritten) {
                         this.push('<html><body><table>');
                     };
                     this.push('</table></body></html>');
