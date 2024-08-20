@@ -7,12 +7,12 @@ module.exports = {
 
     async receive(context) {
 
-        let { text, userId, userIds } = context.messages.in.content;
+        let { text, userIds } = context.messages.in.content;
         let client = commons.getSlackAPIClient(context.auth.accessToken);
         if (userIds.length > 8) {
             throw new context.CancelError('You can send a message to a maximum of 8 users at once');
         }
-        let ids = userId || userIds?.join(',');
+        let ids = userIds?.join(',');
 
         try {
             // First, open a conversation with the user(s). It will return the channel ID.
