@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.google.gmail.FindEmail",
+    "name": "appmixer.google.gmail.FindEmails",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Finds emails in Gmail based on search criteria.",
+    "description": "Finds emails in Gmail based on a search query. You can retrieve emails as a single item, multiple items, or save them directly to a file. To get detailed information about specific emails, use the Get Email component.",
     "version": "1.0.0",
     "auth": {
         "service": "appmixer:google",
@@ -27,6 +27,38 @@
                         "label": "Search Query",
                         "index": 1,
                         "tooltip": "The search query to find emails."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 2,
+                        "tooltip": "Choose whether you want to receive the result set as one complete list of emails, or one email item at a time or stream the email items to a file.",
+                        "defaultValue": "file",
+                        "options": [
+                            { 
+                                "label": "First Email",
+                                "value": "first"
+                            },
+                            {
+                                "label": "One at a time",
+                                "value": "email"
+                            },
+                            {
+                                "label": "All at once",
+                                "value": "emails"
+                            },
+                            {
+                                "label": "Save to file",
+                                "value": "file"
+                            }
+                        ]
+                    },
+                    "limit": {
+                        "type": "number",
+                        "label": "Limit",
+                        "index": 3,
+                        "tooltip": "The number of results you want to retrieve.",
+                        "defaultValue": 100
                     }
                 }
             },
@@ -35,6 +67,12 @@
                 "properties": {
                     "query": {
                         "type": "string"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    },
+                    "limit": {
+                        "type": "number"
                     }
                 }
             }
@@ -43,84 +81,23 @@
     "outPorts": [
         {
             "name": "out",
-            "options": [
-                {
-                    "label": "EmailId",
-                    "value": "id"
-                },
-                {
-                    "label": "ThreadId",
-                    "value": "threadId"
-                },
-                {
-                    "label": "LabelIds",
-                    "value": "labelIds"
-                },
-                {
-                    "label": "Snippet",
-                    "value": "snippet"
-                },
-                {
-                    "label": "SizeEstimate",
-                    "value": "sizeEstimate"
-                },
-                {
-                    "label": "Date",
-                    "value": "payload.date"
-                },
-                {
-                    "label": "From",
-                    "value": "payload.from.[0].address"
-                },
-                {
-                    "label": "To",
-                    "value": "payload.to.[0].address"
-                },
-                {
-                    "label": "Subject",
-                    "value": "payload.subject"
-                },
-                {
-                    "label": "Body",
-                    "value": "payload.text"
-                },
-                {
-                    "label": "HTML",
-                    "value": "payload.html"
-                },
-                {
-                    "label": "Attachments",
-                    "value": "attachments",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "string",
-                                    "title": "Attachment ID"
-                                },
-                                "filename": {
-                                    "type": "string",
-                                    "title": "Attachment Name"
-                                },
-                                "size": {
-                                    "type": "string",
-                                    "title": "Attachment Size"
-                                },
-                                "mimeType": {
-                                    "type": "string",
-                                    "title": "Attachment MIME Type"
-                                }
-                            }
-                        }
+            "source": {
+                "url": "/component/appmixer/google/gmail/FindEmails?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/limit": "inputs/in/limit"
                     }
                 }
-            ]
+            }
         },
         {
             "name": "notFound"
         }
+    
     ],
     "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8ZyBpZD0iR3JvdXBfNTQ1IiBkYXRhLW5hbWU9Ikdyb3VwIDU0NSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTM3NiAtNjQpIj4KICAgIDxyZWN0IGlkPSJSZWN0YW5nbGVfMzMyNyIgZGF0YS1uYW1lPSJSZWN0YW5nbGUgMzMyNyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNzYgNjQpIiBmaWxsPSJub25lIi8+CiAgICA8ZyBpZD0iR3JvdXBfNTQ0IiBkYXRhLW5hbWU9Ikdyb3VwIDU0NCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDM5OCA3MjIzLjAxNikiPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzIiIGRhdGEtbmFtZT0iUGF0aCAxNzIiIGQ9Ik01My4zNjQsNzAuMTM2aDMuMTgyVjYyLjQwOUw1Miw1OXY5Ljc3M0ExLjM2MywxLjM2MywwLDAsMCw1My4zNjQsNzAuMTM2WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQwNzIgLTcyMTAuMTQ5KSIgZmlsbD0iIzQyODVmNCIvPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzMiIGRhdGEtbmFtZT0iUGF0aCAxNzMiIGQ9Ik0xMjAsNzAuMTM2aDMuMTgyYTEuMzYzLDEuMzYzLDAsMCwwLDEuMzY0LTEuMzY0VjU5TDEyMCw2Mi40MDlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDEyNC41NDUgLTcyMTAuMTQ5KSIgZmlsbD0iIzM0YTg1MyIvPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzQiIGRhdGEtbmFtZT0iUGF0aCAxNzQiIGQ9Ik0xMjAsNDMuMzUxVjQ5LjI2bDQuNTQ2LTMuNDA5VjQ0LjAzM2EyLjA0NSwyLjA0NSwwLDAsMC0zLjI3My0xLjYzNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00MTI0LjU0NSAtNzE5NykiIGZpbGw9IiNmYmJjMDQiLz4KICAgICAgPHBhdGggaWQ9IlBhdGhfMTc1IiBkYXRhLW5hbWU9IlBhdGggMTc1IiBkPSJNNzIsNTMuOTA5VjQ4bDUuNDU1LDQuMDkxTDgyLjkwOSw0OHY1LjkwOUw3Ny40NTUsNThaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDA4Ny40NTUgLTcyMDEuNjQ5KSIgZmlsbD0iI2VhNDMzNSIgZmlsbC1ydWxlPSJldmVub2RkIi8+CiAgICAgIDxwYXRoIGlkPSJQYXRoXzE3NiIgZGF0YS1uYW1lPSJQYXRoIDE3NiIgZD0iTTUyLDQ0LjAzM3YxLjgxOGw0LjU0NSwzLjQwOVY0My4zNTFMNTUuMjczLDQyLjRBMi4wNDUsMi4wNDUsMCwwLDAsNTIsNDQuMDMzWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQwNzIgLTcxOTcpIiBmaWxsPSIjYzUyMjFmIi8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K"
 }
