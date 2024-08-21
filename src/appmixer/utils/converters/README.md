@@ -1,4 +1,4 @@
-JSON2HTML, CSV2HTML
+# JSON2HTML, CSV2HTML
 You can define a custom HTML transformer by creating a new instance of the Transform class in htmlTransforms.js.
 htmlTransforms:
 
