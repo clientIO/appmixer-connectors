@@ -108,6 +108,13 @@ module.exports.convertFile = async function(context, sourceFileId, converterFunc
     };
 };
 
+/**
+ * @deprecated use the csvToJson() function instead
+ * @param context
+ * @param sourceFileId
+ * @param converterFunction
+ * @returns {Promise<{fileName: string, fileId}>}
+ */
 // Since SheetJS does not provide a "json" bookType, we need to have a special case for JSON export using the sheet_to_json() utility.
 module.exports.convertFile2JSON = async function(context, sourceFileId, converterFunction) {
 
