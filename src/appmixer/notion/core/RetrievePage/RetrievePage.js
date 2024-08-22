@@ -1,11 +1,11 @@
 'use strict';
-const notionCommons = require('../../notion-commons');
+const lib = require('../../lib');
 
 module.exports = {
     async receive(context) {
         const pageId = context.messages.in.content.pageId;
 
-        const response = await notionCommons.callEndpoint(context, `/pages/${pageId}`, {
+        const response = await lib.callEndpoint(context, `/pages/${pageId}`, {
             method: 'GET'
         });
 

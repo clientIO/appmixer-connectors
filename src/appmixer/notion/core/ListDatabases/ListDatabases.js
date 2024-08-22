@@ -1,9 +1,9 @@
 'use strict';
-const notionCommons = require('../../notion-commons');
+const lib = require('../../lib');
 
 module.exports = {
     async receive(context) {
-        const response = await notionCommons.callEndpoint(context, '/search', {
+        const response = await lib.callEndpoint(context, '/search', {
             method: 'POST',
             data: {
                 filter: {

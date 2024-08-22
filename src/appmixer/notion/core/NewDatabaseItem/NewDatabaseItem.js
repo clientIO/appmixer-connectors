@@ -1,5 +1,5 @@
 'use strict';
-const notionCommons = require('../../notion-commons');
+const lib = require('../../lib');
 
 module.exports = {
     async tick(context) {
@@ -7,7 +7,7 @@ module.exports = {
         let newState = {};
         let knownItems = new Set(context.state.known || []);
 
-        const response = await notionCommons.callEndpoint(context, `/databases/${databaseId}/query`, {
+        const response = await lib.callEndpoint(context, `/databases/${databaseId}/query`, {
             method: 'POST',
             data: {
                 sorts: [
