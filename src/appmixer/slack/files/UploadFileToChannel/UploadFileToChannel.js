@@ -23,8 +23,6 @@ module.exports = {
             snippet_type: snippetType
         });
 
-        await context.log({ step: 'Slack response', result });
-
         if (!result.ok) {
             throw new Error(result.error);
         }
