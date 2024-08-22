@@ -38,7 +38,7 @@ module.exports = {
 
     async start(context) {
 
-        const { minute, hour, dayMonth, dayWeek, timezone } = context.properties;
+        const { minute, hour, dayMonth, dayWeek } = context.properties;
 
         if (minute || hour || dayMonth || dayWeek) {
             return this.scheduleDrain(context, { previousDate: null });
@@ -79,7 +79,6 @@ module.exports = {
 
     async scheduleDrain(context, { previousDate = null }) {
 
-        let lock;
         const { timezone, minute, hour, dayMonth, dayWeek } = context.properties;
         if (timezone && !moment.tz.zone(timezone)) {
             throw new context.CancelError('Invalid timezone');
@@ -95,9 +94,6 @@ module.exports = {
         const now = moment().toISOString();
         const nextDate = interval.next().toISOString();
         previousDate = previousDate ? moment(previousDate).toISOString() : null;
-
-        const state = await context.stateGet('state');
-        const timeoutId = await context.stateGet('timeoutId');
 
         const diff = moment(nextDate).diff(now);
         await context.setTimeout({ previousDate: now }, diff);
