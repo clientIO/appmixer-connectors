@@ -19,7 +19,6 @@ module.exports = {
 
         do {
             const result = await emailCommons.callEndpoint(context, '/users/me/messages', {
-                method: 'GET',
                 params: {
                     maxResults: Math.min(pageSize, maxLimit - totalEmails),
                     pageToken: nextPageToken
@@ -31,7 +30,6 @@ module.exports = {
                 for (const message of result.data.messages) {
                     if (variableFetch) {
                         const messageDetails = await emailCommons.callEndpoint(context, `/users/me/messages/${message.id}`, {
-                            method: 'GET',
                             params: {
                                 format: 'full'
                             },

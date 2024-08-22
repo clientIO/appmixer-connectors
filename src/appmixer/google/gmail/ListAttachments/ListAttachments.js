@@ -6,7 +6,6 @@ module.exports = {
         const { messageId } = context.messages.in.content;
         const endpoint = `/users/me/messages/${messageId}`;
         const messageDetails = await emailCommons.callEndpoint(context, endpoint, {
-            method: 'GET',
             params: {
                 format: 'full'
             }

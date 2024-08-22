@@ -5,7 +5,6 @@ module.exports = {
     async receive(context) {
         const endpoint = '/users/me/labels';
         const response = await commons.callEndpoint(context, endpoint, {
-            method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
 

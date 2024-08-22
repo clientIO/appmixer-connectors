@@ -18,7 +18,6 @@ module.exports = {
 
         do {
             const result = await emailCommons.callEndpoint(context, '/users/me/messages', {
-                method: 'GET',
                 params: {
                     q: query,
                     maxResults: Math.min(pageSize, maxLimit - totalEmails),

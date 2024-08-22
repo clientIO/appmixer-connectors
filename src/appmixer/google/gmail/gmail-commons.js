@@ -33,7 +33,7 @@ function getGmailPartContent(part, _content) {
 }
 
 module.exports = {
-    async callEndpoint(context, endpoint, { method, params = {}, data = null, headers = {} } = {}) {
+    async callEndpoint(context, endpoint, { method = 'GET', params = {}, data = null, headers = {} } = {}) {
         const options = {
             method,
             url: `${BASE_URL}${endpoint}`,
@@ -161,7 +161,7 @@ module.exports = {
                 maxResults,
                 pageToken
             };
-            const response = await this.callEndpoint(context, endpoint, { method: 'GET', params });
+            const response = await this.callEndpoint(context, endpoint, { params });
             const messages = response.data.messages || [];
             allMessages = allMessages.concat(messages);
             pageToken = response.data.nextPageToken;
@@ -194,7 +194,6 @@ module.exports = {
 
         do {
             const response = await this.callEndpoint(options.context, endpoint, {
-                method: 'GET',
                 params: {
                     maxResults,
                     pageToken: options.pageToken || ''
