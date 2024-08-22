@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 'use strict';
 
-const { getBasicAuth, sendArrayOutput, requestPaginated, isAppmixerVariable } = require('../../commons');
+const { getBasicAuth, sendArrayOutput, requestPaginated, isAppmixerVariable } = require('../../lib');
 const { getOutPortSchemaFromTableSchema } = require('../../commons-table');
 
 module.exports = {

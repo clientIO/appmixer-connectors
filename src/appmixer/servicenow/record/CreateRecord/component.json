@@ -1,11 +1,23 @@
 {
     "name": "appmixer.servicenow.record.CreateRecord",
     "author": "Jiří Hofman <jirka@client.io>",
-    "description": "Inserts one record in the specified table. Multiple record insertion is not supported by this method.",
+    "description": "Inserts a single record into the specified table. This method does not support inserting multiple records.",
     "version": "1.0.0",
     "private": false,
     "auth": {
         "service": "appmixer:servicenow"
+    },
+    "properties": {
+        "inspector": {
+            "inputs": {
+                "tableName": {
+                    "type": "text",
+                    "label": "Table Name",
+                    "index": 1,
+                    "tooltip": "Name of the table to retrieve the record from."
+                }
+            }
+        }
     },
     "inPorts": [
         {
@@ -13,61 +25,30 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "tableName": { "type": "string" },
-                    "record": { "type": "string" },
-                    "sysparm_display_value": { "type": "boolean" },
-                    "sysparm_exclude_reference_link": { "type": "boolean" },
-                    "sysparm_fields": { "type": "string" },
-                    "sysparm_view": { "type": "string" },
-                    "sysparm_query_no_domain": { "type": "boolean" }
+                    "sysparm_fields": { "type": "string" }
                 },
-                "required": [
-                    "tableName", "record"
-                ]
+                "required": []
+            },
+            "source": {
+                "url": "/component/appmixer/servicenow/record/CreateRecord?outPort=out",
+                "data": {
+                    "messages": {
+                        "in/sysparm_fields": "inputs/in/sysparm_fields"
+                    },
+                    "properties": {
+                        "generateInspector": true,
+                        "tableName": "properties/tableName"
+                    }
+                }
             },
             "inspector": {
                 "inputs": {
-                    "tableName": {
-                        "type": "text",
-                        "label": "Table name",
-                        "index": 1,
-                        "tooltip": "Name of the table from which to retrieve the record."
-                    },
-                    "record": {
-                        "type": "textarea",
-                        "label": "Record",
-                        "index": 2,
-                        "tooltip": "JSON object containing field values for the new record. Example: <code>{\"email\":\"foo@bar.baz\",\"name\":\"Foo\"}</code>."
-                    },
-                    "sysparm_display_value": {
-                        "type": "toggle",
-                        "label": "Display value",
-                        "index": 3,
-                        "tooltip": "Return field display values (true), actual values (false), or both (all) (default: false)"
-                    },
-                    "sysparm_exclude_reference_link": {
-                        "type": "toggle",
-                        "label": "Exclude reference link",
-                        "index": 4,
-                        "tooltip": "True to exclude Table API links for reference fields (default: false)"
-                    },
                     "sysparm_fields": {
                         "type": "text",
                         "label": "Fields",
-                        "index": 5,
-                        "tooltip": "A comma-separated list of fields to return in the response"
-                    },
-                    "sysparm_view": {
-                        "type": "text",
-                        "label": "View",
-                        "index": 6,
-                        "tooltip": "UI view for which to render the data. Determines the fields returned in the response. Valid values: desktop, mobile, both. If you also specify the sysparm_fields parameter, it takes precedent."
-                    },
-                    "sysparm_query_no_domain": {
-                        "type": "toggle",
-                        "label": "Query no domain",
-                        "index": 7,
-                        "tooltip": "True to access data across domains if authorized (default: false)"
+                        "index": 1,
+                        "tooltip": "A comma-separated list of fields to restrict the generated inputs and limit the properties included in the response. If left empty, it will generate and return all available inputs and properties.",
+                        "group": "options"
                     }
                 }
             }
@@ -77,14 +58,14 @@
         {
             "name": "out",
             "source": {
-                "url": "/component/appmixer/servicenow/record/ListRecords?outPort=out",
+                "url": "/component/appmixer/servicenow/record/CreateRecord?outPort=out",
                 "data": {
-                    "properties": {
-                        "generateOutputPortOptions": true
-                    },
                     "messages": {
-                        "in/outputType": "item",
-                        "in/tableName": "inputs/in/tableName"
+                        "in/sysparm_fields": "inputs/in/sysparm_fields"
+                    },
+                    "properties": {
+                        "generateOutputPortOptions": true,
+                        "tableName": "properties/tableName"
                     }
                 }
             }
