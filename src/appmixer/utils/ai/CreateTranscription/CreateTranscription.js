@@ -10,7 +10,7 @@ module.exports = {
         const apiKey = context.config.apiKey;
 
         if (!apiKey) {
-            return new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
+            throw new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
         }
 
         const readStream = await context.getFileReadStream(fileId);

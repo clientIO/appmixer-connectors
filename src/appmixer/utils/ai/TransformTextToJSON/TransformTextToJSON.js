@@ -15,7 +15,7 @@ module.exports = {
         const apiKey = context.config.apiKey;
 
         if (!apiKey) {
-            return new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
+            throw new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
         }
 
         const url = 'https://api.openai.com/v1/chat/completions';
