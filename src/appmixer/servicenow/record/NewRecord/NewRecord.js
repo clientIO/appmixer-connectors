@@ -5,18 +5,15 @@ module.exports = {
 
     async start(context) {
 
-        const tenantId = context.profileInfo.tenantId;
-
-        context.log({ stage: 'profile info', info: context.profileInfo, tenantId });
-
-        return context.addListener('zapoj-xxx', { eventName: '' });
+        const tableName = context.properties.tableName;
+        context.log({ stage: 'start', name: `${tableName}.insert` });
+        return context.addListener(`${tableName}.insert`);
     },
 
     async stop(context) {
 
-        const tenantId = context.profileInfo.tenantId;
-
-        return context.removeListener('zapoj-xxx');
+        const tableName = context.properties.tableName;
+        return context.removeListener(`${tableName}.insert`);
     },
 
     async receive(context) {
