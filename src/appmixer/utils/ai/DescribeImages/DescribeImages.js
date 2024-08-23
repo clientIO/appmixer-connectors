@@ -13,9 +13,7 @@ module.exports = {
             throw new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
         }
 
-        const imageFileIds = (images.ADD || [])
-              .map(image => (image.fileId || null))
-              .filter(fileId => fileId !== null);
+        const imageFileIds = (images.ADD || []).map(image => (image.fileId || null)).filter(fileId => fileId !== null);
 
 
         const imageContent = await Promise.all(imageFileIds.map(async (fileId) => {
@@ -56,7 +54,7 @@ module.exports = {
                     role: 'user',
                     content: [{
                         type: 'text',
-                        text: prompt,
+                        text: prompt
                     }].concat(imageContent)
                 }
             ]
