@@ -3,7 +3,7 @@ const commons = require('../../slack-commons');
 const { SlackAPIError } = require('../../errors');
 
 /**
- * Component for fetching list of private channels.
+ * Component for fetching list of channels.
  * @extends {Component}
  */
 module.exports = {
