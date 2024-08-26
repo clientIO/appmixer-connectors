@@ -75,7 +75,7 @@ module.exports = {
             return context.sendJson(
                 [
                     { value: 'id', label: 'Email ID' },
-                    { value: 'threadId', label: 'Email Thread ID' }
+                    { value: 'threadId', label: 'Thread ID' }
                 ],
                 'out'
             );
@@ -83,7 +83,7 @@ module.exports = {
             return context.sendJson(
                 [
                     { value: 'id', label: 'Email ID' },
-                    { value: 'threadId', label: 'Email Thread ID' }
+                    { value: 'threadId', label: 'Thread ID' }
                 ],
                 'out'
             );
@@ -99,7 +99,7 @@ module.exports = {
                                 type: 'object',
                                 properties: {
                                     id: { type: 'string', title: 'Email ID' },
-                                    threadId: { type: 'string', title: 'Email Thread ID' }
+                                    threadId: { type: 'string', title: 'Thread ID' }
                                 }
                             }
                         }
