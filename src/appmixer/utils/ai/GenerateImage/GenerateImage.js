@@ -8,7 +8,7 @@ module.exports = {
         const apiKey = context.config.apiKey;
 
         if (!apiKey) {
-            return new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
+            throw new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
         }
 
         const url = 'https://api.openai.com/v1/images/generations';
@@ -32,7 +32,7 @@ module.exports = {
         if (imageUrl) {
             const response = await context.httpRequest.get(imageUrl, { responseType: 'stream' });
             const readStream = response.data;
-            const filename = `generated-image-${new Date}.png`;
+            const filename = `generated-image-${(new Date).toISOString()}.png`;
             const file = await context.saveFileStream(filename, readStream);
             return context.sendJson({ fileId: file.fileId, prompt, size }, 'out');
         }
