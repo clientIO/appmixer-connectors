@@ -26,10 +26,8 @@ module.exports = {
             const moderation = data.results[0];
 
             if (moderation.flagged) {
-                // Send to IsFlagged outPort
                 return context.sendJson({ moderation, input }, 'IsFlagged');
             } else {
-                // Send to NotFlagged outPort
                 return context.sendJson({ moderation, input }, 'NotFlagged');
             }
         }
