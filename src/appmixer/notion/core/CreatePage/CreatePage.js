@@ -7,9 +7,9 @@ module.exports = {
 
         // Construct the data payload for the Notion API
         const data = {
-            parent: { 
-                type: 'page_id', 
-                page_id: parentId 
+            parent: {
+                type: 'page_id',
+                page_id: parentId
             },
             properties: {
                 title: {
