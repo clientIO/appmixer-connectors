@@ -9,7 +9,8 @@ module.exports = {
                 filter: {
                     value: 'database',
                     property: 'object'
-                }
+                },
+                page_size: 100
             }
         });
 
