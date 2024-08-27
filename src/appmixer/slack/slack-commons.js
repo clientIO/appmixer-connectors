@@ -1,4 +1,6 @@
 'use strict';
+
+const pathModule = require('path');
 const { SlackAPIError } = require('./errors');
 const Entities = require('html-entities').AllHtmlEntities;
 const axios = require('axios');
