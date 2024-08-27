@@ -17,7 +17,7 @@ module.exports = {
         const pages = response.data.results.map(page => {
             const titleProperty = page.properties?.title?.title || [];
             const title = titleProperty.length > 0 ? titleProperty[0].plain_text : 'Untitled';
- 
+
             return {
                 id: page.id,
                 title: title,
