@@ -27,20 +27,20 @@ class DeletedEmployee {
 
             const { data } = await context.httpRequest({
                 url: hibobEndpoint,
-                method: "POST",
+                method: 'POST',
                 headers: {
-                    Authorization: auth,
+                    Authorization: auth
                 },
                 data: {
-                    "humanReadable": "APPEND",
-                    "showInactive": true,
-                    "fields": [
-                        "/root/firstName",
-                        "/root/surname",
-                        "/root/id",
-                        "/root/email",
-                        "/internal/status",
-                        "/work/manager"
+                    'humanReadable': 'APPEND',
+                    'showInactive': true,
+                    'fields': [
+                        '/root/firstName',
+                        '/root/surname',
+                        '/root/id',
+                        '/root/email',
+                        '/internal/status',
+                        '/work/manager'
                     ]
                 },
                 json: true
@@ -71,5 +71,5 @@ class DeletedEmployee {
     }
 }
 
-module.exports = new DeletedEmployee("maesn.hibob.employees.DeletedEmployee");
+module.exports = new DeletedEmployee('maesn.hibob.employees.DeletedEmployee');
 

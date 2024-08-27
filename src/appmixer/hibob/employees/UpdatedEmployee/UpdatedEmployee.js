@@ -1,6 +1,5 @@
 'use strict';
 const Promise = require('bluebird');
-const axios = require('axios');
 
 /**
  * Process employees to find newly updated.
@@ -41,20 +40,20 @@ class UpdatedEmployee {
 
             const { data } = await context.httpRequest({
                 url: hibobEndpoint,
-                method: "POST",
+                method: 'POST',
                 headers: {
-                    Authorization: auth,
+                    Authorization: auth
                 },
                 data: {
-                    "humanReadable": "APPEND",
-                    "showInactive": true,
-                    "fields": [
-                        "/root/firstName",
-                        "/root/surname",
-                        "/root/id",
-                        "/root/email",
-                        "/internal/status",
-                        "/work/manager"
+                    'humanReadable': 'APPEND',
+                    'showInactive': true,
+                    'fields': [
+                        '/root/firstName',
+                        '/root/surname',
+                        '/root/id',
+                        '/root/email',
+                        '/internal/status',
+                        '/work/manager'
                     ]
                 },
                 json: true
@@ -88,4 +87,4 @@ class UpdatedEmployee {
     }
 }
 
-module.exports = new UpdatedEmployee("maesn.hibob.employees.UpdatedEmployee");
+module.exports = new UpdatedEmployee('maesn.hibob.employees.UpdatedEmployee');

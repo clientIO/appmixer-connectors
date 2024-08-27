@@ -10,7 +10,7 @@ module.exports = {
                 type: 'text',
                 name: 'Servivce User Id',
                 tooltip: 'Servivce User Id'
-            },            
+            },
             serviceUserToken: {
                 type: 'password',
                 name: 'Token',
@@ -26,7 +26,7 @@ module.exports = {
             const auth = 'Basic ' + token;
             const url = 'https://api.hibob.com/v1/company/named-lists';
 
-            try{
+            try {
                 await context.httpRequest({
                     method: 'GET',
                     url: url,
@@ -36,7 +36,7 @@ module.exports = {
                 });
 
             } catch (error) {
-                throw new Error("Invalid id/token combination.");
+                throw new Error('Invalid id/token combination.');
             }
 
             return {
@@ -44,4 +44,4 @@ module.exports = {
             };
         }
     }
-}
+};
