@@ -11,7 +11,7 @@ const Promise = require('bluebird');
 
 function processEmployees(knownEmployees, currentEmployees, updatedEmployees, employee) {
     let employeeId = employee.id;
-    let foundEmployee = knownEmployees.find(emp => emp.id === employeeId)
+    let foundEmployee = knownEmployees.find(emp => emp.id === employeeId);
 
     if (foundEmployee && !isEqual(foundEmployee, employee)) {
         updatedEmployees.push(employee);

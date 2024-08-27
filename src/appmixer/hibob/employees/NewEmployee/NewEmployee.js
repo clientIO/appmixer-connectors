@@ -32,8 +32,8 @@ class NewEmployee {
             const { data } = await context.httpRequest({
                 url: hibobEndpoint,
                 method: 'POST',
-                headers: { 
-                    Authorization: auth,
+                headers: {
+                    Authorization: auth
                 },
                 data: {
                     'humanReadable': 'APPEND',
@@ -49,11 +49,9 @@ class NewEmployee {
                 },
                 json: true
             });
-    
             let known = Array.isArray(context.state.known) ? new Set(context.state.known) : new Set();
             let current = [];
             let diff = [];
-    
             if (data.employees) {
                 data.employees.forEach(processEmployees.bind(null, known, current, diff));
             }
@@ -63,7 +61,6 @@ class NewEmployee {
                 await context.sendJson(employee, 'employee');
                 // TODO: Add logging here
             }
-    
             await context.saveState({
                 known: current
             });
@@ -71,7 +68,6 @@ class NewEmployee {
             // TODO: Add logging here
             throw error;
         }
-      
     }
 }
 module.exports = new NewEmployee('maesn.hibob.employees.NewEmployee');
