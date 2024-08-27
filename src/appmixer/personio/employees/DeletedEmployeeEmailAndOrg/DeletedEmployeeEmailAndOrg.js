@@ -25,15 +25,15 @@ class DeletedEmployeeEmailAndOrg {
 
     async receive(context) {
         try {
-            let access_token = await commons.getBearerToken(context);
-            const authorization = 'Bearer ' + access_token;
+            let accessToken = await commons.getBearerToken(context);
+            const authorization = 'Bearer ' + accessToken;
             let personioEndpoint = 'https://api.personio.de/v1/company/employees';
 
             let response = await axios.get(personioEndpoint, {
                 headers: {
                     'Authorization': authorization,
                     'X-Personio-Partner-ID': 'MAESN',
-                    'X-Personio-App-ID': "MAESN+YOKOY"
+                    'X-Personio-App-ID': 'MAESN+YOKOY'
                 }
             });
 
@@ -53,7 +53,6 @@ class DeletedEmployeeEmailAndOrg {
             if (known.size > 0) {
                 known.forEach(processEmployees.bind(null, current, diff));
             }
-            
 
             await Promise.map(diff, employee => {
                 // TODO: Add logging here
@@ -67,10 +66,7 @@ class DeletedEmployeeEmailAndOrg {
             // TODO: Add logging here
             throw error;
         }
-
-
     }
-} 
+}
 
-module.exports = new DeletedEmployeeEmailAndOrg("maesn.personio.employees.DeletedEmployeeEmailAndOrg");
-
+module.exports = new DeletedEmployeeEmailAndOrg('maesn.personio.employees.DeletedEmployeeEmailAndOrg');

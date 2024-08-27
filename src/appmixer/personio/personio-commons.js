@@ -14,7 +14,7 @@ module.exports = {
 
         const { data } = await context.httpRequest({
             url: authorizationUrl,
-            method: "POST",
+            method: 'POST',
             headers: {
                 'accept': 'application/json',
                 'content-type': 'application/json'
@@ -26,11 +26,11 @@ module.exports = {
             json: true
         });
         if (data.error) {
-            throw new Error("Invalid username/password combination.");
+            throw new Error('Invalid username/password combination.');
         }
 
         const { token } = data.data;
 
-        return token
+        return token;
     }
 };

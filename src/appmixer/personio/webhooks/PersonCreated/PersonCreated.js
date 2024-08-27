@@ -13,23 +13,23 @@ class PersonCreated {
 
     async start(context) {
 
-        let access_token = await commons.getBearerToken(context);
+        let accessToken = await commons.getBearerToken(context);
         const url = `https://api.personio.de/v2/webhooks`;
 
         try {
             const { data } = await context.httpRequest({
                 url: url,
-                method: "POST",
+                method: 'POST',
                 headers: {
-                    "Authorization": "Bearer " + access_token,
+                    'Authorization': 'Bearer ' + accessToken,
                     'Content-Type': 'application/json'
                 },
                 data: {
                     url: context.getWebhookUrl(),
                     description: 'Person Created Webhook',
-                    status: "ENABLED",
-                    token: access_token,
-                    enabled_events: ["person.created"]
+                    status: 'ENABLED',
+                    token: accessToken,
+                    enabled_events: ['person.created']
                 }
             });
 
@@ -52,9 +52,9 @@ class PersonCreated {
         try {
             await context.httpRequest({
                 url: `${url}/${ID}`,
-                method: "DELETE",
+                method: 'DELETE',
                 headers: {
-                    "Authorization": "Bearer " + access_token
+                    'Authorization': 'Bearer ' + access_token
                 }
             });
 
@@ -69,4 +69,4 @@ class PersonCreated {
     }
 };
 
-module.exports = new PersonCreated("maesn.personio.webhooks.PersonCreated");
+module.exports = new PersonCreated('maesn.personio.webhooks.PersonCreated');

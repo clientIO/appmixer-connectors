@@ -13,7 +13,7 @@ const commons = require('../../personio-commons');
 
 function processEmployees(knownEmployees, currentEmployees, updatedEmployees, employee) {
     let employeeId = employee.attributes.id.value;
-    let foundEmployee = knownEmployees.find(emp => emp.attributes.id.value === employeeId)
+    let foundEmployee = knownEmployees.find(emp => emp.attributes.id.value === employeeId);
 
     if (foundEmployee && !isEqual(foundEmployee, employee)) {
         updatedEmployees.push(employee);
@@ -34,8 +34,8 @@ class UpdatedEmployee {
 
     async receive(context) {
         try {
-            let access_token = await commons.getBearerToken(context);
-            const authorization = 'Bearer ' + access_token;
+            let accessToken = await commons.getBearerToken(context);
+            const authorization = 'Bearer ' + accessToken;
             const { storeId } = context.properties;
             const key = 'PersonioEmployeeStorage' + context.flowId;
 
@@ -76,5 +76,5 @@ class UpdatedEmployee {
     }
 }
 
-module.exports = new UpdatedEmployee("maesn.personio.employees.UpdatedEmployee");
+module.exports = new UpdatedEmployee('maesn.personio.employees.UpdatedEmployee');
 

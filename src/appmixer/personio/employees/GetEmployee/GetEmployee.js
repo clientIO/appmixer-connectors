@@ -6,18 +6,16 @@ class GetEmployee {
 
     async receive(context) {
         try {
-            let access_token = await commons.getBearerToken(context);
-            const authorization = "Bearer " + access_token;
+            let accessToken = await commons.getBearerToken(context);
+            const authorization = 'Bearer ' + accessToken;
             let id = context.messages.in.content.id;
 
-            let url = `https://api.personio.de/v1/company/employees/${id}`
+            let url = `https://api.personio.de/v1/company/employees/${id}`;
 
-
-    
             const { data } = await context.httpRequest({
                 url: url,
-                method: "GET",
-                headers: { 
+                method: 'GET',
+                headers: {
                     Authorization: authorization,
                     'X-Yk-Auth-Method': 'yokoy'
                 },
@@ -36,4 +34,4 @@ class GetEmployee {
     }
 }
 
-module.exports = new GetEmployee("maesn.personio.employees.GetEmployee");
+module.exports = new GetEmployee('maesn.personio.employees.GetEmployee');

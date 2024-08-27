@@ -28,15 +28,15 @@ class NewEmployee {
 
     async receive(context) {
         try {
-            let access_token = await commons.getBearerToken(context);
-            const authorization = 'Bearer ' + access_token;
+            let accessToken = await commons.getBearerToken(context);
+            const authorization = 'Bearer ' + accessToken;
             let personioEndpoint = 'https://api.personio.de/v1/company/employees';
 
             let response = await axios.get(personioEndpoint, {
                 headers: {
                     'Authorization': authorization,
                     'X-Personio-Partner-ID': 'MAESN',
-                    'X-Personio-App-ID': "MAESN+YOKOY"
+                    'X-Personio-App-ID': 'MAESN+YOKOY'
                 }
             });
 
@@ -65,5 +65,5 @@ class NewEmployee {
     }
 }
 
-module.exports = new NewEmployee("maesn.personio.employees.NewEmployee");
+module.exports = new NewEmployee('maesn.personio.employees.NewEmployee');
 
