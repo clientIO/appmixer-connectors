@@ -14,7 +14,7 @@ class PersonUpdated {
     async start(context) {
 
         let accessToken = await commons.getBearerToken(context);
-        const url = `https://api.personio.de/v2/webhooks`;
+        const url = 'https://api.personio.de/v2/webhooks';
 
         try {
             const { data } = await context.httpRequest({
@@ -43,8 +43,8 @@ class PersonUpdated {
 
 
     async stop(context) {
-        let access_token = await commons.getBearerToken(context);
-        const url = ` https://api.personio.de/v2/webhooks`;
+        let accessToken = await commons.getBearerToken(context);
+        const url = 'https://api.personio.de/v2/webhooks';
         const id = 'id';
 
         let ID = await context.stateGet(id);
@@ -54,7 +54,7 @@ class PersonUpdated {
                 url: `${url}/${ID}`,
                 method: 'DELETE',
                 headers: {
-                    'Authorization': 'Bearer ' + access_token
+                    'Authorization': 'Bearer ' + accessToken
                 }
             });
 

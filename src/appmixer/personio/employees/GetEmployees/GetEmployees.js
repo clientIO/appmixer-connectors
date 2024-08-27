@@ -9,7 +9,7 @@ class GetEmployee {
             let accessToken = await commons.getBearerToken(context);
             const authorization = 'Bearer ' + accessToken;
 
-            let url = `https://api.personio.de/v1/company/employees`;
+            let url = 'https://api.personio.de/v1/company/employees';
 
             const { data } = await context.httpRequest({
                 url: url,
