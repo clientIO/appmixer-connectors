@@ -10,9 +10,8 @@ module.exports = async context => {
                 const { data = {}, type } = req.payload || {};
 
                 if (!type) {
-                    context.log('error', 'Missing type property.', req.payload);
-
-                    throw 'Missing type property.';
+                    context.log('error', 'Missing \'type\' property.', { payload: req.payload });
+                    throw new Error('Missing \'type\' property.');
                 }
 
                 await context.triggerListeners({
