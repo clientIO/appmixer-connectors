@@ -41,9 +41,9 @@ module.exports = {
 
         validate: async context => {
 
-            const { data } = await context.httpRequest({
+            const { data, status, statusText } = await context.httpRequest({
                 method: 'POST',
-                url: 'https://zapi.demo.zapoj.com/api/login',
+                url: `https://zapi.${context.subdomain}.zapoj.com/api/login`,
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -52,7 +52,8 @@ module.exports = {
                     password: context.password
                 }
             });
-            if (data.authorization?.token) {
+
+            if (status === 200 && data?.authorization?.token) {
 
                 return {
                     token: data.authorization.token,
@@ -61,7 +62,15 @@ module.exports = {
                 };
             }
 
-            return false;
+            // Currently POST to a URL with invalid domain returns 200 and HTML of the login page.
+            let error = {
+                subdomain: context.subdomain,
+                status,
+                statusText,
+                data
+            };
+
+            throw new Error(JSON.stringify(error, null, 2));
         }
     }
 };
