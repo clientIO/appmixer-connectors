@@ -107,7 +107,7 @@ module.exports = {
         const { outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, outputType);
+            return lib.getOutputPortOptions(context, outputType, itemSchemaWithTitles);
         }
 
         const { data } = await context.httpRequest({
@@ -124,41 +124,5 @@ module.exports = {
         });
 
         return lib.sendArrayOutput({ context, records: data.data.cloudResources.nodes, outputType });
-    },
-
-    convertItemSchema: function(fields) {
-        return Object.keys(fields)
-            .map(field => {
-                const schema = fields[field];
-                const label = schema.title;
-                delete schema.title;
-
-                return {
-                    label, value: field, schema
-                };
-            });
-    },
-
-    getOutputPortOptions(context, outputType) {
-
-        if (outputType === 'object' || outputType === 'first') {
-            return context.sendJson(this.convertItemSchema(itemSchemaWithTitles), 'out');
-        }
-
-        if (outputType === 'array') {
-            return context.sendJson([{
-                label: 'Resources',
-                value: 'result',
-                schema: {
-                    type: 'array',
-                    items: { type: 'object', properties: itemSchemaWithTitles }
-                }
-            }], 'out');
-        }
-
-        if (outputType === 'file') {
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
-        }
     }
 };
-

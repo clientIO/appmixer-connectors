@@ -25,7 +25,42 @@ module.exports = {
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }
+    },
+
+    getOutputPortOptions(context, outputType, itemSchema) {
+
+        if (outputType === 'object' || outputType === 'first') {
+            return context.sendJson(convertItemSchema(itemSchema), 'out');
+        }
+
+        if (outputType === 'array') {
+            return context.sendJson([{
+                label: 'Resources',
+                value: 'result',
+                schema: {
+                    type: 'array',
+                    items: { type: 'object', properties: itemSchema }
+                }
+            }], 'out');
+        }
+
+        if (outputType === 'file') {
+            return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
+        }
     }
+};
+
+const convertItemSchema = (fields) => {
+    return Object.keys(fields)
+        .map(field => {
+            const schema = fields[field];
+            const label = schema.title;
+            delete schema.title;
+
+            return {
+                label, value: field, schema
+            };
+        });
 };
 
 /**
