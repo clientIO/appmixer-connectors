@@ -1,36 +1,47 @@
 'use strict';
-const GoogleApi = require('googleapis');
-const commons = require('../../google-commons');
-const { promisify } = require('util');
-
-// GoogleApi initialization & promisify of some api function for convenience
-const gmail = GoogleApi.gmail('v1');
+const commons = require('../gmail-commons');
 
 module.exports = {
     async receive(context) {
-
-        const listLabel = promisify(gmail.users.labels.list.bind(gmail.users.labels.list));
-        const { labels } = await listLabel({
-            auth: commons.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId
+        const endpoint = '/users/me/labels';
+        const response = await commons.callEndpoint(context, endpoint, {
+            headers: { 'Content-Type': 'application/json' }
         });
+
+        // Extract labels from the response data
+        const labels = response.data.labels;
+
         return context.sendJson(labels, 'out');
     },
 
     labelsToSelectArray(labels) {
+        return Array.isArray(labels) ? labels.map(label => ({
+            label: label.name,
+            value: label.id
+        })) : [];
+    },
 
-        let transformed = [];
-
-        if (Array.isArray(labels)) {
-            labels.forEach(label => {
-                let item = {
+    labelsToSelectArrayFiltered(labels) {
+        return Array.isArray(labels) ? labels.reduce((result, label) => {
+            if (label.name !== 'SENT' && label.name !== 'DRAFT') {
+                result.push({
                     label: label.name,
                     value: label.id
-                };
-                transformed.push(item);
-            });
-        }
-        return transformed;
+                });
+            }
+            return result;
+        }, []) : [];
+    },
+
+    userLabelsToSelectArray(labels) {
+        return Array.isArray(labels) ? labels.reduce((result, label) => {
+            if (label.type === 'user') {
+                result.push({
+                    label: label.name,
+                    value: label.id
+                });
+            }
+            return result;
+        }, []) : [];
     }
 };

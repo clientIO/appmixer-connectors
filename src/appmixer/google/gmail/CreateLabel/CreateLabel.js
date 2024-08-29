@@ -1,23 +1,18 @@
 'use strict';
-const GoogleApi = require('googleapis');
-const commons = require('../../google-commons');
-const Promise = require('bluebird');
-
-const gmail = GoogleApi.gmail('v1');
+const commons = require('../gmail-commons');
 
 module.exports = {
+    async receive(context) {
+        const endpoint = '/users/me/labels';
+        const options = {
+            method: 'POST',
+            data: context.messages.in.content,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
 
-    receive(context) {
-
-        const createLabel = Promise.promisify(gmail.users.labels.create, { context: gmail.users.labels });
-
-        return createLabel({
-            auth: commons.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId,
-            resource: context.messages.in.content
-        }).then(result => {
-            return context.sendJson(result, 'label');
-        });
+        const result = await commons.callEndpoint(context, endpoint, options);
+        return context.sendJson(result.data, 'out');
     }
 };

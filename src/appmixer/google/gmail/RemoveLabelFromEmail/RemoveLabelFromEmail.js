@@ -10,7 +10,7 @@ module.exports = {
         const options = {
             method: 'POST',
             data: {
-                addLabelIds: labels.map(label => label.name)
+                removeLabelIds: labels.map(label => label.name)
             }
         };
 

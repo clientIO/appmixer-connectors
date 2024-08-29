@@ -1,17 +1,17 @@
 {
     "name": "appmixer.google.gmail.GetAttachment",
-    "author": "Harsha Surisetty <harsha@client.io>",
+    "author": "Appmixer <info@appmixer.com>",
     "description": "Download message attachment content.",
     "private": false,
     "version": "1.0.0",
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:gmail",
         "scope": ["https://www.googleapis.com/auth/gmail.readonly"]
     },
     "quota": {
         "manager": "appmixer:google:gmail",
         "maxWait": 5000,
-        "resources": "messages.polling",
+        "resources": "messages.get",
         "scope": {
             "userId": "{{userId}}"
         }
@@ -32,21 +32,48 @@
                         "type": "string"
                     }
                 },
-                "required": ["messageId", "attachmentId"]
+                "required": ["messageId"]
             },
             "inspector": {
                 "inputs": {
                     "messageId": {
                         "type": "text",
                         "index": 1,
-                        "label": "Message ID",
-                        "tooltip": "The ID of the message to retrieve. This ID is usually retrieved using ListEmails action. The ID is also contained in the result when a message is inserted - CreateDraft action."
+                        "label": "Email",
+                        "tooltip": "The email message to retrieve attachments from.",
+                        "source": { 
+                            "url": "/component/appmixer/google/gmail/ListEmails?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/limit": "20",
+                                    "in/outputType": "emails"
+                                },
+                                "properties": {
+                                    "sendWholeArray": true,
+                                    "variableFetch": true
+                                },
+                                "transform": "./ListEmails#emailsToSelectArray"
+                            }
+                        }
                     },
                     "attachmentId": {
+                        "when": { "regex": { "messageId": ".+" }},
                         "type": "text",
                         "index": 2,
-                        "label": "Attachment ID",
-                        "tooltip": "The ID of the attachment to retrieve."
+                        "label": "Attachment",
+                        "tooltip": "The attachment you want to retrieve",
+                        "source": { 
+                            "url": "/component/appmixer/google/gmail/ListAttachments?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/messageId": "inputs/in/messageId"
+                                },
+                                "properties": {
+                                    "sendWholeArray": true
+                                },
+                                "transform": "./ListAttachments#attachmentsToSelectArray"
+                            }
+                        }
                     },
                     "fileName": {
                         "type": "text",

@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.google.gmail.SendEmail",
+    "name": "appmixer.google.gmail.ReplyToEmail",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Send a new email.",
+    "description": "Send a reply to an existing email",
     "version": "1.0.1",
     "auth": {
         "service": "appmixer:google:gmail",
@@ -22,58 +22,72 @@
             "name": "in",
             "inspector": {
                 "inputs": {
+                    "email": {
+                        "type": "text",
+                        "label": "Email ID",
+                        "index": 1,
+                        "tooltip": "Select an email from the list or insert an email ID to send a reply to.",
+                        "source": { 
+                            "url": "/component/appmixer/google/gmail/ListEmails?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/limit": "20",
+                                    "in/outputType": "emails"
+                                },
+                                "properties": {
+                                    "sendWholeArray": true,
+                                    "variableFetch": true
+                                },
+                                "transform": "./ListEmails#emailsToSelectArray"
+                            }
+                        }
+                    },
                     "from": {
                         "type": "text",
-                        "index": 1,
+                        "index": 2,
                         "label": "From",
                         "tooltip": "The email address that you have authenticated with or one of your valid aliases. Anything else will be ignored and will default to your primary email address."
                     },
                     "sender": {
                         "type": "text",
-                        "index": 2,
+                        "index": 3,
                         "label": "From Name",
                         "tooltip": "The name of the author of the message. This won't work if you have invalid email address in the From field."
                     },
                     "to": {
                         "type": "text",
-                        "index": 3,
+                        "index": 4,
                         "label": "To",
                         "tooltip": "The email address of the message's recipient."
                     },
                     "cc": {
                         "type": "text",
-                        "index": 4,
+                        "index": 5,
                         "label": "CC",
                         "tooltip": "The email address of the message's carbon copy recipient."
                     },
                     "bcc": {
                         "type": "text",
-                        "index": 5,
+                        "index": 6,
                         "label": "BCC",
                         "tooltip": "The email address of the message's blind carbon copy recipient."
                     },
-                    "subject": {
-                        "type": "text",
-                        "index": 6,
-                        "label": "Subject",
-                        "tooltip": "The subject of the message."
-                    },
                     "text": {
                         "type": "textarea",
-                        "index": 7,
+                        "index": 8,
                         "label": "Text",
                         "tooltip": "The body of the message. If HTML Body is added, This text body will be ignored. If Signature is added and HTML body field is left blank This Text Body will be converted into HTML"
                     },
                     "html": {
                         "type": "textarea",
-                        "index": 8,
+                        "index": 9,
                         "label": "HTML",
                         "tooltip": "HTML body of the message. If HTML body is added, the Text Body of the email is ignored"
                     },
                     "signature": {
                         "type": "text",
                         "label": "Signature",
-                        "index": 9,
+                        "index": 10,
                         "tooltip": "Add signature to the email.",
                         "source": { 
                             "url": "/component/appmixer/google/gmail/ListSignatures?outPort=out",
@@ -89,7 +103,7 @@
                         "levels": [
                             "AND"
                         ],
-                        "index": 10,
+                        "index": 11,
                         "tooltip": "Add labels to the email.",
                         "fields": {
                             "name": {
@@ -127,6 +141,9 @@
             "schema": {
                 "type": "object",
                 "properties": {
+                    "email": {
+                        "type": "string"
+                    },
                     "from": {
                         "type": "string",
                         "format": "email"
@@ -145,9 +162,6 @@
                     "bcc": {
                         "type": "string",
                         "format": "email"
-                    },
-                    "subject": {
-                        "type": "string"
                     },
                     "text": {
                         "type": "string"
@@ -171,7 +185,7 @@
     ],
     "outPorts": [
         {
-            "name": "email",
+            "name": "out",
             "options": [
                 { "label": "id", "value": "id" },
                 { "label": "threadId", "value": "threadId" }

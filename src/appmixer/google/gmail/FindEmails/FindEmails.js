@@ -4,8 +4,7 @@ const emailCommons = require('../gmail-commons');
 module.exports = {
     async receive(context) {
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
-        const { outputType, limit } = context.messages.in.content;
-        const variableFetch = context.properties.variableFetch;
+        const { outputType, limit, query } = context.messages.in.content;
         const maxLimit = limit || 100;
 
         if (generateOutputPortOptions) {
@@ -20,6 +19,7 @@ module.exports = {
         do {
             const result = await emailCommons.callEndpoint(context, '/users/me/messages', {
                 params: {
+                    q: query,
                     maxResults: Math.min(pageSize, maxLimit - totalEmails),
                     pageToken: nextPageToken
                 },
@@ -27,31 +27,24 @@ module.exports = {
             });
 
             if (result.data.messages) {
-                for (const message of result.data.messages) {
-                    if (variableFetch) {
-                        const messageDetails = await emailCommons.callEndpoint(context, `/users/me/messages/${message.id}`, {
-                            params: {
-                                format: 'full'
-                            },
-                            headers: { 'Content-Type': 'application/json' }
-                        });
-                        emails.push(messageDetails.data);
-                    } else {
-                        emails.push({
-                            id: message.id,
-                            threadId: message.threadId
-                        });
-                    }
-                }
+                emails.push(...result.data.messages.map(message => ({
+                    id: message.id,
+                    threadId: message.threadId
+                })));
             }
 
             totalEmails += result.data.messages ? result.data.messages.length : 0;
             nextPageToken = result.data.nextPageToken;
         } while (nextPageToken && totalEmails < maxLimit);
 
+        if (emails.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
+
         if (outputType === 'first') {
             return context.sendJson(emails[0], 'out');
         }
+
         if (outputType === 'emails') {
             return context.sendJson({ emails }, 'out');
         }
@@ -71,7 +64,7 @@ module.exports = {
 
             const csvString = csvRows.join('\n');
             const buffer = Buffer.from(csvString, 'utf8');
-            const filename = `gmail-listemails-${context.componentId}.csv`;
+            const filename = `gmail-findemails-${context.componentId}.csv`;
             const savedFile = await context.saveFileStream(filename, buffer);
             await context.sendJson({ fileId: savedFile.fileId }, 'out');
         }
@@ -118,11 +111,5 @@ module.exports = {
             // file
             return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
         }
-    },
-
-    emailsToSelectArray({ emails }) {
-        return emails.map(mail => {
-            return { label: `${mail.snippet}`, value: `${mail.id}` };
-        });
     }
 };

@@ -1,18 +1,18 @@
 {
-    "name": "appmixer.google.gmail.CreateLabel",
+    "name": "appmixer.google.gmail.FindEmails",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Create new label.",
-    "version": "1.0.1",
+    "description": "Finds emails in Gmail based on a search query. You can retrieve emails as a single item, multiple items, or save them directly to a file. Note that each message resource contains only Email ID and Thread ID. To get detailed information about specific emails, use the Get Email component.",
+    "version": "1.0.0",
     "auth": {
         "service": "appmixer:google:gmail",
         "scope": [
-            "https://www.googleapis.com/auth/gmail.labels"
+            "https://www.googleapis.com/auth/gmail.readonly"
         ]
     },
     "quota": {
         "manager": "appmixer:google:gmail",
         "maxWait": 5000,
-        "resources": "drafts.create",
+        "resources": "messages.polling",
         "scope": {
             "userId": "{{userId}}"
         }
@@ -22,79 +22,82 @@
             "name": "in",
             "inspector": {
                 "inputs": {
-                    "labelListVisibility": {
-                        "type": "select",
-                        "index": 1,
-                        "options": [
-                            {
-                                "content": "Hide Label",
-                                "value": "labelHide"
-                            },
-                            {
-                                "content": "Show Label",
-                                "value": "labelShow"
-                            },
-                            {
-                                "content": "Show Label if unread",
-                                "value": "labelShowIfUnread"
-                            }
-                        ],
-                        "label": "Label List Visibility",
-                        "tooltip": "The visibility of the label in the label list in the Gmail web interface."
-                    },
-                    "messageListVisibility": {
-                        "type": "select",
-                        "index": 2,
-                        "label": "Message List Visibility",
-                        "options": [
-                            {
-                                "content": "Hide",
-                                "value": "hide"
-                            },
-                            {
-                                "content": "Show",
-                                "value": "show"
-                            }
-                        ],
-                        "tooltip": "The visibility of messages with this label in the message list in the Gmail web interface."
-                    },
-                    "name": {
+                    "query": {
                         "type": "text",
+                        "label": "Search Query",
+                        "index": 1,
+                        "tooltip": "The search query to find emails."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 2,
+                        "tooltip": "Choose whether you want to receive the result set as one complete list of emails, one email item at a time, stream the email items to a file or the first email out of the result.",
+                        "defaultValue": "file",
+                        "options": [
+                            { 
+                                "label": "First Email",
+                                "value": "first"
+                            },
+                            {
+                                "label": "One at a time",
+                                "value": "email"
+                            },
+                            {
+                                "label": "All at once",
+                                "value": "emails"
+                            },
+                            {
+                                "label": "Save to file",
+                                "value": "file"
+                            }
+                        ]
+                    },
+                    "limit": {
+                        "type": "number",
+                        "label": "Limit",
                         "index": 3,
-                        "label" : "Name",
-                        "tooltip": "The display name of the label."
+                        "tooltip": "The number of results you want to retrieve.",
+                        "defaultValue": 100
                     }
                 }
             },
             "schema": {
                 "type": "object",
                 "properties": {
-                    "labelListVisibility": {
+                    "query": {
                         "type": "string"
                     },
-                    "messageListVisibility": {
+                    "outputType": {
                         "type": "string"
                     },
-                    "name": {
-                        "type": "string"
+                    "limit": {
+                        "type": "number"
                     }
-                },
-                "required": [
-                    "name"
-                ]
+                }
             }
         }
     ],
     "outPorts": [
         {
             "name": "out",
-            "options": [
-                { "label": "Label ID", "value": "id" },
-                { "label": "Label Name", "value": "name" },
-                { "label": "Label Message List Visibility", "value": "messageListVisibility" },
-                { "label": "Label List Visibility", "value": "labelListVisibility" }
-            ]
+            "source": {
+                "url": "/component/appmixer/google/gmail/FindEmails?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/limit": "inputs/in/limit"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
         }
+    
     ],
     "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8ZyBpZD0iR3JvdXBfNTQ1IiBkYXRhLW5hbWU9Ikdyb3VwIDU0NSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTM3NiAtNjQpIj4KICAgIDxyZWN0IGlkPSJSZWN0YW5nbGVfMzMyNyIgZGF0YS1uYW1lPSJSZWN0YW5nbGUgMzMyNyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNzYgNjQpIiBmaWxsPSJub25lIi8+CiAgICA8ZyBpZD0iR3JvdXBfNTQ0IiBkYXRhLW5hbWU9Ikdyb3VwIDU0NCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDM5OCA3MjIzLjAxNikiPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzIiIGRhdGEtbmFtZT0iUGF0aCAxNzIiIGQ9Ik01My4zNjQsNzAuMTM2aDMuMTgyVjYyLjQwOUw1Miw1OXY5Ljc3M0ExLjM2MywxLjM2MywwLDAsMCw1My4zNjQsNzAuMTM2WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQwNzIgLTcyMTAuMTQ5KSIgZmlsbD0iIzQyODVmNCIvPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzMiIGRhdGEtbmFtZT0iUGF0aCAxNzMiIGQ9Ik0xMjAsNzAuMTM2aDMuMTgyYTEuMzYzLDEuMzYzLDAsMCwwLDEuMzY0LTEuMzY0VjU5TDEyMCw2Mi40MDlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDEyNC41NDUgLTcyMTAuMTQ5KSIgZmlsbD0iIzM0YTg1MyIvPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzQiIGRhdGEtbmFtZT0iUGF0aCAxNzQiIGQ9Ik0xMjAsNDMuMzUxVjQ5LjI2bDQuNTQ2LTMuNDA5VjQ0LjAzM2EyLjA0NSwyLjA0NSwwLDAsMC0zLjI3My0xLjYzNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00MTI0LjU0NSAtNzE5NykiIGZpbGw9IiNmYmJjMDQiLz4KICAgICAgPHBhdGggaWQ9IlBhdGhfMTc1IiBkYXRhLW5hbWU9IlBhdGggMTc1IiBkPSJNNzIsNTMuOTA5VjQ4bDUuNDU1LDQuMDkxTDgyLjkwOSw0OHY1LjkwOUw3Ny40NTUsNThaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDA4Ny40NTUgLTcyMDEuNjQ5KSIgZmlsbD0iI2VhNDMzNSIgZmlsbC1ydWxlPSJldmVub2RkIi8+CiAgICAgIDxwYXRoIGlkPSJQYXRoXzE3NiIgZGF0YS1uYW1lPSJQYXRoIDE3NiIgZD0iTTUyLDQ0LjAzM3YxLjgxOGw0LjU0NSwzLjQwOVY0My4zNTFMNTUuMjczLDQyLjRBMi4wNDUsMi4wNDUsMCwwLDAsNTIsNDQuMDMzWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQwNzIgLTcxOTcpIiBmaWxsPSIjYzUyMjFmIi8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K"
 }

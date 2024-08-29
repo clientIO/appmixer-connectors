@@ -1,18 +1,17 @@
 {
-    "name": "appmixer.google.gmail.CreateLabel",
+    "name": "appmixer.google.gmail.MakeApiCall",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Create new label.",
-    "version": "1.0.1",
+    "description": "Generic method for making API calls to a 3rd party service.",
     "auth": {
         "service": "appmixer:google:gmail",
         "scope": [
-            "https://www.googleapis.com/auth/gmail.labels"
+            "https://mail.google.com"
         ]
     },
     "quota": {
         "manager": "appmixer:google:gmail",
         "maxWait": 5000,
-        "resources": "drafts.create",
+        "resources": "messages.get",
         "scope": {
             "userId": "{{userId}}"
         }
@@ -22,65 +21,72 @@
             "name": "in",
             "inspector": {
                 "inputs": {
-                    "labelListVisibility": {
-                        "type": "select",
+                    "url": {
+                        "type": "text",
                         "index": 1,
-                        "options": [
-                            {
-                                "content": "Hide Label",
-                                "value": "labelHide"
-                            },
-                            {
-                                "content": "Show Label",
-                                "value": "labelShow"
-                            },
-                            {
-                                "content": "Show Label if unread",
-                                "value": "labelShowIfUnread"
-                            }
-                        ],
-                        "label": "Label List Visibility",
-                        "tooltip": "The visibility of the label in the label list in the Gmail web interface."
+                        "label": "API Endpoint URL",
+                        "tooltip": "Enter the API endpoint URL inlcuding the base URL. For example, `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`."
                     },
-                    "messageListVisibility": {
+                    "method": {
                         "type": "select",
                         "index": 2,
-                        "label": "Message List Visibility",
+                        "label": "HTTP Method",
+                        "tooltip": "Select the HTTP method for the API call.",
                         "options": [
                             {
-                                "content": "Hide",
-                                "value": "hide"
+                                "label": "GET",
+                                "value": "GET"
                             },
                             {
-                                "content": "Show",
-                                "value": "show"
+                                "label": "POST",
+                                "value": "POST"
+                            },
+                            {
+                                "label": "PUT",
+                                "value": "PUT"
+                            },
+                            {
+                                "label": "PATCH",
+                                "value": "PATCH"
+                            },
+                            {
+                                "label": "DELETE",
+                                "value": "DELETE"
                             }
-                        ],
-                        "tooltip": "The visibility of messages with this label in the message list in the Gmail web interface."
+                        ]
                     },
-                    "name": {
-                        "type": "text",
+                    "body": {
+                        "type": "textarea",
                         "index": 3,
-                        "label" : "Name",
-                        "tooltip": "The display name of the label."
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body for the API call."
                     }
                 }
             },
             "schema": {
                 "type": "object",
                 "properties": {
-                    "labelListVisibility": {
+                    "url": {
                         "type": "string"
                     },
-                    "messageListVisibility": {
-                        "type": "string"
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ],
+                        "default": "GET"
                     },
-                    "name": {
+                    "body": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "name"
+                    "url",
+                    "method"
                 ]
             }
         }
@@ -89,10 +95,22 @@
         {
             "name": "out",
             "options": [
-                { "label": "Label ID", "value": "id" },
-                { "label": "Label Name", "value": "name" },
-                { "label": "Label Message List Visibility", "value": "messageListVisibility" },
-                { "label": "Label List Visibility", "value": "labelListVisibility" }
+                {
+                    "label": "Status Code",
+                    "value": "status"
+                },
+                {
+                    "label": "Response Headers",
+                    "value": "headers"
+                },
+                {
+                    "label": "Response Body",
+                    "value": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
             ]
         }
     ],

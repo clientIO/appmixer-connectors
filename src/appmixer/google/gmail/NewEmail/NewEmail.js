@@ -1,45 +1,43 @@
 'use strict';
-const commons = require('../../google-commons');
-const GoogleApi = commons.GoogleApi;
+const emailCommons = require('../gmail-commons');
 const Promise = require('bluebird');
 
-// GoogleApi initialization & promisify of some api function for convenience
-const gmail = GoogleApi.gmail('v1');
-const getMessage = Promise.promisify(gmail.users.messages.get, { context: gmail.users.messages });
-
-/**
- * Trigger for GMail when new email appears.
- * @extends {Component}
- */
 module.exports = {
-
     async tick(context) {
-
         let newState = {};
-        let auth = commons.getOauth2Client(context.auth);
-        let { userId } = context.auth;
 
-        const data = await commons.listNewMessages({ auth, userId: 'me', quotaUser: userId },
-            context.state.id || null);
+        const { labels: { AND: labels } = { AND: [] } } = context.properties;
+        const isLabelsEmpty = !labels.some(label => label.name);
 
-        // latest message or there are no messages in the inbox
+        // Fetch all messages without sending labelIds
+        const data = await emailCommons.listNewMessages(
+            { context, userId: 'me' },
+            context.state.id || null
+        );
+
         newState.id = data.lastMessageId;
-        const emails = await Promise.map(data.newMessages, message => {
-            return getMessage({
-                auth,
-                userId: 'me',
-                quotaUser: userId,
-                format: 'full',
-                id: message.id
+
+        const emails = await Promise.map(data.newMessages, async message => {
+            return emailCommons.callEndpoint(context, `/users/me/messages/${message.id}`, {
+                method: 'GET',
+                params: { format: 'full' }
+            }).then(response => response.data).catch(err => {
+                // email can be deleted (permanently) in gmail between listNewMessages call and
+                // this getMessage call, in such case - ignore it and return null
+                if (err && err.response && err.response.status === 404) {
+                    return null;
+                }
+                throw err;
             });
         }, { concurrency: 10 });
-
+        // Filter the emails based on selected labels, if any
         await Promise.each(emails || [], async email => {
-            if (!email.labelIds) {
-                await context.sendError('Invalid email label, ' + JSON.stringify(email));
+            if (!email || !email.labelIds) {
+                throw new context.CancelError('Invalid email or email label');
             }
-            if (commons.isNewInboxEmail(email.labelIds)) {
-                await context.sendJson(commons.normalizeEmail(email), 'out');
+
+            if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
+                await context.sendJson(emailCommons.normalizeEmail(email), 'out');
             }
         });
 
