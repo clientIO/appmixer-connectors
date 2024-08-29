@@ -58,7 +58,7 @@ module.exports = {
                 return {
                     token: data.authorization.token,
                     // now + token_lifetime
-                    expires: Date.now() + data.token_lifetime
+                    expires: Date.now() + (data.token_lifetime * 1000)
                 };
             }
 
