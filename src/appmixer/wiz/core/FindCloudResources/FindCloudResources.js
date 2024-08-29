@@ -104,10 +104,19 @@ module.exports = {
 
         const url = 'https://api.eu4.app.wiz.io/graphql';
 
-        const { outputType } = context.messages.in.content;
+        const { outputType, filter, limit = 10 } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, itemSchemaWithTitles);
+        }
+
+        let filterBy;
+        if (filter) {
+            try {
+                filterBy = JSON.parse(filter);
+            } catch (e) {
+                throw new context.CancelError('Invalid Input: Filter', e);
+            }
         }
 
         const { data } = await context.httpRequest({
@@ -119,9 +128,22 @@ module.exports = {
             },
             data: {
                 query,
-                variables: { first: 5 }
+                variables: {
+                    first: limit,
+                    filterBy
+                }
             }
         });
+
+        if (data.errors) {
+            throw new context.CancelError(data.errors);
+        }
+
+        context.log({ stage: 'response', data });
+
+        if (data.data.cloudResources.nodes.length === 0) {
+            return context.sendJson({ filter: filterBy }, 'notFound');
+        }
 
         return lib.sendArrayOutput({ context, records: data.data.cloudResources.nodes, outputType });
     }
