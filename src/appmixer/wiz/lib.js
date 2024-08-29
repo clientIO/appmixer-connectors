@@ -47,6 +47,21 @@ module.exports = {
         if (outputType === 'file') {
             return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
         }
+    },
+
+    async makeApiCall({ context, method = 'GET', data }) {
+
+        const url = 'https://api.eu4.app.wiz.io/graphql';
+
+        return context.httpRequest({
+            method,
+            url,
+            headers: {
+                'content-type': 'application/json',
+                'authorization': `Bearer ${context.auth.token}`
+            },
+            data
+        });
     }
 };
 

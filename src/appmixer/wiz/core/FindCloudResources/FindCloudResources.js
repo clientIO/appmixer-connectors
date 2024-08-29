@@ -100,9 +100,7 @@ const itemSchemaWithTitles = {
 module.exports = {
 
     // docs: https://win.wiz.io/reference/pull-cloud-resources
-    async receive(context) {
-
-        const url = 'https://api.eu4.app.wiz.io/graphql';
+    async receive(context)   {
 
         const { outputType, filter, limit = 10 } = context.messages.in.content;
 
@@ -118,14 +116,9 @@ module.exports = {
                 throw new context.CancelError('Invalid Input: Filter', e);
             }
         }
-
-        const { data } = await context.httpRequest({
+        const { data } = await lib.makeApiCall({
+            context,
             method: 'POST',
-            url,
-            headers: {
-                'content-type': 'application/json',
-                'authorization': `Bearer ${context.auth.token}`
-            },
             data: {
                 query,
                 variables: {
