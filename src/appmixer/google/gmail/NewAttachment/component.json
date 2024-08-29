@@ -1,11 +1,11 @@
 {
     "name": "appmixer.google.gmail.NewAttachment",
-    "author": "Martin Krčmář <martin@client.io>",
-    "description": "This trigger fires every time any new attachment arrives in your inbox.",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "This trigger activates whenever a new attachment is received in your Gmail inbox.",
     "tick": true,
     "version": "1.0.1",
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:gmail",
         "scope": [
             "https://www.googleapis.com/auth/gmail.readonly"
         ]
@@ -18,14 +18,53 @@
             "userId": "{{userId}}"
         }
     },
+    "properties": {
+        "schema": {
+            "properties": {
+                "labels": {
+                    "type": "object"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "labels": {
+                    "type": "expression",
+                    "label": "Labels",
+                    "levels": [
+                        "AND"
+                    ],
+                    "index": 1,
+                    "tooltip": "Select one or more labels to filter the emails that contain attachments. The trigger will activate if an attachment is received in an email that matches any of the selected labels. If no labels are selected, the trigger will activate for all attachments in all received emails.",
+                    "fields": {
+                        "name": {
+                            "type": "select",
+                            "label": "Name",
+                            "index": 1,
+                            "tooltip": "Select a name of the existing label.",
+                            "source": {
+                                "url": "/component/appmixer/google/gmail/ListLabels?outPort=out",
+                                "data": {
+                                    "properties": {
+                                        "sendWholeArray": true
+                                    },
+                                    "transform": "./ListLabels#labelsToSelectArrayFiltered"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
     "outPorts": [
         {
             "name": "attachment",
             "options": [
-                { "label": "fileId", "value": "fileId" },
-                { "label": "filename", "value": "filename" },
-                { "label": "contentType", "value": "contentType" },
-                { "label": "subject", "value":  "subject" }
+                { "label": "File ID", "value": "fileId" },
+                { "label": "File Name", "value": "filename" },
+                { "label": "Content Type", "value": "contentType" },
+                { "label": "Subject", "value":  "subject" }
             ]
         }
     ],

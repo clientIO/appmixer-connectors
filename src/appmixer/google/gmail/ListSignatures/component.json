@@ -1,58 +1,23 @@
 {
-    "name": "appmixer.google.gmail.MarkEmailAsUnread",
+    "name": "appmixer.google.gmail.ListSignatures",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Marks an email or draft as unread.",
-    "private": false,
+    "description": "Retrieves default signature from your Gmail.",
+    "private": true,
     "version": "1.0.1",
     "auth": {
         "service": "appmixer:google:gmail",
-        "scope": ["https://www.googleapis.com/auth/gmail.modify"]
+        "scope": ["https://www.googleapis.com/auth/gmail.readonly"]
     },
     "quota": {
         "manager": "appmixer:google:gmail",
         "maxWait": 5000,
-        "resources": "messages.modify",
+        "resources": "sendAs.list",
         "scope": {
             "userId": "{{userId}}"
         }
     },
     "inPorts": [
-        {
-            "name": "in",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "emailId": {
-                        "type": "string"
-                    }
-                },
-                "required": ["emailId"]
-            },
-            "inspector": {
-                "inputs": {
-                    "emailId": {
-                        "type": "text",
-                        "index": 1,
-                        "label": "Email ID",
-                        "tooltip": "Select an email from the list or insert an email ID to mark it unread.",
-                        "source": { 
-                            "url": "/component/appmixer/google/gmail/ListEmails?outPort=out",
-                            "data": {
-                                "messages": {
-                                    "in/limit": "20",
-                                    "in/outputType": "emails"
-                                },
-                                "properties": {
-                                    "sendWholeArray": true,
-                                    "variableFetch": true
-                                },
-                                "transform": "./ListEmails#emailsToSelectArray"
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        "in"
     ],
     "outPorts": ["out"],
     "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8ZyBpZD0iR3JvdXBfNTQ1IiBkYXRhLW5hbWU9Ikdyb3VwIDU0NSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTM3NiAtNjQpIj4KICAgIDxyZWN0IGlkPSJSZWN0YW5nbGVfMzMyNyIgZGF0YS1uYW1lPSJSZWN0YW5nbGUgMzMyNyIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNzYgNjQpIiBmaWxsPSJub25lIi8+CiAgICA8ZyBpZD0iR3JvdXBfNTQ0IiBkYXRhLW5hbWU9Ikdyb3VwIDU0NCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDM5OCA3MjIzLjAxNikiPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzIiIGRhdGEtbmFtZT0iUGF0aCAxNzIiIGQ9Ik01My4zNjQsNzAuMTM2aDMuMTgyVjYyLjQwOUw1Miw1OXY5Ljc3M0ExLjM2MywxLjM2MywwLDAsMCw1My4zNjQsNzAuMTM2WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQwNzIgLTcyMTAuMTQ5KSIgZmlsbD0iIzQyODVmNCIvPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzMiIGRhdGEtbmFtZT0iUGF0aCAxNzMiIGQ9Ik0xMjAsNzAuMTM2aDMuMTgyYTEuMzYzLDEuMzYzLDAsMCwwLDEuMzY0LTEuMzY0VjU5TDEyMCw2Mi40MDlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDEyNC41NDUgLTcyMTAuMTQ5KSIgZmlsbD0iIzM0YTg1MyIvPgogICAgICA8cGF0aCBpZD0iUGF0aF8xNzQiIGRhdGEtbmFtZT0iUGF0aCAxNzQiIGQ9Ik0xMjAsNDMuMzUxVjQ5LjI2bDQuNTQ2LTMuNDA5VjQ0LjAzM2EyLjA0NSwyLjA0NSwwLDAsMC0zLjI3My0xLjYzNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC00MTI0LjU0NSAtNzE5NykiIGZpbGw9IiNmYmJjMDQiLz4KICAgICAgPHBhdGggaWQ9IlBhdGhfMTc1IiBkYXRhLW5hbWU9IlBhdGggMTc1IiBkPSJNNzIsNTMuOTA5VjQ4bDUuNDU1LDQuMDkxTDgyLjkwOSw0OHY1LjkwOUw3Ny40NTUsNThaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDA4Ny40NTUgLTcyMDEuNjQ5KSIgZmlsbD0iI2VhNDMzNSIgZmlsbC1ydWxlPSJldmVub2RkIi8+CiAgICAgIDxwYXRoIGlkPSJQYXRoXzE3NiIgZGF0YS1uYW1lPSJQYXRoIDE3NiIgZD0iTTUyLDQ0LjAzM3YxLjgxOGw0LjU0NSwzLjQwOVY0My4zNTFMNTUuMjczLDQyLjRBMi4wNDUsMi4wNDUsMCwwLDAsNTIsNDQuMDMzWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTQwNzIgLTcxOTcpIiBmaWxsPSIjYzUyMjFmIi8+CiAgICA8L2c+CiAgPC9nPgo8L3N2Zz4K"

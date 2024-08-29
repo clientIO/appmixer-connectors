@@ -4,12 +4,12 @@ const emailCommons = require('../gmail-commons');
 module.exports = {
     async receive(context) {
         const {
+            email,
             from = context.profileInfo.email,
             sender,
             to,
             cc,
             bcc,
-            subject,
             text,
             html,
             signature,
@@ -17,20 +17,36 @@ module.exports = {
             attachments = {}
         } = context.messages.in.content;
 
+        // Fetch email details using the email ID to get the thread ID
+        const emailDetails = await emailCommons.callEndpoint(context, `/users/me/messages/${email}`, {
+            method: 'GET'
+        });
+        const subject = emailCommons.getHeaderValue(emailDetails.data.payload.headers, ['Subject']);
+        const messageId = emailCommons.getHeaderValue(emailDetails.data.payload.headers, ['Message-ID', 'Message-Id']);
+
+        const mainSubject = subject;
+        const references = messageId;
+        const threadId = emailDetails.data.threadId;
+
         const mail = {
             from: sender ? `${sender} <${from}>` : from,
             to,
             cc,
             bcc,
-            subject,
+            subject: mainSubject,
             text,
             html,
-            attachments: await emailCommons.addAttachments(context, attachments)
+            attachments: await emailCommons.addAttachments(context, attachments),
+            threadId: threadId,
+            headers: {
+                'In-Reply-To': references,
+                'References': references
+            }
         };
 
         emailCommons.addSignature(mail, signature);
 
-        const email = await emailCommons.buildEmail(mail);
+        const emailContent = await emailCommons.buildEmail(mail);
 
         const result = await emailCommons.callEndpoint(context, '/users/me/messages/send', {
             method: 'POST',
@@ -38,7 +54,8 @@ module.exports = {
                 'Content-Type': 'application/json'
             },
             data: {
-                raw: email.toString('base64').replace(/\+/gi, '-').replace(/\//gi, '_').replace(/=+$/, '')
+                raw: emailContent.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''),
+                threadId: mail.threadId
             }
         });
 
@@ -54,6 +71,6 @@ module.exports = {
             });
         }
 
-        return context.sendJson(result.data, 'email');
+        return context.sendJson(result.data, 'out');
     }
 };

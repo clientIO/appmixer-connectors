@@ -1,13 +1,21 @@
 {
     "name": "appmixer.google.gmail.CreateDraft",
-    "author": "Pawel Putko <pawel.putko@neoteric.eu>",
+    "author": "Appmixer <info@appmixer.com>",
     "description": "Create new draft.",
     "version": "1.0.1",
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:gmail",
         "scope": [
-            "https://www.googleapis.com/auth/gmail.compose"
+            "https://www.googleapis.com/auth/gmail.modify"
         ]
+    },
+    "quota": {
+        "manager": "appmixer:google:gmail",
+        "maxWait": 5000,
+        "resources": "drafts.create",
+        "scope": {
+            "userId": "{{userId}}"
+        }
     },
     "inPorts": [
         {
@@ -29,26 +37,90 @@
                     "to": {
                         "type": "text",
                         "index": 3,
-                        "label" : "To",
+                        "label": "To",
                         "tooltip": "The email address of the message's recipient."
+                    },
+                    "cc": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "CC",
+                        "tooltip": "The email address of the message's carbon copy recipient."
+                    },
+                    "bcc": {
+                        "type": "text",
+                        "index": 5,
+                        "label": "BCC",
+                        "tooltip": "The email address of the message's blind carbon copy recipient."
                     },
                     "subject": {
                         "type": "text",
-                        "index": 4,
-                        "label" : "Subject",
+                        "index": 6,
+                        "label": "Subject",
                         "tooltip": "The subject of the message."
                     },
                     "text": {
                         "type": "textarea",
-                        "index": 5,
-                        "label" : "Text",
-                        "tooltip": "The body of the message."
+                        "index": 7,
+                        "label": "Text",
+                        "tooltip": "The body of the message.. If HTML Body is added, This text body will be ignored. If Signature is added and HTML body field is left blank This Text Body will be converted into HTML"
                     },
                     "html": {
                         "type": "textarea",
-                        "index": 6,
-                        "label" : "HTML",
-                        "tooltip": "HTML body of the message."
+                        "index": 8,
+                        "label": "HTML",
+                        "tooltip": "HTML body of the message. If HTML body is added, the Text Body of the email is ignored"
+                    },
+                    "signature": {
+                        "type": "text",
+                        "label": "Signature",
+                        "index": 9,
+                        "tooltip": "Add signature to the email.",
+                        "source": { 
+                            "url": "/component/appmixer/google/gmail/ListSignatures?outPort=out",
+                            "data": {
+                                "properties": { "sendWholeArray": true },
+                                "transform": "./ListSignatures#signaturesToSelectArray"
+                            }
+                        }
+                    },
+                    "labels": {
+                        "type": "expression",
+                        "label": "Labels",
+                        "levels": [
+                            "AND"
+                        ],
+                        "index": 9,
+                        "tooltip": "Add labels to the email.",
+                        "fields": {
+                            "name": {
+                                "type": "select",
+                                "label": "Name",
+                                "index": 1,
+                                "tooltip": "Select a name of the existing label.",
+                                "source": {
+                                    "url": "/component/appmixer/google/gmail/ListLabels?outPort=out",
+                                    "data": {
+                                        "properties": { "sendWholeArray": true },
+                                        "transform": "./ListLabels#labelsToSelectArrayFiltered"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "attachments": {
+                        "type": "expression",
+                        "label": "Attachments",
+                        "tooltip": "Attachments for the email message.",
+                        "index": 10,
+                        "levels": ["ADD"],
+                        "fields": {
+                            "fileId": {
+                                "type": "filepicker",
+                                "label": "File",
+                                "tooltip": "The file to attach.",
+                                "index": 1
+                            }
+                        }
                     }
                 }
             },
@@ -66,6 +138,14 @@
                         "type": "string",
                         "format": "email"
                     },
+                    "cc": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "bcc": {
+                        "type": "string",
+                        "format": "email"
+                    },
                     "subject": {
                         "type": "string"
                     },
@@ -74,7 +154,14 @@
                     },
                     "html": {
                         "type": "string"
-                    }
+                    },
+                    "signature":{
+                        "type": "string"
+                    },
+                    "labels": {
+                        "type": "object"
+                    },
+                    "attachments": {}
                 }
             }
         }
@@ -83,9 +170,8 @@
         {
             "name": "draft",
             "options": [
-                { "label": "id", "value": "id" },
-                { "label": "messageId", "value": "message.id" },
-                { "label": "messageThreadId", "value": "message.threadId" }
+                { "label": "Email ID", "value": "message.id" },
+                { "label": "Thread ID", "value": "message.threadId" }
             ]
         }
     ],

@@ -1,14 +1,14 @@
 {
     "name": "appmixer.google.gmail.NewEmail",
-    "author": "Tomas Waldauf <tomas@client.io>",
-    "description": "This trigger fires every time any new email arrives in your inbox.",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Triggers whenever a new email is received or created in your Gmail account. This includes emails across all labels or specific labels as configured.",
     "tick": true,
     "version": "1.2.0",
     "dependencies": {
         "module": "1.2.0"
     },
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:gmail",
         "scope": [
             "https://www.googleapis.com/auth/gmail.readonly"
         ]
@@ -21,20 +21,59 @@
             "userId": "{{userId}}"
         }
     },
+    "properties": {
+        "schema": {
+            "properties": {
+                "labels": {
+                    "type": "object"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "labels": {
+                    "type": "expression",
+                    "label": "Labels",
+                    "levels": [
+                        "AND"
+                    ],
+                    "index": 2,
+                    "tooltip": "Select one or more labels to filter the emails that will trigger this event. The trigger will activate if an email matches any of the selected labels. If no labels are selected, the trigger will activate for all emails, including drafts and sent messages.",
+                    "fields": {
+                        "name": {
+                            "type": "select",
+                            "label": "Name",
+                            "index": 1,
+                            "tooltip": "Select a name of the existing label.",
+                            "source": {
+                                "url": "/component/appmixer/google/gmail/ListLabels?outPort=out",
+                                "data": {
+                                    "properties": {
+                                        "sendWholeArray": true
+                                    },
+                                    "transform": "./ListLabels#labelsToSelectArrayFiltered"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
     "outPorts": [
         {
             "name": "out",
             "options": [
                 {
-                    "label": "Id",
+                    "label": "Email ID",
                     "value": "id"
                 },
                 {
-                    "label": "ThreadId",
+                    "label": "Thread ID",
                     "value": "threadId"
                 },
                 {
-                    "label": "LabelIds",
+                    "label": "Label IDs",
                     "value": "labelIds"
                 },
                 {
