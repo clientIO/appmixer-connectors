@@ -24,7 +24,12 @@ module.exports = {
 
         if (data.results) {
             const moderation = data.results[0];
-            return context.sendJson({ moderation, input }, 'out');
+
+            if (moderation.flagged) {
+                return context.sendJson({ moderation, input }, 'IsFlagged');
+            } else {
+                return context.sendJson({ moderation, input }, 'NotFlagged');
+            }
         }
     }
 };
