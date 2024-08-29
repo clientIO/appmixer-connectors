@@ -27,10 +27,20 @@ module.exports = {
         }
     },
 
-    getOutputPortOptions(context, outputType, itemSchema) {
+    getOutputPortOptions(context, outputType, itemSchema ) {
 
         if (outputType === 'object' || outputType === 'first') {
-            return context.sendJson(convertItemSchema(itemSchema), 'out');
+            const options =  Object.keys(itemSchema)
+                .map(field => {
+                    const schema = itemSchema[field];
+                    const label = schema.title;
+                    delete schema.title;
+
+                    return {
+                        label, value: field, schema
+                    };
+                });
+            return context.sendJson(options, 'out');
         }
 
         if (outputType === 'array') {
@@ -63,19 +73,6 @@ module.exports = {
             data
         });
     }
-};
-
-const convertItemSchema = (fields) => {
-    return Object.keys(fields)
-        .map(field => {
-            const schema = fields[field];
-            const label = schema.title;
-            delete schema.title;
-
-            return {
-                label, value: field, schema
-            };
-        });
 };
 
 /**
