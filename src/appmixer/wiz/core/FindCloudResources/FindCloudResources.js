@@ -100,7 +100,7 @@ const itemSchemaWithTitles = {
 module.exports = {
 
     // docs: https://win.wiz.io/reference/pull-cloud-resources
-    async receive(context)   {
+    async receive(context) {
 
         const { outputType, filter, limit = 10 } = context.messages.in.content;
 
@@ -116,28 +116,41 @@ module.exports = {
                 throw new context.CancelError('Invalid Input: Filter', e);
             }
         }
-        const { data } = await lib.makeApiCall({
-            context,
-            method: 'POST',
-            data: {
-                query,
-                variables: {
-                    first: limit,
-                    filterBy
+
+        let records = [];
+        let nextPageToken = null;
+        let totalRecordsCount = 0;
+        const PAGE_SIZE = 5;
+
+        do {
+            const { data } = await lib.makeApiCall({
+                context,
+                method: 'POST',
+                data: {
+                    query,
+                    variables: {
+                        first: Math.min(PAGE_SIZE, limit - totalRecordsCount),
+                        after: nextPageToken,
+                        filterBy
+                    }
                 }
+            });
+
+            if (data.errors) {
+                throw new context.CancelError(data.errors);
             }
-        });
 
-        if (data.errors) {
-            throw new context.CancelError(data.errors);
-        }
+            const { pageInfo, nodes: pageRecords } = data.data.cloudResources;
 
-        context.log({ stage: 'response', data });
+            if (pageRecords.length === 0) {
+                return context.sendJson({ filter: filterBy }, 'notFound');
+            }
 
-        if (data.data.cloudResources.nodes.length === 0) {
-            return context.sendJson({ filter: filterBy }, 'notFound');
-        }
+            records = records.concat(pageRecords);
+            totalRecordsCount += pageRecords.length;
+            nextPageToken = pageInfo.endCursor;
+        } while (nextPageToken && totalRecordsCount < limit);
 
-        return lib.sendArrayOutput({ context, records: data.data.cloudResources.nodes, outputType });
+        return lib.sendArrayOutput({ context, records, outputType });
     }
 };

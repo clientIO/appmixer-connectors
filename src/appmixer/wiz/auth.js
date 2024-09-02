@@ -19,7 +19,12 @@ module.exports = {
 
         accountNameFromProfileInfo: context => {
 
-            return `${context.clientId.substring(0, 10)} ...`;
+            const name = context.clientId;
+            const threshold = 10;
+            if (name.length > threshold) {
+                return name.slice(0, 3) + '....' + name.slice(-3);
+            }
+            return name;
         },
 
         validate: async context => {
