@@ -55,6 +55,8 @@ module.exports = {
             await Promise.map(entries, entry => {
                 return context.sendJson({ entry }, 'out');
             });
+        } else if (outputType === 'array') {
+            return context.sendJson({ entries }, 'out');
         } else if (outputType === 'file') {
             if (entries.length) {
                 // Stored into CSV file.
