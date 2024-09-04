@@ -1,5 +1,7 @@
 'use strict';
+
 const pathModule = require('path');
+
 const BASE_URL = 'https://api.notion.com/v1';
 const API_VERSION = '2022-06-28';
 
