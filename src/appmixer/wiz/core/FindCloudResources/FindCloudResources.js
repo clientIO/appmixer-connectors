@@ -120,7 +120,7 @@ module.exports = {
         let records = [];
         let nextPageToken = null;
         let totalRecordsCount = 0;
-        const PAGE_SIZE = 5;
+        const PAGE_SIZE = 500;
 
         do {
             const { data } = await lib.makeApiCall({
