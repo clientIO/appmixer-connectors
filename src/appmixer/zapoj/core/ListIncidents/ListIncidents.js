@@ -1,9 +1,8 @@
 /* eslint-disable camelcase */
 'use strict';
 
-const { sendArrayOutput } = require('../../lib');
-
-const outputPortName = 'out';
+const { sendArrayOutput, getOutputPortOptions } = require('../../lib');
+const itemSchemaWithTitles = require('./itemSchema');
 
 module.exports = {
 
@@ -13,7 +12,7 @@ module.exports = {
         let { outputType, limit = 1000, type } = context.messages.in.content;
 
         if (generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, outputType);
+            return getOutputPortOptions(context, outputType, itemSchemaWithTitles);
         }
 
         const url = `https://messagetemplate.${context.auth?.subdomain}.zapoj.com/api/itTemplate/list/NI/${type}`;
@@ -50,43 +49,5 @@ module.exports = {
         incidents = incidents.slice(0, limit);
 
         await sendArrayOutput({ context, outputType, records: incidents });
-    },
-
-    getOutputPortOptions(context, outputType) {
-
-        if (outputType === 'object' || outputType === 'first') {
-            return context.sendJson([
-                { label: 'ID', value: '_id' },
-                { label: 'Notification ID', value: 'notificationId' },
-                { label: 'Notification Title', value: 'notificationTitle' },
-                { label: 'Phase Title', value: 'phaseTitle' }
-            ], outputPortName);
-        } else if (outputType === 'array') {
-            return context.sendJson([
-                {
-                    label: 'Incidents',
-                    value: 'result',
-                    schema: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                _id: { title: 'ID', type: 'string' },
-                                notificationId: { title: 'Notification ID', type: 'string' },
-                                phaseTitle: { title: 'Phase Title', type: 'string' },
-                                notificationTitle: { title: 'Notification Title', type: 'string' }
-                            }
-                        }
-                    }
-                }
-            ], outputPortName);
-        } else if (outputType === 'file') {
-            return context.sendJson([
-                { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
-            ], outputPortName);
-        } else {
-            // Default to array output
-            return context.sendJson([], outputPortName);
-        }
     }
 };
