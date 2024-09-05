@@ -19,7 +19,6 @@ module.exports = {
             trim: true,
             relax_column_count: true,
             cast_date: true,
-            // columns: true,
             columns: function(header) {
                 // convert header line back to string to prevent CSV_INVALID_COLUMN_DEFINITION exception
                 return header.map(item => item + '');
