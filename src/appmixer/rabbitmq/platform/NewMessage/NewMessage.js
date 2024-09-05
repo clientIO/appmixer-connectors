@@ -4,7 +4,11 @@ module.exports = {
 
     async start(context) {
 
-        const { componentId, flowId, properties: { queue, consumerTag, noAck = false, exclusive = false, priority } } = context;
+        const {
+            componentId,
+            flowId,
+            properties: { queue, consumerTag, noAck = false, exclusive = false, priority }
+        } = context;
         const { channelId } = await context.callAppmixer({
             endPoint: '/plugins/appmixer/rabbitmq/consumers',
             method: 'POST',

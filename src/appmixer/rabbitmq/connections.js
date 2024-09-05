@@ -24,7 +24,7 @@ if (process.RABBITMQ_CONNECTOR_OPEN_CHANNELS) {
 
 const connectionHash = (auth) => {
     const authString = JSON.stringify(auth);
-    return crypto.createHash('md5').update(authString).digest("hex");
+    return crypto.createHash('md5').update(authString).digest('hex');
 };
 
 const createChannel = async (context, channelId, auth) => {
