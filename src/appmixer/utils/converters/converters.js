@@ -9,7 +9,7 @@ const {
 
 module.exports = {
 
-    csvToJson: async function(context, sourceFileId, newFileName) {
+    csvToJson: async function(context, { sourceFileId, newFileName }) {
 
         const readStream = await context.getFileReadStream(sourceFileId);
         const csvStream = getCSVReadStream();
@@ -29,7 +29,7 @@ module.exports = {
         });
     },
 
-    csvToHtml: async function(context, sourceFileId, transformType = 'table') {
+    csvToHtml: async function(context, { sourceFileId, transformType = 'table', newFileName }) {
 
         const readStream = await context.getFileReadStream(sourceFileId);
         const csvStream = getCSVReadStream();
@@ -54,7 +54,7 @@ module.exports = {
         });
     },
 
-    jsonToHtml: async function(context, sourceFileId, transformType = 'table') {
+    jsonToHtml: async function(context, { sourceFileId, transformType = 'table', newFileName }) {
 
         const readStream = await context.getFileReadStream(sourceFileId);
         const transformer = customHtmlTransforms[transformType];
@@ -78,7 +78,7 @@ module.exports = {
         });
     },
 
-    jsonToCsv: async function(context, sourceFileId, jsonPath = '*') {
+    jsonToCsv: async function(context, { sourceFileId, jsonPath = '*', newFileName }) {
 
         const readStream = await context.getFileReadStream(sourceFileId);
 
