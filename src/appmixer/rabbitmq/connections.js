@@ -150,7 +150,11 @@ const sendToQueue = async (context, flowId, componentId, channelId, payload) => 
         await addProducer(context, flowId, componentId, channel.auth, channelId);
         producer = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
     }
-    return producer.channel.sendToQueue(payload.queue, Buffer.from(payload.message), {});
+    return producer.channel.sendToQueue(
+        payload.queue,
+        Buffer.from(payload.message),
+        payload.options
+    );
 };
 
 const publish = async (context, flowId, componentId, channelId, payload) => {
@@ -161,7 +165,12 @@ const publish = async (context, flowId, componentId, channelId, payload) => {
         await addProducer(context, flowId, componentId, channel.auth, channelId);
         producer = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
     }
-    return producer.channel.publish(payload.exchange, payload.routingKey, Buffer.from(payload.message));
+    return producer.channel.publish(
+        payload.exchange,
+        payload.routingKey,
+        Buffer.from(payload.message),
+        payload.options
+    );
 };
 
 const listChannels = () => { return RABBITMQ_CONNECTOR_OPEN_CHANNELS; };

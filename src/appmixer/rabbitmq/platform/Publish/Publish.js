@@ -31,13 +31,47 @@ module.exports = {
         const {
             exchange,
             routingKey,
-            message
+            message,
+            expiration,
+            userId,
+            CC,
+            priority,
+            contentType,
+            contentEncoding,
+            headers,
+            persistent,
+            mandatory,
+            BCC,
+            replyTo,
+            timestamp,
+            type,
+            appId,
+            correlationId,
+            messageId
         } = context.messages.in.content;
 
         const payload = {
             exchange,
             routingKey,
-            message
+            message,
+            options: {
+                expiration,
+                userId,
+                CC,
+                priority,
+                contentType,
+                contentEncoding,
+                headers,
+                persistent,
+                mandatory,
+                BCC,
+                replyTo,
+                timestamp,
+                type,
+                appId,
+                correlationId,
+                messageId
+            }
         };
 
         let channelId = await context.stateGet('channelId');
