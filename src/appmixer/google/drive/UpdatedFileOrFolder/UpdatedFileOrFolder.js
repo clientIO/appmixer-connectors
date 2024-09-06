@@ -84,7 +84,7 @@ const detectUpdatedFiles = async function(context) {
                     isFile: file.mimeType !== 'application/vnd.google-apps.folder',
                     googleDriveFileMetadata: file
                 };
-                await context.sendJson(out, 'file');
+                await context.sendJson(out, 'out');
                 await context.stateSet('processedFiles', processedFilesSet.export());
             }
         }
