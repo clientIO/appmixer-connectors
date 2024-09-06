@@ -74,7 +74,7 @@ module.exports = {
         if (outputType === 'first') {
             return context.sendJson(
                 [
-                    { value: 'id', label: 'Email ID' },
+                    { value: 'id', label: 'Message ID' },
                     { value: 'threadId', label: 'Thread ID' }
                 ],
                 'out'
@@ -82,7 +82,7 @@ module.exports = {
         } else if (outputType === 'email') {
             return context.sendJson(
                 [
-                    { value: 'id', label: 'Email ID' },
+                    { value: 'id', label: 'Message ID' },
                     { value: 'threadId', label: 'Thread ID' }
                 ],
                 'out'
@@ -98,7 +98,7 @@ module.exports = {
                             items: {
                                 type: 'object',
                                 properties: {
-                                    id: { type: 'string', title: 'Email ID' },
+                                    id: { type: 'string', title: 'Message ID' },
                                     threadId: { type: 'string', title: 'Thread ID' }
                                 }
                             }
