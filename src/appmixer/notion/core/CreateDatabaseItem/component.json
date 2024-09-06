@@ -10,114 +10,12 @@
     "inPorts": [
         {
             "name": "in",
-            "schema": {
-                "type": "object",
-                "properties": {
-                    "parentId": {
-                        "type": "string"
-                    },
-                    "emoji": {
-                        "type": "string"
-                    },
-                    "title": {
-                        "type": "string"
-                    },
-                    "coverUrl": {
-                        "type": "string"
-                    },
-                    "content": {
-                        "type": "string"
-                    },
-                    "rawJson": {
-                        "type": "boolean"
-                    },
-                    "json": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "parentId",
-                    "title"
-                ]
-            },
-            "inspector": {
-                "inputs": {
-                    "rawJson": {
-                        "type": "toggle",
-                        "index": 1,
-                        "label": "Use Raw JSON",
-                        "tooltip": "Toggle to input the raw JSON",
-                        "defaultValue": false
-                    },
-                    "json": {
-                        "type": "textarea",
-                        "index": 2,
-                        "label": "Raw JSON",
-                        "tooltip": "Provide the JSON structure for the item",
-                        "when": {
-                            "eq": {
-                                "./rawJson": true
-                            }
-                        }
-                    },
-                    "parentId": {
-                        "type": "text",
-                        "index": 3,
-                        "label": "Parent Database ID",
-                        "tooltip": "Select the parent database or enter a database ID",
-                        "source": {
-                            "url": "/component/appmixer/notion/core/ListDatabases?outPort=out",
-                            "data": {
-                                "properties": {
-                                    "sendWholeArray": true
-                                },
-                                "transform": "./ListDatabases#databaseToSelectArray"
-                            }
-                        }
-                    },
-                    "emoji": {
-                        "type": "text",
-                        "index": 4,
-                        "label": "Emoji",
-                        "tooltip": "Enter an emoji for the item icon",
-                        "when": {
-                            "eq": {
-                                "./rawJson": false
-                            }
-                        }
-                    },
-                    "title": {
-                        "type": "text",
-                        "index": 5,
-                        "label": "Title",
-                        "tooltip": "Enter the title of the item",
-                        "when": {
-                            "eq": {
-                                "./rawJson": false
-                            }
-                        }
-                    },
-                    "coverUrl": {
-                        "type": "text",
-                        "index": 6,
-                        "label": "Cover Image URL",
-                        "tooltip": "Enter a Publicly accessible URL for the cover image",
-                        "when": {
-                            "eq": {
-                                "./rawJson": false
-                            }
-                        }
-                    },
-                    "content": {
-                        "type": "text",
-                        "index": 7,
-                        "label": "Content",
-                        "tooltip": "Enter the content for the item",
-                        "when": {
-                            "eq": {
-                                "./rawJson": false
-                            }
-                        }
+            "source": {
+                "url": "/component/appmixer/notion/core/CreateDatabaseItem?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateInspector": true,
+                        "databaseId": "inputs/in/databaseId"
                     }
                 }
             }
@@ -125,7 +23,319 @@
     ],
     "outPorts": [
         {
-            "name": "out"
+            "name": "out",
+            "options": [
+                { "label": "Object", "value": "object", "schema": { "type": "string" } },
+                { "label": "ID", "value": "id", "schema": { "type": "string" } },
+                { "label": "Created time", "value": "created_time", "schema": { "type": "string" } },
+                { "label": "Last edited time", "value": "last_edited_time", "schema": { "type": "string" } },
+                {
+                    "label": "Created by",
+                    "value": "created_by",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "object": { "title": "Created by.object", "type": "string" },
+                            "id": { "title": "Created by.ID", "type": "string" }
+                        }
+                    }
+                },
+                {
+                    "label": "Last edited by",
+                    "value": "last_edited_by",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "object": { "title": "Last edited by.object", "type": "string" },
+                            "id": { "title": "Last edited by.ID", "type": "string" }
+                        }
+                    }
+                },
+                { "label": "Cover", "value": "cover", "schema": { "type": "string" } },
+                { "label": "Icon", "value": "icon", "schema": { "type": "string" } },
+                {
+                    "label": "Parent",
+                    "value": "parent",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "type": { "title": "Parent.type", "type": "string" },
+                            "database_id": { "title": "Parent.database_ID", "type": "string" }
+                        }
+                    }
+                },
+                { "label": "Archived", "value": "archived", "schema": { "type": "boolean" } },
+                { "label": "In trash", "value": "in_trash", "schema": { "type": "boolean" } },
+                {
+                    "label": "Properties",
+                    "value": "properties",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "status": {
+                                "title": "Properties.status",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.status.ID", "type": "string" },
+                                    "type": { "title": "Properties.status.type", "type": "string" },
+                                    "name": { "title": "Properties.status.name", "type": "string" },
+                                    "color": { "title": "Properties.status.color", "type": "string" }
+                                }
+                            },
+                            "formula": {
+                                "title": "Properties.formula",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.formula.ID", "type": "string" },
+                                    "type": { "title": "Properties.formula.type", "type": "string" },
+                                    "formula": {
+                                        "title": "Properties.formula.formula",
+                                        "type": "object",
+                                        "properties": {
+                                            "type": { "title": "Properties.formula.formula.type", "type": "string" },
+                                            "string": { "title": "Properties.formula.formula.string", "type": "string" }
+                                        }
+                                    }
+                                }
+                            },
+                            "phone": {
+                                "title": "Properties.phone",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.phone.ID", "type": "string" },
+                                    "type": { "title": "Properties.phone.type", "type": "string" },
+                                    "phone_number": { "title": "Properties.phone.phone_number", "type": "string" }
+                                }
+                            },
+                            "text": {
+                                "title": "Properties.text",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.text.ID", "type": "string" },
+                                    "type": { "title": "Properties.text.type", "type": "string" },
+                                    "rich_text": {
+                                        "title": "Properties.text.rich_text",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {}
+                                        }
+                                    }
+                                }
+                            },
+                            "button": {
+                                "title": "Properties.button",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.button.ID", "type": "string" },
+                                    "type": { "title": "Properties.button.type", "type": "string" },
+                                    "button": {
+                                        "title": "Properties.button.button",
+                                        "type": "object",
+                                        "properties": {}
+                                    }
+                                }
+                            },
+                            "multi_select": {
+                                "title": "Properties.multi_select",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.multi_select.ID", "type": "string" },
+                                    "type": { "title": "Properties.multi_select.type", "type": "string" },
+                                    "multi_select": {
+                                        "title": "Properties.multi_select.multi_select",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "title": "Properties.multi_select.multi_select.ID", "type": "string" },
+                                                "name": { "title": "Properties.multi_select.multi_select.name", "type": "string" },
+                                                "color": { "title": "Properties.multi_select.multi_select.color", "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "email": {
+                                "title": "Properties.email",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.email.ID", "type": "string" },
+                                    "type": { "title": "Properties.email.type", "type": "string" },
+                                    "email": { "title": "Properties.email.email", "type": "string" }
+                                }
+                            },
+                            "url": {
+                                "title": "Properties.url",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.url.ID", "type": "string" },
+                                    "type": { "title": "Properties.url.type", "type": "string" },
+                                    "url": { "title": "Properties.url.url", "type": "string" }
+                                }
+                            },
+                            "number": {
+                                "title": "Properties.number",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.number.ID", "type": "string" },
+                                    "type": { "title": "Properties.number.type", "type": "string" },
+                                    "number": { "title": "Properties.number.number", "type": "number" }
+                                }
+                            },
+                            "files": {
+                                "title": "Properties.files",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.files.ID", "type": "string" },
+                                    "type": { "title": "Properties.files.type", "type": "string" },
+                                    "files": {
+                                        "title": "Properties.files.files",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "name": { "title": "Properties.files.files.name", "type": "string" },
+                                                "type": { "title": "Properties.files.files.type", "type": "string" },
+                                                "external": {
+                                                    "title": "Properties.files.files.external",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "url": { "title": "Properties.files.files.external.url", "type": "string" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "checkbox": {
+                                "title": "Properties.checkbox",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.checkbox.ID", "type": "string" },
+                                    "type": { "title": "Properties.checkbox.type", "type": "string" },
+                                    "checkbox": { "title": "Properties.checkbox.checkbox", "type": "boolean" }
+                                }
+                            },
+                            "rollup": {
+                                "title": "Properties.rollup",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.rollup.ID", "type": "string" },
+                                    "type": { "title": "Properties.rollup.type", "type": "string" },
+                                    "rollup": {
+                                        "title": "Properties.rollup.rollup",
+                                        "type": "object",
+                                        "properties": {
+                                            "type": { "title": "Properties.rollup.rollup.type", "type": "string" },
+                                            "array": {
+                                                "title": "Properties.rollup.rollup.array",
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {}
+                                                }
+                                            },
+                                            "function": { "title": "Properties.rollup.rollup.function", "type": "string" }
+                                        }
+                                    }
+                                }
+                            },
+                            "person": {
+                                "title": "Properties.person",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.person.ID", "type": "string" },
+                                    "type": { "title": "Properties.person.type", "type": "string" },
+                                    "people": {
+                                        "title": "Properties.person.people",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "object": { "title": "Properties.person.people.object", "type": "string" },
+                                                "id": { "title": "Properties.person.people.ID", "type": "string" },
+                                                "name": { "title": "Properties.person.people.name", "type": "string" },
+                                                "avatar_url": { "title": "Properties.person.people.avatar_url", "type": "string" },
+                                                "type": { "title": "Properties.person.people.type", "type": "string" },
+                                                "person": {
+                                                    "title": "Properties.person.people.person",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "email": { "title": "Properties.person.people.person.email", "type": "string" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "date": {
+                                "title": "Properties.date",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.date.ID", "type": "string" },
+                                    "type": { "title": "Properties.date.type", "type": "string" },
+                                    "date": {
+                                        "title": "Properties.date.date",
+                                        "type": "object",
+                                        "properties": {
+                                            "start": { "title": "Properties.date.date.start", "type": "string" },
+                                            "end": { "title": "Properties.date.date.end", "type": "string" },
+                                            "time_zone": { "title": "Properties.date.date.time_zone", "type": "string" }
+                                        }
+                                    }
+                                }
+                            },
+                            "title": {
+                                "title": "Properties.title",
+                                "type": "object",
+                                "properties": {
+                                    "id": { "title": "Properties.title.ID", "type": "string" },
+                                    "type": { "title": "Properties.title.type", "type": "string" },
+                                    "title": {
+                                        "title": "Properties.title.title",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "type": { "title": "Properties.title.title.type", "type": "string" },
+                                                "text": {
+                                                    "title": "Properties.title.title.text",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "content": { "title": "Properties.title.title.text.content", "type": "string" },
+                                                        "link": { "title": "Properties.title.title.text.link", "type": "string" }
+                                                    }
+                                                },
+                                                "annotations": {
+                                                    "title": "Properties.title.title.annotations",
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "bold": { "title": "Properties.title.title.annotations.bold", "type": "boolean" },
+                                                        "italic": { "title": "Properties.title.title.annotations.italic", "type": "boolean" },
+                                                        "strikethrough": { "title": "Properties.title.title.annotations.strikethrough", "type": "boolean" },
+                                                        "underline": { "title": "Properties.title.title.annotations.underline", "type": "boolean" },
+                                                        "code": { "title": "Properties.title.title.annotations.code", "type": "boolean" },
+                                                        "color": { "title": "Properties.title.title.annotations.color", "type": "string" }
+                                                    }
+                                                },
+                                                "plain_text": { "title": "Properties.title.title.plain_text", "type": "string" },
+                                                "href": { "title": "Properties.title.title.href", "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                { "label": "URL", "value": "url", "schema": { "type": "string" } },
+                { "label": "Public URL", "value": "public_url", "schema": { "type": "string" } },
+                { "label": "Request ID", "value": "request_id", "schema": { "type": "string" } }
+            ]
         }
+        
     ]
 }
