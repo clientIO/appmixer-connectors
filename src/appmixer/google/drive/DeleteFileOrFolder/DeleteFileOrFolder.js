@@ -10,7 +10,9 @@ module.exports = {
         const drive = google.drive({ version: 'v3', auth });
         let { fileId } = context.messages.in.content;
 
-        await drive.files.delete({ fileId });
-        return context.sendJson({ fileId }, 'out');
+        const normalizedFileId = typeof fileId === 'string' ? fileId : fileId.id;
+
+        await drive.files.delete({ fileId: normalizedFileId });
+        return context.sendJson({ fileId: normalizedFileId }, 'out');
     }
 };
