@@ -111,14 +111,16 @@ module.exports = {
             const csvString = csvRows.join('\n');
             let buffer = Buffer.from(csvString, 'utf8');
             const savedFile = await context.saveFileStream(`google-drive-FindFilesOrFolders-${(new Date).toISOString()}.csv`, buffer);
-            return context.sendJson({ fileId: savedFile.fileId }, 'out');
+            return context.sendJson({ fileId: savedFile.fileId, count: items.count }, 'out');
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }
     },
 
-    prepareOutputItem(item) {
+    prepareOutputItem(item, index, items) {
         return {
+            index: index,
+            count: items.length,
             isFolder: item.mimeType === 'application/vnd.google-apps.folder',
             isFile: item.mimeType !== 'application/vnd.google-apps.folder',
             googleDriveFileMetadata: item
@@ -130,6 +132,8 @@ module.exports = {
         const { outputType } = context.messages.in.content;
         if (outputType === 'item' || outputType === 'firstItem') {
             const options = [
+                { "label": "Current Item Index", "value": "index", "schema": { "type": "integer" } },
+                { "label": "Items Count", "value": "count", "schema": { "type": "integer" } },
                 { "label": "Is File", "value": "isFile", "schema": { "type": "boolean" } },
                 { "label": "Is Folder", "value": "isFolder", "schema": { "type": "boolean" }  },
                 {
@@ -141,11 +145,13 @@ module.exports = {
             return context.sendJson(options, 'out');
         } else if (outputType === 'items') {
             const options = [
+                { "label": "Items Count", "value": "count", "schema": { "type": "integer" } },
                 { label: 'Items', value: 'items', "schema": {
                     "type": "array",
                     "items": {
                         "type": "object",
                         "properties": {
+                            "index": { "type": "integer", "title": "Current Item Index" },
                             "isFile": { "type": "boolean", "title": "Is File" },
                             "isFolder": { "type": "boolean", "title": "Is Folder" },
                             "googleDriveFileMetadata": this.googleDriveFileMetadataSchema
@@ -155,7 +161,10 @@ module.exports = {
             ];
             return context.sendJson(options, 'out');
         } else {        // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId', "schema": { "type": "string", "format": "appmixer-file-id" } }], 'out');
+            return context.sendJson([
+                { "label": "Items Count", "value": "count", "schema": { "type": "integer" } },
+                { label: 'File ID', value: 'fileId', "schema": { "type": "string", "format": "appmixer-file-id" } }
+            ], 'out');
         }
     },
 
