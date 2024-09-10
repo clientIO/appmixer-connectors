@@ -12,7 +12,7 @@ module.exports = {
 
             tokenType: 'authentication-token',
 
-            accountNameFromProfileInfo: 'clientId',
+            accountNameFromProfileInfo: 'username',
 
             auth: {
                 protocol: {
