@@ -1,8 +1,8 @@
 'use strict';
-const commons = require('../drive-commons');
+const lib = require('../lib');
 
 module.exports = {
     async receive(context) {
-        return context.sendJson(commons.getCredentials(context.auth), 'out');
+        return context.sendJson(lib.getCredentials(context.auth), 'out');
     }
 };

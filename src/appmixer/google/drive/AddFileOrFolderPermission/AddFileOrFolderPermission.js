@@ -1,13 +1,13 @@
 'use strict';
 
 const { google } = require('googleapis');
-const commons = require('../drive-commons');
+const lib = require('../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const auth = commons.getOauth2Client(context.auth);
+        const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         let { googleDriveFileId, type, role, emailAddress } = context.messages.in.content;
 

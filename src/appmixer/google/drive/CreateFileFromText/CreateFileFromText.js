@@ -1,13 +1,13 @@
 'use strict';
 const mime = require('mime-types');
 const { google } = require('googleapis');
-const commons = require('../drive-commons');
+const lib = require('../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const auth = commons.getOauth2Client(context.auth);
+        const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         let { fileName, folder, replace, convertToDocument, content } = context.messages.in.content;
 
@@ -31,7 +31,7 @@ module.exports = {
         let response;
 
         if (replace) {
-            const normalizedFileName = commons.escapeSpecialCharacters(fileName);
+            const normalizedFileName = lib.escapeSpecialCharacters(fileName);
             const query = `name='${normalizedFileName}' and parents in '${folder ? folderId : 'root'}' and trashed=false`;
             const { data } = await drive.files.list({
                 q: query

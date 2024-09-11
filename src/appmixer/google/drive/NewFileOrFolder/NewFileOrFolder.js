@@ -1,6 +1,6 @@
 const moment = require('moment');
 const { google } = require('googleapis');
-const commons = require('../drive-commons');
+const lib = require('../lib');
 
 const getNewFiles = async (lock, drive, folder, fileTypesRestriction, pageToken, newFiles = []) => {
 
@@ -64,7 +64,7 @@ const detectNewFiles = async function(context) {
 
     try {
         const { startPageToken, processedFiles = [] } = await context.loadState();
-        const auth = commons.getOauth2Client(context.auth);
+        const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
 
         await context.stateSet('hasSkippedMessage', false);
@@ -74,7 +74,7 @@ const detectNewFiles = async function(context) {
             newStartPageToken
         } = await getNewFiles(lock, drive, folder.id, fileTypesRestriction, startPageToken);
 
-        const processedFilesSet = commons.processedItemsBuffer(processedFiles);
+        const processedFilesSet = lib.processedItemsBuffer(processedFiles);
 
         for (let file of newFiles) {
             if (!processedFilesSet.has(file.id)) {
@@ -158,7 +158,7 @@ module.exports = {
         }
 
         try {
-            const auth = commons.getOauth2Client(context.auth);
+            const auth = lib.getOauth2Client(context.auth);
             const drive = google.drive({ version: 'v3', auth });
             let pageToken = await context.stateGet('startPageToken');
 
@@ -194,7 +194,7 @@ module.exports = {
 
         const { webhookId } = await context.loadState();
         if (webhookId) {
-            const auth = commons.getOauth2Client(context.auth);
+            const auth = lib.getOauth2Client(context.auth);
             const drive = google.drive({ version: 'v3', auth });
 
             return drive.channels.stop({

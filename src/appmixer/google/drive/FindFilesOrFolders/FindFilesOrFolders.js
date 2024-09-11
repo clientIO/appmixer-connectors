@@ -2,7 +2,7 @@
 
 'use strict';
 const { google } = require('googleapis');
-const commons = require('../drive-commons');
+const lib = require('../lib');
 
 module.exports = {
 
@@ -12,10 +12,10 @@ module.exports = {
             return this.getOutputPortOptions(context);
         }
 
-        const auth = commons.getOauth2Client(context.auth);
+        const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         let { query, searchType, folderLocation, fileTypes, outputType } = context.messages.in.content;
-        const escapedQuery = commons.escapeSpecialCharacters(query);
+        const escapedQuery = lib.escapeSpecialCharacters(query);
 
         let folderId;
         if (folderLocation) {

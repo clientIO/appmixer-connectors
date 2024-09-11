@@ -1,15 +1,15 @@
 'use strict';
 const { google } = require('googleapis');
-const commons = require('../drive-commons');
+const lib = require('../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const auth = commons.getOauth2Client(context.auth);
+        const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
         let { folderName, folderLocation, useExisting } = context.messages.in.content;
-        const escapedFolderName = commons.escapeSpecialCharacters(folderName);
+        const escapedFolderName = lib.escapeSpecialCharacters(folderName);
         const resource = {
             name: folderName,
             mimeType: 'application/vnd.google-apps.folder'
