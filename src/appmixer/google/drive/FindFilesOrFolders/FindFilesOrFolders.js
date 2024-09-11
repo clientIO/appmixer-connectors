@@ -9,7 +9,7 @@ module.exports = {
     async receive(context) {
 
         if (context.properties.generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, context.messages.in.content.outputType);
+            return this.getOutputPortOptions(context);
         }
 
         const auth = commons.getOauth2Client(context.auth);
