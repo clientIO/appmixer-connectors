@@ -16,6 +16,10 @@ module.exports = {
         }
 
         const { accessToken, profileInfo } = context.auth;
+
+        // If the file is a string, it means it's an item ID that was provided dynamically.
+        // We need to fetch the metadata of the item to get the download URL.
+        // Otherwise we assume it's an object provided by OneDrive picker from the front-end.
         if (typeof file === 'string') {
             const data = await commons.formatError(() => {
                 return oneDriveAPI.items.getMetadata({
@@ -27,12 +31,28 @@ module.exports = {
             file = {
                 id: data.id,
                 name: data.name,
-                mimeType: data.file.mimeType
+                mimeType: data.file.mimeType,
+                downloadUrl: data['@microsoft.graph.downloadUrl'],
+                size: data.size
             };
         }
 
         const { id, name, mimeType } = file;
         const response = await commons.formatError(() => {
+
+            // Use the graph download URL if available to avoid using /content API.
+            // See https://learn.microsoft.com/en-us/graph/api/driveitem-get-content?view=graph-rest-1.0&tabs=javascript#downloading-files-in-javascript-apps
+            if (file.downloadUrl && file.size) {
+                // This uses https://github.com/dkatavic/onedrive-api?tab=readme-ov-file#itemspartialdownload
+                return oneDriveAPI.items.partialDownload({
+                    accessToken,
+                    bytesFrom: 0,
+                    bytesTo: file.size - 1,
+                    graphDownloadURL: file.downloadUrl
+                });
+            }
+
+            // Fallback to /content API if download URL is not available.
             return oneDriveAPI.items.download({
                 accessToken,
                 itemId: id
