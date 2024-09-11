@@ -17,9 +17,81 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "filename": { "type": "string" },
-                    "fileId": { "type": "string" }
+                    "integrationId": {
+                        "type": "string"
+                    },
+                    "dataSources": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "analysisDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "assets": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "assetIdentifier": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "cloudPlatform": {
+                                                        "enum": ["aaa"]
+                                                    },
+                                                    "providerId": {
+                                                        "type": "string"
+                                                    },
+                                                    "networkAddress": {
+                                                        "type": "string"
+                                                    },
+                                                    "endpointUrl": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "oneOf": [
+                                                    {
+                                                        "required": [
+                                                            "providerId"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "required": [
+                                                            "networkAddress"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "required": [
+                                                            "endpointUrl"
+                                                        ]
+                                                    }
+                                                ],
+                                                "required": [
+                                                    "cloudPlatform"
+                                                ],
+                                                "additionalProperties": false
+                                            }
+                                        },
+                                        "required": [
+                                            "assetIdentifier"
+                                        ],
+                                        "additionalProperties": false
+                                    }
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "assets"
+                            ],
+                            "additionalProperties": false
+                        }
+                    }
                 },
+                "required": ["integrationId"],
                 "anyOf": [
                     { "required": ["fileId"] },
                     { "required": ["fileContent"] }
@@ -27,6 +99,89 @@
             },
             "inspector": {
                 "inputs": {
+                    "integrationId": {
+                        "type": "text",
+                        "label": "Integration Id",
+                        "index": 0
+                    },
+                    "dataSources": {
+                        "type": "expression",
+                        "label": "Data Sources",
+                        "levels": [
+                            "ADD"
+                        ],
+                        "index": 1,
+                        "tooltip": "Provide the variables.",
+                        "fields": {
+                            "id": {
+                                "type": "text",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Enter a text value."
+                            },
+                            "analysisData": {
+                                "type": "textarea",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Enter a textarea value."
+                            },
+                            "assets": {
+                                "type": "expression",
+                                "label": "Assets",
+                                "levels": [
+                                    "ADD"
+                                ],
+                                "index": 1,
+                                "fields": {
+                                    "assetIdentifier": {
+                                        "type": "text",
+                                        "label": "Cloud Platform",
+                                        "required": true,
+                                        "index": 1
+                                    },
+                                    "assets.providerId": {
+                                        "type": "text",
+                                        "label": "Provide ID",
+
+                                        "index": 2
+                                    }
+                                }
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "index": 3,
+                                "tooltip": "Select the variable type.",
+                                "defaultValue": "text",
+                                "options": [
+                                    {
+                                        "label": "Number",
+                                        "value": "number"
+                                    },
+                                    {
+                                        "label": "Text",
+                                        "value": "text"
+                                    },
+                                    {
+                                        "label": "Textarea",
+                                        "value": "textarea"
+                                    },
+                                    {
+                                        "label": "Date",
+                                        "value": "date-time"
+                                    },
+                                    {
+                                        "label": "Boolean",
+                                        "value": "toggle"
+                                    },
+                                    {
+                                        "label": "File",
+                                        "value": "filepicker"
+                                    }
+                                ]
+                            }
+                        }
+                    },
                     "filename": {
                         "type": "text",
                         "label": "File Name",
