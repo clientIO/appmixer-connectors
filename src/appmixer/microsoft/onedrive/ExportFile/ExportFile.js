@@ -18,13 +18,15 @@ module.exports = {
         const { accessToken, profileInfo } = context.auth;
 
         // If the file is a string, it means it's an item ID that was provided dynamically.
+        // Alternatively, it could be an object with an ID property. It's an object provided by OneDrive picker from the front-end.
+        // Basically `file` is the same as `file.id` in this case.
         // We need to fetch the metadata of the item to get the download URL.
-        // Otherwise we assume it's an object provided by OneDrive picker from the front-end.
-        if (typeof file === 'string') {
+        if (typeof file === 'string' || (typeof file === 'object' && file.id)) {
+            const itemId = typeof file === 'string' ? file : file.id;
             const data = await commons.formatError(() => {
                 return oneDriveAPI.items.getMetadata({
                     accessToken,
-                    itemId: file
+                    itemId
                 });
             }, `The selected file could not be found in your OneDrive account (${profileInfo.userPrincipalName})`);
 
