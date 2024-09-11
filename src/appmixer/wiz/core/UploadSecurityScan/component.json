@@ -20,165 +20,158 @@
                     "integrationId": {
                         "type": "string"
                     },
-                    "dataSources": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "string"
-                                },
-                                "analysisDate": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                },
-                                "assets": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "assetIdentifier": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "cloudPlatform": {
-                                                        "enum": ["aaa"]
-                                                    },
-                                                    "providerId": {
-                                                        "type": "string"
-                                                    },
-                                                    "networkAddress": {
-                                                        "type": "string"
-                                                    },
-                                                    "endpointUrl": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "oneOf": [
-                                                    {
-                                                        "required": [
-                                                            "providerId"
-                                                        ]
-                                                    },
-                                                    {
-                                                        "required": [
-                                                            "networkAddress"
-                                                        ]
-                                                    },
-                                                    {
-                                                        "required": [
-                                                            "endpointUrl"
-                                                        ]
-                                                    }
-                                                ],
-                                                "required": [
-                                                    "cloudPlatform"
-                                                ],
-                                                "additionalProperties": false
-                                            }
-                                        },
-                                        "required": [
-                                            "assetIdentifier"
-                                        ],
-                                        "additionalProperties": false
-                                    }
-                                }
-                            },
-                            "required": [
-                                "id",
-                                "assets"
-                            ],
-                            "additionalProperties": false
-                        }
+                    "dataSourceId": {
+                        "type": "string"
+                    },
+                    "cloudPlatform": {
+                        "type": "string"
+                    },
+                    "providerId": {
+                        "type": "string"
+                    },
+                    "vulnerabilityFindings": {
+                        "type": "array"
                     }
                 },
-                "required": ["integrationId"],
-                "anyOf": [
-                    { "required": ["fileId"] },
-                    { "required": ["fileContent"] }
+                "required": [
+                    "integrationId",
+                    "dataSourceId",
+                    "cloudPlatform",
+                    "providerId",
+                    "vulnerabilityFindings"
                 ]
             },
             "inspector": {
                 "inputs": {
                     "integrationId": {
                         "type": "text",
-                        "label": "Integration Id",
+                        "label": "Integration ID",
+                        "tooltip": "The unique ID for each Wiz integration. Sent by Wiz during the integration initiation process.",
                         "index": 0
                     },
-                    "dataSources": {
+                    "dataSourceId": {
+                        "type": "text",
+                        "label": "Data Source ID",
+                        "tooltip": "The ID that uniquely identifies asset findings within a tenant and integration ID. Can be a subscription ID.",
+                        "index": 1
+                    },
+                    "providerId": {
+                        "type": "text",
+                        "label": "Provider ID",
+                        "tooltip": "A unique identifier assigned to a specific cloud asset by the cloud service provider when the asset is created, allowing for the identification and differentiation of the asset within the cloud computing ecosystem. ARN—AWS, Resource group—Azure.",
+                        "index": 2
+                    },
+                    "cloudPlatform": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Cloud Platform",
+                        "defaultValue": "AWS",
+                        "tooltip": "The cloud platform that was scanned. Default is AWS",
+                        "options": [
+                            { "label": "AWS", "value": "AWS" },
+                            { "label": "Azure", "value": "Azure" },
+                            { "label": "GCP", "value": "GCP" },
+                            { "label": "OCI", "value": "OCI" },
+                            { "label": "Alibaba Cloud", "value": "Alibaba Cloud" },
+                            { "label": "Linode", "value": "Linode" }
+                        ]
+                    },
+                    "vulnerabilityFindings": {
                         "type": "expression",
-                        "label": "Data Sources",
-                        "levels": [
-                            "ADD"
-                        ],
-                        "index": 1,
-                        "tooltip": "Provide the variables.",
+                        "index": 2,
+                        "label": "Has an error in it",
+                        "levels": ["AND"],
                         "fields": {
                             "id": {
                                 "type": "text",
-                                "label": "Value",
                                 "index": 1,
-                                "tooltip": "Enter a text value."
+                                "label": "Vulnerability ID",
+                                "tooltip": "The unique ID of the discovered vulnerability finding.",
+                                "required": true
                             },
-                            "analysisData": {
-                                "type": "textarea",
-                                "label": "Value",
+                            "name": {
+                                "type": "text",
                                 "index": 1,
-                                "tooltip": "Enter a textarea value."
+                                "label": "Name",
+                                "tooltip": "The name of the Vulnerability, for example CVE-2021-25288.",
+                                "required": true
                             },
-                            "assets": {
-                                "type": "expression",
-                                "label": "Assets",
-                                "levels": [
-                                    "ADD"
-                                ],
-                                "index": 1,
-                                "fields": {
-                                    "assetIdentifier": {
-                                        "type": "text",
-                                        "label": "Cloud Platform",
-                                        "required": true,
-                                        "index": 1
-                                    },
-                                    "assets.providerId": {
-                                        "type": "text",
-                                        "label": "Provide ID",
-
-                                        "index": 2
-                                    }
-                                }
-                            },
-                            "type": {
+                            "severity": {
                                 "type": "select",
-                                "label": "Type",
-                                "index": 3,
-                                "tooltip": "Select the variable type.",
-                                "defaultValue": "text",
+                                "index": 2,
+                                "label": "Severity",
+                                "defaultValue": "Medium",
+                                "tooltip": "The severity of the vulnerability. Default is Medium",
+                                "required": true,
                                 "options": [
-                                    {
-                                        "label": "Number",
-                                        "value": "number"
-                                    },
-                                    {
-                                        "label": "Text",
-                                        "value": "text"
-                                    },
-                                    {
-                                        "label": "Textarea",
-                                        "value": "textarea"
-                                    },
-                                    {
-                                        "label": "Date",
-                                        "value": "date-time"
-                                    },
-                                    {
-                                        "label": "Boolean",
-                                        "value": "toggle"
-                                    },
-                                    {
-                                        "label": "File",
-                                        "value": "filepicker"
-                                    }
+                                    { "label": "None", "value": "None" },
+                                    { "label": "Low", "value": "Low" },
+                                    { "label": "Medium", "value": "Medium" },
+                                    { "label": "High", "value": "High" }
                                 ]
+                            },
+                            "externalDetectionSource": {
+                                "type": "select",
+                                "index": 2,
+                                "label": "Severity",
+                                "defaultValue": "Medium",
+                                "tooltip": "The severity of the vulnerability. Default is Medium",
+                                "required": true,
+                                "options": [
+                                    { "label": "Package", "value": "Package" },
+                                    { "label": "Default Package", "value": "Default Package" },
+                                    { "label": "Library", "value": "Library" },
+                                    { "label": "Operating System", ",value": "Operating System" },
+                                    { "label": "Installed Program (Windows)", "value": "Installed Program (Windows)" },
+                                    {
+                                        "label": "Installed Program By Service (Windows)",
+                                        "value": "Installed Program By Service (Windows)"
+                                    },
+                                    { "label": "File Path", "value": "File Path" }
+                                ]
+                            },
+                            "externalFindingLink": {
+                                "type": "text",
+                                "index": 1,
+                                "label": "External Finding Link",
+                                "tooltip": "A link to the source of the external finding."
+                            },
+                            "detailsName": {
+                                "type": "text",
+                                "index": 1,
+                                "label": "Details Name",
+                                "tooltip": "The details of the externalDetectionSource, such as \"Package,\" should include relevant information about the package. For instance, if the externalDetectionSource is \"libncurses6,\" the \"Details Name\" should reflect details about the package, such as \"libncurses6 package.\"."
+                            },
+                            "version": {
+                                "type": "text",
+                                "index": 1,
+                                "label": "Version",
+                                "tooltip": "The version of the finding."
+                            },
+                            "description": {
+                                "type": "text",
+                                "index": 1,
+                                "label": "Description",
+                                "tooltip": "A description of the finding."
+                            },
+                            "sourceName": {
+                                "type": "text",
+                                "index": 1,
+                                "label": "Source Name",
+                                "tooltip": "The name of the product that detected the vulnerability."
+                            },
+                            "remediation": {
+                                "type": "text",
+                                "index": 1,
+                                "label": "Remediation",
+                                "tooltip": "The remediation for the vulnerability."
+                            },
+                            "validatedInRuntime": {
+                                "type": "toggle",
+                                "index": 1,
+                                "label": "Validated In Runtime",
+                                "defaultValue": false,
+                                "tooltip": "Indicates if the finding was detected during runtime (true), or if it was detected during offline or static scanning (false)."
                             }
                         }
                     },
@@ -186,12 +179,6 @@
                         "type": "text",
                         "label": "File Name",
                         "index": 0
-                    },
-                    "fileId": {
-                        "type": "filepicker",
-                        "index": 1,
-                        "label": "File ID",
-                        "tooltip": "Select an existing file to upload. Or provide File ID of the file you want to upload."
                     },
                     "fileContent": {
                         "type": "textarea",
