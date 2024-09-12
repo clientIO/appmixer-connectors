@@ -1,6 +1,5 @@
 'use strict';
 const querystring = require('querystring');
-const axios = require('axios');
 
 module.exports = {
     type: 'oauth2',
@@ -37,19 +36,23 @@ module.exports = {
                 return `https://accounts.google.com/o/oauth2/auth?${params}`;
             },
 
-            requestProfileInfo: function(context) {
-                return axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+            requestProfileInfo: async function(context) {
+                const response = await context.httpRequest({
+                    method: 'GET',
+                    url: 'https://www.googleapis.com/oauth2/v2/userinfo',
                     headers: {
                         Authorization: `Bearer ${context.accessToken}`
                     }
-                }).then(response => {
-                    return response.data;
-                }).catch(error => {
-                    throw new Error(`Failed to retrieve profile info: ${error.message}`);
                 });
+
+                if (!response.data) {
+                    throw new Error('Failed to retrieve profile info');
+                }
+
+                return response.data;
             },
 
-            requestAccessToken: function(context) {
+            requestAccessToken: async function(context) {
                 const data = querystring.stringify({
                     code: context.authorizationCode,
                     client_id: initData.clientId,
@@ -58,22 +61,23 @@ module.exports = {
                     grant_type: 'authorization_code'
                 });
 
-                return axios.post('https://oauth2.googleapis.com/token', data, {
+                const response = await context.httpRequest({
+                    method: 'POST',
+                    url: 'https://oauth2.googleapis.com/token',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                }).then(response => {
-                    return {
-                        accessToken: response.data.access_token,
-                        accessTokenExpDate: new Date(Date.now() + response.data.expires_in * 1000),
-                        refreshToken: response.data.refresh_token
-                    };
-                }).catch(error => {
-                    throw new Error(`Failed to request access token: ${error.message}`);
+                    },
+                    data: data
                 });
+
+                return {
+                    accessToken: response.data.access_token,
+                    accessTokenExpDate: new Date(Date.now() + response.data.expires_in * 1000),
+                    refreshToken: response.data.refresh_token
+                };
             },
 
-            refreshAccessToken: function(context) {
+            refreshAccessToken: async function(context) {
                 const data = querystring.stringify({
                     client_id: initData.clientId,
                     client_secret: initData.clientSecret,
@@ -81,34 +85,35 @@ module.exports = {
                     grant_type: 'refresh_token'
                 });
 
-                return axios.post('https://oauth2.googleapis.com/token', data, {
+                const response = await context.httpRequest({
+                    method: 'POST',
+                    url: 'https://oauth2.googleapis.com/token',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
-                    }
-                }).then(response => {
-                    return {
-                        accessToken: response.data.access_token,
-                        accessTokenExpDate: new Date(Date.now() + response.data.expires_in * 1000)
-                    };
-                }).catch(error => {
-                    throw new Error(`Failed to refresh access token: ${error.message}`);
+                    },
+                    data: data
                 });
+
+                return {
+                    accessToken: response.data.access_token,
+                    accessTokenExpDate: new Date(Date.now() + response.data.expires_in * 1000)
+                };
             },
 
-            validateAccessToken: function(context) {
-                return axios.get('https://www.googleapis.com/oauth2/v2/tokeninfo', {
+            validateAccessToken: async function(context) {
+                const response = await context.httpRequest({
+                    method: 'GET',
+                    url: 'https://www.googleapis.com/oauth2/v2/tokeninfo',
                     params: {
                         access_token: context.accessToken
                     }
-                }).then(response => {
-                    if (response.data.expires_in) {
-                        return response.data.expires_in;
-                    } else {
-                        throw new Error('Token validation failed.');
-                    }
-                }).catch(error => {
-                    throw new Error(`Failed to validate access token: ${error.message}`);
                 });
+
+                if (response.data.expires_in) {
+                    return response.data.expires_in;
+                } else {
+                    throw new Error('Token validation failed.');
+                }
             }
         };
     }
