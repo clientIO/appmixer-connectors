@@ -53,7 +53,7 @@ module.exports = {
             }
         } else if (outputType === 'object') {
             for (let index = 0; index < entries.length; index++) {
-                const entry = entries[i];
+                const entry = entries[index];
                 await context.sendJson({ entry, index, count: entries.length }, 'out');
             }
         } else if (outputType === 'array') {
