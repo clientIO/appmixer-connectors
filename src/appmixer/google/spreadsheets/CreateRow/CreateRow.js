@@ -24,25 +24,19 @@ module.exports = {
         });
 
         const headerValues = headerResponse.values[0];
+
+        // Map the incoming values to the columns in the sheet
         const orderedValues = headerValues.map(column => values[column] || '');
 
         const resource = {
             values: [orderedValues]
         };
 
-        // Find the next available row for insertion
-        const rangeResponse = await sheets.spreadsheets.values.get({
-            auth: commons.getOauth2Client(context.auth),
-            spreadsheetId: sheetId,
-            range: worksheetId.split('/')[1]
-        });
-
-        const nextRow = rangeResponse.values ? rangeResponse.values.length + 1 : 1;
-
+        // Append the new row directly to the sheet using INSERT_ROWS
         const response = await createRow({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: sheetId,
-            range: `${worksheetId.split('/')[1]}!A${nextRow}`, // Start from column A and next available row
+            range: `${worksheetId.split('/')[1]}!A:A`, // Start appending from column A
             valueInputOption: 'RAW',
             insertDataOption: 'INSERT_ROWS',
             resource
@@ -60,4 +54,3 @@ module.exports = {
         }
     }
 };
-
