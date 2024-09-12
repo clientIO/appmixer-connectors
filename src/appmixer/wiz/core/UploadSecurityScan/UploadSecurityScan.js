@@ -91,17 +91,6 @@ const requestUpload = async function(context, { filename }) {
     return data.data.requestSecurityScanUpload.upload;
 };
 
-async function streamToString(stream) {
-    // lets have a ReadableStream as a stream variable
-    const chunks = [];
-
-    for await (const chunk of stream) {
-        chunks.push(Buffer.from(chunk));
-    }
-
-    return Buffer.concat(chunks).toString('utf-8');
-}
-
 const uploadFile = async function(context, { url, fileContent }) {
 
     const upload = await context.httpRequest({
@@ -112,30 +101,39 @@ const uploadFile = async function(context, { url, fileContent }) {
             'Content-Type': 'application/json'
         }
     });
-    context.log({ stage: 'upload finished', uploadData: upload.statusCode });
+    await context.log({ stage: 'upload finished', uploadData: upload.statusCode, fileContent });
 };
 
-const getFile = async function(context) {
+const createDocument = function(context) {
 
-    const { filename, fileId, fileContent } = context.messages.in.content;
+    const {
+        integrationId,
+        dataSourceId: id,
+        dataSourceAnalysisDate: analysisDate,
+        cloudPlatform,
+        providerId,
+        vulnerabilityFindings
+    } = context.messages.in.content;
 
-    let json;
-    let name;
-    if (fileId) {
-        const fileInfo = await context.getFileInfo(fileId);
-        const stream = await context.getFileReadStream(fileId);
-        json = await streamToString(stream);
-        name = filename || fileInfo.filename;
-    } else {
-        try {
-            json = JSON.parse(fileContent);
-            name = filename || 'incident-report.json';
-        } catch (e) {
-            throw new context.CancelError('Invalid Input: FileContent', e);
-        }
-    }
+    return {
 
-    return { content: json, name };
+        integrationId,
+        'dataSources': [{
+            id,
+            analysisDate,
+            'assets': [
+                {
+                    'assetIdentifier': {
+                        cloudPlatform,
+                        providerId
+                    },
+                    'vulnerabilityFindings': vulnerabilityFindings.AND.map(finding => {
+                        return { ...finding };
+                    })
+                }
+            ]
+        }]
+    };
 };
 
 module.exports = {
@@ -143,12 +141,12 @@ module.exports = {
     // docs: https://win.wiz.io/reference/pull-cloud-resources
     async receive(context) {
 
-        const { name, fileContent } = await getFile(context);
+        const { filename } = context.messages.in.content;
 
-        const { url, systemActivityId } = await requestUpload(context, { filename: name });
-        context.log({ stage: 'requestUpload response ', url, systemActivityId });
+        const { url, systemActivityId } = await requestUpload(context, { filename });
+        await context.log({ stage: 'requestUpload response ', url, systemActivityId });
 
-        await uploadFile(context, { url, fileContent });
+        await uploadFile(context, { url, fileContent: createDocument(context) });
 
         const status = await getStatus(context, systemActivityId);
         return context.sendJson(status, 'out');

@@ -17,6 +17,9 @@
             "schema": {
                 "type": "object",
                 "properties": {
+                    "filename": {
+                        "type": "string"
+                    },
                     "integrationId": {
                         "type": "string"
                     },
@@ -29,11 +32,10 @@
                     "providerId": {
                         "type": "string"
                     },
-                    "vulnerabilityFindings": {
-                        "type": "array"
-                    }
+                    "vulnerabilityFindings": { }
                 },
                 "required": [
+                    "filename",
                     "integrationId",
                     "dataSourceId",
                     "cloudPlatform",
@@ -43,6 +45,11 @@
             },
             "inspector": {
                 "inputs": {
+                    "filename": {
+                        "type": "text",
+                        "label": "File Name",
+                        "index": 0
+                    },
                     "integrationId": {
                         "type": "text",
                         "label": "Integration ID",
@@ -55,10 +62,19 @@
                         "tooltip": "The ID that uniquely identifies asset findings within a tenant and integration ID. Can be a subscription ID.",
                         "index": 1
                     },
+                    "dataSourceAnalysisDate": {
+                        "type": "date-time",
+                        "label": "Analysis Date",
+                        "tooltip": "The date the scan was performed.",
+                        "config": {
+                            "enableTime": true
+                        },
+                        "index": 1
+                    },
                     "providerId": {
                         "type": "text",
                         "label": "Provider ID",
-                        "tooltip": "A unique identifier assigned to a specific cloud asset by the cloud service provider when the asset is created, allowing for the identification and differentiation of the asset within the cloud computing ecosystem. ARN—AWS, Resource group—Azure.",
+                        "tooltip": "A unique identifier assigned to a specific cloud asset by the cloud service provider when the asset is created, allowing for the identification and differentiation of the asset within the cloud computing ecosystem.",
                         "index": 2
                     },
                     "cloudPlatform": {
@@ -113,21 +129,29 @@
                             "externalDetectionSource": {
                                 "type": "select",
                                 "index": 2,
-                                "label": "Severity",
-                                "defaultValue": "Medium",
+                                "label": "External Detection Source",
+                                "defaultValue": "Package",
                                 "tooltip": "The severity of the vulnerability. Default is Medium",
                                 "required": true,
                                 "options": [
                                     { "label": "Package", "value": "Package" },
-                                    { "label": "Default Package", "value": "Default Package" },
+                                    { "label": "Default Package", "value": "DefaultPackage" },
                                     { "label": "Library", "value": "Library" },
-                                    { "label": "Operating System", ",value": "Operating System" },
-                                    { "label": "Installed Program (Windows)", "value": "Installed Program (Windows)" },
-                                    {
-                                        "label": "Installed Program By Service (Windows)",
-                                        "value": "Installed Program By Service (Windows)"
-                                    },
-                                    { "label": "File Path", "value": "File Path" }
+                                    { "label": "Config File", "value": "ConfigFile" },
+                                    { "label": "Open Port", "value": "OpenPort" },
+                                    { "label": "Startup Service", "value": "StartupService" },
+                                    { "label": "Configuration", "value": "Configuration" },
+                                    { "label": "Cloned Repository", "value": "ClonedRepository" },
+                                    { "label": "OS", "value": "OS" },
+                                    { "label": "Artifacts On Disk", "value": "ArtifactsOnDisk" },
+                                    { "label": "Windows Registry", "value": "WindowsRegistry" },
+                                    { "label": "Installed Program", "value": "InstalledProgram" },
+                                    { "label": "File Path", "value": "FilePath" },
+                                    { "label": "Windows Service", "value": "WindowsService" },
+                                    { "label": "Installed Program By Service", "value": "InstalledProgramByService" },
+                                    { "label": "Hosted Database Scan", "value": "HostedDatabaseScan" },
+                                    { "label": "External Network Scan", "value": "ExternalNetworkScan" },
+                                    { "label": "Cloud API", "value": "CloudAPI" }
                                 ]
                             },
                             "externalFindingLink": {
@@ -136,10 +160,10 @@
                                 "label": "External Finding Link",
                                 "tooltip": "A link to the source of the external finding."
                             },
-                            "detailsName": {
+                            "detailedName": {
                                 "type": "text",
                                 "index": 1,
-                                "label": "Details Name",
+                                "label": "Detailed Name",
                                 "tooltip": "The details of the externalDetectionSource, such as \"Package,\" should include relevant information about the package. For instance, if the externalDetectionSource is \"libncurses6,\" the \"Details Name\" should reflect details about the package, such as \"libncurses6 package.\"."
                             },
                             "version": {
@@ -154,37 +178,27 @@
                                 "label": "Description",
                                 "tooltip": "A description of the finding."
                             },
-                            "sourceName": {
+                            "source": {
                                 "type": "text",
                                 "index": 1,
-                                "label": "Source Name",
+                                "label": "Source",
                                 "tooltip": "The name of the product that detected the vulnerability."
                             },
                             "remediation": {
                                 "type": "text",
                                 "index": 1,
                                 "label": "Remediation",
+                                "required": true,
                                 "tooltip": "The remediation for the vulnerability."
                             },
-                            "validatedInRuntime": {
+                            "validatedAtRuntime": {
                                 "type": "toggle",
                                 "index": 1,
-                                "label": "Validated In Runtime",
+                                "label": "Validated At Runtime",
                                 "defaultValue": false,
                                 "tooltip": "Indicates if the finding was detected during runtime (true), or if it was detected during offline or static scanning (false)."
                             }
                         }
-                    },
-                    "filename": {
-                        "type": "text",
-                        "label": "File Name",
-                        "index": 0
-                    },
-                    "fileContent": {
-                        "type": "textarea",
-                        "index": 1,
-                        "label": "File Content",
-                        "tooltip": "Specify the file content in JSON format <b>(Ignored if 'File ID' is set)</b>."
                     }
                 }
             }
