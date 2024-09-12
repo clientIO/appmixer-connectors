@@ -45,18 +45,19 @@ module.exports = {
         }
     },
 
-    async sendEntries(context, entries, outputType) {
+    async sendEntries(context, entries = [], outputType) {
 
         if (outputType === 'first') {
             if (entries.length) {
-                await context.sendJson({ entry: entries[0] }, 'out');
+                await context.sendJson({ entry: entries[0], index: 0, count: entries.length }, 'out');
             }
         } else if (outputType === 'object') {
-            await Promise.map(entries, entry => {
-                return context.sendJson({ entry }, 'out');
-            });
+            for (let index = 0; index < entries.length; index++) {
+                const entry = entries[i];
+                await context.sendJson({ entry, index, count: entries.length }, 'out');
+            }
         } else if (outputType === 'array') {
-            return context.sendJson({ entries }, 'out');
+            return context.sendJson({ entries, count: entries.length }, 'out');
         } else if (outputType === 'file') {
             if (entries.length) {
                 // Stored into CSV file.
@@ -74,7 +75,7 @@ module.exports = {
                 let buffer = Buffer.from(csvString, 'utf8');
                 const fileName = `utils-controls-Digest-${(new Date).toISOString()}.csv`;
                 const savedFile = await context.saveFileStream(fileName, buffer);
-                await context.sendJson({ fileId: savedFile.fileId }, 'out');
+                await context.sendJson({ fileId: savedFile.fileId, count: entries.length }, 'out');
             }
         }
     },
@@ -105,14 +106,18 @@ module.exports = {
 
         if (outputType === 'object' || outputType === 'first') {
             return context.sendJson([
+                { label: 'Current Entry Index', value: 'index', schema: { type: 'integer' } },
+                { label: 'Entries Count', value: 'count', schema: { type: 'integer' } },
                 { label: 'Entry', value: 'entry' }
             ], 'out');
         } else if (outputType === 'array') {
             return context.sendJson([
+                { label: 'Entries Count', value: 'count', schema: { type: 'integer' } },
                 { label: 'Entries', value: 'entries', schema: { type: 'array' } }
             ], 'out');
         } else if (outputType === 'file') {
             return context.sendJson([
+                { label: 'Entries Count', value: 'count', schema: { type: 'integer' } },
                 { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
             ], 'out');
         }
