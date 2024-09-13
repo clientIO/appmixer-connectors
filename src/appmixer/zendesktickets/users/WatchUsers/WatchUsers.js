@@ -9,7 +9,7 @@ module.exports = {
             await context.log({ step: 'webhook-received', data });
             const userId = data.detail.id;
             const user = await this.showUser(context, userId);
-            await context.sendJson({ user }, 'out');
+            await context.sendJson({ user, data }, 'out');
             return context.response();
         }
     },

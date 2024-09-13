@@ -33,6 +33,6 @@ module.exports = {
             headers: headers
         };
         const { data } = await context.httpRequest(req);
-        return context.sendJson({ ticket: data }, 'out');
+        return context.sendJson({ ticket: data.ticket }, 'out');
     }
 };
