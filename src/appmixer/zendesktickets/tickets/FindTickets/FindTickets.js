@@ -97,13 +97,7 @@ module.exports = {
                 { "label": "Items Count", "value": "count", "schema": { "type": "integer" } },
                 { label: 'Items', value: 'items', "schema": {
                     "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "index": { "type": "integer", "title": "Current Item Index" },
-                            "ticket": this.ticketSchema
-                        }
-                    }
+                    "items": this.ticketSchema
                 } }
             ];
             return context.sendJson(options, 'out');

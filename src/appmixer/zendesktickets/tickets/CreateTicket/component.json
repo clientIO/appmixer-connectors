@@ -14,12 +14,30 @@
                     "type": "string",
                     "description": "The value of the subject field for this ticket"
                 },
+                "ticket|comment|body_format": {
+                    "type": "string"
+                },
+                "ticket|comment|public": {
+                    "type": "boolean"
+                },
                 "ticket|comment|body": {
                     "type": "string"
                 },
                 "ticket|assignee_email": {
                     "type": "string",
                     "format": "email"
+                },
+                "ticket|collaborator_emails": {
+                    "type": "string"
+                },
+                "ticket|requester_name": {
+                    "type": "string"
+                },
+                "ticket|requester_email": {
+                    "type": "string"
+                },
+                "ticket|email_ccs": {
+                    "type": "string"
                 },
                 "ticket|due_at": {
                     "type": "string",
@@ -75,6 +93,9 @@
                         "question",
                         "task"
                     ]
+                },
+                "ticket|attachments": {
+                    "type": "object"
                 }
             }
         },
@@ -83,48 +104,108 @@
                 "ticket|subject": {
                     "type": "text",
                     "index": 1,
-                    "label": "Ticket Subject",
+                    "label": "Subject",
                     "tooltip": "The value of the subject field for this ticket."
+                },
+                "ticket|comment|body_format": {
+                    "type": "select",
+                    "index": 2,
+                    "label": "Comment Format",
+                    "tooltip": "The format of the comment.",
+                    "options": [
+                        { "value": "text", "content": "Text or Markdown" },
+                        { "value": "html", "label": "HTML" }
+                    ]
+                },
+                "ticket|comment|public": {
+                    "type": "toggle",
+                    "index": 3,
+                    "label": "Is Comment Public",
+                    "tooltip": "Set if the comment should be public."
                 },
                 "ticket|comment|body": {
                     "type": "textarea",
                     "index": 2,
-                    "label": "Ticket Comment"
+                    "label": "Comment"
                 },
                 "ticket|assignee_email": {
                     "type": "text",
                     "index": 3,
-                    "label": "Ticket Assignee Email",
-                    "tooltip": "The email address of the agent to assign the ticket to. Example: \"john@example.com\"."
+                    "label": "Assignee Email",
+                    "tooltip": "The email address of the agent to assign the ticket to. Example: <code>john@example.com</code>."
+                },
+                "ticket|requester_name": {
+                    "type": "text",
+                    "index": 3,
+                    "label": "Requester Name",
+                    "tooltip": "The name of the requester. Example: <code>Pablo</code>."
+                },
+                "ticket|requester_email": {
+                    "type": "text",
+                    "index": 3,
+                    "label": "Requester Email",
+                    "tooltip": "The email address of the requester. Example: <code>pablito@example.org</code>."
+                },
+                "ticket|email_ccs": {
+                    "type": "text",
+                    "index": 3,
+                    "label": "Email CCs",
+                    "tooltip": "A comma separated list of email addresses to send email notification about the ticket creation to. Example: <code>john@example.com,bob@example.com</code>."
+                },
+                "ticket|collaborator_emails": {
+                    "type": "text",
+                    "index": 3,
+                    "label": "Collaborator Emails",
+                    "tooltip": "A comma separated list of email addresses of collaborators. Example: <code>john@example.com,bob@example.com</code>."
                 },
                 "ticket|due_at": {
                     "type": "date-time",
                     "index": 4,
-                    "label": "Ticket Due At",
+                    "label": "Task Due At",
                     "tooltip": "If this is a ticket of type \"task\" it has a due date.  Due date format uses <a href=\"http://en.wikipedia.org/wiki/ISO_8601\" rel=\"noopener noreferrer\" target=\"_blank\">ISO 8601</a> format. <br/>JSON array. Example: \"1933-02-07T05:09:11.0Z\"."
                 },
                 "ticket|external_id": {
                     "type": "text",
                     "index": 5,
-                    "label": "Ticket External Id",
+                    "label": "External Id",
                     "tooltip": "An id you can use to link Zendesk Support tickets to local records."
                 },
                 "ticket|group_id": {
-                    "type": "number",
+                    "type": "select",
                     "index": 6,
-                    "label": "Ticket Group Id",
-                    "tooltip": "The group this ticket is assigned to."
+                    "label": "Group ID",
+                    "tooltip": "The group this ticket is assigned to.",
+                    "source": {
+                        "url": "/component/appmixer/zendesktickets/groups/FindGroups?outPort=out",
+                        "data": {
+                            "transform": "./FindGroups#toSelectArray",
+                            "messages": {
+                                "in/query": "name:*",
+                                "in/outputType": "array"
+                            }
+                        }
+                    }
                 },
                 "ticket|organization_id": {
-                    "type": "number",
+                    "type": "select",
                     "index": 7,
-                    "label": "Ticket Organization Id",
-                    "tooltip": "The organization of the requester. You can only specify the ID of an organization associated with the requester. See <a href=\"https://developer.zendesk.com/api-reference/ticketing/organizations/organization_memberships/\" rel=\"noopener noreferrer\" target=\"_blank\">Organization Memberships</a> <br/>JSON array. Example: 90838197."
+                    "label": "Organization ID",
+                    "tooltip": "The organization of the requester. You can only specify the ID of an organization associated with the requester.",
+                    "source": {
+                        "url": "/component/appmixer/zendesktickets/organizations/FindOrganizations?outPort=out",
+                        "data": {
+                            "transform": "./FindOrganizations#toSelectArray",
+                            "messages": {
+                                "in/query": "name:*",
+                                "in/outputType": "array"
+                            }
+                        }
+                    }
                 },
                 "ticket|priority": {
                     "type": "select",
                     "index": 8,
-                    "label": "Ticket Priority",
+                    "label": "Priority",
                     "tooltip": "The urgency with which the ticket should be addressed.",
                     "defaultValue": "normal",
                     "options": [
@@ -149,7 +230,7 @@
                 "ticket|status": {
                     "type": "select",
                     "index": 9,
-                    "label": "Ticket Status",
+                    "label": "Status",
                     "tooltip": "The state of the ticket.",
                     "defaultValue": "new",
                     "options": [
@@ -182,13 +263,13 @@
                 "ticket|tags": {
                     "type": "textarea",
                     "index": 10,
-                    "label": "Ticket Tags",
+                    "label": "Tags",
                     "tooltip": "A comma separated list of tags applied to this ticket."
                 },
                 "ticket|type": {
                     "type": "select",
                     "index": 11,
-                    "label": "Ticket Type",
+                    "label": "Type",
                     "tooltip": "The type of this ticket.",
                     "defaultValue": "incident",
                     "options": [
@@ -209,6 +290,22 @@
                         "value": "task"
                     }
                     ]
+                },
+                "ticket|attachments": {
+                    "type": "expression",
+                    "group": "transformation",
+                    "label": "Attachments",
+                    "tooltip": "Attachments for the ticket.",
+                    "index": 7,
+                    "levels": [ "ADD" ],
+                    "fields": {
+                        "fileId": {
+                            "type": "filepicker",
+                            "label": "File ID",
+                            "tooltip": "The file to attach. Select an existing file, upload a new one or reference another file from previous components.",
+                            "index": 1
+                        }
+                    }
                 }
             }
         }
@@ -520,7 +617,8 @@
     "auth": {
         "service": "appmixer:zendesktickets",
         "scope": [
-            "tickets:write"
+            "tickets:write",
+            "read"
         ]
     },
     "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPgo8c3ZnIGZpbGw9IiMwMDAwMDAiIHdpZHRoPSI4MDBweCIgaGVpZ2h0PSI4MDBweCIgdmlld0JveD0iMCAwIDE0IDE0IiByb2xlPSJpbWciIGZvY3VzYWJsZT0iZmFsc2UiIGFyaWEtaGlkZGVuPSJ0cnVlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Im0gNi41NDI1LDExLjU0NzUgLTUuNTQyNSwwIDUuNTQyNSwtNi42OTE1IDAsNi42OTE1IHogbSA2LjQ1NzUsMCAtNS41NDI1LDAgYyAwLC0xLjUzMTUgMS4yMzk1LC0yLjc3MTUgMi43NzE1LC0yLjc3MTUgMS41MzE1LDAgMi43NzEsMS4yNDEgMi43NzEsMi43NzE1IHogbSAtNS41NDI1LC0yLjQwMiAwLC02LjY5MyA1LjU0MjUsMCAtNS41NDI1LDYuNjkzIHogTSA2LjU0MjUsMi40NTI1IEMgNi41NDI1LDMuOTgzIDUuMzAyLDUuMjI0NSAzLjc3MSw1LjIyNDUgMi4yNDEsNS4yMjQ1IDEsMy45ODQgMSwyLjQ1MzUgbCA1LjU0MjUsMCAwLC0xMGUtNCB6Ii8+PC9zdmc+"
