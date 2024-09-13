@@ -6,9 +6,26 @@ module.exports = {
 
         if (context.messages.webhook) {
             const { data } = context.messages.webhook.content;
-            await context.sendJson({ ticket: data }, 'out');
+            const ticketId = data.id;
+            const ticket = await this.showTicket(context, ticketId);
+            await context.sendJson({ ticket }, 'out');
             return context.response();
         }
+    },
+
+    async showTicket(context, ticketId) {
+
+        const url = `https://${context.auth.subdomain}.zendesk.com/api/v2/tickets/${ticketId}`;
+        const headers = {
+            Authorization: 'Bearer ' + context.auth.accessToken
+        };
+        const req = {
+            url: url,
+            method: 'GET',
+            headers: headers
+        };
+        const { data } = await context.httpRequest(req);
+        return data.ticket;
     },
 
     async createWebhook(context) {
@@ -93,11 +110,7 @@ module.exports = {
                         value: [
                             webhookId,
                             JSON.stringify({
-                                id: '{{ticket.id}}',
-                                subject: '{{ticket.title}}',
-                                status: '{{ticket.status}}',
-                                priority: '{{ticket.priority}}',
-                                type: '{{ticket.type}}'
+                                id: '{{ticket.id}}'
                             })
                         ]
                     }
