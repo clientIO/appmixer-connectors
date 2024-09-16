@@ -10,8 +10,7 @@ module.exports = {
 
         const fileInfo = await context.getFileInfo(fileId);
         const newFileName = path.parse(fileInfo.filename).name + '.json';
-        const stream = await converters.csvToJson(context, fileId);
-        const savedFile = await context.saveFileStream(newFileName, stream);
+        const savedFile = await converters.csvToJson(context, { sourceFileId: fileId, newFileName });
 
         return context.sendJson({
             fileId: savedFile.fileId,

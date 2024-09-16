@@ -11,8 +11,11 @@ module.exports = {
 
         const fileInfo = await context.getFileInfo(fileId);
         const newFileName = path.parse(fileInfo.filename).name + '.html';
-        const stream = await converters.jsonToHtml(context, fileId, transformer);
-        const savedFile = await context.saveFileStream(newFileName, stream);
+        const savedFile = await converters.jsonToHtml(context, {
+            sourceFileId: fileInfo,
+            transformType: transformer,
+            newFileName
+        });
 
         return context.sendJson({
             fileId: savedFile.fileId,
