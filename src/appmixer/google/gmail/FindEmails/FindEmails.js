@@ -107,15 +107,15 @@ module.exports = {
     },
 
     emailSchema: {
-        "type": "object",
-        "properties": {
-            "id": {
-                "type": "string",
-                "description": "Email Message ID",
+        'type': 'object',
+        'properties': {
+            'id': {
+                'type': 'string',
+                'description': 'Email Message ID'
             },
-            "threadId": {
-                "type": "string",
-                "description": "Thread ID",
+            'threadId': {
+                'type': 'string',
+                'description': 'Thread ID'
             }
         }
     }
