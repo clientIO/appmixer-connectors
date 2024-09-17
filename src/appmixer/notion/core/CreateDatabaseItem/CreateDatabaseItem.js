@@ -14,7 +14,7 @@ module.exports = {
 
         const requestData = {
             parent: { database_id: databaseId },
-            properties: itemData,
+            properties: itemData
         };
 
         // Add content if provided
