@@ -1,0 +1,327 @@
+{
+    "name": "appmixer.zendesktickets.users.UpdateUser",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Update an existing user in Zendesk.",
+    "private": false,
+    "quota": {},
+    "inPorts": [
+        {
+        "name": "in",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "user|id": { "type": "string" },
+                "user|name": { "type": "string" },
+                "user|email": { "type": "string" },
+                "user|role": { "type": "string" },
+                "user|organization_id": { "type": "integer" },
+                "user|phone": { "type": "string" },
+                "user|details": { "type": "string" },
+                "user|tags": { "type": "string" },
+                "user|external_id": { "type": "string" },
+                "user|notes": { "type": "string" },
+                "user|signature": { "type": "string" },
+                "user|verified": { "type": "boolean" }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "user|id": {
+                    "label": "User ID",
+                    "type": "text",
+                    "tooltip": "The ID of the user to update. Use FindUsers or other action to find the user ID.",
+                    "index": 1
+                },
+                "user|name": {
+                    "label": "Name",
+                    "type": "text",
+                    "tooltip": "The user's name.",
+                    "index": 2
+                },
+                "user|email": {
+                    "label": "Email",
+                    "type": "text",
+                    "tooltip": "The user's primary email address.",
+                    "index": 3
+                },
+                "user|role": {
+                    "label": "Role",
+                    "type": "select",
+                    "tooltip": "The user's role.",
+                    "index": 4,
+                    "options": [
+                        { "label": "End-user", "value": "end-user" },
+                        { "label": "Agent", "value": "agent" },
+                        { "label": "Admin", "value": "admin" }
+                    ]
+                },
+                "user|organization_id": {
+                    "type": "select",
+                    "index": 5,
+                    "label": "Organization ID",
+                    "tooltip": "The ID of the user's organization.",
+                    "source": {
+                        "url": "/component/appmixer/zendesktickets/organizations/FindOrganizations?outPort=out",
+                        "data": {
+                            "transform": "./FindOrganizations#toSelectArray",
+                            "messages": {
+                                "in/query": "name:*",
+                                "in/outputType": "array"
+                            }
+                        }
+                    }
+                },
+                "user|phone": {
+                    "label": "Phone",
+                    "type": "text",
+                    "tooltip": "The user's primary phone number.",
+                    "index": 6
+                },
+                "user|details": {
+                    "label": "Details",
+                    "type": "textarea",
+                    "tooltip": "Any details you want to store about the user, such as an address.",
+                    "index": 7
+                },
+                "user|tags": {
+                    "label": "Tags",
+                    "type": "textarea",
+                    "tooltip": "A comma separated list of tags for the user.",
+                    "index": 8
+                },
+                "user|external_id": {
+                    "label": "External ID",
+                    "type": "text",
+                    "tooltip": "A unique identifier from another system. Zendesk treats the id as case insensitive. Example: 'ian1' and 'IAN1' are the same value.",
+                    "index": 9
+                },
+                "user|notes": {
+                    "label": "Notes",
+                    "type": "textarea",
+                    "tooltip": "Any notes you want to store about the user.",
+                    "index": 10
+                },
+                "user|verified": {
+                    "label": "Verified",
+                    "type": "toggle",
+                    "tooltip": "Whether or not the user's primary email address has been verified.",
+                    "index": 11
+                },
+                "user|signature": {
+                    "label": "Signature",
+                    "type": "textarea",
+                    "tooltip": "The user's signature. Only agents and admins can have signatures.",
+                    "index": 12
+                }
+            }
+        }
+    }
+    ],
+    "outPorts": [
+        {
+        "name": "out",
+        "options": [
+            {
+            "label": "User",
+            "value": "user",
+            "schema": {
+
+                "type": "object",
+                "properties": {
+                    "created_at": {
+                        "type": "string",
+                        "format": "datetime",
+                        "description": "The time the user was created",
+                        "readOnly": true
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "The primary email address of this user. If the primary email address is not [verified](https://support.zendesk.com/hc/en-us/articles/4408886752410), the secondary email address is used"
+                    },
+                    "iana_time_zone": {
+                        "type": "string",
+                        "description": "The time zone for the user",
+                        "readOnly": true
+                    },
+                    "id": {
+                        "type": "integer",
+                        "description": "Automatically assigned when creating users",
+                        "readOnly": true
+                    },
+                    "custom_role_id": {
+                        "type": "integer",
+                        "description": "A custom role if the user is an agent on the Enterprise plan or above",
+                        "nullable": true
+                    },
+                    "details": {
+                        "type": "string",
+                        "description": "Any details you want to store about the user, such as an address"
+                    },
+                    "alias": {
+                        "type": "string",
+                        "description": "An alias displayed to end users"
+                    },
+                    "chat_only": {
+                        "type": "boolean",
+                        "description": "Whether or not the user is a chat-only agent",
+                        "readOnly": true
+                    },
+                    "locale": {
+                        "type": "string",
+                        "description": "The locale for this user",
+                        "readOnly": true
+                    },
+                    "locale_id": {
+                        "type": "integer",
+                        "description": "The language identifier for this user"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "The name of the user"
+                    },
+                    "organization_id": {
+                        "type": "integer",
+                        "description": "The id of the user's organization. If the user has more than one [organization memberships](/api-reference/ticketing/organizations/organization_memberships/), the id of the user's default organization. If updating, see [Organization ID](/api-reference/ticketing/users/users/#organization-id)"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "description": "The primary phone number of this user. See [Phone Number](/api-reference/ticketing/users/users/#phone-number) in the Users API"
+                    },
+                    "photo": {
+                        "type": "object",
+                        "description": "The user's profile picture represented as an [Attachment](/api-reference/ticketing/tickets/ticket-attachments/) object",
+                        "additionalProperties": true
+                    },
+                    "role": {
+                        "type": "string",
+                        "description": "The role of the user. Possible values: `\"end-user\"`, `\"agent\"`, `\"admin\"`"
+                    },
+                    "role_type": {
+                        "type": "integer",
+                        "description": "The user's role id. 0 for a custom agent, 1 for a light agent, 2 for a chat agent, 3 for a chat agent added to the Support account as a contributor ([Chat Phase 4](https://support.zendesk.com/hc/en-us/articles/360022365373#topic_djh_1zk_4fb)), 4 for an admin, and 5 for a billing admin",
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "shared": {
+                        "type": "boolean",
+                        "description": "If the user is shared from a different Zendesk Support instance. Ticket sharing accounts only",
+                        "readOnly": true
+                    },
+                    "shared_agent": {
+                        "type": "boolean",
+                        "description": "If the user is a shared agent from a different Zendesk Support instance. Ticket sharing accounts only",
+                        "readOnly": true
+                    },
+                    "signature": {
+                        "type": "string",
+                        "description": "The user's signature. Only agents and admins can have signatures"
+                    },
+                    "shared_phone_number": {
+                        "type": "boolean",
+                        "description": "Whether the `phone` number is shared or not. See [Phone Number](/api-reference/ticketing/users/users/#phone-number) in the Users API"
+                    },
+                    "time_zone": {
+                        "type": "string",
+                        "description": "The time-zone of this user"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "datetime",
+                        "description": "The time of the last update of the user",
+                        "readOnly": true
+                    },
+                    "url": {
+                        "type": "string",
+                        "description": "The API url of this user",
+                        "readOnly": true
+                    },
+                    "verified": {
+                        "type": "boolean",
+                        "description": "Any of the user's identities is verified. See [User Identities](/api-reference/ticketing/users/user_identities)"
+                    },
+                    "external_id": {
+                        "type": "string",
+                        "description": "A unique identifier from another system. The API treats the id as case insensitive. Example: \"ian1\" and \"IAN1\" are the same value.",
+                        "nullable": true
+                    },
+                    "default_group_id": {
+                        "type": "integer",
+                        "description": "The id of the user's default group"
+                    },
+                    "last_login_at": {
+                        "type": "string",
+                        "format": "datetime",
+                        "description": "Last time the user signed in to Zendesk Support or made an API request\nusing an API token or basic authentication\n",
+                        "readOnly": true
+                    },
+                    "moderator": {
+                        "type": "boolean",
+                        "description": "Designates whether the user has forum moderation capabilities"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": "Any notes you want to store about the user"
+                    },
+                    "only_private_comments": {
+                        "type": "boolean",
+                        "description": "true if the user can only create private comments"
+                    },
+                    "remote_photo_url": {
+                        "type": "string",
+                        "description": "A URL pointing to the user's profile picture."
+                    },
+                    "report_csv": {
+                        "type": "boolean",
+                        "description": "This parameter is inert and has no effect. It may be deprecated in the\nfuture.\n\nPreviously, this parameter determined whether a user could access a CSV\nreport in a legacy Guide dashboard. This dashboard has been removed. See\n[Announcing Guide legacy reporting upgrade to\nExplore](https://support.zendesk.com/hc/en-us/articles/4762263171610-Announcing-Guide-legacy-reporting-upgrade-to-Explore-)\n",
+                        "readOnly": true
+                    },
+                    "restricted_agent": {
+                        "type": "boolean",
+                        "description": "If the agent has any restrictions; false for admins and unrestricted agents, true for other agents"
+                    },
+                    "suspended": {
+                        "type": "boolean",
+                        "description": "If the agent is suspended. Tickets from suspended users are also suspended, and these users cannot sign in to the end user portal"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "description": "The user's tags. Only present if your account has user tagging enabled",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "ticket_restriction": {
+                        "type": "string",
+                        "description": "Specifies which tickets the user has access to. Possible values are: \"organization\", \"groups\", \"assigned\", \"requested\", null. \"groups\" and \"assigned\" are valid only for agents. If you pass an invalid value to an end user (for example, \"groups\"), they will be assigned to \"requested\", regardless of their previous access",
+                        "nullable": true
+                    },
+                    "two_factor_auth_enabled": {
+                        "type": "boolean",
+                        "description": "If two factor authentication is enabled",
+                        "nullable": true,
+                        "readOnly": true
+                    },
+                    "user_fields": {
+                        "type": "object",
+                        "description": "Values of custom fields in the user's profile. See [User Fields](#user-fields)",
+                        "additionalProperties": true
+                    }
+                }
+            }
+        }
+        ]
+    }
+    ],
+    "properties": {},
+    "auth": {
+        "service": "appmixer:zendesktickets",
+        "scope": [
+            "users:write"
+        ]
+    },
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz48IS0tIFVwbG9hZGVkIHRvOiBTVkcgUmVwbywgd3d3LnN2Z3JlcG8uY29tLCBHZW5lcmF0b3I6IFNWRyBSZXBvIE1peGVyIFRvb2xzIC0tPgo8c3ZnIGZpbGw9IiMwMDAwMDAiIHdpZHRoPSI4MDBweCIgaGVpZ2h0PSI4MDBweCIgdmlld0JveD0iMCAwIDE0IDE0IiByb2xlPSJpbWciIGZvY3VzYWJsZT0iZmFsc2UiIGFyaWEtaGlkZGVuPSJ0cnVlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Im0gNi41NDI1LDExLjU0NzUgLTUuNTQyNSwwIDUuNTQyNSwtNi42OTE1IDAsNi42OTE1IHogbSA2LjQ1NzUsMCAtNS41NDI1LDAgYyAwLC0xLjUzMTUgMS4yMzk1LC0yLjc3MTUgMi43NzE1LC0yLjc3MTUgMS41MzE1LDAgMi43NzEsMS4yNDEgMi43NzEsMi43NzE1IHogbSAtNS41NDI1LC0yLjQwMiAwLC02LjY5MyA1LjU0MjUsMCAtNS41NDI1LDYuNjkzIHogTSA2LjU0MjUsMi40NTI1IEMgNi41NDI1LDMuOTgzIDUuMzAyLDUuMjI0NSAzLjc3MSw1LjIyNDUgMi4yNDEsNS4yMjQ1IDEsMy45ODQgMSwyLjQ1MzUgbCA1LjU0MjUsMCAwLC0xMGUtNCB6Ii8+PC9zdmc+"
+}
+
+
+
+

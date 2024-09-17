@@ -7,7 +7,7 @@ module.exports = {
     receive: async function(context) {
 
         const input = context.messages.in.content;
-        const url = `https://${context.auth.subdomain}.zendesk.com/api/v2/tickets`;
+        const url = `https://${context.auth.subdomain}.zendesk.com/api/v2/tickets/${input['ticket|id']}`;
         const requestBody = {
             ticket: {
                 comment: {
@@ -89,7 +89,7 @@ module.exports = {
 
         const req = {
             url: url,
-            method: 'POST',
+            method: 'PUT',
             data: requestBody,
             headers: headers
         };
