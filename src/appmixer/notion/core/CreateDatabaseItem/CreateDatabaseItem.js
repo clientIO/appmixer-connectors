@@ -8,16 +8,38 @@ module.exports = {
             return generateInspector(context);
         }
 
-        const { databaseId } = context.messages.in.content;
+        const { databaseId, content } = context.messages.in.content;
 
         const itemData = await formatPropertiesForNotion(context, databaseId, context.messages.in.content);
 
+        const requestData = {
+            parent: { database_id: databaseId },
+            properties: itemData,
+        };
+
+        // Add content if provided
+        if (content) {
+            requestData.children = [
+                {
+                    object: 'block',
+                    type: 'paragraph',
+                    paragraph: {
+                        rich_text: [
+                            {
+                                type: 'text',
+                                text: {
+                                    content: content
+                                }
+                            }
+                        ]
+                    }
+                }
+            ];
+        }
+
         const response = await lib.callEndpoint(context, '/pages', {
             method: 'POST',
-            data: {
-                parent: { database_id: databaseId },
-                properties: itemData
-            }
+            data: requestData
         });
 
         return context.sendJson(response.data, 'out');
@@ -30,7 +52,8 @@ async function generateInspector(context) {
     const schema = {
         type: 'object',
         properties: {
-            databaseId: { type: 'string' }
+            databaseId: { type: 'string' },
+            content: { type: 'string' }
         },
         required: ['databaseId']
     };
@@ -80,7 +103,13 @@ async function generateInspector(context) {
                     transform: './ListDatabases#databaseToSelectArray'
                 }
             },
-            tooltip: 'Select the Notion database where you want to create a new item.'
+            tooltip: 'Select the Notion database or insert a Database ID where you want to create a new item.'
+        },
+        content: {
+            label: 'Content',
+            index: 999,  // Ensure this appears last in the form
+            type: 'text',
+            tooltip: 'Enter the content for the item.'
         },
         ...fieldsInputs
     };
@@ -193,7 +222,7 @@ function getInputType(property) {
         case 'checkbox':
             return 'toggle';
         case 'date':
-            return 'text';
+            return 'date-time';
         case 'multi_select':
             return 'multiselect';
         case 'status':
@@ -232,7 +261,7 @@ function getTooltipText(property) {
         case 'people':
             return 'Select people by their user ID. Use the dropdown to search for users.';
         case 'date':
-            return 'Enter a date in YYYY-MM-DD format.';
+            return 'Enter a date with or without time.';
         case 'checkbox':
             return 'Toggle the checkbox on or off.';
         case 'number':

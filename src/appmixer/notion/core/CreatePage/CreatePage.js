@@ -22,8 +22,12 @@ module.exports = {
                         }
                     ]
                 }
-            },
-            children: [
+            }
+        };
+
+        // Add content only if it is provided
+        if (content) {
+            data.children = [
                 {
                     object: 'block',
                     type: 'paragraph',
@@ -38,9 +42,10 @@ module.exports = {
                         ]
                     }
                 }
-            ]
-        };
+            ];
+        }
 
+        // Add cover URL if provided
         if (coverUrl) {
             data.cover = {
                 type: 'external',
@@ -48,6 +53,7 @@ module.exports = {
             };
         }
 
+        // Add emoji as icon if provided
         if (emoji) {
             data.icon = {
                 type: 'emoji',
