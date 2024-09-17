@@ -4,38 +4,26 @@ const emailCommons = require('../gmail-commons');
 module.exports = {
     async receive(context) {
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
-        const { outputType, limit, query } = context.messages.in.content;
-        const maxLimit = limit || 100;
+        const { outputType, query } = context.messages.in.content;
+        const maxLimit = 500; // Set a fixed maximum limit of 500
 
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        const pageSize = 100; // Number of emails to retrieve per page
-        let emails = [];
-        let nextPageToken = null;
-        let totalEmails = 0;
+        // Fetch up to 500 emails in a single call
+        const result = await emailCommons.callEndpoint(context, '/users/me/messages', {
+            params: {
+                q: query,
+                maxResults: maxLimit
+            },
+            headers: { 'Content-Type': 'application/json' }
+        });
 
-        do {
-            const result = await emailCommons.callEndpoint(context, '/users/me/messages', {
-                params: {
-                    q: query,
-                    maxResults: Math.min(pageSize, maxLimit - totalEmails),
-                    pageToken: nextPageToken
-                },
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (result.data.messages) {
-                emails.push(...result.data.messages.map(message => ({
-                    id: message.id,
-                    threadId: message.threadId
-                })));
-            }
-
-            totalEmails += result.data.messages ? result.data.messages.length : 0;
-            nextPageToken = result.data.nextPageToken;
-        } while (nextPageToken && totalEmails < maxLimit);
+        const emails = (result.data.messages || []).map(message => ({
+            id: message.id,
+            threadId: message.threadId
+        }));
 
         if (emails.length === 0) {
             return context.sendJson({}, 'notFound');
