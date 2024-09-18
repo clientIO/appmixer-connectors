@@ -261,8 +261,7 @@ module.exports = {
                                 }
                             }
                         }
-                    }
-                    ,
+                    },
                     "example": {
                         "content_type": "image/png",
                         "content_url": "https://company.zendesk.com/attachments/my_funny_profile_pic.png",

@@ -74,8 +74,8 @@ module.exports = {
         }
         if (input['ticket|attachments']) {
             const fileIds = (input['ticket|attachments'].ADD || [])
-                  .map(attachment => (attachment.fileId || null))
-                  .filter(fileId => fileId !== null);
+                .map(attachment => (attachment.fileId || null))
+                .filter(fileId => fileId !== null);
             for (const fileId of fileIds) {
                 const { data } = await this.uploadFile(context, fileId);
                 requestBody.ticket.comment.uploads = requestBody.ticket.comment.uploads || [];
