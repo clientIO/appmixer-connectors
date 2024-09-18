@@ -1,7 +1,6 @@
 'use strict';
 
 const lib = require('../../lib');
-const { sendArrayOutput } = require('../../lib');
 
 module.exports = {
     async receive(context) {
