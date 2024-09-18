@@ -9,8 +9,8 @@ module.exports = {
         const { fileId } = context.messages.in.content;
 
         const fileInfo = await context.getFileInfo(fileId);
-        const newFileName = path.parse(fileInfo.filename).name + '.html';
-        const savedFile = await converters.jsonToCsv(context, { sourceFileId: fileId, newFileName, jsonPath });
+        const newFileName = path.parse(fileInfo.filename).name + '.csv';
+        const savedFile = await converters.jsonToCsv(context, { sourceFileId: fileId, newFileName, jsonPath: '*' });
 
         return context.sendJson({
             fileId: savedFile.fileId,
