@@ -126,6 +126,11 @@ const addConsumer = async (context, queue, options, flowId, componentId, auth, c
             },
             { enqueueOnly: true }
         );
+
+        if (options && options.noAck !== true) {
+            consumer.ack(message);
+        }
+
     }, options || {});;
 
     return channelId;
