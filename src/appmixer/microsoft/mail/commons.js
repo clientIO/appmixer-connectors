@@ -14,5 +14,8 @@ module.exports = {
                 accept: 'application/json'
             }
         });
-    }
+    },
+
+    /** Time before expiration to renew the subscription. */
+    renewBeforeExpirationMs: 1000 * 60 * 5
 };

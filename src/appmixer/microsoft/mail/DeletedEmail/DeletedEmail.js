@@ -1,6 +1,6 @@
 'use strict';
 
-const { makeRequest } = require('../commons');
+const { makeRequest, renewBeforeExpirationMs } = require('../commons');
 
 const clientState = 'appmixer.microsoft.mail';
 
@@ -36,7 +36,8 @@ module.exports = {
             throw new Error(err);
         }
 
-        return context.setTimeout({}, expirationDateTime - Date.now());
+        // Fire a moment before expirationDateTime to ensure the subscription is renewed in time.
+        return context.setTimeout({}, expirationDateTime - Date.now() - renewBeforeExpirationMs);
     },
 
     async stop(context) {
@@ -74,7 +75,8 @@ module.exports = {
             // });
 
             // Schedule another renewal.
-            return context.setTimeout({}, expirationDateTime - Date.now());
+            // Fire a moment before expirationDateTime to ensure the subscription is renewed in time.
+            return context.setTimeout({}, expirationDateTime - Date.now() - renewBeforeExpirationMs);
         } else if (context.messages.webhook) {
             const { data, query } = context.messages.webhook.content;
             // await context.log({ step: 'Webhook received.', content: context.messages.webhook.content });
