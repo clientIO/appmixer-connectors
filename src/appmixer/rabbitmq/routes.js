@@ -23,7 +23,6 @@ module.exports = (context) => {
             handler: async (req) => {
 
                 const { flowId, componentId, auth } = req.payload;
-                await context.log('info', `[RABBITMQ] POST /producers { flowId: ${flowId}, componentId: ${componentId} }`);
                 const channelId = await connections.addProducer(context, flowId, componentId, auth);
                 return { channelId };
             }
