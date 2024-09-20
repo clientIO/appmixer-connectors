@@ -35,7 +35,8 @@ module.exports = (context) => {
         options: {
             handler: async (req) => {
 
-                const { flowId, componentId, channelId } = req.params;
+                const { channelId } = req.params;
+                const { flowId, componentId } = req.payload;
                 await connections.sendToQueue(context, flowId, componentId, channelId, req.payload);
                 return {};
             }
@@ -48,7 +49,8 @@ module.exports = (context) => {
         options: {
             handler: async (req) => {
 
-                const { flowId, componentId, channelId } = req.params;
+                const { channelId } = req.params;
+                const { flowId, componentId } = req.payload;
                 await connections.publish(context, flowId, componentId, channelId, req.payload);
                 return {};
             }

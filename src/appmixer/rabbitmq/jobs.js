@@ -49,7 +49,7 @@ module.exports = async (context) => {
                     const stillNeeded = await context.service.stateGet(channelId);
                     if (stillNeeded) {
                         await context.log('info', `[RABBITMQ] Channel not locally open but desired in cluster. Creating channel ${channelId}.`);
-                        if (connections.isConsumerConnection(channelId)) {
+                        if (connections.isConsumerChannel(channelId)) {
                             await connections.addConsumer(
                                 context,
                                 connectionParameters.queue,

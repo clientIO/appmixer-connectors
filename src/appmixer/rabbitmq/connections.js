@@ -30,8 +30,11 @@ const connectionHash = (auth) => {
 const createChannel = async (context, channelId, auth) => {
 
     const connectionId = connectionHash(auth);
+
+    await context.log('info', `[RABBITMQ] Creating channel ${channelId} on connection ${connectionId}.`);
     let connection = RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     if (!connection) {
+        await context.log('info', `[RABBITMQ] Connection ${connectionId} does not exist. Creating.`);
         connection = {
             connection: await amqp.connect(auth),
             id: connectionId,
@@ -69,6 +72,7 @@ const createChannel = async (context, channelId, auth) => {
         delete connection.channels[channelId];
     });
 
+    await context.log('info', `[RABBITMQ] Channel ${channelId} created on connection ${connectionId}.`);
     return channel;
 };
 
@@ -139,6 +143,7 @@ const addConsumer = async (context, queue, options, flowId, componentId, auth, c
 const addProducer = async (context, flowId, componentId, auth, channelId) => {
 
     channelId = channelId || `producer:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
+
     await context.service.stateSet(channelId, {
         flowId, componentId, auth
     });
@@ -152,6 +157,9 @@ const sendToQueue = async (context, flowId, componentId, channelId, payload) => 
     let producer = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
     if (!producer) {
         const channel = await context.service.stateGet(channelId);
+        if (!channel) {
+            await context.log('info', `[RABBITMQ] SendToQueue. Channel ${channelId} not found.`);
+        }
         await addProducer(context, flowId, componentId, channel.auth, channelId);
         producer = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
     }
@@ -167,6 +175,9 @@ const publish = async (context, flowId, componentId, channelId, payload) => {
     let producer = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
     if (!producer) {
         const channel = await context.service.stateGet(channelId);
+        if (!channel) {
+            await context.log('info', `[RABBITMQ] Publish. Channel ${channelId} not found.`);
+        }
         await addProducer(context, flowId, componentId, channel.auth, channelId);
         producer = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
     }
