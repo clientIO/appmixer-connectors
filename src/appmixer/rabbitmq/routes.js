@@ -23,6 +23,7 @@ module.exports = (context) => {
             handler: async (req) => {
 
                 const { flowId, componentId, auth } = req.payload;
+                await context.log('info', `[RABBITMQ] POST /producers { flowId: ${flowId}, componentId: ${componentId} }`);
                 const channelId = await connections.addProducer(context, flowId, componentId, auth);
                 return { channelId };
             }
@@ -36,8 +37,7 @@ module.exports = (context) => {
             handler: async (req) => {
 
                 const { channelId } = req.params;
-                const { flowId, componentId } = req.payload;
-                await connections.sendToQueue(context, flowId, componentId, channelId, req.payload);
+                await connections.sendToQueue(context, channelId, req.payload);
                 return {};
             }
         }
@@ -50,8 +50,7 @@ module.exports = (context) => {
             handler: async (req) => {
 
                 const { channelId } = req.params;
-                const { flowId, componentId } = req.payload;
-                await connections.publish(context, flowId, componentId, channelId, req.payload);
+                await connections.publish(context, channelId, req.payload);
                 return {};
             }
         }

@@ -25,10 +25,10 @@ module.exports = async (context) => {
             const openChannels = connections.listChannels();
 
             await context.log('info', [
-                '[RABBITMQ] Syncing RabbitMQ channels. ',
-                '# of open Channels: ' + Object.keys(openChannels).length,
-                '# of registered Channels: ' + registeredChannels.length
-            ].join('; '));
+                '[RABBITMQ] Syncing RabbitMQ channels',
+                'Open Channels: ' + Object.keys(openChannels).length,
+                'Registered Channels: ' + registeredChannels.length
+            ].join('. '));
 
             for (const channel of registeredChannels) {
                 const channelId = channel.key;
@@ -38,8 +38,14 @@ module.exports = async (context) => {
                 // occures when removing channels from the global state, we are still able to recover in this job run.
                 const flow = await context.db.coreCollection('flows').findOne({ flowId: connectionParameters.flowId, stage: 'running' });
                 if (!flow) {
-                    await context.log('info', `[RABBITMQ] Flow ${connectionParameters.flowId} does not exist or is not running. Removing channel ${channelId}.`);
-                    await connections.removeChannel(context, channelId);
+                    await context.log('info', `[RABBITMQ] Flow ${connectionParameters.flowId} does not exist or is not running. Removing channel ${channelId}. Connection parameters: ${JSON.stringify(connectionParameters)}`);
+                    try {
+                        // If removing the channel fails, it will be retried in the next job run but we don't want
+                        // to block the rest of the job.
+                        await connections.removeChannel(context, channelId);
+                    } catch (error) {
+                        await context.log('error', `[RABBITMQ] Error while removing channel ${channelId}: ${error.message} when running flow not found.`);
+                    }
                     continue;
                 }
 
@@ -77,7 +83,13 @@ module.exports = async (context) => {
                 const channel = await context.service.stateGet(channelId);
                 if (!channel) {
                     await context.log('info', `[RABBITMQ] Channel locally open but not desired in the cluster. Removing channel ${channelId}.`);
-                    await connections.removeChannel(context, channelId);
+                    try {
+                        // If removing the channel fails, it will be retried in the next job run but we don't want
+                        // to block the rest of the job.
+                        await connections.removeChannel(context, channelId);
+                    } catch (error) {
+                        await context.log('error', `[RABBITMQ] Error while removing channel ${channelId}: ${error.message} from cluster.`);
+                    }
                 }
             }
 
