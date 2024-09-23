@@ -117,7 +117,7 @@ async function generateInspector(context) {
             label: 'Content',
             index: 999,  // Ensure this appears last in the form
             type: 'text',
-            tooltip: 'Enter the new content for the item. The content will only update the first text block of the page (e.g., a paragraph or header). If the page contains multiple blocks, only the first one will be replaced. Markdown is not supported.'
+            tooltip: 'Enter the new content for the item. The content will only update the first text block of the page (e.g., a paragraph or header). If the page contains multiple blocks, only the first one will be replaced.'
         },
         ...fieldsInputs
     };
