@@ -11,27 +11,37 @@ module.exports = {
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
-        const entries = await context.stateGet('entries') || [];
 
-        if (context.messages.timeout) {
-            if (!threshold || (threshold && entries.length >= threshold)) {
-                if (entries.length > 0) {
+        let lock;
+        try {
+            lock = await context.lock(context.componentId);
+
+            const entries = await context.stateGet('entries') || [];
+
+            if (context.messages.timeout) {
+                if (!threshold || (threshold && entries.length >= threshold)) {
+                    if (entries.length > 0) {
+                        await this.sendEntries(context, entries, outputType);
+                        await context.stateUnset('entries');
+                    }
+                }
+                const previousDate = context.messages.timeout.content.previousDate;
+                return this.scheduleDrain(context, { previousDate });
+            }
+
+            const { entry } = context.messages.in.content;
+            entries.push(entry);
+            await context.stateSet('entries', entries);
+
+            if (threshold) {
+                if (entries.length >= threshold) {
                     await this.sendEntries(context, entries, outputType);
                     await context.stateUnset('entries');
                 }
             }
-            const previousDate = context.messages.timeout.content.previousDate;
-            return this.scheduleDrain(context, { previousDate });
-        }
-
-        const { entry } = context.messages.in.content;
-        entries.push(entry);
-        await context.stateSet('entries', entries);
-
-        if (threshold) {
-            if (entries.length >= threshold) {
-                await this.sendEntries(context, entries, outputType);
-                await context.stateUnset('entries');
+        } finally {
+            if (lock) {
+                lock.unlock();
             }
         }
     },
