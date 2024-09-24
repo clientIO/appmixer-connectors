@@ -116,7 +116,8 @@ module.exports = async (context) => {
             auth: false,
             handler: async (req) => {
 
-                await context.log('info', 'hubspot-plugin-route-webhook-hit', { payload: req.payload });
+                await context.log('info', 'hubspot-plugin-route-webhook-hit', { eventCount: req.payload?.length });
+                context.log('trace', 'hubspot-plugin-route-webhook-payload', { payload: req.payload });
                 if (!req.payload || typeof req.payload !== 'object') {
                     context.log('warn', 'hubspot-plugin-route-webhook-missing-payload');
                     return {};
@@ -136,12 +137,12 @@ module.exports = async (context) => {
                 // See: https://legacydocs.hubspot.com/docs/methods/webhooks/webhooks-overview
                 for (const [subscriptionType, subscriptionEvents] of Object.entries(eventsBySubscriptionType)) {
                     const eventsByObjectId = _.keyBy(subscriptionEvents, 'objectId');
-                    context.log('trace', 'eventsByObjectId:', { eventsByObjectId });
+                    context.log('trace', 'xero-plugin-route-webhook-log', { eventsByObjectId });
                     const registeredComponents = await context.service.stateGet(`${subscriptionType}:${portalId}`) || [];
-                    context.log('trace', 'Registered components:', { registeredComponents });
+                    context.log('trace', 'xero-plugin-route-webhook-log', { registeredComponents });
                     // Trigger components concurrently, ensuring a 200 response within 5 seconds
                     Promise.all(registeredComponents.map(registered => {
-                        context.log('trace', 'Triggering component', registered);
+                        context.log('trace', 'hubspot-plugin-route-webhook-trigger-start', registered);
                         eventCount += 1;
                         return context.triggerComponent(
                             registered.flowId,
@@ -157,7 +158,7 @@ module.exports = async (context) => {
                     });
                 }
 
-                context.log('info', 'Events processed successfully', { eventCount });
+                context.log('info', 'hubspot-plugin-route-webhook-success', { eventCount });
                 return {};
             }
         }
