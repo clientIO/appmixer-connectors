@@ -106,6 +106,11 @@ module.exports = {
             }
         });
 
+        // Check if there are no results
+        if (response.data.results.length === 0) {
+            return context.send('Item not found', 'notFound');  // Send to 'notFound' port
+        }
+
         const firstItem = response.data.results[0];  // Get the first result after sorting
 
         return context.sendJson(firstItem, 'out');  // Return the first item as a single object
