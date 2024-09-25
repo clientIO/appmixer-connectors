@@ -1,6 +1,6 @@
 'use strict';
 
-const API_VERSION = '2022-06-28';
+const config = require('../../config');
 
 module.exports = {
     async receive(context) {
@@ -12,7 +12,7 @@ module.exports = {
             headers: {
                 'Authorization': `Bearer ${context.auth.accessToken}`,
                 'Content-Type': 'application/json',
-                'Notion-Version': API_VERSION
+                'Notion-Version': config.API_VERSION //api version from config.js
             }
         };
 
