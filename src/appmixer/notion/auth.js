@@ -1,10 +1,12 @@
 'use strict';
 
+const config = require('./config');
+
 module.exports = {
     type: 'oauth2',
 
     definition: () => {
-        const apiVersion = '2022-06-28';
+        const apiVersion = config.API_VERSION //api version from config.js;
         return {
             accountNameFromProfileInfo: 'name',
 
