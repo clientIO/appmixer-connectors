@@ -6,7 +6,7 @@ module.exports = {
     type: 'oauth2',
 
     definition: () => {
-        const apiVersion = config.API_VERSION //api version from config.js;
+        const apiVersion = config.API_VERSION; //api version from config.js;
         return {
             accountNameFromProfileInfo: 'name',
 
