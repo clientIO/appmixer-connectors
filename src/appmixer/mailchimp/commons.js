@@ -56,7 +56,7 @@ const sendArrayOutput = async ({ context, outputPortName = 'out', outputType = '
         await context.sendArray(records, outputPortName);
     } else if (outputType === 'items') {
         // All at once.
-        await context.sendJson(records, outputPortName);
+        await context.sendJson({ items: records }, outputPortName);
     } else if (outputType === 'file') {
         // Into CSV file.
         const headers = Object.keys(records[0]);
