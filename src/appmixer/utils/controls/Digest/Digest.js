@@ -7,7 +7,18 @@ module.exports = {
 
     async receive(context) {
 
-        const { threshold, generateOutputPortOptions, outputType = 'array' } = context.properties;
+        const { threshold, generateOutputPortOptions, getWebhookUrl, outputType = 'array' } = context.properties;
+
+        if (getWebhookUrl) {
+            return context.sendJson({
+                inputs: {
+                    webhookUrl: {
+                        defaultValue: context.getWebhookUrl()
+                    }
+                }
+            }, 'out');
+        }
+
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
@@ -17,6 +28,13 @@ module.exports = {
             lock = await context.lock(context.componentId);
 
             const entries = await context.stateGet('entries') || [];
+
+            if (context.messages.webhook) {
+                // Manually drained by webhook.
+                await this.sendEntries(context, entries, outputType);
+                await context.stateUnset('entries');
+                return context.response();
+            }
 
             if (context.messages.timeout) {
                 if (!threshold || (threshold && entries.length >= threshold)) {

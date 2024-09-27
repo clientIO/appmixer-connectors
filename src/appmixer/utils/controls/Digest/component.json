@@ -7,6 +7,8 @@
         "schema": {
             "properties": {
                 "threshold": { "type": "number" },
+                "getWebhookUrl": { "type": "boolean" },
+                "webhookUrl": { "type": "string" },
                 "minute": { "type": "string" },
                 "hour": { "type": "string" },
                 "dayMonth": { "type": "string" },
@@ -16,40 +18,77 @@
             }
         },
         "inspector": {
+            "groups": {
+                "threshold": {
+                    "label": "Drain by Threshold",
+                    "index": 1,
+                    "open": true
+                },
+                "webhook": {
+                    "label": "Drain by Webhook",
+                    "index": 2,
+                    "open": false
+                },
+                "schedule": {
+                    "label": "Drain by Schedule",
+                    "index": 3,
+                    "open": false
+                }
+            },
             "inputs": {
                 "threshold": {
+                    "group": "threshold",
                     "type": "number",
                     "index": 1,
                     "label": "Threshold",
                     "tooltip": "Enter the number of entries that will trigger the output. If both the threshold and the interval (configuration below) are set, the output will be triggered in regular intervals but only if the threshold is reached, i.e. both conditions must be met. If you only want to trigger the output when the threshold is reached, leave the interval configuration below empty. If you only want to trigger the output at regular intervals, leave the threshold empty."
                 },
-                "minute": {
+                "webhookUrl": {
+                    "group": "webhook",
                     "type": "text",
                     "index": 2,
+                    "label": "Webhook URL to Drain Entries",
+                    "tooltip": "Optionally, you can send a POST request to this URL to manually drain the entries at any time (e.g., even when the threshold is not reached). In other words, sending a POST request to the URL releases all the collected entries and triggers an output.",
+                    "readonly": true,
+                    "source": {
+                        "url": "/component/appmixer/utils/controls/Digest?outPort=out",
+                        "data": {
+                            "properties": { "getWebhookUrl": true }
+                        }
+                    }
+                },
+                "minute": {
+                    "group": "schedule",
+                    "type": "text",
+                    "index": 3,
                     "label": "Minute",
                     "tooltip": "Allowed characters are *, -, /, 0-59. Specify the minute of the hour when the digest will be sent. If the minute is set to *, the digest will be sent every minute. Use the - character to specify range of values, e.g. 1-5 means all 1st, 2nd, 3rd, 4th and 5th minute of the hour. Use the / character to specify a step value, e.g. 0-20/2 means every second minute from 0 through 20 minutes of the hour. Use the , character to specify a list of values, e.g. 1,5,10 means the 1st, 5th and 10th minute of the hour."
                 },
                 "hour": {
+                    "group": "schedule",
                     "type": "text",
                     "label": "Hour",
-                    "index": 3,
+                    "index": 4,
                     "tooltip": "Allowed values are *, -, /, 0-23. Specify the hour of the day when the digest will be sent. If the hour is set to *, the digest will be sent every hour. Use the - character to specify range of values, e.g. 1-5 means all 1st, 2nd, 3rd, 4th and 5th hour of the day. Use the / character to specify a step value, e.g. 0-20/2 means every second hour from 0 through 20 hours of the day. Use the , character to specify a list of values, e.g. 1,5,10 means the 1st, 5th and 10th hour of the day."
                 },
                 "dayMonth": {
+                    "group": "schedule",
                     "type": "text",
-                    "index": 4,
+                    "index": 5,
                     "label": "Day of the Month",
                     "tooltip": "Allowed values are *, -, /, 1-31. Specify the day of the month when the digest will be sent. If the day is set to *, the digest will be sent every day. Use the - character to specify range of values, e.g. 1-5 means all 1st, 2nd, 3rd, 4th and 5th day of the month. Use the / character to specify a step value, e.g. 0-20/2 means every second day from 0 through 20 days of the month. Use the , character to specify a list of values, e.g. 1,5,10 means the 1st, 5th and 10th day of the month."
                 },
                 "dayWeek": {
+                    "group": "schedule",
                     "type": "text",
-                    "index": 5,
+                    "index": 6,
                     "label": "Day of the Week",
                     "tooltip": "Allowed values are *, -, /, 0-6, SUN-SAT. Specify the day of the week when the digest will be sent. If the day is set to *, the digest will be sent every day. Use the - character to specify range of values, e.g. 1-3 means all Monday, Tuesday and Wednesday. Use the / character to specify a step value, e.g. 1-5/2 means every second day of the week from Monday through Friday. Use the , character to specify a list of values, e.g. 1,2 means on Monday and Tuesday of the week."
                 },
                 "timezone": {
+                    "group": "schedule",
                     "type": "text",
-                    "index": 6,
+                    "index": 7,
                     "label": "Timezone",
                     "tooltip": "Specify the timezone for scheduling (e.g., 'Europe/Prague'). GMT is used by default.",
                     "source": {
@@ -63,7 +102,7 @@
                 "outputType": {
                     "type": "select",
                     "label": "Output Type",
-                    "index": 7,
+                    "index": 8,
                     "defaultValue": "array",
                     "tooltip": "Choose whether you want to receive the entries as one complete list, or one entry at a time (as soon as the threshold or interval conditions are met, one entry right after the another, at the same time) or a CSV file with all items.",
                     "options": [
