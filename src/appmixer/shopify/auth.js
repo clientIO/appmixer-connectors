@@ -9,6 +9,7 @@ module.exports = {
     definition: {
 
         // we can't split the scopes into components, see related issue: https://github.com/clientIO/appmixer-core/issues/2040
+        // List of all scopes: https://shopify.dev/docs/api/usage/access-scopes
         scope: [
             'read_customers',
             'write_customers',
@@ -17,7 +18,9 @@ module.exports = {
             'read_orders',
             'write_orders',
             'read_reports',
-            'write_reports'
+            'write_reports',
+            'read_inventory',
+            'write_inventory'
         ],
 
         accountNameFromProfileInfo: context => {
@@ -28,8 +31,8 @@ module.exports = {
         pre: {
             store: {
                 type: 'text',
-                name: 'Store Address',
-                tooltip: 'Enter your Shopify store address (without .myshopify.com)',
+                name: 'Store Name',
+                tooltip: 'Enter your Shopify store name (without .myshopify.com)',
                 required: true
             }
         },
