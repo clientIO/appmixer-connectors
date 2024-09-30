@@ -21,8 +21,8 @@ module.exports = {
         });
 
         const emails = (result.data.messages || []).map(message => ({
-            ID: message.id,
-            ThreadID: message.threadId
+            id: message.id,
+            threadId: message.threadId
         }));
 
         if (emails.length === 0) {
@@ -30,17 +30,17 @@ module.exports = {
         }
 
         if (outputType === 'first') {
-            return context.sendJson({ Email: emails[0], index: 0, count: emails.length }, 'out');
+            return context.sendJson({ email: emails[0], index: 0, count: emails.length }, 'out');
         }
 
         if (outputType === 'array') {
-            return context.sendJson({ Emails: emails, count: emails.length }, 'out');
+            return context.sendJson({ emails: emails, count: emails.length }, 'out');
         }
 
         if (outputType === 'object') {
             for (let index = 0; index < emails.length; index++) {
-                const Email = emails[index];
-                await context.sendJson({ Email, index, count: emails.length }, 'out');
+                const email = emails[index];
+                await context.sendJson({ email, index, count: emails.length }, 'out');
             }
         }
 
@@ -68,7 +68,7 @@ module.exports = {
                 { label: 'Emails Count', value: 'count', schema: { type: 'integer' } },
                 {
                     label: 'Email',
-                    value: 'Email',
+                    value: 'email',
                     schema: this.emailSchema
                 }
             ];
@@ -78,7 +78,7 @@ module.exports = {
                 { label: 'Emails Count', value: 'count', schema: { type: 'integer' } },
                 {
                     label: 'Emails',
-                    value: 'Emails',
+                    value: 'emails',
                     schema: {
                         type: 'array',
                         items: this.emailSchema
@@ -97,13 +97,13 @@ module.exports = {
     emailSchema: {
         'type': 'object',
         'properties': {
-            'ID': {
+            'id': {
                 'type': 'string',
-                'description': 'Email Message ID'
+                'title': 'Email Message ID'
             },
-            'ThreadID': {
+            'threadId': {
                 'type': 'string',
-                'description': 'Thread ID'
+                'title': 'Thread ID'
             }
         }
     }
