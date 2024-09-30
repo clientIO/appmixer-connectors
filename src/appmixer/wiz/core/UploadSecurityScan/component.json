@@ -1,0 +1,216 @@
+{
+    "name": "appmixer.wiz.core.UploadSecurityScan",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Upload security scans to enrich the Wiz Security Graph, using the Vulnerability Findings Schema",
+    "private": false,
+    "auth": {
+        "service": "appmixer:wiz"
+    },
+    "quota": {
+        "manager": "appmixer:wiz",
+        "resources": "requests"
+    },
+    "version": "1.0.0",
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "filename": {
+                        "type": "string"
+                    },
+                    "integrationId": {
+                        "type": "string"
+                    },
+                    "dataSourceId": {
+                        "type": "string"
+                    },
+                    "cloudPlatform": {
+                        "type": "string"
+                    },
+                    "providerId": {
+                        "type": "string"
+                    },
+                    "dataSourceAnalysisDate": {
+                        "type": "string"
+                    },
+                    "vulnerabilityFindings": { }
+                },
+                "required": [
+                    "filename",
+                    "integrationId",
+                    "dataSourceId",
+                    "cloudPlatform",
+                    "providerId",
+                    "vulnerabilityFindings"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "filename": {
+                        "type": "text",
+                        "label": "File Name",
+                        "index": 0
+                    },
+                    "integrationId": {
+                        "type": "text",
+                        "label": "Integration ID",
+                        "tooltip": "The unique ID for each Wiz integration. Sent by Wiz during the integration initiation process.",
+                        "index": 1
+                    },
+                    "dataSourceId": {
+                        "type": "text",
+                        "label": "Data Source ID",
+                        "tooltip": "The ID that uniquely identifies asset findings within a tenant and integration ID. Can be a subscription ID.",
+                        "index": 2
+                    },
+                    "dataSourceAnalysisDate": {
+                        "type": "date-time",
+                        "label": "Analysis Date",
+                        "tooltip": "The date the scan was performed.",
+                        "config": {
+                            "enableTime": true
+                        },
+                        "index": 3
+                    },
+                    "providerId": {
+                        "type": "text",
+                        "label": "Provider ID",
+                        "tooltip": "A unique identifier assigned to a specific cloud asset by the cloud service provider when the asset is created, allowing for the identification and differentiation of the asset within the cloud computing ecosystem.",
+                        "index": 4
+                    },
+                    "cloudPlatform": {
+                        "type": "select",
+                        "index": 5,
+                        "label": "Cloud Platform",
+                        "defaultValue": "AWS",
+                        "tooltip": "The cloud platform that was scanned. Default is AWS",
+                        "options": [
+                            { "label": "AWS", "value": "AWS" },
+                            { "label": "Azure", "value": "Azure" },
+                            { "label": "GCP", "value": "GCP" },
+                            { "label": "OCI", "value": "OCI" },
+                            { "label": "Alibaba Cloud", "value": "Alibaba Cloud" },
+                            { "label": "Linode", "value": "Linode" }
+                        ]
+                    },
+                    "vulnerabilityFindings": {
+                        "type": "expression",
+                        "index": 6,
+                        "label": "Has an error in it",
+                        "levels": ["AND"],
+                        "fields": {
+                            "id": {
+                                "type": "text",
+                                "index": 1,
+                                "label": "Vulnerability ID",
+                                "tooltip": "The unique ID of the discovered vulnerability finding.",
+                                "required": true
+                            },
+                            "name": {
+                                "type": "text",
+                                "index": 2,
+                                "label": "Name",
+                                "tooltip": "The name of the Vulnerability, for example CVE-2021-25288.",
+                                "required": true
+                            },
+                            "severity": {
+                                "type": "select",
+                                "index": 3,
+                                "label": "Severity",
+                                "defaultValue": "Medium",
+                                "tooltip": "The severity of the vulnerability. Default is Medium",
+                                "required": true,
+                                "options": [
+                                    { "label": "None", "value": "None" },
+                                    { "label": "Low", "value": "Low" },
+                                    { "label": "Medium", "value": "Medium" },
+                                    { "label": "High", "value": "High" }
+                                ]
+                            },
+                            "externalDetectionSource": {
+                                "type": "select",
+                                "index": 4,
+                                "label": "External Detection Source",
+                                "defaultValue": "Package",
+                                "tooltip": "The severity of the vulnerability. Default is Medium",
+                                "required": true,
+                                "options": [
+                                    { "label": "Package", "value": "Package" },
+                                    { "label": "Default Package", "value": "DefaultPackage" },
+                                    { "label": "Library", "value": "Library" },
+                                    { "label": "Config File", "value": "ConfigFile" },
+                                    { "label": "Open Port", "value": "OpenPort" },
+                                    { "label": "Startup Service", "value": "StartupService" },
+                                    { "label": "Configuration", "value": "Configuration" },
+                                    { "label": "Cloned Repository", "value": "ClonedRepository" },
+                                    { "label": "OS", "value": "OS" },
+                                    { "label": "Artifacts On Disk", "value": "ArtifactsOnDisk" },
+                                    { "label": "Windows Registry", "value": "WindowsRegistry" },
+                                    { "label": "Installed Program", "value": "InstalledProgram" },
+                                    { "label": "File Path", "value": "FilePath" },
+                                    { "label": "Windows Service", "value": "WindowsService" },
+                                    { "label": "Installed Program By Service", "value": "InstalledProgramByService" },
+                                    { "label": "Hosted Database Scan", "value": "HostedDatabaseScan" },
+                                    { "label": "External Network Scan", "value": "ExternalNetworkScan" },
+                                    { "label": "Cloud API", "value": "CloudAPI" }
+                                ]
+                            },
+                            "externalFindingLink": {
+                                "type": "text",
+                                "index": 5,
+                                "label": "External Finding Link",
+                                "tooltip": "A link to the source of the external finding."
+                            },
+                            "detailedName": {
+                                "type": "text",
+                                "index": 6,
+                                "label": "Detailed Name",
+                                "tooltip": "The details of the externalDetectionSource, such as \"Package,\" should include relevant information about the package. For instance, if the externalDetectionSource is \"libncurses6,\" the \"Details Name\" should reflect details about the package, such as \"libncurses6 package.\"."
+                            },
+                            "version": {
+                                "type": "text",
+                                "index": 7,
+                                "label": "Version",
+                                "tooltip": "The version of the finding."
+                            },
+                            "description": {
+                                "type": "text",
+                                "index": 8,
+                                "label": "Description",
+                                "tooltip": "A description of the finding."
+                            },
+                            "source": {
+                                "type": "text",
+                                "index": 9,
+                                "label": "Source",
+                                "tooltip": "The name of the product that detected the vulnerability."
+                            },
+                            "remediation": {
+                                "type": "text",
+                                "index": 10,
+                                "label": "Remediation",
+                                "required": true,
+                                "tooltip": "The remediation for the vulnerability."
+                            },
+                            "validatedAtRuntime": {
+                                "type": "toggle",
+                                "index": 11,
+                                "label": "Validated At Runtime",
+                                "defaultValue": false,
+                                "tooltip": "Indicates if the finding was detected during runtime (true), or if it was detected during offline or static scanning (false)."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIGlkPSJMYXllcl8yIiBkYXRhLW5hbWU9IkxheWVyIDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDE1Mi42NiA2NS4wNSI+PGRlZnM+PHN0eWxlPi5jbHMtMSB7CiAgICAgICAgZmlsbDogIzAwNDZkMTsKICAgICAgICBzdHJva2Utd2lkdGg6IDBweDsKICAgICAgfTwvc3R5bGU+PC9kZWZzPjxnIGlkPSJMYXllcl8zIiBkYXRhLW5hbWU9IkxheWVyIDMiPjxnPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0ibTE1Mi40OSw4LjczYy0xLjcxLS4zMS00LjU5LTEuMDMtNi4wOC0yLjUydi4wMmMtMS40Ny0xLjQ4LTIuMjQtNC4zNi0yLjU2LTYuMDYtLjA2LS4yNC0uNC0uMjQtLjQ0LDAtLjMxLDEuNzEtMS4wNCw0LjU5LTIuNTIsNi4wOC0xLjQ4LDEuNDctNC4zNiwyLjI0LTYuMDYsMi41Ni0uMjQuMDYtLjI0LjQsMCwuNDQsMS43MS4zMSw0LjU5LDEuMDQsNi4wOCwyLjUyLDEuNjksMS42OCwyLjM2LDQuMTIsMi42Miw1LjcyLjA0LjI0LjQuMjQuNDQsMCwuMzUtMS43MywxLjA4LTQuMzcsMi40Ni01Ljc2LDEuNDgtMS40Nyw0LjM2LTIuMjQsNi4wNi0yLjU2LjI0LS4wNi4yNC0uNCwwLS40NFoiLz48cmVjdCBjbGFzcz0iY2xzLTEiIHg9IjY2Ljg3IiB5PSIxOC41NCIgd2lkdGg9IjExLjM4IiBoZWlnaHQ9IjQ2LjQ5IiByeD0iLjY3IiByeT0iLjY3IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtLjE1IC4yNikgcm90YXRlKC0uMjEpIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJtODkuOTYsMTguODhjMC0uNTQuNDUtLjkxLjgzLS42N2wuMDItLjAyLDMyLjE1LDIxLjE4Yy4zOC4yNy44My0uMS44My0uNjdsLS4wNy0xOS45MmMwLS40OS4yOC0uODYuNjQtLjg2bDkuMzMtLjAzYy4zNiwwLC42NC4zOS42NS44NmwuMTYsNDQuODZjMCwuNTctLjQ3Ljk0LS44NS42N2wtMzMuMDItMjMuNjRjLS4zOC0uMjctLjg1LjEtLjg1LjY3bC4wOCwyMi44NWMwLC40OS0uMjguODYtLjY0Ljg2bC04LjQ0LjAzYy0uMzYsMC0uNjQtLjM5LS42NS0uODZsLS4xNi00NS4zWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0ibTQ4LjAxLDE4LjQzbDEwLjU1LS4wNGguMDJjLjQ4LDAsLjgxLjQ5LjY0LjkzbC0xNy4yOSw0NS40OGMtLjA4LjItLjM0LjItLjQ0LjAybC0xMC43MS0yMS4yNGMtLjIyLS40My0uNjYtLjY1LTEuMDctLjY1LS40NCwwLS44NS4yMi0xLjA3LjY2bC0xMC41NSwyMS4zMmMtLjEuMTgtLjM2LjE4LS40NC0uMDJMLjA0LDE5LjU0Yy0uMTYtLjQ2LjE2LS45My42My0uOTNsMTAuNTUtLjA0Yy4yOCwwLC41NC4xOC42NC40M2w3LjUxLDE5LjQzYy4wOC4xOC4zNi4yLjQ0LDBsOC43OS0xOS4zNWMuMi0uNDQuNjEtLjcsMS4wMy0uNy40Mi4wMi44MS4yNSwxLjAxLjY5bDguOTQsMTkuMjljLjA4LjIuMzYuMi40NCwwbDcuMzctMTkuNDhjLjEtLjI2LjM2LS40NC42My0uNDRaIi8+PC9nPjwvZz48L3N2Zz4="
+}
