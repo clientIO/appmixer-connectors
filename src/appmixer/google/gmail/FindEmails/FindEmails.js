@@ -99,11 +99,11 @@ module.exports = {
         'properties': {
             'id': {
                 'type': 'string',
-                'description': 'Email Message ID'
+                'title': 'Email Message ID'
             },
             'threadId': {
                 'type': 'string',
-                'description': 'Thread ID'
+                'title': 'Thread ID'
             }
         }
     }
