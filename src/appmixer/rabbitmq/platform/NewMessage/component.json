@@ -1,0 +1,77 @@
+{
+    "name": "appmixer.rabbitmq.platform.NewMessage",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Consume messages from a queue.",
+    "private": false,
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:rabbitmq"
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "queue": { "type": "string" },
+                "consumerTag": { "type": "string" },
+                "noAck": { "type": "boolean" },
+                "exclusive": { "type": "boolean" },
+                "priority": { "type": "integer" }
+            },
+            "required": ["queue"]
+        },
+        "inspector": {
+            "inputs": {
+                "queue": {
+                    "type": "text",
+                    "label": "Queue",
+                    "tooltip": "The name of the queue to consume from.",
+                    "index": 0
+                },
+                "consumerTag": {
+                    "type": "text",
+                    "label": "Consumer Tag",
+                    "index": 1,
+                    "tooltip": "A name which the server will use to distinguish message deliveries for the consumer; mustn’t be already in use on the channel. It’s usually easier to omit this, in which case the server will create a random name and supply it in the reply."
+                },
+                "noAck": {
+                    "type": "toggle",
+                    "label": "No Ack",
+                    "index": 2,
+                    "defaultValue": false,
+                    "tooltip": "If set, the broker won’t expect an acknowledgement of messages delivered to this consumer; i.e., it will dequeue messages as soon as they’ve been sent down the wire. Defaults to false (i.e., you will be expected to acknowledge messages)."
+                },
+                "exclusive": {
+                    "type": "toggle",
+                    "label": "Exclusive",
+                    "index": 3,
+                    "defaultValue": false,
+                    "tooltip": "If set, the broker won’t let anyone else consume from this queue; if there already is a consumer, there goes your channel (so usually only useful if you’ve made a ‘private’ queue by letting the server choose its name)."
+                },
+                "priority": {
+                    "type": "number",
+                    "label": "Priority",
+                    "index": 4,
+                    "tooltip": "Gives a priority to the consumer; higher priority consumers get messages in preference to lower priority consumers."
+                }
+            }
+        }
+    },
+    "outPorts": [{
+        "name": "out",
+        "options": [{
+            "label": "Content",
+            "value": "content",
+            "schema": { "type": "string", "examples": ["my content"] }
+        }, {
+            "label": "Fields",
+            "value": "fields",
+            "schema": { "type": "object" }
+        }, {
+            "label": "Properties",
+            "value": "properties",
+            "schema": { "type": "object" }
+        }]
+    }],
+    "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAANoAAADnCAMAAABPJ7iaAAAAkFBMVEX/ZgD/////YwD/h0P/YQD/XQD/nmj/6uL/cxr/+PP/aQD/8+n//Pn/XAD/bwv/9/D/y7j/uJH/div/sIj/gTf/nGv/p3z/18H/697/3sr/zK//ey7/xqf/o3j/i0r/oXL/07n/vZj/llz/p3b/4tH/dB//kVX/jUv/hUf/rYH/upf/bRL/fTD/1Lz/2Mf/6NlCl0pxAAADnElEQVR4nO2d2XbaMBBAZSFRMBhK2ENCQsjGkuT//652SVtySmGGxrXl3vuQxzlzrcU5ZjQyUUZ7PBrE5s/Mbm6bkZLm7XB2JGQ8GI3b2pgqTPZnPPPOHknDWJc0bnWBLx+SUzH9YJyH0g8ytZ53x3J4z8SvFA+5feOPeu1wrpeb2He1nj+dREYykoetS2MucjNL1caCIdvhL6VRF4k0ppvmp9beitVsLJySrY5gNr6r1XLbS8xYOHUyEuGwrRUx/WtuaiPxoKWPeC4L+qyI6RUrWKm2Fc+ddEZ2RLOnu5GHFD+uM9SOval/I25JYn5RPC1jG+p/BqRqKuxEpCbeH0ukJhw1xS6CGmqooYYaaqihhhpqqKGGGmqooYYaaqihhhpqqKGGGmqooYYaaqihhhpqqKGGGmqoofZv1WQFuiGqCWuPUUMNNdRQQw011FBDDTXUUEMNNdRQQw011FA7QIXVZN/8NS1M0pjdUqg5UQulvkottxY4SrU7QchuQ9OUw/hlKdSME3TTWqoGLV1t96VQs5uT00fT2GcX80HUxSRvNWNN/+iynz5qzdKpEC9E21POaunaiJ9G/T2W9V88NZyiY9FPrI+3d/XPov/eC++MRIxzfg+3j2oD+WDnPg2fxIv2mWqlx/rHVkXV0lXz3K6qmvGryqoZOyk6g9zw66IzyA07LzqD/GgUnQAAAAAAAAAAAAAAAAAAAAAUw8e6tv0Kt6Iz+zuc38xH/d4B+tdPG8mtriXFuvnLkRrS7rh2fkFisbj45L2el50gB87NBOXHE/nlruXBXohqj7sXAc5J4SmGt+CGza1kZtpzHyXAiU/VKO49LgVuKDWLopuwpqT0PueMseai2eJJFOdOVNcDlwDFqZNWp+hkVXQUZ/OaYb3aUEOtVKCGWqlADbVSgRpqpQI11EoFaqiVCtRCVFN90doUnawKr/kOWXSyOpIXudprWF+P3bVcbRXWN39jRO3iMpQtuorH96Rqi9B+XzPxm8ysFRedqRo3EHUbbA9CW2kpriZ4bXdrAZqlbg8nf6mfXgRpllX71KdHNsr2/Z0NbHPcw9ntcP31IOvh1gY6ZO9Y531yCB9qfRYAAAAAAAAAAAAAAAAAAMB/Q3hlT0I2ZlDRugVbM8H1uRDi++a+omruzUT1Srr5emSi7izs8qeDuFk3VYsm28qNmx9Mokwtai6Nd7YyOG9GWVWs2RX1Xl3PaxVhfn21O+7xDSMkbD0MJVfpAAAAAElFTkSuQmCC"
+}
+
