@@ -16,7 +16,7 @@ module.exports = {
             method: 'POST',
             url: 'https://calendly.com/api/v1/hooks',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`
             },
             json: true,
             body: {
@@ -38,7 +38,7 @@ module.exports = {
             method: 'DELETE',
             url: `https://calendly.com/api/v1/hooks/${webhookId}`,
             headers: {
-                'Authorization': `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`
             }
         });
     }
