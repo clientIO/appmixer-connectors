@@ -157,7 +157,7 @@ async function sendBatchToFacebook(context, audienceId, schemaConfig, sessionId,
 
     await context.log({ step: 'batch', schema: body.payload.schema, session: body.session, size: batch.length });
 
-    return context.httpRequest.post(url, body);
+    return context.httpRequest.delete(url, { data: body });
 }
 
 function detectSchema(batch, schemaConfig) {
