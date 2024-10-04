@@ -3,20 +3,20 @@ const commons = require('../../asana-commons');
 
 // Asana color names to hex code map
 const asanaColorMap = {
-    "dark-pink": "#EA4E9D",
-    "dark-green": "#62D26F",
-    "dark-blue": "#4186E0",
-    "dark-red": "#E8384F",
-    "dark-orange": "#FD612C",
-    "dark-purple": "#7A6FF0",
-    "light-pink": "#E362E3",
-    "light-green": "#A4CF30",
-    "light-blue": "#4186E0",
-    "light-yellow": "#EEC300",
-    "light-orange": "#FD9A00",
-    "light-purple": "#AA62E3",
-    "light-warm-gray": "#8DA3A6",
-    "none": "none" // No color selected
+    'dark-pink': '#EA4E9D',
+    'dark-green': '#62D26F',
+    'dark-blue': '#4186E0',
+    'dark-red': '#E8384F',
+    'dark-orange': '#FD612C',
+    'dark-purple': '#7A6FF0',
+    'light-pink': '#E362E3',
+    'light-green': '#A4CF30',
+    'light-blue': '#4186E0',
+    'light-yellow': '#EEC300',
+    'light-orange': '#FD9A00',
+    'light-purple': '#AA62E3',
+    'light-warm-gray': '#8DA3A6',
+    'none': 'none' // No color selected
 };
 
 // Reverse map to convert hex to Asana API color names
@@ -35,7 +35,7 @@ async function generateInspector(context) {
                 note: { type: 'string' },
                 dueDate: {
                     oneOf: [
-                        { type: 'string', pattern: "^[0-9]{4}-[0|1][0-9]-[0-3][0-9]$" },
+                        { type: 'string', pattern: '^[0-9]{4}-[0|1][0-9]-[0-3][0-9]$' },
                         { type: 'string', format: 'date-time' }
                     ]
                 },
