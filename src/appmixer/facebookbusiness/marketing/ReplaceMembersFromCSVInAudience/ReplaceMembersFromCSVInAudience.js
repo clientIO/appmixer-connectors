@@ -27,7 +27,7 @@ module.exports = {
         }));
 
         // randomInt limit is (max - min) < 2^48. See https://nodejs.org/api/crypto.html#cryptorandomintmin-max-callback.
-        let sessionId = randomInt(0, 2**48 - 1);
+        let sessionId = randomInt(0, 2 ** 48 - 1);
         let batch = [];
         let batchIndex = 0;
         let estimatedMembersCount = 0;
@@ -93,7 +93,7 @@ module.exports = {
 
                     if (operation === 'usersreplace' && isReplaceSessionExpiring) {
                         // Reset session, switch to POST /users.
-                        sessionId = randomInt(0, 2**48 - 1);
+                        sessionId = randomInt(0, 2 ** 48 - 1);
                         batchIndex = 0;
                         operation = 'users';
                     }
@@ -172,7 +172,16 @@ function estimateNumberOfRows(fileSize, batch) {
     return Math.floor(fileSize / averageRowSize) + 1;
 }
 
-async function sendBatchToFacebook(context, audienceId, schemaConfig, sessionId, batch, batchIndex, isLastBatch, estimatedMembersCount, operation) {
+async function sendBatchToFacebook(
+    context,
+    audienceId,
+    schemaConfig,
+    sessionId,
+    batch,
+    batchIndex,
+    isLastBatch,
+    estimatedMembersCount,
+    operation) {
 
     const body = {
         payload: {
