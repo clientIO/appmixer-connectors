@@ -137,9 +137,12 @@ module.exports = async (context) => {
                 // See: https://legacydocs.hubspot.com/docs/methods/webhooks/webhooks-overview
                 for (const [subscriptionType, subscriptionEvents] of Object.entries(eventsBySubscriptionType)) {
                     const eventsByObjectId = _.keyBy(subscriptionEvents, 'objectId');
-                    context.log('trace', 'xero-plugin-route-webhook-log', { eventsByObjectId });
+
+                // TODO: For "propertyChange" events, filter out properties that are not "watched".
+                // It can cause the trigger to ignore update event if a property that is not watched is sent.
+                    context.log('trace', 'hubspot-plugin-route-webhook-log', { eventsByObjectId });
                     const registeredComponents = await context.service.stateGet(`${subscriptionType}:${portalId}`) || [];
-                    context.log('trace', 'xero-plugin-route-webhook-log', { registeredComponents });
+                    context.log('trace', 'hubspot-plugin-route-webhook-log', { registeredComponents });
                     // Trigger components concurrently, ensuring a 200 response within 5 seconds
                     Promise.all(registeredComponents.map(registered => {
                         context.log('trace', 'hubspot-plugin-route-webhook-trigger-start', registered);

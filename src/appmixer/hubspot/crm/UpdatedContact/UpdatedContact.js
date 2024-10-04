@@ -41,55 +41,51 @@ class UpdatedContact extends BaseSubscriptionComponent {
 
         this.configureHubspot(context);
 
-        if (context.messages.webhook) {
-            const eventsByObjectId = context.messages.webhook.content.data;
+        const eventsByObjectId = context.messages.webhook.content.data;
 
-            let events = {};
-            const validProperties = [
-                'email',
-                'firstname',
-                'lastname',
-                'phone',
-                'website',
-                'company',
-                'address',
-                'city',
-                'state',
-                'zip'
-            ];
+        let events = {};
+        const validProperties = [
+            'email',
+            'firstname',
+            'lastname',
+            'phone',
+            'website',
+            'company',
+            'address',
+            'city',
+            'state',
+            'zip'
+        ];
 
-            // eslint-disable-next-line no-unused-vars
-            for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-                // Only track changes in these properties. These are the ones present in the CreateContact
-                // inspector.
-                // Even if we limit the subscriptions for these properties only, we need this for flows that
-                // are already running and all the subscriptions.
-                if (validProperties.includes(event.propertyName)) {
-                    events[contactId] = { occurredAt: event.occurredAt };
-                }
+        for (const [contactId, event] of Object.entries(eventsByObjectId)) {
+            // Only track changes in these properties. These are the ones present in the CreateContact inspector.
+            // Even if we limit the subscriptions for these properties only, we need this for flows that
+            // are already running and all the subscriptions.
+            if (validProperties.includes(event.propertyName)) {
+                events[contactId] = { occurredAt: event.occurredAt };
             }
-
-            // Get all contactIds
-            const contactIds = Object.keys(events);
-
-            // Call the API to get the contacts in bulk
-            const { data: contacts } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
-                inputs: contactIds.map((contactId) => ({ id: contactId }))
-            });
-
-            contacts.results.forEach((contact) => {
-                // Don't sent the contact if it was modified at the same time as it was created
-                const eventOccurredAt = new Date(events[contact.id].occurredAt).getTime();
-                const objectCreatedAt = new Date(contact.createdAt).getTime();
-                if (eventOccurredAt > objectCreatedAt + 100) {
-                    delete contacts.results[contact.id];
-                }
-            });
-
-            await context.sendArray(contacts.results, 'contact');
-
-            return context.response();
         }
+
+        // Get all objectIds
+        const ids = Object.keys(events);
+
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
+
+        data.results.forEach((contact) => {
+            // Don't send the contact if it was modified at the same time as it was created
+            const eventOccurredAt = new Date(events[contact.id].occurredAt).getTime();
+            const objectCreatedAt = new Date(contact.createdAt).getTime();
+            if (eventOccurredAt > objectCreatedAt + 100) {
+                delete data.results[contact.id];
+            }
+        });
+
+        await context.sendArray(data.results, 'contact');
+
+        return context.response();
     }
 }
 

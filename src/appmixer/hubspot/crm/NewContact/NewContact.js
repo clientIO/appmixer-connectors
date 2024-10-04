@@ -21,15 +21,15 @@ class NewContact extends BaseSubscriptionComponent {
 
         this.configureHubspot(context);
 
-        // Get all contactIds
-        const contactIds = Object.keys(eventsByObjectId);
+        // Get all objectIds
+        const ids = Object.keys(eventsByObjectId);
 
         // Call the API to get the contacts in bulk
-        const { data: contacts } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
-            inputs: contactIds.map((contactId) => ({ id: contactId }))
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
+            inputs: ids.map((id) => ({ id }))
         });
 
-        await context.sendArray(contacts.results, 'contact');
+        await context.sendArray(data.results, 'contact');
 
         return context.response();
     }
