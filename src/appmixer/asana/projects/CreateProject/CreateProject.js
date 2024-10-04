@@ -1,6 +1,26 @@
 'use strict';
 const commons = require('../../asana-commons');
 
+// Hex code to Asana color name map
+const hexToAsanaColorMap = {
+    '#EA4E9D': 'dark-pink',
+    '#62D26F': 'dark-green',
+    '#4186E0': 'dark-blue',
+    '#E8384F': 'dark-red',
+    '#FD612C': 'dark-orange',
+    '#7A6FF0': 'dark-purple',
+    '#8DA3A6': 'dark-warm-gray',
+    '#E362E3': 'light-pink',
+    '#A4CF30': 'light-green',
+    '#4186E0': 'light-blue',
+    '#EEC300': 'light-yellow',
+    '#FD9A00': 'light-orange',
+    '#AA62E3': 'light-purple',
+    '#8DA3A6': 'light-warm-gray',
+    'none': 'none'
+};
+
+
 /**
  * Build project.
  * @param {Object} project
@@ -26,8 +46,9 @@ function buildProject(project, teamId, workspaceId) {
         projectObject['due_on'] = project['dueDate'];
     }
 
-    if (project['color'] !== 'null') {
-        projectObject['color'] = project['color'];
+    // Map hex color to Asana color name
+    if (project['color'] && project['color'] !== 'none') {
+        projectObject['color'] = hexToAsanaColorMap[project['color']] || 'none'; // Fallback to 'null' if no match
     }
 
     if (teamId) {
