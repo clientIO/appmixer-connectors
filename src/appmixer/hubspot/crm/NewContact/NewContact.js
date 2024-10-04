@@ -20,21 +20,16 @@ class NewContact extends BaseSubscriptionComponent {
         const eventsByObjectId = context.messages.webhook.content.data;
 
         this.configureHubspot(context);
-        // eslint-disable-next-line no-unused-vars
-        for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-            try {
-                const { data } = await this.hubspot.call(
-                    'get',
-                    `crm/v3/objects/contacts/${contactId}`
-                );
-                await context.sendJson(data, 'contact');
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
-                }
-            }
-        }
+
+        // Get all contactIds
+        const contactIds = Object.keys(eventsByObjectId);
+
+        // Call the API to get the contacts in bulk
+        const { data: contacts } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
+            inputs: contactIds.map((contactId) => ({ id: contactId }))
+        });
+
+        await context.sendArray(contacts.results, 'contact');
 
         return context.response();
     }
