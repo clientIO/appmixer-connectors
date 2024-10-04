@@ -1,6 +1,5 @@
 'use strict';
 const GoogleApi = require('googleapis');
-const Promise = require('bluebird');
 
 module.exports = {
 
