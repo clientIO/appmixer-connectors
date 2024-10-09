@@ -25,6 +25,7 @@
         "schema": {
             "type": "object",
             "properties": {
+                "projectId":{ "type": "string" },
                 "storeId": { "type": "string" },
                 "query": { "type": "string" },
                 "idField": { "type": "string" },
@@ -34,10 +35,22 @@
         },
         "inspector": {
             "inputs": {
+                "projectId": {
+                    "type": "select",
+                    "label": "Project",
+                    "index": 1,
+                    "source": {
+                        "url": "/component/appmixer/google/bigquery/ListProjects?outPort=out",
+                        "data": {
+                            "transform": "./ListProjects#projectsToSelectArray"
+                        }
+                    },
+                    "tooltip": "Select a BigQuery project from the list to run your query in."
+                },
                 "storeId": {
                     "type": "select",
                     "label": "Storage",
-                    "index": 1,
+                    "index": 2,
                     "source": {
                         "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
                         "data": {
@@ -48,20 +61,20 @@
                 },
                 "detectOnStop": {
                     "type": "toggle",
-                    "index": 2,
+                    "index": 3,
                     "label": "Detect new rows while stopped",
                     "tooltip": "If this is set to true, rows that are added while the flow was stopped will be processed next time the flow is started."
                 },
                 "query": {
                     "type": "textarea",
-                    "index": 3,
+                    "index": 4,
                     "label": "SQL Query",
                     "tooltip": "Enter an SQL query. If your query contains a <code>?</code> character placeholder, then the NewRow component replaces the placeholder with the last timestamp (milliseconds since epoch) the component was triggered to query only data that has been added since the the last time the component was triggered. Note that the replaced timestamp is an integer, so you might need to use a function like TIMESTAMP_MILLIS to make date comparisons. Also note that this is only possible if your result set contains an \"created_at\" type of field. A typical use case is, e.g. <code>select * from myproject.mydataset.mytable where created_at > TIMESTAMP_MILLIS(?)</code>. If you do not provide the <code>?</code> placeholder, then the component will always query all data periodically."
                 },
                 "idField": {
                     "type": "text",
                     "label": "ID field",
-                    "index": 4,
+                    "index": 5,
                     "tooltip": "Select a column that will be used as reference to detect new rows. It should be an unique field."
                 }
             }

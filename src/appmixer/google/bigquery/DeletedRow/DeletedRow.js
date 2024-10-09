@@ -24,11 +24,9 @@ module.exports = {
 
     async start(context) {
 
-        const { query, idField } = context.properties;
+        const { query, idField, projectId } = context.properties;
 
         const storeId = await moduleCommons.ensureStore(context, 'DeletedRow');
-
-        const projectId = await moduleCommons.getProjectId(context);
 
         const client = new BigQuery({
             authClient: commons.getAuthLibraryOAuth2Client(context.auth),
@@ -61,11 +59,9 @@ module.exports = {
             return;
         }
 
-        const { query, idField } = context.properties;
+        const { query, idField, projectId } = context.properties;
 
         const storeId = await moduleCommons.getStoreId(context);
-
-        const projectId = await moduleCommons.getProjectId(context);
 
         const client = new BigQuery({
             authClient: commons.getAuthLibraryOAuth2Client(context.auth),

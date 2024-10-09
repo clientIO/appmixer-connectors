@@ -25,6 +25,7 @@
         "schema": {
             "type": "object",
             "properties": {
+                "projectId":{ "type": "string" },
                 "storeId": { "type": "string" },
                 "query": { "type": "string" },
                 "idField": { "type": "string" },
@@ -34,10 +35,22 @@
         },
         "inspector": {
             "inputs": {
+                "projectId": {
+                    "type": "select",
+                    "label": "Project",
+                    "index": 1,
+                    "source": {
+                        "url": "/component/appmixer/google/bigquery/ListProjects?outPort=out",
+                        "data": {
+                            "transform": "./ListProjects#projectsToSelectArray"
+                        }
+                    },
+                    "tooltip": "Select a BigQuery project from the list to run your query in."
+                },
                 "storeId": {
                     "type": "select",
                     "label": "Storage",
-                    "index": 1,
+                    "index": 2,
                     "source": {
                         "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
                         "data": {
@@ -49,32 +62,32 @@
                 "recordOldValues": {
                     "type": "toggle",
                     "label": "Record old values",
-                    "index": 2,
+                    "index": 3,
                     "defaultValue": false,
                     "tooltip": "Include each updated row previous value in the output. In order to do this, is necessary to download all the existing rows to the store, which can be detrimental with very large tables"
                 },
                 "detectOnStop": {
                     "type": "toggle",
-                    "index": 3,
+                    "index": 4,
                     "label": "Detect updated rows while stopped",
                     "tooltip": "If this is set to true, rows that are updated while the flow was stopped will be processed next time the flow is started."
                 },
                 "query": {
                     "type": "textarea",
-                    "index": 4,
+                    "index": 5,
                     "label": "SQL Query",
                     "tooltip": "Enter an SQL query. If your query contains a <code>?</code> character placeholder, then the UpdatedRow component replaces the placeholder with the last timestamp (milliseconds since epoch) the component was triggered to query only data that has been added since the the last time the component was triggered. Note that the replaced timestamp is an integer, so you might need to use a function like TIMESTAMP_MILLIS to make date comparisons. Also note that this is only possible if your result set contains an \"updated_at\" type of field. A typical use case is, e.g. <code>select * from myproject.mydataset.mytable where updated_at > TIMESTAMP_MILLIS(?)</code>. If you do not provide the <code>?</code> placeholder, then the component will always query all data periodically."
                 },
                 "idField": {
                     "type": "text",
                     "label": "ID field",
-                    "index": 5,
+                    "index": 6,
                     "tooltip": "Select a column that will be used as reference to detect updated rows. It should be an unique field."
                 },
                 "referenceFields": {
                     "when": { "eq": { "./recordOldValues": true } },
                     "type": "text",
-                    "index": 6,
+                    "index": 7,
                     "label": "Reference Fields",
                     "tooltip": "A comma separated list of fields from the query result set that will be used to check for changes in rows. If you do not provide Reference Fields, any change in any field is detected."
                 }
