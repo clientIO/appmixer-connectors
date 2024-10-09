@@ -82,7 +82,10 @@ module.exports = {
                 if (column['is_nullable'] === 'NO' && column['column_default'] === null) {
                     // For example serial type is nullable but has a column_default set
                     // to: 'nextval(\'shifts_id_seq\'::regclass)'.
-                    inspector.schema.required.push(name);
+                    // We do not return the field as required since the same ListColumns is also
+                    // used in UpdateRow component which does not require any field to have a value.
+                    // Instead, we add the information to the tooltip.
+                    inspector.inputs[name].tooltip = 'This field is required since it is not nullable and does not have a default value.';
                 }
             });
         }

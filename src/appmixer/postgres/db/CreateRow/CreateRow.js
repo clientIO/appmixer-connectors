@@ -1,25 +1,11 @@
 'use strict';
+
 const { Pool } = require('pg');
+const crypto = require('crypto');
+
+const CONNECTIONS = {};
 
 module.exports = {
-
-    async connect(context) {
-
-        if (this.pool) {
-            return this.pool.connect();
-        }
-
-        this.pool = new Pool({
-            user: context.auth.dbUser,
-            host: context.auth.dbHost,
-            database: context.auth.database,
-            password: context.auth.dbPassword,
-            port: context.auth.dbPort,
-            poolSize: context.properties.poolSize || 1
-        });
-
-        return this.pool.connect();
-    },
 
     async receive(context) {
 
@@ -30,7 +16,7 @@ module.exports = {
 
         let query = `INSERT INTO ${context.properties.table}(${columns.join(',')}) VALUES(${valuesMarkers.join(',')}) RETURNING *`;
 
-        let client = await this.connect(context);
+        let client = await connect(context);
         try {
             let res = await client.query(query, values);
             await context.sendJson(res.rows[0], 'newRow');
@@ -41,8 +27,34 @@ module.exports = {
 
     async stop(context) {
 
-        if (this.pool) {
-            await this.pool.end();
+        const connectionId = connectionHash(context.auth);
+        if (CONNECTIONS[connectionId]) {
+            await CONNECTIONS[connectionId].end();
         }
     }
 };
+
+function connectionHash(auth) {
+
+    const authString = JSON.stringify(auth);
+    return crypto.createHash('md5').update(authString).digest('hex');
+};
+
+async function connect(context) {
+
+    const connectionId = connectionHash(context.auth);
+    if (CONNECTIONS[connectionId]) {
+        return CONNECTIONS[connectionId].connect();
+    }
+
+    const pool = CONNECTIONS[connectionId] = new Pool({
+        user: context.auth.dbUser,
+        host: context.auth.dbHost,
+        database: context.auth.database,
+        password: context.auth.dbPassword,
+        port: context.auth.dbPort,
+        poolSize: context.config.CreateRowPoolSize || 1
+    });
+
+    return pool.connect();
+}
