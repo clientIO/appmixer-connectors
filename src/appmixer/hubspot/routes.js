@@ -138,8 +138,6 @@ module.exports = async (context) => {
                 for (const [subscriptionType, subscriptionEvents] of Object.entries(eventsBySubscriptionType)) {
                     const eventsByObjectId = _.keyBy(subscriptionEvents, 'objectId');
 
-                // TODO: For "propertyChange" events, filter out properties that are not "watched".
-                // It can cause the trigger to ignore update event if a property that is not watched is sent.
                     context.log('trace', 'hubspot-plugin-route-webhook-log', { eventsByObjectId });
                     const registeredComponents = await context.service.stateGet(`${subscriptionType}:${portalId}`) || [];
                     context.log('trace', 'hubspot-plugin-route-webhook-log', { registeredComponents });
