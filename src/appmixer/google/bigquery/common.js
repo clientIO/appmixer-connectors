@@ -1,7 +1,5 @@
 const Promise = require('bluebird');
-const commons = require('../google-commons');
 const EventEmitter = require('events');
-
 
 module.exports.getInterval = function(context) {
 
