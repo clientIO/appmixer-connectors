@@ -4,11 +4,12 @@ const lib = require('../../lib');
 
 module.exports = {
     async receive(context) {
+        const databaseId = context.properties.databaseId;
         if (context.properties.generateInspector) {
-            return generateInspector(context);
+            return generateInspector(context, databaseId);
         }
 
-        const { databaseId, itemId, content } = context.messages.in.content;
+        const { itemId, content } = context.messages.in.content;
 
         const itemData = await formatPropertiesForNotion(context, databaseId, context.messages.in.content);
 
@@ -34,17 +35,15 @@ module.exports = {
     }
 };
 
-async function generateInspector(context) {
-    const { databaseId } = context.properties;
+async function generateInspector(context, databaseId) {
 
     const schema = {
         type: 'object',
         properties: {
-            databaseId: { type: 'string' },
             itemId: { type: 'string' },
             content: { type: 'string' }
         },
-        required: ['databaseId', 'itemId']  // We need both the database ID and the item ID to update
+        required: ['itemId']  // We need both the database ID and the item ID to update
     };
 
     let fieldsInputs = {};
@@ -83,18 +82,6 @@ async function generateInspector(context) {
     }
 
     const inputs = {
-        databaseId: {
-            label: 'Database ID',
-            index: 1,
-            type: 'select',
-            source: {
-                url: '/component/appmixer/notion/core/ListDatabases?outPort=out',
-                data: {
-                    transform: './ListDatabases#databaseToSelectArray'
-                }
-            },
-            tooltip: 'Select the Notion database or insert a Database ID where the item you want to update is located.'
-        },
         itemId: {
             label: 'Item ID',
             index: 2,
@@ -103,7 +90,7 @@ async function generateInspector(context) {
                 url: '/component/appmixer/notion/core/ListDatabaseItems?outPort=out',
                 data: {
                     messages: {
-                        'in/databaseId': 'inputs/in/databaseId'
+                        'in/databaseId': 'properties/databaseId'
                     },
                     properties: {
                         'sendWholeArray': true

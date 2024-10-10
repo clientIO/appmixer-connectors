@@ -4,11 +4,12 @@ const lib = require('../../lib');
 
 module.exports = {
     async receive(context) {
+        const databaseId = context.properties.databaseId;
         if (context.properties.generateInspector) {
-            return generateInspector(context);
+            return generateInspector(context, databaseId);
         }
 
-        const { databaseId, dateFilter, dateValue, ...propertyFilters } = context.messages.in.content;
+        const { dateFilter, dateValue, ...propertyFilters } = context.messages.in.content;
 
         const filters = [];
 
@@ -117,16 +118,7 @@ module.exports = {
     }
 };
 
-async function generateInspector(context) {
-    const { databaseId } = context.properties;
-
-    const schema = {
-        type: 'object',
-        properties: {
-            databaseId: { type: 'string' }
-        },
-        required: ['databaseId']
-    };
+async function generateInspector(context, databaseId) {
 
     let fieldsInputs = {};
 
@@ -182,22 +174,10 @@ async function generateInspector(context) {
     }
 
     const inputs = {
-        databaseId: {
-            label: 'Database ID',
-            index: 1,
-            type: 'select',
-            source: {
-                url: '/component/appmixer/notion/core/ListDatabases?outPort=out',
-                data: {
-                    transform: './ListDatabases#databaseToSelectArray'
-                }
-            },
-            tooltip: 'Select the Notion database where you want to search for items.'
-        },
         ...fieldsInputs
     };
 
-    return context.sendJson({ schema, inputs }, 'out');
+    return context.sendJson({ inputs }, 'out');
 }
 
 function getInputType(property) {
