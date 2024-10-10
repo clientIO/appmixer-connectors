@@ -1,13 +1,14 @@
 {
-    "name": "appmixer.google.drive.UploadFile",
+    "name": "appmixer.google.drive.UpdatedFileOrFolder",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Upload file into drive.",
-    "private": false,
+    "description": "Trigger every time a file or folder is updated in your Google Drive. This does not download the file content. Use DownloadFile if you need the file content.",
     "version": "2.0.0",
+    "private": false,
+    "webhook": true,
+    "tick": true,
     "auth": {
         "service": "appmixer:google:drive",
         "scope": [
-            "https://www.googleapis.com/auth/drive.file",
             "https://www.googleapis.com/auth/drive.readonly"
         ]
     },
@@ -18,77 +19,56 @@
             "userId": "{{userId}}"
         }
     },
-    "inPorts": [
-        {
-        "name": "in",
+    "properties": {
         "schema": {
-            "type": "object",
             "properties": {
-                "fileId": {
-                    "type": "string"
-                },
-                "fileName": {
-                    "type": "string"
-                },
                 "folder": {
-                    "oneOf": [
-                        { "type": "string" },
-                        { "type": "object" }
-                    ]
+                    "type": "object"
                 },
-                "convertToDocument": {
-                    "type": "boolean"
-                },
-                "replace": {
-                    "type": "boolean"
+                "fileTypesRestriction": {
+                    "type": "array"
                 }
             }
         },
         "inspector": {
             "inputs": {
-                "fileId": {
-                    "type": "filepicker",
-                    "index": 1,
-                    "label": "File ID",
-                    "tooltip": "Select an existing file or upload a new file from your computer."
-                },
-                "fileName": {
-                    "type": "text",
-                    "index": 2,
-                    "label": "File Name",
-                    "tooltip": "Optionally, specify a new file name (including extension). By default, the original file name and extension will be used."
-                },
                 "folder": {
                     "type": "googlepicker",
-                    "index": 3,
                     "label": "Folder",
-                    "placeholder": "Choose a folder...",
-                    "tooltip": "Folder in which to place the file.",
-                    "view": "FOLDERS"
+                    "index": 1,
+                    "tooltip": "Select a specific folder to monitor for updated files. If no folder is selected, updated files in the entire Google Drive will be monitored.",
+                    "view": "FOLDERS",
+                    "placeholder": "Choose a folder..."
                 },
-                "convertToDocument": {
-                    "type": "toggle",
+                "fileTypesRestriction": {
+                    "type": "multiselect",
+                    "options": [
+                        { "content": "All Files", "value": "#FILE" },
+                        { "content": "Folders", "value": "application/vnd.google-apps.folder" },
+                        { "content": "Images (any format, image/*)", "value": "image/" },
+                        { "content": "Videos (any format, video/*)", "value": "video/" },
+                        { "content": "Audio files (any format, audio/*)", "value": "audio/" },
+                        { "content": "Documents and text files (any format text/*)", "value": "text/" },
+                        { "content": "PDF files (application/pdf)", "value": "application/pdf" },
+                        { "content": "Google Docs (application/vnd.google-apps.document)", "value": "application/vnd.google-apps.document" },
+                        { "content": "Google Sheets (application/vnd.google-apps.spreadsheet)", "value": "application/vnd.google-apps.spreadsheet" },
+                        { "content": "Google Slides (application/vnd.google-apps.presentation)", "value": "application/vnd.google-apps.presentation" },
+                        { "content": "Google Drawings (application/vnd.google-apps.drawing)", "value": "application/vnd.google-apps.drawing" }
+                    ],
+                    "defaultValue": [],
                     "index": 4,
-                    "label": "Convert to Google Document",
-                    "tooltip": "Convert the uploaded file to a Google Document. This will only work for files that can be converted to Google Document format. For example, a \".doc\" file can be converted to a Google Document and \".xlsx\" can be converted to a Google Spreadsheet.",
-                    "defaultValue": false
-                },
-                "replace": {
-                    "type": "toggle",
-                    "index": 5,
-                    "label": "Replace if exists",
-                    "tooltip": "Replace an existing file with the same name. This will replace ALL files with the same name in the folder with the newly uploaded file.",
-                    "defaultValue": false
+                    "label": "File Types Restriction",
+                    "tooltip": "Restrict the results to specific file types. If no file types are selected, ALL file types will be monitored including folders."
                 }
             }
         }
-    }
-    ],
+    },
     "outPorts": [
         {
         "name": "out",
         "options": [
-            { "label": "File ID", "value": "fileId", "schema": { "type": "string", "format": "appmixer-file-id" } },
+            { "label": "Is File", "value": "isFile", "schema": { "type": "boolean" } },
+            { "label": "Is Folder", "value": "isFolder", "schema": { "type": "boolean" }  },
             {
                 "label": "GDrive File Metadata",
                 "value": "googleDriveFileMetadata",
@@ -1025,5 +1005,4 @@
     ],
     "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMC8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvVFIvMjAwMS9SRUMtU1ZHLTIwMDEwOTA0L0RURC9zdmcxMC5kdGQnPjxzdmcgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzIgMzIiIGhlaWdodD0iMzJweCIgaWQ9IkxheWVyXzEiIHZlcnNpb249IjEuMCIgdmlld0JveD0iMCAwIDMyIDMyIiB3aWR0aD0iMzJweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGc+PHBvbHlsaW5lIGZpbGw9IiM1MzdBQkQiIHBvaW50cz0iMzEuODY4LDIxIDkuODY4LDIxIDQuODY4LDMwIDI2LjU1NiwzMCAgIi8+PHBvbHlsaW5lIGZpbGw9IiMyRUI2NzIiIHBvaW50cz0iMTAuOTYyLDIgLTAuMDM4LDIwIDQuOTYyLDMwIDE1LjY4MywxMC4zNDUgICIvPjxwb2x5bGluZSBmaWxsPSIjRkVEMTRCIiBwb2ludHM9IjIwLjk2MiwyIDEwLjk2MiwyIDIxLjcxMiwyMSAzMS45NjIsMjEgMjAuOTYyLDIgICIvPjwvZz48Zy8+PGcvPjxnLz48Zy8+PGcvPjxnLz48L3N2Zz4="
 }
-
 

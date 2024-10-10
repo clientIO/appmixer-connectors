@@ -1,19 +1,5 @@
 const Promise = require('bluebird');
-const commons = require('../google-commons');
 const EventEmitter = require('events');
-
-module.exports.getProjectId = async function(context) {
-
-    const { clientId } = context.auth;
-    const [projectNumber] = clientId.split('-');
-
-    const authClient = commons.getAuthLibraryOAuth2Client(context.auth);
-    const res = await authClient.request({ url: 'https://bigquery.googleapis.com/bigquery/v2/projects' });
-    const { projects } = res.data;
-
-    const project = projects.find(project => project.numericId === projectNumber);
-    return project.id;
-};
 
 module.exports.getInterval = function(context) {
 

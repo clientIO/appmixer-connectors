@@ -1,4 +1,5 @@
 'use strict';
+
 const { google } = require('googleapis');
 const lib = require('../lib');
 
@@ -8,23 +9,26 @@ module.exports = {
 
         const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { fileId, fileName, folderLocation } = context.messages.in.content;
+        let { fileId, name, description, starred } = context.messages.in.content;
 
-        const resource = {
-            name: fileName
-        };
 
-        let folderId;
-        if (folderLocation) {
-            folderId = typeof folderLocation === 'string' ? folderLocation : folderLocation.id;
-            resource.parents = [folderId];
+        const resource = {};
+
+        if (name) {
+            resource.name = name;
         }
-
-        const response = await drive.files.copy({
+        if (description) {
+            resource.description = description;
+        }
+        if (typeof starred === 'boolean') {
+            resource.starred = starred;
+        }
+        const response = await drive.files.update({
             fileId: typeof fileId === 'string' ? fileId : fileId.id,
             resource,
             fields: '*'
         });
+
         return context.sendJson({ googleDriveFileMetadata: response.data }, 'out');
     }
 };

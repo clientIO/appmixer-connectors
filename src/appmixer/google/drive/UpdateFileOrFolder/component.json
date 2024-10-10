@@ -1,13 +1,13 @@
 {
-    "name": "appmixer.google.drive.UploadFile",
+    "name": "appmixer.google.drive.UpdateFileOrFolder",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Upload file into drive.",
+    "description": "Update an existing file or folder.",
     "private": false,
     "version": "2.0.0",
     "auth": {
         "service": "appmixer:google:drive",
         "scope": [
-            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive",
             "https://www.googleapis.com/auth/drive.readonly"
         ]
     },
@@ -25,60 +25,42 @@
             "type": "object",
             "properties": {
                 "fileId": {
-                    "type": "string"
-                },
-                "fileName": {
-                    "type": "string"
-                },
-                "folder": {
                     "oneOf": [
                         { "type": "string" },
                         { "type": "object" }
                     ]
                 },
-                "convertToDocument": {
-                    "type": "boolean"
-                },
-                "replace": {
-                    "type": "boolean"
-                }
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "starred": { "type": "boolean" }
             }
         },
         "inspector": {
             "inputs": {
                 "fileId": {
-                    "type": "filepicker",
+                    "type": "googlepicker",
+                    "view": ["DOCS", "FOLDERS"],
                     "index": 1,
-                    "label": "File ID",
-                    "tooltip": "Select an existing file or upload a new file from your computer."
+                    "label": "Google Drive File or Folder ID",
+                    "tooltip": "The ID of the Google Drive file or folder you wish to update."
                 },
-                "fileName": {
+                "name": {
                     "type": "text",
                     "index": 2,
-                    "label": "File Name",
-                    "tooltip": "Optionally, specify a new file name (including extension). By default, the original file name and extension will be used."
+                    "label": "New Name",
+                    "tooltip": "Specify the new name of the file or folder."
                 },
-                "folder": {
-                    "type": "googlepicker",
+                "description": {
+                    "type": "textarea",
                     "index": 3,
-                    "label": "Folder",
-                    "placeholder": "Choose a folder...",
-                    "tooltip": "Folder in which to place the file.",
-                    "view": "FOLDERS"
+                    "label": "New Description",
+                    "tooltip": "Specify the new description of the file or folder."
                 },
-                "convertToDocument": {
+                "starred": {
                     "type": "toggle",
                     "index": 4,
-                    "label": "Convert to Google Document",
-                    "tooltip": "Convert the uploaded file to a Google Document. This will only work for files that can be converted to Google Document format. For example, a \".doc\" file can be converted to a Google Document and \".xlsx\" can be converted to a Google Spreadsheet.",
-                    "defaultValue": false
-                },
-                "replace": {
-                    "type": "toggle",
-                    "index": 5,
-                    "label": "Replace if exists",
-                    "tooltip": "Replace an existing file with the same name. This will replace ALL files with the same name in the folder with the newly uploaded file.",
-                    "defaultValue": false
+                    "label": "Starred",
+                    "tooltip": "Set if you want the file or folder to be added to starred."
                 }
             }
         }
@@ -88,9 +70,8 @@
         {
         "name": "out",
         "options": [
-            { "label": "File ID", "value": "fileId", "schema": { "type": "string", "format": "appmixer-file-id" } },
             {
-                "label": "GDrive File Metadata",
+                "label": "GDrive Shortcut Metadata",
                 "value": "googleDriveFileMetadata",
                 "schema": {
                     "type": "object",
