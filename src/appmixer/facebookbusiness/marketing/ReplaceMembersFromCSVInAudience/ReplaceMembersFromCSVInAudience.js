@@ -2,6 +2,8 @@ const { randomInt, createHash } = require('crypto');
 const csv = require('csv-parser');
 
 const BATCH_SIZE = 10000;
+// See https://developers.facebook.com/docs/marketing-api/audiences/guides/custom-audiences#replace-api.
+const REPLACE_SESSION_DURATION_WINDOW = 1000 * 60 * 88; // 88 minutes to stay on the safe side.
 
 module.exports = {
 
@@ -25,20 +27,43 @@ module.exports = {
         }));
 
         // randomInt limit is (max - min) < 2^48. See https://nodejs.org/api/crypto.html#cryptorandomintmin-max-callback.
-        const sessionId = randomInt(0, 2 ** 48 - 1);
+        let sessionId = randomInt(0, 2 ** 48 - 1);
         let batch = [];
         let batchIndex = 0;
         let estimatedMembersCount = 0;
         let membersCount = 0;
+        let operation = 'usersreplace';
+        let isLastBatch = false;
 
         let numInvalidEntries = 0;
         let invalidEntrySamples = [];
+
+        const replaceStartedAt = new Date();
 
         // Process rows in a way so that we can detect the last row (and therefore last batch).
         let previousRow = null;
 
         for await (const row of reader) {
             membersCount += 1;
+            isLastBatch = false;
+
+            const timeElapsed = new Date() - replaceStartedAt;
+            const isReplaceSessionExpiring = timeElapsed > REPLACE_SESSION_DURATION_WINDOW;
+
+            if (operation === 'usersreplace' && isReplaceSessionExpiring) {
+                // The maximum duration window for 1 replace session is 90 minutes. (We use 88 minutes to stay on the safe side.)
+                // The API will reject any batches for a session received after 90 minutes from the time the session started.
+                // If you need to send batches for a duration longer than 90 minutes,
+                // wait until the replace operation for that session is done,
+                // then use the /<CUSTOM_AUDIENCE>/users endpoint’s add operation for the rest of your uploads.
+                // See https://developers.facebook.com/docs/marketing-api/audiences/guides/custom-audiences#replace-api.
+                isLastBatch = true; // The very next batch will be the last batch in the replace session.
+                await context.log({
+                    step: 'replace-session-expiring',
+                    message: 'Replace session expiring. Uploading last batch and switching to add operation.',
+                    timeElapsedMs: timeElapsed
+                });
+            }
 
             if (previousRow !== null) {
                 batch.push(previousRow);
@@ -56,14 +81,22 @@ module.exports = {
                         sessionId,
                         batch,
                         batchIndex,
-                        false,
-                        estimatedMembersCount
+                        isLastBatch,
+                        estimatedMembersCount,
+                        operation
                     );
                     await context.log({ step: 'batch-response', data: response.data, headers: response.headers });
                     numInvalidEntries += response.data.num_invalid_entries;
                     invalidEntrySamples = invalidEntrySamples.concat(response.data.invalid_entry_samples || []);
                     batchIndex += 1;
                     batch = []; // Clear the batch
+
+                    if (operation === 'usersreplace' && isReplaceSessionExpiring) {
+                        // Reset session, switch to POST /users.
+                        sessionId = randomInt(0, 2 ** 48 - 1);
+                        batchIndex = 0;
+                        operation = 'users';
+                    }
                 }
             }
             previousRow = row;
@@ -74,6 +107,7 @@ module.exports = {
             if (!estimatedMembersCount) {
                 estimatedMembersCount = estimateNumberOfRows(fileInfo.length, batch);
             }
+            isLastBatch = true;
             // Now process the last batch after loop ends.
             const response = await sendBatchToFacebook(
                 context,
@@ -82,8 +116,9 @@ module.exports = {
                 sessionId,
                 batch,
                 batchIndex,
-                true,
-                estimatedMembersCount
+                isLastBatch,
+                estimatedMembersCount,
+                operation
             );
             await context.log({ step: 'batch-response', data: response.data, headers: response.headers });
             numInvalidEntries += response.data.num_invalid_entries;
@@ -145,7 +180,8 @@ async function sendBatchToFacebook(
     batch,
     batchIndex,
     isLastBatch,
-    estimatedMembersCount) {
+    estimatedMembersCount,
+    operation) {
 
     const body = {
         payload: {
@@ -161,11 +197,25 @@ async function sendBatchToFacebook(
         access_token: context.auth.accessToken
     };
 
-    const url = `https://graph.facebook.com/v20.0/${audienceId}/users`;
+    const url = `https://graph.facebook.com/v20.0/${audienceId}/${operation}`;
 
-    await context.log({ step: 'batch', schema: body.payload.schema, session: body.session, size: batch.length });
+    await context.log({ step: 'batch', schema: body.payload.schema, session: body.session, size: batch.length, operation });
 
-    return context.httpRequest.post(url, body);
+    let response;;
+
+    try {
+        response = await context.httpRequest.post(url, body);
+    } catch (error) {
+        await context.log({
+            step: 'batch-error',
+            error: error.message,
+            data: error.response.data,
+            headers: error.response.headers,
+            status: error.response.status
+        });
+        throw error;
+    }
+    return response;
 }
 
 function detectSchema(batch, schemaConfig) {
