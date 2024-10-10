@@ -1,13 +1,13 @@
 {
-    "name": "appmixer.google.drive.UploadFile",
+    "name": "appmixer.google.drive.CreateFileFromText",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Upload file into drive.",
+    "description": "Create a new file from text content and upload it to your Google Drive.",
     "private": false,
     "version": "2.0.0",
     "auth": {
         "service": "appmixer:google:drive",
         "scope": [
-            "https://www.googleapis.com/auth/drive.file",
+            "https://www.googleapis.com/auth/drive",
             "https://www.googleapis.com/auth/drive.readonly"
         ]
     },
@@ -24,9 +24,6 @@
         "schema": {
             "type": "object",
             "properties": {
-                "fileId": {
-                    "type": "string"
-                },
                 "fileName": {
                     "type": "string"
                 },
@@ -36,41 +33,45 @@
                         { "type": "object" }
                     ]
                 },
+                "content": {
+                    "type": "string"
+                },
                 "convertToDocument": {
                     "type": "boolean"
                 },
                 "replace": {
                     "type": "boolean"
                 }
-            }
+            },
+            "required": ["fileName"]
         },
         "inspector": {
             "inputs": {
-                "fileId": {
-                    "type": "filepicker",
-                    "index": 1,
-                    "label": "File ID",
-                    "tooltip": "Select an existing file or upload a new file from your computer."
-                },
                 "fileName": {
                     "type": "text",
-                    "index": 2,
+                    "index": 1,
                     "label": "File Name",
-                    "tooltip": "Optionally, specify a new file name (including extension). By default, the original file name and extension will be used."
+                    "tooltip": "Specify a file name including extension."
                 },
                 "folder": {
                     "type": "googlepicker",
-                    "index": 3,
+                    "index": 2,
                     "label": "Folder",
                     "placeholder": "Choose a folder...",
                     "tooltip": "Folder in which to place the file.",
                     "view": "FOLDERS"
                 },
+                "content": {
+                    "type": "textarea",
+                    "index": 3,
+                    "label": "File Content",
+                    "tooltip": "Use plain text. This is the content of the file that will be created. The maximum file size is 10MB."
+                },
                 "convertToDocument": {
                     "type": "toggle",
                     "index": 4,
                     "label": "Convert to Google Document",
-                    "tooltip": "Convert the uploaded file to a Google Document. This will only work for files that can be converted to Google Document format. For example, a \".doc\" file can be converted to a Google Document and \".xlsx\" can be converted to a Google Spreadsheet.",
+                    "tooltip": "Convert the uploaded file to a Google Document. This will only work for files that can be converted to Google Document format. For example, a \".txt\" file can be converted to a Google Document and \".csv\" can be converted to a Google Spreadsheet. If the specified file name does not have an extension, the file will be uploaded as a Google Document.",
                     "defaultValue": false
                 },
                 "replace": {
@@ -88,7 +89,7 @@
         {
         "name": "out",
         "options": [
-            { "label": "File ID", "value": "fileId", "schema": { "type": "string", "format": "appmixer-file-id" } },
+            { "label": "File Content", "value": "content", "schema": { "type": "string" } },
             {
                 "label": "GDrive File Metadata",
                 "value": "googleDriveFileMetadata",

@@ -1,14 +1,14 @@
 {
     "name": "appmixer.google.drive.DeleteFileOrFolder",
     "author": "David Durman <david@client.io>",
-    "description": "Delete a file/folder in your drive.",
+    "description": "Delete a file or folder from your Google Drive.",
+    "version": "2.0.0",
     "private": false,
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:drive",
         "scope": [
             "https://www.googleapis.com/auth/drive",
-            "https://www.googleapis.com/auth/drive.appdata",
-            "https://www.googleapis.com/auth/drive.file"
+            "https://www.googleapis.com/auth/drive.readonly"
         ]
     },
     "quota": {
@@ -24,17 +24,23 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "fileId": { "type": "string" }
+                    "fileId": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "object" }
+                        ]
+                    }
                 },
                 "required": ["fileId"]
             },
             "inspector": {
                 "inputs": {
                     "fileId": {
-                        "type": "text",
+                        "type": "googlepicker",
+                        "view": ["DOCS", "FOLDERS"],
                         "index": 1,
-                        "label": "Google Drive File/Folder ID",
-                        "tooltip": "The ID of the file/folder to delete."
+                        "label": "Google Drive File or Folder ID",
+                        "tooltip": "The ID of the Google Drive file or folder."
                     }
                 }
             }
@@ -44,7 +50,7 @@
         {
             "name": "out",
             "options": [
-                { "label": "Google Drive File ID", "value": "googleDriveFileId" }
+                { "label": "GDrive File or Folder ID", "value": "googleDriveFileId", "schema": { "type": "string" } }
             ]
         }
     ],
