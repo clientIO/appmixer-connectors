@@ -45,7 +45,7 @@ module.exports = {
         };
 
         const url = `https://graph.facebook.com/v20.0/${audienceId}/users`;
-        const response = await context.httpRequest.post(url, body);
+        const response = await context.httpRequest.delete(url, { data: body });
 
         if (!response || !response.data || response.data.num_received !== 1) {
             throw new Error(`Failed to add member to audience. Response: ${JSON.stringify({
