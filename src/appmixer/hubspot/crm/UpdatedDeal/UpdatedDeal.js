@@ -39,72 +39,47 @@ class UpdatedDeal extends BaseSubscriptionComponent {
 
         this.configureHubspot(context);
 
-        if (context.messages.timeout) {
+        const eventsByObjectId = context.messages.webhook.content.data;
 
-            const { dealId, occurredAt } = context.messages.timeout.content;
-            await context.stateUnset(`deal-${dealId}`);
+        let events = {};
+        const validProperties = [
+            'dealname',
+            'dealstage',
+            'pipeline',
+            'hubSpotOwnerId',
+            'closedate',
+            'amount'
+        ];
 
-            try {
-                const { data } = await this.hubspot.call('get', `crm/v3/objects/deals/${dealId}`);
-                if (occurredAt > new Date(data.createdAt).getTime() + 1000) {
-                    await context.sendJson(data, 'deal');
-                }
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
-                }
+        for (const [dealId, event] of Object.entries(eventsByObjectId)) {
+            // Only track changes in these properties. These are the ones present in the CreateDeal inspector.
+            // Even if we limit the subscriptions for these properties only, we need this for flows that
+            // are already running and all the subscriptions.
+            if (validProperties.includes(event.propertyName)) {
+                events[dealId] = { occurredAt: event.occurredAt };
             }
         }
 
-        if (context.messages.webhook) {
-            const eventsByObjectId = context.messages.webhook.content.data;
-            let timeouts = {};
+        // Get all objectIds
+        const ids = Object.keys(events);
 
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/deals/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
 
-            // eslint-disable-next-line no-unused-vars
-            for (const [dealId, event] of Object.entries(eventsByObjectId)) {
-                const validProperties = [
-                    'dealname',
-                    'dealstage',
-                    'pipeline',
-                    'hubSpotOwnerId',
-                    'closedate',
-                    'amount'
-                ];
-
-                if (validProperties.includes(event.propertyName)) {
-                    timeouts[dealId] = { occurredAt: event.occurredAt };
-                }
+        data.results.forEach((deal) => {
+            // Don't send the contact if it was modified at the same time as it was created
+            const eventOccurredAt = new Date(events[deal.id].occurredAt).getTime();
+            const objectCreatedAt = new Date(deal.createdAt).getTime();
+            if (eventOccurredAt > objectCreatedAt + 100) {
+                delete data.results[deal.id];
             }
+        });
 
-            // We are basically debouncing the update event, because Hubspot can send a webhook for
-            // each property that was updated.
-            for (const [dealId, event] of Object.entries(timeouts)) {
-                let lock;
-                try {
-                    lock = await context.lock(`UpdatedDeal-${dealId}`);
+        await context.sendArray(data.results, 'deal');
 
-                    const previousTimeout = await context.stateGet(`deal-${dealId}`);
-                    let occurrenceTime = event.occurredAt;
-                    if (previousTimeout) {
-                        await context.clearTimeout(previousTimeout.timeoutId);
-                    }
-
-                    const timeoutId = await context.setTimeout(
-                        { dealId, occurredAt: occurrenceTime },
-                        context.config.triggerTimeout || 5000
-                    );
-                    await context.stateSet(`deal-${dealId}`, { timeoutId });
-                } finally {
-                    if (lock) {
-                        lock.unlock();
-                    }
-                }
-            }
-
-            return context.response();
-        }
+        return context.response();
     }
 }
 

@@ -41,80 +41,51 @@ class UpdatedContact extends BaseSubscriptionComponent {
 
         this.configureHubspot(context);
 
-        if (context.messages.timeout) {
-            const { contactId, occurredAt } = context.messages.timeout.content;
-            await context.stateUnset(`contact-${contactId}`);
+        const eventsByObjectId = context.messages.webhook.content.data;
 
-            try {
-                const { data } = await this.hubspot.call('get', `crm/v3/objects/contacts/${contactId}`);
-                if (occurredAt > new Date(data.createdAt).getTime() + 100) {
-                    await context.sendJson(data, 'contact');
-                }
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
-                }
+        let events = {};
+        const validProperties = [
+            'email',
+            'firstname',
+            'lastname',
+            'phone',
+            'website',
+            'company',
+            'address',
+            'city',
+            'state',
+            'zip'
+        ];
+
+        for (const [contactId, event] of Object.entries(eventsByObjectId)) {
+            // Only track changes in these properties. These are the ones present in the CreateContact inspector.
+            // Even if we limit the subscriptions for these properties only, we need this for flows that
+            // are already running and all the subscriptions.
+            if (validProperties.includes(event.propertyName)) {
+                events[contactId] = { occurredAt: event.occurredAt };
             }
-            return;
         }
 
-        if (context.messages.webhook) {
-            const eventsByObjectId = context.messages.webhook.content.data;
+        // Get all objectIds
+        const ids = Object.keys(events);
 
-            let timeouts = {};
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
 
-            // eslint-disable-next-line no-unused-vars
-            for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-                // Only track changes in these properties. These are the ones present in the CreateContact
-                // inspector.
-                // Even if we limit the subscriptions for these properties only, we need this for flows that
-                // are already running and all the subscriptions.
-                const validProperties = [
-                    'email',
-                    'firstname',
-                    'lastname',
-                    'phone',
-                    'website',
-                    'company',
-                    'address',
-                    'city',
-                    'state',
-                    'zip'
-                ];
-
-                if (validProperties.includes(event.propertyName)) {
-                    timeouts[contactId] = { occurredAt: event.occurredAt };
-                }
+        data.results.forEach((contact) => {
+            // Don't send the contact if it was modified at the same time as it was created
+            const eventOccurredAt = new Date(events[contact.id].occurredAt).getTime();
+            const objectCreatedAt = new Date(contact.createdAt).getTime();
+            if (eventOccurredAt > objectCreatedAt + 100) {
+                delete data.results[contact.id];
             }
+        });
 
-            for (const [contactId, event] of Object.entries(timeouts)) {
+        await context.sendArray(data.results, 'contact');
 
-                let lock;
-                try {
-                    lock = await context.lock(`UpdatedContact-${contactId}`);
-
-                    const previousTimeout = await context.stateGet(`contact-${contactId}`);
-                    let occurrenceTime = event.occurredAt;
-                    if (previousTimeout) {
-                        await context.clearTimeout(previousTimeout.timeoutId);
-                        occurrenceTime = event.occurredAt > previousTimeout.occurredAt
-                            ? event.occurredAt
-                            : previousTimeout.occurredAt;
-                    }
-
-                    const timeoutId = await context.setTimeout(
-                        { contactId, occurredAt: occurrenceTime }, context.config.triggerTimeout || 5000);
-                    await context.stateSet(`contact-${contactId}`, { timeoutId, occurredAt: occurrenceTime });
-                } finally {
-                    if (lock) {
-                        lock.unlock();
-                    }
-                }
-            }
-
-            return context.response();
-        }
+        return context.response();
     }
 }
 

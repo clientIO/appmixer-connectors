@@ -1,5 +1,5 @@
 'use strict';
-const Promise = require('bluebird');
+
 const _ = require('lodash');
 
 const getSubscriptionEntries = async (context, subscriptionType) => {
@@ -116,35 +116,50 @@ module.exports = async (context) => {
             auth: false,
             handler: async (req) => {
 
+                await context.log('info', 'hubspot-plugin-route-webhook-hit', { eventCount: req.payload?.length });
+                context.log('trace', 'hubspot-plugin-route-webhook-payload', { payload: req.payload });
+                if (!req.payload || typeof req.payload !== 'object') {
+                    context.log('warn', 'hubspot-plugin-route-webhook-missing-payload');
+                    return {};
+                }
                 const events = Array.isArray(req.payload) ? req.payload : [req.payload];
                 if (!Array.isArray(events) || !events.length) {
                     return {};
                 }
 
+                let eventCount = 0;
+
+                // Portal ID (hub_id) is the same for all events.
+                const portalId = events[0].portalId;
                 const eventsBySubscriptionType = _.groupBy(events, 'subscriptionType');
 
+                // Note on batching: The batch size can vary, but will be under 100 notifications.
+                // See: https://legacydocs.hubspot.com/docs/methods/webhooks/webhooks-overview
                 for (const [subscriptionType, subscriptionEvents] of Object.entries(eventsBySubscriptionType)) {
                     const eventsByObjectId = _.keyBy(subscriptionEvents, 'objectId');
-                    const registeredComponents = await context.service.stateGet(subscriptionType);
-                    // we cannot wait for the results, 200 response has to be sent within 5
-                    // seconds, otherwise they're gonna send retries
-                    Promise.map(registeredComponents, registered => {
-                        return Promise.resolve(context.triggerComponent(
+
+                    context.log('trace', 'hubspot-plugin-route-webhook-log', { eventsByObjectId });
+                    const registeredComponents = await context.service.stateGet(`${subscriptionType}:${portalId}`) || [];
+                    context.log('trace', 'hubspot-plugin-route-webhook-log', { registeredComponents });
+                    // Trigger components concurrently, ensuring a 200 response within 5 seconds
+                    Promise.all(registeredComponents.map(registered => {
+                        context.log('trace', 'hubspot-plugin-route-webhook-trigger-start', registered);
+                        eventCount += 1;
+                        return context.triggerComponent(
                             registered.flowId,
                             registered.componentId,
                             eventsByObjectId,
                             {},
                             {}
-                        )).reflect();
-                    }, { concurrency: 100 }).each(inspection => {
-                        if (!inspection.isFulfilled()) {
-                            context.log('error', inspection.reason());
-                        }
-                    }).catch(err => {
+                        ).catch(err => {
+                            context.log('error', err.message, err);
+                        });
+                    })).catch(err => {
                         context.log('error', err.message, err);
                     });
                 }
 
+                context.log('info', 'hubspot-plugin-route-webhook-success', { eventCount });
                 return {};
             }
         }
