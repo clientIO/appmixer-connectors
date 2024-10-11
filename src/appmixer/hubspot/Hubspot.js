@@ -33,11 +33,6 @@ class Hubspot {
         this.appId = appId;
     }
 
-    static get MAX_RECORDS_PER_PAGE() {
-
-        return 100;
-    }
-
     async call(method, path, data = {}, opts = {}) {
 
         const payload = {
@@ -116,37 +111,6 @@ class Hubspot {
             `webhooks/v3/${this.appId}/settings`,
             payload,
             { useKey: true }
-        );
-    }
-
-    createSubscriptions(subscriptions) {
-
-        return this.call(
-            'POST',
-            `webhooks/v1/${this.appId}/subscriptions/batch`,
-            subscriptions,
-            { useKey: true }
-        );
-    }
-
-    getAllSubscriptions() {
-
-        return this.call(
-            'GET',
-            `webhooks/v3/${this.appId}/subscriptions`,
-            {},
-            { useKey: true }
-        );
-    }
-
-    deleteSubscriptions(subscriptionIds) {
-
-        const deleteQuery = subscriptionIds.map(id => `subscriptionId=${id}`).join('&');
-        return this.call(
-            'delete',
-            `webhooks/v1/${this.appId}/subscriptions/batch`,
-            {},
-            { useKey: true, query: deleteQuery }
         );
     }
 }
