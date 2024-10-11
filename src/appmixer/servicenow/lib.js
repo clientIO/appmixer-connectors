@@ -2,10 +2,31 @@
 
 const pathModule = require('path');
 
-
 function getBasicAuth(username, password) {
 
     return Buffer.from(username + ':' + password).toString('base64');
+}
+
+async function callEndpoint(context, {
+    method = 'GET',
+    data = {},
+    params,
+    action
+}) {
+
+    const options = {
+        method,
+        url: `https://${context.auth.instance}.service-now.com/api/now/${action}`,
+        headers: {
+            'User-Agent': 'Appmixer (info@appmixer.com)',
+            'Authorization': ('Basic ' + getBasicAuth(context.auth.username, context.auth.password))
+        },
+        data,
+        params
+    };
+
+    context.log({ step: 'Making request', options });
+    return await context.httpRequest(options);
 }
 
 function isAppmixerVariable(variable) {
@@ -83,5 +104,6 @@ module.exports = {
     getBasicAuth,
     isAppmixerVariable,
     requestPaginated,
-    sendArrayOutput
+    sendArrayOutput,
+    callEndpoint
 };
