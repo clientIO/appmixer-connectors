@@ -43,7 +43,8 @@ module.exports = {
     async start(context) {
 
         const { accessToken } = context.auth;
-        const latest = await getLatestChanges('/me/drive/root/delta?token=latest', accessToken);
+        const { driveId } = context.properties;
+        const latest = await getLatestChanges(`/drives/${driveId}/root/delta?token=latest`, accessToken);
         const state = {
             deltaLink: latest['@odata.deltaLink'],
             lastUpdated: moment().toISOString()

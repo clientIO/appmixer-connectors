@@ -4,11 +4,12 @@ const lib = require('../../lib');
 
 module.exports = {
     async receive(context) {
+        const databaseId = context.properties.databaseId;
         if (context.properties.generateInspector) {
-            return generateInspector(context);
+            return generateInspector(context, databaseId);
         }
 
-        const { databaseId, content } = context.messages.in.content;
+        const { content } = context.messages.in.content;
 
         const itemData = await formatPropertiesForNotion(context, databaseId, context.messages.in.content);
 
@@ -46,16 +47,13 @@ module.exports = {
     }
 };
 
-async function generateInspector(context) {
-    const { databaseId } = context.properties;
+async function generateInspector(context, databaseId) {
 
     const schema = {
         type: 'object',
         properties: {
-            databaseId: { type: 'string' },
             content: { type: 'string' }
-        },
-        required: ['databaseId']
+        }
     };
 
     let fieldsInputs = {};
@@ -93,18 +91,6 @@ async function generateInspector(context) {
     }
 
     const inputs = {
-        databaseId: {
-            label: 'Database ID',
-            index: 1,
-            type: 'select',
-            source: {
-                url: '/component/appmixer/notion/core/ListDatabases?outPort=out',
-                data: {
-                    transform: './ListDatabases#databaseToSelectArray'
-                }
-            },
-            tooltip: 'Select the Notion database or insert a Database ID where you want to create a new item.'
-        },
         content: {
             label: 'Content',
             index: 999,  // Ensure this appears last in the form

@@ -2,35 +2,31 @@
 
 module.exports = {
 
-    type: 'apiKey',
+    type: 'oauth2',
 
     definition: {
 
-        accountNameFromProfileInfo: 'data.attributes.email',
+        accountNameFromProfileInfo: 'resource.email',
 
-        auth: {
-            apiKey: {
-                type: 'text',
-                name: 'API Key',
-                tooltip: 'Log into your calendly account and find <i>integration</i> page in settings. ' +
-                    '<br/>You have to have Premium or Pro Calendly subscription in order make Calendly components work. ' +
-                    '<br/>It also works with free 14 days trial.'
-            }
-        },
+        authUrl: 'https://auth.calendly.com/oauth/authorize',
+
+        requestAccessToken: 'https://auth.calendly.com/oauth/token',
 
         requestProfileInfo: {
             method: 'GET',
-            url: 'https://calendly.com/api/v1/users/me',
+            url: 'https://api.calendly.com/users/me',
             headers: {
-                'X-TOKEN': '{{apiKey}}'
+                'Authorization': 'Bearer {{accessToken}}'
             }
         },
 
-        validate: {
+        refreshAccessToken: 'https://auth.calendly.com/oauth/token',
+
+        validateAccessToken: {
             method: 'GET',
-            url: 'https://calendly.com/api/v1/users/me',
+            url: 'https://api.calendly.com/users/me',
             headers: {
-                'X-TOKEN': '{{apiKey}}'
+                'Authorization': 'Bearer {{accessToken}}'
             }
         }
     }

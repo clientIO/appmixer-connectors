@@ -20,15 +20,13 @@ async function processUpdateRowStream(rowsStream, context, storeId, idField, loc
 
 async function startRoutine(context) {
 
-    const { query, idField, detectOnStop, recordOldValues } = context.properties;
+    const { query, idField, detectOnStop, recordOldValues, projectId } = context.properties;
     const storeId = await moduleCommons.ensureStore(context, 'UpdatedRow');
 
     const isInitialized = await context.stateGet('initialized');
     const preRegisterWebhook = isInitialized && detectOnStop;
 
     const webhookEvents = recordOldValues ? ['update'] : ['insert', 'update'];
-
-    const projectId = await moduleCommons.getProjectId(context);
 
     // Date.now returns timestamp in ms, but MySQL uses timestamp in seconds
     const now = Date.now();
@@ -99,10 +97,8 @@ module.exports = {
             return startRoutine(context);
         }
 
-        const { query, idField } = context.properties;
+        const { query, idField, projectId } = context.properties;
         const storeId = await moduleCommons.getStoreId(context);
-
-        const projectId = await moduleCommons.getProjectId(context);
 
         const client = new BigQuery({
             authClient: commons.getAuthLibraryOAuth2Client(context.auth),

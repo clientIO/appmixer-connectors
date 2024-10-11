@@ -98,23 +98,23 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'item') {
+        if (outputType === 'object') {
             return context.sendJson(
                 [
-                    { label: 'createdTime', value: 'createdTime' },
-                    { label: 'fields', value: 'fields',
+                    { label: 'Created Time', value: 'createdTime' },
+                    { label: 'Fields', value: 'fields',
                         // We can't know table columns beforehand, so we'll just use empty object as schema.
                         schema: { type: 'object' }
                     },
-                    { label: 'id', value: 'id' },
-                    { label: 'commentCount', value: 'commentCount' }
+                    { label: 'ID', value: 'id' },
+                    { label: 'Comment Count', value: 'commentCount' }
                 ],
                 'out'
             );
         } else if (outputType === 'array') {
             return context.sendJson(
                 [
-                    { label: 'Result', value: 'result',
+                    { label: 'Records', value: 'result',
                         schema: { type: 'array',
                             items: { type: 'object',
                                 properties: {

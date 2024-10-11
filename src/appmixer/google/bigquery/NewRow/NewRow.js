@@ -32,11 +32,9 @@ async function runQuery(client, query, params) {
 
 async function startRoutine(context) {
 
-    const { query, idField, detectOnStop } = context.properties;
+    const { query, idField, detectOnStop, projectId } = context.properties;
 
     const storeId = await moduleCommons.ensureStore(context, 'NewRow');
-
-    const projectId = await moduleCommons.getProjectId(context);
 
     const client = new BigQuery({
         authClient: commons.getAuthLibraryOAuth2Client(context.auth),
@@ -101,11 +99,9 @@ module.exports = {
             return startRoutine(context);
         }
 
-        const { query, idField } = context.properties;
+        const { query, idField, projectId } = context.properties;
 
         const storeId = await moduleCommons.getStoreId(context);
-
-        const projectId = await moduleCommons.getProjectId(context);
 
         const client = new BigQuery({
             authClient: commons.getAuthLibraryOAuth2Client(context.auth),
