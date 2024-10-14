@@ -32,7 +32,9 @@ class BaseSubscriptionComponent {
 
         this.configureHubspot(context);
         await this.subscribe(context);
-        return context.service.stateAddToSet(this.subscriptionType, {
+        // Use hub_id from context to differentiate between different HubSpot portals/users.
+        const portalId = context.auth?.profileInfo?.hub_id;
+        return context.service.stateAddToSet(`${this.subscriptionType}:${portalId}`,{
             componentId: context.componentId,
             flowId: context.flowId
         });
@@ -42,7 +44,8 @@ class BaseSubscriptionComponent {
 
         this.configureHubspot(context);
         await this.deleteSubscriptions(context);
-        return context.service.stateRemoveFromSet(this.subscriptionType, {
+        const portalId = context.auth?.profileInfo?.hub_id;
+        return context.service.stateRemoveFromSet(`${this.subscriptionType}:${portalId}`,{
             componentId: context.componentId,
             flowId: context.flowId
         });

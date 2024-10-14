@@ -1,0 +1,131 @@
+{
+    "name": "appmixer.facebookbusiness.marketing.RemoveMembersInCSVFromAudience",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Remove customers in a CSV file from a custom audience.",
+    "auth": {
+        "service": "appmixer:facebookbusiness",
+        "scope": [
+            "ads_management",
+            "ads_read"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:facebookbusiness",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "accountId": { "type": "string" },
+                    "audienceId": { "type": "string" },
+                    "fileId": { "type": "string" },
+                    "schema": { "type": "object" }
+                },
+                "required": ["audienceId", "fileId"]
+            },
+            "inspector": {
+                "inputs": {
+                    "accountId": {
+                        "type": "select",
+                        "label": "Account ID",
+                        "index": 1,
+                        "tooltip": "Enter your Ad Account ID.",
+                        "source": {
+                            "url": "/component/appmixer/facebookbusiness/marketing/GetAdAccounts?outPort=out",
+                            "data": {
+                                "transform": "./GetAdAccounts#toSelectArray"
+                            }
+                        }
+                    },
+                    "audienceId": {
+                        "type": "select",
+                        "label": "Custom Audience ID",
+                        "index": 2,
+                        "tooltip": "Enter your Custom Audience ID.",
+                        "source": {
+                            "url": "/component/appmixer/facebookbusiness/marketing/GetCustomAudiences?outPort=out",
+                            "data": {
+                                "transform": "./GetCustomAudiences#toSelectArray",
+                                "messages": {
+                                    "in/accountId": "inputs/in/accountId"
+                                }
+                            }
+                        }
+                    },
+                    "fileId": {
+                        "type": "filepicker",
+                        "index": 2,
+                        "label": "File ID",
+                        "tooltip": "Select a file or use a File ID returned from a previous step."
+                    },
+                    "schema": {
+                        "type": "expression",
+                        "levels": ["ADD"],
+                        "index": 3,
+                        "label": "Schema",
+                        "tooltip": "Specify what type of information you will provide in the CSV file. The order of the columns is not important.",
+                        "fields": {
+                            "csvHeader": {
+                                "type": "text",
+                                "label": "CSV Header",
+                                "tooltip": "The name of the column in the CSV file. The column name is case insensitive."
+                            },
+                            "fbType": {
+                                "type": "select",
+                                "label": "Facebook Type",
+                                "tooltip": "The type of information in the column.",
+                                "options": [
+                                    { "value": "EMAIL", "label": "EMAIL (email address)" },
+                                    { "value": "PHONE", "label": "PHONE (phone number)" },
+                                    { "value": "GEN", "label": "GEN (gender - m|f)" },
+                                    { "value": "DOBY", "label": "DOBY (birth year - YYYY)" },
+                                    { "value": "DOBM", "label": "DOBM (birth month - MM - 01 to 12)" },
+                                    { "value": "DOBD", "label": "DOBD (birthday - DD - 01 to 31)" },
+                                    { "value": "LN", "label": "LN (last name)" },
+                                    { "value": "FN", "label": "FN (first name)" },
+                                    { "value": "FI", "label": "FI (first name initial)" },
+                                    { "value": "CT", "label": "CT (city)" },
+                                    { "value": "ST", "label": "ST (state - US 2-letter, Others lowercase)" },
+                                    { "value": "ZIP", "label": "ZIP (zip code)" },
+                                    { "value": "COUNTRY", "label": "COUNTRY (country code - 2-letter)" },
+                                    { "value": "MADID", "label": "MADID (mobile advertiser ID)" },
+                                    { "value": "EXTERN_ID", "label": "EXTERN_ID (your own ID)" }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+        "name": "out",
+        "options": [{
+            "value": "audience_id",
+            "label": "Audience ID",
+            "schema": { "type": "string" }
+        }, {
+            "value": "account_id",
+            "label": "Account ID",
+            "schema": { "type": "string" }
+        }, {
+            "value": "invalid_entry_samples",
+            "label": "Invalid Entry Samples",
+            "schema": { "type": "array" }
+        }, {
+            "value": "num_invalid_entries",
+            "label": "Number of Invalid Entries",
+            "schema": { "type": "integer" }
+        }]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAwIiBoZWlnaHQ9IjI1MDAiIHZpZXdCb3g9IjAgMCAyNjYuODkzIDI2Ni44OTUiPjxwYXRoIGQ9Ik0yNTIuMTY0IDI2Ni44OTVjOC4xMzQgMCAxNC43MjktNi41OTYgMTQuNzI5LTE0LjczVjE0LjczYzAtOC4xMzctNi41OTYtMTQuNzMtMTQuNzI5LTE0LjczSDE0LjczQzYuNTkzIDAgMCA2LjU5NCAwIDE0LjczdjIzNy40MzRjMCA4LjEzNSA2LjU5MyAxNC43MyAxNC43MyAxNC43M2gyMzcuNDM0eiIgZmlsbD0iIzQ4NWE5NiIvPjxwYXRoIGQ9Ik0xODQuMTUyIDI2Ni44OTVWMTYzLjUzOWgzNC42OTJsNS4xOTQtNDAuMjhoLTM5Ljg4N1Y5Ny41NDJjMC0xMS42NjIgMy4yMzgtMTkuNjA5IDE5Ljk2Mi0xOS42MDlsMjEuMzI5LS4wMVY0MS44OTdjLTMuNjg5LS40OS0xNi4zNTEtMS41ODctMzEuMDgtMS41ODctMzAuNzUzIDAtNTEuODA3IDE4Ljc3MS01MS44MDcgNTMuMjQ0djI5LjcwNWgtMzQuNzgxdjQwLjI4aDM0Ljc4MXYxMDMuMzU1aDQxLjU5N3oiIGZpbGw9IiNmZmYiLz48L3N2Zz4="
+}
+

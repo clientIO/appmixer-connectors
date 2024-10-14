@@ -48,7 +48,7 @@ module.exports = {
 
         return this.unregisterWebhook(context)
             .then(() => {
-                return commons.registerWebhookSubscription(context.auth.apiKey, 'invitee.created', url);
+                return commons.registerWebhookSubscription(context.auth.accessToken, 'invitee.created', url);
             }).then(response => {
                 return context.saveState({ webhookId: response.id });
             });
@@ -66,6 +66,6 @@ module.exports = {
             return Promise.resolve();
         }
 
-        return commons.removeWebhookSubscription(webhookId, context.auth.apiKey);
+        return commons.removeWebhookSubscription(webhookId, context.auth.accessToken);
     }
 };

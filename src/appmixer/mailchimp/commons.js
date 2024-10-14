@@ -59,7 +59,7 @@ const sendArrayOutput = async ({ context, outputPortName = 'out', outputType = '
         await context.sendJson({ items: records }, outputPortName);
     } else if (outputType === 'file') {
         // Into CSV file.
-        const headers = Object.keys(records[0]);
+        const headers = Object.keys(records[0] || {});
         let csvRows = [];
         csvRows.push(headers.join(','));
         for (const record of records) {

@@ -1,3 +1,5 @@
+const { createHash } = require('crypto');
+
 module.exports = {
 
     async receive(context) {
@@ -19,27 +21,47 @@ module.exports = {
             'ST',
             'ZIP',
             'COUNTRY',
-            'MADID'
+            'MADID',
+            'EXTERN_ID'
         ];
 
-        const member = {};
-        const schema = {};
+        const member = [];
+        const schema = [];
         fields.forEach(field => {
             const value = context.messages.in.content[field];
             if (value) {
-                member[field] = value;
-                schema[field] = field;
+                const normalizedValue = createHash('sha256').update(value).digest('hex');
+                member.push(normalizedValue);
+                schema.push(field);
             }
         });
 
-        const payload = {
-            schema: schema,
-            data: [member],
+        const body = {
+            payload: {
+                schema: schema,
+                data: [member]
+            },
             access_token: accessToken
         };
 
-        const url = `https://graph.facebook.com/v20.0/${audienceId}?access_token=${accessToken}`;
-        const response = await context.httpRequest.post(url, payload);
-        return context.sendJson({ accountId, audienceId, ...response.data }, 'out');
+        const url = `https://graph.facebook.com/v20.0/${audienceId}/users`;
+        const response = await context.httpRequest.post(url, body);
+
+        if (!response || !response.data || response.data.num_received !== 1) {
+            throw new Error(`Failed to add member to audience. Response: ${JSON.stringify({
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers,
+                data: response.data,
+                requestBody: body
+            })}`);
+        }
+        return context.sendJson({
+            account_id: accountId,
+            audience_id: audienceId,
+            num_received: response.data.num_received,
+            num_invalid_entries: response.data.num_invalid_entries,
+            session_id: response.data.session_id
+        }, 'out');
     }
 };
