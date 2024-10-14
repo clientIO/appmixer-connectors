@@ -10,9 +10,8 @@ module.exports = {
 
     async receive(context) {
 
-        let { channelId } = context.properties;
-        let { text } = context.messages.message.content;
-        let client = commons.getSlackAPIClient(context.auth.accessToken);
+        const { channelId, text } = context.messages.message.content;
+        const client = commons.getSlackAPIClient(context.auth.accessToken);
 
         try {
             const message = await client.sendMessage(channelId, text);

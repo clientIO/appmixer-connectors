@@ -31,7 +31,7 @@ module.exports = {
         let users;
 
         try {
-            users = await client.listUsers();
+            users = await client.listUsers({ limit: 1000 });
         } catch (err) {
             if (err instanceof SlackAPIError) {
                 throw new context.CancelError(err.apiError);
