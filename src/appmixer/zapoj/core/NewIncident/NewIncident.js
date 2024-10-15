@@ -5,6 +5,7 @@ module.exports = {
     async tick(context) {
 
         // First page of active incidents. Newer incidents are at the top.
+        // TODO: Figure out the correct API endpoint for getting the incidents.
         const url = `https://messagetemplate.${context.auth?.subdomain}.zapoj.com/api/itTemplate/list/NI/0`;
         const lastSeenCreatedAt = await context.stateGet('lastSeenCreatedAt');
 
