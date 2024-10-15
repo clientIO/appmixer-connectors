@@ -6,7 +6,7 @@ module.exports = {
 
     receive: async function(context) {
 
-        const { fileId } = context.messages.in.content;
+        const { fileId, responseFormat } = context.messages.in.content;
         const apiKey = context.config.apiKey;
 
         if (!apiKey) {
@@ -23,7 +23,7 @@ module.exports = {
             knownLength: fileInfo.length
         });
         formData.append('model', context.config.CreateTranscriptionModel || 'whisper-1');
-        formData.append('response_format', 'json');
+        formData.append('response_format', responseFormat || 'text');
 
         const url = 'https://api.openai.com/v1/audio/transcriptions';
         const { data } = await context.httpRequest.post(url, formData, {
@@ -32,8 +32,7 @@ module.exports = {
             }, formData.getHeaders())
         });
 
-        await context.log({ step: 'response', data: JSON.stringify(data).substring(0, 100) });
-
-        return context.sendJson(data, 'out');
+        await context.log({ step: 'response', data: (data || '').substring(0, 100) });
+        return context.sendJson({ text: data }, 'out');
     }
 };
