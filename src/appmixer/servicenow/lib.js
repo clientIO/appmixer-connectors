@@ -2,10 +2,32 @@
 
 const pathModule = require('path');
 
-
 function getBasicAuth(username, password) {
 
     return Buffer.from(username + ':' + password).toString('base64');
+}
+
+async function callEndpoint(context, {
+    method = 'GET',
+    data = {},
+    params,
+    action
+}) {
+
+    const url = `https://${context.auth.instance}.service-now.com/api/now/${action}`;
+    const options = {
+        method,
+        url,
+        headers: {
+            'User-Agent': 'Appmixer (info@appmixer.com)',
+            'Authorization': ('Basic ' + getBasicAuth(context.auth.username, context.auth.password))
+        },
+        data,
+        params
+    };
+
+    context.log({ step: 'Making request', options: { url, data, params } });
+    return await context.httpRequest(options);
 }
 
 function isAppmixerVariable(variable) {
@@ -83,5 +105,14 @@ module.exports = {
     getBasicAuth,
     isAppmixerVariable,
     requestPaginated,
-    sendArrayOutput
+    sendArrayOutput,
+    callEndpoint,
+    convertToTitleCase: (str) => {
+        // Replace underscores and spaces with a single space
+        let spacedStr = str.replace(/[_\s]+/g, ' ').trim();
+        // Insert a space before each uppercase letter and convert to lowercase
+        spacedStr = spacedStr.replace(/([A-Z])/g, ' $1').toLowerCase();
+        return spacedStr.replace(/\b\w/g, char => char.toUpperCase());
+    }
+
 };

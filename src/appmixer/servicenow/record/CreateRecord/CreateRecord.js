@@ -1,48 +1,77 @@
 /* eslint-disable camelcase */
 'use strict';
 
-const { getBasicAuth } = require('../../commons');
+const { callEndpoint, convertToTitleCase } = require('../../lib');
+
+async function getJSONStructure(context, { tableName }) {
+
+    try {
+
+        const { data } = await callEndpoint(context, {
+
+            action: `table/${tableName}`,
+            params: {
+                sysparm_exclude_reference_link: true,
+                sysparm_limit: 1
+            }
+        });
+
+        return data?.result[0] || {};
+    } catch (e) {
+        context.log({ stage: 'get schema error', error: e?.response });
+        throw new context.CancelError(`Unable to retrieve the schema for the table "${tableName}". There must be at least one record in the table.`);
+    }
+}
+
+function toOutputScheme(context, json) {
+    const scheme = Object.keys(json).map((key) => {
+        return {
+            label: convertToTitleCase(key),
+            value: key,
+            scheme: { type: 'string' }
+        };
+    });
+
+    return context.sendJson(scheme, 'out');
+}
+
+function toInspector(context, json) {
+    const inputs = {};
+
+    Object.keys(json).forEach((key, index) => {
+        inputs[key] = {
+            label: convertToTitleCase(key),
+            type: 'text',
+            tooltip: key,
+            index
+        };
+    });
+    return context.sendJson({ inputs }, 'out');
+}
 
 module.exports = {
 
     async receive(context) {
 
-        const {
-            tableName,
-            record,
-            sysparm_display_value,
-            sysparm_exclude_reference_link,
-            sysparm_fields,
-            sysparm_view,
-            sysparm_query_no_domain
-        } = context.messages.in.content;
+        const { tableName, generateInspector, generateOutputPortOptions } = context.properties;
 
-        let recordJson = {};
-        try {
-            recordJson = JSON.parse(record);
-        } catch (error) {
-            throw new context.CancelError('Invalid record JSON. Details: ' + error.message);
+        if (generateOutputPortOptions) {
+            return toOutputScheme(context, await getJSONStructure(context, { tableName }));
         }
 
-        const options = {
-            method: 'POST',
-            url: `https://${context.auth.instance}.service-now.com/api/now/table/${tableName}`,
-            headers: {
-                'User-Agent': 'Appmixer (info@appmixer.com)',
-                'Authorization': ('Basic ' + getBasicAuth(context.auth.username, context.auth.password))
-            },
-            data: recordJson,
-            params: {
-                sysparm_display_value,
-                sysparm_exclude_reference_link,
-                sysparm_fields,
-                sysparm_view,
-                sysparm_query_no_domain
-            }
-        };
+        if (generateInspector) {
+            return toInspector(context, await getJSONStructure(context, { tableName }));
+        }
 
-        context.log({ step: 'Making request', options });
-        const { data } = await context.httpRequest(options);
+        const inputs = context.messages.in.content;
+
+        context.log({ stage: 'inputs ', inputs: inputs });
+
+        const { data } = await callEndpoint(context, {
+            method: 'POST',
+            action: `table/${tableName}`,
+            data: inputs
+        });
 
         return context.sendJson(data?.result, 'out');
     }
