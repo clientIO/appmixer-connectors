@@ -14,9 +14,10 @@ async function callEndpoint(context, {
     action
 }) {
 
+    const url = `https://${context.auth.instance}.service-now.com/api/now/${action}`;
     const options = {
         method,
-        url: `https://${context.auth.instance}.service-now.com/api/now/${action}`,
+        url,
         headers: {
             'User-Agent': 'Appmixer (info@appmixer.com)',
             'Authorization': ('Basic ' + getBasicAuth(context.auth.username, context.auth.password))
@@ -25,7 +26,7 @@ async function callEndpoint(context, {
         params
     };
 
-    context.log({ step: 'Making request', options });
+    context.log({ step: 'Making request', options: { url, data, params } });
     return await context.httpRequest(options);
 }
 
@@ -105,5 +106,13 @@ module.exports = {
     isAppmixerVariable,
     requestPaginated,
     sendArrayOutput,
-    callEndpoint
+    callEndpoint,
+    convertToTitleCase: (str) => {
+        // Replace underscores and spaces with a single space
+        let spacedStr = str.replace(/[_\s]+/g, ' ').trim();
+        // Insert a space before each uppercase letter and convert to lowercase
+        spacedStr = spacedStr.replace(/([A-Z])/g, ' $1').toLowerCase();
+        return spacedStr.replace(/\b\w/g, char => char.toUpperCase());
+    }
+
 };
