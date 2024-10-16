@@ -1,39 +1,22 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
+const { WATCHED_PROPERTIES_CONTACT } = require('../../commons');
 
 const subscriptionType = 'deal.propertyChange';
 
 class UpdatedDeal extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
-        const properties = await this.getProperties();
-        const subscriptions = [];
-        const unsupported = ['hs_lastmodifieddate'];
-        properties.forEach((property) => {
-            if (
-                !property.hidden &&
-                !property.deleted &&
-                !property.readOnlyValue &&
-                !unsupported.includes(property.name)
-            ) {
-                subscriptions.push({
-                    enabled: true,
-                    subscriptionDetails: {
-                        subscriptionType: this.subscriptionType,
-                        propertyName: property.name
-                    }
-                });
+        const subscriptions = WATCHED_PROPERTIES_CONTACT.forEach((propertyName) => ({
+            enabled: true,
+            subscriptionDetails: {
+                subscriptionType,
+                propertyName
             }
-        });
+        }));
         return subscriptions;
     }
-
-    async getProperties() {
-
-        const { data } = await this.hubspot.call('get', 'crm/v3/properties/deals');
-        return data.results;
-    };
 
     async receive(context) {
 
@@ -42,20 +25,12 @@ class UpdatedDeal extends BaseSubscriptionComponent {
         const eventsByObjectId = context.messages.webhook.content.data;
 
         let events = {};
-        const validProperties = [
-            'dealname',
-            'dealstage',
-            'pipeline',
-            'hubSpotOwnerId',
-            'closedate',
-            'amount'
-        ];
 
         for (const [dealId, event] of Object.entries(eventsByObjectId)) {
             // Only track changes in these properties. These are the ones present in the CreateDeal inspector.
             // Even if we limit the subscriptions for these properties only, we need this for flows that
             // are already running and all the subscriptions.
-            if (validProperties.includes(event.propertyName)) {
+            if (WATCHED_PROPERTIES_CONTACT.includes(event.propertyName)) {
                 events[dealId] = { occurredAt: event.occurredAt };
             }
         }
