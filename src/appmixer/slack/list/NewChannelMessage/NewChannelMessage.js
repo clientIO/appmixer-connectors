@@ -1,50 +1,21 @@
 'use strict';
-const commons = require('../../slack-commons');
-const Promise = require('bluebird');
-const Entities = require('html-entities').AllHtmlEntities;
-const { SlackAPIError } = require('../../errors');
 
-/**
- * Component which triggers whenever new message is added to public channel.
- * @extends {Component}
- */
 module.exports = {
 
-    async tick(context) {
+    async start(context) {
 
-        // Timestamp in seconds - needed for endpoint call. Endpoint supports decimals, hence we don't
-        // need to round
-        let since = new Date().valueOf() / 1000;
+        return context.addListener(context.properties.channelId, { accessToken: context.auth.accessToken } );
+    },
 
-        let { channelId } = context.properties;
-        let client = commons.getSlackAPIClient(context.auth.accessToken);
-        let entities = new Entities();
+    async stop(context) {
 
-        const state = await context.loadState();
+        return context.removeListener(context.properties.channelId);
+    },
 
-        const sinceToCompare = state.since || since;
+    async receive(context) {
 
-        let messages;
-
-        try {
-            const options = { oldest: sinceToCompare };
-            messages = await client.listMessages(channelId, options, 1000);
-        } catch (err) {
-            if (err instanceof SlackAPIError) {
-                throw new context.CancelError(err.apiError);
-            }
-            throw err;
+        if (context.messages.webhook) {
+            await context.sendJson(context.messages.webhook.content.data, 'message');
         }
-
-        // Order the messages retrieved from latest to oldest
-        messages.reverse();
-
-        await Promise.map(messages, (message) => {
-            message['text'] = entities.decode(message['text']);
-            return context.sendJson(message, 'message');
-        });
-
-        await context.saveState({ since });
     }
 };
-
