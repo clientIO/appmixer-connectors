@@ -3,26 +3,48 @@ const docusign = require('docusign-esign');
 
 const getAccessToken = async (integrationKey, secretKey, code, context) => {
 
-    //set the combination of integration and secret key in a string
+    const isProduction = context.config.production === true || context.config.production === 'true';
     let authorizationHeader = integrationKey + ':' + secretKey;
-    //generate Buffer object to convert to base64 string\
     let buff = Buffer.from(authorizationHeader, 'utf8');
-    //Convert data to base64 String
     authorizationHeader = 'Basic ' + buff.toString('base64');
-    //Define headers with base64 String
     authorizationHeader = {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: authorizationHeader
     };
+
+    const baseUrl = isProduction ? 'https://account.docusign.com/oauth/token' : 'https://account-d.docusign.com/oauth/token';
     let { data: tokenResponse } = await context.httpRequest({
-        url: 'https://account-d.docusign.com/oauth/token',
+        url: baseUrl,
         method: 'POST',
-        data: 'grant_type=authorization_code&code=' + code,
+        data: `grant_type=authorization_code&code=${code}`,
         headers: authorizationHeader
     });
 
     return tokenResponse;
 };
+
+const refreshToken = async (integrationKey, secretKey, refreshToken, context) => {
+
+    const isProduction = context.config.production === true || context.config.production === 'true';
+    let authorizationHeader = integrationKey + ':' + secretKey;
+    let buff = Buffer.from(authorizationHeader, 'utf8');
+    authorizationHeader = 'Basic ' + buff.toString('base64');
+    authorizationHeader = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: authorizationHeader
+    };
+
+    const baseUrl = isProduction ? 'https://account.docusign.com/oauth/token' : 'https://account-d.docusign.com/oauth/token';
+    let { data: tokenResponse } = await context.httpRequest({
+        url: baseUrl,
+        method: 'POST',
+        data: `grant_type=refresh_token&refresh_token=${encodeURIComponent(refreshToken)}`,
+        headers: authorizationHeader
+    });
+
+    return tokenResponse;
+};
+
 
 const getEnvelope = async (args, accessToken) => {
 
@@ -175,4 +197,11 @@ const unregisterDocusignWebhook = async (args, accessToken, connectId) => {
     await connectApi.deleteConfiguration(args.accountId, connectId);
 };
 
-module.exports = { getAccessToken, getEnvelope, requestSignature, registerDocusignWebhook, unregisterDocusignWebhook };
+module.exports = {
+    getAccessToken,
+    refreshToken,
+    getEnvelope,
+    requestSignature,
+    registerDocusignWebhook,
+    unregisterDocusignWebhook
+};
