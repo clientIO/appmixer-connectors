@@ -1,6 +1,6 @@
 'use strict';
 
-const commons = require('../../slack-commons');
+const commons = require('../../lib');
 
 const outputPortName = 'out';
 const TTL_USERS = 20 * 1000; // 20 sec

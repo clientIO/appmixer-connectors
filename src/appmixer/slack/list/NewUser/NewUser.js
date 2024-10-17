@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../slack-commons');
+const commons = require('../../lib');
 const Promise = require('bluebird');
 const { SlackAPIError } = require('../../errors');
 

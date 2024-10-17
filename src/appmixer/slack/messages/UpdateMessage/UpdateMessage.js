@@ -1,6 +1,6 @@
 'use strict';
 
-const commons = require('../../slack-commons');
+const commons = require('../../lib');
 const { SlackAPIError } = require('../../errors');
 
 module.exports = {
