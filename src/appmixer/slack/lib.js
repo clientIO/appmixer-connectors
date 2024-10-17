@@ -98,29 +98,6 @@ class SlackAPI {
         return this.paginatedCall(fetchData, dataExtractor, cursorExtractor, limit);
     }
 
-    listMessages(channelId, options, limit = null) {
-
-        const fetchData = (cursor = null) => {
-            return this.makeRequest({
-                method: 'GET',
-                url: this.url + 'conversations.history',
-                params: {
-                    ...options,
-                    channel: channelId,
-                    ...(cursor ? { cursor } : {})
-                }
-            });
-        };
-        const dataExtractor = (pageResults) => (pageResults.messages);
-        const cursorExtractor = (pageResults) => {
-            if (!pageResults.has_more) {
-                return null;
-            }
-            return pageResults.response_metadata.next_cursor;
-        };
-        return this.paginatedCall(fetchData, dataExtractor, cursorExtractor, limit);
-    }
-
     /**
      * Send slack channel message.
      * @param {string} channelId
