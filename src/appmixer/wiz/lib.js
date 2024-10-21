@@ -27,10 +27,10 @@ module.exports = {
         }
     },
 
-    getOutputPortOptions(context, outputType, itemSchema ) {
+    getOutputPortOptions(context, outputType, itemSchema) {
 
         if (outputType === 'object' || outputType === 'first') {
-            const options =  Object.keys(itemSchema)
+            const options = Object.keys(itemSchema)
                 .map(field => {
                     const schema = itemSchema[field];
                     const label = schema.title;
@@ -61,7 +61,9 @@ module.exports = {
 
     async makeApiCall({ context, method = 'GET', data }) {
 
-        const url = 'https://api.eu4.app.wiz.io/graphql';
+        const url = context.config.apiEndpointUrl || 'https://api.eu4.app.wiz.io/graphql';
+
+        context.log({ stage: 'API URL', url });
 
         return context.httpRequest({
             method,
