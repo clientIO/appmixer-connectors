@@ -1,6 +1,6 @@
+/* eslint-disable camelcase */
 'use strict';
-const commons = require('../../lib');
-const { SlackAPIError } = require('../../errors');
+const { WebClient } = require('@slack/web-api');
 
 /**
  * Component for fetching list of channels.
@@ -10,18 +10,36 @@ module.exports = {
 
     async receive(context) {
 
-        let client = commons.getSlackAPIClient(context.auth.accessToken);
-        const options = { 'exclude_archived': 1, 'types': 'private_channel,public_channel', limit: 1000 };
+        const { types = 'public_channel,private_channel' } = context.messages.in.content;
+        const web = new WebClient(context.auth.accessToken);
+        const { channels, response_metadata } = await web.conversations.list({
+            limit: 999,
+            types,
+            exclude_archived: true
+        });
 
-        try {
-            const channels = await client.listChannels(options);
-            return context.sendJson(channels, 'channels');
-        } catch (err) {
-            if (err instanceof SlackAPIError) {
-                throw new context.CancelError(err.apiError);
+        let metadata = response_metadata;
+        if (metadata?.next_cursor) {
+            let i = 0;
+            let safeguard = 10;
+            while (metadata?.next_cursor && i < safeguard) {
+                i++;
+                const nextResponse = await web.conversations.list({
+                    limit: 999,
+                    types,
+                    exclude_archived: true,
+                    cursor: metadata.next_cursor
+                });
+                channels.push(...nextResponse.channels);
+                metadata = nextResponse.response_metadata;
+
+                if (!metadata?.next_cursor) {
+                    break;
+                }
             }
-            throw err;
         }
+
+        return context.sendJson(channels, 'channels');
     },
 
     channelsToSelectArray(channels) {
