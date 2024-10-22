@@ -56,7 +56,7 @@ module.exports = {
             return context.sendJson([
                 {
                     label: 'Reactions',
-                    value: 'array',
+                    value: 'records',
                     schema: {
                         type: 'array',
                         items: {
