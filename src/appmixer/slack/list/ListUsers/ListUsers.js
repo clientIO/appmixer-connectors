@@ -1,6 +1,6 @@
 'use strict';
 
-const commons = require('../../lib');
+const lib = require('../../lib');
 
 const outputPortName = 'out';
 const TTL_USERS = 20 * 1000; // 20 sec
@@ -27,7 +27,7 @@ module.exports = {
             if (isSource) {
                 const usersCached = await context.staticCache.get(cacheKey);
                 if (usersCached) {
-                    await commons.sendArrayOutput({ context, outputType, records: usersCached });
+                    await lib.sendArrayOutput({ context, outputType, records: usersCached });
                     return;
                 }
             }
@@ -59,10 +59,10 @@ module.exports = {
                 );
             }
 
-            await commons.sendArrayOutput({ context, outputType, records: data.members });
+            await lib.sendArrayOutput({ context, outputType, records: data.members });
         } catch (err) {
             if (isSource) {
-                await commons.sendArrayOutput({ context, outputType, records: [] });
+                await lib.sendArrayOutput({ context, outputType, records: [] });
                 return;
             }
 
