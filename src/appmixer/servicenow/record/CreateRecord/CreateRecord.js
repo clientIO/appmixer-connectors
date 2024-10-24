@@ -1,48 +1,33 @@
 /* eslint-disable camelcase */
 'use strict';
 
-const { getBasicAuth } = require('../../commons');
+const lib = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const {
-            tableName,
-            record,
-            sysparm_display_value,
-            sysparm_exclude_reference_link,
-            sysparm_fields,
-            sysparm_view,
-            sysparm_query_no_domain
-        } = context.messages.in.content;
+        const { sysparm_fields } = context.messages.in.content;
+        const { tableName, generateInspector, generateOutputPortOptions } = context.properties;
 
-        let recordJson = {};
-        try {
-            recordJson = JSON.parse(record);
-        } catch (error) {
-            throw new context.CancelError('Invalid record JSON. Details: ' + error.message);
+        if (generateOutputPortOptions) {
+            return lib.toOutputScheme(context, await lib.getColumns(context, { tableName }), sysparm_fields);
         }
 
-        const options = {
-            method: 'POST',
-            url: `https://${context.auth.instance}.service-now.com/api/now/table/${tableName}`,
-            headers: {
-                'User-Agent': 'Appmixer (info@appmixer.com)',
-                'Authorization': ('Basic ' + getBasicAuth(context.auth.username, context.auth.password))
-            },
-            data: recordJson,
-            params: {
-                sysparm_display_value,
-                sysparm_exclude_reference_link,
-                sysparm_fields,
-                sysparm_view,
-                sysparm_query_no_domain
-            }
-        };
+        if (generateInspector) {
+            return lib.toInspector(context, await lib.getColumns(context, { tableName }), sysparm_fields);
+        }
 
-        context.log({ step: 'Making request', options });
-        const { data } = await context.httpRequest(options);
+        const inputs = context.messages.in.content;
+
+        const { data } = await lib.callEndpoint(context, {
+            method: 'POST',
+            action: `table/${tableName}`,
+            data: inputs,
+            params: {
+                sysparm_fields
+            }
+        });
 
         return context.sendJson(data?.result, 'out');
     }
