@@ -33,7 +33,10 @@ module.exports = {
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }
-    }
+    },
+
+    WATCHED_PROPERTIES_CONTACT: ['email', 'firstname', 'lastname', 'phone', 'website', 'company', 'address', 'city', 'state', 'zip'],
+    WATCHED_PROPERTIES_DEAL: ['dealname', 'dealstage', 'pipeline', 'hubSpotOwnerId', 'closedate', 'amount']
 };
 
 /**

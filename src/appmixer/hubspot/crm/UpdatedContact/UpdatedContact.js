@@ -1,41 +1,23 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
+const { WATCHED_PROPERTIES_CONTACT } = require('../../commons');
 
 const subscriptionType = 'contact.propertyChange';
 
 class UpdatedContact extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
-        const properties = await this.getProperties();
-        const subscriptions = [];
-        const unsupported = ['lastmodifieddate'];
-
-        // Subscribe to updates
-        properties.forEach((property) => {
-            if (
-                !property.hidden &&
-                !property.deleted &&
-                !property.readOnlyValue &&
-                !unsupported.includes(property.name)
-            ) {
-                subscriptions.push({
-                    enabled: true,
-                    subscriptionDetails: {
-                        subscriptionType: this.subscriptionType,
-                        propertyName: property.name
-                    }
-                });
+        // Only watching for the properties that are present in the CreateContact inspector.
+        const subscriptions = WATCHED_PROPERTIES_CONTACT.map(propertyName => ({
+            enabled: true,
+            subscriptionDetails: {
+                subscriptionType,
+                propertyName
             }
-        });
+        }));
         return subscriptions;
     }
-
-    async getProperties() {
-
-        const { data } = await this.hubspot.call('get', 'crm/v3/properties/contacts');
-        return data.results;
-    };
 
     async receive(context) {
 
@@ -44,24 +26,12 @@ class UpdatedContact extends BaseSubscriptionComponent {
         const eventsByObjectId = context.messages.webhook.content.data;
 
         let events = {};
-        const validProperties = [
-            'email',
-            'firstname',
-            'lastname',
-            'phone',
-            'website',
-            'company',
-            'address',
-            'city',
-            'state',
-            'zip'
-        ];
 
         for (const [contactId, event] of Object.entries(eventsByObjectId)) {
             // Only track changes in these properties. These are the ones present in the CreateContact inspector.
             // Even if we limit the subscriptions for these properties only, we need this for flows that
             // are already running and all the subscriptions.
-            if (validProperties.includes(event.propertyName)) {
+            if (WATCHED_PROPERTIES_CONTACT.includes(event.propertyName)) {
                 events[contactId] = { occurredAt: event.occurredAt };
             }
         }
