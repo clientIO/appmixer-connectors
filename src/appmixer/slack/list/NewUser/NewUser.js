@@ -1,7 +1,6 @@
 'use strict';
 
 const { WebClient } = require('@slack/web-api');
-const Promise = require('bluebird');
 
 /**
  * Process users to find newly created or joined.
@@ -37,9 +36,9 @@ module.exports = {
         users.forEach(processUsers.bind(null, known, actual, diff));
 
         if (diff.size) {
-            await Promise.map(diff, user => {
+            await Promise.all(diff.map(user => {
                 return context.sendJson(user, 'user');
-            });
+            }));
         }
         await context.saveState({ known: Array.from(actual) });
     }

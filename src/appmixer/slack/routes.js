@@ -36,6 +36,8 @@ module.exports = async context => {
             auth: false,
             handler: async req => {
 
+                await context.log('info', 'slack-plugin-route-webhook-hit', { type: req.payload?.type });
+                context.log('trace', 'slack-plugin-route-webhook-payload', { payload: req.payload });
                 if (req.payload.challenge) {
                     return { challenge: req.payload.challenge };
                 }
