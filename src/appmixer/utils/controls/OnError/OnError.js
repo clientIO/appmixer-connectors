@@ -11,7 +11,7 @@ async function* fetchErrorsGenerator(context, lock, limit, logId = null, lastGri
             size: pageSize,
             query: 'severity:error',
             flowId: context.flowId,
-            sort: ['_id:asc', 'gridTimestamp:asc']
+            sort: '_id:asc,gridTimestamp:asc'
         };
 
         if (logId && lastGridTimestamp) {
