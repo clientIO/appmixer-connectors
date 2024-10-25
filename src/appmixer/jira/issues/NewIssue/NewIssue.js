@@ -21,7 +21,7 @@ module.exports = {
         }
 
         const params = {
-            maxResults: 1000,
+            maxResults: 100,
             jql: `created > ${createdTime}`
         };
 

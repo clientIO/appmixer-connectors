@@ -21,7 +21,7 @@ module.exports = {
         }
 
         const params = {
-            maxResults: 1000,
+            maxResults: 100,
             jql: `updated > ${updatedTime}`
         };
 
@@ -41,7 +41,7 @@ module.exports = {
         let latestIssueUpdateDate;
         if (Array.isArray(issues) && issues.length > 0) {
             const issuesFiltered = issues.filter(i => {
-                return (new Date(i.fields.updated).valueOf() - new Date(i.fields.created).valueOf()) > 1000;
+                return (new Date(i.fields.updated).valueOf() - new Date(i.fields.created).valueOf()) > 59000;
             });
             const latestIssueIndex = issuesFiltered.length - 1;
             latestIssueUpdateDate = new Date(issuesFiltered[latestIssueIndex].fields.updated).valueOf();
