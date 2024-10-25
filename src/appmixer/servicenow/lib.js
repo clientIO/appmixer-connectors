@@ -5,40 +5,43 @@ const pathModule = require('path');
 const IGNORE_PROPERTIES_INSPECTOR = ['sys_id'];
 
 function getBasicAuth(username, password) {
-
     return Buffer.from(username + ':' + password).toString('base64');
 }
 
 function getCacheKey(obj) {
-    // Convert the object to a JSON string
     const str = JSON.stringify(obj);
-
-    // Create a hash using the SHA-256 algorithm
-    const hash = crypto.createHash('sha256');
-    hash.update(str);
-
-    // Get the resulting hash as a hexadecimal string
-    return hash.digest('hex');
+    return crypto
+        .createHash('sha256')
+        .update(str)
+        .digest('hex');
 }
 
 async function callEndpointCached(context, options) {
 
-    const key = getCacheKey({ ...options, token: context.auth.username + context.auth.password });
+    let lock;
+    try {
+        lock = await context.lock(context.componentId);
 
-    const cached = await context.staticCache.get(key);
-    if (cached) {
-        return { data: cached };
+        const key = getCacheKey({ ...options, token: context.auth.username + context.auth.password });
+
+        console.log(key);
+        const cached = await context.staticCache.get(key);
+        if (cached) {
+            return { data: cached };
+        }
+
+        const { data } = await callEndpoint(context, options);
+
+        await context.staticCache.set(
+            key,
+            data,
+            context.config.listBasesCacheTTL || (2 * 60 * 1000) // 120s
+        );
+
+        return { data };
+    } finally {
+        lock?.unlock();
     }
-
-    const { data } = await callEndpoint(context, options);
-
-    await context.staticCache.set(
-        key,
-        data,
-        context.config.listBasesCacheTTL || (2 * 60 * 1000) // 120s
-    );
-
-    return { data };
 }
 
 async function callEndpoint(context, {
@@ -186,6 +189,7 @@ async function getTableReferences(context, { tableName, tableId }) {
         tables.push(table.name);
         return tables;
     } catch (e) {
+        console.log(e);
         throw new context.CancelError(`Unable to retrieve the schema for the table "${tableName}".`);
     }
 }
