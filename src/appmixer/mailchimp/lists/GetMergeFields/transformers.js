@@ -96,7 +96,7 @@ module.exports.mergeFieldsToSubscriberInspector = mergeFields => {
                     group: 'transformation',
                     index: index++,
                     tooltip: mergeField.tag === 'BIRTHDAY' 
-                        ? 'Add birthday in MM-DD format' 
+                        ? 'Add birthday in MM/DD format' 
                         : `Insert ${mergeField.name} of the subscriber`
                 };
             }
