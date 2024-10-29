@@ -8,7 +8,7 @@ module.exports = {
 
         const { channel, timestamp, name, isSource } = context.messages.in.content;
         if (isSource) {
-            await listChannels(context);
+            await listAllChannels(context);
             return;
         }
         // Initialize Slack Web API client
@@ -27,7 +27,7 @@ module.exports = {
  * List all channels: private, public, direct messages, and group messages.
  * Similar to ListChannels.js with channelsToSelectArray function. This also lists direct messages and group messages.
  */
-async function listChannels(context) {
+async function listAllChannels(context) {
 
     const client = new WebClient(context.auth.accessToken);
     const options = { exclude_archived: 1, types: 'private_channel,public_channel,im,mpim', limit: 1000 };

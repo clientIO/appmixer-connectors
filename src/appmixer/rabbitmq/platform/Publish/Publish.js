@@ -61,7 +61,7 @@ module.exports = {
                 priority,
                 contentType,
                 contentEncoding,
-                headers,
+                headers: typeof headers === 'string' ? JSON.parse(headers) : headers,
                 persistent,
                 mandatory,
                 BCC,
