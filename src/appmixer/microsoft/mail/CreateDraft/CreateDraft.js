@@ -20,7 +20,8 @@ function createMessage(json, attachments = []) {
         contentType = 'Text',
         content,
         toRecipients,
-        ccRecipients
+        ccRecipients,
+        bccRecipients,
     } = json;
 
     return {
@@ -31,6 +32,7 @@ function createMessage(json, attachments = []) {
         },
         toRecipients: toRecipients.split(',').map(createAddress),
         ccRecipients: ccRecipients ? ccRecipients.split(',').map(createAddress) : undefined,
+        bccRecipients: bccRecipients ? bccRecipients.split(',').map(createAddress) : undefined,
         attachments
     };
 }
