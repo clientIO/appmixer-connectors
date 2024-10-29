@@ -60,15 +60,17 @@ module.exports = {
         const mailAttachments = await getMailAttachments(context, attachments);
 
         const message = createMessage(context.messages.in.content, mailAttachments);
+
         const requestOptions = {
             path: '/me/messages',
             method: 'POST',
             data: message
         };
 
-        await makeRequest(context, requestOptions);
+        const result = await makeRequest(context, requestOptions); // Declare result properly
+        context.log(result.data);
 
         // Send a response to indicate the draft was created
-        return context.sendJson({ result: 'draft created' }, 'email');
+        return context.sendJson(result.data, 'email');
     }
 };
