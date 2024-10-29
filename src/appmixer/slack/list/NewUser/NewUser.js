@@ -36,9 +36,9 @@ module.exports = {
         users.forEach(processUsers.bind(null, known, actual, diff));
 
         if (diff.size) {
-            await Promise.all(diff.map(user => {
-                return context.sendJson(user, 'user');
-            }));
+            for (const user of diff) {
+                await context.sendJson(user, 'user');
+            }
         }
         await context.saveState({ known: Array.from(actual) });
     }
