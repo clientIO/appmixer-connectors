@@ -21,7 +21,7 @@ function createMessage(json, attachments = []) {
         content,
         toRecipients,
         ccRecipients,
-        bccRecipients,
+        bccRecipients
     } = json;
 
     return {
