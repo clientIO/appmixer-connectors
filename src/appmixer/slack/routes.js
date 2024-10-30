@@ -36,6 +36,9 @@ module.exports = async context => {
             auth: false,
             handler: async req => {
 
+                await context.log('info', 'slack-plugin-route-webhook-hit', { type: req.payload?.type });
+                context.log('trace', 'slack-plugin-route-webhook-payload', { payload: req.payload });
+
                 if (req.payload.challenge) {
                     return { challenge: req.payload.challenge };
                 }
@@ -46,47 +49,77 @@ module.exports = async context => {
 
                 const event = req.payload.event;
                 if (!event) {
-                    context.log('error', 'Missing event property.', req.payload);
+                    context.log('error', 'slack-plugin-route-webhook-event-missing', req.payload);
                     return {};
                 }
-
-                const channelId = event.channel;
-                if (!channelId) {
-                    context.log('error', 'Missing channel property.', req.payload);
-                    return {};
-                }
-
                 if (event.hidden) {
                     return {};
                 }
 
-                const response = await context.httpRequest({
-                    method: 'POST',
-                    url: 'https://slack.com/api/apps.event.authorizations.list',
-                    headers: {
-                        Authorization: `Bearer ${context.config.authToken}`
-                    },
-                    data: {
-                        event_context: req.payload.event_context
-                    }
-                });
-
-                if (response?.data?.ok === false) {
-                    context.log('error', response?.data?.error);
-                    return {};
+                context.log('info', 'slack-plugin-route-webhook-event-type', { type: event.type });
+                switch (event.type) {
+                    case 'message':
+                        await processMessages(context, req);
+                        break;
+                    case 'team_join':
+                        await processNewUsers(context, req);
+                        break;
+                    default:
+                        context.log('error', 'slack-plugin-route-webhook-event-type-unsupported', { type: event.type });
+                        break;
                 }
-
-                const authorizedUsers = response.data.authorizations.map(item => item['user_id']);
-                await context.triggerListeners({
-                    eventName: channelId,
-                    payload: event,
-                    filter: listener => {
-                        return authorizedUsers.indexOf(listener.params.userId) !== -1;
-                    }
-                });
 
                 return {};
             }
         }
     });
+
+    async function processMessages(context, req) {
+
+        const { event } = req.payload;
+        const channelId = event?.channel;
+        if (!channelId) {
+            context.log('error', 'Missing channel property.', req.payload);
+            return;
+        }
+
+        const response = await context.httpRequest({
+            method: 'POST',
+            url: 'https://slack.com/api/apps.event.authorizations.list',
+            headers: {
+                Authorization: `Bearer ${context.config.authToken}`
+            },
+            data: {
+                event_context: req.payload.event_context
+            }
+        });
+
+        if (response?.data?.ok === false) {
+            context.log('error', response?.data?.error);
+            return {};
+        }
+
+        const authorizedUsers = response.data.authorizations.map(item => item['user_id']);
+        await context.triggerListeners({
+            eventName: channelId,
+            payload: event,
+            filter: listener => {
+                return authorizedUsers.indexOf(listener.params.userId) !== -1;
+            }
+        });
+    }
+
+    async function processNewUsers(context, req) {
+
+        const { event } = req.payload;
+        if (!event?.user) {
+            context.log('error', 'slack-plugin-route-webhook-event-user-missing', req.payload);
+            return;
+        }
+
+        await context.triggerListeners({
+            eventName: 'slack_team_join',
+            payload: event.user
+        });
+    }
 };
