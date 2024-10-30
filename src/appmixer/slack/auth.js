@@ -1,5 +1,5 @@
 'use strict';
-const axios = require('axios');
+
 const { URL } = require('url');
 const { URLSearchParams } = require('url');
 const FormData = require('form-data');
@@ -45,11 +45,12 @@ module.exports = {
                 form.append('client_id', context.clientId);
                 form.append('client_secret', context.clientSecret);
 
-                return axios.post(
-                    'https://slack.com/api/oauth.v2.access',
-                    form,
-                    { headers: form.getHeaders() }
-                ).then(response => {
+                return context.httpRequest({
+                    method: 'POST',
+                    url: 'https://slack.com/api/oauth.v2.access',
+                    headers: form.getHeaders(),
+                    data: form.getBuffer()
+                }).then(response => {
                     if (!response.data) {
                         throw new Error(response.status);
                     }
@@ -75,7 +76,7 @@ module.exports = {
 
             validateAccessToken: context => {
 
-                return axios({
+                return context.httpRequest({
                     method: 'POST',
                     url: 'https://slack.com/api/auth.test',
                     headers: {
