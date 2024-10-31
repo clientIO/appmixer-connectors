@@ -7,7 +7,7 @@ const dependencies = {
 
 module.exports = {
 
-    receive: async function(context) {
+    receive: async function (context) {
 
         if (context.messages.webhook) {
             await context.log({
@@ -17,17 +17,20 @@ module.exports = {
 
             let out = await this.replaceRuntimeExpressions('$request.body', context, {}, context.messages
                 .webhook.content);
-            const expCondition = dependencies.jsonata('$exists(submissionID)');
-            const condition = await expCondition.evaluate(out, {
-                parameters: context.properties
-            });
-            if (!condition) return null;
+            // const expCondition = dependencies.jsonata('$exists(submissionID)');
+            // context.log({ step: 'expCondition', expCondition });
+            // context.log({ step: 'expCondition out', out });
+            // context.log({ step: 'parameters: context.properties', contextProperties: context.properties });
+            // const condition = await expCondition.evaluate(out, {
+            //     parameters: context.properties
+            // });
+            // if (!condition) return null;
             await context.sendJson(out, 'out');
             return context.response(out);
         }
     },
 
-    httpRequest: async function(context, override = {}) {
+    httpRequest: async function (context, override = {}) {
 
         let url = null;
 
@@ -106,14 +109,14 @@ module.exports = {
         }
     },
 
-    getBaseUrl: function(context) {
+    getBaseUrl: function (context) {
 
         let url = 'https://{regionPrefix}.jotform.com';
         url = url.replaceAll('{regionPrefix}', context.auth.regionPrefix || 'api');
         return url;
     },
 
-    start: async function(context) {
+    start: async function (context) {
 
         const override = {};
         override.url = await this.replaceRuntimeExpressions('{$baseUrl}/form/{$parameters.formId}/webhooks',
@@ -132,7 +135,7 @@ module.exports = {
         });
     },
 
-    stop: async function(context) {
+    stop: async function (context) {
 
         const response = await context.stateGet('response');
 
@@ -146,7 +149,7 @@ module.exports = {
         return this.httpRequest(context, override);
     },
 
-    replaceRuntimeExpressions: async function(template, context, response, request) {
+    replaceRuntimeExpressions: async function (template, context, response, request) {
 
         if (template === '$request.body') {
             return request.data;
