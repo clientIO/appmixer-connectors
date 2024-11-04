@@ -7,115 +7,57 @@
     "auth": {
         "service": "appmixer:servicenow"
     },
+    "properties": {
+        "inspector": {
+            "inputs": {
+                "tableName": {
+                    "type": "text",
+                    "label": "Table Name",
+                    "index": 1,
+                    "tooltip": "Name of the table to retrieve the record from."
+                }
+            }
+        }
+    },
     "inPorts": [
         {
             "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
-                    "tableName": { "type": "string" },
-                    "sys_id": { "type": "string" },
-                    "record": { "type": "string" },
-                    "pairs": { "type": "object" },
-                    "sysparm_display_value": { "type": "boolean" },
-                    "sysparm_exclude_reference_link": { "type": "boolean" },
-                    "sysparm_fields": { "type": "string" },
-                    "sysparm_input_display_value": { "type": "boolean" },
-                    "sysparm_suppress_auto_sys_field": { "type": "boolean" },
-                    "sysparm_view": { "type": "string" },
-                    "sysparm_query_no_domain": { "type": "boolean" }
+                    "record_sys_id": { "type": "string" },
+                    "sysparm_fields": { "type": "string" }
                 },
-                "required": [
-                    "tableName", "sys_id"
-                ]
+                "required": ["record_sys_id"]
+            },
+            "source": {
+                "url": "/component/appmixer/servicenow/record/UpdateRecord?outPort=out",
+                "data": {
+                    "messages": {
+                        "in/record_sys_id": "false",
+                        "in/sysparm_fields": "inputs/in/sysparm_fields"
+                    },
+                    "properties": {
+                        "generateInspector": true,
+                        "tableName": "properties/tableName"
+                    }
+                }
             },
             "inspector": {
                 "inputs": {
-                    "tableName": {
-                        "type": "text",
-                        "label": "Table name",
-                        "index": 1,
-                        "tooltip": "Name of the table from which to retrieve the record."
-                    },
-                    "sys_id": {
+                    "record_sys_id": {
                         "type": "text",
                         "label": "Sys ID",
-                        "index": 2,
-                        "tooltip": "Sys ID of the record to update."
-                    },
-                    "record": {
-                        "type": "textarea",
-                        "label": "Record",
-                        "index": 3,
-                        "tooltip": "JSON object containing field values for the new record. Example: <code>{\"email\":\"foo@bar.baz\",\"name\":\"Foo\"}</code>. This takes precedence over the <code>pairs</code> field(s)."
-                    },
-                    "pairs": {
-                        "type": "expression",
-                        "label": "Fields",
-                        "tooltip": "Fields to update a record.",
-                        "exclusiveFields": [
-                            "field"
-                        ],
-                        "index": 4,
-                        "levels": [
-                            "AND"
-                        ],
-                        "fields": {
-                            "field": {
-                                "type": "text",
-                                "label": "Field",
-                                "index": 1,
-                                "tooltip": "The field/column name."
-                            },
-                            "value": {
-                                "type": "text",
-                                "label": "Value",
-                                "index": 2,
-                                "tooltip": "The value for the field."
-                            }
-                        }
-                    },
-                    "sysparm_display_value": {
-                        "type": "toggle",
-                        "label": "Display value",
-                        "index": 5,
-                        "tooltip": "Return field display values (true), actual values (false), or both (all) (default: false)"
-                    },
-                    "sysparm_exclude_reference_link": {
-                        "type": "toggle",
-                        "label": "Exclude reference link",
-                        "index": 6,
-                        "tooltip": "True to exclude Table API links for reference fields (default: false)"
+                        "index": 1,
+                        "tooltip": "Sys ID of the record to update.",
+                        "group": "options"
                     },
                     "sysparm_fields": {
                         "type": "text",
                         "label": "Fields",
-                        "index": 7,
-                        "tooltip": "A comma-separated list of fields to return in the response"
-                    },
-                    "sysparm_view": {
-                        "type": "text",
-                        "label": "View",
-                        "index": 8,
-                        "tooltip": "UI view for which to render the data. Determines the fields returned in the response. Valid values: desktop, mobile, both. If you also specify the sysparm_fields parameter, it takes precedent."
-                    },
-                    "sysparm_input_display_value": {
-                        "type": "toggle",
-                        "label": "Input display value",
-                        "index": 9,
-                        "tooltip": "Set field values using their display value (true) or actual value (false) (default: false)"
-                    },
-                    "sysparm_suppress_auto_sys_field": {
-                        "type": "toggle",
-                        "label": "Suppress auto sys field",
-                        "index": 10,
-                        "tooltip": "True to suppress auto generation of system fields (default: false)"
-                    },
-                    "sysparm_query_no_domain": {
-                        "type": "toggle",
-                        "label": "Query no domain",
-                        "index": 11,
-                        "tooltip": "True to access data across domains if authorized (default: false)"
+                        "index": 2,
+                        "tooltip": "A comma-separated list of fields to restrict the generated inputs and limit the properties included in the response. If left empty, it will generate and return all available inputs and properties.",
+                        "group": "options"
                     }
                 }
             }
@@ -125,14 +67,15 @@
         {
             "name": "out",
             "source": {
-                "url": "/component/appmixer/servicenow/record/ListRecords?outPort=out",
+                "url": "/component/appmixer/servicenow/record/UpdateRecord?outPort=out",
                 "data": {
-                    "properties": {
-                        "generateOutputPortOptions": true
-                    },
                     "messages": {
-                        "in/outputType": "item",
-                        "in/tableName": "inputs/in/tableName"
+                        "in/record_sys_id": "false",
+                        "in/sysparm_fields": "inputs/in/sysparm_fields"
+                    },
+                    "properties": {
+                        "generateOutputPortOptions": true,
+                        "tableName": "properties/tableName"
                     }
                 }
             }

@@ -1,4 +1,4 @@
-const { getBasicAuth } = require('./commons');
+const { getBasicAuth } = require('./lib');
 
 /**
  * Converts table schema to outPort schema.
