@@ -20,11 +20,10 @@ async function callEndpointCached(context, options) {
 
     let lock;
     try {
-        lock = await context.lock(context.componentId);
-
         const key = getCacheKey({ ...options, token: context.auth.username + context.auth.password });
 
-        console.log(key);
+        lock = await context.lock(key);
+
         const cached = await context.staticCache.get(key);
         if (cached) {
             return { data: cached };
@@ -189,7 +188,6 @@ async function getTableReferences(context, { tableName, tableId }) {
         tables.push(table.name);
         return tables;
     } catch (e) {
-        console.log(e);
         throw new context.CancelError(`Unable to retrieve the schema for the table "${tableName}".`);
     }
 }
