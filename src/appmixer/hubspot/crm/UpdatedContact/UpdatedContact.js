@@ -26,19 +26,31 @@ class UpdatedContact extends BaseSubscriptionComponent {
         const eventsByObjectId = context.messages.webhook.content.data;
 
         let events = {};
+        // Locking to avoid duplicates. HubSpot payloads can come within milliseconds of each other.
+        let lock;
 
-        for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-            const cacheKey = 'hubspot-deal-updated-' + contactId;
-            // Only track changes in these properties. These are the ones present in the CreateContact inspector.
-            // Even if we limit the subscriptions for these properties only, we need this for flows that
-            // are already running and all the subscriptions.
-            if (WATCHED_PROPERTIES_CONTACT.includes(event.propertyName)) {
-                const cached = await context.staticCache.get(cacheKey);
-                if (cached && event.occurredAt <= cached) {
-                    continue;
+        try {
+            lock = await context.lock(context.componentId, {
+                ttl: 1000 * 10,
+                retryDelay: 500,
+                maxRetryCount: 3
+            });
+
+            for (const [contactId, event] of Object.entries(eventsByObjectId)) {
+                const cacheKey = 'hubspot-deal-updated-' + contactId;
+                // Only track changes in these properties. These are the ones present in the CreateContact inspector.
+                // Even if we limit the subscriptions for these properties only, we need this for flows that
+                // are already running and all the subscriptions.
+                if (WATCHED_PROPERTIES_CONTACT.includes(event.propertyName)) {
+                    const cached = await context.staticCache.get(cacheKey);
+                    if (cached && event.occurredAt <= cached) {
+                        continue;
+                    }
+                    events[contactId] = { occurredAt: event.occurredAt };
                 }
-                events[contactId] = { occurredAt: event.occurredAt };
             }
+        } finally {
+            await lock?.unlock();
         }
 
         // Get all objectIds

@@ -31,7 +31,7 @@ class UpdatedDeal extends BaseSubscriptionComponent {
         try {
             lock = await context.lock(context.componentId, {
                 ttl: 1000 * 10,
-                retryDelay: 100,
+                retryDelay: 500,
                 maxRetryCount: 3
             });
 
