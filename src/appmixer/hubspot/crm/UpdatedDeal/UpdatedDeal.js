@@ -1,39 +1,23 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
+const { WATCHED_PROPERTIES_DEAL } = require('../../commons');
 
 const subscriptionType = 'deal.propertyChange';
 
 class UpdatedDeal extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
-        const properties = await this.getProperties();
-        const subscriptions = [];
-        const unsupported = ['hs_lastmodifieddate'];
-        properties.forEach((property) => {
-            if (
-                !property.hidden &&
-                !property.deleted &&
-                !property.readOnlyValue &&
-                !unsupported.includes(property.name)
-            ) {
-                subscriptions.push({
-                    enabled: true,
-                    subscriptionDetails: {
-                        subscriptionType: this.subscriptionType,
-                        propertyName: property.name
-                    }
-                });
+        // Only watching for the properties that are present in the CreateContact inspector.
+        const subscriptions = WATCHED_PROPERTIES_DEAL.map(propertyName => ({
+            enabled: true,
+            subscriptionDetails: {
+                subscriptionType,
+                propertyName
             }
-        });
+        }));
         return subscriptions;
     }
-
-    async getProperties() {
-
-        const { data } = await this.hubspot.call('get', 'crm/v3/properties/deals');
-        return data.results;
-    };
 
     async receive(context) {
 
@@ -42,22 +26,33 @@ class UpdatedDeal extends BaseSubscriptionComponent {
         const eventsByObjectId = context.messages.webhook.content.data;
 
         let events = {};
-        const validProperties = [
-            'dealname',
-            'dealstage',
-            'pipeline',
-            'hubSpotOwnerId',
-            'closedate',
-            'amount'
-        ];
+        // Locking to avoid duplicates. HubSpot payloads can come within milliseconds of each other.
+        let lock;
+        try {
+            lock = await context.lock(context.componentId, {
+                ttl: 1000 * 10,
+                retryDelay: 100,
+                maxRetryCount: 3
+            });
 
-        for (const [dealId, event] of Object.entries(eventsByObjectId)) {
-            // Only track changes in these properties. These are the ones present in the CreateDeal inspector.
-            // Even if we limit the subscriptions for these properties only, we need this for flows that
-            // are already running and all the subscriptions.
-            if (validProperties.includes(event.propertyName)) {
-                events[dealId] = { occurredAt: event.occurredAt };
+            for (const [dealId, event] of Object.entries(eventsByObjectId)) {
+                const cacheKey = 'hubspot-deal-updated-' + dealId;
+                // Only track changes in these properties. These are the ones present in the CreateDeal inspector.
+                // Even if we limit the subscriptions for these properties only, we need this for flows that
+                // are already running and all the subscriptions.
+                if (WATCHED_PROPERTIES_DEAL.includes(event.propertyName)) {
+                    const cached = await context.staticCache.get(cacheKey);
+                    if (cached && event.occurredAt <= cached) {
+                        continue;
+                    }
+                    // Cache the event for 5s to avoid duplicates
+                    await context.staticCache.set(cacheKey, event.occurredAt, context.config?.eventCacheTTL || 5000);
+                    // Store the event to send it later
+                    events[dealId] = { occurredAt: event.occurredAt };
+                }
             }
+        } finally {
+            await lock?.unlock();
         }
 
         // Get all objectIds
@@ -68,16 +63,17 @@ class UpdatedDeal extends BaseSubscriptionComponent {
             inputs: ids.map((id) => ({ id }))
         });
 
+        const results = [];
         data.results.forEach((deal) => {
-            // Don't send the contact if it was modified at the same time as it was created
-            const eventOccurredAt = new Date(events[deal.id].occurredAt).getTime();
+            // Don't send the deal if it was modified at the same time as it was created
+            const eventOccurredAt = new Date(deal.updatedAt).getTime();
             const objectCreatedAt = new Date(deal.createdAt).getTime();
-            if (eventOccurredAt > objectCreatedAt + 100) {
-                delete data.results[deal.id];
+            if (eventOccurredAt > (objectCreatedAt + 100)) {
+                results.push(deal);
             }
         });
 
-        await context.sendArray(data.results, 'deal');
+        await context.sendArray(results, 'deal');
 
         return context.response();
     }

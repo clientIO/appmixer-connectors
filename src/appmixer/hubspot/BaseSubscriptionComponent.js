@@ -18,7 +18,7 @@ class BaseSubscriptionComponent {
         this.hubspot.setToken(auth.accessToken);
     }
 
-    async getSubscriptions(context) {
+    getSubscriptions(context) {
 
         throw new Error('Must be extended to return subscriptions');
     }
@@ -53,7 +53,7 @@ class BaseSubscriptionComponent {
 
     async subscribe(context) {
 
-        const subscriptions = await this.getSubscriptions(context);
+        const subscriptions = this.getSubscriptions(context);
         const { appmixerApiUrl } = context;
         const endpoint = `/plugins/appmixer/hubspot/subscribe/${this.subscriptionType}`;
         const url = appmixerApiUrl.concat(endpoint);
