@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const { WATCHED_PROPERTIES_CONTACT, WATCHED_PROPERTIES_DEAL } = require('./commons');
 
 const getSubscriptionEntries = async (context, subscriptionType) => {
 

@@ -28,16 +28,24 @@ class UpdatedContact extends BaseSubscriptionComponent {
         let events = {};
 
         for (const [contactId, event] of Object.entries(eventsByObjectId)) {
+            const cacheKey = 'hubspot-deal-updated-' + contactId;
             // Only track changes in these properties. These are the ones present in the CreateContact inspector.
             // Even if we limit the subscriptions for these properties only, we need this for flows that
             // are already running and all the subscriptions.
             if (WATCHED_PROPERTIES_CONTACT.includes(event.propertyName)) {
+                const cached = await context.staticCache.get(cacheKey);
+                if (cached && event.occurredAt <= cached) {
+                    continue;
+                }
                 events[contactId] = { occurredAt: event.occurredAt };
             }
         }
 
         // Get all objectIds
         const ids = Object.keys(events);
+        if (!ids.length) {
+            return context.response();
+        }
 
         // Call the API to get the contacts in bulk
         const { data } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
@@ -46,10 +54,7 @@ class UpdatedContact extends BaseSubscriptionComponent {
 
         const results = [];
         data.results.forEach((contact) => {
-            // Don't send the contact if it was modified at the same time as it was created
-            const eventOccurredAt = new Date(contact.updatedAt).getTime();
-            const objectCreatedAt = new Date(contact.createdAt).getTime();
-            if (eventOccurredAt > (objectCreatedAt + 100)) {
+            if (contact.updatedAt !== contact.createdAt) {
                 results.push(contact);
             }
         });

@@ -57,6 +57,9 @@ class UpdatedDeal extends BaseSubscriptionComponent {
 
         // Get all objectIds
         const ids = Object.keys(events);
+        if (!ids.length) {
+            return context.response();
+        }
 
         // Call the API to get the contacts in bulk
         const { data } = await this.hubspot.call('post', 'crm/v3/objects/deals/batch/read', {
@@ -65,10 +68,7 @@ class UpdatedDeal extends BaseSubscriptionComponent {
 
         const results = [];
         data.results.forEach((deal) => {
-            // Don't send the deal if it was modified at the same time as it was created
-            const eventOccurredAt = new Date(deal.updatedAt).getTime();
-            const objectCreatedAt = new Date(deal.createdAt).getTime();
-            if (eventOccurredAt > (objectCreatedAt + 100)) {
+            if (deal.updatedAt !== deal.createdAt) {
                 results.push(deal);
             }
         });
