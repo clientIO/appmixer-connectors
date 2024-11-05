@@ -25,8 +25,8 @@ module.exports = {
     async tick(context) {
 
         let params = {
-            path: '',
-            recursive: true,
+            path: context.properties.path || '',
+            recursive: typeof context.properties.recursive === 'undefined' ? false : context.properties.recursive,
             include_media_info: true
         };
 
@@ -44,7 +44,9 @@ module.exports = {
         let current = [];
         let diff = [];
 
-        data['entries'].forEach(processFiles.bind(null, known, current, diff));
+        data['entries'].forEach(file => {
+            processFiles(known, current, diff, file);
+        });
 
         await Promise.map(diff, (file) => {
             return context.sendJson(file, 'newFile');
