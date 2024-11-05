@@ -8,17 +8,13 @@ module.exports = {
         const { accessToken } = context.auth;
         const response = await request({
             method: 'GET',
-            url: 'https://graph.microsoft.com/v1.0/groups',
-            body: {},
+            url: 'https://graph.microsoft.com/v1.0/me/joinedTeams', // Use joinedTeams endpoint for current user's teams
             auth: { bearer: accessToken },
             headers: { 'Accept': 'application/json' },
             json: true
         });
 
-        const groups = response.value || [];
-        const teams = groups.filter(group => {
-            return (group.resourceProvisioningOptions || []).includes('Team');
-        });
+        const teams = response.value || [];
 
         return context.sendJson(teams, 'out');
     },
