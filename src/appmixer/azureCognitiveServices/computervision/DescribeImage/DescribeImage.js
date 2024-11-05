@@ -8,6 +8,9 @@ module.exports = {
 
         const key = context.config.key || process.env.AZURE_COGNITIVE_SERVICES_KEY;
         const endpoint = context.config.endpoint || process.env.AZURE_COGNITIVE_SERVICES_ENDPOINT;
+        if (!key || !endpoint) {
+            throw new context.CancelError('Missing key or endpoint. Please check your configuration.');
+        }
 
         const apiKeyCredentials = new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': key } });
         const computerVisionClient = new ComputerVisionClient(apiKeyCredentials, endpoint);
