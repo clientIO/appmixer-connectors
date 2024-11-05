@@ -407,6 +407,11 @@ module.exports = class CSVProcessor {
 
             const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
 
+            // If all the new rows are empty, warn the user.
+            if (rowsToAdd.every(row => row.every(cell => !cell))) {
+                this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
+            }
+
             // append existing rows
             for await (const rowData of stream) {
                 writeStream.write(this.formatRow(rowData));
