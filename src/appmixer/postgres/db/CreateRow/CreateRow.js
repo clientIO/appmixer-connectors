@@ -1,9 +1,6 @@
 'use strict';
 
-const { Pool } = require('pg');
-const crypto = require('crypto');
-
-const CONNECTIONS = {};
+const lib = require('../../lib');
 
 module.exports = {
 
@@ -14,47 +11,23 @@ module.exports = {
         const values = Object.values(row);
         const valuesMarkers = columns.map((col, index) => '$' + (index + 1));
 
-        let query = `INSERT INTO ${context.properties.table}(${columns.join(',')}) VALUES(${valuesMarkers.join(',')}) RETURNING *`;
-
-        let client = await connect(context);
-        try {
-            let res = await client.query(query, values);
-            await context.sendJson(res.rows[0], 'newRow');
-        } finally {
-            await client.release();
+        let [schema, table] = context.properties.table.split('.');
+        if (!table) {
+            table = schema;
+            schema = 'public';
         }
+
+        let query = `INSERT INTO ${schema}.${table}(${columns.join(',')}) VALUES(${valuesMarkers.join(',')}) RETURNING *`;
+        await context.log({ step: 'query', query });
+
+        const res = await lib.query(context, query, values);
+        return context.sendJson(res.rows[0], 'newRow');
     },
 
     async stop(context) {
 
-        const connectionId = connectionHash(context.auth);
-        if (CONNECTIONS[connectionId]) {
-            await CONNECTIONS[connectionId].end();
-        }
+        await lib.disconnect(context);
     }
 };
 
-function connectionHash(auth) {
 
-    const authString = JSON.stringify(auth);
-    return crypto.createHash('md5').update(authString).digest('hex');
-};
-
-async function connect(context) {
-
-    const connectionId = connectionHash(context.auth);
-    if (CONNECTIONS[connectionId]) {
-        return CONNECTIONS[connectionId].connect();
-    }
-
-    const pool = CONNECTIONS[connectionId] = new Pool({
-        user: context.auth.dbUser,
-        host: context.auth.dbHost,
-        database: context.auth.database,
-        password: context.auth.dbPassword,
-        port: context.auth.dbPort,
-        poolSize: context.config.CreateRowPoolSize || 1
-    });
-
-    return pool.connect();
-}

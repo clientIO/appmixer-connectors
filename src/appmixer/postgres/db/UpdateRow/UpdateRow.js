@@ -1,9 +1,6 @@
 'use strict';
 
-const { Pool } = require('pg');
-const crypto = require('crypto');
-
-const CONNECTIONS = {};
+const lib = require('../../lib');
 
 module.exports = {
 
@@ -57,48 +54,21 @@ module.exports = {
 
         where = whereConditionsAnd.join(' AND ');
 
-        let query = `UPDATE ${context.properties.table} SET ${set} WHERE ${where}`;
+        let [schema, table] = context.properties.table.split('.');
+        if (!table) {
+            table = schema;
+            schema = 'public';
+        }
+
+        let query = `UPDATE ${schema}.${table} SET ${set} WHERE ${where}`;
         await context.log({ step: 'query', query, values });
 
-        let client = await connect(context);
-        try {
-            let res = await client.query(query, values);
-            await context.sendJson({ rowCount: res.rowCount }, 'out');
-        } finally {
-            await client.release();
-        }
+        const res = await lib.query(context, query, values);
+        return context.sendJson({ rowCount: res.rowCount }, 'out');
     },
 
     async stop(context) {
 
-        const connectionId = connectionHash(context.auth);
-        if (CONNECTIONS[connectionId]) {
-            await CONNECTIONS[connectionId].end();
-        }
+        await lib.disconnect(context);
     }
 };
-
-function connectionHash(auth) {
-
-    const authString = JSON.stringify(auth);
-    return crypto.createHash('md5').update(authString).digest('hex');
-};
-
-async function connect(context) {
-
-    const connectionId = connectionHash(context.auth);
-    if (CONNECTIONS[connectionId]) {
-        return CONNECTIONS[connectionId].connect();
-    }
-
-    const pool = CONNECTIONS[connectionId] = new Pool({
-        user: context.auth.dbUser,
-        host: context.auth.dbHost,
-        database: context.auth.database,
-        password: context.auth.dbPassword,
-        port: context.auth.dbPort,
-        poolSize: context.config.CreateRowPoolSize || 1
-    });
-
-    return pool.connect();
-}

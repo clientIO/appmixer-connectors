@@ -1,5 +1,6 @@
 'use strict';
-const { Client } = require('pg');
+
+const lib = require('../../lib');
 
 module.exports = {
 
@@ -7,22 +8,15 @@ module.exports = {
 
         const query = 'SELECT * FROM pg_catalog.pg_tables WHERE schemaname != \'pg_catalog\' AND schemaname != \'information_schema\'';
 
-        const client = new Client({
-            user: context.auth.dbUser,
-            host: context.auth.dbHost,
-            database: context.auth.database,
-            password: context.auth.dbPassword,
-            port: context.auth.dbPort
-        });
+        await context.log({ step: 'query', query });
 
-        await client.connect();
-
+        let res;
         try {
-            let res = await client.query(query);
-            await context.sendJson(res.rows, 'tables');
+            res = await lib.query(context, query);
         } finally {
-            await client.end();
+            await lib.disconnect(context);
         }
+        return context.sendJson(res.rows, 'tables');
     },
 
     toSelectArray(tables) {
@@ -32,8 +26,8 @@ module.exports = {
         if (Array.isArray(tables)) {
             tables.forEach(table => {
                 transformed.push({
-                    label: table['tablename'],
-                    value: table['tablename']
+                    label: table['schemaname'] + '.' + table['tablename'],
+                    value: table['schemaname'] + '.' + table['tablename']
                 });
             });
         }
@@ -41,4 +35,3 @@ module.exports = {
         return transformed;
     }
 };
-

@@ -1,29 +1,29 @@
 'use strict';
-const { Client } = require('pg');
+
+const lib = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
         // See https://www.postgresql.org/docs/8.0/infoschema-columns.html
-        const query = `SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = '${context.properties.table}'`;
 
-        const client = new Client({
-            user: context.auth.dbUser,
-            host: context.auth.dbHost,
-            database: context.auth.database,
-            password: context.auth.dbPassword,
-            port: context.auth.dbPort
-        });
-
-        await client.connect();
-
-        try {
-            let res = await client.query(query);
-            await context.sendJson(res.rows, 'columns');
-        } finally {
-            await client.end();
+        let [schema, table] = context.properties.table.split('.');
+        if (!table) {
+            table = schema;
+            schema = 'public';
         }
+
+        const query = `SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = '${schema}' and table_name = '${table}'`;
+        await context.log({ step: 'query', query });
+
+        let res;
+        try {
+            res = await lib.query(context, query);
+        } finally {
+            await lib.disconnect(context);
+        }
+        return context.sendJson(res.rows, 'columns');
     },
 
     columnsToSelectArray(columns) {
@@ -43,7 +43,7 @@ module.exports = {
 
     },
 
-    columnsToInspector(columns) {
+    columnsToInspectorCreate(columns) {
 
         let inspector = {
             schema: {
@@ -87,6 +87,47 @@ module.exports = {
                     // Instead, we add the information to the tooltip.
                     inspector.inputs[name].tooltip = 'This field is required since it is not nullable and does not have a default value.';
                 }
+            });
+        }
+
+        return inspector;
+    },
+
+    columnsToInspectorUpdate(columns) {
+
+        let inspector = {
+            schema: {
+                type: 'object',
+                required: []
+            },
+            inputs: {},
+            groups: {
+                columns: { label: 'Columns', index: 1 }
+            }
+        };
+
+        if (Array.isArray(columns) && columns.length > 0) {
+            columns.forEach((column) => {
+                const name = column['column_name'];
+
+                // See https://www.postgresql.org/docs/9.5/datatype.html for all data types.
+                const type = ({
+                    'bigint': 'number',
+                    'boolean': 'toggle',
+                    'double precision': 'number',
+                    'integer': 'number',
+                    'numeric': 'number',
+                    'decimal': 'number',
+                    'real': 'number',
+                    'smallint': 'number'
+                })[column['data_type']] || 'text';
+
+                inspector.inputs[name] = {
+                    type: type,
+                    label: name,
+                    group: 'columns',
+                    index: column['ordinal_position']
+                };
             });
         }
 
