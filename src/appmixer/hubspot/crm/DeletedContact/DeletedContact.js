@@ -4,7 +4,7 @@ const subscriptionType = 'contact.deletion';
 
 class DeletedContact extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
         return [{
             enabled: true,

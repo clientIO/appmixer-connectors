@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const { WATCHED_PROPERTIES_CONTACT, WATCHED_PROPERTIES_DEAL } = require('./commons');
 
 const getSubscriptionEntries = async (context, subscriptionType) => {
 
@@ -136,7 +137,31 @@ module.exports = async (context) => {
                 // Note on batching: The batch size can vary, but will be under 100 notifications.
                 // See: https://legacydocs.hubspot.com/docs/methods/webhooks/webhooks-overview
                 for (const [subscriptionType, subscriptionEvents] of Object.entries(eventsBySubscriptionType)) {
-                    const eventsByObjectId = _.keyBy(subscriptionEvents, 'objectId');
+                    // Skipping propertyChange events for properties that are not watched.
+                    const filteredEvents = [];
+                    if (subscriptionType.endsWith('propertyChange')) {
+                        let watchedProperties = [];
+                        if (subscriptionType === 'deal.propertyChange') {
+                            watchedProperties = WATCHED_PROPERTIES_DEAL;
+                        } else if (subscriptionType === 'contact.propertyChange') {
+                            watchedProperties = WATCHED_PROPERTIES_CONTACT;
+                        } else {
+                            throw new Error(`Unsupported subscriptionType: ${subscriptionType}`);
+                        }
+
+                        subscriptionEvents.forEach(event => {
+                            if (watchedProperties.includes(event.propertyName)) {
+                                filteredEvents.push(event);
+                            }
+                        });
+                    } else {
+                        // For creation events, we don't need to filter.
+                        filteredEvents.push(...subscriptionEvents);
+                    }
+                    const eventsByObjectId = _.keyBy(filteredEvents, 'objectId');
+                    if (!Object.keys(eventsByObjectId).length) {
+                        continue;
+                    }
 
                     context.log('trace', 'hubspot-plugin-route-webhook-log', { eventsByObjectId });
                     const registeredComponents = await context.service.stateGet(`${subscriptionType}:${portalId}`) || [];

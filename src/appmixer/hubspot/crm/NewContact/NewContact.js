@@ -5,7 +5,7 @@ const subscriptionType = 'contact.creation';
 
 class NewContact extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
         return [{
             enabled: true,
