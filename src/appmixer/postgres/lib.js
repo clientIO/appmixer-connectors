@@ -55,7 +55,7 @@ module.exports = {
             await record.pool.end();
             delete POOLS[context.connectionHash];
         }
-    },
+    }
 };
 
 function ensurePool(context) {
@@ -77,7 +77,7 @@ function connectionHash(auth) {
 
     const authString = JSON.stringify(auth);
     return crypto.createHash('md5').update(authString).digest('hex');
-};
+}
 
 function createPool(context) {
 
