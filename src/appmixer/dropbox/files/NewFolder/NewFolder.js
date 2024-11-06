@@ -30,8 +30,8 @@ module.exports = {
     async tick(context) {
 
         let params = {
-            path: '',
-            recursive: true,
+            path: context.properties.path || '',
+            recursive: typeof context.properties.recursive === 'undefined' ? false : context.properties.recursive,
             include_media_info: true
         };
 
