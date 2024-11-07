@@ -33,14 +33,14 @@ const filtersInput = (modifications) => {
         type: 'expression',
         label: 'Filters',
         tooltip: 'Use this to filter the rows in your CSV.',
-        fields: [
-            {
+        fields: {
+            column: {
                 type: 'text',
                 label: 'Column',
                 tooltip: 'Name of the column',
                 required: true
             },
-            {
+            operator: {
                 type: 'select',
                 label: 'Operator',
                 options: [
@@ -75,13 +75,13 @@ const filtersInput = (modifications) => {
                 ],
                 required: true
             },
-            {
+            value: {
                 type: 'text',
                 label: 'Value',
                 tooltip: 'Value to compare',
                 required: true
             }
-        ]
+        }
     };
     return generateInput(definition, modifications);
 };

@@ -9,6 +9,10 @@ function transformAndObject(andObject) {
         result.column = andObject[keys[0]];
         result.value = andObject[keys[1]];
     } else {
+        // If the object has 3 keys, it is already in the correct format
+        if (andObject.value && andObject.column && andObject.operator) {
+            return andObject;
+        }
         result.column = andObject[keys[0]];
         result.operator = andObject[keys[1]];
         result.value = andObject[keys[2]];
