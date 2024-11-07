@@ -43,10 +43,12 @@ module.exports = {
             const issuesFiltered = issues.filter(i => {
                 return (new Date(i.fields.updated).valueOf() - new Date(i.fields.created).valueOf()) > 59000;
             });
-            const latestIssueIndex = issuesFiltered.length - 1;
-            latestIssueUpdateDate = new Date(issuesFiltered[latestIssueIndex].fields.updated).valueOf();
-            for (const issue of issuesFiltered) {
-                await context.sendJson(issue, 'issue');
+            if (issuesFiltered.length > 0) {
+                const latestIssueIndex = issuesFiltered.length - 1;
+                latestIssueUpdateDate = new Date(issuesFiltered[latestIssueIndex].fields.updated).valueOf();
+                for (const issue of issuesFiltered) {
+                    await context.sendJson(issue, 'issue');
+                }
             }
         }
 
