@@ -91,7 +91,7 @@ const indexesInput = (modifications) => {
     const definition = {
         type: 'text',
         label: 'Indexes',
-        tooltip: 'Comma separated list of zero-based indexes or ranges - e.g 0,3,6-7,10.'
+        tooltip: 'Comma separated list of zero-based indexes or ranges of rows - e.g 0,3,6-7,10.'
     };
 
     return generateInput(definition, modifications);
@@ -321,18 +321,18 @@ module.exports = {
                 levels: [
                     'AND'
                 ],
-                fields: [
-                    {
+                fields: {
+                    column: {
                         type: 'text',
                         label: 'Column',
                         required: true
                     },
-                    {
+                    value: {
                         type: 'text',
                         label: 'Value',
                         defaultValue: ''
                     }
-                ],
+                },
                 label: 'Row',
                 tooltip: 'Column/value pairs for the new row.',
                 index: 3
@@ -725,18 +725,18 @@ module.exports = {
                 levels: [
                     'AND'
                 ],
-                fields: [
-                    {
+                fields: {
+                    column: {
                         type: 'text',
                         label: 'Column',
                         required: true
                     },
-                    {
+                    value: {
                         type: 'text',
                         label: 'Value',
                         required: true
                     }
-                ]
+                }
             };
         } else {
             schema.properties.indexes = {
@@ -753,18 +753,18 @@ module.exports = {
                 levels: [
                     'AND'
                 ],
-                fields: [
-                    {
+                fields: {
+                    column: {
                         type: 'text',
                         label: 'Column index',
                         required: true
                     },
-                    {
+                    value: {
                         type: 'text',
                         label: 'Value',
                         required: true
                     }
-                ]
+                }
             };
         }
 
