@@ -1,5 +1,5 @@
 const { randomInt, createHash } = require('crypto');
-const csv = require('csv-parser');
+const { parse } = require('csv-parse');
 
 const BATCH_SIZE = 10000;
 
@@ -20,8 +20,8 @@ module.exports = {
         const fileStream = await context.getFileReadStream(fileId);
         const fileInfo = await context.getFileInfo(fileId);
 
-        const reader = fileStream.pipe(csv({
-            mapHeaders: ({ header }) => header.toLowerCase().trim()
+        const reader = fileStream.pipe(parse({
+            columns: header => header.map(column => column.toLowerCase().trim())
         }));
 
         // randomInt limit is (max - min) < 2^48. See https://nodejs.org/api/crypto.html#cryptorandomintmin-max-callback.
