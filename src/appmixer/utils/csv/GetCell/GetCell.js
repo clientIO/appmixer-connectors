@@ -37,7 +37,7 @@ module.exports = {
         }
 
         const rows = await processor.getRows(options);
-        let row = rows[0] || null;
+        const row = rows[0] || null;
 
         let targetIndex;
 
@@ -47,7 +47,8 @@ module.exports = {
             targetIndex = columnIndex;
         }
 
-        const cell = row[targetIndex];
+        // row is null when no row is found (no match)
+        const cell = row ? row[targetIndex] : null;
 
         return context.sendJson({ fileId, cell }, 'out');
     }
