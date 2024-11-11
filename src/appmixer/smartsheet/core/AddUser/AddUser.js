@@ -24,7 +24,9 @@ module.exports = {
         const inputMapping = {
             'email': input['email'],
             'firstName': input['firstName'],
-            'lastName': input['lastName']
+            'lastName': input['lastName'],
+            'admin': input['isAdmin'],
+            'licensedSheetCreator': input['licensedSheetCreator']
         };
         let requestBody = {};
         lib.setProperties(requestBody, inputMapping);
