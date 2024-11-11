@@ -62,27 +62,5 @@ module.exports = {
         }
 
         return inspector;
-    },
-
-    getContactsOutput(availableFields) {
-
-        const fields = [
-            { label: 'Email', value: 'email' },
-            { label: 'First Name', value: 'firstname' },
-            { label: 'Last Name', value: 'lastname' },
-            { label: 'Website', value: 'website' },
-            { label: 'Company', value: 'company' },
-            { label: 'Phone', value: 'phone' },
-            { label: 'State', value: 'state' },
-            { label: 'Address', value: 'address' },
-            { label: 'City', value: 'city' },
-            { label: 'Zip', value: 'zip' }
-        ];
-
-        // availableFields.forEach(customField => {
-        //     fields.push({ label: customField.property, value: `customField_${customField.id}` });
-        // });
-
-        return fields;
     }
 };

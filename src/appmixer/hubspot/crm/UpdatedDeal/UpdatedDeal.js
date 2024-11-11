@@ -8,8 +8,7 @@ class UpdatedDeal extends BaseSubscriptionComponent {
 
     getSubscriptions() {
 
-        // Only watching for the properties that are present in the CreateContact inspector.
-        const subscriptions = WATCHED_PROPERTIES_DEAL.map(propertyName => ({
+        const subscriptions = WATCHED_PROPERTIES_DEAL.map((propertyName) => ({
             enabled: true,
             subscriptionDetails: {
                 subscriptionType,
