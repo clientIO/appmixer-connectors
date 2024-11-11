@@ -10,7 +10,7 @@ function buildLabel(label) {
 
     let labelObject = {};
 
-    labelObject['color'] = label['labelColor'] === 'none' ? null : label['labelColor'];
+    labelObject['color'] = label['labelColor'] === 'none' ? null : (label['labelColor'] === '#006988' ? 'sky' : label['labelColor']);
     labelObject['name'] = label['labelName'] ? label['labelName'] : undefined;
 
     return labelObject;

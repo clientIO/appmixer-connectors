@@ -49,6 +49,12 @@ module.exports = {
         return this.request(endpoint, 'DELETE', credentials, undefined, body);
     },
 
+    async getAPINoPagination({ endpoint, credentials, key, params = {} }) {
+        const currentPage = await this.get(endpoint, credentials, params);
+
+        return currentPage[key];
+    },
+
     async pager({ endpoint, credentials, key, params = {} }) {
 
         const currentPage = await this.get(endpoint, credentials, params);
@@ -173,7 +179,7 @@ module.exports = {
         let { webhookEvent } = data;
 
         const payload = data[key];
-        payload.webhookEvent  = webhookEvent;
+        payload.webhookEvent = webhookEvent;
 
         const identifier = headers['x-atlassian-webhook-identifier'];
 

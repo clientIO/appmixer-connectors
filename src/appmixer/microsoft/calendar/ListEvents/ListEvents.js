@@ -37,21 +37,37 @@ module.exports = {
 
         // Query params
         const urlWithQueryParams = new URL(url);
+
+        // Construct a combined filter if no custom filter is provided
+        let combinedFilter = '';
         if (filter) {
-            // If `$filter` is provided, we don't support `start` and `end` params.
-            urlWithQueryParams.searchParams.append('$filter', filter);
+            // Use the custom filter if provided, ignoring start and end
+            combinedFilter = filter;
         } else {
+            // Combine start and end into a single filter if both are provided
+            const filterConditions = [];
             if (start) {
-                urlWithQueryParams.searchParams.append('$filter', `start/dateTime ge '${start}'`);
+                filterConditions.push(`start/dateTime ge '${start}'`);
             }
             if (end) {
-                urlWithQueryParams.searchParams.append('$filter', `end/dateTime le '${end}'`);
+                filterConditions.push(`end/dateTime le '${end}'`);
+            }
+            if (filterConditions.length > 0) {
+                combinedFilter = filterConditions.join(' and ');
             }
         }
+
+        // Append the combined filter to the query parameters
+        if (combinedFilter) {
+            urlWithQueryParams.searchParams.append('$filter', combinedFilter);
+        }
+
+        // Append orderBy if provided
         if (orderBy) {
             urlWithQueryParams.searchParams.append('$orderby', orderBy);
         }
 
+        // Options for making the HTTP request
         const options = {
             url: urlWithQueryParams,
             headers: {
@@ -60,10 +76,13 @@ module.exports = {
             }
         };
 
+        // Pagination and limit handling
         const MAX_LIMIT = maxRecords || 1000;
         let totalEvents = 0;
         let events = [];
         let nextLink = null;
+
+        // Fetch events in a loop to handle pagination
         do {
             options.params = {
                 top: Math.min(PAGE_SIZE, MAX_LIMIT - totalEvents),
@@ -77,10 +96,12 @@ module.exports = {
             totalEvents += result.value.length;
         } while (nextLink && totalEvents < MAX_LIMIT);
 
+        // Check if there are no events and send an empty result
         if (events.length === 0) {
             return await context.sendJson({ messages: 'No data returned.', options }, 'emptyResult');
         }
 
+        // Send the retrieved events as output
         return await sendArrayOutput({ context, outputType, records: events });
     },
 

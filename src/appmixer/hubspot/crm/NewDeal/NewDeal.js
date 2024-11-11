@@ -5,7 +5,7 @@ const subscriptionType = 'deal.creation';
 
 class NewDeal extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
         return [{
             enabled: true,

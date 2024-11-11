@@ -18,7 +18,7 @@ class BaseSubscriptionComponent {
         this.hubspot.setToken(auth.accessToken);
     }
 
-    async getSubscriptions(context) {
+    getSubscriptions(context) {
 
         throw new Error('Must be extended to return subscriptions');
     }

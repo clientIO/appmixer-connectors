@@ -17,7 +17,7 @@ class FtpClient {
         this.config = config;
 
         if (FtpClient.isFtp(secure)) {
-            if (config.privateKey != '') {
+            if (!!config.privateKey) {
                 throw new Error('Private key can be used only for SFTP');
             }
             this.isFtp = true;
@@ -31,6 +31,7 @@ class FtpClient {
     async connect() {
 
         if (this.isFtp) {
+            this.config.user = this.config.username;
             await this.client.access(this.config);
         } else {
             delete this.config.secure;
@@ -85,7 +86,7 @@ class FtpClient {
      */
     static isFtp(secure) {
 
-        return ['yes', 'implicit'].includes(secure);
+        return secure !== 'sftp';
     }
 
     static createConfig(authContext) {
