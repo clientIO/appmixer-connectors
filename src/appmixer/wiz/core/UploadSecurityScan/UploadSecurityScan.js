@@ -44,7 +44,7 @@ const statusQuery = `query SystemActivity($id: ID!) {
 let attempts = 0;
 const getStatus = async function(context, id) {
 
-    context.log({ stage: 'getting status', systemActivityId: id, attempts });
+    context.log({ stage: 'GETTING STATUS', systemActivityId: id, attempts });
     const { data } = await lib.makeApiCall({
         context,
         method: 'POST',
@@ -56,7 +56,8 @@ const getStatus = async function(context, id) {
         }
     });
 
-    if (data.errors) {
+    context.log({ stage: 'STATUS DATA', data });
+    if (data.errors || data?.data?.systemActivity?.status === 'IN_PROGRESS') {
         attempts++;
         if (attempts <= 5) {
             await new Promise(r => setTimeout(r, 2000));
@@ -86,7 +87,7 @@ const requestUpload = async function(context, { filename }) {
         throw new context.CancelError(data.errors);
     }
 
-    context.log({ stage: 'request upload response', upload: data.data.requestSecurityScanUpload.upload });
+    context.log({ stage: 'UPLOAD SUCCESS', upload: data?.data?.requestSecurityScanUpload?.upload });
 
     return data.data.requestSecurityScanUpload.upload;
 };
@@ -144,7 +145,7 @@ module.exports = {
         const { filename } = context.messages.in.content;
 
         const { url, systemActivityId } = await requestUpload(context, { filename });
-        await context.log({ stage: 'requestUpload response ', url, systemActivityId });
+        await context.log({ stage: 'REQUEST UPLOAD SUCCESS', url, systemActivityId });
 
         await uploadFile(context, { url, fileContent: createDocument(context) });
 
