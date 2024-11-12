@@ -1,5 +1,8 @@
-const { randomInt, createHash } = require('crypto');
+const crypto = require('crypto');
 const { parse } = require('csv-parse');
+const workerpool = require('workerpool');
+
+const pool = workerpool.pool(__dirname + '/prepareMembers.js');
 
 const BATCH_SIZE = 10000;
 const TIMEOUT_TRIGGER_SECONDS = 300;
@@ -33,7 +36,7 @@ module.exports = {
             schema = msg.schema;
             // Initialize the upload process.
             // randomInt limit is (max - min) < 2^48. See https://nodejs.org/api/crypto.html#cryptorandomintmin-max-callback.
-            sessionId = randomInt(0, 2 ** 48 - 1);
+            sessionId = crypto.randomInt(0, 2 ** 48 - 1);
             rowsProcessed = 0;
             numInvalidEntries = 0;
             invalidEntrySamples = [];
@@ -210,10 +213,12 @@ async function sendBatchToFacebook(
     estimatedMembersCount,
     timeStart) {
 
+    const members = await pool.exec('prepareMembers', [batch, schemaConfig]);
+
     const body = {
         payload: {
             schema: detectSchema(batch, schemaConfig),
-            data: prepareMembers(batch, schemaConfig)
+            data: members
         },
         session: {
             session_id: sessionId,
@@ -259,7 +264,8 @@ async function sendRequestWithRetry(context, url, body, maxRetries = 5) {
     let lastError;
     while (retries < maxRetries) {
         try {
-            return context.httpRequest.post(url, body);
+            const response = await context.httpRequest.post(url, body);
+            return response;
         } catch (error) {
             lastError = error;
             retries += 1;
@@ -288,16 +294,4 @@ function detectSchema(batch, schemaConfig) {
     return schema;
 }
 
-function prepareMembers(batch, schemaConfig) {
 
-    return batch.map(member => {
-        const memberData = [];
-        for (const column in member) {
-            if (schemaConfig[column]) {
-                const value = createHash('sha256').update(member[column]).digest('hex');
-                memberData.push(value);
-            }
-        }
-        return memberData;
-    });
-}
