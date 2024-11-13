@@ -1,25 +1,8 @@
 'use strict';
-const { Pool } = require('pg');
+
+const lib = require('../../lib');
 
 module.exports = {
-
-    async connect(context) {
-
-        if (this.pool) {
-            return this.pool.connect();
-        }
-
-        this.pool = new Pool({
-            user: context.auth.dbUser,
-            host: context.auth.dbHost,
-            database: context.auth.database,
-            password: context.auth.dbPassword,
-            port: context.auth.dbPort,
-            poolSize: context.properties.poolSize || 1
-        });
-
-        return this.pool.connect();
-    },
 
     async receive(context) {
 
@@ -28,21 +11,23 @@ module.exports = {
         const values = Object.values(row);
         const valuesMarkers = columns.map((col, index) => '$' + (index + 1));
 
-        let query = `INSERT INTO ${context.properties.table}(${columns.join(',')}) VALUES(${valuesMarkers.join(',')}) RETURNING *`;
-
-        let client = await this.connect(context);
-        try {
-            let res = await client.query(query, values);
-            await context.sendJson(res.rows[0], 'newRow');
-        } finally {
-            await client.release();
+        let [schema, table] = context.properties.table.split('.');
+        if (!table) {
+            table = schema;
+            schema = 'public';
         }
+
+        let query = `INSERT INTO ${schema}.${table}(${columns.join(',')}) VALUES(${valuesMarkers.join(',')}) RETURNING *`;
+        await context.log({ step: 'query', query });
+
+        const res = await lib.query(context, query, values);
+        return context.sendJson(res.rows[0], 'newRow');
     },
 
     async stop(context) {
 
-        if (this.pool) {
-            await this.pool.end();
-        }
+        await lib.disconnect(context);
     }
 };
+
+
