@@ -12,8 +12,16 @@ module.exports = {
         const TIMEOUT_TRIGGER_SECONDS = parseInt(context.config.timeoutTriggerSeconds) || (60 * 15);
         const TIMEOUT_SECONDS = parseInt(context.config.timeoutSeconds) || 60;
 
-        let accountId, audienceId, fileId, schema;
-        let sessionId, rowsProcessed, numInvalidEntries, invalidEntrySamples, timeStart, batchIndex;
+        let accountId;
+        let audienceId;
+        let fileId;
+        let schema;
+        let sessionId;
+        let rowsProcessed;
+        let numInvalidEntries;
+        let invalidEntrySamples;
+        let timeStart;
+        let batchIndex;
 
         if (context.messages.timeout) {
             const msg = context.messages.timeout.content;
