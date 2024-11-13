@@ -1,9 +1,45 @@
 {
-    "name": "appmixer.google.analytics.CreateEvents",
+    "name": "appmixer.google.analytics.GenerateReport",
     "author": "Zbynek Pelunek <zbynek.pelunek@client.io>",
-    "description": "Creates an event with user interaction data.",
+    "description": "Returns a customized pivot report of your Google Analytics event data. Works on GA4 version only.",
     "auth": {
-        "service": "appmixer:google"
+        "service": "appmixer:google",
+        "scope": [
+            "https://www.googleapis.com/auth/analytics.readonly"
+        ]
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "propertyId": {
+                    "type": "string"
+                },
+                "limit": {
+                    "type": "number",
+                    "maxLength": 250000
+                }
+            },
+            "required": [
+                "propertyId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "propertyId": {
+                    "type": "text",
+                    "label": "Property ID",
+                    "index": 0,
+                    "tooltip": "To find your Google Analytics 4 property ID, open the property selector (on the right from the Analytics logo) and look for the needed property in the second column (Properties & Apps). The ID will be a nine-digit number. Make sure to provide the Google Analytics 4 property ID for this field and NOT Universal Analytics property IDs, which start with 'UA'."
+                },
+                "limit": {
+                    "type": "number",
+                    "label": "Limit",
+                    "tooltip": "The number of rows to return. If unspecified, 10,000 rows are returned. Max number of returned results is 250,000 rows.",
+                    "index": 1
+                }
+            }
+        }
     },
     "inPorts": [
         {
@@ -11,99 +47,111 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "apiSecret": {
+                    "dateRanges": {
                         "type": "string",
-                        "title": "Api Secret",
-                        "maxLength": 40
+                        "enum": [
+                            "yesterday",
+                            "thisWeekFromSunday",
+                            "thisWeekFromMunday",
+                            "lastSevenDays",
+                            "last28Days",
+                            "last30Days",
+                            "custom"
+                        ]
                     },
-                    "measurementId": {
-                        "type": "string",
-                        "title": "Measurement Id"
+                    "dimensions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     },
-                    "clientId": {
-                        "type": "string",
-                        "title": "Client Id"
-                    },
-                    "events": {
-                        "type": "object",
-                        "title": "Events",
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "title": "Events.Name",
-                                "maxLength": 40
-                            },
-                            "params": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "key": {
-                                            "type": "string",
-                                            "title": "Events.Params.Key"
-                                        },
-                                        "value": {
-                                            "type": "string",
-                                            "title": "Events.Params.Value"
-                                        }
-                                    }
-                                }
-                            }
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
                         }
                     }
                 },
                 "required": [
-                    "apiSecret",
-                    "measurementId",
-                    "clientId",
-                    "events"
+                    "dimensions",
+                    "metrics"
                 ]
             },
             "inspector": {
                 "inputs": {
-                    "apiSecret": {
-                        "type": "text",
-                        "label": "API Secret",
-                        "index": 1,
-                        "tooltip": "To create a new secret, navigate to: <strong>Admin > Data Streams > choose your stream > Measurement Protocol > Create</strong>"
-                    },
-                    "measurementId": {
-                        "type": "text",
-                        "label": "Measurement ID",
-                        "index": 2,
-                        "tooltip": "The measurement ID associated with a stream. Found in the Google Analytics UI under: <strong>Admin > Data Streams > choose your stream > Measurement ID</strong>"
-                    },
-                    "clientId": {
-                        "type": "text",
-                        "label": "Client ID",
-                        "index": 3,
-                        "tooltip": "Custom unique identifier for the client. Note, this is different than a firebase <strong>App Instance ID</strong>"
-                    },
-                    "events": {
-                        "type": "expression",
-                        "label": "Events",
-                        "tooltip": "Max: 25 events",
-                        "levels": [
-                            "ADD"
-                        ],
-                        "index": 4,
-                        "fields": {
-                            "name": {
-                                "type": "text",
-                                "label": "Name",
-                                "index": 1,
-                                "required": true,
-                                "tooltip": "Must be 40 characters or fewer, can only contain alpha-numeric characters and underscores, and must start with an alphabetic character."
+                    "dateRanges": {
+                        "type": "select",
+                        "index": 0,
+                        "label": "Date Ranges",
+                        "tooltip": "If a date range is not provided, the default date range will be last 7 days.",
+                        "options": [
+                            {
+                                "content": "Yesterday",
+                                "value": "yesterday"
                             },
-                            "params": {
-                                "type": "key-value",
-                                "label": "Params",
-                                "index": 2,
-                                "tooltip": "Max: 25 params. Must be 40 characters or fewer, can only contain alpha-numeric characters and underscores, and must start with an alphabetic character.",
-                                "keyLabel": "Key",
-                                "valueLabel": "Value",
-                                "addLabel": "Add item",
-                                "removeLabel": "Remove item"
+                            {
+                                "content": "This week from Sunday",
+                                "value": "thisWeekFromSunday"
+                            },
+                            {
+                                "content": "This week from Monday",
+                                "value": "thisWeekFromMunday"
+                            },
+                            {
+                                "content": "Last 7 days",
+                                "value": "lastSevenDays"
+                            },
+                            {
+                                "content": "Last 28 days",
+                                "value": "last28Days"
+                            },
+                            {
+                                "content": "Last 30 days",
+                                "value": "last30Days"
+                            },
+                            {
+                                "content": "Custom",
+                                "value": "custom"
+                            }
+                        ]
+                    },
+                    "startDate": {
+                        "when": {
+                            "eq": {
+                                "dateRanges": "custom"
+                            }
+                        },
+                        "type": "string",
+                        "title": "Start Date"
+                    },
+                    "endDate": {
+                        "when": {
+                            "eq": {
+                                "dateRanges": "custom"
+                            }
+                        },
+                        "type": "string",
+                        "title": "End Date"
+                    },
+                    "dimensions": {
+                        "type": "multiselect",
+                        "label": "Dimensions",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/google/analytics/ListPropertiesMetadata?outPort=out",
+                            "data": {
+                                "transform": "./ListPropertiesMetadata#dimensionsToMultiselectArray"
+                            }
+                        }
+                    },
+                    "metrics": {
+                        "type": "multiselect",
+                        "label": "Metrics",
+                        "index": 2,
+                        "source": {
+                            "url": "/component/appmixer/google/analytics/ListPropertiesMetadata?outPort=out",
+                            "data": {
+                                "transform": "./ListPropertiesMetadata#metricsToMultiselectArray"
                             }
                         }
                     }
