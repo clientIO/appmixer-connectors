@@ -142,8 +142,9 @@ module.exports = {
                             headers: response.headers,
                             totalNumInvalidEntries: numInvalidEntries
                         });
-                        if (response.data.invalid_entry_samples && Object.keys(response.data.invalid_entry_samples).length) {
-                            invalidEntrySamples = invalidEntrySamples.concat(response.data.invalid_entry_samples);
+                        const invalid = response.data.invalid_entry_samplesů
+                        if (invalid && Object.keys(invalid).length) {
+                            invalidEntrySamples = invalidEntrySamples.concat(invalid);
                         }
                         batchIndex += 1;
                         batch = []; // Clear the batch.
