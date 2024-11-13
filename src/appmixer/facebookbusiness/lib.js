@@ -9,7 +9,7 @@ module.exports = {
     async sendCSVAudienceToFacebook(context, method, operation) {
 
         const BATCH_SIZE = parseInt(context.config.batchSize) || 10000;
-        const TIMEOUT_TRIGGER_SECONDS = parseInt(context.config.timeoutTriggerSeconds) || (60 * 15);
+        const TIMEOUT_TRIGGER_SECONDS = parseInt(context.config.timeoutTriggerSeconds) || (60 * 10);
         const TIMEOUT_SECONDS = parseInt(context.config.timeoutSeconds) || 60;
 
         let accountId;
@@ -74,6 +74,8 @@ module.exports = {
 
         let skipRows = rowsProcessed;
 
+        const receiveTimeStart = new Date;
+
         try {
             for await (const row of reader) {
 
@@ -85,13 +87,16 @@ module.exports = {
                 }
 
                 const timeElapsed = (new Date - timeStart) / 1000;
-                if (timeElapsed > TIMEOUT_TRIGGER_SECONDS) {
+                const receiveTimeElapsed = (new Date - receiveTimeStart) / 1000;
+                if (receiveTimeElapsed > TIMEOUT_TRIGGER_SECONDS) {
                     // If the process has been running for long, we need to stop and resume later.
                     reader.destroy();
                     await context.log({
                         step: 'timeout',
                         timeStart,
+                        receiveTimeStart,
                         timeElapsedSeconds: timeElapsed,
+                        recieveTimeElapsedSeconds: receiveTimeElapsed,
                         rowsProcessed,
                         sessionId,
                         numInvalidEntries
@@ -106,7 +111,7 @@ module.exports = {
                         batchIndex,
                         numInvalidEntries,
                         invalidEntrySamples,
-                        timeStart: timeStart.getTime()
+                        timeStart: (new Date(timeStart)).getTime()
                     }, TIMEOUT_SECONDS * 1000);
                 }
 
