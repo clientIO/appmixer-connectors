@@ -389,7 +389,7 @@ module.exports = class CSVProcessor {
         try {
 
             const lockExtendTime = parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1;
-            const max = Math.ceil((1000 * 60 * 60) / lockExtendTime); // max execution time 1 hour
+            const max = Math.ceil((1000 * 60 * 22) / lockExtendTime); // max execution time 23 minutes
             let i = 0;
 
             lockExtendInterval = setInterval(async () => {
