@@ -380,10 +380,10 @@ module.exports = class CSVProcessor {
 
         const destroy = function() {
 
-            if (lock) lock.unlock();
             if (stream) stream.destroy();
             if (writeStream) writeStream.destroy();
             if (lockExtendInterval) clearInterval(lockExtendInterval);
+            if (lock) lock.unlock();
         };
 
         try {
