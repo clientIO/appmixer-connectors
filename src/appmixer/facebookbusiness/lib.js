@@ -142,7 +142,7 @@ module.exports = {
                             headers: response.headers,
                             totalNumInvalidEntries: numInvalidEntries
                         });
-                        const invalid = response.data.invalid_entry_samplesů
+                        const invalid = response.data.invalid_entry_samples;
                         if (invalid && Object.keys(invalid).length) {
                             invalidEntrySamples = invalidEntrySamples.concat(invalid);
                         }
