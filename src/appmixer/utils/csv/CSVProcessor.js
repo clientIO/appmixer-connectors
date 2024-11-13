@@ -380,16 +380,16 @@ module.exports = class CSVProcessor {
 
         const destroy = function() {
 
-            if (lock) lock.unlock();
             if (stream) stream.destroy();
             if (writeStream) writeStream.destroy();
             if (lockExtendInterval) clearInterval(lockExtendInterval);
+            if (lock) lock.unlock();
         };
 
         try {
 
             const lockExtendTime = parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1;
-            const max = Math.ceil((1000 * 60 * 60) / lockExtendTime); // max execution time 1 hour
+            const max = Math.ceil((1000 * 60 * 22) / lockExtendTime); // max execution time 23 minutes
             let i = 0;
 
             lockExtendInterval = setInterval(async () => {
