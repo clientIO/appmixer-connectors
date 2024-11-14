@@ -1,8 +1,8 @@
 'use strict';
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
-const stream = require('stream');
-const { PassThrough, pipeline } = stream;
+const { PassThrough, pipeline } = require('stream');
+const pipelineAsync = require('stream').promises.pipeline;
 const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
 module.exports = class CSVProcessor {
@@ -402,7 +402,7 @@ module.exports = class CSVProcessor {
             }, config.lockExtendInterval || 10000);
 
             await this.loadHeaders();
-            stream = await this.loadFile();
+            stream = await this.context.getFileReadStream(this.fileId);
             writeStream = new PassThrough();
 
             const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
@@ -412,22 +412,28 @@ module.exports = class CSVProcessor {
                 this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
             }
 
-            // append existing rows
-            for await (const rowData of stream) {
-                writeStream.write(this.formatRow(rowData));
-            }
+            // Create a transform stream to append new rows
+            const appendRowsTransform = new PassThrough({
+                transform(chunk, encoding, callback) {
+                    this.push(chunk);
+                    callback();
+                }
+            });
 
-            // append new rows
-            this.writeRows(writeStream, rowsToAdd);
+            // Append new rows after the existing rows
+            appendRowsTransform.on('end', () => {
+                this.writeRows(writeStream, rowsToAdd);
+            });
 
-            writeStream.end();
+            pipelineAsync(
+                stream,
+                appendRowsTransform,
+                writeStream
+            );
 
             return await this.context.replaceFileStream(this.fileId, writeStream);
-        } catch (err) {
-            destroy();
-            throw err;
         } finally {
-            lock.unlock();
+            destroy();
         }
     }
 
