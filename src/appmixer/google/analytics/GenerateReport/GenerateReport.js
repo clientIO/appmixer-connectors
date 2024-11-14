@@ -8,14 +8,10 @@ module.exports = {
 
     async receive(context) {
 
-        const { dateRanges, dimensions, metrics, startDate, endDate } = context.messages.in.content;
-        const { propertyId, limit } = context.properties;
+        const { dateRanges, dimensions, metrics, customDateRanges, limit, keepEmptyRows } = context.messages.in.content;
+        const { propertyId } = context.properties;
 
-        context.log({ step: 'context.properties: ', properties: context.properties });
-        const dateRangesArr = [];
-        context.log({ step: 'dateRanges: ', dateRanges });
-        context.log({ step: 'dimensions: ', dimensions });
-        context.log({ step: 'metrics: ', metrics });
+        let dateRangesArr = [];
 
         switch (dateRanges) {
             case 'yesterday':
@@ -43,10 +39,10 @@ module.exports = {
                 });
                 break;
             case 'custom':
-                dateRangesArr.push({
+                dateRangesArr = customDateRanges.ADD.map(({ startDate, endDate }) => ({
                     startDate,
                     endDate
-                });
+                }));
                 break;
             default:
                 dateRangesArr.push({
@@ -63,15 +59,28 @@ module.exports = {
         });
 
         const body = {
-            dimensions: dimensionsArr, metrics: metricsArr, dateRanges: dateRangesArr, limit: limit ?? 10000
+            dimensions: dimensionsArr,
+            metrics: metricsArr,
+            dateRanges: dateRangesArr,
+            limit: limit ?? 10000,
+            keepEmptyRows
         };
 
         const response = await context.httpRequest({
             method: 'POST',
             url: `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
+            headers: {
+                'Authorization': `Bearer ${context.auth.accessToken}`
+            },
             data: body
         });
 
-        await context.log({ step: 'GenerateReport response: ', response });
+        await context.log({
+            step: 'response',
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+            data: response.data
+        });
     }
 };

@@ -1,20 +1,29 @@
 module.exports = {
     async receive(context) {
-        // const { propertyId } = context.properties;
 
-        // context.log({ step: 'context.properties: ', properties: context.properties });
+        try {
+            const { propertyId } = context.properties;
 
-        const propertyId = 465510564;
+            // context.log({ step: 'context.properties: ', properties: context.properties });
 
-        const { data } = await context.httpRequest({
-            method: 'GET',
-            url: `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}/metadata`,
-            headers: {
-                'Authorization': `Bearer ${context.auth.accessToken}`
+            //const propertyId = 465510564;
+
+            const { data } = await context.httpRequest({
+                method: 'GET',
+                url: `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}/metadata`,
+                headers: {
+                    'Authorization': `Bearer ${context.auth.accessToken}`
+                }
+            });
+
+            return context.sendJson(data, 'out');
+        } catch (error) {
+            if (context.properties.variableFetch) {
+                return context.sendJson({ dimensions: [], metrics: [] }, 'out');
             }
-        });
-
-        return context.sendJson(data, 'out');
+            context.log({ stage: 'Error', err });
+            throw new Error('Property ID must be filled');
+        }
 
     },
 
@@ -28,5 +37,16 @@ module.exports = {
         return metrics.map(metric => {
             return { label: metric.uiName, value: metric.apiName };
         });
+    },
+
+    dimensionsAndMetricsArray({ dimensions, metrics }) {
+        const metricsArr = metrics.map(metric => {
+            return { label: metric.uiName, value: metric.apiName };
+        });
+        const dimensionsArr = dimensions.map(dimension => {
+            return { label: dimension.uiName, value: dimension.apiName };
+        });
+
+        return dimensionsArr.concat(metricsArr);
     }
 };
