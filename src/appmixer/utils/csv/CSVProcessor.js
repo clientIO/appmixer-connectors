@@ -2,7 +2,6 @@
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
 const { PassThrough, pipeline } = require('stream');
-const pipelineAsync = require('stream').promises.pipeline;
 const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
 module.exports = class CSVProcessor {
@@ -374,13 +373,13 @@ module.exports = class CSVProcessor {
             ttl: parseInt(config.lockTTL, 10) || 60000 // Default 1 minute TTL
         });
 
-        let stream;
+        let readStream;
         let writeStream;
         let lockExtendInterval;
 
         const destroy = function() {
 
-            if (stream) stream.destroy();
+            if (readStream) readStream.destroy();
             if (writeStream) writeStream.destroy();
             if (lockExtendInterval) clearInterval(lockExtendInterval);
             if (lock) lock.unlock();
@@ -401,10 +400,6 @@ module.exports = class CSVProcessor {
                 await lock.extend(lockExtendTime);
             }, config.lockExtendInterval || 10000);
 
-            await this.loadHeaders();
-            stream = await this.context.getFileReadStream(this.fileId);
-            writeStream = new PassThrough();
-
             const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
 
             // If all the new rows are empty, warn the user.
@@ -412,26 +407,27 @@ module.exports = class CSVProcessor {
                 this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
             }
 
-            // Create a transform stream to append new rows
-            const appendRowsTransform = new PassThrough({
-                transform(chunk, encoding, callback) {
-                    this.push(chunk);
-                    callback();
-                }
+            await this.loadHeaders();
+            readStream = await this.context.getFileReadStream(this.fileId);
+            writeStream = new PassThrough();
+
+            const promise = new Promise((resolve, reject) => {
+                const stream = pipeline(
+                    readStream.on('end', (foo) => {
+                        // Append new rows to the end of the file
+                        this.writeRows(writeStream, rows);
+                    }),
+                    writeStream,
+                    (e) => {
+                        if (e) reject(e);
+                    }
+                );
+                this.context.replaceFileStream(this.fileId, stream)
+                    .then(resolve)
+                    .catch(reject);
             });
 
-            // Append new rows after the existing rows
-            appendRowsTransform.on('end', () => {
-                this.writeRows(writeStream, rowsToAdd);
-            });
-
-            pipelineAsync(
-                stream,
-                appendRowsTransform,
-                writeStream
-            );
-
-            return await this.context.replaceFileStream(this.fileId, writeStream);
+            return await promise;
         } finally {
             destroy();
         }
