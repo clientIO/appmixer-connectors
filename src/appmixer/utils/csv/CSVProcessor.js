@@ -411,18 +411,20 @@ module.exports = class CSVProcessor {
             readStream = await this.context.getFileReadStream(this.fileId);
             writeStream = new PassThrough();
 
+            readStream.on('end', () => {
+                // Append new rows to the end of the file
+                this.writeRows(writeStream, rowsToAdd);
+            });
+
             const promise = new Promise((resolve, reject) => {
                 const stream = pipeline(
-                    // (readStream + rowsToAdd) -> writeStream
-                    readStream.on('end', (foo) => {
-                        // Append new rows to the end of the file
-                        this.writeRows(writeStream, rowsToAdd);
-                    }),
+                    readStream,
                     writeStream,
                     (e) => {
                         if (e) reject(e);
                     }
                 );
+
                 this.context.replaceFileStream(this.fileId, stream)
                     .then(resolve)
                     .catch(reject);
