@@ -8,20 +8,36 @@ module.exports = {
 
     async sendCSVAudienceToFacebook(context, method, operation) {
 
+        // Max number of members to upload to Facebook in a single batch.
         const BATCH_SIZE = parseInt(context.config.batchSize) || 10000;
-        const TIMEOUT_TRIGGER_SECONDS = parseInt(context.config.timeoutTriggerSeconds) || (60 * 10);
+        // Time after which we jump out of the current receive function by scheduling a timeout to continue
+        // uploading in a later receive function call. This must be lower than 23 minutes which is
+        // maximum time Appmixer engine can run the receive() method before it assumes it's
+        // not successful and re-runs it again.
+        const TIMEOUT_TRIGGER_SECONDS = parseInt(context.config.timeoutTriggerSeconds) || (60 * 5);
+        // Time before the next receive() is run after the previous one was jumped out of with timeout.
+        // We set 1 minute by default which is the minimum we can set for a timeout in Appmixer anyway.
         const TIMEOUT_SECONDS = parseInt(context.config.timeoutSeconds) || 60;
+        // The maximum time we attempt the upload.
+        const MAX_CONTINUATION_PERIOD_SECONDS = parseInt(context.config.maxContinuationPeriodSeconds) || (60 * 60 * 12);
+        // The maximum duration window for 1 replace session is 90 minutes.
+        // The API will reject any batches for a session received after 90 minutes from the time the session started.
+        // If you need to send batches for a duration longer than 90 minutes,
+        // wait until the replace operation for that session is done, then use the users endpoint.
+        // See https://developers.facebook.com/docs/marketing-api/audiences/guides/custom-audiences/#replace-api.
+        const MAX_USERSREPLACE_PERIOD_SECONDS = 60 * 90;
 
         let accountId;
         let audienceId;
         let fileId;
         let schema;
         let sessionId;
-        let rowsProcessed;
         let numInvalidEntries;
         let invalidEntrySamples;
         let timeStart;
         let batchIndex;
+        let estimatedMembersCount;
+        let processedRows;
 
         if (context.messages.timeout) {
             const msg = context.messages.timeout.content;
@@ -31,11 +47,12 @@ module.exports = {
             schema = msg.schema;
             // Next are values that allows us to resume the upload process.
             sessionId = msg.sessionId;
-            rowsProcessed = msg.rowsProcessed;
             numInvalidEntries = msg.numInvalidEntries;
             invalidEntrySamples = msg.invalidEntrySamples;
             timeStart = msg.timeStart;
             batchIndex = msg.batchIndex;
+            estimatedMembersCount = msg.estimatedMembersCount;
+            processedRows = msg.processedRows;
         } else {
             const msg = context.messages.in.content;
             accountId = msg.accountId;
@@ -45,11 +62,15 @@ module.exports = {
             // Initialize the upload process.
             // randomInt limit is (max - min) < 2^48. See https://nodejs.org/api/crypto.html#cryptorandomintmin-max-callback.
             sessionId = crypto.randomInt(0, 2 ** 48 - 1);
-            rowsProcessed = 0;
             numInvalidEntries = 0;
             invalidEntrySamples = [];
             timeStart = new Date;
             batchIndex = 0;
+            processedRows = 0;
+        }
+
+        if ((new Date - timeStart) >= (MAX_CONTINUATION_PERIOD_SECONDS * 1000)) {
+            throw new context.CancelError('Error uploading audience. Max upload time reached. Check your audience and retry manually later.');
         }
 
         const schemaConfig = {};
@@ -67,15 +88,50 @@ module.exports = {
         }));
 
         let batch = [];
-        let estimatedMembersCount = 0;
-
         // Process rows in a way so that we can detect the last row (and therefore last batch).
         let previousRow = null;
-
-        let skipRows = rowsProcessed;
-
+        let skipRows = processedRows;
         const receiveTimeStart = new Date;
 
+        const scheduleContinuation = async function(reason, error) {
+
+            await context.log({
+                step: 'continuation',
+                reason,
+                error,
+                timeStart,
+                receiveTimeStart,
+                timeElapsedSeconds: (new Date - timeStart) / 1000,
+                recieveTimeElapsedSeconds: (new Date - receiveTimeStart) / 1000,
+                sessionId,
+                numInvalidEntries,
+                processedRows
+            });
+            reader.destroy();
+            return context.setTimeout({
+                accountId,
+                audienceId,
+                fileId,
+                schema,
+                sessionId,
+                batchIndex,
+                numInvalidEntries,
+                invalidEntrySamples,
+                timeStart: (new Date(timeStart)).getTime(),
+                estimatedMembersCount
+            }, TIMEOUT_SECONDS * 1000);
+        };
+
+        if (operation === 'usersreplace' && (new Date - timeStart) >= (MAX_USERSREPLACE_PERIOD_SECONDS * 1000)) {
+            // Restart the upload process with the users endpoint. Continue from the last processed batch, however.
+            operation = 'users';
+            sessionId = crypto.randomInt(0, 2 ** 48 - 1);
+            batchIndex = 0;
+            estimatedMembersCount -= processedRows;
+            numInvalidEntries = 0;
+            invalidEntrySamples = [];
+            timeStart = new Date;
+        }
         try {
             for await (const row of reader) {
 
@@ -86,33 +142,9 @@ module.exports = {
                     continue;
                 }
 
-                const timeElapsed = (new Date - timeStart) / 1000;
-                const receiveTimeElapsed = (new Date - receiveTimeStart) / 1000;
-                if (receiveTimeElapsed > TIMEOUT_TRIGGER_SECONDS) {
+                if ((new Date - receiveTimeStart) >= TIMEOUT_TRIGGER_SECONDS * 1000) {
                     // If the process has been running for long, we need to stop and resume later.
-                    reader.destroy();
-                    await context.log({
-                        step: 'timeout',
-                        timeStart,
-                        receiveTimeStart,
-                        timeElapsedSeconds: timeElapsed,
-                        recieveTimeElapsedSeconds: receiveTimeElapsed,
-                        rowsProcessed,
-                        sessionId,
-                        numInvalidEntries
-                    });
-                    return context.setTimeout({
-                        accountId,
-                        audienceId,
-                        fileId,
-                        schema,
-                        sessionId,
-                        rowsProcessed,
-                        batchIndex,
-                        numInvalidEntries,
-                        invalidEntrySamples,
-                        timeStart: (new Date(timeStart)).getTime()
-                    }, TIMEOUT_SECONDS * 1000);
+                    return scheduleContinuation('timeout');
                 }
 
                 // This is a trick to process the first row "later", at the time we've read the second row.
@@ -127,19 +159,25 @@ module.exports = {
                             estimatedMembersCount = estimateNumberOfRows(fileInfo.length, batch);
                         }
 
-                        const response = await sendBatchToFacebook(
-                            context,
-                            method,
-                            operation,
-                            audienceId,
-                            schemaConfig,
-                            sessionId,
-                            batch,
-                            batchIndex,
-                            false,  // last_batch_flag
-                            estimatedMembersCount,
-                            timeStart
-                        );
+                        let response;
+                        try {
+                            response = await sendBatchToFacebook(
+                                context,
+                                method,
+                                operation,
+                                audienceId,
+                                schemaConfig,
+                                sessionId,
+                                batch,
+                                batchIndex,
+                                false,  // last_batch_flag
+                                estimatedMembersCount,
+                                timeStart
+                            );
+                        } catch (err) {
+                            const fbError = err.response?.data?.error;
+                            return scheduleContinuation('retry', fbError);
+                        }
                         numInvalidEntries += response.data.num_invalid_entries;
                         await context.log({
                             step: 'batch-response',
@@ -152,10 +190,9 @@ module.exports = {
                             invalidEntrySamples = invalidEntrySamples.concat(invalid);
                         }
                         batchIndex += 1;
+                        processedRows += batch.length;
                         batch = []; // Clear the batch.
                     }
-
-                    rowsProcessed += 1;
                 }
                 previousRow = row;
             }
@@ -169,19 +206,25 @@ module.exports = {
                 estimatedMembersCount = estimateNumberOfRows(fileInfo.length, batch);
             }
             // Now process the last batch after loop ends.
-            const response = await sendBatchToFacebook(
-                context,
-                method,
-                operation,
-                audienceId,
-                schemaConfig,
-                sessionId,
-                batch,
-                batchIndex,
-                true, // last_batch_flag
-                estimatedMembersCount,
-                timeStart
-            );
+            let response;
+            try {
+                response = await sendBatchToFacebook(
+                    context,
+                    method,
+                    operation,
+                    audienceId,
+                    schemaConfig,
+                    sessionId,
+                    batch,
+                    batchIndex,
+                    true, // last_batch_flag
+                    estimatedMembersCount,
+                    timeStart
+                );
+            } catch (err) {
+                const fbError = err.response?.data?.error;
+                return scheduleContinuation('retry', fbError);
+            }
             numInvalidEntries += response.data.num_invalid_entries;
             await context.log({
                 step: 'batch-response',
@@ -190,7 +233,7 @@ module.exports = {
                 totalNumInvalidEntries: numInvalidEntries
             });
             invalidEntrySamples = invalidEntrySamples.concat(response.data.invalid_entry_samples || []);
-            rowsProcessed += 1;
+            processedRows += batch.length;
         }
 
         return context.sendJson({
@@ -198,7 +241,7 @@ module.exports = {
             audience_id: audienceId,
             num_invalid_entries: numInvalidEntries,
             invalid_entry_samples: invalidEntrySamples,
-            num_total_entries: rowsProcessed
+            num_total_entries: processedRows
         }, 'out');
     }
 };
@@ -275,7 +318,8 @@ async function sendBatchToFacebook(
         session: body.session,
         size: batch.length,
         gridInstanceId: context.gridInstanceId,
-        timeElapsed: (new Date - timeStart) / 1000
+        timeElapsedSeconds: (new Date - timeStart) / 1000,
+        url
     });
 
     let response;
@@ -283,7 +327,8 @@ async function sendBatchToFacebook(
     try {
         // Send 3 times so that we can gracefully recover from very short HTTP request glitches
         // and don't need to repeat the entire upload from the start.
-        response = await sendRequestWithRetry(context, method, url, body);
+        response = await (method === 'delete' ?
+            context.httpRequest.delete(url, { data: body }) : context.httpRequest[method](url, body));
     } catch (error) {
         await context.log({
             step: 'batch-error',
@@ -296,32 +341,6 @@ async function sendBatchToFacebook(
         throw error;
     }
     return response;
-}
-
-async function sendRequestWithRetry(context, method, url, body, maxRetries = 3) {
-
-    let retries = 0;
-    let lastError;
-    while (retries < maxRetries) {
-        try {
-            const response = await (method === 'delete' ?
-                context.httpRequest.delete(url, { data: body }) : context.httpRequest[method](url, body));
-            return response;
-        } catch (error) {
-            lastError = error;
-            retries += 1;
-            await context.log({
-                step: 'batch-retry',
-                url,
-                retries,
-                error: error.message,
-                data: error.response.data,
-                headers: error.response.headers,
-                status: error.response.status
-            });
-        }
-    }
-    throw lastError;
 }
 
 function detectSchema(batch, schemaConfig) {
