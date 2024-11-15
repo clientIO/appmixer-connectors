@@ -66,7 +66,7 @@ module.exports = {
             keepEmptyRows
         };
 
-        const response = await context.httpRequest({
+        const { data } = await context.httpRequest({
             method: 'POST',
             url: `https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`,
             headers: {
@@ -75,12 +75,6 @@ module.exports = {
             data: body
         });
 
-        await context.log({
-            step: 'response',
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers,
-            data: response.data
-        });
+        return context.sendJson(data, 'out');
     }
 };
