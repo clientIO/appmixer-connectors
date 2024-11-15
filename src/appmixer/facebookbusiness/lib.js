@@ -335,7 +335,7 @@ async function sendBatchToFacebook(
     await context.log({
         step: 'batch-response',
         data: response.data,
-        headers: response.headers,
+        headers: response.headers
     });
     return response;
 }
