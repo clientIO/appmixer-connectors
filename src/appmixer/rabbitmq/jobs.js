@@ -23,11 +23,14 @@ module.exports = async (context) => {
             const registeredChannels = await context.service.loadState(); // [{key, value}]
             // Live channels that are registered in this specific node of the cluster.
             const openChannels = connections.listChannels();
+            // Live connections that are registered in this specific node of the cluster.
+            const openConnections = connections.listConnections();
 
             await context.log('info', [
                 '[RABBITMQ] Syncing RabbitMQ channels',
                 'Open Channels: ' + Object.keys(openChannels).length,
-                'Registered Channels: ' + registeredChannels.length
+                'Registered Channels: ' + registeredChannels.length,
+                'Open Connections: ' + Object.keys(openConnections).length
             ].join('. '));
 
             for (const channel of registeredChannels) {
@@ -88,7 +91,7 @@ module.exports = async (context) => {
                         // to block the rest of the job.
                         await connections.removeChannel(context, channelId);
                     } catch (error) {
-                        await context.log('error', `[RABBITMQ] Error while removing channel ${channelId}: ${error.message} from cluster.`);
+                        await context.log('error', `[RABBITMQ] Error while removing channel ${channelId} from cluster: ${error.message}`);
                     }
                 }
             }

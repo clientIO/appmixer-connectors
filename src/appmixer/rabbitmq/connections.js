@@ -27,10 +27,32 @@ const connectionHash = (auth) => {
     return crypto.createHash('md5').update(authString).digest('hex');
 };
 
+const removeConnection = async (context, connection, reason) => {
+    await context.log('info', '[RABBITMQ] RabbitMQ connection Closed. (' + connection.id + '). Reason + ' + reason + ' Removing connection from local connections.');
+    try {
+        await connection.connection.close();
+    } catch (err) {
+        await context.log('info', '[RABBITMQ] Warning: closing connection failed. (' + connection.id + '). Reason + ' + err + '.');
+    }
+    // Close all channels associated with this connection.
+    Object.keys(connection.channels).forEach(async (channelId) => {
+        const channel = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
+        if (channel) {
+            try {
+                await channel.close();
+            } catch (err) {
+                await context.log('info', '[RABBITMQ] Warning: closing channel failed. (' + channelId + '). Reason + ' + err + '.');
+            }
+            delete RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
+        }
+        delete connection.channels[channelId];
+    });
+    delete RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[connection.id];
+};
+
 const createChannel = async (context, channelId, auth) => {
 
     const connectionId = connectionHash(auth);
-
     await context.log('info', `[RABBITMQ] Creating channel ${channelId} on connection ${connectionId}.`);
     let connection = RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     if (!connection) {
@@ -42,23 +64,22 @@ const createChannel = async (context, channelId, auth) => {
         };
         RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[connectionId] = connection;
 
-        connection.connection.on('error', async (error) => {
-            await context.log('info', '[RABBITMQ] RabbitMQ connection ERROR. (' + connectionId + ') Removing connection from local connections.');
-            await connection.connection.close();
-            // Close all channels associated with this connection.
-            Object.keys(connection.channels).forEach(async (channelId) => {
-                const channel = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
-                if (channel) {
-                    await channel.close();
-                    delete RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
-                }
-                delete connection.channels[channelId];
-            });
-            delete RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[connectionId];
+        connection.connection.on('error', (err) => {
+            removeConnection(context, connection, 'connection error event');
+        });
+        connection.connection.on('close', () => {
+            removeConnection(context, connection, 'connection close event');
         });
     }
 
-    const channel = await connection.connection.createChannel();
+    let channel;
+    try {
+        channel = await connection.connection.createChannel();
+    } catch (err) {
+        await context.log('error', `[RABBITMQ] Error creating channel ${channelId} on connection ${connectionId}: ${err.message}`);
+        await removeConnection(context, connection, 'channel creation error');
+        throw err;
+    }
     RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId] = {
         channel,
         connectionId
@@ -67,7 +88,11 @@ const createChannel = async (context, channelId, auth) => {
 
     channel.on('error', async (error) => {
         await context.log('info', '[RABBITMQ] RabbitMQ channel ERROR (' + channelId + '). Removing channel from local connections.');
-        await channel.close();
+        try {
+            await channel.close();
+        } catch (err) {
+            await context.log('info', '[RABBITMQ] Warning: closing channel failed. (' + channelId + '). Reason + ' + err + '.');
+        }
         delete RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
         delete connection.channels[channelId];
     });
@@ -83,7 +108,11 @@ const removeChannel = async (context, channelId) => {
     const channel = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
     if (!channel) return; // Channel doesn't exist, do nothing.
 
-    await channel.channel.close();
+    try {
+        await channel.channel.close();
+    } catch (err) {
+        await context.log('info', `[RABBITMQ] Warning: closing channel ${channelId} failed. Reason: ${err}.`);
+    }
     delete RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
 
     const connection = RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[channel.connectionId];
@@ -91,7 +120,11 @@ const removeChannel = async (context, channelId) => {
         delete connection.channels[channelId];
         if (Object.keys(connection.channels).length === 0) {
             await context.log('info', `[RABBITMQ] Closing connection ${channel.connectionId} of channel ${channelId}. No other channels are using the connection.`);
-            await connection.connection.close();
+            try {
+                await connection.connection.close();
+            } catch (err) {
+                await context.log('info', `[RABBITMQ] Warning: closing connection ${channel.connectionId} failed. Reason: ${err}.`);
+            }
             delete RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[channel.connectionId];
         }
     }
@@ -195,6 +228,8 @@ const publish = async (context, channelId, payload) => {
 
 const listChannels = () => { return RABBITMQ_CONNECTOR_OPEN_CHANNELS; };
 
+const listConnections = () => { return RABBITMQ_CONNECTOR_OPEN_CHANNELS; };
+
 const isConsumerChannel = (channelId) => channelId.startsWith('consumer:');
 
 module.exports = {
@@ -204,5 +239,6 @@ module.exports = {
     publish,
     removeChannel,
     listChannels,
+    listConnections,
     isConsumerChannel
 };
