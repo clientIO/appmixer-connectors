@@ -53,6 +53,7 @@ module.exports = {
             batchIndex = msg.batchIndex;
             estimatedMembersCount = msg.estimatedMembersCount;
             processedRows = msg.processedRows;
+            operation = msg.operation;
         } else {
             const msg = context.messages.in.content;
             accountId = msg.accountId;
@@ -105,7 +106,8 @@ module.exports = {
                 recieveTimeElapsedSeconds: (new Date - receiveTimeStart) / 1000,
                 sessionId,
                 numInvalidEntries,
-                processedRows
+                processedRows,
+                batchIndex
             });
             reader.destroy();
             return context.setTimeout({
@@ -118,7 +120,9 @@ module.exports = {
                 numInvalidEntries,
                 invalidEntrySamples,
                 timeStart: (new Date(timeStart)).getTime(),
-                estimatedMembersCount
+                estimatedMembersCount,
+                operation,
+                processedRows
             }, TIMEOUT_SECONDS * 1000);
         };
 
@@ -179,12 +183,6 @@ module.exports = {
                             return scheduleContinuation('retry', fbError);
                         }
                         numInvalidEntries += response.data.num_invalid_entries;
-                        await context.log({
-                            step: 'batch-response',
-                            data: response.data,
-                            headers: response.headers,
-                            totalNumInvalidEntries: numInvalidEntries
-                        });
                         const invalid = response.data.invalid_entry_samples;
                         if (invalid && Object.keys(invalid).length) {
                             invalidEntrySamples = invalidEntrySamples.concat(invalid);
@@ -226,12 +224,6 @@ module.exports = {
                 return scheduleContinuation('retry', fbError);
             }
             numInvalidEntries += response.data.num_invalid_entries;
-            await context.log({
-                step: 'batch-response',
-                data: response.data,
-                headers: response.headers,
-                totalNumInvalidEntries: numInvalidEntries
-            });
             invalidEntrySamples = invalidEntrySamples.concat(response.data.invalid_entry_samples || []);
             processedRows += batch.length;
         }
@@ -340,6 +332,11 @@ async function sendBatchToFacebook(
         });
         throw error;
     }
+    await context.log({
+        step: 'batch-response',
+        data: response.data,
+        headers: response.headers,
+    });
     return response;
 }
 
