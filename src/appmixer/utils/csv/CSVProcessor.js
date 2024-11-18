@@ -2,6 +2,7 @@
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
 const { PassThrough, pipeline } = require('stream');
+const { parse } = require('csv-parse');
 const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
 module.exports = class CSVProcessor {
@@ -398,21 +399,34 @@ module.exports = class CSVProcessor {
                     throw new Error('Lock extend failed. Max attempts reached.');
                 }
                 await lock.extend(lockExtendTime);
-            }, config.lockExtendInterval || 10000);
+            }, config.lockExtendInterval || 59000);
 
-            const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
-
-            // If all the new rows are empty, warn the user.
-            if (rowsToAdd.every(row => row.every(cell => !cell))) {
-                this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
-            }
-
-            await this.loadHeaders();
             readStream = await this.context.getFileReadStream(this.fileId);
             writeStream = new PassThrough();
 
+            let firstRow = true;
+            readStream.on('data', (data) => {
+                // Read the first row to get the headers
+                if (firstRow) {
+                    firstRow = false;
+                    // Use csv-parse to find headers
+                    parse(data, { delimiter: this.delimiter }, (err, data) => {
+                        if (err) {
+                            throw err;
+                        }
+                        this.header = data[0];
+                    });
+                }
+            });
+
             readStream.on('end', () => {
                 // Append new rows to the end of the file
+                const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
+                // If all the new rows are empty, warn the user.
+                if (rowsToAdd.every(row => row.every(cell => !cell))) {
+                    this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
+                }
+
                 this.writeRows(writeStream, rowsToAdd);
             });
 
