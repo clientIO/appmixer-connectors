@@ -23,6 +23,9 @@ module.exports = {
         const { auth } = context;
         const ac = new ActiveCampaign(auth.url, auth.apiKey);
 
+        const originalDealData = await ac.call('get', `deals/${dealId}`);
+        const originalDealValue = originalDealData.data.deal.value;
+
         const payload = {
             deal: trimUndefined(
                 {
@@ -30,7 +33,7 @@ module.exports = {
                     title,
                     description,
                     currency: currency ? currency.toLowerCase() : currency,
-                    value: value * 100,
+                    value: value ? value * 100 : originalDealValue,
                     owner,
                     stage,
                     status
@@ -47,7 +50,7 @@ module.exports = {
             payload.deal.fields = fieldValues;
         }
 
-        const { data } = await ac.call('put', `deals/${dealId}`, payload);
+        const { data } = await ac.call('put', `deals/${dealId}`, JSON.stringify(payload));
         const { deal } = data;
 
         const customFieldsPayload = fieldValues.reduce((acc, field) => {
