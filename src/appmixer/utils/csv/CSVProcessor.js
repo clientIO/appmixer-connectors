@@ -389,9 +389,10 @@ module.exports = class CSVProcessor {
         try {
 
             const lockExtendTime = parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1;
-            const max = Math.ceil((1000 * 60 * 22) / lockExtendTime); // max execution time 23 minutes
+            const max = Math.ceil((1000 * 60 * 5) / lockExtendTime); // Lock for 5 minutes
             let i = 0;
 
+            // Extend the lock every 59 seconds up to 5 minutes
             lockExtendInterval = setInterval(async () => {
                 i++;
                 if (i > max) {
@@ -401,6 +402,7 @@ module.exports = class CSVProcessor {
                 await lock.extend(lockExtendTime);
             }, config.lockExtendInterval || 59000);
 
+            // We're not interested in the data, we just need to read the first row to get the headers
             readStream = await this.context.getFileReadStream(this.fileId);
             writeStream = new PassThrough();
 
