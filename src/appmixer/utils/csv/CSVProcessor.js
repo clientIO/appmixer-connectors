@@ -2,7 +2,7 @@
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
 const { PassThrough, pipeline } = require('stream');
-const { parse } = require('csv-parse');
+const { parse } = require('csv-parse/sync'); // Use the synchronous version of csv-parse
 const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
 module.exports = class CSVProcessor {
@@ -409,13 +409,7 @@ module.exports = class CSVProcessor {
                 // Read the first row to get the headers
                 if (firstRow) {
                     firstRow = false;
-                    // Use csv-parse to find headers
-                    parse(data, { delimiter: this.delimiter }, (err, data) => {
-                        if (err) {
-                            throw err;
-                        }
-                        this.header = data[0];
-                    });
+                    this.header = this.extractHeadersFromDataBuffer(data.toString(), this.delimiter);
                 }
             });
 
@@ -488,9 +482,19 @@ module.exports = class CSVProcessor {
         );
     }
 
+    extractHeadersFromDataBuffer(data, delimiter) {
+        try {
+            const parsedData = parse(data, { delimiter });
+            return parsedData[0];
+        } catch (err) {
+            throw new Error(`Failed to parse headers: ${err.message}`);
+        }
+    }
+
     /**
      * @return {Promise<*>}
      * @public
+     * @deprecated Use extractHeadersFromDataBuffer instead
      */
     async loadHeaders() {
 
