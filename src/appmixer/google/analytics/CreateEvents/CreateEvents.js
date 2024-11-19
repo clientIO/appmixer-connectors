@@ -27,7 +27,7 @@ module.exports = {
             throw new context.CancelError(errors);
         }
 
-        const qeuryParams = {
+        const queryParams = {
             measurement_id: measurementId, api_secret: apiSecret
         };
         const body = {
@@ -40,8 +40,10 @@ module.exports = {
             headers: {
                 'Content-Type': 'application/json'
             },
-            params: qeuryParams,
+            params: queryParams,
             data: JSON.stringify(body)
         });
+
+        return context.sendJson({}, 'out');
     }
 };
