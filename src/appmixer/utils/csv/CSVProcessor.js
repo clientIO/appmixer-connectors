@@ -362,8 +362,8 @@ module.exports = class CSVProcessor {
     }
 
     /**
-     * @param rows
-     * @param closure
+     * Appends rows to the end of the file.
+     * @param rows {Array} Array of rows to add
      * @return {Promise<*>}
      * @public
      */
@@ -389,10 +389,10 @@ module.exports = class CSVProcessor {
         try {
 
             const lockExtendTime = parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1;
-            const max = Math.ceil((1000 * 60 * 5) / lockExtendTime); // Lock for 5 minutes
+            const max = Math.ceil((1000 * 60 * 22) / lockExtendTime); // max execution time 23 minutes
             let i = 0;
 
-            // Extend the lock every 59 seconds up to 5 minutes
+            // Extend the lock every 59 seconds up to 22 minutes
             lockExtendInterval = setInterval(async () => {
                 i++;
                 if (i > max) {
@@ -402,7 +402,7 @@ module.exports = class CSVProcessor {
                 await lock.extend(lockExtendTime);
             }, config.lockExtendInterval || 59000);
 
-            // We're not interested in the data, we just need to read the first row to get the headers
+            // We're not interested in the data, we just need to read the first row to get the headers and the last line.
             readStream = await this.context.getFileReadStream(this.fileId);
             writeStream = new PassThrough();
 
@@ -422,7 +422,7 @@ module.exports = class CSVProcessor {
                         }
                     }
 
-                    // Save the last line
+                    // Save the last line for a check in `end` event.
                     lastLine = data;
                 });
                 readStream.on('error', reject);
