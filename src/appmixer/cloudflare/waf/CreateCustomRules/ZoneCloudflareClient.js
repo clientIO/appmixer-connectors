@@ -1,9 +1,8 @@
-import axios from 'axios';
-import {Address4, Address6} from 'ip-address';
+const { Address4, Address6 } = require('ip-address');
 
 const CloudflareZonesUrlBuilder = require('./CloudflareZonesUrlBuilder');
 
-export class ZoneCloudflareClient {
+module.exports = class ZoneCloudflareClient {
     ruleDescription = 'Salt detected high severity attacker';
     ruleRefPrefix = 'SALT';
 
@@ -13,7 +12,6 @@ export class ZoneCloudflareClient {
         this.zoneId = zoneId;
         this.email = email;
         this.apiKey = apiKey;
-        this.zoneId = zoneId;
     }
 
     getHeaders() {
@@ -64,22 +62,22 @@ export class ZoneCloudflareClient {
         };
     }
 
-    listZoneRulesetsForZoneId() {
+    listZoneRulesetsForZoneId(context) {
         const url = new CloudflareZonesUrlBuilder(this.zoneId)
             .addRulesets()
             .getUrl();
         const headers = this.getHeaders();
-        return axios.get(url, { headers }).then(resp => resp.data.result);
+        return context.httpRequest.get(url, { headers }).then(resp => resp.data.result);
     }
 
-    async getRuleset(rulesetId) {
+    async getRuleset(context, rulesetId) {
         const url = new CloudflareZonesUrlBuilder(this.zoneId)
             .addRulesets()
             .addRulesetId(rulesetId)
             .getUrl();
         const headers = this.getHeaders();
 
-        const resp = await axios.get(url, { headers });
+        const resp = await context.httpRequest.get(url, { headers });
 
         if (!this.isCloudflareGetRulesetResponse(resp.data)) {
             throw new Error('Invalid CloudflareGetRulesetResponse');
@@ -88,7 +86,7 @@ export class ZoneCloudflareClient {
         return resp.data;
     }
 
-    createRulesetAndBlockRule(attackerId, ips) {
+    createRulesetAndBlockRule(context, attackerId, ips) {
         const url = new CloudflareZonesUrlBuilder(this.zoneId)
             .addRulesets()
             .getUrl();
@@ -102,10 +100,10 @@ export class ZoneCloudflareClient {
             phase: 'http_request_firewall_custom',
             rules: [this.getBlockRule(attackerId, ips)]
         };
-        return axios.post(url, body, { headers }).then(resp => resp.data);
+        return context.httpRequest.post(url, body, { headers }).then(resp => resp.data);
     }
 
-    createBlockRule(rulesetId, attackerId, ips) {
+    createBlockRule(context, { rulesetId, attackerId, ips }) {
         const url = new CloudflareZonesUrlBuilder(this.zoneId)
             .addRulesets()
             .addRulesetId(rulesetId)
@@ -113,10 +111,10 @@ export class ZoneCloudflareClient {
             .getUrl();
         const headers = this.getHeaders();
         const body = this.getBlockRule(attackerId, ips);
-        return axios.post(url, body, { headers }).then(resp => resp.data);
+        return context.httpRequest.post(url, body, { headers }).then(resp => resp.data);
     }
 
-    updateBlockRule(rulesetId, ruleId, attackerId, ips) {
+    updateBlockRule(context, rulesetId, ruleId, attackerId, ips) {
         const url = new CloudflareZonesUrlBuilder(this.zoneId)
             .addRulesets()
             .addRulesetId(rulesetId)
@@ -125,7 +123,7 @@ export class ZoneCloudflareClient {
             .getUrl();
         const headers = this.getHeaders();
         const body = this.getBlockRule(attackerId, ips);
-        return axios.patch(url, body, { headers }).then(resp => resp.data);
+        return context.httpRequest.patch(url, body, { headers }).then(resp => resp.data);
     }
 
     isCloudflareGetRulesetResponse(data) {
@@ -146,4 +144,4 @@ export class ZoneCloudflareClient {
             Array.isArray(data.result.rules)
         );
     }
-}
+};

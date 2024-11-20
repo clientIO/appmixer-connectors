@@ -1,12 +1,11 @@
-const { isAxiosError } = require('axios');
-const { ZoneCloudflareClient } = require('./ZoneCloudflareClient');
+const ZoneCloudflareClient = require('./ZoneCloudflareClient');
 
 const OutputType = {
     SUCCESS: 'success',
     FAILURE: 'failure'
 };
 
-const Messages = {
+const messages = {
     nothingToUpdate: attackerId => {
         return `Rule for attacker Id ${attackerId} exists, nothing to update`;
     },
@@ -30,27 +29,25 @@ function output(context, message, output) {
     return context.sendJson({ message }, output.valueOf());
 }
 
-function handleResponseError(err) {
+function handleResponseError(context, err) {
     const cloudflareAuthenticationError = 'Authentication error';
     const zoneIdNotFoundError = new RegExp(
         'Could not route to /client/v4/zones/.*/rulesets, perhaps your object identifier is invalid?'
     );
 
-    if (isAxiosError(err) && err.response) {
+    if (context.httpRequest.isAxiosError(err) && err.response) {
         const cloudflareResponse = err.response.data;
         const errorMessage = cloudflareResponse.errors
-            ?.map(error => error.message)
-            .toString();
+            ?.map(error => error.message).toString();
         const otherMessages = cloudflareResponse.messages
-            ?.map(msg => msg.message)
-            .toString();
-        if (errorMessage === cloudflareAuthenticationError)
-            return Messages.AuthenticationError;
-        else if (zoneIdNotFoundError.test(errorMessage))
-            return Messages.ZoneIdNotFound;
-        else if (errorMessage) return errorMessage;
+            ?.map(msg => msg.message).toString();
+        if (errorMessage === cloudflareAuthenticationError) {
+            return messages.AuthenticationError;
+        } else if (zoneIdNotFoundError.test(errorMessage)) {
+            return messages.ZoneIdNotFound;
+        } else if (errorMessage) return errorMessage;
         else if (otherMessages) return otherMessages;
-        else return Messages.cloudflareUnknownError(err);
+        else return messages.cloudflareUnknownError(err);
     } else if (err instanceof Error) {
         return err.message;
     } else {
@@ -71,9 +68,7 @@ async function checkAndGetIfFirewallRulesetExists(
             const rulesetFromList = ruleset;
 
             try {
-                const validRulesetFromGet = await zoneCloudflareClient.getRuleset(
-                    rulesetFromList.id
-                );
+                const validRulesetFromGet = await zoneCloudflareClient.getRuleset(context, rulesetFromList.id);
                 return [rulesetFromList, validRulesetFromGet];
             } catch (err) {
                 await context.log({ message: err });
@@ -90,7 +85,7 @@ module.exports = {
         const { ips, attackerId } = context.messages.in.content;
 
         if (ips.length === 0) {
-            return output(context, Messages.noIps, OutputType.SUCCESS);
+            return output(context, messages.noIps, OutputType.SUCCESS);
         }
 
         const parsedIps = Array.isArray(ips) ? ips : ips.split(',');
@@ -98,7 +93,7 @@ module.exports = {
         const zoneCloudflareClient = new ZoneCloudflareClient(email, apiKey, zoneId);
 
         try {
-            const listOfRulesets = await zoneCloudflareClient.listZoneRulesetsForZoneId();
+            const listOfRulesets = await zoneCloudflareClient.listZoneRulesetsForZoneId(context);
             const rulesetPair = await checkAndGetIfFirewallRulesetExists(
                 context,
                 zoneCloudflareClient,
@@ -106,12 +101,13 @@ module.exports = {
             );
             if (!rulesetPair) {
                 const rulesetCreatedRes = await zoneCloudflareClient.createRulesetAndBlockRule(
+                    context,
                     attackerId,
                     parsedIps
                 );
                 return output(
                     context,
-                    Messages.ruleSuccessfullyCreated(rulesetCreatedRes),
+                    messages.ruleSuccessfullyCreated(rulesetCreatedRes),
                     OutputType.SUCCESS
                 );
             } else {
@@ -122,13 +118,14 @@ module.exports = {
                 if (existingRule && existingRule.expression === zoneCloudflareClient.getBlockExpression(parsedIps)) {
                     return output(
                         context,
-                        Messages.nothingToUpdate(attackerId),
+                        messages.nothingToUpdate(attackerId),
                         OutputType.SUCCESS
                     );
                 } else if (existingRule &&
                     existingRule.expression !== zoneCloudflareClient.getBlockExpression(parsedIps)) {
 
                     const updatedRes = await zoneCloudflareClient.updateBlockRule(
+                        context,
                         rulesetFromList.id,
                         existingRule.id,
                         attackerId,
@@ -136,24 +133,24 @@ module.exports = {
                     );
                     return output(
                         context,
-                        Messages.ruleSuccessfullyUpdated(updatedRes),
+                        messages.ruleSuccessfullyUpdated(updatedRes),
                         OutputType.SUCCESS
                     );
                 } else {
-                    const createdRes = await zoneCloudflareClient.createBlockRule(
-                        rulesetFromList.id,
+                    const createdRes = await zoneCloudflareClient.createBlockRule(context, {
+                        rulesetId: rulesetFromList.id,
                         attackerId,
-                        parsedIps
-                    );
+                        ips: parsedIps
+                    });
                     return output(
                         context,
-                        Messages.ruleSuccessfullyCreated(createdRes),
+                        messages.ruleSuccessfullyCreated(createdRes),
                         OutputType.SUCCESS
                     );
                 }
             }
         } catch (err) {
-            return output(context, handleResponseError(err), OutputType.FAILURE);
+            return output(context, handleResponseError(context, err), OutputType.FAILURE);
         }
     }
 
