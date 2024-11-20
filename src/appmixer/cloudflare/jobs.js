@@ -1,8 +1,10 @@
 const ZoneCloudflareClient = require('./ZoneCloudflareClient');
+const rules = require('./rules');
 
 module.exports = async (context) => {
 
     const IPListModel = require('./IPListModel')(context);
+    const RulesIPsModel = require('./RulesIPsModel')(context);
 
     const config = require('./config')(context);
 
@@ -13,7 +15,8 @@ module.exports = async (context) => {
             await context.log('trace', '[CloudFlare] rule delete job started.');
 
             try {
-                await deleteExpireIps(context);
+                await deleteExpireIpsFromList(context);
+                await rules.deleteExpireIps(context);
             } finally {
                 lock.unlock();
                 await context.log('trace', '[CloudFlare] rule delete job finished. Lock unlocked.');
@@ -29,7 +32,7 @@ module.exports = async (context) => {
         }
     });
 
-    const deleteExpireIps = async function(context) {
+    const deleteExpireIpsFromList = async function(context) {
 
         const expired = await getExpiredItems(context);
 
@@ -105,6 +108,9 @@ module.exports = async (context) => {
             // indicating that deletion attempts have persisted for the entire timespan.
             const timespan = 30 * 60 * 1000; // 30 min
             const expired = await context.db.collection(IPListModel.collection).deleteMany({
+                $expr: { $gt: [{ $subtract: ['$mtime', '$removeAfter'] }, timespan] }
+            });
+            await context.db.collection(RulesIPsModel.collection).deleteMany({
                 $expr: { $gt: [{ $subtract: ['$mtime', '$removeAfter'] }, timespan] }
             });
 
