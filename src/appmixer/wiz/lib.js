@@ -1,3 +1,5 @@
+const pathModule = require('path');
+
 module.exports = {
 
     async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
