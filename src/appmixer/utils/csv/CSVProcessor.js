@@ -406,27 +406,42 @@ module.exports = class CSVProcessor {
             readStream = await this.context.getFileReadStream(this.fileId);
             writeStream = new PassThrough();
 
-            let firstRow = true;
-            readStream.on('data', (data) => {
-                // Read the first row to get the headers
-                if (firstRow) {
-                    firstRow = false;
-                    this.header = this.extractHeadersFromDataBuffer(data.toString(), this.delimiter);
-                }
-            });
-
-            readStream.on('end', () => {
-                // Append new rows to the end of the file
-                const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
-                // If all the new rows are empty, warn the user.
-                if (rowsToAdd.every(row => row.every(cell => !cell))) {
-                    this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
-                }
-
-                this.writeRows(writeStream, rowsToAdd);
-            });
-
+            let firstRowRead = true;
+            let lastLine = null;
             const promise = new Promise((resolve, reject) => {
+
+                // Reading all data because we need to always check the last line. And sometimes the first line for headers.
+                readStream.on('data', (data) => {
+                    // Read the first row to get the headers. Only if we use headers.
+                    if (firstRowRead && this.withHeaders) {
+                        firstRowRead = false;
+                        try {
+                            this.header = parse(data, { delimiter: this.delimiter })[0];
+                        } catch (error) {
+                            reject(new this.context.CancelError('Error reading headers', error));
+                        }
+                    }
+
+                    // Save the last line
+                    lastLine = data;
+                });
+                readStream.on('error', reject);
+
+                readStream.on('end', () => {
+                    // If there is no empty line at the end of the file, add one
+                    if (!lastLine.toString().endsWith('\n')) {
+                        writeStream.write('\n');
+                    }
+                    const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
+                    // Append new rows to the end of the file
+                    this.writeRows(writeStream, rowsToAdd);
+
+                    // If all the new rows are empty, warn the user.
+                    if (rowsToAdd.every(row => row.every(cell => !cell))) {
+                        this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
+                    }
+                });
+
                 const stream = pipeline(
                     readStream,
                     writeStream,
@@ -484,19 +499,10 @@ module.exports = class CSVProcessor {
         );
     }
 
-    extractHeadersFromDataBuffer(data, delimiter) {
-        try {
-            const parsedData = parse(data, { delimiter });
-            return parsedData[0];
-        } catch (err) {
-            throw new Error(`Failed to parse headers: ${err.message}`);
-        }
-    }
-
     /**
      * @return {Promise<*>}
      * @public
-     * @deprecated Use extractHeadersFromDataBuffer instead
+     * @deprecated Use parse from csv-parse instead
      */
     async loadHeaders() {
 
