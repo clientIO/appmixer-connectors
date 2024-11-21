@@ -115,7 +115,7 @@ module.exports = {
             throw new context.CancelError('Invalid timezone');
         }
 
-        const expression = `${minute} ${hour} ${dayMonth} * ${dayWeek}`;
+        const expression = `${minute || 0} ${hour || '*'} ${dayMonth || '*'} * ${dayWeek || '*'}`;
         const options = timezone ? { tz: timezone } : {};
         const interval = parser.parseExpression(expression, options);
         if (!interval.hasNext()) {
