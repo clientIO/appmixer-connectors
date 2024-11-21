@@ -80,7 +80,7 @@ async function checkAndGetIfFirewallRulesetExists(
 module.exports = {
     async handleReceived(context) {
 
-        const { email, apiKey, zoneId } = context.properties;
+        const { email, apiKey, zoneId, authmethod, token } = context.properties;
 
         const { ips, attackerId } = context.messages.in.content;
 
@@ -90,7 +90,8 @@ module.exports = {
 
         const parsedIps = Array.isArray(ips) ? ips : ips.split(',');
 
-        const zoneCloudflareClient = new ZoneCloudflareClient(email, apiKey, zoneId);
+
+        const zoneCloudflareClient = new ZoneCloudflareClient(email, apiKey, zoneId, token);
 
         try {
             const listOfRulesets = await zoneCloudflareClient.listZoneRulesetsForZoneId(context);

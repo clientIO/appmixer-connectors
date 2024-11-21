@@ -6,15 +6,23 @@ module.exports = class ZoneCloudflareClient {
     ruleDescription = 'Salt detected high severity attacker';
     ruleRefPrefix = 'SALT';
 
-    constructor(email, apiKey, zoneId) {
+    constructor(email, apiKey, zoneId, token) {
         this.email = email;
         this.apiKey = apiKey;
         this.zoneId = zoneId;
         this.email = email;
         this.apiKey = apiKey;
+        this.token = token;
     }
 
     getHeaders() {
+        if (this.token) {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.token}`
+            };
+        }
+
         return {
             'Content-Type': 'application/json',
             'X-Auth-Email': this.email,
@@ -63,11 +71,13 @@ module.exports = class ZoneCloudflareClient {
     }
 
     listZoneRulesetsForZoneId(context) {
-        const url = new CloudflareZonesUrlBuilder(this.zoneId)
-            .addRulesets()
-            .getUrl();
         const headers = this.getHeaders();
-        return context.httpRequest.get(url, { headers }).then(resp => resp.data.result);
+        console.log(headers);
+        return context.httpRequest({
+            method: 'GET',
+            url: `https://api.cloudflare.com/client/v4/zones/${this.zoneId}/rulesets`,
+            headers
+        }).then(resp => resp.data.result);
     }
 
     async getRuleset(context, rulesetId) {
