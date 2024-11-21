@@ -21,10 +21,15 @@ module.exports = {
                 if (response.success === false) {
                     throw new context.CancelError(response.formattedError);
                 }
-                if (Array.isArray(response.data)) {
+                context.log({ step: 'response data: ', response });
+                if (Array.isArray(response.data) && response.data.length > 0) {
                     return Promise.map(response.data, user => {
+
                         return context.sendJson(user.toObject(), 'user');
+
                     });
+                } else {
+                    return context.sendJson({}, 'user');
                 }
             });
     }

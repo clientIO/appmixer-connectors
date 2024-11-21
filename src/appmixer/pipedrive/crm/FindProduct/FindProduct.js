@@ -1,6 +1,4 @@
 'use strict';
-const commons = require('../../pipedrive-commons');
-const Promise = require('bluebird');
 
 /**
  * FindProduct action.
@@ -8,21 +6,34 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let data = context.messages.query.content;
-        const productsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Products');
+        let { term, exactMatch, limit } = context.messages.query.content;
+        const queryParams = {
+            term,
+            exact_match: exactMatch,
+            limit: limit ?? 100
+        };
 
-        return productsApi.findAsync(data)
-            .then(response => {
-                if (response.success === false) {
-                    throw new context.CancelError(response.formattedError);
-                }
-                if (Array.isArray(response.data)) {
-                    return Promise.map(response.data, product => {
-                        return context.sendJson(product.toObject(), 'product');
-                    });
-                }
-            });
+        context.log({ step: 'queryParams', queryParams });
+
+        const { data } = await context.httpRequest({
+            method: 'GET',
+            url: 'https://api.pipedrive.com/v1/products/search',
+            headers: {
+                'x-api-token': `${context.auth.apiKey}`
+            },
+            params: queryParams
+        });
+
+        context.log({ step: 'API response', data });
+        const responseData = data.data.items.map((item) => {
+            return {
+                ...item.item
+            };
+        });
+        context.log({ step: 'responseData', responseData });
+
+        return context.sendJson({ products: responseData }, 'out');
     }
 };

@@ -1,6 +1,4 @@
 'use strict';
-const commons = require('../../pipedrive-commons');
-const Promise = require('bluebird');
 
 /**
  * FindDeal action.
@@ -8,26 +6,38 @@ const Promise = require('bluebird');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let data = context.messages.query.content;
-        const dealsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Deals');
+        const { term, personId, exactMatch, orgId, status, limit } = context.messages.query.content;
 
-        data['org_id'] = data.orgId;
-        data['person_id'] = data.personId;
-        delete data.orgId;
-        delete data.personId;
+        const queryParams = {
+            term,
+            person_id: personId,
+            status,
+            exact_match: exactMatch,
+            organization_id: orgId,
+            limit: limit ?? 100
+        };
 
-        return dealsApi.findAsync(data)
-            .then(response => {
-                if (response.success === false) {
-                    throw new context.CancelError(response.formattedError);
-                }
-                if (Array.isArray(response.data)) {
-                    return Promise.map(response.data, deal => {
-                        return context.sendJson(deal.toObject(), 'deal');
-                    });
-                }
-            });
+        context.log({ step: 'queryParams', queryParams });
+
+        const { data } = await context.httpRequest({
+            method: 'GET',
+            url: 'https://api.pipedrive.com/v1/deals/search',
+            headers: {
+                'x-api-token': `${context.auth.apiKey}`
+            },
+            params: queryParams
+        });
+
+        context.log({ step: 'API response', data });
+        const responseData = data.data.items.map((item) => {
+            return {
+                ...item.item
+            };
+        });
+        context.log({ step: 'responseData', responseData });
+
+        return context.sendJson({ deals: responseData }, 'out');
     }
 };
