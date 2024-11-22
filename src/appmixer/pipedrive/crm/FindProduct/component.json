@@ -4,7 +4,7 @@
     "description": "This action finds person.",
     "inPorts": [
         {
-            "name": "query",
+            "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
@@ -15,9 +15,8 @@
                     "exactMatch": {
                         "type": "boolean"
                     },
-                    "limit": {
-                        "type": "number",
-                        "max": 100
+                    "outputType": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -38,11 +37,30 @@
                         "label": "Full exact match",
                         "tooltip": "When enabled, only full exact matches against the given term are returned. It is <strong>not</strong> case sensitive."
                     },
-                    "limit": {
-                        "type": "number",
-                        "index": 3,
-                        "label": "Limit",
-                        "tooltip": "How many product you want to find. Maximum 100. If left empty, maximum is used."
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 6,
+                        "defaultValue": "first",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            {
+                                "label": "First Found",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "File",
+                                "value": "file"
+                            }
+                        ]
                     }
                 }
             }
@@ -51,59 +69,18 @@
     "outPorts": [
         {
             "name": "out",
-            "options": [
-                {
-                    "label": "Products",
-                    "value": "products",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "number",
-                                    "title": "Id"
-                                },
-                                "type": {
-                                    "type": "string",
-                                    "title": "Type"
-                                },
-                                "name": {
-                                    "type": "string",
-                                    "title": "Name"
-                                },
-                                "code": {
-                                    "type": "null",
-                                    "title": "Code"
-                                },
-                                "tax": {
-                                    "type": "number",
-                                    "title": "Tax"
-                                },
-                                "visible_to": {
-                                    "type": "number",
-                                    "title": "Visible To"
-                                },
-                                "owner": {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": {
-                                            "type": "number",
-                                            "title": "Owner.Id"
-                                        }
-                                    },
-                                    "title": "Owner"
-                                },
-                                "custom_fields": {
-                                    "type": "array",
-                                    "items": {},
-                                    "title": "Custom Fields"
-                                }
-                            }
-                        }
+            "source": {
+                "url": "/component/appmixer/pipedrive/crm/FindProduct?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/term": "abc"
                     }
                 }
-            ]
+            }
         }
     ],
     "auth": {

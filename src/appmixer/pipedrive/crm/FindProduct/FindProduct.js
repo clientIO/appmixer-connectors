@@ -1,4 +1,7 @@
 'use strict';
+const searchOutput = require('../../searchOutput');
+
+const outputPortName = 'out';
 
 /**
  * FindProduct action.
@@ -8,11 +11,17 @@ module.exports = {
 
     async receive(context) {
 
-        let { term, exactMatch, limit } = context.messages.query.content;
+        const { generateOutputPortOptions } = context.properties;
+        const { term, exactMatch, outputType } = context.messages.in.content;
+
+        if (generateOutputPortOptions) {
+            return this.getOutputPortOptions(context, outputType);
+        }
+
         const queryParams = {
             term,
             exact_match: exactMatch,
-            limit: limit ?? 100
+            limit: outputType === 'first' ? 1 : 100
         };
 
         context.log({ step: 'queryParams', queryParams });
@@ -34,6 +43,51 @@ module.exports = {
         });
         context.log({ step: 'responseData', responseData });
 
-        return context.sendJson({ products: responseData }, 'out');
+        return await searchOutput.sendArrayOutput({ context, outputPortName, outputType, records: responseData });
+    },
+
+    getOutputPortOptions(context, outputType) {
+        if (outputType === 'object' || outputType === 'first') {
+            return context.sendJson([
+                { label: 'Product ID', value: 'id' },
+                { label: 'Type', value: 'type' },
+                { label: 'Name', value: 'name' },
+                { label: 'Code', value: 'code' },
+                { label: 'Tax', value: 'tax' },
+                { label: 'Visible To', value: 'visible_to' },
+                { label: 'Owner', value: 'owner', schema: { type: 'object', properties: { id: { type: 'number', title: 'Owner ID' } } } },
+                { label: 'Custom Fields', value: 'custom_fields', schema: { type: 'array', items: [] } }
+            ], outputPortName);
+        } else if (outputType === 'array') {
+            return context.sendJson([
+                {
+                    label: 'Products',
+                    value: 'records',
+                    schema: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                id: { label: 'Product ID', value: 'id' },
+                                type: { label: 'Type', value: 'type' },
+                                name: { label: 'Name', value: 'name' },
+                                code: { label: 'Code', value: 'code' },
+                                tax: { label: 'Tax', value: 'tax' },
+                                visible_to: { label: 'Visible To', value: 'visible_to' },
+                                owner: { label: 'Owner', value: 'owner', schema: { type: 'object', properties: { id: { type: 'number', title: 'Owner ID' } } } },
+                                custom_fields: { label: 'Custom Fields', value: 'custom_fields', schema: { type: 'array', items: [] } }
+                            }
+                        }
+                    }
+                }
+            ], outputPortName);
+        } else if (outputType === 'file') {
+            return context.sendJson([
+                { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
+            ], outputPortName);
+        } else {
+            // Default to array output
+            return context.sendJson([], outputPortName);
+        }
     }
 };

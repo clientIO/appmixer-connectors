@@ -1,5 +1,7 @@
 'use strict';
 
+const searchOutput = require('../../searchOutput');
+
 const outputPortName = 'out';
 
 /**
@@ -10,17 +12,19 @@ module.exports = {
 
     async receive(context) {
 
-        const generateOutputPortOptions = context.properties.generateOutputPortOptions;
+        const { generateOutputPortOptions } = context.properties;
         const { term, exactMatch, orgId, outputType } = context.messages.in.content;
+
+        if (generateOutputPortOptions) {
+            return this.getOutputPortOptions(context, outputType);
+        }
 
         const queryParams = {
             term,
             exact_match: exactMatch,
             organization_id: orgId,
-            limit: limit ?? 100
+            limit: outputType === 'first' ? 1 : 100
         };
-
-        context.log({ step: 'queryParams', queryParams });
 
         const { data } = await context.httpRequest({
             method: 'GET',
@@ -39,11 +43,7 @@ module.exports = {
         });
         context.log({ step: 'responseData', responseData });
 
-        if (generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, outputType);
-        }
-
-
+        return await searchOutput.sendArrayOutput({ context, outputPortName, outputType, records: responseData });
     },
 
     getOutputPortOptions(context, outputType) {
@@ -66,7 +66,7 @@ module.exports = {
             return context.sendJson([
                 {
                     label: 'Persons',
-                    value: 'persons',
+                    value: 'records',
                     schema: {
                         type: 'array',
                         items: {

@@ -4,7 +4,7 @@
     "description": "This action finds deal.",
     "inPorts": [
         {
-            "name": "query",
+            "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
@@ -24,9 +24,8 @@
                     "exactMatch": {
                         "type": "boolean"
                     },
-                    "limit": {
-                        "type": "number",
-                        "max": 100
+                    "outputType": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -103,11 +102,30 @@
                         "label": "Full exact match",
                         "tooltip": "When enabled, only full exact matches against the given term are returned. It is <strong>not</strong> case sensitive."
                     },
-                    "limit": {
-                        "type": "number",
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
                         "index": 6,
-                        "label": "Limit",
-                        "tooltip": "How many product you want to find. Maximum 100. If left empty, maximum is used."
+                        "defaultValue": "first",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            {
+                                "label": "First Found",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "File",
+                                "value": "file"
+                            }
+                        ]
                     }
                 }
             }
@@ -116,102 +134,18 @@
     "outPorts": [
         {
             "name": "out",
-            "options": [
-                {
-                    "label": "Deals",
-                    "value": "deals",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "number",
-                                    "title": "Id"
-                                },
-                                "type": {
-                                    "type": "string",
-                                    "title": "Type"
-                                },
-                                "title": {
-                                    "type": "string",
-                                    "title": "Title"
-                                },
-                                "value": {
-                                    "type": "number",
-                                    "title": "Value"
-                                },
-                                "currency": {
-                                    "type": "string",
-                                    "title": "Currency"
-                                },
-                                "status": {
-                                    "type": "string",
-                                    "title": "Status"
-                                },
-                                "visible_to": {
-                                    "type": "number",
-                                    "title": "Visible To"
-                                },
-                                "owner": {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": {
-                                            "type": "number",
-                                            "title": "Owner.Id"
-                                        }
-                                    },
-                                    "title": "Owner"
-                                },
-                                "stage": {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": {
-                                            "type": "number",
-                                            "title": "Stage.Id"
-                                        },
-                                        "name": {
-                                            "type": "string",
-                                            "title": "Stage.Name"
-                                        }
-                                    },
-                                    "title": "Stage"
-                                },
-                                "person": {
-                                    "type": "object",
-                                    "properties": {
-                                        "id": {
-                                            "type": "number",
-                                            "title": "Person.Id"
-                                        },
-                                        "name": {
-                                            "type": "string",
-                                            "title": "Person.Name"
-                                        }
-                                    },
-                                    "title": "Person"
-                                },
-                                "organization": {
-                                    "type": "null",
-                                    "title": "Organization"
-                                },
-                                "custom_fields": {
-                                    "type": "array",
-                                    "items": {},
-                                    "title": "Custom Fields"
-                                },
-                                "notes": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    },
-                                    "title": "Notes"
-                                }
-                            }
-                        }
+            "source": {
+                "url": "/component/appmixer/pipedrive/crm/FindDeal?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/term": "abc"
                     }
                 }
-            ]
+            }
         }
     ],
     "auth": {
