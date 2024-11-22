@@ -32,9 +32,9 @@ module.exports = {
 
             const response = await context.httpRequest.get(url + '?' + new URLSearchParams(params).toString());
             let newDate = new Date();
-            newDate.setTime(newDate.getTime() + (result['expires_in'] * 1000));
+            newDate.setTime(newDate.getTime() + (response.data['expires_in'] * 1000));
             return {
-                accessToken: result['access_token'],
+                accessToken: response.data['access_token'],
                 accessTokenExpDate: newDate
             };
         },
@@ -65,9 +65,9 @@ module.exports = {
 
             const response = await context.httpRequest.get(url + '?' + new URLSearchParams(params).toString());
             let newDate = new Date();
-            newDate.setTime(newDate.getTime() + (result['expires_in'] * 1000));
+            newDate.setTime(newDate.getTime() + (response.data['expires_in'] * 1000));
             return {
-                accessToken: result['access_token'],
+                accessToken: response.data['access_token'],
                 accessTokenExpDate: newDate
             };
         },
