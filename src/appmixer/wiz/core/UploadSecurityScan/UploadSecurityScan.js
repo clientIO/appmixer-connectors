@@ -56,7 +56,7 @@ const getStatus = async function(context, id) {
         }
     });
 
-    context.log({ stage: 'STATUS DATA', data });
+    context.log({ stage: 'STATUS DATA', data, graphURL: context.config.apiEndpointUrl });
     if (data.errors || data?.data?.systemActivity?.status === 'IN_PROGRESS') {
         attempts++;
         if (attempts <= 5) {
@@ -102,7 +102,7 @@ const uploadFile = async function(context, { url, fileContent }) {
             'Content-Type': 'application/json'
         }
     });
-    await context.log({ stage: 'upload finished', uploadData: upload.statusCode, fileContent });
+    await context.log({ stage: 'UPLOAD FINISHED', uploadData: upload.statusCode, fileContent });
 };
 
 const createDocument = function(context) {
