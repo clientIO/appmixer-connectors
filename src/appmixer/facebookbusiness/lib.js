@@ -30,6 +30,7 @@ module.exports = {
         let accountId;
         let audienceId;
         let fileId;
+        let delimiter;
         let schema;
         let sessionId;
         let numInvalidEntries;
@@ -44,6 +45,7 @@ module.exports = {
             accountId = msg.accountId;
             audienceId = msg.audienceId;
             fileId = msg.fileId;
+            delimiter = msg.delimiter;
             schema = msg.schema;
             // Next are values that allows us to resume the upload process.
             sessionId = msg.sessionId;
@@ -59,6 +61,7 @@ module.exports = {
             accountId = msg.accountId;
             audienceId = msg.audienceId;
             fileId = msg.fileId;
+            delimiter = msg.delimiter;
             schema = msg.schema;
             // Initialize the upload process.
             // randomInt limit is (max - min) < 2^48. See https://nodejs.org/api/crypto.html#cryptorandomintmin-max-callback.
@@ -85,7 +88,8 @@ module.exports = {
         const fileInfo = await context.getFileInfo(fileId);
 
         const reader = fileStream.pipe(parse({
-            columns: header => header.map(column => column.toLowerCase().trim())
+            columns: header => header.map(column => column.toLowerCase().trim()),
+            delimiter: delimiter || ','
         }));
 
         let batch = [];
@@ -114,6 +118,7 @@ module.exports = {
                 accountId,
                 audienceId,
                 fileId,
+                delimiter,
                 schema,
                 sessionId,
                 batchIndex,

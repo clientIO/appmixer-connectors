@@ -1,5 +1,4 @@
 'use strict';
-const graph = require('fbgraph');
 
 module.exports = {
 
@@ -11,34 +10,33 @@ module.exports = {
 
         authUrl: context => {
 
-            return graph.getOauthUrl({
+            const params = {
                 'client_id': context.clientId,
                 'redirect_uri': context.callbackUrl,
                 'scope': context.scope.join(', '),
                 'state': context.ticket
-            });
+            };
+            return 'https://www.facebook.com/v20.0/dialog/oauth?' + new URLSearchParams(params).toString();
         },
 
-        requestAccessToken: context => {
+        requestAccessToken: async context => {
 
-            return new Promise((resolve, reject) => {
-                graph.authorize({
-                    'client_id': context.clientId,
-                    'redirect_uri': context.callbackUrl,
-                    'client_secret': context.clientSecret,
-                    'code': context.authorizationCode
-                }, (error, result) => {
-                    if (error) {
-                        return reject(error);
-                    }
-                    let newDate = new Date();
-                    newDate.setTime(newDate.getTime() + (result['expires_in'] * 1000));
-                    resolve({
-                        accessToken: result['access_token'],
-                        accessTokenExpDate: newDate
-                    });
-                });
-            });
+            const params = {
+                'client_id': context.clientId,
+                'redirect_uri': context.callbackUrl,
+                'client_secret': context.clientSecret,
+                'code': context.authorizationCode
+            };
+
+            const url = 'https://graph.facebook.com/v20.0/oauth/access_token';
+
+            const response = await context.httpRequest.get(url + '?' + new URLSearchParams(params).toString());
+            let newDate = new Date();
+            newDate.setTime(newDate.getTime() + (result['expires_in'] * 1000));
+            return {
+                accessToken: result['access_token'],
+                accessTokenExpDate: newDate
+            };
         },
 
         accountNameFromProfileInfo: context => {
@@ -46,69 +44,42 @@ module.exports = {
             return context.profileInfo['name'] || context.profileInfo['id'].toString();
         },
 
-        requestProfileInfo: context => {
+        requestProfileInfo: async context => {
 
-            return new Promise((resolve, reject) => {
-                graph.setAccessToken(context.accessToken);
-                graph.setAppSecret(context.clientSecret);
-                graph.batch([{
-                    method: 'GET',
-                    'relative_url': 'me'    // Get the current user's profile information
-                }], (err, res) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    try {
-                        resolve(JSON.parse(res[0]['body']));
-                    } catch (error) {
-                        reject(error);
-                    }
-                });
-            });
+            const url = `https://graph.facebook.com/v20.0/me?access_token=${context.accessToken}`;
+            const response = await context.httpRequest.get(url);
+            return response.data;
         },
 
-        refreshAccessToken: context => {
+        refreshAccessToken: async context => {
 
-            return new Promise((resolve, reject) => {
-                graph.extendAccessToken({
-                    'access_token': context.accessToken,
-                    'client_id': context.clientId,
-                    'client_secret': context.clientSecret
-                }, (err, result) => {
-                    if (err) {
-                        if (err.type === 'OAuthException') {
-                            return reject(new context.InvalidTokenError(err.message));
-                        }
-                        return reject(err);
-                    }
-                    let newDate = new Date();
-                    newDate.setTime(newDate.getTime() + (result['expires_in'] * 1000));
-                    resolve({
-                        accessToken: result['access_token'],
-                        accessTokenExpDate: newDate
-                    });
-                });
-            });
+            const params = {
+                'access_token': context.accessToken,
+                'client_id': context.clientId,
+                'client_secret': context.clientSecret,
+                'fb_exchange_token': context.accessToken,
+                'grant_type': 'fb_exchange_token'
+            };
+
+            const url = 'https://graph.facebook.com/v20.0/oauth/access_token';
+
+            const response = await context.httpRequest.get(url + '?' + new URLSearchParams(params).toString());
+            let newDate = new Date();
+            newDate.setTime(newDate.getTime() + (result['expires_in'] * 1000));
+            return {
+                accessToken: result['access_token'],
+                accessTokenExpDate: newDate
+            };
         },
 
-        validateAccessToken: context => {
+        validateAccessToken: async context => {
 
-            return new Promise((resolve, reject) => {
-                graph.setAccessToken(context.accessToken);
-                graph.setAppSecret(context.clientSecret);
-                graph.batch([{
-                    method: 'GET',
-                    'relative_url': 'me'
-                }], (err, res) => {
-                    if (err && err.type === 'OAuthException') {
-                        return reject(new context.InvalidTokenError(err.message));
-                    }
-                    if (err) {
-                        return reject(err);
-                    }
-                    resolve();
-                });
-            });
+            try {
+                await this.requestProfileInfo(context);
+                return true;
+            } catch (err) {
+                return false;
+            }
         }
     }
 };
