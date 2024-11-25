@@ -35,13 +35,15 @@ module.exports = {
             params: queryParams
         });
 
-        context.log({ step: 'API response', data });
+        if (data.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
+
         const responseData = data.data.items.map((item) => {
             return {
                 ...item.item
             };
         });
-        context.log({ step: 'responseData', responseData });
 
         return await searchOutput.sendArrayOutput({ context, outputPortName, outputType, records: responseData });
     },

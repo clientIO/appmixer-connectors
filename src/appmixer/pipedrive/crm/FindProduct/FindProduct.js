@@ -24,8 +24,6 @@ module.exports = {
             limit: outputType === 'first' ? 1 : 100
         };
 
-        context.log({ step: 'queryParams', queryParams });
-
         const { data } = await context.httpRequest({
             method: 'GET',
             url: 'https://api.pipedrive.com/v1/products/search',
@@ -35,13 +33,15 @@ module.exports = {
             params: queryParams
         });
 
-        context.log({ step: 'API response', data });
+        if (data.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
+
         const responseData = data.data.items.map((item) => {
             return {
                 ...item.item
             };
         });
-        context.log({ step: 'responseData', responseData });
 
         return await searchOutput.sendArrayOutput({ context, outputPortName, outputType, records: responseData });
     },

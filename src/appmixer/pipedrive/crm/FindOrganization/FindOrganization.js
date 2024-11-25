@@ -26,7 +26,10 @@ module.exports = {
             throw new context.CancelError(response.formattedError);
         }
 
-        context.log({ step: 'response', response });
+        if (response.data.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
+
         return await searchOutput.sendArrayOutput(
             {
                 context,

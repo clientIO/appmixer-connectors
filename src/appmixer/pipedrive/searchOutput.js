@@ -7,11 +7,11 @@ module.exports = {
 
         if (outputType === 'first') {
             // First item found only.
-            await context.sendJson(records[0] || {}, outputPortName);
+            await context.sendJson(records[0], outputPortName);
 
         } else if (outputType === 'object') {
             // One by one.
-            await context.sendArray(records ?? [], outputPortName);
+            await context.sendArray(records, outputPortName);
         } else if (outputType === 'array') {
             // All at once.
             await context.sendJson({ records }, outputPortName);
