@@ -1,4 +1,4 @@
-const ZoneCloudflareClient = require('./ZoneCloudflareClient');
+const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
 
 const OutputType = {
     SUCCESS: 'success',
@@ -80,7 +80,9 @@ async function checkAndGetIfFirewallRulesetExists(
 module.exports = {
     async handleReceived(context) {
 
-        const { email, apiKey, zoneId, authmethod, token } = context.properties;
+        const { apiKey, apiToken, email } = context.auth;
+
+        const { zoneId } = context.properties;
 
         const { ips, attackerId } = context.messages.in.content;
 
@@ -90,19 +92,19 @@ module.exports = {
 
         const parsedIps = Array.isArray(ips) ? ips : ips.split(',');
 
-        const zoneCloudflareClient = new ZoneCloudflareClient(email, apiKey, zoneId, token);
+        const client = new ZoneCloudflareClient(email, apiKey, zoneId, apiToken);
 
         try {
-            const listOfRulesets = await zoneCloudflareClient.listZoneRulesetsForZoneId(context);
+            const listOfRulesets = await client.listZoneRulesetsForZoneId(context);
 
             console.log(listOfRulesets);
             const rulesetPair = await checkAndGetIfFirewallRulesetExists(
                 context,
-                zoneCloudflareClient,
+                client,
                 listOfRulesets
             );
             if (!rulesetPair) {
-                const rulesetCreatedRes = await zoneCloudflareClient.createRulesetAndBlockRule(
+                const rulesetCreatedRes = await client.createRulesetAndBlockRule(
                     context,
                     attackerId,
                     parsedIps
@@ -115,18 +117,18 @@ module.exports = {
             } else {
                 const [rulesetFromList, rulesetFromGet] = rulesetPair;
                 const existingRule = rulesetFromGet.result.rules.find(rule => {
-                    return rule.ref === zoneCloudflareClient.getRuleRef(attackerId);
+                    return rule.ref === client.getRuleRef(attackerId);
                 });
-                if (existingRule && existingRule.expression === zoneCloudflareClient.getBlockExpression(parsedIps)) {
+                if (existingRule && existingRule.expression === client.getBlockExpression(parsedIps)) {
                     return output(
                         context,
                         messages.nothingToUpdate(attackerId),
                         OutputType.SUCCESS
                     );
                 } else if (existingRule &&
-                    existingRule.expression !== zoneCloudflareClient.getBlockExpression(parsedIps)) {
+                    existingRule.expression !== client.getBlockExpression(parsedIps)) {
 
-                    const updatedRes = await zoneCloudflareClient.updateBlockRule(
+                    const updatedRes = await client.updateBlockRule(
                         context,
                         rulesetFromList.id,
                         existingRule.id,
@@ -139,7 +141,7 @@ module.exports = {
                         OutputType.SUCCESS
                     );
                 } else {
-                    const createdRes = await zoneCloudflareClient.createBlockRule(context, {
+                    const createdRes = await client.createBlockRule(context, {
                         rulesetId: rulesetFromList.id,
                         attackerId,
                         ips: parsedIps
