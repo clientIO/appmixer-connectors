@@ -8,16 +8,17 @@ module.exports = {
 
         const { siteId, name, filter, action, ttl } = context.messages.in.content;
 
+        // Fetch all rules for the site. Interested only in the incap_rules.
+        const maxPages = 10;
+        const pageSize = 100;
+        let currentPage = 0;
+        /** Rule ID of an existing rule in Imperva. */
+        let ruleId = null;
+        /** Rule object returned to Appmixer. */
         let rule = {
             // Other fields will be added in create or update steps
             siteId
         };
-
-        // Fetch all rules for the site. Interested only in the incap_rules.
-        let maxPages = 10;
-        const pageSize = 100;
-        let currentPage = 0;
-        let ruleId = null;
 
         // Current limitation of the Imperva API is that it doesn't support filtering at all.
         // So we need to fetch all rules and filter them on our side.
@@ -35,8 +36,10 @@ module.exports = {
             if (data.res !== '0') {
                 throw new context.CancelError(JSON.stringify(data));
             }
+            await context.log({ step: 'Fetched rules', data });
             const rules = data?.incap_rules?.All || [];
             if (rules?.length === 0) {
+                await context.log({ step: 'No more rules at', currentPage });
                 break;
             }
 
@@ -44,6 +47,7 @@ module.exports = {
             for (const rule of rules) {
                 if (rule.filter === filter && rule.action === action) {
                     ruleId = rule.id;
+                    await context.log({ step: 'Rule found', ruleId });
                     break;
                 }
             }
@@ -53,9 +57,12 @@ module.exports = {
 
         if (ruleId) {
 
+            await context.log({ step: 'Rule already exists', ruleId });
+            // The rule exists, we only need to update TTL in the serviceState. `ttl` is in seconds and is optional.
             rule = { ...rule, rule_id: ruleId, name, filter, action };
         } else {
 
+            await context.log({ step: 'Creating a new rule' });
 
             const { data } = await context.httpRequest({
                 headers: {
@@ -74,12 +81,27 @@ module.exports = {
 
             rule = { ...rule, ...data };
 
+            await context.log({ step: 'Rule created', data });
         }
 
         if (ttl) {
             const serviceStateKey = `imperva-rule-delete-${siteId}-${rule.rule_id}`;
             const removeAfter = new Date().getTime() + ttl * 1000;
-            await context.service.stateSet(serviceStateKey, removeAfter);
+            const task = await context.callAppmixer({
+                endPoint: '/plugins/appmixer/imperva/rules',
+                method: 'POST',
+                body: {
+                    ruleId: rule.rule_id,
+                    siteId,
+                    removeAfter,
+                    a: {
+                        id: context.auth.id,
+                        key: context.auth.key
+                    }
+                }
+            });
+
+            await context.log({ step: 'Creating a rule with TTL', ttl, removeAfter, serviceStateKey, task });
         }
 
         return context.sendJson(rule, 'out');
