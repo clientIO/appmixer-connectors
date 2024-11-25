@@ -90,11 +90,12 @@ module.exports = {
 
         const parsedIps = Array.isArray(ips) ? ips : ips.split(',');
 
-
         const zoneCloudflareClient = new ZoneCloudflareClient(email, apiKey, zoneId, token);
 
         try {
             const listOfRulesets = await zoneCloudflareClient.listZoneRulesetsForZoneId(context);
+
+            console.log(listOfRulesets);
             const rulesetPair = await checkAndGetIfFirewallRulesetExists(
                 context,
                 zoneCloudflareClient,

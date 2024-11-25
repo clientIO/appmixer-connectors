@@ -72,12 +72,22 @@ module.exports = class ZoneCloudflareClient {
 
     listZoneRulesetsForZoneId(context) {
         const headers = this.getHeaders();
-        console.log(headers);
         return context.httpRequest({
             method: 'GET',
             url: `https://api.cloudflare.com/client/v4/zones/${this.zoneId}/rulesets`,
             headers
         }).then(resp => resp.data.result);
+    }
+
+    async verify(context) {
+
+        const headers = this.getHeaders();
+
+        return context.httpRequest({
+            method: 'GET',
+            url: 'https://api.cloudflare.com/client/v4/user/tokens/verify',
+            headers
+        });
     }
 
     async getRuleset(context, rulesetId) {
