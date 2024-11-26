@@ -14,7 +14,10 @@ module.exports = {
             }
         },
 
-        accountNameFromProfileInfo: 'apiKey',
+        accountNameFromProfileInfo: (context) => {
+            const apiKey = context.apiKey;
+            return apiKey.substr(0, 6) + '...' + apiKey.substr(-6);
+        },
 
         async validate(context) {
             return true;

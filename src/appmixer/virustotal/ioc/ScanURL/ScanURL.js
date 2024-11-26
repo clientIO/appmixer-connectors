@@ -17,8 +17,6 @@ module.exports = {
                 'x-apikey': apiKey
             }
         });
-
-        await context.log({ step: 'response', data: JSON.stringify(data) });
         return context.sendJson(data, 'out');
     }
 };
