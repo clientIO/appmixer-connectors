@@ -2,17 +2,17 @@
 
 module.exports = (context, options) => {
 
-    const Rule = require('./RuleModel')(context);
+    const BlockIPRuleModel = require('./BlockIPRuleModel')(context);
 
     context.http.router.register({
         method: 'POST',
-        path: '/rules',
+        path: '/rules-block-ips',
         options: {
             handler: async req => {
 
                 const payload = req.payload;
 
-                return new Rule().populate({
+                return new BlockIPRuleModel().populate({
                     ...payload,
                     created: new Date()
                 }).save();

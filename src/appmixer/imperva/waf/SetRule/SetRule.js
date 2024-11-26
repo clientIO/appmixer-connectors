@@ -99,9 +99,7 @@ module.exports = {
                     auth: {
                         id: context.auth.id,
                         key: context.auth.key
-                    },
-                    apiId: context.auth.id,
-                    apiKey: context.auth.key
+                    }
                 }
             });
 

@@ -1,7 +1,8 @@
 'use strict';
 module.exports = context => {
 
-    class RuleModel extends context.db.Model {
+    /** Model for component SetBlockIPRule */
+    class BlockIPRuleModel extends context.db.Model {
 
         static get collection() {
 
@@ -18,6 +19,7 @@ module.exports = context => {
             return [
                 'ruleId',
                 'siteId',
+                'ips',
                 'removeAfter',
                 'created',
                 'auth'
@@ -25,8 +27,8 @@ module.exports = context => {
         }
     }
 
-    RuleModel.createSettersAndGetters();
+    BlockIPRuleModel.createSettersAndGetters();
 
-    return RuleModel;
+    return BlockIPRuleModel;
 };
 
