@@ -36,18 +36,16 @@ module.exports = {
             if (data.res !== '0') {
                 throw new context.CancelError(JSON.stringify(data));
             }
-            await context.log({ step: 'Fetched rules', data });
             const rules = data?.incap_rules?.All || [];
             if (rules?.length === 0) {
-                await context.log({ step: 'No more rules at', currentPage });
                 break;
             }
 
-            // Find the ruleId by filter and action
+            // Find the ruleId by filter and action.
+            // Looking for exact match of filter and action.
             for (const rule of rules) {
                 if (rule.filter === filter && rule.action === action) {
                     ruleId = rule.id;
-                    await context.log({ step: 'Rule found', ruleId });
                     break;
                 }
             }
@@ -57,12 +55,10 @@ module.exports = {
 
         if (ruleId) {
 
-            await context.log({ step: 'Rule already exists', ruleId });
             // The rule exists, we only need to update TTL in the serviceState. `ttl` is in seconds and is optional.
             rule = { ...rule, rule_id: ruleId, name, filter, action };
         } else {
 
-            await context.log({ step: 'Creating a new rule' });
 
             const { data } = await context.httpRequest({
                 headers: {
@@ -81,7 +77,6 @@ module.exports = {
 
             rule = { ...rule, ...data };
 
-            await context.log({ step: 'Rule created', data });
         }
 
         if (ttl) {
@@ -101,7 +96,6 @@ module.exports = {
                 }
             });
 
-            await context.log({ step: 'Creating a rule with TTL', ttl, removeAfter, serviceStateKey, task });
         }
 
         return context.sendJson(rule, 'out');
