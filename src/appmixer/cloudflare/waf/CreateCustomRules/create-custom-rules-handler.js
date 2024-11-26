@@ -96,13 +96,13 @@ module.exports = {
 
         try {
             const listOfRulesets = await client.listZoneRulesetsForZoneId(context);
-
-            console.log(listOfRulesets);
             const rulesetPair = await checkAndGetIfFirewallRulesetExists(
                 context,
                 client,
                 listOfRulesets
             );
+
+            console.log(rulesetPair);
             if (!rulesetPair) {
                 const rulesetCreatedRes = await client.createRulesetAndBlockRule(
                     context,
