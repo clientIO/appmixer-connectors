@@ -66,7 +66,7 @@ module.exports = {
             } catch (e) {
                 if (e.response?.status >= 400) {
                     // For example: "exceeded amount of allowed rules per site" when creating more than 500 rules.
-                    // Send the successfull rules to the output.
+                    // Send the successfully created rules to the output.
                     context.sendJson({ siteId, rules, ips: ipsValid }, 'out');
 
                     // Then throw the error and don't retry.

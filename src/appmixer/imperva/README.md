@@ -34,3 +34,5 @@ The component allows the following configuration in the BackOffice:
 ## WAF Rule TTL
 Some components (`SetRule`, `SetBlockIPRule`) allow for setting the TTL of a WAF rule. The TTL is the time in seconds that the rule will be active for.
 After the TTL expires, the rule will be deleted by an Appmixer job (see jobs.js).
+
+If the TTL is not set, the rule will be permanent.

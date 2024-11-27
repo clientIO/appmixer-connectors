@@ -2,12 +2,12 @@
 
 module.exports = context => {
 
-    /** Model for component SetBlockIPRule */
+    /** Model for component SetBlockIPRule. Collection name: pluginAppmixerImpervaBlockIPRules */
     class BlockIPRuleModel extends context.db.Model {
 
         static get collection() {
 
-            return 'rules';
+            return 'blockIPRules';
         }
 
         static get idProperty() {
