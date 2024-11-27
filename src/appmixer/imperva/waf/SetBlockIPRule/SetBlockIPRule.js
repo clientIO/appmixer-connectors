@@ -16,7 +16,6 @@ module.exports = {
 
         const { siteId, ips, ttl } = context.messages.in.content;
 
-        /** Rule ID of an existing rule in Imperva. */
         const ruleName = 'Custom IP Block Rule ' + new Date().getTime();
         const ipsValid = [];
         const ipsInvalid = [];
@@ -31,7 +30,7 @@ module.exports = {
         }
 
         if (ipsInvalid.length) {
-            throw new context.CancelError('No valid IPs provided.');
+            throw new context.CancelError('Found invalid IPs: ' + ipsInvalid.join(', '));
         }
         if (ipsValid.length > MAX_IPS_ALLOWED) {
             throw new context.CancelError(`Too many IPs provided. Max ${MAX_IPS_ALLOWED}. You provided ${ipsValid.length}.`);
@@ -55,8 +54,8 @@ module.exports = {
         }
 
         for (const chunk of parallelChunks) {
-            const promises = chunk.map((rule, i) => {
-                return this.createRule(context, siteId, rule, ruleName, ttl, i);
+            const promises = chunk.map((ruleIps, i) => {
+                return this.createRule(context, siteId, ruleIps, ruleName, ttl, i);
             });
             const results = await Promise.all(promises);
             rules = rules.concat(results);
