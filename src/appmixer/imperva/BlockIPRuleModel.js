@@ -1,4 +1,5 @@
 'use strict';
+
 module.exports = context => {
 
     /** Model for component SetBlockIPRule */
@@ -11,7 +12,7 @@ module.exports = context => {
 
         static get idProperty() {
 
-            return 'taskId';
+            return 'ruleId';
         }
 
         static get properties() {
