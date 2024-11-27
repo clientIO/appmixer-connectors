@@ -19,8 +19,7 @@ module.exports = {
         const ruleName = 'Custom IP Block Rule ' + new Date().getTime();
         const ipsValid = [];
         const ipsInvalid = [];
-        // Split by comma or any whitespace
-        const allIps = ips.split(/\s+|,/);
+        const allIps = ips.split(/\s+|,/); // Split by comma or any whitespace
         for (const ip of allIps) {
             if (Address4.isValid(ip) || Address6.isValid(ip)) {
                 ipsValid.push(ip);
@@ -45,6 +44,9 @@ module.exports = {
             ruleIPChunks.push(chunk);
         }
 
+        // Check if we can create the rules
+        await this.ensureCustomRulesCanBeCreated(context, siteId, ruleIPChunks.length);
+
         let rules = [];
         // Process `MAX_PARRALEL_REQUESTS` rule chunks in parallel
         const parallelChunks = [];
@@ -55,16 +57,29 @@ module.exports = {
 
         for (const chunk of parallelChunks) {
             const promises = chunk.map((ruleIps, i) => {
-                return this.createRule(context, siteId, ruleIps, ruleName, ttl, i);
+                const totalOrder = (i + 1) + (parallelChunks.indexOf(chunk) * MAX_PARRALEL_REQUESTS);
+                return this.createRule(context, siteId, ruleIps, ruleName, ttl, totalOrder);
             });
-            const results = await Promise.all(promises);
-            rules = rules.concat(results);
+            try {
+                const results = await Promise.all(promises);
+                rules = rules.concat(results);
+            } catch (e) {
+                if (e.response?.status >= 400) {
+                    // For example: "exceeded amount of allowed rules per site" when creating more than 500 rules.
+                    // Send the successfull rules to the output.
+                    context.sendJson({ siteId, rules, ips: ipsValid }, 'out');
+
+                    // Then throw the error and don't retry.
+                    throw new context.CancelError('Error creating rules: ', e.response.data);
+                }
+                throw e;
+            }
         }
 
         return context.sendJson({ siteId, rules, ips: ipsValid }, 'out');
     },
 
-    createRule: async function(context, siteId, ips, ruleName, ttl, i) {
+    createRule: async function(context, siteId, ips, ruleName, ttl, order) {
 
         const filter = ips.map(ip => `ClientIP == ${ip}`).join(' & ');
 
@@ -76,13 +91,13 @@ module.exports = {
             url: `${baseUrl}/v2/sites/${siteId}/rules`,
             method: 'POST',
             data: {
-                name: ruleName + ' ' + i,
+                name: ruleName + ' ' + order,
                 filter,
                 action: ACTION
             }
         });
 
-        const rule = { ...data, siteId, batch: i };
+        const rule = { ...data, siteId, batch: order };
 
         if (ttl) {
             const removeAfter = new Date().getTime() + ttl * 1000;
@@ -103,5 +118,34 @@ module.exports = {
         }
 
         return rule;
+    },
+
+    ensureCustomRulesCanBeCreated: async function(context, siteId, numOfRulesNeeded) {
+
+        if (numOfRulesNeeded > 500) {
+            throw new context.CancelError('Max number of rules exceeded');
+        }
+
+        // Get the page of 10 rules starting from (500 - numOfRulesNeeded)
+        const page = Math.floor((500 - numOfRulesNeeded) / 10);
+        const url = `${baseUrl}/v1/sites/incapRules/list?site_id=${siteId}&page_num=${page}&page_size=10`;
+        const { data } = await context.httpRequest({
+            method:'POST',
+            headers: {
+                'x-API-Id': context.auth.id,
+                'x-API-Key': context.auth.key
+            },
+            url
+        });
+
+        const count = data?.incap_rules?.All?.length || 0;
+
+        if (count > 0) {
+            // This means that there are rules on the last possible space for the new rules.
+            throw new context.CancelError('New rules can not be created. Max number of rules will be exceeded.', {
+                message: `There is more than ${(page * 10) + count} rules in the site. To create ${numOfRulesNeeded} rules, you need to delete some rules first.`,
+                maxRules: 500
+            });
+        }
     }
 };

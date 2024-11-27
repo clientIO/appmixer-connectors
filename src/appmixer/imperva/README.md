@@ -23,6 +23,8 @@ This component is used to block an IP address for a specified time. The time is 
 ### Limitations
 Maximum number of IP addresses that can be blocked in one run is 1000. This roughly translates 50 rules with 20 IP addresses each. Imperva allows for 20 IP addresses in a filter. Otherwise it throws: `Rule contains too many filters. Maximum of 20 filters is allowed`.
 
+Another limitation is the maximum number of custom rules per site. The limit is 500 according to the Imperva API documentation. The component does check for this limit before creating a new rule.
+
 ### Configuration
 The component allows the following configuration in the BackOffice:
 - `blockIpMaxIpsPerRule` - Maximum number of IP addresses that can be blocked in one rule. Default is 20.
