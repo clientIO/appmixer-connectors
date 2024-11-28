@@ -17,6 +17,6 @@ module.exports = {
             method: 'GET'
         });
 
-        return context.sendJson(data, 'out');
+        return context.sendJson({ ...data, siteId: parseInt(siteId, 10) }, 'out');
     }
 };
