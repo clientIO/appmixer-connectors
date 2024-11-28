@@ -13,6 +13,14 @@ module.exports = async (context) => {
             await context.log('trace', '[IMPERVA] rule delete job started.');
 
             try {
+                // Important assumptions:
+                // - IPs in a single rule are meant to expire at the same time.
+                // - The same IP can be in multiple rules.
+
+                // Possible improvements to fit the largest possible number of IPs into the limit of max 500 custom rules:
+                // - Allways create rules with the maximum number of IPs.
+                // - Track the expiration of IPs in the database and update the rule filters when IPs expire.
+
                 // Find all rules that should be deleted. Limit to batchSize.
                 const expiredRules = await context.db.collection(COLLECTION_NAME_BLOCK_IPS)
                     .find({ removeAfter: { $lt: Date.now() } })
