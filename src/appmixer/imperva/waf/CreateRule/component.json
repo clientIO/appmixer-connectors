@@ -1,6 +1,6 @@
 {
     "version": "1.0.0",
-    "name": "appmixer.imperva.rules.CreateRule",
+    "name": "appmixer.imperva.waf.CreateRule",
     "label": "Create Rule",
     "author": "Appmixer <info@appmixer.com>",
     "description": "Create a custom rule.",
@@ -19,7 +19,7 @@
                         "type": "string"
                     },
                     "name": {
-                        "type": "string"
+                        "type": "string", "maxLength": 4096
                     },
                     "action": {
                         "type": "string"
@@ -31,35 +31,417 @@
                         "type": "integer"
                     }
                 },
-                "required": ["siteId", "name", "action", "filter", "ttl"]
+                "required": ["siteId", "name", "action", "filter"]
             },
             "inspector": {
                 "inputs": {
                     "siteId": {
                         "type": "text",
                         "index": 0,
+                        "group": "main",
                         "label": "Site ID"
                     },
                     "name": {
                         "type": "text",
                         "index": 1,
+                        "group": "main",
                         "label": "Name"
                     },
                     "action": {
-                        "type": "text",
+                        "type": "select",
+                        "defaultValue": "RULE_ACTION_REDIRECT",
+                        "options": [
+                            { "value": "RULE_ACTION_REDIRECT", "label": "RULE_ACTION_REDIRECT" },
+                            { "value": "RULE_ACTION_REWRITE_URL", "label": "RULE_ACTION_REWRITE_URL" },
+                            { "value": "RULE_ACTION_REWRITE_HEADER", "label": "RULE_ACTION_REWRITE_HEADER" },
+                            { "value": "RULE_ACTION_REWRITE_COOKIE", "label": "RULE_ACTION_REWRITE_COOKIE" },
+                            { "value": "RULE_ACTION_DELETE_HEADER", "label": "RULE_ACTION_DELETE_HEADER" },
+                            { "value": "RULE_ACTION_DELETE_COOKIE", "label": "RULE_ACTION_DELETE_COOKIE" },
+                            { "value": "RULE_ACTION_RESPONSE_REWRITE_HEADER", "label": "RULE_ACTION_RESPONSE_REWRITE_HEADER" },
+                            { "value": "RULE_ACTION_RESPONSE_REWRITE_RESPONSE_CODE", "label": "RULE_ACTION_RESPONSE_REWRITE_RESPONSE_CODE" },
+                            { "value": "RULE_ACTION_CUSTOM_ERROR_RESPONSE", "label": "RULE_ACTION_CUSTOM_ERROR_RESPONSE" },
+                            { "value": "RULE_ACTION_RESPONSE_DELETE_HEADER", "label": "RULE_ACTION_RESPONSE_DELETE_HEADER" },
+                            { "value": "RULE_ACTION_FORWARD_TO_DC", "label": "RULE_ACTION_FORWARD_TO_DC" },
+                            { "value": "RULE_ACTION_FORWARD_TO_PORT", "label": "RULE_ACTION_FORWARD_TO_PORT" },
+                            { "value": "RULE_ACTION_ALERT", "label": "RULE_ACTION_ALERT" },
+                            { "value": "RULE_ACTION_BLOCK", "label": "RULE_ACTION_BLOCK" },
+                            { "value": "RULE_ACTION_BLOCK_USER", "label": "RULE_ACTION_BLOCK_USER" },
+                            { "value": "RULE_ACTION_BLOCK_IP", "label": "RULE_ACTION_BLOCK_IP" },
+                            { "value": "RULE_ACTION_RETRY", "label": "RULE_ACTION_RETRY" },
+                            { "value": "RULE_ACTION_INTRUSIVE_HTML", "label": "RULE_ACTION_INTRUSIVE_HTML" },
+                            { "value": "RULE_ACTION_CAPTCHA", "label": "RULE_ACTION_CAPTCHA" },
+                            { "value": "RULE_ACTION_RATE", "label": "RULE_ACTION_RATE" },
+                            { "value": "RULE_ACTION_WAF_OVERRIDE", "label": "RULE_ACTION_WAF_OVERRIDE" }
+                        ],
                         "index": 2,
+                        "group": "main",
                         "label": "Action"
                     },
                     "filter": {
-                        "type": "text",
+                        "type": "textarea",
                         "index": 3,
+                        "group": "main",
                         "label": "Filter"
                     },
+
+                    "response_code":{
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_REDIRECT" } },
+                                { "eq": { "./action": "RULE_ACTION_SIMPLIFIED_REDIRECT" } },
+                                { "eq": { "./action": "RULE_ACTION_RESPONSE_REWRITE_RESPONSE_CODE" } },
+                                { "eq": { "./action": "RULE_ACTION_CUSTOM_ERROR_RESPONSE" } }
+                            ]
+                        },
+                        "type": "number",
+                        "index": 0,
+                        "group": "advanced",
+                        "label": "Response Status Code",
+                        "tooltip": "For RULE_ACTION_REDIRECT or RULE_ACTION_SIMPLIFIED_REDIRECT rule's response code, valid values are 302, 301, 303, 307, 308. For RULE_ACTION_RESPONSE_REWRITE_RESPONSE_CODE rule's response code, valid values are all 3-digits numbers. For RULE_ACTION_CUSTOM_ERROR_RESPONSE, valid values are [ 200, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 419, 420, 422, 423, 424, 429, 500, 501, 502, 503, 504, 505, 507 ]."
+                    },
+                    "add_missing": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_COOKIE" } },
+                                { "eq": { "./action": "RULE_ACTION_RESPONSE_REWRITE_HEADER" } }
+                            ]
+                        },
+                        "type": "boolean",
+                        "index": 1,
+                        "group": "advanced",
+                        "label": "Add new if missing",
+                        "tooltip": "Add cookie or header if it doesn't exist."
+                    },
+                    "rewrite_existing": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_COOKIE" } },
+                                { "eq": { "./action": "RULE_ACTION_RESPONSE_REWRITE_HEADER" } }
+                            ]
+                        },
+                        "type": "boolean",
+                        "index": 2,
+                        "group": "advanced",
+                        "label": "Rewrite if Exists",
+                        "tooltip": "Rewrite cookie or header if it exists."
+                    },
+                    "from": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_URL" } },
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_RESPONSE_REWRITE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_COOKIE" } }
+                            ]
+                        },
+                        "type": "text",
+                        "index": 3,
+                        "group": "advanced",
+                        "label": "From",
+                        "tooltip": "Pattern to rewrite. For RULE_ACTION_REWRITE_URL - Url to rewrite. For RULE_ACTION_REWRITE_HEADER/RULE_ACTION_RESPONSE_REWRITE_HEADER - Header value to rewrite. For RULE_ACTION_REWRITE_COOKIE - Cookie value to rewrite."
+                    },
+                    "to": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_URL" } },
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_RESPONSE_REWRITE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_COOKIE" } }
+                            ]
+                        },
+                        "type": "text",
+                        "index": 4,
+                        "group": "advanced",
+                        "label": "To",
+                        "tooltip": "Pattern to change to. RULE_ACTION_REWRITE_URL - Url to change to. RULE_ACTION_REWRITE_HEADER/RULE_ACTION_RESPONSE_REWRITE_HEADER - Header value to change to. RULE_ACTION_REWRITE_COOKIE - Cookie value to change to."
+                    },
+                    "rewrite_name": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_COOKIE" } },
+                                { "eq": { "./action": "RULE_ACTION_REWRITE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_RESPONSE_REWRITE_HEADER" } }
+                            ]
+                        },
+                        "type": "text",
+                        "index": 5,
+                        "group": "advanced",
+                        "label": "Rewrite Name",
+                        "tooltip": "Name of cookie or header to rewrite. Applies only for RULE_ACTION_REWRITE_COOKIE, RULE_ACTION_REWRITE_HEADER and RULE_ACTION_RESPONSE_REWRITE_HEADER."
+                    },
+                    "dc_id": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_FORWARD_TO_DC" }
+                        },
+                        "type": "number",
+                        "index": 6,
+                        "group": "advanced",
+                        "label": "Data Center ID",
+                        "tooltip": "Data center to forward request to."
+                    },
+                    "port_forwarding_context": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_FORWARD_TO_PORT" }
+                        },
+                        "type": "select",
+                        "options": [
+                            { "value": "Use Port Value", "label": "Use Port Value" },
+                            { "value": "Use Header Name", "label": "Use Header Name" }
+                        ],
+                        "defaultValue": "Use Port Value",
+                        "index": 7,
+                        "group": "advanced",
+                        "label": "Port Forwarding Context",
+                        "tooltip": "Context for port forwarding."
+                    },
+                    "port_forwarding_value": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_FORWARD_TO_PORT" }
+                        },
+                        "type": "text",
+                        "index": 8,
+                        "group": "advanced",
+                        "label": "Port Forwarding Value",
+                        "tooltip": "Port number or header name for port forwarding."
+                    },
+                    "rate_context": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_RATE" }
+                        },
+                        "type": "select",
+                        "options": [
+                            { "value": "IP", "label": "IP" },
+                            { "value": "Session", "label": "Session" }
+                        ],
+                        "defaultValue": "IP",
+                        "index": 9,
+                        "group": "advanced",
+                        "label": "Context",
+                        "tooltip": "The context of the rate counter."
+                    },
+                    "rate_interval": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_RATE" }
+                        },
+                        "type": "number",
+                        "index": 10,
+                        "group": "advanced",
+                        "label": "Rate Interval",
+                        "tooltip": "The interval in seconds of the rate counter. Possible values is a multiple of 10 minimum 10 maximum 300."
+                    },
+                    "error_type": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_CUSTOM_ERROR_RESPONSE" }
+                        },
+                        "type": "select",
+                        "options": [
+                            { "value": "error.type.all", "label": "error.type.all" },
+                            { "value": "error.type.connection_timeout", "label": "error.type.connection_timeout" },
+                            { "value": "error.type.access_denied", "label": "error.type.access_denied" },
+                            { "value": "error.type.parse_req_error", "label": "error.type.parse_req_error" },
+                            { "value": "error.type.parse_resp_error", "label": "error.type.parse_resp_error" },
+                            { "value": "error.type.connection_failed", "label": "error.type.connection_failed" },
+                            { "value": "error.type.deny_and_retry", "label": "error.type.deny_and_retry" },
+                            { "value": "error.type.ssl_failed", "label": "error.type.ssl_failed" },
+                            { "value": "error.type.deny_and_captcha", "label": "error.type.deny_and_captcha" },
+                            { "value": "error.type.2fa_required", "label": "error.type.2fa_required" },
+                            { "value": "error.type.no_ssl_config", "label": "error.type.no_ssl_config" },
+                            { "value": "error.type.no_ipv6_config", "label": "error.type.no_ipv6_config" },
+                            { "value": "error.type.waiting_room", "label": "error.type.waiting_room" }
+                        ],
+                        "defaultValue": "HTML",
+                        "index": 11,
+                        "group": "advanced",
+                        "label": "Error Type",
+                        "tooltip": "The error that triggers the rule. 'error.type.all' triggers the rule regardless of the error type."
+                    },
+                    "error_response_format": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_CUSTOM_ERROR_RESPONSE" }
+                        },
+                        "type": "select",
+                        "options": [
+                            { "value": "json", "label": "JSON" },
+                            { "value": "xml", "label": "XML" }
+                        ],
+                        "defaultValue": "HTML",
+                        "index": 12,
+                        "group": "advanced",
+                        "label": "Error Response Format",
+                        "tooltip": "The format of the given error response in the error_response_data field."
+                    },
+                    "error_response_data": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_CUSTOM_ERROR_RESPONSE" }
+                        },
+                        "type": "textarea",
+                        "index": 13,
+                        "group": "advanced",
+                        "label": "Error Response Data",
+                        "tooltip": "The response returned when the request matches the filter and is blocked."
+                    },
+                    "multiple_deletions": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_DELETE_HEADER" } },
+                                { "eq": { "./action": "RULE_ACTION_RESPONSE_DELETE_HEADER" } }
+                            ]
+                        },
+                        "type": "boolean",
+                        "index": 14,
+                        "group": "advanced",
+                        "label": "Multiple Deletions",
+                        "tooltip": "Delete multiple header occurrences."
+                    },
+                    "overrideWafRule": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_WAF_OVERRIDE" }
+                        },
+                        "type": "select",
+                        "options": [
+                            { "value": "SQL Injection", "label": "SQL Injection" },
+                            { "value": "Remote File Inclusion", "label": "Remote File Inclusion" },
+                            { "value": "Cross Site Scripting", "label": "Cross Site Scripting" },
+                            { "value": "Illegal Resource Access", "label": "Illegal Resource Access" }
+                        ],
+                        "defaultValue": "SQL Injection",
+                        "index": 15,
+                        "group": "advanced",
+                        "label": "Override WAF Rule",
+                        "tooltip": "The setting to override."
+                    },
+                    "overrideWafAction": {
+                        "when": {
+                            "eq": { "./action": "RULE_ACTION_WAF_OVERRIDE" }
+                        },
+                        "type": "select",
+                        "options": [
+                            { "value": "Alert Only", "label": "Alert Only" },
+                            { "value": "Block Request", "label": "Block Request" },
+                            { "value": "Block User", "label": "Block User" },
+                            { "value": "Block IP", "label": "Block IP" },
+                            { "value": "Ignore", "label": "Ignore" }
+                        ],
+                        "defaultValue": "Alert Only",
+                        "index": 16,
+                        "group": "advanced",
+                        "label": "Override WAF Action",
+                        "tooltip": "The action for the override rule."
+                    },
+                    "enabled": {
+                        "type": "toggle",
+                        "index": 17,
+                        "group": "advanced",
+                        "label": "Enabled",
+                        "tooltip": "The setting enables or disables the rule."
+                    },
+                    "blockDurationDetails.blockDurationPeriodType": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_BLOCK_IP" } },
+                                { "eq": { "./action": "RULE_ACTION_BLOCK_USER" } }
+                            ]
+                        },
+                        "type": "select",
+                        "options": [
+                            { "value": "fixed", "label": "Fixed" },
+                            { "value": "randomized", "label": "Randomized" }
+                        ],
+                        "defaultValue": "Fixed",
+                        "index": 18,
+                        "group": "advanced",
+                        "label": "Block Duration Details.Block Duration Period Type",
+                        "tooltip": "Block duration types: Fixed, Randomized. Time range: 1-1440 minutes.The Fixed type blocks the IP address or session for the duration specified by the blockFixedDurationValue parameter. The Randomized type generates a random duration for each block between the specified minimum and maximum values."
+                    },
+                    "blockDurationDetails.blockFixedDurationValue": {
+                        "when": {
+                            "and": [
+                                { "eq": { "./blockDurationDetails.blockDurationPeriodType": "fixed" } },
+                                { "or": [
+                                    { "eq": { "./action": "RULE_ACTION_BLOCK_IP" } },
+                                    { "eq": { "./action": "RULE_ACTION_BLOCK_USER" } }
+                                ]}
+                            ]
+                        },
+                        "type": "number",
+                        "index": 18,
+                        "group": "advanced",
+                        "label": "Block Duration Details.Block Fixed Duration Value",
+                        "tooltip": "Value of the fixed block duration."
+                    },
+                    "blockDurationDetails.blockRandomizedDurationMinValue": {
+                        "when": {
+                            "and": [
+                                { "eq": { "./blockDurationDetails.blockDurationPeriodType": "randomized" } },
+                                { "or": [
+                                    { "eq": { "./action": "RULE_ACTION_BLOCK_IP" } },
+                                    { "eq": { "./action": "RULE_ACTION_BLOCK_USER" } }
+                                ]}
+                            ]
+                        },
+                        "type": "number",
+                        "index": 19,
+                        "group": "advanced",
+                        "label": "Block Duration Details.Block Randomized Duration Min Value",
+                        "tooltip": "The lower limit for the randomized block duration."
+                    },
+                    "blockDurationDetails.blockRandomizedDurationMaxValue": {
+                        "when": {
+                            "and": [
+                                { "eq": { "./blockDurationDetails.blockDurationPeriodType": "randomized" } },
+                                { "or": [
+                                    { "eq": { "./action": "RULE_ACTION_BLOCK_IP" } },
+                                    { "eq": { "./action": "RULE_ACTION_BLOCK_USER" } }
+                                ]}
+                            ]
+                        },
+                        "type": "number",
+                        "index": 20,
+                        "group": "advanced",
+                        "label": "Block Duration Details.Block Randomized Duration Max Value",
+                        "tooltip": "The upper limit for the randomized block duration."
+                    },
+                    "sendNotifications": {
+                        "when": {
+                            "or": [
+                                { "eq": { "./action": "RULE_ACTION_ALERT" } },
+                                { "eq": { "./action": "RULE_ACTION_BLOCK" } },
+                                { "eq": { "./action": "RULE_ACTION_BLOCK_USER" } },
+                                { "eq": { "./action": "RULE_ACTION_BLOCK_IP" } },
+                                { "eq": { "./action": "RULE_ACTION_RETRY" } },
+                                { "eq": { "./action": "RULE_ACTION_INTRUSIVE_HTML" } },
+                                { "eq": { "./action": "RULE_ACTION_CAPTCHA" } }
+                            ]
+                        },
+                        "type": "toggle",
+                        "index": 21,
+                        "group": "advanced",
+                        "label": "Send Notifications",
+                        "tooltip": "Send an email notification whenever this rule is triggered. Available for Security rules only."
+                    },
+
                     "ttl": {
                         "type": "number",
-                        "index": 4,
+                        "index": 0,
+                        "group": "ttl",
                         "label": "TTL"
                     }
+                }
+            },
+            "groups": {
+                "main": {
+                    "label": "Main",
+                    "index": 1
+                },
+                "advanced": {
+                    "label": "Advanced",
+                    "index": 2
+                },
+                "ttl": {
+                    "label": "TTL",
+                    "index": 3
                 }
             }
         }
@@ -72,14 +454,14 @@
                     "label": "Site ID",
                     "value": "siteId",
                     "schema": {
-                        "type": "string"
+                        "type": "number"
                     }
                 },
                 {
                     "label": "Rule ID",
                     "value": "rule_id",
                     "schema": {
-                        "type": "string"
+                        "type": "number"
                     }
                 },
                 {
@@ -101,6 +483,157 @@
                     "value": "filter",
                     "schema": {
                         "type": "string"
+                    }
+                },
+                {
+                    "label": "Response Code",
+                    "value": "response_code",
+                    "schema": {
+                        "type": "number"
+                    }
+                },
+                {
+                    "label": "Add Missing",
+                    "value": "add_missing",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "label": "Rewrite Existing",
+                    "value": "rewrite_existing",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "label": "From",
+                    "value": "from",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "To",
+                    "value": "to",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Rewrite Name",
+                    "value": "rewrite_name",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Data Center ID",
+                    "value": "dc_id",
+                    "schema": {
+                        "type": "number"
+                    }
+                },
+                {
+                    "label": "Port Forwarding Context",
+                    "value": "port_forwarding_context",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Port Forwarding Value",
+                    "value": "port_forwarding_value",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Rate Context",
+                    "value": "rate_context",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Rate Interval",
+                    "value": "rate_interval",
+                    "schema": {
+                        "type": "number"
+                    }
+                },
+                {
+                    "label": "Error Type",
+                    "value": "error_type",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Error Response Format",
+                    "value": "error_response_format",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Error Response Data",
+                    "value": "error_response_data",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Multiple Deletions",
+                    "value": "multiple_deletions",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "label": "Override WAF Rule",
+                    "value": "overrideWafRule",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Override WAF Action",
+                    "value": "overrideWafAction",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Enabled",
+                    "value": "enabled",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "label": "Block Duration Details",
+                    "value": "blockDurationDetails",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "blockDurationPeriodType": {
+                                "type": "string",
+                                "title": "Block Duration Details.Block Duration Period Type"
+                            },
+                            "blockFixedDurationValue": {
+                                "type": "number",
+                                "title": "Block Duration Details.Block Fixed Duration Value"
+                            },
+                            "blockRandomizedDurationMinValue": {
+                                "type": "number",
+                                "title": "Block Duration Details.Block Randomized Duration Min Value"
+                            },
+                            "blockRandomizedDurationMaxValue": {
+                                "type": "number",
+                                "title": "Block Duration Details.Block Randomized Duration Max Value"
+                            }
+                        }
                     }
                 },
                 {
