@@ -16,6 +16,7 @@ module.exports = {
             url: `${baseUrl}/v2/sites/${siteId}/rules/${ruleId}`,
             method: 'GET'
         });
+
         return context.sendJson(data, 'out');
     }
 };
