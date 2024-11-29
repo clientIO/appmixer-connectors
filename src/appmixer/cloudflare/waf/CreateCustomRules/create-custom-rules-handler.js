@@ -1,29 +1,3 @@
-const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
-
-const OutputType = {
-    SUCCESS: 'success',
-    FAILURE: 'failure'
-};
-
-const messages = {
-    nothingToUpdate: attackerId => {
-        return `Rule for attacker Id ${attackerId} exists, nothing to update`;
-    },
-    ruleSuccessfullyUpdated: cloudflareResponse => {
-        return `Updating Cloudflare WAF completed successfully. RuleID: ${cloudflareResponse.result.rules[0].id}`;
-    },
-    ruleSuccessfullyCreated: cloudflareResponse => {
-        return `Adding Cloudflare WAF completed successfully. RuleID: ${cloudflareResponse.result.rules[0].id}`;
-    },
-    cloudflareUnknownError: err => {
-        return `Cloudflare returned unknown error - status code: ${err.status}, message: ${err.message}.`;
-    },
-    noIps: 'No Ips to update',
-    AuthenticationError:
-        'Failed to authenticate to Cloudflare, please verify your credentials and try again.',
-    ZoneIdNotFound:
-        'Failed to add rule to zone - looks like it doesn\'t exist. Verify it and try again.'
-};
 
 function output(context, message, output) {
     return context.sendJson({ message }, output.valueOf());
@@ -57,7 +31,7 @@ function handleResponseError(context, err) {
 
 async function checkAndGetIfFirewallRulesetExists(
     context,
-    zoneCloudflareClient,
+    client,
     rulesets
 ) {
     for (let ruleset of rulesets) {
@@ -68,9 +42,12 @@ async function checkAndGetIfFirewallRulesetExists(
             const rulesetFromList = ruleset;
 
             try {
-                const validRulesetFromGet = await zoneCloudflareClient.getRuleset(context, rulesetFromList.id);
+                console.log('VVVVVVVVVVVVVVvv', rulesetFromList);
+                const validRulesetFromGet = await client.getRules(context, rulesetFromList.id);
+                console.log(validRulesetFromGet);
                 return [rulesetFromList, validRulesetFromGet];
             } catch (err) {
+                console.log('!!!! -err-----------', err);
                 await context.log({ message: err });
             }
         }
@@ -78,84 +55,10 @@ async function checkAndGetIfFirewallRulesetExists(
 }
 
 module.exports = {
-    async handleReceived(context) {
+    getOrCreateRuleset: async function() {
 
-        const { apiKey, apiToken, email } = context.auth;
-
-        const { zoneId } = context.properties;
-
-        const { ips, attackerId } = context.messages.in.content;
-
-        if (ips.length === 0) {
-            return output(context, messages.noIps, OutputType.SUCCESS);
-        }
-
-        const parsedIps = Array.isArray(ips) ? ips : ips.split(',');
-
-        const client = new ZoneCloudflareClient(email, apiKey, zoneId, apiToken);
-
-        try {
-            const listOfRulesets = await client.listZoneRulesetsForZoneId(context);
-            const rulesetPair = await checkAndGetIfFirewallRulesetExists(
-                context,
-                client,
-                listOfRulesets
-            );
-
-            console.log(rulesetPair);
-            if (!rulesetPair) {
-                const rulesetCreatedRes = await client.createRulesetAndBlockRule(
-                    context,
-                    attackerId,
-                    parsedIps
-                );
-                return output(
-                    context,
-                    messages.ruleSuccessfullyCreated(rulesetCreatedRes),
-                    OutputType.SUCCESS
-                );
-            } else {
-                const [rulesetFromList, rulesetFromGet] = rulesetPair;
-                const existingRule = rulesetFromGet.result.rules.find(rule => {
-                    return rule.ref === client.getRuleRef(attackerId);
-                });
-                if (existingRule && existingRule.expression === client.getBlockExpression(parsedIps)) {
-                    return output(
-                        context,
-                        messages.nothingToUpdate(attackerId),
-                        OutputType.SUCCESS
-                    );
-                } else if (existingRule &&
-                    existingRule.expression !== client.getBlockExpression(parsedIps)) {
-
-                    const updatedRes = await client.updateBlockRule(
-                        context,
-                        rulesetFromList.id,
-                        existingRule.id,
-                        attackerId,
-                        parsedIps
-                    );
-                    return output(
-                        context,
-                        messages.ruleSuccessfullyUpdated(updatedRes),
-                        OutputType.SUCCESS
-                    );
-                } else {
-                    const createdRes = await client.createBlockRule(context, {
-                        rulesetId: rulesetFromList.id,
-                        attackerId,
-                        ips: parsedIps
-                    });
-                    return output(
-                        context,
-                        messages.ruleSuccessfullyCreated(createdRes),
-                        OutputType.SUCCESS
-                    );
-                }
-            }
-        } catch (err) {
-            return output(context, handleResponseError(context, err), OutputType.FAILURE);
-        }
-    }
-
+    },
+    output,
+    // checkAndGetIfFirewallRulesetExists,
+    handleResponseError
 };

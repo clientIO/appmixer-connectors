@@ -6,7 +6,7 @@ module.exports = class ZoneCloudflareClient {
     ruleDescription = 'Salt detected high severity attacker';
     ruleRefPrefix = 'SALT';
 
-    constructor(email, apiKey, zoneId, token) {
+    constructor({ email, apiKey, zoneId, token }) {
         this.email = email;
         this.apiKey = apiKey;
         this.zoneId = zoneId;
@@ -39,7 +39,7 @@ module.exports = class ZoneCloudflareClient {
     }
 
     removeInterfaceIdentifierAndAddCidr(ip) {
-        const networkPrefix = String(ip)
+        const networkPrefix = ip
             .split(':')
             .slice(0, 4)
             .join(':');
@@ -49,14 +49,14 @@ module.exports = class ZoneCloudflareClient {
     getBlockExpression(ips) {
         const ipv4 = ips.filter(ip => Address4.isValid(ip));
         const ipv6 = ips.filter(ip => Address6.isValid(ip));
-        const formattedIpv6 =
-            ipv6.length > 0
-                ? ipv6.map(ip => this.removeInterfaceIdentifierAndAddCidr(ip))
-                : ipv6;
+        const formattedIpv6 = ipv6.length > 0
+            ? ipv6.map(ip => this.removeInterfaceIdentifierAndAddCidr(ip))
+            : ipv6;
         const allIps = [...ipv4, ...formattedIpv6].sort();
 
-        if (ipv4.length == 1 && formattedIpv6.length == 0)
+        if (ipv4.length === 1 && formattedIpv6.length === 0) {
             return `ip.src eq ${ipv4[0]}`; // To be backward compatible with the current integration behavior
+        }
         return `ip.src in {${allIps.join(' ')}}`;
     }
 
@@ -70,12 +70,15 @@ module.exports = class ZoneCloudflareClient {
         };
     }
 
-    listZoneRulesetsForZoneId(context) {
-        const headers = this.getHeaders();
+    /**
+     * https://developers.cloudflare.com/api/operations/getZoneRuleset
+     */
+    listZoneRulesets(context) {
+
         return context.httpRequest({
             method: 'GET',
             url: `https://api.cloudflare.com/client/v4/zones/${this.zoneId}/rulesets`,
-            headers
+            headers: this.getHeaders()
         }).then(resp => resp.data.result);
     }
 
@@ -90,37 +93,60 @@ module.exports = class ZoneCloudflareClient {
         });
     }
 
-    async getRuleset(context, rulesetId) {
-        const url = new CloudflareZonesUrlBuilder(this.zoneId)
-            .addRulesets()
-            .addRulesetId(rulesetId)
-            .getUrl();
+    async verifyGlobalApiKey(context) {
+
         const headers = this.getHeaders();
 
-        const resp = await context.httpRequest.get(url, { headers });
-
-        if (!this.isCloudflareGetRulesetResponse(resp.data)) {
-            throw new Error('Invalid CloudflareGetRulesetResponse');
-        }
-
-        return resp.data;
+        return context.httpRequest({
+            method: 'GET',
+            url: 'https://api.cloudflare.com/client/v4/accounts',
+            headers
+        });
     }
 
-    createRulesetAndBlockRule(context, attackerId, ips) {
-        const url = new CloudflareZonesUrlBuilder(this.zoneId)
-            .addRulesets()
-            .getUrl();
+    async callEndpoint(context, {
+        action,
+        method = 'GET',
+        data
+    }) {
+
         const headers = this.getHeaders();
-        const body = {
-            kind: 'zone',
-            name: 'Http Request Firewall Custom Ruleset',
-            description:
-                'Created by Salt Security\'s Cloudflare Integration. ' +
-                'Firewall rules of identified attackers will be added to this ruleset.',
-            phase: 'http_request_firewall_custom',
-            rules: [this.getBlockRule(attackerId, ips)]
-        };
-        return context.httpRequest.post(url, body, { headers }).then(resp => resp.data);
+
+        return context.httpRequest({
+            method,
+            url: `https://api.cloudflare.com/client/v4${action}`,
+            headers,
+            data
+        });
+    }
+
+    async getRules(context, rulesetId) {
+
+        const response = await context.httpRequest({
+            method: 'GET',
+            url: `https://api.cloudflare.com/client/v4/zones/${this.zoneId}/rulesets/${rulesetId}`,
+            headers: this.getHeaders()
+        });
+
+        return response.data;
+    }
+
+    async createRulesetAndBlockRule(context, attackerId, ips) {
+
+        const { data } = await context.httpRequest({
+            method: 'POST',
+            url: `https://api.cloudflare.com/client/v4/zones/${this.zoneId}/rulesets`,
+            headers: this.getHeaders(),
+            data: {
+                kind: 'zone',
+                phase: 'http_request_firewall_custom',
+                name: 'Http Request Firewall Custom Ruleset',
+                description: 'Created by Salt Security\'s Cloudflare Integration. Firewall rules of identified attackers will be added to this ruleset.',
+                rules: [this.getBlockRule(attackerId, ips)]
+            }
+        });
+
+        return data;
     }
 
     createBlockRule(context, { rulesetId, attackerId, ips }) {
