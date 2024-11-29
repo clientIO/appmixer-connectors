@@ -40,6 +40,6 @@ module.exports = {
             SenderID: senderId
         };
 
-        return context.sendJson(object, 'object');
+        return context.sendJson(object, 'sms');
     }
 };
