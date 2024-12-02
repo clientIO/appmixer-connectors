@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.cloudflare.account.GetList",
-    "label": "Get List",
-    "description": "Fetches the details of a list.",
+    "name": "appmixer.cloudflare.account.AddToIPList",
+    "label": "Add IP to IP List",
+    "description": "Appends new items to the IP list.",
     "private": false,
     "auth": {
         "service": "appmixer:cloudflare:account"
@@ -12,20 +12,21 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "ips": { "type": "string" },
-                    "attackerId": { "type": "string" }
+                    "account": { "type": "string" },
+                    "list": { "type": "string" },
+                    "ips": { "type": "object" }
                 },
                 "required": []
             },
             "inspector": {
                 "inputs": {
                     "account": {
-                        "type": "select",
+                        "type": "text",
                         "label": "Account",
                         "tooltip": "Enter an Account ID or select an account from the list.",
                         "index": 1,
                         "source": {
-                            "url": "/component/appmixer/cloudflare/account/GetList?outPort=success",
+                            "url": "/component/appmixer/cloudflare/account/AddToIPList?outPort=success",
                             "data": {
                                 "properties": {
                                     "accountsFetch": true
@@ -34,12 +35,12 @@
                         }
                     },
                     "list": {
-                        "type": "select",
+                        "type": "text",
                         "label": "List",
                         "tooltip": "Enter a List ID or select one from the available options.",
                         "index": 2,
                         "source": {
-                            "url": "/component/appmixer/cloudflare/account/GetList?outPort=success",
+                            "url": "/component/appmixer/cloudflare/account/AddToIPList?outPort=success",
                             "data": {
                                 "messages": {
                                     "in/account": "inputs/in/account"
@@ -47,6 +48,24 @@
                                 "properties": {
                                     "listFetch": true
                                 }
+                            }
+                        }
+                    },
+                    "ips": {
+                        "type": "expression",
+                        "label": "IPs",
+                        "index": 3,
+                        "levels": ["AND"],
+                        "fields": {
+                            "ip": {
+                                "type": "text",
+                                "label": "IP",
+                                "required": true,
+                                "tooltip": "Enter IPv4 or IPv6."
+                            },
+                            "comment": {
+                                "type": "text",
+                                "label": "Description (optional)."
                             }
                         }
                     }
