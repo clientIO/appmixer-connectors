@@ -1,46 +1,6 @@
 'use strict';
 const lib = require('../../lib');
-
-const query = `
-query CloudResourceSearch(
-    $filterBy: CloudResourceFilters
-    $first: Int
-    $after: String
-  ) {
-    cloudResources(
-      filterBy: $filterBy
-      first: $first
-      after: $after
-    ) {
-      nodes {
-        ...CloudResourceFragment
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-    }
-  }
-  fragment CloudResourceFragment on CloudResource {
-    id
-    name
-    type
-    subscriptionId
-    subscriptionExternalId
-    graphEntity{
-      id
-      providerUniqueId
-      name
-      type
-      projects {
-        id
-      }
-      properties
-      firstSeen
-      lastSeen
-    }
-  }
-`;
+const { getResources } = require('./exposedResources');
 
 const itemSchemaWithTitles = {
     'id': { 'type': 'string', 'title': 'Id' },
@@ -97,6 +57,8 @@ const itemSchemaWithTitles = {
     }
 };
 
+// schema
+
 module.exports = {
 
     // docs: https://win.wiz.io/reference/pull-cloud-resources
@@ -117,39 +79,7 @@ module.exports = {
             }
         }
 
-        let records = [];
-        let nextPageToken = null;
-        let totalRecordsCount = 0;
-        const PAGE_SIZE = 500;
-
-        do {
-            const { data } = await lib.makeApiCall({
-                context,
-                method: 'POST',
-                data: {
-                    query,
-                    variables: {
-                        first: Math.min(PAGE_SIZE, limit - totalRecordsCount),
-                        after: nextPageToken,
-                        filterBy
-                    }
-                }
-            });
-
-            if (data.errors) {
-                throw new context.CancelError(data.errors);
-            }
-
-            const { pageInfo, nodes: pageRecords } = data.data.cloudResources;
-
-            if (pageRecords.length === 0) {
-                return context.sendJson({ filter: filterBy }, 'notFound');
-            }
-
-            records = records.concat(pageRecords);
-            totalRecordsCount += pageRecords.length;
-            nextPageToken = pageInfo.endCursor;
-        } while (nextPageToken && totalRecordsCount < limit);
+        const records = await getResources(context, { filterBy, limit });
 
         return lib.sendArrayOutput({ context, records, outputType });
     }
