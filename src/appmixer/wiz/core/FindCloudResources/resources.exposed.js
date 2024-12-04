@@ -234,6 +234,12 @@ module.exports = {
         let records = [];
 
         do {
+            const filter = {
+                ...filterBy,
+                publicInternetExposureFilters: {
+                    hasApplicationEndpoint: true
+                }
+            };
             const { data } = await lib.makeApiCall({
                 context,
                 method: 'POST',
@@ -242,11 +248,7 @@ module.exports = {
                     variables: {
                         first: Math.min(PAGE_SIZE, limit - totalRecordsCount),
                         after: nextPageToken,
-                        filterBy: {
-                            publicInternetExposureFilters: {
-                                hasApplicationEndpoint: true
-                            }
-                        }
+                        filterBy: filter
                     }
                 }
             });
@@ -257,10 +259,8 @@ module.exports = {
 
             const { pageInfo = {}, nodes } = data.data.networkExposures;
 
-            context.log({ stage: 'rs', nodes, pageInfo });
-
             if (nodes.length === 0) {
-                return context.sendJson({ filter: filterBy }, 'notFound');
+                return context.sendJson({ filter }, 'notFound');
             }
 
             records = records.concat(nodes);

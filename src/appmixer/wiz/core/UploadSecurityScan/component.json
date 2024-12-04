@@ -17,25 +17,13 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "filename": {
-                        "type": "string"
-                    },
-                    "integrationId": {
-                        "type": "string"
-                    },
-                    "dataSourceId": {
-                        "type": "string"
-                    },
-                    "cloudPlatform": {
-                        "type": "string"
-                    },
-                    "providerId": {
-                        "type": "string"
-                    },
-                    "dataSourceAnalysisDate": {
-                        "type": "string"
-                    },
-                    "vulnerabilityFindings": { }
+                    "filename": { "type": "string" },
+                    "integrationId": { "type": "string" },
+                    "dataSourceId": { "type": "string" },
+                    "cloudPlatform": { "type": "string" },
+                    "providerId": { "type": "string" },
+                    "dataSourceAnalysisDate": { "type": "string" },
+                    "events": { "type": "object" }
                 },
                 "required": [
                     "filename",
@@ -43,7 +31,7 @@
                     "dataSourceId",
                     "cloudPlatform",
                     "providerId",
-                    "vulnerabilityFindings"
+                    "events"
                 ]
             },
             "inspector": {
@@ -117,10 +105,10 @@
                             { "label": "GitLab", "value": "GitLab" }
                         ]
                     },
-                    "vulnerabilityFindings": {
+                    "events": {
                         "type": "expression",
                         "index": 6,
-                        "label": "Has an error in it",
+                        "label": "Runtime Events",
                         "levels": ["AND"],
                         "fields": {
                             "id": {
@@ -130,11 +118,31 @@
                                 "tooltip": "The unique ID of the discovered vulnerability finding.",
                                 "required": true
                             },
+                            "timestamp": {
+                                "type": "text",
+                                "index": 2,
+                                "label": "Timestamp",
+                                "tooltip": "The timestamp of the event.",
+                                "required": true
+                            },
                             "name": {
                                 "type": "text",
                                 "index": 2,
                                 "label": "Name",
-                                "tooltip": "The name of the Vulnerability, for example CVE-2021-25288.",
+                                "tooltip": "The name of the event, for example, \"GDPR - Personal Sensitive\".",
+                                "required": true
+                            },
+                            "description": {
+                                "type": "text",
+                                "index": 8,
+                                "label": "Description",
+                                "tooltip": "A description of the finding."
+                            },
+                            "externalFindingLink": {
+                                "type": "text",
+                                "index": 5,
+                                "label": "External Finding Link",
+                                "tooltip": "A link to the source of the external finding.",
                                 "required": true
                             },
                             "severity": {
@@ -145,83 +153,56 @@
                                 "tooltip": "The severity of the vulnerability. Default is Medium",
                                 "required": true,
                                 "options": [
-                                    { "label": "None", "value": "None" },
-                                    { "label": "Low", "value": "Low" },
-                                    { "label": "Medium", "value": "Medium" },
-                                    { "label": "High", "value": "High" }
+                                    { "label": "INFORMATIONAL", "value": "INFORMATIONAL" },
+                                    { "label": "LOW", "value": "LOW" },
+                                    { "label": "MEDIUM", "value": "MEDIUM" },
+                                    { "label": "HIGH", "value": "HIGH" },
+                                    { "label": "CRITICAL", "value": "CRITICAL" }
                                 ]
                             },
-                            "externalDetectionSource": {
-                                "type": "select",
-                                "index": 4,
-                                "label": "External Detection Source",
-                                "defaultValue": "Package",
-                                "tooltip": "The severity of the vulnerability. Default is Medium",
-                                "required": true,
-                                "options": [
-                                    { "label": "Package", "value": "Package" },
-                                    { "label": "Default Package", "value": "DefaultPackage" },
-                                    { "label": "Library", "value": "Library" },
-                                    { "label": "Config File", "value": "ConfigFile" },
-                                    { "label": "Open Port", "value": "OpenPort" },
-                                    { "label": "Startup Service", "value": "StartupService" },
-                                    { "label": "Configuration", "value": "Configuration" },
-                                    { "label": "Cloned Repository", "value": "ClonedRepository" },
-                                    { "label": "OS", "value": "OS" },
-                                    { "label": "Artifacts On Disk", "value": "ArtifactsOnDisk" },
-                                    { "label": "Windows Registry", "value": "WindowsRegistry" },
-                                    { "label": "Installed Program", "value": "InstalledProgram" },
-                                    { "label": "File Path", "value": "FilePath" },
-                                    { "label": "Windows Service", "value": "WindowsService" },
-                                    { "label": "Installed Program By Service", "value": "InstalledProgramByService" },
-                                    { "label": "Hosted Database Scan", "value": "HostedDatabaseScan" },
-                                    { "label": "External Network Scan", "value": "ExternalNetworkScan" },
-                                    { "label": "Cloud API", "value": "CloudAPI" }
-                                ]
+                            "mitreTacticIds": {
+                                "type": "textarea",
+                                "index": 6,
+                                "label": "Mitre Tactic Ids",
+                                "tooltip": "Comma separated list of 'Mitre Technique Ids'. At least one value must be present in the array. Wiz supports V13. <a href=\"https://attack.mitre.org/tactics/enterprise/\" target=\"_blank\">View the list of Mitre Tactic IDs</a>. <br/>For example: TA0001,TA0040",
+                                "required": true
                             },
-                            "externalFindingLink": {
-                                "type": "text",
-                                "index": 5,
-                                "label": "External Finding Link",
-                                "tooltip": "A link to the source of the external finding."
+                            "mitreTechniqueIds": {
+                                "type": "textarea",
+                                "index": 6,
+                                "label": "Mitre Technique Ids",
+                                "tooltip": "Comma separated list of 'Mitre Technique Ids'. At least one value must be present in the array. Wiz supports V13. <a href=\"https://attack.mitre.org/versions/v13/techniques/enterprise/\" target=\"_blank\">View the list of Mitre Technique IDs</a>.<br/>For example: G0094,G1040",
+                                "required": true
                             },
-                            "detailedName": {
+                            "commandLine": {
                                 "type": "text",
                                 "index": 6,
-                                "label": "Detailed Name",
-                                "tooltip": "The details of the externalDetectionSource, such as \"Package,\" should include relevant information about the package. For instance, if the externalDetectionSource is \"libncurses6,\" the \"Details Name\" should reflect details about the package, such as \"libncurses6 package.\"."
+                                "label": "Command Line",
+                                "tooltip": "The text of the command line that triggered the event."
                             },
-                            "version": {
+                            "path": {
                                 "type": "text",
-                                "index": 7,
-                                "label": "Version",
-                                "tooltip": "The version of the finding."
+                                "index": 6,
+                                "label": "Path",
+                                "tooltip": "The Path of the file that triggered the event."
                             },
-                            "description": {
+                            "hash": {
                                 "type": "text",
-                                "index": 8,
-                                "label": "Description",
-                                "tooltip": "A description of the finding."
+                                "index": 6,
+                                "label": "Hash",
+                                "tooltip": "SHA1 hash of a malicious file related to the event."
                             },
-                            "source": {
+                            "principal": {
                                 "type": "text",
-                                "index": 9,
-                                "label": "Source",
-                                "tooltip": "The name of the product that detected the vulnerability."
+                                "index": 6,
+                                "label": "Principal",
+                                "tooltip": "A unique identifier assigned to the actor of this event: ARN—AWS, Resource group—Azure."
                             },
-                            "remediation": {
+                            "ipAddress": {
                                 "type": "text",
-                                "index": 10,
-                                "label": "Remediation",
-                                "required": true,
-                                "tooltip": "The remediation for the vulnerability."
-                            },
-                            "validatedAtRuntime": {
-                                "type": "toggle",
-                                "index": 11,
-                                "label": "Validated At Runtime",
-                                "defaultValue": false,
-                                "tooltip": "Indicates if the finding was detected during runtime (true), or if it was detected during offline or static scanning (false)."
+                                "index": 6,
+                                "label": "IP Address",
+                                "tooltip": "The IP Address of the Actor."
                             }
                         }
                     }

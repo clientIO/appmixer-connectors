@@ -56,7 +56,6 @@ const getStatus = async function(context, id) {
         }
     });
 
-    context.log({ stage: 'STATUS DATA', data, graphURL: context.config.apiEndpointUrl });
     if (data.errors || data?.data?.systemActivity?.status === 'IN_PROGRESS') {
         attempts++;
         if (attempts <= 5) {
@@ -105,6 +104,17 @@ const uploadFile = async function(context, { url, fileContent }) {
     await context.log({ stage: 'UPLOAD FINISHED', uploadData: upload.statusCode, fileContent });
 };
 
+const normalizeEvents = function(events) {
+
+    return events.map(event => {
+        return {
+            ...event,
+            mitreTacticIds: event.mitreTacticIds.split(',').map(item => item.trim()),
+            mitreTechniqueIds: event.mitreTechniqueIds.split(',').map(item => item.trim())
+        };
+    });
+};
+
 const createDocument = function(context) {
 
     const {
@@ -113,7 +123,8 @@ const createDocument = function(context) {
         dataSourceAnalysisDate: analysisDate,
         cloudPlatform,
         providerId,
-        vulnerabilityFindings
+        vulnerabilityFindings,
+        events
     } = context.messages.in.content;
 
     return {
@@ -128,9 +139,10 @@ const createDocument = function(context) {
                         cloudPlatform,
                         providerId
                     },
-                    'vulnerabilityFindings': vulnerabilityFindings.AND.map(finding => {
-                        return { ...finding };
-                    })
+                    // 'vulnerabilityFindings': vulnerabilityFindings.AND.map(finding => {
+                    //     return { ...finding };
+                    // })
+                    'events': normalizeEvents(events.AND)
                 }
             ]
         }]
