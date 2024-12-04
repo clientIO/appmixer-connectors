@@ -29,7 +29,11 @@ module.exports = {
         return response.data; // Return the registered webhook data
     },
 
-    async unregisterWebhook(context, webhookId) {
+    async unregisterWebhook(context) {
+        const {
+            state: { webhookId }
+        } = context;
+
         if (!webhookId) {
             return Promise.resolve();
         }
@@ -45,11 +49,13 @@ module.exports = {
                 'accept-version': '2.0.0'
             }
         });
+
+        // Clear the state after successful deletion
+        await context.saveState({ webhookId: null });
     },
 
     async start(context) {
         const {
-            state: { webhookId },
             properties: { siteId }
         } = context;
 
@@ -63,12 +69,8 @@ module.exports = {
     },
 
     async stop(context) {
-        const {
-            state: { webhookId }
-        } = context;
-
         // Unregister the webhook using the stored ID
-        await this.unregisterWebhook(context, webhookId);
+        await this.unregisterWebhook(context);
     },
 
     async receive(context) {
