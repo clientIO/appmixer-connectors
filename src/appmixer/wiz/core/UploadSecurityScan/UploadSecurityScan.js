@@ -1,5 +1,6 @@
 'use strict';
 const lib = require('../../lib');
+const { generateInspector } = require('./generateInspector');
 
 const query = `query RequestSecurityScanUpload($filename: String!) { 
         requestSecurityScanUpload(filename: $filename) { 
@@ -155,6 +156,10 @@ module.exports = {
     async receive(context) {
 
         const { filename } = context.messages.in.content;
+
+        if (context.properties.generateInspector) {
+            return generateInspector(context);
+        }
 
         const { url, systemActivityId } = await requestUpload(context, { filename });
         await context.log({ stage: 'REQUEST UPLOAD SUCCESS', url, systemActivityId });
