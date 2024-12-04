@@ -1,20 +1,21 @@
 'use strict';
-const Webflow = require('webflow-api');
 
 /**
  * @extends {Component}
  */
 module.exports = {
-
-    receive(context) {
-
+    async receive(context) {
         const token = context.auth.apiKey;
-        const client = new Webflow({ token });
 
-        return client.sites()
-            .then(sites => {
-                return context.sendJson(sites, 'out');
-            });
+        const { data: sites } = await context.httpRequest({
+            url: 'https://api.webflow.com/v2/sites',
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'accept-version': '2.0.0',
+            }
+        });
+
+        return context.sendJson(sites, 'out');
     }
 };
-

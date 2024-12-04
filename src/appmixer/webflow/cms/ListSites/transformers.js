@@ -4,22 +4,17 @@
  * @param {Array.<Object>} items
  */
 module.exports.sitesToSelectArray = items => {
-
-    let transformed = [];
-    if (!items) {
+    const transformed = [];
+    if (!items || !Array.isArray(items.sites)) {
         return transformed;
     }
 
-    if (Array.isArray(items)) {
-        items.forEach(siteItem => {
-
-            transformed.push({
-                label: siteItem.name,
-                // eslint-disable-next-line no-underscore-dangle
-                value: siteItem._id
-            });
+    items.sites.forEach(siteItem => {
+        transformed.push({
+            label: siteItem.displayName || siteItem.shortName || 'Unnamed Site',
+            value: siteItem.id
         });
-    }
+    });
 
     return transformed;
 };

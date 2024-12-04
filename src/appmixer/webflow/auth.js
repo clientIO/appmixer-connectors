@@ -1,11 +1,9 @@
 'use strict';
 
 module.exports = {
-
     type: 'apiKey',
 
     definition: {
-
         auth: {
             apiKey: {
                 type: 'text',
@@ -16,11 +14,11 @@ module.exports = {
 
         validate: {
             method: 'GET',
-            url: 'https://api.webflow.com/sites',
+            url: 'https://api.webflow.com/v2/sites',
             headers: {
                 accept: 'application/json',
                 authorization: 'Bearer {{apiKey}}',
-                'accept-version': '1.0.0',
+                'accept-version': '2.0.0',
                 'Content-Type': 'application/json'
             }
         }

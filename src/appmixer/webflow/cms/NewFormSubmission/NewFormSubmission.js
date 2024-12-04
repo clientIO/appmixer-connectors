@@ -1,73 +1,78 @@
 'use strict';
-const Webflow = require('webflow-api');
+
 const TRIGGER_TYPE = 'form_submission';
-const Promise = require('bluebird');
 
 /**
- * Component trigger, which fires when the form is submitted from your Webflow site.
  * @extends {Component}
  */
 module.exports = {
+    async registerWebhook(apiKey, webhookId, siteId, webhookCallbackUrl, context) {
+        const headers = {
+            Authorization: `Bearer ${apiKey}`,
+            'accept-version': '2.0.0',
+            'Content-Type': 'application/json'
+        };
 
-    registerWebhook(client, webhookId, siteId, webhookCallbackUrl) {
-
-        return this.unregisterWebhook(client, webhookId, siteId)
-            .then(() => {
-                return client.createWebhook({
-                    siteId,
-                    triggerType: TRIGGER_TYPE,
-                    url: webhookCallbackUrl
-                });
-            });
-    },
-
-    unregisterWebhook(client, webhookId, siteId) {
-
-        if (!webhookId) {
-            return Promise.resolve();
+        if (webhookId) {
+            await this.unregisterWebhook(apiKey, webhookId, siteId, context);
         }
 
-        return client.removeWebhook({ siteId, webhookId });
+        const { data } = await context.httpRequest({
+            url: `https://api.webflow.com/v2/sites/${siteId}/webhooks`,
+            method: 'POST',
+            headers,
+            data: {
+                triggerType: TRIGGER_TYPE,
+                url: webhookCallbackUrl
+            }
+        });
+
+        return data;
     },
 
-    start(context) {
+    async unregisterWebhook(apiKey, webhookId, siteId, context) {
+        if (!webhookId) return;
 
-        let {
-            state: { webhookId },
-            properties: { siteId },
-            auth: { apiKey }
-        } = context;
+        const headers = {
+            Authorization: `Bearer ${apiKey}`,
+            'accept-version': '2.0.0'
+        };
 
-        const client = new Webflow({ token: apiKey });
-        return this.registerWebhook(client, webhookId, siteId, context.getWebhookUrl())
-            .then(response => {
-                // eslint-disable-next-line no-underscore-dangle
-                return context.saveState({ webhookId: response._id });
-            });
+        await context.httpRequest({
+            url: `https://api.webflow.com/v2/sites/${siteId}/webhooks/${webhookId}`,
+            method: 'DELETE',
+            headers
+        });
     },
 
-    stop(context) {
+    async start(context) {
+        const { state: { webhookId }, properties: { siteId }, auth: { apiKey } } = context;
 
-        let {
-            state: { webhookId },
-            properties: { siteId },
-            auth: { apiKey }
-        } = context;
+        const webhook = await this.registerWebhook(
+            apiKey,
+            webhookId,
+            siteId,
+            context.getWebhookUrl(),
+            context
+        );
 
-        const client = new Webflow({ token: apiKey });
-        return this.unregisterWebhook(client, webhookId, siteId);
+        await context.saveState({ webhookId: webhook._id });
+    },
+
+    async stop(context) {
+        const { state: { webhookId }, properties: { siteId }, auth: { apiKey } } = context;
+
+        await this.unregisterWebhook(apiKey, webhookId, siteId, context);
     },
 
     async receive(context) {
-
-        let { data } = context.messages.webhook.content;
+        const { data } = context.messages.webhook.content;
 
         if (context.properties.form && data.name !== context.properties.form) {
-            // the webhook is not for the form we're watching
-            return context.response();
+            return context.response(); // Ignore if form doesn't match
         }
+
         await context.sendJson(data, 'out');
         return context.response();
     }
 };
-
