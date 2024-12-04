@@ -12,7 +12,7 @@ module.exports = {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${token}`,
-                'accept-version': '2.0.0',
+                'accept-version': '2.0.0'
             }
         });
 

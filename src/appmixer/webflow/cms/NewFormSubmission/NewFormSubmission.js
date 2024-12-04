@@ -1,77 +1,85 @@
 'use strict';
-
-const TRIGGER_TYPE = 'form_submission';
+const Promise = require('bluebird');
 
 /**
+ * Component trigger, which fires when the form is submitted from your Webflow site.
  * @extends {Component}
  */
 module.exports = {
-    async registerWebhook(apiKey, webhookId, siteId, webhookCallbackUrl, context) {
-        const headers = {
-            Authorization: `Bearer ${apiKey}`,
-            'accept-version': '2.0.0',
-            'Content-Type': 'application/json'
+    async registerWebhook(context, siteId, webhookCallbackUrl) {
+        // Define the API endpoint and payload for registering a webhook
+        const url = `https://api.webflow.com/v2/sites/${siteId}/webhooks`;
+        const payload = {
+            triggerType: 'form_submission',
+            url: webhookCallbackUrl
         };
 
-        if (webhookId) {
-            await this.unregisterWebhook(apiKey, webhookId, siteId, context);
-        }
-
-        const { data } = await context.httpRequest({
-            url: `https://api.webflow.com/v2/sites/${siteId}/webhooks`,
+        // Make the HTTP request to register the webhook
+        const response = await context.httpRequest({
+            url,
             method: 'POST',
-            headers,
-            data: {
-                triggerType: TRIGGER_TYPE,
-                url: webhookCallbackUrl
-            }
+            headers: {
+                Authorization: `Bearer ${context.auth.apiKey}`,
+                'Content-Type': 'application/json',
+                'accept-version': '2.0.0'
+            },
+            data: payload
         });
 
-        return data;
+        return response.data; // Return the registered webhook data
     },
 
-    async unregisterWebhook(apiKey, webhookId, siteId, context) {
-        if (!webhookId) return;
+    async unregisterWebhook(context, webhookId) {
+        if (!webhookId) {
+            return Promise.resolve();
+        }
 
-        const headers = {
-            Authorization: `Bearer ${apiKey}`,
-            'accept-version': '2.0.0'
-        };
-
+        // Define the API endpoint for deleting a webhook
+        const url = `https://api.webflow.com/v2/webhooks/${webhookId}`;
         await context.httpRequest({
-            url: `https://api.webflow.com/v2/sites/${siteId}/webhooks/${webhookId}`,
+            url,
             method: 'DELETE',
-            headers
+            headers: {
+                Authorization: `Bearer ${context.auth.apiKey}`,
+                'Content-Type': 'application/json',
+                'accept-version': '2.0.0'
+            }
         });
     },
 
     async start(context) {
-        const { state: { webhookId }, properties: { siteId }, auth: { apiKey } } = context;
+        const {
+            state: { webhookId },
+            properties: { siteId }
+        } = context;
 
-        const webhook = await this.registerWebhook(
-            apiKey,
-            webhookId,
+        // Register the webhook and save its ID in the state
+        const webhookData = await this.registerWebhook(
+            context,
             siteId,
-            context.getWebhookUrl(),
-            context
+            context.getWebhookUrl()
         );
-
-        await context.saveState({ webhookId: webhook._id });
+        await context.saveState({ webhookId: webhookData.id });
     },
 
     async stop(context) {
-        const { state: { webhookId }, properties: { siteId }, auth: { apiKey } } = context;
+        const {
+            state: { webhookId }
+        } = context;
 
-        await this.unregisterWebhook(apiKey, webhookId, siteId, context);
+        // Unregister the webhook using the stored ID
+        await this.unregisterWebhook(context, webhookId);
     },
 
     async receive(context) {
         const { data } = context.messages.webhook.content;
 
         if (context.properties.form && data.name !== context.properties.form) {
-            return context.response(); // Ignore if form doesn't match
+            // Ignore the webhook if it doesn't match the specified form
+            return context.response();
         }
 
+        // Send the form submission data to the output port
         await context.sendJson(data, 'out');
         return context.response();
     }
