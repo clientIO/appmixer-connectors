@@ -20,12 +20,12 @@ module.exports = {
 
         const headers = {};
 
-        const inputMapping = {
-
+        // Define the request body with folderName
+        const requestBody = {
+            'name': input['folderName'] // Include the folderName provided by the user
         };
-        let requestBody = {};
-        lib.setProperties(requestBody, inputMapping);
 
+        // Set authorization header
         headers['Authorization'] = 'Bearer ' + context.auth.accessToken;
 
         const req = {
@@ -37,6 +37,7 @@ module.exports = {
 
         try {
             const response = await context.httpRequest(req);
+
             const log = {
                 step: 'http-request-success',
                 request: {
@@ -74,5 +75,4 @@ module.exports = {
             throw err;
         }
     }
-
 };
