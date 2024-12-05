@@ -5,6 +5,7 @@ let attempts = 0;
 const getStatus = async function(context, client, { account, id }) {
 
     context.log({ stage: 'GETTING STATUS', id, attempts });
+    // https://developers.cloudflare.com/api/operations/lists-get-bulk-operation-status
     const { data } = await client.callEndpoint(context, {
         action: `/accounts/${account}/rules/lists/bulk_operations/${id}`
     });
@@ -52,7 +53,6 @@ module.exports = {
             if (listFetch) {
                 const { data } = await client.callEndpoint(context, { action: `/accounts/${account}/rules/lists` });
                 const items = data.result.map(item => {
-                    console.log(item);
                     return {
                         label: item.name,
                         value: item.id
@@ -67,22 +67,21 @@ module.exports = {
 
         const ipsList = ips.AND;
 
-        try {
+        // https://developers.cloudflare.com/api/operations/lists-create-list-items
+        const { data } = await client.callEndpoint(context, {
+            method: 'POST',
+            action: `/accounts/${account}/rules/lists/${list}/items`,
+            data: ipsList
+        });
 
-            // https://developers.cloudflare.com/api/operations/lists-create-list-items
-            const { data } = await client.callEndpoint(context, {
-                action: `/accounts/${account}/rules/lists/${list}/items`,
-                method: 'POST',
-                data: ipsList
-            });
+        const status = await getStatus(context, client, { id: data.result.operation_id, account });
 
-            await getStatus(context, client, { id: data.result.operation_id, account });
-            return context.sendJson({ message: `IPs successfully added: ${ipsList.map(item => item.ip).join(',')}` }, OUTPUT_PORT.SUCCESS);
 
-        } catch (err) {
-
-            context.log({ stage: 'ERROR', detail: err?.response || err });
-            return context.sendJson({ message: `Adding IPs failed: ${ipsList.map(item => item.ip).join(', ')}` }, OUTPUT_PORT.FAILURE);
+        if (status.error) {
+            throw new context.CancelError(status.error);
         }
+
+        // return context.sendJson({ message: `IPs successfully added: ${ipsList.map(item => item.ip).join(',')}` }, OUTPUT_PORT.SUCCESS);
+
     }
 };
