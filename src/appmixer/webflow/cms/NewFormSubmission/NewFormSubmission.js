@@ -1,5 +1,4 @@
 'use strict';
-const Promise = require('bluebird');
 
 /**
  * Component trigger, which fires when the form is submitted from your Webflow site.
@@ -35,7 +34,7 @@ module.exports = {
         } = context;
 
         if (!webhookId) {
-            return Promise.resolve();
+            return;
         }
 
         // Define the API endpoint for deleting a webhook
