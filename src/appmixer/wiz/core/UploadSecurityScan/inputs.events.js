@@ -43,7 +43,7 @@ module.exports = {
                 'type': 'select',
                 'index': 6,
                 'label': 'Severity',
-                'defaultValue': 'Medium',
+                'defaultValue': 'MEDIUM',
                 'tooltip': 'The severity of the vulnerability. Default is Medium',
                 'required': true,
                 'options': [
