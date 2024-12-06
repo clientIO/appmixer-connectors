@@ -1,5 +1,4 @@
 const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
-const { OUTPUT_PORT } = require('../../lib');
 
 let attempts = 0;
 const getStatus = async function(context, client, { account, id }) {
@@ -47,7 +46,7 @@ module.exports = {
                     };
                 });
 
-                return context.sendJson(items, OUTPUT_PORT.SUCCESS);
+                return context.sendJson(items, 'out');
             }
 
             if (listFetch) {
@@ -58,11 +57,11 @@ module.exports = {
                         value: item.id
                     };
                 });
-                return context.sendJson(items, OUTPUT_PORT.SUCCESS);
+                return context.sendJson(items, 'out');
             }
 
         } catch (e) {
-            return context.sendJson([], OUTPUT_PORT.SUCCESS);
+            return context.sendJson([], 'out');
         }
 
         const ipsList = ips.AND;
@@ -76,12 +75,13 @@ module.exports = {
 
         const status = await getStatus(context, client, { id: data.result.operation_id, account });
 
-
         if (status.error) {
             throw new context.CancelError(status.error);
         }
 
-        // return context.sendJson({ message: `IPs successfully added: ${ipsList.map(item => item.ip).join(',')}` }, OUTPUT_PORT.SUCCESS);
-
+        return context.sendJson({
+            ...status,
+            ips: ipsList.map(item => item.ip).join(',')
+        }, 'out');
     }
 };
