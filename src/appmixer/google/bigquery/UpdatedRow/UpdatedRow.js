@@ -20,26 +20,23 @@ async function processUpdateRowStream(rowsStream, context, storeId, idField, loc
 
 async function startRoutine(context) {
 
-    const { query, idField, detectOnStop, recordOldValues } = context.properties;
+    const { query, idField, detectOnStop, projectId } = context.properties;
     const storeId = await moduleCommons.ensureStore(context, 'UpdatedRow');
 
     const isInitialized = await context.stateGet('initialized');
     const preRegisterWebhook = isInitialized && detectOnStop;
 
-    const webhookEvents = recordOldValues ? ['update'] : ['insert', 'update'];
-
-    const projectId = await moduleCommons.getProjectId(context);
+    const webhookEvents = ['update'];
 
     // Date.now returns timestamp in ms, but MySQL uses timestamp in seconds
     const now = Date.now();
-    const timeParam = (await context.stateGet('updatedSince')) || now;
 
     const client = new BigQuery({
         authClient: commons.getAuthLibraryOAuth2Client(context.auth),
         projectId
     });
 
-    const params = [recordOldValues ? 0 : timeParam];
+    const params = [0];
 
     if (preRegisterWebhook) {
         await context.store.registerWebhook(storeId, webhookEvents);
@@ -99,10 +96,8 @@ module.exports = {
             return startRoutine(context);
         }
 
-        const { query, idField } = context.properties;
+        const { query, idField, projectId } = context.properties;
         const storeId = await moduleCommons.getStoreId(context);
-
-        const projectId = await moduleCommons.getProjectId(context);
 
         const client = new BigQuery({
             authClient: commons.getAuthLibraryOAuth2Client(context.auth),
@@ -134,20 +129,14 @@ module.exports = {
 
     async receive(context) {
 
-        const { referenceFields, recordOldValues } = context.properties;
+        const { referenceFields } = context.properties;
 
-        if (!recordOldValues && context.messages.webhook.content.data.type === 'insert') {
+        if (context.messages.webhook.content.data.type === 'insert') {
 
             const item = context.messages.webhook.content.data.currentValue;
             await context.sendJson({ updatedRow: item.value }, 'out');
             return context.response('ok');
         } else if (context.messages.webhook.content.data.type === 'update') {
-
-            if (!recordOldValues) {
-                const item = context.messages.webhook.content.data.currentValue;
-                await context.sendJson({ updatedRow: item.value }, 'out');
-                return context.response('ok');
-            }
 
             // Since the "update" data store event fires for any update under the key,
             // we need to check whether the values actually changed before firing the output port.

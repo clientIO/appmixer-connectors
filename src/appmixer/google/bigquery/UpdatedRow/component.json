@@ -25,56 +25,48 @@
         "schema": {
             "type": "object",
             "properties": {
-                "storeId": { "type": "string" },
+                "projectId":{ "type": "string" },
                 "query": { "type": "string" },
                 "idField": { "type": "string" },
                 "referenceFields": { "type": "string" }
             },
-            "required": ["query", "idField"]
+            "required": ["query", "idField", "projectId"]
         },
         "inspector": {
             "inputs": {
-                "storeId": {
+                "projectId": {
                     "type": "select",
-                    "label": "Storage",
+                    "label": "Project",
                     "index": 1,
                     "source": {
-                        "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                        "url": "/component/appmixer/google/bigquery/ListProjects?outPort=out",
                         "data": {
-                            "transform": "./ListStores#toSelectArray"
+                            "transform": "./ListProjects#projectsToSelectArray"
                         }
                     },
-                    "tooltip": "Select a data store. The data store will be used to store data streamed from BigQuery so that we can compare them later to detect new rows. If you do not select a data store, one will be automatically created for you when the flow starts and deleted when the flow stops. If you do select a data store manually, you are responsible for clearing/deleting it when you don't need it anymore (note that the data in the data store is populated automatically, so any data left in the store affects the next flow run)."
-                },
-                "recordOldValues": {
-                    "type": "toggle",
-                    "label": "Record old values",
-                    "index": 2,
-                    "defaultValue": false,
-                    "tooltip": "Include each updated row previous value in the output. In order to do this, is necessary to download all the existing rows to the store, which can be detrimental with very large tables"
+                    "tooltip": "Select a BigQuery project from the list to run your query in."
                 },
                 "detectOnStop": {
                     "type": "toggle",
-                    "index": 3,
+                    "index": 4,
                     "label": "Detect updated rows while stopped",
                     "tooltip": "If this is set to true, rows that are updated while the flow was stopped will be processed next time the flow is started."
                 },
                 "query": {
                     "type": "textarea",
-                    "index": 4,
+                    "index": 5,
                     "label": "SQL Query",
                     "tooltip": "Enter an SQL query. If your query contains a <code>?</code> character placeholder, then the UpdatedRow component replaces the placeholder with the last timestamp (milliseconds since epoch) the component was triggered to query only data that has been added since the the last time the component was triggered. Note that the replaced timestamp is an integer, so you might need to use a function like TIMESTAMP_MILLIS to make date comparisons. Also note that this is only possible if your result set contains an \"updated_at\" type of field. A typical use case is, e.g. <code>select * from myproject.mydataset.mytable where updated_at > TIMESTAMP_MILLIS(?)</code>. If you do not provide the <code>?</code> placeholder, then the component will always query all data periodically."
                 },
                 "idField": {
                     "type": "text",
                     "label": "ID field",
-                    "index": 5,
+                    "index": 6,
                     "tooltip": "Select a column that will be used as reference to detect updated rows. It should be an unique field."
                 },
                 "referenceFields": {
-                    "when": { "eq": { "./recordOldValues": true } },
                     "type": "text",
-                    "index": 6,
+                    "index": 7,
                     "label": "Reference Fields",
                     "tooltip": "A comma separated list of fields from the query result set that will be used to check for changes in rows. If you do not provide Reference Fields, any change in any field is detected."
                 }

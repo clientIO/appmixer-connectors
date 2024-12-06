@@ -1,7 +1,10 @@
 'use strict';
-const moment = require('moment');
 const commons = require('../../jira-commons');
 
+/**
+ * Component which triggers whenever an issue is updated.
+ * @extends {Component}
+ */
 module.exports = {
 
     async tick(context) {
@@ -10,36 +13,45 @@ module.exports = {
         const { project } = context.properties;
 
         let { updatedTime } = await context.loadState();
-        const current = moment().utc().format('YYYY-MM-DD HH:mm');
+
+        const now = Date.now();
 
         if (!updatedTime) {
-            updatedTime = current;
+            updatedTime = now;
         }
 
         const params = {
             maxResults: 100,
-            jql: `updated >= "${updatedTime}"`
+            jql: `updated > ${updatedTime}`
         };
 
         if (project) {
             params.jql += ` AND project = "${project}"`;
         }
 
-        const issues = await commons.pager({
+        params.jql += ' ORDER BY updated ASC';
+
+        const issues = await commons.getAPINoPagination({
             endpoint: `${apiUrl}search`,
             credentials: auth,
             key: 'issues',
             params
         });
 
+        let latestIssueUpdateDate;
         if (Array.isArray(issues) && issues.length > 0) {
-            const promises = [];
-            issues.forEach(issue => {
-                promises.push(context.sendJson(issue, 'issue'));
+            const issuesFiltered = issues.filter(i => {
+                return (new Date(i.fields.updated).valueOf() - new Date(i.fields.created).valueOf()) > 59000;
             });
-            await Promise.all(promises);
+            if (issuesFiltered.length > 0) {
+                const latestIssueIndex = issuesFiltered.length - 1;
+                latestIssueUpdateDate = new Date(issuesFiltered[latestIssueIndex].fields.updated).valueOf();
+                for (const issue of issuesFiltered) {
+                    await context.sendJson(issue, 'issue');
+                }
+            }
         }
 
-        return context.saveState({ updatedTime: current });
+        return context.saveState({ updatedTime: latestIssueUpdateDate ?? now });
     }
 };

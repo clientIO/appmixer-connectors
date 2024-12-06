@@ -12,7 +12,7 @@ module.exports = {
             firstName,
             lastName,
             phone,
-            customFields
+            customFields = {}
         } = context.messages.in.content;
 
         const ac = new ActiveCampaign(auth.url, auth.apiKey);
@@ -37,7 +37,7 @@ module.exports = {
 
         const { data } = await ac.call('put', `contacts/${contactId}`, payload);
 
-        const customFieldsPayload = data.fieldValues.reduce((acc, field) => {
+        const customFieldsPayload = data.fieldValues?.reduce((acc, field) => {
             acc[`customField_${field.field}`] = field.value;
             return acc;
         }, {});

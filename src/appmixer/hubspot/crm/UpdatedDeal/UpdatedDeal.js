@@ -1,110 +1,80 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
+const { WATCHED_PROPERTIES_DEAL } = require('../../commons');
 
 const subscriptionType = 'deal.propertyChange';
 
 class UpdatedDeal extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
-        const properties = await this.getProperties();
-        const subscriptions = [];
-        const unsupported = ['hs_lastmodifieddate'];
-        properties.forEach((property) => {
-            if (
-                !property.hidden &&
-                !property.deleted &&
-                !property.readOnlyValue &&
-                !unsupported.includes(property.name)
-            ) {
-                subscriptions.push({
-                    enabled: true,
-                    subscriptionDetails: {
-                        subscriptionType: this.subscriptionType,
-                        propertyName: property.name
-                    }
-                });
+        const subscriptions = WATCHED_PROPERTIES_DEAL.map((propertyName) => ({
+            enabled: true,
+            subscriptionDetails: {
+                subscriptionType,
+                propertyName
             }
-        });
+        }));
         return subscriptions;
     }
-
-    async getProperties() {
-
-        const { data } = await this.hubspot.call('get', 'crm/v3/properties/deals');
-        return data.results;
-    };
 
     async receive(context) {
 
         this.configureHubspot(context);
 
-        if (context.messages.timeout) {
+        const eventsByObjectId = context.messages.webhook.content.data;
 
-            const { dealId, occurredAt } = context.messages.timeout.content;
-            await context.stateUnset(`deal-${dealId}`);
+        let events = {};
+        // Locking to avoid duplicates. HubSpot payloads can come within milliseconds of each other.
+        let lock;
+        try {
+            lock = await context.lock(context.componentId, {
+                ttl: 1000 * 10,
+                retryDelay: 500,
+                maxRetryCount: 3
+            });
 
-            try {
-                const { data } = await this.hubspot.call('get', `crm/v3/objects/deals/${dealId}`);
-                if (occurredAt > new Date(data.createdAt).getTime() + 1000) {
-                    await context.sendJson(data, 'deal');
-                }
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
+            for (const [dealId, event] of Object.entries(eventsByObjectId)) {
+                const cacheKey = 'hubspot-deal-updated-' + dealId;
+                // Only track changes in these properties. These are the ones present in the CreateDeal inspector.
+                // Even if we limit the subscriptions for these properties only, we need this for flows that
+                // are already running and all the subscriptions.
+                if (WATCHED_PROPERTIES_DEAL.includes(event.propertyName)) {
+                    const cached = await context.staticCache.get(cacheKey);
+                    if (cached && event.occurredAt <= cached) {
+                        continue;
+                    }
+                    // Cache the event for 5s to avoid duplicates
+                    await context.staticCache.set(cacheKey, event.occurredAt, context.config?.eventCacheTTL || 5000);
+                    // Store the event to send it later
+                    events[dealId] = { occurredAt: event.occurredAt };
                 }
             }
+        } finally {
+            await lock?.unlock();
         }
 
-        if (context.messages.webhook) {
-            const eventsByObjectId = context.messages.webhook.content.data;
-            let timeouts = {};
-
-
-            // eslint-disable-next-line no-unused-vars
-            for (const [dealId, event] of Object.entries(eventsByObjectId)) {
-                const validProperties = [
-                    'dealname',
-                    'dealstage',
-                    'pipeline',
-                    'hubSpotOwnerId',
-                    'closedate',
-                    'amount'
-                ];
-
-                if (validProperties.includes(event.propertyName)) {
-                    timeouts[dealId] = { occurredAt: event.occurredAt };
-                }
-            }
-
-            // We are basically debouncing the update event, because Hubspot can send a webhook for
-            // each property that was updated.
-            for (const [dealId, event] of Object.entries(timeouts)) {
-                let lock;
-                try {
-                    lock = await context.lock(`UpdatedDeal-${dealId}`);
-
-                    const previousTimeout = await context.stateGet(`deal-${dealId}`);
-                    let occurrenceTime = event.occurredAt;
-                    if (previousTimeout) {
-                        await context.clearTimeout(previousTimeout.timeoutId);
-                    }
-
-                    const timeoutId = await context.setTimeout(
-                        { dealId, occurredAt: occurrenceTime },
-                        context.config.triggerTimeout || 5000
-                    );
-                    await context.stateSet(`deal-${dealId}`, { timeoutId });
-                } finally {
-                    if (lock) {
-                        lock.unlock();
-                    }
-                }
-            }
-
+        // Get all objectIds
+        const ids = Object.keys(events);
+        if (!ids.length) {
             return context.response();
         }
+
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/deals/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
+
+        const results = [];
+        data.results.forEach((deal) => {
+            if (deal.updatedAt !== deal.createdAt) {
+                results.push(deal);
+            }
+        });
+
+        await context.sendArray(results, 'deal');
+
+        return context.response();
     }
 }
 

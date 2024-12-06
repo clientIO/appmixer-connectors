@@ -5,7 +5,7 @@ const subscriptionType = 'deal.creation';
 
 class NewDeal extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
         return [{
             enabled: true,
@@ -19,47 +19,19 @@ class NewDeal extends BaseSubscriptionComponent {
 
         this.configureHubspot(context);
 
+        const eventsByObjectId = context.messages.webhook.content.data;;
 
-        if (context.messages.webhook) {
+        // Get all objectIds
+        const ids = Object.keys(eventsByObjectId);
 
-            const eventsByObjectId = context.messages.webhook.content.data;
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/deals/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
 
-            for (const [dealId] of Object.entries(eventsByObjectId)) {
-                let lock;
-                try {
-                    lock = await context.lock(`CreatedDeal-${dealId}`);
+        await context.sendArray(data.results, 'deal');
 
-                    const previousTimeout = await context.stateGet(`deal-${dealId}`);
-                    if (previousTimeout) {
-                        await context.clearTimeout(previousTimeout.timeoutId);
-                    }
-
-                    const timeoutId = await context.setTimeout({ dealId }, context.config.triggerTimeout || 5000);
-                    await context.stateSet(`deal-${dealId}`, { timeoutId });
-                } finally {
-                    if (lock) {
-                        lock.unlock();
-                    }
-                }
-            }
-
-            return context.response();
-        }
-
-        if (context.messages.timeout) {
-            const { dealId } = context.messages.timeout.content;
-            await context.stateUnset(`deal-${dealId}`);
-
-            try {
-                const { data } = await this.hubspot.call('get', `crm/v3/objects/deals/${dealId}`);
-                await context.sendJson(data, 'deal');
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
-                }
-            }
-        }
+        return context.response();
     }
 }
 

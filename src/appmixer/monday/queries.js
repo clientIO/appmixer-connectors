@@ -321,10 +321,12 @@ module.exports = {
         column_values {
             id
             value
-            title
             type
-            additional_info
             text
+            column {
+                id
+                title
+            }
         }
         email
         }

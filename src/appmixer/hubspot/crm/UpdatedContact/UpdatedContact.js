@@ -1,120 +1,79 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
+const { WATCHED_PROPERTIES_CONTACT } = require('../../commons');
 
 const subscriptionType = 'contact.propertyChange';
 
 class UpdatedContact extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
-        const properties = await this.getProperties();
-        const subscriptions = [];
-        const unsupported = ['lastmodifieddate'];
-
-        // Subscribe to updates
-        properties.forEach((property) => {
-            if (
-                !property.hidden &&
-                !property.deleted &&
-                !property.readOnlyValue &&
-                !unsupported.includes(property.name)
-            ) {
-                subscriptions.push({
-                    enabled: true,
-                    subscriptionDetails: {
-                        subscriptionType: this.subscriptionType,
-                        propertyName: property.name
-                    }
-                });
+        // Only watching for the properties that are present in the CreateContact inspector.
+        const subscriptions = WATCHED_PROPERTIES_CONTACT.map(propertyName => ({
+            enabled: true,
+            subscriptionDetails: {
+                subscriptionType,
+                propertyName
             }
-        });
+        }));
         return subscriptions;
     }
-
-    async getProperties() {
-
-        const { data } = await this.hubspot.call('get', 'crm/v3/properties/contacts');
-        return data.results;
-    };
 
     async receive(context) {
 
         this.configureHubspot(context);
 
-        if (context.messages.timeout) {
-            const { contactId, occurredAt } = context.messages.timeout.content;
-            await context.stateUnset(`contact-${contactId}`);
+        const eventsByObjectId = context.messages.webhook.content.data;
 
-            try {
-                const { data } = await this.hubspot.call('get', `crm/v3/objects/contacts/${contactId}`);
-                if (occurredAt > new Date(data.createdAt).getTime() + 100) {
-                    await context.sendJson(data, 'contact');
-                }
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
-                }
-            }
-            return;
-        }
+        let events = {};
+        // Locking to avoid duplicates. HubSpot payloads can come within milliseconds of each other.
+        let lock;
 
-        if (context.messages.webhook) {
-            const eventsByObjectId = context.messages.webhook.content.data;
+        try {
+            lock = await context.lock(context.componentId, {
+                ttl: 1000 * 10,
+                retryDelay: 500,
+                maxRetryCount: 3
+            });
 
-            let timeouts = {};
-
-            // eslint-disable-next-line no-unused-vars
             for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-                // Only track changes in these properties. These are the ones present in the CreateContact
-                // inspector.
+                const cacheKey = 'hubspot-deal-updated-' + contactId;
+                // Only track changes in these properties. These are the ones present in the CreateContact inspector.
                 // Even if we limit the subscriptions for these properties only, we need this for flows that
                 // are already running and all the subscriptions.
-                const validProperties = [
-                    'email',
-                    'firstname',
-                    'lastname',
-                    'phone',
-                    'website',
-                    'company',
-                    'address',
-                    'city',
-                    'state',
-                    'zip'
-                ];
-
-                if (validProperties.includes(event.propertyName)) {
-                    timeouts[contactId] = { occurredAt: event.occurredAt };
+                if (WATCHED_PROPERTIES_CONTACT.includes(event.propertyName)) {
+                    const cached = await context.staticCache.get(cacheKey);
+                    if (cached && event.occurredAt <= cached) {
+                        continue;
+                    }
+                    events[contactId] = { occurredAt: event.occurredAt };
                 }
             }
+        } finally {
+            await lock?.unlock();
+        }
 
-            for (const [contactId, event] of Object.entries(timeouts)) {
-
-                let lock;
-                try {
-                    lock = await context.lock(`UpdatedContact-${contactId}`);
-
-                    const previousTimeout = await context.stateGet(`contact-${contactId}`);
-                    let occurrenceTime = event.occurredAt;
-                    if (previousTimeout) {
-                        await context.clearTimeout(previousTimeout.timeoutId);
-                        occurrenceTime = event.occurredAt > previousTimeout.occurredAt
-                            ? event.occurredAt
-                            : previousTimeout.occurredAt;
-                    }
-
-                    const timeoutId = await context.setTimeout(
-                        { contactId, occurredAt: occurrenceTime }, context.config.triggerTimeout || 5000);
-                    await context.stateSet(`contact-${contactId}`, { timeoutId, occurredAt: occurrenceTime });
-                } finally {
-                    if (lock) {
-                        lock.unlock();
-                    }
-                }
-            }
-
+        // Get all objectIds
+        const ids = Object.keys(events);
+        if (!ids.length) {
             return context.response();
         }
+
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
+
+        const results = [];
+        data.results.forEach((contact) => {
+            if (contact.updatedAt !== contact.createdAt) {
+                results.push(contact);
+            }
+        });
+
+        await context.sendArray(results, 'contact');
+
+        return context.response();
     }
 }
 

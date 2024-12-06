@@ -1,8 +1,8 @@
 'use strict';
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
-const stream = require('stream');
-const { PassThrough, pipeline } = stream;
+const { PassThrough, pipeline } = require('stream');
+const { parse } = require('csv-parse/sync'); // Use the synchronous version of csv-parse
 const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
 module.exports = class CSVProcessor {
@@ -362,8 +362,8 @@ module.exports = class CSVProcessor {
     }
 
     /**
-     * @param rows
-     * @param closure
+     * Appends rows to the end of the file.
+     * @param rows {Array} Array of rows to add
      * @return {Promise<*>}
      * @public
      */
@@ -374,24 +374,25 @@ module.exports = class CSVProcessor {
             ttl: parseInt(config.lockTTL, 10) || 60000 // Default 1 minute TTL
         });
 
-        let stream;
+        let readStream;
         let writeStream;
         let lockExtendInterval;
 
         const destroy = function() {
 
-            if (lock) lock.unlock();
-            if (stream) stream.destroy();
+            if (readStream) readStream.destroy();
             if (writeStream) writeStream.destroy();
             if (lockExtendInterval) clearInterval(lockExtendInterval);
+            if (lock) lock.unlock();
         };
 
         try {
 
             const lockExtendTime = parseInt(config.lockExtendTime, 10) || 1000 * 60 * 1;
-            const max = Math.ceil((1000 * 60 * 60) / lockExtendTime); // max execution time 1 hour
+            const max = Math.ceil((1000 * 60 * 22) / lockExtendTime); // max execution time 23 minutes
             let i = 0;
 
+            // Extend the lock every 59 seconds up to 22 minutes
             lockExtendInterval = setInterval(async () => {
                 i++;
                 if (i > max) {
@@ -399,30 +400,64 @@ module.exports = class CSVProcessor {
                     throw new Error('Lock extend failed. Max attempts reached.');
                 }
                 await lock.extend(lockExtendTime);
-            }, config.lockExtendInterval || 10000);
+            }, config.lockExtendInterval || 59000);
 
-            await this.loadHeaders();
-            stream = await this.loadFile();
+            // We're not interested in the data, we just need to read the first row to get the headers and the last line.
+            readStream = await this.context.getFileReadStream(this.fileId);
             writeStream = new PassThrough();
 
-            const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
+            let firstRowRead = true;
+            let lastLine = null;
+            const promise = new Promise((resolve, reject) => {
 
-            // append existing rows
-            for await (const rowData of stream) {
-                writeStream.write(this.formatRow(rowData));
-            }
+                // Reading all data because we need to always check the last line. And sometimes the first line for headers.
+                readStream.on('data', (data) => {
+                    // Read the first row to get the headers. Only if we use headers.
+                    if (firstRowRead && this.withHeaders) {
+                        firstRowRead = false;
+                        try {
+                            this.header = parse(data, { delimiter: this.delimiter })[0];
+                        } catch (error) {
+                            reject(new this.context.CancelError('Error reading headers', error));
+                        }
+                    }
 
-            // append new rows
-            this.writeRows(writeStream, rowsToAdd);
+                    // Save the last line for a check in `end` event.
+                    lastLine = data;
+                });
+                readStream.on('error', reject);
 
-            writeStream.end();
+                readStream.on('end', () => {
+                    // If there is no empty line at the end of the file, add one
+                    if (!lastLine.toString().endsWith('\n')) {
+                        writeStream.write('\n');
+                    }
+                    const rowsToAdd = this.withHeaders ? this.addHeaders(rows, this.getHeaders()) : rows;
+                    // Append new rows to the end of the file
+                    this.writeRows(writeStream, rowsToAdd);
 
-            return await this.context.replaceFileStream(this.fileId, writeStream);
-        } catch (err) {
-            destroy();
-            throw err;
+                    // If all the new rows are empty, warn the user.
+                    if (rowsToAdd.every(row => row.every(cell => !cell))) {
+                        this.context.log({ warning: 'Empty rows added', details: 'Please make sure you are adding the correct data and using the correct delimiter.' });
+                    }
+                });
+
+                const stream = pipeline(
+                    readStream,
+                    writeStream,
+                    (e) => {
+                        if (e) reject(e);
+                    }
+                );
+
+                this.context.replaceFileStream(this.fileId, stream)
+                    .then(resolve)
+                    .catch(reject);
+            });
+
+            return await promise;
         } finally {
-            lock.unlock();
+            destroy();
         }
     }
 
@@ -467,6 +502,7 @@ module.exports = class CSVProcessor {
     /**
      * @return {Promise<*>}
      * @public
+     * @deprecated Use parse from csv-parse instead
      */
     async loadHeaders() {
 

@@ -1,23 +1,15 @@
 'use strict';
 
-const commons = require('../../slack-commons');
-const { SlackAPIError } = require('../../errors');
+const { WebClient } = require('@slack/web-api');
 
 module.exports = {
 
     async receive(context) {
 
         const { channel, ts } = context.messages.in.content;
-        const client = commons.getSlackAPIClient(context.auth.accessToken);
+        const web = new WebClient(context.auth.accessToken);
+        const createdChannel = await web.chat.delete({ channel, ts });
 
-        try {
-            const createdChannel = await client.deleteMessage(channel, ts);
-            return context.sendJson(createdChannel, 'out');
-        } catch (err) {
-            if (err instanceof SlackAPIError) {
-                throw new context.CancelError(err.apiError);
-            }
-            throw err;
-        }
+        return context.sendJson(createdChannel, 'out');
     }
 };
