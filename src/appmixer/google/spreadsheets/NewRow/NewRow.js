@@ -33,11 +33,9 @@ module.exports = {
             return;
         }
 
-
         let diff = [];
 
         // Compare the current index values with the known state
-        // Now considering both the length of the arrays and differences in values
         if (indexValues.length !== known.length) {
             // Determine the range of new rows to fetch
             const startRow = known.length + 1; // +1 because known.length gives us the last known row index
@@ -75,9 +73,10 @@ module.exports = {
                 majorDimension: 'ROWS'
             })).values[0];
 
-            // Send the new rows as output
-            await Promise.map(newRowsRes.values, row => {
-                return context.sendJson(addHeaders(headers, row), 'out');
+            // Send the new rows as output with rowId
+            await Promise.map(newRowsRes.values, (row, index) => {
+                const rowId = startRow + index;
+                return context.sendJson({ rowId, ...addHeaders(headers, row) }, 'out');
             });
         }
 
