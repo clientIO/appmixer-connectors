@@ -16,7 +16,7 @@ module.exports = {
         const res = await context.httpRequest(req);
 
         // Check if the email is valid
-        if (res.data.VERDICT === 'Valid') {
+        if (res.data.DOMAIN_VERDICT === 'Valid') {
             return context.sendJson(res.data, 'valid');
         } else {
             return context.sendJson(res.data, 'invalid');
