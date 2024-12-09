@@ -1,5 +1,4 @@
 const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
-const lib = require('../lib');
 
 let attempts = 0;
 const getStatus = async function(context, client, { account, id }) {
@@ -32,46 +31,24 @@ module.exports = {
     async receive(context) {
 
         const { apiKey, email } = context.auth;
-        const { accountsFetch, listFetch } = context.properties;
         const { account, list, ips } = context.messages.in.content;
-
         const client = new ZoneCloudflareClient({ email, apiKey });
-
-        if (accountsFetch || listFetch) {
-            return await lib.fetchInputs(context, client, { account, listFetch, accountsFetch });
-        }
 
         const ipsList = ips.AND;
 
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await client.callEndpoint(context, {
-            method: 'POST',
+            method: 'DELETE',
             action: `/accounts/${account}/rules/lists/${list}/items`,
-            data: ipsList
+            data: [{
+                id: "lksadjflkadskfjlsadj"
+            }]
         });
 
         const status = await getStatus(context, client, { id: data.result.operation_id, account });
 
         if (status.error) {
             throw new context.CancelError(status.error);
-        }
-
-        if (ttl) {
-            const removeAfter = new Date().getTime() + ttl * 1000;
-            await context.callAppmixer({
-                endPoint: '/plugins/appmixer/imperva/rules-block-ips',
-                method: 'POST',
-                body: {
-                    ruleId: rule.rule_id,
-                    siteId,
-                    removeAfter,
-                    ips,
-                    auth: {
-                        id: context.auth.id,
-                        key: context.auth.key
-                    }
-                }
-            });
         }
 
         return context.sendJson({

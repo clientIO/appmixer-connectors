@@ -29,36 +29,7 @@ function handleResponseError(context, err) {
     }
 }
 
-async function checkAndGetIfFirewallRulesetExists(
-    context,
-    client,
-    rulesets
-) {
-    for (let ruleset of rulesets) {
-        if (
-            ruleset.kind === 'zone' &&
-            ruleset.phase === 'http_request_firewall_custom'
-        ) {
-            const rulesetFromList = ruleset;
-
-            try {
-                console.log('VVVVVVVVVVVVVVvv', rulesetFromList);
-                const validRulesetFromGet = await client.getRules(context, rulesetFromList.id);
-                console.log(validRulesetFromGet);
-                return [rulesetFromList, validRulesetFromGet];
-            } catch (err) {
-                console.log('!!!! -err-----------', err);
-                await context.log({ message: err });
-            }
-        }
-    }
-}
-
 module.exports = {
-    getOrCreateRuleset: async function() {
-
-    },
     output,
-    // checkAndGetIfFirewallRulesetExists,
     handleResponseError
 };

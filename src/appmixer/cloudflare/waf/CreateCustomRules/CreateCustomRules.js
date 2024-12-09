@@ -1,4 +1,4 @@
-const { output, checkAndGetIfFirewallRulesetExists, handleResponseError } = require('./create-custom-rules-handler');
+const { output, handleResponseError } = require('./create-custom-rules-handler');
 const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
 const lib = require('../../lib');
 
