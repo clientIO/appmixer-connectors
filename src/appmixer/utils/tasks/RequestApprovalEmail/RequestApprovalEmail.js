@@ -1,7 +1,5 @@
 'use strict';
-const Promise = require('bluebird');
-const mandrill = require('mandrill-api/mandrill');
-const API_KEY = 'bzjR9BOFhPkojdmK_SCh1A';
+const mailchimp = require('@mailchimp/mailchimp_transactional');
 const { URL } = require('url');
 const { URLSearchParams } = require('url');
 
@@ -85,7 +83,6 @@ const prepareMessage = (context, emailForApproval, data, variables) => {
             </div>`;
 
     return {
-        'key': context.auth.apiKey || API_KEY,
         'message': {
             'html': emailForApproval ? approversEmailTemplate : requestersEmailTemplate,
             'subject': context.config.subject || 'New Task',
@@ -152,11 +149,66 @@ async function sendNotifications(context, taskData) {
 
     const variables = Object.keys(templateData).map(key => ({ name: key, content: templateData[key] }));
 
-    const client = new mandrill.Mandrill(context.auth.apiKey || API_KEY);
-    return Promise.all([
-        client.messages.send(prepareMessage(context, true, templateData, variables)),
-        client.messages.send(prepareMessage(context, false, templateData, variables))
-    ]);
+    const API_KEY = context.auth.apiKey;
+    const client = mailchimp(API_KEY);
+    const messageApprover = prepareMessage(context, true, templateData, variables);
+    const messageRequester = prepareMessage(context, false, templateData, variables);
+
+    // Appmixer cloud solution is used when the API key is not provided or it is the default one created during provisioning.
+    const useCloudApi = isAppmixerDefaultApiKey(API_KEY) || !API_KEY;
+    if (useCloudApi) {
+        const url = process.env.APPMIXER_CLOUD_API_URL ? process.env.APPMIXER_CLOUD_API_URL + '/email/send' : 'https://cloud.appmixer.com/api/email/send';
+        const headers = {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY
+        };
+
+        try {
+            // First send approval email.
+            await context.httpRequest({
+                url,
+                method: 'POST',
+                headers,
+                data: messageApprover
+            });
+            // Then send requester email.
+            await context.httpRequest({
+                url,
+                method: 'POST',
+                headers,
+                data: messageRequester
+            });
+        } catch (error) {
+            throw new context.CancelError('Error occurred:', error);
+        }
+
+        return;
+    }
+
+    // Using tenant's own Mailchimp API key.
+    try {
+        const result1 = await client.messages.send({ message: messageApprover });
+        if (!result1) {
+            throw 'Invalid response from Mailchimp.';
+        }
+        if (['sent', 'queued', 'scheduled'].indexOf(result1[0].status) === -1) {
+            throw (new Error('Email status: ' + result1[0].status +
+                (result1[0].status === 'rejected' ? ', reason: ' + result1[0]['reject_reason'] : '')
+            ));
+        }
+
+        const result2 = await client.messages.send({ message: messageRequester });
+        if (!result2) {
+            throw 'Invalid response from Mailchimp.';
+        }
+        if (['sent', 'queued', 'scheduled'].indexOf(result2[0].status) === -1) {
+            throw (new Error('Email status: ' + result2[0].status +
+                (result2[0].status === 'rejected' ? ', reason: ' + result2[0]['reject_reason'] : '')
+            ));
+        }
+    } catch (err) {
+        throw err;
+    }
 }
 
 module.exports = {
@@ -209,10 +261,15 @@ module.exports = {
     async stop(context) {
 
         const state = await context.loadState();
-        return Promise.map(Object.keys(state), webhookId => {
+        return Promise.all(Object.keys(state).map(webhookId => {
             return context.callAppmixer({
                 endPoint: `/plugins/appmixer/utils/tasks/webhooks/${webhookId}`,
-                method: 'DELETE' });
-        });
+                method: 'DELETE'
+            });
+        }));
     }
 };
+
+function isAppmixerDefaultApiKey(apiKey) {
+    return apiKey?.startsWith('amp_') && apiKey.length === 40;
+}
