@@ -1,28 +1,25 @@
 'use strict';
 
-const request = require('request-promise');
-
 module.exports = {
-
-    receive(context) {
-
-        let email = context.messages.email.content;
-        return request({
+    receive: async (context) => {
+        const email = context.messages.email.content;
+        const req = {
             method: 'GET',
-            url: `https://app.verify-email.org/api/v1/${context.auth.key}/verify/${email.email}`,
+            url: `https://verifyemail.io/api/email?verifyemail&email=${email.email}&apikey=${context.auth.apiKey}`,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-            },
-            json: true,
-            resolveWithFullResponse: true
-        }).then((res) => {
-            res.body.credits = res.headers['x-credits'];
-            if (res.body.status === 1) {
-                return context.sendJson(res.body, 'ok');
-            } else {
-                return context.sendJson(res.body, 'bad');
             }
-        });
+        };
+
+        // Make the HTTP request
+        const res = await context.httpRequest(req);
+
+        // Check if the email is valid
+        if (res.data.VERDICT === 'Valid') {
+            return context.sendJson(res.data, 'valid');
+        } else {
+            return context.sendJson(res.data, 'invalid');
+        }
     }
 };
