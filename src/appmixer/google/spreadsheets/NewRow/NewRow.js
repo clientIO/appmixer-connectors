@@ -45,7 +45,6 @@ module.exports = {
                 diff.push(i);
             }
         } else {
-            // No new rows were added, but we should still check for new or empty rows
             indexValues.forEach((value, rowIndex) => {
                 if (!known.includes(value)) {
                     diff.push(rowIndex + 1); // New row detected
@@ -82,6 +81,28 @@ module.exports = {
 
         // Save the current index values as the known state for the next tick
         await context.saveState({ known: indexValues });
+    },
+
+
+    columnsToSelectArray(headers) {
+        const transformed = [];
+
+        transformed.push({
+            label: 'Row ID',
+            value: 'rowId'
+        });
+
+        if (Array.isArray(headers)) {
+            headers.forEach((header, i) => {
+                const name = header || `column${i + 1}`;
+                transformed.push({
+                    label: name,
+                    value: name
+                });
+            });
+        }
+
+        return transformed;
     }
 };
 
