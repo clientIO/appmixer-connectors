@@ -93,7 +93,7 @@ module.exports = {
             };
             toolsDefinition.push(toolDefinition);
         });
-        return toolsDefinition;        
+        return toolsDefinition;
     },
 
     handleRunStatus: async function(context, client, thread, run) {
@@ -114,8 +114,8 @@ module.exports = {
             await context.log({ step: 'unexpected-run-state', run });
         }
     },
-    
-    handleRequiresAction: async function(context, client, thread, run) {    
+
+    handleRequiresAction: async function(context, client, thread, run) {
 
         await context.log({ step: 'requires-action', run });
 
@@ -126,7 +126,6 @@ module.exports = {
             run.required_action.submit_tool_outputs.tool_calls
         ) {
             // Loop through each tool in the required action section.
-            const toolOutputs = [];
             const toolCalls = [];
             for (const toolCall of run.required_action.submit_tool_outputs.tool_calls) {
                 const componentId = toolCall.function.name;
@@ -163,18 +162,18 @@ module.exports = {
             }
             await context.log({ step: 'collected-tools-output', threadId: thread.id, runId: run.id, outputs });
 
-            // Submit tool outputs to the assistant.            
+            // Submit tool outputs to the assistant.
             if (outputs && outputs.length) {
                 await context.log({ step: 'tool-outputs', tools: toolCalls, outputs });
                 run = await client.beta.threads.runs.submitToolOutputsAndPoll(
                     thread.id,
                     run.id,
-                    { tool_outputs: outputs },
+                    { tool_outputs: outputs }
                 );
             } else {
                 await context.log({ step: 'no-tool-outputs', tools: toolCalls });
             }
-            
+
             // Check status after submitting tool outputs.
             return this.handleRunStatus(context, client, thread, run);
         }
