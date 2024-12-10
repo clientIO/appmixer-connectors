@@ -177,27 +177,27 @@ async function sendNotifications(context, taskData) {
     // Using tenant's own Mailchimp API key.
     const client = mailchimp(API_KEY);
     try {
-        const result1 = await client.messages.send(messageApprover);
-        if (!result1) {
-            throw 'Invalid response from Mailchimp for the approver email.';
-        }
-        if (['sent', 'queued', 'scheduled'].indexOf(result1[0].status) === -1) {
-            throw (new Error('Email status: ' + result1[0].status +
-                (result1[0].status === 'rejected' ? ', reason: ' + result1[0]['reject_reason'] : '')
-            ));
-        }
-
-        const result2 = await client.messages.send(messageRequester);
-        if (!result2) {
-            throw 'Invalid response from Mailchimp for the requester email.';
-        }
-        if (['sent', 'queued', 'scheduled'].indexOf(result2[0].status) === -1) {
-            throw (new Error('Email status: ' + result2[0].status +
-                (result2[0].status === 'rejected' ? ', reason: ' + result2[0]['reject_reason'] : '')
-            ));
-        }
+        await sendMailchimpEmail(client, messageApprover);
+        await sendMailchimpEmail(client, messageRequester);
     } catch (err) {
         throw err;
+    }
+}
+
+async function sendMailchimpEmail(client, message) {
+
+    const result = await client.messages.send(message);
+    if (!result) {
+        throw 'Invalid response from Mailchimp for the approver email.';
+    }
+    // Check for Axios error response.
+    if (result.name === 'AxiosError') {
+        throw new Error('Error occurred: ' + result.message);
+    }
+    if (['sent', 'queued', 'scheduled'].indexOf(result[0].status) === -1) {
+        throw (new Error('Email status: ' + result[0].status +
+            (result[0].status === 'rejected' ? ', reason: ' + result[0]['reject_reason'] : '')
+        ));
     }
 }
 
