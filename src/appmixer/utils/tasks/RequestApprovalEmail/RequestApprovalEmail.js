@@ -149,9 +149,7 @@ async function sendNotifications(context, taskData) {
     };
 
     const variables = Object.keys(templateData).map(key => ({ name: key, content: templateData[key] }));
-
     const API_KEY = context.auth.apiKey;
-
     const messageApprover = prepareMessage(context, true, templateData, variables);
     const messageRequester = prepareMessage(context, false, templateData, variables);
 
