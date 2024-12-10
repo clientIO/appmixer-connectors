@@ -1,4 +1,5 @@
 'use strict';
+
 const mailchimp = require('@mailchimp/mailchimp_transactional');
 const { URL } = require('url');
 const { URLSearchParams } = require('url');
@@ -150,7 +151,7 @@ async function sendNotifications(context, taskData) {
     const variables = Object.keys(templateData).map(key => ({ name: key, content: templateData[key] }));
 
     const API_KEY = context.auth.apiKey;
-    const client = mailchimp(API_KEY);
+
     const messageApprover = prepareMessage(context, true, templateData, variables);
     const messageRequester = prepareMessage(context, false, templateData, variables);
 
@@ -165,19 +166,9 @@ async function sendNotifications(context, taskData) {
 
         try {
             // First send approval email.
-            await context.httpRequest({
-                url,
-                method: 'POST',
-                headers,
-                data: messageApprover
-            });
+            await context.httpRequest({ url, method: 'POST', headers, data: messageApprover });
             // Then send requester email.
-            await context.httpRequest({
-                url,
-                method: 'POST',
-                headers,
-                data: messageRequester
-            });
+            await context.httpRequest({ url, method: 'POST', headers, data: messageRequester });
         } catch (error) {
             throw new context.CancelError('Error occurred:', error);
         }
@@ -186,10 +177,11 @@ async function sendNotifications(context, taskData) {
     }
 
     // Using tenant's own Mailchimp API key.
+    const client = mailchimp(API_KEY);
     try {
-        const result1 = await client.messages.send({ message: messageApprover });
+        const result1 = await client.messages.send(messageApprover);
         if (!result1) {
-            throw 'Invalid response from Mailchimp.';
+            throw 'Invalid response from Mailchimp for the approver email.';
         }
         if (['sent', 'queued', 'scheduled'].indexOf(result1[0].status) === -1) {
             throw (new Error('Email status: ' + result1[0].status +
@@ -197,9 +189,9 @@ async function sendNotifications(context, taskData) {
             ));
         }
 
-        const result2 = await client.messages.send({ message: messageRequester });
+        const result2 = await client.messages.send(messageRequester);
         if (!result2) {
-            throw 'Invalid response from Mailchimp.';
+            throw 'Invalid response from Mailchimp for the requester email.';
         }
         if (['sent', 'queued', 'scheduled'].indexOf(result2[0].status) === -1) {
             throw (new Error('Email status: ' + result2[0].status +
