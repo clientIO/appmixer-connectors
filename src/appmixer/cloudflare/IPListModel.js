@@ -3,33 +3,31 @@
 module.exports = context => {
 
     /** Model for component SetBlockIPRule. Collection name: pluginAppmixerImpervaBlockIPRules */
-    class BlockIPRuleModel extends context.db.Model {
+    class IPListModel extends context.db.Model {
 
         static get collection() {
 
-            return 'blockIPRules';
+            return 'ipList';
         }
 
         static get idProperty() {
 
-            return 'ruleId';
+            return 'id';
         }
 
         static get properties() {
 
             return [
-                'ruleId',
-                'siteId',
-                'ips',
+                'id',
+                'ip',
                 'removeAfter',
-                'created',
                 'auth'
             ];
         }
     }
 
-    BlockIPRuleModel.createSettersAndGetters();
+    IPListModel.createSettersAndGetters();
 
-    return BlockIPRuleModel;
+    return IPListModel;
 };
 

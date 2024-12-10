@@ -2,21 +2,30 @@
 
 module.exports = (context, options) => {
 
-    const BlockIPRuleModel = require('./BlockIPRuleModel')(context);
+    const IPListModel = require('./IPListModel')(context);
 
     context.http.router.register({
         method: 'POST',
-        path: '/rules-block-ips',
+        path: '/ip-list',
         options: {
             handler: async req => {
 
-                const payload = req.payload;
-
-                return new BlockIPRuleModel().populate({
-                    ...payload,
-                    created: new Date()
-                }).save();
+                const items = req.payload.items;
+                const operations = items.map(item => ({
+                    updateOne: {
+                        filter: { id: item.id }, update: { $set: item }, upsert: true
+                    }
+                }));
+                return await (context.db.collection(IPListModel.collection)).bulkWrite(operations);
             }
         }
     });
+
+    // context.http.router.register({
+    //     method: 'GET', path: '/ip-list', options: {
+    //         handler: async req => {
+    //             return IPListModel.find({});
+    //         }
+    //     }
+    // });
 };

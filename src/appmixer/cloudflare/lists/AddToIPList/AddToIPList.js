@@ -28,12 +28,36 @@ const getStatus = async function(context, client, { account, id }) {
     return data.result;
 };
 
+const getIds = async function({ context, client, ips = [], account, list, removeAfter }) {
+
+    const result = [];
+    for (let ip of ips) {
+
+        const { data } = await client.callEndpoint(context, {
+            method: 'GET',
+            action: `/accounts/${account}/rules/lists/${list}/items`,
+            params: {
+                per_page: 1,
+                search: ip
+            }
+        });
+
+        if (data?.result[0]) {
+            result.push({
+                ...data.result[0]
+            });
+        }
+    }
+
+    return result;
+};
+
 module.exports = {
     async receive(context) {
 
         const { apiKey, email } = context.auth;
         const { accountsFetch, listFetch } = context.properties;
-        const { account, list, ips } = context.messages.in.content;
+        const { account, list, ips, ttl } = context.messages.in.content;
 
         const client = new ZoneCloudflareClient({ email, apiKey });
 
@@ -42,6 +66,10 @@ module.exports = {
         }
 
         const ipsList = ips.AND;
+
+        if (ipsList.length > 10) {
+            throw new context.CancelError('Maximum IPs count it 10.');
+        }
 
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await client.callEndpoint(context, {
@@ -58,25 +86,30 @@ module.exports = {
 
         if (ttl) {
             const removeAfter = new Date().getTime() + ttl * 1000;
+            const listItemsWithIds = await getIds({ context, client, ips: ipsList, account, list });
+
+            const dbItems = listItemsWithIds.map(item => {
+                const { ip, id } = item;
+                return {
+                    ip, id,
+                    removeAfter,
+                    auth: {
+                        email, apiKey, account, list
+                    }
+                };
+            });
+
             await context.callAppmixer({
-                endPoint: '/plugins/appmixer/imperva/rules-block-ips',
+                endPoint: '/plugins/appmixer/cloudflare/ip-list',
                 method: 'POST',
                 body: {
-                    ruleId: rule.rule_id,
-                    siteId,
-                    removeAfter,
-                    ips,
-                    auth: {
-                        id: context.auth.id,
-                        key: context.auth.key
-                    }
+                    items: dbItems
                 }
             });
         }
 
         return context.sendJson({
-            ...status,
-            ips: ipsList.map(item => item.ip).join(',')
+            ...status
         }, 'out');
     }
 };

@@ -107,7 +107,8 @@ module.exports = class ZoneCloudflareClient {
     async callEndpoint(context, {
         action,
         method = 'GET',
-        data
+        data,
+        params
     }) {
 
         const headers = this.getHeaders();
@@ -116,7 +117,8 @@ module.exports = class ZoneCloudflareClient {
             method,
             url: `https://api.cloudflare.com/client/v4${action}`,
             headers,
-            data
+            data,
+            params
         });
     }
 
