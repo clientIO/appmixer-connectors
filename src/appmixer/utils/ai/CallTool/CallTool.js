@@ -7,20 +7,25 @@ module.exports = {
         if (context.properties.generateOutputPortOptions) {
             return this.getOutputPortOptions(context);
         }
-
-        if (context.messages.webhook) {
-            // Tool chain triggered by AI Agent.
-            await context.sendJson(context.messages.webhook.content.data, 'out');
-            return context.response({});
+        const { toolCalls } = context.messages.in.originalContent;
+        for (const toolCall of toolCalls) {
+            // Process only those tool calls that are for this component.
+            // This is because the AI Agent fans out all tool calls by using sendJson(..., 'tools').
+            if (toolCall.componentId === context.componentId) {
+                const out = { args: toolCall.args, toolCallId: toolCall.id };
+                await context.sendJson(out, 'out');
+            }
         }
     },
 
     getOutputPortOptions(context) {
 
         const options = [];
-        context.properties.parameters.ADD.forEach(parameter => {
-            options.push({ label: parameter.name, value: parameter.name, schema: { type: parameter.type } });
+        const parameters = context.properties.parameters?.ADD || [];
+        parameters.forEach(parameter => {
+            options.push({ label: parameter.name, value: 'args.' + parameter.name, schema: { type: parameter.type } });
         });
+        options.push({ label: 'Tool Call ID', value: 'toolCallId', schema: { type: 'string' } });
         return context.sendJson(options, 'out');
     }
 };

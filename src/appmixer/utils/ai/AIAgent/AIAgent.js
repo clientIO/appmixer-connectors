@@ -1,6 +1,11 @@
 'use strict';
 
+const { max } = require('lodash');
 const OpenAI = require('openai');
+
+const COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT = 60 * 1000;  // 60 seconds
+const COLLECT_TOOL_OUTPUTS_POLL_INTERVAL = 1 * 1000;  // 1 second
+const MAX_RUN_DURATION = 5 * 60 * 1000;  // 5 minutes
 
 module.exports = {
 
@@ -101,8 +106,13 @@ module.exports = {
 
     handleRunStatus: async function(context, client, thread, run) {
 
-        await context.log({ step: 'run-status', run });
+        if (Date.now() - (run.created_at * 1000) > MAX_RUN_DURATION) {
+            await context.log({ step: 'run-timeout', run });
+            await client.beta.threads.runs.cancel(thread.id, run.id);
+            throw new context.CancelError('The run took too long to complete.');
+        }
 
+        await context.log({ step: 'run-status', run });
         // Check if the run is completed
         if (run.status === 'completed') {
             let messages = await client.beta.threads.messages.list(thread.id);
@@ -128,41 +138,32 @@ module.exports = {
             run.required_action.submit_tool_outputs &&
             run.required_action.submit_tool_outputs.tool_calls
         ) {
-            // Loop through each tool in the required action section.
             const toolCalls = [];
             for (const toolCall of run.required_action.submit_tool_outputs.tool_calls) {
                 const componentId = toolCall.function.name;
                 const args = JSON.parse(toolCall.function.arguments);
-                toolCalls.push({ componentId, args, toolCallId: toolCall.id });
-
-                await context.log({ step: 'call-tool', toolCallId: toolCall.id, componentId, args });
-                // Trigger the CallTool component.
-                await context.callAppmixer({
-                    endPoint: `/flows/${context.flowId}/components/${componentId}`,
-                    method: 'POST',
-                    body: args,
-                    qs: { enqueueOnly: true, correlationId: toolCall.id }
-                });
+                toolCalls.push({ componentId, args, id: toolCall.id });
             }
+
+            // Send to all tools. Each ai.CallTool ignores tool calls that are not intended for it.
+            await context.sendJson({ toolCalls, prompt: context.messages.in.content.prompt }, 'tools');
 
             // Output of each tool is expected to be stored in the service state
             // under the ID of the tool call. This is done in the CallToolOutput component.
             // Collect outputs of all the required tool calls.
             await context.log({ step: 'collect-tools-output', threadId: thread.id, runId: run.id });
             const outputs = [];
-            const pollInterval = 1000;
-            const pollTimeout = 20000;
             const pollStart = Date.now();
-            while ((outputs.length < toolCalls.length) && (Date.now() - pollStart < pollTimeout)) {
+            while ((outputs.length < toolCalls.length) && (Date.now() - pollStart < COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT)) {
                 for (const toolCall of toolCalls) {
-                    const output = await context.service.stateGet(toolCall.toolCallId);
-                    if (output) {
-                        outputs.push({ tool_call_id: toolCall.toolCallId, output });
-                        await context.service.stateUnset(toolCall.toolCallId);
+                    const result = await context.flow.stateGet(toolCall.id);
+                    if (result) {
+                        outputs.push({ tool_call_id: toolCall.id, output: result.output });
+                        await context.flow.stateUnset(toolCall.id);
                     }
                 }
                 // Sleep.
-                await new Promise((resolve) => setTimeout(resolve, pollInterval));
+                await new Promise((resolve) => setTimeout(resolve, COLLECT_TOOL_OUTPUTS_POLL_INTERVAL));
             }
             await context.log({ step: 'collected-tools-output', threadId: thread.id, runId: run.id, outputs });
 
@@ -174,12 +175,12 @@ module.exports = {
                     run.id,
                     { tool_outputs: outputs }
                 );
+                // Check status after submitting tool outputs.
+                await this.handleRunStatus(context, client, thread, run);
+
             } else {
                 await context.log({ step: 'no-tool-outputs', tools: toolCalls });
             }
-
-            // Check status after submitting tool outputs.
-            return this.handleRunStatus(context, client, thread, run);
         }
     },
 
