@@ -34,15 +34,3 @@ module.exports = {
 
 };
 
-// function extractIps(expression) {
-//     const ipRegex = /ip\.src eq (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g;
-//
-//     const ipRegex = /ip\.src in \{([\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?: \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})*)\}/g;
-//     const ips = [];
-//     let match;
-//     while ((match = ipRegex.exec(expression)) !== null) {
-//         const matchedIps = match[1].split(' ');
-//         ips.push(...matchedIps);
-//     }
-//     return ips;
-// }

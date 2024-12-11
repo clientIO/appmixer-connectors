@@ -28,27 +28,6 @@ const getStatus = async function(context, client, { account, id }) {
     return data.result;
 };
 
-const getIds = async function({ context, client, ips = [], account, list, removeAfter }) {
-
-    const result = [];
-    for (let ipItem of ips) {
-
-        const { data } = await client.callEndpoint(context, {
-            method: 'GET',
-            action: `/accounts/${account}/rules/lists/${list}/items`,
-            params: {
-                per_page: 1,
-                search: ipItem.ip
-            }
-        });
-
-        if (data?.result[0] && data?.result.length === 1) {
-            result.push({ ...data.result[0] });
-        }
-    }
-
-    return result;
-};
 
 module.exports = {
     async receive(context) {
@@ -84,7 +63,7 @@ module.exports = {
 
         if (ttl) {
             const removeAfter = new Date().getTime() + ttl * 1000;
-            const listItemsWithIds = await getIds({ context, client, ips: ipsList, account, list });
+            const listItemsWithIds = await client.findIdsForIPs({ context, client, ips: ipsList, account, list });
 
             const dbItems = listItemsWithIds.map(item => {
                 const { ip, id } = item;
