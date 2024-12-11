@@ -41,39 +41,43 @@ module.exports = {
     },
 
     getOutputPortOptions(context, outputType) {
-        if (outputType === 'object' || outputType === 'first') {
-            return context.sendJson([
-                { label: 'Organization ID', value: 'id' },
-                { label: 'Name', value: 'name' },
-                { label: 'Visible To', value: 'visible_to' },
-                { label: 'Details', value: 'details', schema: { type: 'object', properties: {} } }
-            ], outputPortName);
-        } else if (outputType === 'array') {
-            return context.sendJson([
-                {
-                    label: 'Organizations',
-                    value: 'records',
-                    schema: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                id: { label: 'Organization ID', value: 'id' },
-                                name: { label: 'Name', value: 'name' },
-                                visible_to: { label: 'Visible To', value: 'visible_to' },
-                                details: { label: 'Details', value: 'details', schema: { type: 'object', properties: {} } }
+        switch (outputType) {
+            case 'first':
+            case 'object':
+                return context.sendJson([
+                    { label: 'Organization ID', value: 'id' },
+                    { label: 'Name', value: 'name' },
+                    { label: 'Visible To', value: 'visible_to' },
+                    { label: 'Details', value: 'details', schema: { type: 'object', properties: {} } }
+                ], outputPortName);
+
+            case 'array':
+                return context.sendJson([
+                    {
+                        label: 'Organizations',
+                        value: 'records',
+                        schema: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    id: { label: 'Organization ID', value: 'id' },
+                                    name: { label: 'Name', value: 'name' },
+                                    visible_to: { label: 'Visible To', value: 'visible_to' },
+                                    details: { label: 'Details', value: 'details', schema: { type: 'object', properties: {} } }
+                                }
                             }
                         }
                     }
-                }
-            ], outputPortName);
-        } else if (outputType === 'file') {
-            return context.sendJson([
-                { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
-            ], outputPortName);
-        } else {
-            // Default to array output
-            return context.sendJson([], outputPortName);
+                ], outputPortName);
+
+            case 'file':
+                return context.sendJson([
+                    { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
+                ], outputPortName);
+
+            default:
+                return context.cancelError('Unsupported outputType ' + outputType);
         }
     }
 };
