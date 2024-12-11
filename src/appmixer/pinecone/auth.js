@@ -19,7 +19,7 @@ module.exports = {
 
             validate: async (context) => {
                 const pinecone = new Pinecone({
-                  apiKey: context.apiKey
+                    apiKey: context.apiKey
                 });
                 await pinecone.listIndexes();
                 return true;

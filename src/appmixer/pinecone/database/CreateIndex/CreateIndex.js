@@ -16,21 +16,21 @@ module.exports = {
         } = context.messages.in.content;
 
         const pinecone = new Pinecone({
-          apiKey: context.auth.apiKey
+            apiKey: context.auth.apiKey
         });
         const index = await pinecone.createIndex({
             name,
             dimension,
             metric,
             spec: {
-              serverless: {
-                cloud: serverlessCloud,
-                region: serverlessRegion
-              }
+                serverless: {
+                    cloud: serverlessCloud,
+                    region: serverlessRegion
+                }
             },
             deletionProtection
         });
 
-          return context.sendJson({ index }, 'out');
+        return context.sendJson({ index }, 'out');
     }
 };
