@@ -5,9 +5,7 @@ module.exports = (context, options) => {
     const IPListModel = require('./IPListModel')(context);
 
     context.http.router.register({
-        method: 'POST',
-        path: '/ip-list',
-        options: {
+        method: 'POST', path: '/ip-list', options: {
             handler: async req => {
 
                 const items = req.payload.items;
@@ -21,11 +19,11 @@ module.exports = (context, options) => {
         }
     });
 
-    // context.http.router.register({
-    //     method: 'GET', path: '/ip-list', options: {
-    //         handler: async req => {
-    //             return IPListModel.find({});
-    //         }
-    //     }
-    // });
+    context.http.router.register({
+        method: 'GET', path: '/ip-list', options: {
+            handler: async req => {
+                return IPListModel.find({});
+            }
+        }
+    });
 };

@@ -21,7 +21,8 @@ module.exports = context => {
                 'id',
                 'ip',
                 'removeAfter',
-                'auth'
+                'auth',
+                'mtime'
             ];
         }
     }

@@ -31,21 +31,19 @@ const getStatus = async function(context, client, { account, id }) {
 const getIds = async function({ context, client, ips = [], account, list, removeAfter }) {
 
     const result = [];
-    for (let ip of ips) {
+    for (let ipItem of ips) {
 
         const { data } = await client.callEndpoint(context, {
             method: 'GET',
             action: `/accounts/${account}/rules/lists/${list}/items`,
             params: {
                 per_page: 1,
-                search: ip
+                search: ipItem.ip
             }
         });
 
-        if (data?.result[0]) {
-            result.push({
-                ...data.result[0]
-            });
+        if (data?.result[0] && data?.result.length === 1) {
+            result.push({ ...data.result[0] });
         }
     }
 

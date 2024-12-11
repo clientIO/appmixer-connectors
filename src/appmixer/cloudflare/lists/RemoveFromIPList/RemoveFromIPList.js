@@ -16,8 +16,8 @@ const getStatus = async function(context, client, { account, id }) {
 
     if (data?.result?.status !== 'completed') {
         attempts++;
-        if (attempts <= 5) {
-            await new Promise(r => setTimeout(r, 2000));
+        if (attempts <= 10) {
+            await new Promise(r => setTimeout(r, 1000));
             return await getStatus(context, client, { account, id });
         } else {
             throw new context.CancelError(data.errors);
