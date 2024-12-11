@@ -25,7 +25,7 @@ module.exports = {
         const query = {
             vector: typeof vector === 'string' ? JSON.parse(vector) : vector,
             filter: typeof filter === 'string' ? JSON.parse(filter) : filter,
-            topK,
+            topK: topK || 10,
             includeValues,
             includeMetadata: aggregateMetadataField ? true : includeMetadata
         };
