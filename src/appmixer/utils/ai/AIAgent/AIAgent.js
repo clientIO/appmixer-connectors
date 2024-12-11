@@ -73,11 +73,12 @@ module.exports = {
 
         Object.keys(tools).forEach((componentId) => {
             const component = tools[componentId];
+            const parameters = component.config.properties.parameters?.ADD || [];
             const toolParameters = {
                 type: 'object',
                 properties: {}
             };
-            component.config.properties.parameters.ADD.forEach((parameter) => {
+            parameters.forEach((parameter) => {
                 toolParameters.properties[parameter.name] = {
                     type: parameter.type,
                     description: parameter.description
@@ -88,9 +89,11 @@ module.exports = {
                 function: {
                     name: componentId,
                     description: component.config.properties.description,
-                    parameters: toolParameters
                 }
             };
+            if (parameters.length) {
+                toolDefinition.function.parameters = toolParameters;
+            }
             toolsDefinition.push(toolDefinition);
         });
         return toolsDefinition;
@@ -133,6 +136,7 @@ module.exports = {
                 toolCalls.push({ componentId, args, toolCallId: toolCall.id });
 
                 await context.log({ step: 'call-tool', toolCallId: toolCall.id, componentId, args });
+                // Trigger the CallTool component.
                 await context.callAppmixer({
                     endPoint: `/flows/${context.flowId}/components/${componentId}`,
                     method: 'POST',
