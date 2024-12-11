@@ -1,6 +1,4 @@
 'use strict';
-const oneDriveAPI = require('onedrive-api');
-const commons = require('../../microsoft-commons');
 
 module.exports = {
 
@@ -8,18 +6,23 @@ module.exports = {
 
         const { driveId, itemId, itemPath } = context.messages.in.content;
 
-        const { accessToken, profileInfo } = context.auth;
+        const { accessToken } = context.auth;
 
-        const getFile = await commons.formatError(async () => {
-            return oneDriveAPI.items.getMetadata({
-                accessToken,
-                itemId,
-                itemPath,
-                drive: 'drive',
-                driveId
-            });
-        }, `Failed to get the file "${itemId || itemPath}" from your SharePoint account (${profileInfo.userPrincipalName}).`);
+        let url = '';
+        if (itemId) {
+            url = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${itemId}`;
+        } else {
+            url = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${itemPath}`;
+        }
 
-        return context.sendJson(getFile, 'out');
+        const { data } = await context.httpRequest({
+            method: 'GET',
+            url,
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            }
+        });
+
+        return context.sendJson(data, 'out');
     }
 };
