@@ -1,7 +1,7 @@
 {
     "name": "appmixer.google.spreadsheets.NewRow",
     "author": "Tomáš Waldauf <tomas@client.io>",
-    "description": "This trigger fires any time a new row is added to your spreadsheet. In order to work properly, the worksheet has to contain a header row.",
+    "description": "This trigger fires whenever a new row is added to your Google Spreadsheet. It works by monitoring a specific column (chosen by you) as the 'Index Column'. The worksheet must have a header row for proper operation. Note: The trigger is optimized for detecting rows added at the bottom of the sheet. If rows are added in between existing rows, or if there are non-unique values in the index column, the trigger may not function as expected.",
     "tick": true,
     "outPorts": [
         {
@@ -13,7 +13,7 @@
                         "sheetId": "properties/sheetId",
                         "worksheetId": "properties/worksheetId"
                     },
-                    "transform": "./ListColumns#columnsToSelectArray"
+                    "transform": "./ListColumns#columnsToSelectArrayWithRow"
                 }
             }
         }
@@ -40,11 +40,15 @@
                 },
                 "worksheetId": {
                     "type": "string"
+                },
+                "index": {
+                    "type": "string"
                 }
             },
             "required": [
                 "sheetId",
-                "worksheetId"
+                "worksheetId",
+                "index"
             ]
         },
         "inspector": {
@@ -75,6 +79,12 @@
                         }
                     },
                     "tooltip": "Select worksheet."
+                },
+                "index": {
+                    "type": "text",
+                    "label": "Index Column",
+                    "index": 3,
+                    "tooltip": "Specify the column letter that will be used as the Index Column (e.g., 'A' for the first column, 'AA' for the 27th). The trigger will monitor this column to detect new rows. For best results, use a column where each value is unique. Note that if rows are added in between existing rows, the trigger may not detect the change as expected. Learn more about Google Sheets A1 notation: <a href=\"https://developers.google.com/sheets/api/guides/concepts#expandable-1\" target=_blank>Google Sheets A1 notation</a>."
                 }
             }
         }

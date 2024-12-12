@@ -1,30 +1,35 @@
 'use strict';
-const oneDriveAPI = require('onedrive-api');
-const commons = require('../../microsoft-commons');
 
 module.exports = {
 
     async receive(context) {
 
         const { driveId, itemId, itemPath, newName, folderId } = context.messages.in.content;
-        const { accessToken, profileInfo } = context.auth;
+        const { accessToken } = context.auth;
 
-        const renameFile = await commons.formatError(async () => {
-            return oneDriveAPI.items.update({
-                accessToken,
-                itemId,
-                itemPath,
-                drive: 'drive',
-                driveId,
-                toUpdate: {
-                    name: newName,
-                    parentReference: folderId && {
-                        id: folderId
-                    }
-                }
-            });
-        }, `Failed to rename the file with ID "${itemId}" in your SharePoint account (${profileInfo.userPrincipalName}).`);
+        let url = '';
+        if (itemId) {
+            url = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${itemId}`;
+        } else {
+            url = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${itemPath}`;
+        }
 
-        return context.sendJson(renameFile, 'out');
+        const body = {
+            parentReference: {
+                id: folderId
+            },
+            name: newName
+        };
+
+        const { data } = await context.httpRequest({
+            method: 'PATCH',
+            url,
+            headers: {
+                'Authorization': 'Bearer ' + accessToken
+            },
+            data: body
+        });
+
+        return await context.sendJson(data, 'out');
     }
 };

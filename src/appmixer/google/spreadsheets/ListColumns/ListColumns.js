@@ -58,6 +58,30 @@ module.exports = {
         return transformed;
     },
 
+    // New transformer function with Row ID included
+    columnsToSelectArrayWithRow(columns) {
+        let transformed = [];
+
+        // Add Row ID as the first entry
+        transformed.push({
+            label: 'Row ID',
+            value: 'rowId'
+        });
+
+        // Include existing columns
+        if (Array.isArray(columns)) {
+            columns.forEach((column, i) => {
+                const name = columnName(column, i + 1);
+                transformed.push({
+                    label: name,
+                    value: name
+                });
+            });
+        }
+
+        return transformed;
+    },
+
     columnsToInspector(columns) {
 
         if (!columns) {
