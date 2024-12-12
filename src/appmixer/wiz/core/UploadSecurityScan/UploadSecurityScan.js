@@ -125,27 +125,45 @@ const createDocument = function(context) {
         cloudPlatform,
         providerId,
         vulnerabilityFindings,
+        webAppVulnerabilityFindings,
         events
     } = context.messages.in.content;
+
+    const assets = [
+        {
+            assetIdentifier: {
+                cloudPlatform,
+                providerId
+            }
+        }
+    ];
+
+    if (events && events.AND.length) {
+        assets.push({ events: normalizeEvents(events.AND) });
+    }
+
+    if (vulnerabilityFindings && vulnerabilityFindings.AND.length) {
+        assets.push({
+            vulnerabilityFindings: vulnerabilityFindings.AND.map(finding => {
+                return { ...finding };
+            })
+        });
+    }
+    if (webAppVulnerabilityFindings && webAppVulnerabilityFindings.AND.length) {
+        assets.push({
+            webAppVulnerabilityFindings: webAppVulnerabilityFindings.AND.map(finding => {
+                return { ...finding };
+            })
+        });
+    }
 
     return {
 
         integrationId,
-        'dataSources': [{
+        dataSources: [{
             id,
             analysisDate,
-            'assets': [
-                {
-                    'assetIdentifier': {
-                        cloudPlatform,
-                        providerId
-                    },
-                    // 'vulnerabilityFindings': vulnerabilityFindings.AND.map(finding => {
-                    //     return { ...finding };
-                    // })
-                    'events': normalizeEvents(events.AND)
-                }
-            ]
+            assets
         }]
     };
 };
