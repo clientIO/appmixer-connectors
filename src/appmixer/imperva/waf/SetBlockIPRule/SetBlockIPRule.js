@@ -22,7 +22,9 @@ module.exports = {
         const allIps = ips.split(/\s+|,/); // Split by comma or any whitespace
         for (const ip of allIps) {
             if (Address4.isValid(ip) || Address6.isValid(ip)) {
-                ipsValid.push(ip);
+                if (ipsValid.indexOf(ip) === -1) {
+                    ipsValid.push(ip);
+                }
             } else {
                 ipsInvalid.push(ip);
             }
