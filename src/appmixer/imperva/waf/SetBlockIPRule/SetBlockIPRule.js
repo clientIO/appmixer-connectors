@@ -99,23 +99,22 @@ module.exports = {
 
         const rule = { ...data, siteId, batch: order };
 
-        if (ttl) {
-            const removeAfter = new Date().getTime() + ttl * 1000;
-            await context.callAppmixer({
-                endPoint: '/plugins/appmixer/imperva/rules-block-ips',
-                method: 'POST',
-                body: {
-                    ruleId: rule.rule_id,
-                    siteId,
-                    removeAfter,
-                    ips,
-                    auth: {
-                        id: context.auth.id,
-                        key: context.auth.key
-                    }
+        // If ttl is not set, the rule will be active indefinitely.
+        const removeAfter = ttl ? (new Date().getTime() + ttl * 1000) : null;
+        await context.callAppmixer({
+            endPoint: '/plugins/appmixer/imperva/rules-block-ips',
+            method: 'POST',
+            body: {
+                ruleId: rule.rule_id,
+                siteId,
+                removeAfter,
+                ips,
+                auth: {
+                    id: context.auth.id,
+                    key: context.auth.key
                 }
-            });
-        }
+            }
+        });
 
         return rule;
     },
