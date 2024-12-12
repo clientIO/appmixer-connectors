@@ -129,41 +129,34 @@ const createDocument = function(context) {
         events
     } = context.messages.in.content;
 
-    const assets = [
-        {
-            assetIdentifier: {
-                cloudPlatform,
-                providerId
-            }
+    const asset = {
+        assetIdentifier: {
+            cloudPlatform,
+            providerId
         }
-    ];
+    };
 
     if (events && events.AND.length) {
-        assets.push({ events: normalizeEvents(events.AND) });
+        asset.events = normalizeEvents(events.AND);
     }
 
     if (vulnerabilityFindings && vulnerabilityFindings.AND.length) {
-        assets.push({
-            vulnerabilityFindings: vulnerabilityFindings.AND.map(finding => {
-                return { ...finding };
-            })
+        asset.vulnerabilityFindings = vulnerabilityFindings.AND.map(finding => {
+            return { ...finding };
         });
     }
     if (webAppVulnerabilityFindings && webAppVulnerabilityFindings.AND.length) {
-        assets.push({
-            webAppVulnerabilityFindings: webAppVulnerabilityFindings.AND.map(finding => {
-                return { ...finding };
-            })
+        asset.webAppVulnerabilityFindings = webAppVulnerabilityFindings.AND.map(finding => {
+            return { ...finding };
         });
     }
 
     return {
-
         integrationId,
         dataSources: [{
             id,
             analysisDate,
-            assets
+            assets: [{ ...asset }]
         }]
     };
 };
