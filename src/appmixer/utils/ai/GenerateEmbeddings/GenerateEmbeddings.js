@@ -9,7 +9,7 @@ module.exports = {
 
     receive: async function(context) {
 
-        const correlationId = context.messages.in.correlationId;
+        const messageId = context.messages.in.messageId;
         const { text, chunkSize, chunkOverlap } = context.messages.in.content;
 
         const chunks = await this.splitText(text, chunkSize, chunkOverlap);
@@ -35,7 +35,7 @@ module.exports = {
             // Collect embeddings for the current batch.
             response.data.forEach((item, index) => {
                 embeddings.push({
-                    id: `${correlationId}:${i}:${index}`,
+                    id: `${messageId}:${i}:${index}`,
                     values: item.embedding,
                     metadata: { text: batch[index] }
                 });

@@ -13,6 +13,7 @@ module.exports = {
             // This is because the AI Agent fans out all tool calls by using sendJson(..., 'tools').
             if (toolCall.componentId === context.componentId) {
                 const out = { args: toolCall.args, toolCallId: toolCall.id };
+                await context.flow.stateSet(context.componentId + ':' + context.messages.in.correlationId, toolCall.id);
                 await context.sendJson(out, 'out');
             }
         }
