@@ -55,6 +55,8 @@ module.exports = {
             case 'object':
             case 'first':
                 return context.sendJson([
+                    { label: 'Current Page Index', value: 'index', schema: { type: 'integer' } },
+                    { label: 'Pages Count', value: 'count', schema: { type: 'integer' } },
                     { label: 'Deal ID', value: 'id' },
                     { label: 'Type', value: 'type' },
                     { label: 'Title', value: 'title' },
@@ -92,6 +94,7 @@ module.exports = {
 
             case 'array':
                 return context.sendJson([
+                    { label: 'Pages Count', value: 'count', schema: { type: 'integer' } },
                     {
                         label: 'Deals',
                         value: 'records',
@@ -141,7 +144,8 @@ module.exports = {
 
             case 'file':
                 return context.sendJson([
-                    { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
+                    { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } },
+                    { label: 'Pages Count', value: 'count', schema: { type: 'integer' } }
                 ], outputPortName);
 
             default:

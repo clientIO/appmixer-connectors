@@ -7,14 +7,17 @@ module.exports = {
 
         if (outputType === 'first') {
             // First item found only.
-            await context.sendJson(records[0], outputPortName);
+            await context.sendJson({ records: records[0], index: 0, count: records.length }, outputPortName);
 
         } else if (outputType === 'object') {
             // One by one.
-            await context.sendArray(records, outputPortName);
+            for (let index = 0; index < records.length; index++) {
+                await context.sendJson({ records: records[index], index, count: records.length }, outputPortName);
+            }
+
         } else if (outputType === 'array') {
             // All at once.
-            await context.sendJson({ records }, outputPortName);
+            await context.sendJson({ records, count: records.length }, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.
             const headers = Object.keys(records[0] || {});
@@ -34,7 +37,7 @@ module.exports = {
             const fileName = `${context.config.outputFilePrefix || 'pipedrive-lists'}-${componentName}.csv`;
             const savedFile = await context.saveFileStream(pathModule.normalize(fileName), buffer);
             await context.log({ step: 'File was saved', fileName, fileId: savedFile.fileId });
-            await context.sendJson({ fileId: savedFile.fileId }, outputPortName);
+            await context.sendJson({ fileId: savedFile.fileId, coudnt: records.length }, outputPortName);
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }

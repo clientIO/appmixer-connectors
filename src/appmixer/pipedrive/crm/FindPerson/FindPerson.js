@@ -35,8 +35,6 @@ module.exports = {
             params: queryParams
         });
 
-        context.log({ step: 'response data:', data });
-
         if (data.length === 0) {
             return context.sendJson({}, 'notFound');
         }
@@ -55,6 +53,8 @@ module.exports = {
             case 'object':
             case 'first':
                 return context.sendJson([
+                    { label: 'Current Page Index', value: 'index', schema: { type: 'integer' } },
+                    { label: 'Pages Count', value: 'count', schema: { type: 'integer' } },
                     { label: 'Person ID', value: 'id' },
                     { label: 'Type', value: 'type' },
                     { label: 'Name', value: 'name' },
@@ -71,6 +71,7 @@ module.exports = {
 
             case 'array':
                 return context.sendJson([
+                    { label: 'Pages Count', value: 'count', schema: { type: 'integer' } },
                     {
                         label: 'Persons',
                         value: 'records',
@@ -99,7 +100,8 @@ module.exports = {
 
             case 'file':
                 return context.sendJson([
-                    { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
+                    { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } },
+                    { label: 'Pages Count', value: 'count', schema: { type: 'integer' } }
                 ], outputPortName);
 
             default:
