@@ -1,9 +1,9 @@
 const { baseUrl } = require('./lib');
 
-const COLLECTION_NAME_BLOCK_IPS = 'blockIPRules';
-
 module.exports = async (context) => {
 
+    const BlockIPRuleModel = require('./BlockIPRuleModel')(context);
+    const COLLECTION_NAME_BLOCK_IPS = BlockIPRuleModel.collection;
     const config = require('./config')(context);
 
     await context.scheduleJob('imperva-rule-block-ips-delete-job', config.ruleDeleteJob.schedule, async () => {
@@ -26,7 +26,7 @@ module.exports = async (context) => {
                     .find({ removeAfter: { $lt: Date.now() } })
                     .limit(config.ruleDeleteJob.batchSize)
                     .toArray();
-                await context.log('trace', `[IMPERVA] Deleting ${expiredRules.length} rules.`);
+                await context.log('trace', `[IMPERVA] Deleting ${expiredRules.length} IPs.`, { expiredRules });
 
                 // Split them into chunks of 10. This will fire 10 requests in parallel and wait for all of them to finish.
                 const chunkSize = 10;
@@ -85,29 +85,6 @@ module.exports = async (context) => {
             if (err.message !== 'locked') {
                 context.log('error', '[IMPERVA] Error checking rules to delete', context.utils.Error.stringify(err));
             }
-        }
-    });
-
-    // Self-healing job to remove rules that have created>mtime. These rules are stuck in the system and should be removed.
-    await context.scheduleJob('imperva-rule-block-ips-self-healing-job', config.ruleSelfHealingJob.schedule, async () => {
-
-        let lock = null;
-        try {
-            lock = await context.job.lock('imperva-rule-block-ips-self-healing-job', { ttl: config.ruleSelfHealingJob.lockTTL });
-            await context.log('trace', '[IMPERVA] rule self-healing job started.');
-
-            // Delete all rules that were modified more than 1 day ago and have not been deleted yet.
-            const expiredRules = await context.db.collection(COLLECTION_NAME_BLOCK_IPS).deleteMany({
-                mtime: { $lt: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-            });
-            await context.log('info', `[IMPERVA] Deleted ${expiredRules.deletedCount} orphaned rules.`);
-        } catch (err) {
-            if (err.message !== 'locked') {
-                context.log('error', '[IMPERVA] Error checking orphaned rules', context.utils.Error.stringify(err));
-            }
-        } finally {
-            lock?.unlock();
-            await context.log('trace', '[IMPERVA] rule self-healing job finished. Lock unlocked.');
         }
     });
 };
