@@ -95,9 +95,35 @@ module.exports = (context, options) => {
                     }
 
                     for (const chunk of parallelChunks) {
-                        const results = await Promise.all(chunk);
-                        rulesUpdated = rulesUpdated.concat(results);
+                        const results = await Promise.allSettled(chunk);
+                        rulesUpdated = rulesUpdated.concat(results.filter(result => result.status === 'fulfilled').map(result => result.value));
+
+                        if (rulesUpdated.length < promisesUpdate.length) {
+                            // Some rules failed to update.
+                            // Save the successful rules to the database to be in sync with Imperva.
+                            const recordsSavedToImeprva = blockedIPsRecords
+                                .filter(record => rulesToUpdate[record.ruleId].updated);
+                            if (rulesUpdated.length > 0) {
+                                const inserted = await context.db.collection(BlockIPRuleModel.collection)
+                                    .insertMany(recordsSavedToImeprva);
+                                context.log('trace', `Inserted ${inserted.insertedCount} new block IP records after an error occured.`, { new: recordsSavedToImeprva });
+                            }
+
+                            const errors = results.filter(result => result.status === 'rejected');
+
+                            // Provide more information on successfuly blocked IPs - which rule they were added to.
+                            return {
+                                error: errors.map(error => error.reason)[0],
+                                processed: recordsSavedToImeprva.map(record => ({
+                                    ruleId: record.ruleId,
+                                    ip: record.ip
+                                }))
+                            };
+                        }
                     }
+
+                    context.log('trace', `Updated ${rulesUpdated.length} existing block IP rules in Imperva.`, { rulesUpdated });
+
                     // Save the updated rules to the database.
                     if (blockedIPsRecords.length > 0) {
                         const updated = await context.db.collection(BlockIPRuleModel.collection)
@@ -129,31 +155,37 @@ module.exports = (context, options) => {
                                 const totalOrder = (i + 1) + (parallelChunks.indexOf(chunk) * MAX_PARRALEL_REQUESTS);
                                 return createRule(context, auth, siteId, ruleIps, ruleName, totalOrder, rulesToAdd);
                             });
-                            try {
-                                const results = await Promise.all(promises);
-                                rulesCreated = rulesCreated.concat(results);
-                            } catch (e) {
-                                if (e.response?.status >= 400) {
-                                    // For example: "exceeded amount of allowed rules per site" when creating more than 500 rules.
-                                    // Send the successfully created rules to the output.
-                                    context.sendJson({ siteId, rules: rulesCreated, ips: ipsValid }, 'out');
+                            const results = await Promise.allSettled(promises);
 
-                                    // Then throw the error and don't retry.
-                                    throw new context.CancelError('Error creating rules: ', e.response.data);
+                            rulesCreated = results.filter(result => result.status === 'fulfilled').map(result => result.value);
+
+                            if (rulesCreated.length < promises.length) {
+                                const recordsSavedToImeprva = getModelRecords(rulesToAdd, siteId, removeAfter, auth);
+                                // Some rules failed to create.
+                                // Save the successful rules to the database to be in sync with Imperva.
+                                if (rulesCreated.length > 0) {
+                                    // Create records here, maybe use them at the end as well
+                                    const inserted = await context.db.collection(BlockIPRuleModel.collection)
+                                        .insertMany(recordsSavedToImeprva);
+                                    context.log('trace', `Inserted ${inserted.insertedCount} new block IP records after an error occured.`, { new: recordsSavedToImeprva });
                                 }
-                                throw e;
+
+                                const errors = results.filter(result => result.status === 'rejected');
+
+                                // Provide more information on successfuly blocked IPs - which rule they were added to.
+                                return {
+                                    error: errors.map(error => error.reason)[0],
+                                    processed: recordsSavedToImeprva.map(record => ({
+                                        ruleId: record.ruleId,
+                                        ip: record.ip
+                                    }))
+                                };
                             }
                         }
 
                         // All the POST API calls to Imperva are done. Now we can save the new rules to the database.
                         // Create an array of BlockIPRuleModel records. One for each IP.
-                        const blockedIPsRecords = ipsToBeBlocked.map(ip => ({
-                            siteId,
-                            ruleId: Object.keys(rulesToAdd).find(key => rulesToAdd[key].includes(ip)),
-                            removeAfter,
-                            auth,
-                            ip
-                        }));
+                        const blockedIPsRecords = getModelRecords(rulesToAdd, siteId, removeAfter, auth);
 
                         if (blockedIPsRecords.length > 0) {
                             const inserted = await context.db.collection(BlockIPRuleModel.collection)
@@ -163,11 +195,24 @@ module.exports = (context, options) => {
                     }
                 }
 
-                return blockIPRules;
+                // All went well. Send the response.
+                return {
+                    blocked: ipsToBeBlocked
+                };
             }
         }
     });
 };
+
+function getModelRecords(simplifiedRecords = {}, siteId, removeAfter, auth = {}) {
+    return Object.keys(simplifiedRecords).map(ruleId => simplifiedRecords[ruleId].map(ip => ({
+        ruleId,
+        siteId,
+        removeAfter,
+        auth,
+        ip
+    })).flat()).flat();
+}
 
 async function createRule(context, auth, siteId, ips, ruleName, order, processed = {}) {
 
