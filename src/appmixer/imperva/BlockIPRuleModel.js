@@ -22,7 +22,6 @@ module.exports = context => {
                 'siteId',
                 'ip',
                 'removeAfter',
-                'created',
                 'auth'
             ];
         }

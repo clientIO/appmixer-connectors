@@ -22,6 +22,8 @@ This component is used to block an IP address for a specified time. The time is 
 
 The component does its own optimization to reduce the number of existing rules to a minimum. The IPs stored in Imperva rules might be ordered randomly. The TTL is enforced by the periodic job (see `jobs.js`) that checks the rules and deletes the expired ones (or updates existing rules by removing the expired IPs).
 
+It is expected that only this component is used to create, update and delete the rules. If the rules are modified outside of this component, the TTL enforcement might not work correctly.
+
 ### Limitations
 Maximum number of IP addresses that can be blocked in one run is 1000. This roughly translates 50 rules with 20 IP addresses each. Imperva allows for 20 IP addresses in a filter. Otherwise it throws: `Rule contains too many filters. Maximum of 20 filters is allowed`.
 

@@ -3,20 +3,14 @@
 const { Address4, Address6 } = require('ip-address');
 const { baseUrl } = require('../../lib');
 
-const ACTION = 'RULE_ACTION_BLOCK';
-
 module.exports = {
 
     receive: async function(context) {
 
-        const MAX_IPS_PER_RULE = parseInt(context.config.blockIpMaxIpsPerRule, 10) || 20;
         const MAX_IPS_ALLOWED = parseInt(context.config.blockIpMaxIpsAllowed, 10) || 1000;
-        /** Max POST requests to Imperva API at the same time. */
-        const MAX_PARRALEL_REQUESTS = parseInt(context.config.blockIpMaxParallelRequests, 10) || 5;
 
         const { siteId, ips, ttl } = context.messages.in.content;
 
-        const ruleName = 'Custom IP Block Rule ' + new Date().getTime();
         const ipsValid = [];
         const ipsInvalid = [];
         const allIps = ips.split(/\s+|,/); // Split by comma or any whitespace
@@ -36,6 +30,26 @@ module.exports = {
         if (ipsValid.length > MAX_IPS_ALLOWED) {
             throw new context.CancelError(`Too many IPs provided. Max ${MAX_IPS_ALLOWED}. You provided ${ipsValid.length}.`);
         }
+
+        // If ttl is not set, the rule will be active indefinitely.
+        const removeAfter = ttl ? (new Date().getTime() + ttl * 1000) : null;
+
+        // Processing it in the Appmixer routes as it needs to access the database.
+        const response = await context.callAppmixer({
+            endPoint: '/plugins/appmixer/imperva/rules-block-ips',
+            method: 'POST',
+            body: {
+                siteId,
+                removeAfter,
+                ips: ipsValid,
+                auth: {
+                    id: context.auth.id,
+                    key: context.auth.key
+                }
+            }
+        });
+
+        return context.sendJson({ siteId, ips: ipsValid, response }, 'out');
 
         // The goal is to send max 50 POST requests to Imperva API. 1 request takes 1-2 seconds.
         // So we need to split the IPs into chunks. Max 20 IPs per rule.
@@ -100,23 +114,6 @@ module.exports = {
         });
 
         const rule = { ...data, siteId, batch: order };
-
-        // If ttl is not set, the rule will be active indefinitely.
-        const removeAfter = ttl ? (new Date().getTime() + ttl * 1000) : null;
-        await context.callAppmixer({
-            endPoint: '/plugins/appmixer/imperva/rules-block-ips',
-            method: 'POST',
-            body: {
-                ruleId: rule.rule_id,
-                siteId,
-                removeAfter,
-                ips,
-                auth: {
-                    id: context.auth.id,
-                    key: context.auth.key
-                }
-            }
-        });
 
         return rule;
     },
