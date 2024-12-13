@@ -4,7 +4,7 @@
     "description": "This action finds deal.",
     "inPorts": [
         {
-            "name": "query",
+            "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
@@ -17,6 +17,15 @@
                     },
                     "personId": {
                         "type": "number"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "exactMatch": {
+                        "type": "boolean"
+                    },
+                    "outputType": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -27,8 +36,7 @@
                 "inputs": {
                     "term": {
                         "type": "text",
-                        "group": "transformation",
-                        "index": 1,
+                        "index": 0,
                         "label": "Term to search for",
                         "attrs": {
                             "label": {
@@ -38,8 +46,7 @@
                     },
                     "orgId": {
                         "type": "text",
-                        "group": "transformation",
-                        "index": 2,
+                        "index": 1,
                         "label": "Organization ID",
                         "attrs": {
                             "label": {
@@ -55,8 +62,7 @@
                     },
                     "personId": {
                         "type": "text",
-                        "group": "transformation",
-                        "index": 3,
+                        "index": 2,
                         "label": "Person ID",
                         "attrs": {
                             "label": {
@@ -69,12 +75,57 @@
                                 "transform": "./transformers#peopleToSelectArray"
                             }
                         }
-                    }
-                },
-                "groups": {
-                    "transformation": {
-                        "label": "Transformation",
-                        "index": 1
+                    },
+                    "status": {
+                        "type": "select",
+                        "label": "Status",
+                        "tooltip": "Filter deals by the provided specific status.",
+                        "options": [
+                            {
+                                "label": "Open",
+                                "value": "open"
+                            },
+                            {
+                                "label": "Won",
+                                "value": "won"
+                            },
+                            {
+                                "label": "Lost",
+                                "value": "lost"
+                            }
+                        ],
+                        "index": 3
+                    },
+                    "exactMatch": {
+                        "type": "toggle",
+                        "index": 4,
+                        "label": "Full exact match",
+                        "tooltip": "When enabled, only full exact matches against the given term are returned. It is <strong>not</strong> case sensitive."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 5,
+                        "defaultValue": "first",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            {
+                                "label": "First Found",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "File",
+                                "value": "file"
+                            }
+                        ]
                     }
                 }
             }
@@ -82,109 +133,22 @@
     ],
     "outPorts": [
         {
-            "name": "deal",
-            "options": [
-                {
-                    "label": "Deal id",
-                    "value": "id"
-                },
-                {
-                    "label": "Person id",
-                    "value": "person_id"
-                },
-                {
-                    "label": "Organisation id",
-                    "value": "org_id"
-                },
-                {
-                    "label": "Stage id",
-                    "value": "stage_id"
-                },
-                {
-                    "label": "Title",
-                    "value": "title"
-                },
-                {
-                    "label": "Value",
-                    "value": "value"
-                },
-                {
-                    "label": "Currency",
-                    "value": "currency"
-                },
-                {
-                    "label": "Add time",
-                    "value": "add_time"
-                },
-                {
-                    "label": "Update time",
-                    "value": "update_time"
-                },
-                {
-                    "label": "Active",
-                    "value": "active"
-                },
-                {
-                    "label": "Deleted",
-                    "value": "deleted"
-                },
-                {
-                    "label": "Status",
-                    "value": "status"
-                },
-                {
-                    "label": "Next activity date",
-                    "value": "next_activity_date"
-                },
-                {
-                    "label": "Next activity time",
-                    "value": "next_activity_time"
-                },
-                {
-                    "label": "Lost reason",
-                    "value": "lost_reason"
-                },
-                {
-                    "label": "Close time",
-                    "value": "close_time"
-                },
-                {
-                    "label": "Pipeline id",
-                    "value": "pipeline_id"
-                },
-                {
-                    "label": "Won time",
-                    "value": "won_time"
-                },
-                {
-                    "label": "Lost time",
-                    "value": "lost_time"
-                },
-                {
-                    "label": "Products count",
-                    "value": "products_count"
-                },
-                {
-                    "label": "Person name",
-                    "value": "person_name"
-                },
-                {
-                    "label": "Organisation name",
-                    "value": "org_name"
-                },
-                {
-                    "label": "Formatted value",
-                    "value": "formatted_value"
-                },
-                {
-                    "label": "Rotten time",
-                    "value": "rotten_time"
-                },
-                {
-                    "label": "Cc email",
-                    "value": "cc_email"
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/pipedrive/crm/FindDeal?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/term": "abc"
+                    }
                 }
-            ]
+            }
+        },
+        {
+            "name": "notFound"
         }
     ],
     "auth": {
