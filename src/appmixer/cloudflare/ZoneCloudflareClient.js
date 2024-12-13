@@ -179,17 +179,21 @@ module.exports = class ZoneCloudflareClient {
         const result = [];
         for (let ipItem of ips) {
 
-            const { data } = await client.callEndpoint(context, {
-                method: 'GET',
-                action: `/accounts/${account}/rules/lists/${list}/items`,
-                params: {
-                    per_page: 1,
-                    search: ipItem.ip
+            try {
+                const { data } = await client.callEndpoint(context, {
+                    method: 'GET',
+                    action: `/accounts/${account}/rules/lists/${list}/items`,
+                    params: {
+                        per_page: 1,
+                        search: ipItem.ip
+                    }
+                });
+                if (data?.result[0] && data?.result.length === 1) {
+                    result.push({ ...data.result[0] });
                 }
-            });
 
-            if (data?.result[0] && data?.result.length === 1) {
-                result.push({ ...data.result[0] });
+            } catch (err) {
+                context.log({ stage: `Invalid IP, IP ${ipItem} hasn't been found in the list ${list}` });
             }
         }
 

@@ -50,28 +50,30 @@ module.exports = async (context) => {
             });
         });
 
-        let itemsToDelete = [];
+        const itemsToDelete = { ids: [], lists: [] };
+
         (await Promise.allSettled(promises)).forEach(async (result, i) => {
             if (result.status === 'fulfilled') {
-                itemsToDelete = itemsToDelete.concat(groups[i].ips);
+                itemsToDelete.ids = itemsToDelete.ids.concat(groups[i].ips);
+                itemsToDelete.lists.push(groups[i]?.auth?.list);
             } else {
-                // context.log('error', { stage: 'operations', operations });
-                // context.log('error', { stage: 'XX delete ips error response',g: groups[i], result, raw: context.utils.Error.stringify(result) });
                 const operations = groups[i].ips.map(item => ({
                     updateOne: {
                         filter: { id: item.id }, update: { $set: { mtime: new Date } }
                     }
                 }));
-                // context.log('error', { stage: 'operations', g: groups[i].ips });
-
                 await (context.db.collection(IPListModel.collection)).bulkWrite(operations);
             }
         });
 
-        if (itemsToDelete.length) {
+        if (itemsToDelete.ids.length) {
             const deleted = await context.db.collection(IPListModel.collection)
-                .deleteMany({ id: { $in: itemsToDelete.map(item => item.id) } });
-            await context.log('info', `[CloudFlare] Deleted ${deleted.deletedCount} ips.`);
+                .deleteMany({ id: { $in: itemsToDelete.ids.map(item => item.id) } });
+            await context.log('info', {
+                stage: `[CloudFlare] Deleted total ${deleted.deletedCount} ips.`,
+                lists: itemsToDelete.lists,
+                itemIds: itemsToDelete.ids
+            });
         }
     };
 

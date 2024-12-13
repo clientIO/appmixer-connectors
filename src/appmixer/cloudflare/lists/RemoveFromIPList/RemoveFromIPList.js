@@ -38,6 +38,9 @@ module.exports = {
 
         const listItemsWithIds = await client.findIdsForIPs({ context, client, ips: ipsList, account, list });
 
+        if (!listItemsWithIds.length) {
+            return context.sendJson({ id: 'N/A', status: 'Completed', completed: new Date().toISOString() }, 'out');
+        }
         context.log({ stage: 'removing IPs ', items: listItemsWithIds });
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await client.callEndpoint(context, {
