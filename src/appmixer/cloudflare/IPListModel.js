@@ -2,7 +2,6 @@
 
 module.exports = context => {
 
-    /** Model for component SetBlockIPRule. Collection name: pluginAppmixerImpervaBlockIPRules */
     class IPListModel extends context.db.Model {
 
         static get collection() {
@@ -21,8 +20,7 @@ module.exports = context => {
                 'id',
                 'ip',
                 'removeAfter',
-                'auth',
-                'mtime'
+                'auth'
             ];
         }
     }

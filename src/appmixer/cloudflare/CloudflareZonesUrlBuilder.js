@@ -3,7 +3,6 @@ module.exports = class CloudflareZonesUrlBuilder {
 
     constructor(zoneId) {
         this.zoneId = zoneId;
-        this.zoneId = zoneId;
         this.url = `${this.zonesBaseUrl}/${this.zoneId}`;
     }
 
