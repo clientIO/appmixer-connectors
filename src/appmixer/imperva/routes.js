@@ -1,6 +1,6 @@
 'use strict';
 
-const { baseUrl } = require('./lib');
+const { baseUrl, getAuthHeader } = require('./lib');
 
 module.exports = (context, options) => {
 
@@ -34,9 +34,9 @@ module.exports = (context, options) => {
                     // Change the removeAfter date to the new date.
                     const extended = await context.db.collection(BlockIPRuleModel.collection)
                         .updateMany({ ip: { $in: ips }, siteId }, { $set: { removeAfter } });
-                    context.log('trace', `Extended ${extended.modifiedCount} existing block IP records.`, { extended: existingBlockIPRules });
+                    context.log('info', `[IMPERVA] Extended ${extended.modifiedCount} existing block IP records.`, { extended: existingBlockIPRules });
                 }
-
+                const extendedIPs = existingBlockIPRules.map(rule => rule.ip);
                 // Find the new blocked IPs, ie. the ones that are not already blocked.
                 const ipsToBeBlocked = ips.filter(ip => !existingBlockIPRules.find(rule => rule.ip === ip));
 
@@ -142,10 +142,12 @@ module.exports = (context, options) => {
                     // All the POST API calls to Imperva are done. Now we can save the new rules to the database.
                     // Create an array of BlockIPRuleModel records. One for each IP.
                     const blockedIPsRecords = getModelRecords(processedRuleIPPairs, siteId, removeAfter, auth);
-                    if (blockedIPsRecords.length > 0) {
+                    // Don't insert the IPs that were already blocked by updating the existing records in the database.
+                    const recordsToInsert = blockedIPsRecords.filter(record => !extendedIPs.includes(record.ip));
+                    if (recordsToInsert.length > 0) {
                         const inserted = await context.db.collection(BlockIPRuleModel.collection)
-                            .insertMany(blockedIPsRecords);
-                        context.log('trace', `Inserted ${inserted.insertedCount} new block IP records.`, { new: blockedIPsRecords });
+                            .insertMany(recordsToInsert);
+                        context.log('info', `[IMPERVA] Inserted ${inserted.insertedCount} new block IP records.`, { new: recordsToInsert });
                     }
                 }
 
@@ -189,10 +191,7 @@ module.exports = (context, options) => {
         const filter = ips.map(ip => `ClientIP == ${ip}`).join(' & ');
 
         const { data } = await context.httpRequest({
-            headers: {
-                'x-API-Id': auth.id,
-                'x-API-Key': auth.key
-            },
+            headers: getAuthHeader(auth),
             url: `${baseUrl}/v2/sites/${siteId}/rules`,
             method: 'POST',
             data: {
@@ -214,10 +213,7 @@ module.exports = (context, options) => {
         const filter = ips.map(ip => `ClientIP == ${ip}`).join(' & ');
 
         const { data } = await context.httpRequest({
-            headers: {
-                'x-API-Id': auth.id,
-                'x-API-Key': auth.key
-            },
+            headers: getAuthHeader(auth),
             url: `${baseUrl}/v2/sites/${siteId}/rules/${ruleId}`,
             method: 'PUT',
             data: {
@@ -255,10 +251,7 @@ module.exports = (context, options) => {
         const url = `${baseUrl}/v1/sites/incapRules/list?site_id=${siteId}&page_num=${page}&page_size=10`;
         const { data } = await context.httpRequest({
             method: 'POST',
-            headers: {
-                'x-API-Id': auth.id,
-                'x-API-Key': auth.key
-            },
+            headers: getAuthHeader(auth),
             url
         });
 
@@ -279,7 +272,7 @@ module.exports = (context, options) => {
 
 function getModelRecords(simplifiedRecords = [], siteId, removeAfter, auth = {}) {
     return simplifiedRecords.map(({ ruleId, ip }) => ({
-        ruleId,
+        ruleId: parseInt(ruleId, 10),
         siteId,
         removeAfter,
         auth,
