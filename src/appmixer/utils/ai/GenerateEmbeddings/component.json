@@ -7,9 +7,11 @@
         "schema": {
             "type": "object",
             "properties": {
-                "text": { "type": "string" },
+                "text": { "type": "string", "maxLength": 512000 },
+                "model": { "type": "string" },
                 "chunkSize": { "type": "integer" },
-                "chunkOverlap": { "type": "integer" }
+                "chunkOverlap": { "type": "integer" },
+                "embeddingTemplate": { "type": "string" }
             }
         },
         "inspector": {
@@ -17,19 +19,40 @@
                 "text": {
                     "type": "textarea",
                     "label": "Text",
+                    "tooltip": "Enter the text to generate embeddings for. The text will be split into chunks and embeddings will be generated for each chunk. The maximum length is 512,000 characters. If you need more than 512,000 characters, use the 'Generate Embeddings From File' component.",
                     "index": 1
+                },
+                "model": {
+                    "type": "select",
+                    "label": "Model",
+                    "index": 2,
+                    "defaultValue": "text-embedding-ada-002",
+                    "options": [
+                        { "label": "text-embedding-3-large (3072 dimension)", "value": "text-embedding-3-large" },
+                        { "label": "text-embedding-3-small (1536 dimension)", "value": "text-embedding-3-small" },
+                        { "label": "text-embedding-ada-002 (1536 dimension)", "value": "text-embedding-ada-002" }
+                    ]
                 },
                 "chunkSize": {
                     "type": "number",
                     "label": "Chunk Size",
+                    "defaultValue": 500,
                     "tooltip": "Maximum size of each chunk for text splitting. The default is 500.",
-                    "index": 2
+                    "index": 3
                 },
                 "chunkOverlap": {
                     "type": "number",
                     "label": "Chunk Overlap",
+                    "defaultValue": 50,
                     "tooltip": "Overlap between chunks for text splitting to maintain context. The default is 50.",
-                    "index": 3
+                    "index": 4
+                },
+                "embeddingTemplate": {
+                    "type": "textarea",
+                    "label": "Embedding Template",
+                    "defaultValue": "{ \"id\": \"{messageId}:{chunkIndex}\", \"values\": {embedding}, \"metadata\": { \"text\": \"{chunkText}\" } }",
+                    "tooltip": "The template for the embeddings. Use the placeholders <code>{embedding}</code> (a vector, e.g. [1.1, 2.2, 3.3]), <code>{now}</code> (a UNIX timestamp in milliseconds), <code>{messageId}</code> (a unique ID for the run of the 'Generate Embeddings' component), <code>{chunkIndex}</code> (the index of the chunk) and <code>{chunkText}</code> (the text of the chunk) to define the structure of the embeddings. Default template is <code>{ \"id\": \"{messageId}:{chunkIndex}\", \"values\": {embedding}, \"metadata\": { \"text\": \"{chunkText}\" } }</code>. This template defines embeddings that can be directly used with the Pinecone vector database.",
+                    "index": 5
                 }
             }
         }
@@ -54,6 +77,13 @@
                         }
                     }
                 }
+            }
+        }, {
+            "label": "First Vector",
+            "value": "firstVector",
+            "schema": {
+                "type": "array",
+                "items": { "type": "number" }
             }
         }]
     }],

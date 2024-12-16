@@ -33,18 +33,18 @@ module.exports = {
                 const source = sources[inPort];
                 if (source[agentComponentId] && source[agentComponentId].includes(toolsPort)) {
                     tools[componentId] = component;
-                    // assert(flowDescriptor[componentId].type === 'appmixer.utils.ai.CallTool')
-                    if (component.type !== 'appmixer.utils.ai.CallTool') {
-                        error = `Component ${componentId} is not of type 'ai.CallTool' but ${comopnent.type}.
+                    // assert(flowDescriptor[componentId].type === 'appmixer.utils.ai.ToolStart')
+                    if (component.type !== 'appmixer.utils.ai.ToolStart') {
+                        error = `Component ${componentId} is not of type 'ai.ToolStart' but ${comopnent.type}.
                             Every tool chain connected to the '${toolsPort}' port of the AI Agent
-                            must start with 'ai.CallTool' and end with 'ai.CallToolOutput'.
+                            must start with 'ai.ToolStart' and end with 'ai.ToolOutput'.
                             This is where you describe what the tool does and what parameters should the AI model provide to it.`;
                     }
                 }
             });
         });
 
-        // Teach the user via logs that they need to use the 'ai.CallTool' component.
+        // Teach the user via logs that they need to use the 'ai.ToolStart' component.
         if (error) {
             throw new context.CancelError(error);
         }
@@ -145,11 +145,11 @@ module.exports = {
                 toolCalls.push({ componentId, args, id: toolCall.id });
             }
 
-            // Send to all tools. Each ai.CallTool ignores tool calls that are not intended for it.
+            // Send to all tools. Each ai.ToolStart ignores tool calls that are not intended for it.
             await context.sendJson({ toolCalls, prompt: context.messages.in.content.prompt }, 'tools');
 
             // Output of each tool is expected to be stored in the service state
-            // under the ID of the tool call. This is done in the CallToolOutput component.
+            // under the ID of the tool call. This is done in the ToolStartOutput component.
             // Collect outputs of all the required tool calls.
             await context.log({ step: 'collect-tools-output', threadId: thread.id, runId: run.id });
             const outputs = [];
