@@ -9,9 +9,7 @@ module.exports = context => {
             /** Default: every 10sec */
             schedule: context.config.ruleDeleteJobSchedule || '*/10 * * * * *',
             /** Lock TTL, default: 10sec */
-            lockTTL: context.config.ruleDeleteJobLockTTL || 10000,
-            /** How many rules delete in one run. */
-            batchSize: context.config.ruleDeleteJobBatchSize || 100
+            lockTTL: context.config.ruleDeleteJobLockTTL || 10000
         },
         ruleSelfHealingJob: {
             /** Default: every 5min */
