@@ -3,39 +3,11 @@
 module.exports = {
 
     receive: async function(context) {
-        const {
-            model,
-            prompt,
-            maxTokens,
-            temperature,
-            topP,
-            n,
-            logprobs,
-            echo,
-            stop,
-            presencePenalty,
-            frequencyPenalty,
-            bestOf,
-            user
-        } = context.messages.in.content;
+        const { content } = context.messages.in;
 
         context.log({ step: 'auth', auth: context.auth });
 
-        const requestBody = {
-            model,
-            prompt,
-            max_tokens: maxTokens,
-            temperature,
-            top_p: topP,
-            n,
-            logprobs,
-            echo,
-            stop,
-            presence_penalty: presencePenalty,
-            frequency_penalty: frequencyPenalty,
-            best_of: bestOf,
-            user
-        };
+        const requestBody = content;
 
         const req = {
             url: 'https://api.openai.com/v1/completions',
