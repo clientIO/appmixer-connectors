@@ -97,90 +97,87 @@ module.exports = async (context) => {
                 for (const siteId in rulesBySite) {
                     const ruleName = 'Custom IP Block Rule ' + new Date().getTime();
                     const siteIPsToDelete = []; // From MongoDB
-                    const siteRuleIDsToDelete = []; // From MongoDB
                     const rules = rulesBySite[siteId];
-                    const promises = rules.map(rule => {
-                        if (rule.method === 'DELETE') {
-                            return context.httpRequest({
-                                headers: {
-                                    'x-API-Id': rule.auth.id,
-                                    'x-API-Key': rule.auth.key
-                                },
-                                url: `${baseUrl}/v2/sites/${siteId}/rules/${rule.ruleId}`,
-                                method: 'DELETE'
-                            });
-                        } else {
-                            const filter = rule.ipsToKeepBlocking.map(ip => `ClientIP == ${ip}`).join(' & ');
-
-                            return context.httpRequest({
-                                headers: {
-                                    'x-API-Id': rule.auth.id,
-                                    'x-API-Key': rule.auth.key
-                                },
-                                url: `${baseUrl}/v2/sites/${siteId}/rules/${rule.ruleId}`,
-                                method: 'PUT',
-                                data: {
-                                    name: ruleName,
-                                    filter,
-                                    action: 'RULE_ACTION_BLOCK'
-                                }
-                            });
-                        }
-                    });
 
                     // Split them into chunks of 10. This will fire 10 requests in parallel and wait for all of them to finish.
-                    const chunkSize = 10;
+                    const chunkSize = 5;
                     const chunks = [];
 
                     for (let i = 0; i < rules.length; i += chunkSize) {
                         chunks.push(rules.slice(i, i + chunkSize));
                     }
 
+                    let chunkIndex = 0;
                     for (const chunk of chunks) {
-                        const all = await Promise.allSettled(chunk.map((rule, i) => promises[i]));
+                        chunkIndex++;
+                        // Creating an array of promises here so only these are fired together.
+                        const chunkPromises = chunk.map(rule => {
+                            if (rule.method === 'DELETE') {
+                                const params = {
+                                    headers: {
+                                        'x-API-Id': rule.auth.id,
+                                        'x-API-Key': rule.auth.key
+                                    },
+                                    url: `${baseUrl}/v2/sites/${siteId}/rules/${rule.ruleId}`,
+                                    method: 'DELETE'
+                                };
+                                return context.httpRequest(params);
+                            } else {
+                                const filter = rule.ipsToKeepBlocking.map(ip => `ClientIP == ${ip}`).join(' & ');
+                                const params = {
+                                    headers: {
+                                        'x-API-Id': rule.auth.id,
+                                        'x-API-Key': rule.auth.key
+                                    },
+                                    url: `${baseUrl}/v2/sites/${siteId}/rules/${rule.ruleId}`,
+                                    method: 'PUT',
+                                    data: {
+                                        name: ruleName,
+                                        filter,
+                                        action: 'RULE_ACTION_BLOCK'
+                                    }
+                                };
+                                return context.httpRequest(params);
+                            }
+                        });
+                        const all = await Promise.allSettled(chunkPromises);
+
                         all.forEach((result, i) => {
                             if (result.status === 'fulfilled') {
-                                if (chunk[i].method === 'DELETE') {
-                                    siteRuleIDsToDelete.push(chunk[i].ruleId);
-                                } else {
-                                    siteIPsToDelete.push(chunk[i].ipsToUnblock);
-                                }
+                                siteIPsToDelete.push(chunk[i].ipsToUnblock);
                             } else {
                                 if (result.reason.response?.status === 404) {
                                     // Rule not found, probably already deleted
-                                    siteIPsToDelete.push(chunk[i].ruleId);
-                                    context.log('info', `[IMPERVA] Rule ${chunk[i].ruleId} not found. Probably already deleted.`);
+                                    siteIPsToDelete.push(chunk[i].ipsToUnblock);
+                                    context.log('info', `[IMPERVA] [${chunkIndex}] Rule ${chunk[i].ruleId} not found in Imperva for site ${siteId}. Probably already deleted.`);
                                 } else {
-                                    context.log('error', `[IMPERVA] Error deleting rule ${chunk[i].ruleId}`, context.utils.Error.stringify(result.reason));
-                                    // Modify the mtime
-                                    context.db.collection(COLLECTION_NAME_BLOCK_IPS)
-                                         .updateOne({ ruleId: chunk[i].ruleId }, { $set: { mtime: new Date } });
+                                    context.log('error', `[IMPERVA] [${chunkIndex}] Error deleting rule ${chunk[i].ruleId}`, context.utils.Error.stringify(result.reason));
+                                    // Modify the mtime for either all the IPs in the rule or just the IPs that failed to delete
+                                    context.db.collection(COLLECTION_NAME_BLOCK_IPS).updateMany(
+                                        { ruleId: chunk[i].ruleId, siteId, ip: { $in: chunk[i].ipsToUnblock } },
+                                        { $set: { mtime: Date.now() } }
+                                    );
                                 }
                             }
                         });
 
                         // Only after successful deletion, delete the rules from the database
-                        const deleted = await context.db.collection(COLLECTION_NAME_BLOCK_IPS)
-                            .deleteMany({
-                                siteId,
-                                $or: [
-                                    { ruleId: { $in: siteRuleIDsToDelete } },
-                                    { ip: { $in: siteIPsToDelete.flat() } }
-                                ]
-                            });
+                        const allIPsToDelete = siteIPsToDelete.flat();
+                        const del = { siteId: parseInt(siteId, 10), ip: { $in: allIPsToDelete } };
+                        const deleted = await context.db.collection(COLLECTION_NAME_BLOCK_IPS).deleteMany(del);
 
-                        await context.log('info', `[IMPERVA] Deleted ${deleted.deletedCount} records for site ${siteId}.`);
+                        await context.log('trace', `[IMPERVA] [${chunkIndex}] mongo - Deleted ${deleted.deletedCount} records for site ${siteId}.`);
 
                         // Extend the lock for the next chunk
                         if (chunks.length > 1) {
                             await lock.extend(config.ruleDeleteJob.lockTTL);
-                            await context.log('trace', '[IMPERVA] Lock extended.');
+                            await context.log('info', `[IMPERVA] [${chunkIndex}] Lock extended.`);
                         }
                     }
                 }
             } finally {
                 lock.unlock();
-                await context.log('trace', '[IMPERVA] rule delete job finished. Lock unlocked.');
+                await context.log('info', '[IMPERVA] rule delete job finished. Lock unlocked.');
             }
         } catch (err) {
             if (err.message !== 'locked') {
