@@ -45,7 +45,7 @@ module.exports = {
         const ipsList = ips.AND;
 
         if (ipsList.length > 10) {
-            throw new context.CancelError('Maximum IPs count it 10.');
+            throw new context.CancelError('Maximum IPs count is 10.');
         }
 
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
