@@ -8,19 +8,20 @@ module.exports = {
     async receive(context) {
 
         const { endpoint, apiKey } = context.config;
-        const { classifierId, fileUrl, base64Source } = context.messages.in.content;
+        const { classifierId, fileId } = context.messages.in.content;
 
         const client = DocumentIntelligence(endpoint, { key: apiKey });
 
         let options;
 
-        if (fileUrl) {
-            options = { body: { urlSource: fileUrl } };
-        } else {
-            options = { body: { base64Source } };
-        }
+        const fileInfo = await context.getFileInfo(fileId);
+        const fileStream = await context.getFileReadStream(fileId);
+        options = {
+            contentType: fileInfo.contentType || 'application/octet-stream',
+            body: fileStream
+        };
 
-        await context.log({ step: 'Classifying document', endpoint, classifierId, fileUrl, base64Source });
+        await context.log({ step: 'Classifying document', endpoint, classifierId, fileId });
         const initialResponse = await client
             .path('/documentClassifiers/{classifierId}:analyze', classifierId)
             .post(options);
