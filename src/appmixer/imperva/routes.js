@@ -26,8 +26,6 @@ module.exports = (context, options) => {
 
                 const { ips = [], siteId, removeAfter, auth } = req.payload;
 
-                context.log('info', 'context.config', context.config);
-
                 // Check our current blocked IPs to see if we are trying to block an IP that is already blocked.
                 const existingBlockIPRules = await context.db.collection(BlockIPRuleModel.collection)
                     .find({ ip: { $in: ips }, siteId })
@@ -79,7 +77,7 @@ module.exports = (context, options) => {
                     }
 
                     // Ensure that we can create the rules.
-                    const ensureResult = await ensureIPsCanBeAdded(context, siteId, {
+                    const ensureResult = await ensureIPsCanBeAdded(context, siteId, auth, {
                         extendableRules: existingRules,
                         newIPs: ipsToBeBlocked
                     });
@@ -240,7 +238,7 @@ module.exports = (context, options) => {
     // IPs can be added in two ways:
     // 1. Add to an existing rule if it is not full - 20 IPs per rule
     // 2. Create a new rule if the existing rules are full - 20 IPs per rule
-    async function ensureIPsCanBeAdded(context, siteId, { extendableRules = {}, newIPs = [] }) {
+    async function ensureIPsCanBeAdded(context, siteId, auth, { extendableRules = {}, newIPs = [] }) {
 
         // Number of IPs that can be added to the existing rules.
         const numOfIPsThatCanBeAdded = Object.values(extendableRules)
@@ -258,8 +256,8 @@ module.exports = (context, options) => {
         const { data } = await context.httpRequest({
             method: 'POST',
             headers: {
-                'x-API-Id': context.auth.id,
-                'x-API-Key': context.auth.key
+                'x-API-Id': auth.id,
+                'x-API-Key': auth.key
             },
             url
         });
