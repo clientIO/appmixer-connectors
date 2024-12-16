@@ -4,6 +4,8 @@ module.exports = async (context) => {
 
     const BlockIPRuleModel = require('./BlockIPRuleModel')(context);
     const COLLECTION_NAME_BLOCK_IPS = BlockIPRuleModel.collection;
+    /** Max POST, PUT and DELETE requests to Imperva API at the same time. */
+    const MAX_PARRALEL_REQUESTS = parseInt(context.config.blockIpMaxParallelRequests, 10) || 10;
     const config = require('./config')(context);
 
     await context.scheduleJob('imperva-rule-block-ips-delete-job', config.ruleDeleteJob.schedule, async () => {
@@ -22,7 +24,9 @@ module.exports = async (context) => {
                     // If ttl was not set, removeAfter is null
                     .find({ removeAfter: { $lt: Date.now() } })
                     .toArray();
-                await context.log('trace', `[IMPERVA] Found ${expiredIPs.length} expired IPs.`, { expiredIPs });
+                if (expiredIPs.length) {
+                    await context.log('info', `[IMPERVA] Found ${expiredIPs.length} expired IPs. Processing...`);
+                }
 
                 // For the expired IPs we need to also load all the other IPs in the same rule.
                 // This is because we need to delete the entire rule if all the IPs in it have expired.
@@ -55,7 +59,7 @@ module.exports = async (context) => {
                  * {
                  *   siteId1: [
                  *       { ruleId1, auth, method: 'PUT', ipsToUnblock: [ip1, ip3], ipsToKeepBlocking: [ip2] },
-                 *       { ruleId2, auth, method: 'DELETE' }
+                 *       { ruleId2, auth, method: 'DELETE', ipsToUnblock: [ip5] }
                  *  ],
                  *  siteId2: [
                  *       { ruleId3, auth, method: 'DELETE' }
@@ -99,12 +103,10 @@ module.exports = async (context) => {
                     const siteIPsToDelete = []; // From MongoDB
                     const rules = rulesBySite[siteId];
 
-                    // Split them into chunks of 10. This will fire 10 requests in parallel and wait for all of them to finish.
-                    const chunkSize = 5;
                     const chunks = [];
 
-                    for (let i = 0; i < rules.length; i += chunkSize) {
-                        chunks.push(rules.slice(i, i + chunkSize));
+                    for (let i = 0; i < rules.length; i += MAX_PARRALEL_REQUESTS) {
+                        chunks.push(rules.slice(i, i + MAX_PARRALEL_REQUESTS));
                     }
 
                     let chunkIndex = 0;
@@ -177,7 +179,7 @@ module.exports = async (context) => {
                 }
             } finally {
                 lock.unlock();
-                await context.log('info', '[IMPERVA] rule delete job finished. Lock unlocked.');
+                await context.log('trace', '[IMPERVA] rule delete job finished. Lock unlocked.');
             }
         } catch (err) {
             if (err.message !== 'locked') {
