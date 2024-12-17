@@ -51,20 +51,32 @@ module.exports = {
         attachments = attachments.reduce((a, b) => a.concat(b), []);
 
         // Save attachments and send them to the output port
-        let saved = await Promise.map(attachments, attachment => {
-            const buffer = Buffer.from(attachment.data, 'base64');
-            return context.saveFileStream(
-                attachment.filename,
-                buffer
-            ).then(res => {
-                return Object.assign(res, {
-                    email: attachment.email
+        let attachmentsOutput;
+
+        if (context.properties.download) {
+            attachmentsOutput = await Promise.map(attachments, attachment => {
+                const buffer = Buffer.from(attachment.data, 'base64');
+                return context.saveFileStream(
+                    attachment.filename,
+                    buffer
+                ).then(res => {
+                    return Object.assign(res, {
+                        email: attachment.email,
+                        attachment
+                    });
                 });
             });
-        });
+        } else {
+            attachmentsOutput = attachments.map(attachment => {
+                return Object.assign(attachment, {
+                    email: attachment.email,
+                    attachment
+                });
+            });
+        }
 
-        await Promise.map(saved, savedFile => {
-            return context.sendJson(savedFile, 'attachment');
+        await Promise.map(attachmentsOutput, out => {
+            return context.sendJson(out, 'attachment');
         });
 
         await context.saveState(newState);
@@ -77,7 +89,7 @@ module.exports = {
  * @param {Object} email
  * @return {Array<Object>} returns array with attachments
  */
-let downloadAttachments = async (context, email) => {
+const downloadAttachments = async (context, email) => {
     if (!emailCommons.isNewInboxEmail(email.labelIds)) {
         return []; // skip SENT and DRAFT emails
     }
@@ -85,17 +97,20 @@ let downloadAttachments = async (context, email) => {
     // Parse the email content to extract attachments
     const parsedEmail = emailCommons.normalizeEmail(email);
 
-    return Promise.map(parsedEmail.attachments || [], attachment => {
-        return emailCommons.callEndpoint(context, `/users/me/messages/${email.id}/attachments/${attachment.id}`, {
-            method: 'GET'
-        }).then(response => {
-            return {
-                filename: attachment.filename,
-                mimetype: attachment.mimeType || 'application/octet-stream', // Ensure mimetype is set
-                size: attachment.size,
-                data: response.data.data,
-                email: parsedEmail
-            };
-        });
+    return Promise.map(parsedEmail.attachments || [], async (attachment) => {
+        const out = {
+            filename: attachment.filename,
+            mimetype: attachment.mimeType || 'application/octet-stream', // Ensure mimetype is set
+            size: attachment.size,
+            email: parsedEmail,
+            attachment: attachment
+        };
+        if (context.properties.download) {
+            const response = await emailCommons.callEndpoint(context, `/users/me/messages/${email.id}/attachments/${attachment.id}`, {
+                method: 'GET'
+            });
+            out.data = response.data.data;
+        }
+        return out;
     });
 };
