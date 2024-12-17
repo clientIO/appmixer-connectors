@@ -11,7 +11,7 @@ module.exports = {
             namespace,
             ids,
             deleteAll = false,
-            filter,
+            filter
         } = context.messages.in.content;
 
         const pinecone = new Pinecone({
@@ -68,7 +68,7 @@ module.exports = {
 
 function generateUniformVector(dimensions, min = -1, max = 1) {
     const vector = Array.from({ length: dimensions }, () => {
-      return Math.random() * (max - min) + min; // Random float in [min, max)
+        return Math.random() * (max - min) + min; // Random float in [min, max)
     });
     return vector;
 }
