@@ -57,7 +57,9 @@ module.exports = {
                 attachment.filename,
                 buffer
             ).then(res => {
-                return Object.assign(res, { subject: attachment.subject });
+                return Object.assign(res, {
+                    email: attachment.email
+                });
             });
         });
 
@@ -92,7 +94,7 @@ let downloadAttachments = async (context, email) => {
                 mimetype: attachment.mimeType || 'application/octet-stream', // Ensure mimetype is set
                 size: attachment.size,
                 data: response.data.data,
-                subject: parsedEmail.payload.subject
+                email: parsedEmail
             };
         });
     });
