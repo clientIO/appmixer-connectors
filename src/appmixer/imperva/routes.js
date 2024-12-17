@@ -277,5 +277,5 @@ function getModelRecords(simplifiedRecords = [], siteId, removeAfter, auth = {})
         removeAfter,
         auth,
         ip
-    })).flat();
+    }));
 }

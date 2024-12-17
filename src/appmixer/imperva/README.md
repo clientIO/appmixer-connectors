@@ -25,7 +25,7 @@ The component does its own optimization to reduce the number of existing rules t
 It is expected that only this component is used to create, update and delete the rules. If the rules are modified outside of this component, the TTL enforcement might not work correctly.
 
 ### Limitations
-Maximum number of IP addresses that can be blocked in one run is 1000. This roughly translates 50 rules with 20 IP addresses each. Imperva allows for 20 IP addresses in a filter. Otherwise it throws: `Rule contains too many filters. Maximum of 20 filters is allowed`.
+Maximum number of IP addresses that can be blocked in one run is 1000. This roughly translates to 50 rules with 20 IP addresses each. Imperva allows for maximum of 20 IP addresses in a filter. Otherwise it throws: `Rule contains too many filters. Maximum of 20 filters is allowed`.
 
 Another limitation is the maximum number of custom rules per site. The limit is 500 according to the Imperva API documentation. The component does check for this limit before creating a new rule.
 

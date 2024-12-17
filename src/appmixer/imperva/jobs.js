@@ -1,12 +1,12 @@
-const { baseUrl } = require('./lib');
+const { baseUrl, getAuthHeader } = require('./lib');
 
 module.exports = async (context) => {
 
+    const config = require('./config')(context);
     const BlockIPRuleModel = require('./BlockIPRuleModel')(context);
     const COLLECTION_NAME_BLOCK_IPS = BlockIPRuleModel.collection;
     /** Max POST, PUT and DELETE requests to Imperva API at the same time. */
     const MAX_PARRALEL_REQUESTS = parseInt(context.config.blockIpMaxParallelRequests, 10) || 10;
-    const config = require('./config')(context);
 
     await context.scheduleJob('imperva-rule-block-ips-delete-job', config.ruleDeleteJob.schedule, async () => {
 
@@ -116,10 +116,7 @@ module.exports = async (context) => {
                         const chunkPromises = chunk.map(rule => {
                             if (rule.method === 'DELETE') {
                                 const params = {
-                                    headers: {
-                                        'x-API-Id': rule.auth.id,
-                                        'x-API-Key': rule.auth.key
-                                    },
+                                    headers: getAuthHeader(rule.auth),
                                     url: `${baseUrl}/v2/sites/${siteId}/rules/${rule.ruleId}`,
                                     method: 'DELETE'
                                 };
@@ -127,10 +124,7 @@ module.exports = async (context) => {
                             } else {
                                 const filter = rule.ipsToKeepBlocking.map(ip => `ClientIP == ${ip}`).join(' & ');
                                 const params = {
-                                    headers: {
-                                        'x-API-Id': rule.auth.id,
-                                        'x-API-Key': rule.auth.key
-                                    },
+                                    headers: getAuthHeader(rule.auth),
                                     url: `${baseUrl}/v2/sites/${siteId}/rules/${rule.ruleId}`,
                                     method: 'PUT',
                                     data: {
@@ -156,7 +150,11 @@ module.exports = async (context) => {
                                     context.log('error', `[IMPERVA] [${chunkIndex}] Error deleting rule ${chunk[i].ruleId}`, context.utils.Error.stringify(result.reason));
                                     // Modify the mtime for either all the IPs in the rule or just the IPs that failed to delete
                                     context.db.collection(COLLECTION_NAME_BLOCK_IPS).updateMany(
-                                        { ruleId: chunk[i].ruleId, siteId, ip: { $in: chunk[i].ipsToUnblock } },
+                                        {
+                                            ruleId: chunk[i].ruleId,
+                                            siteId,
+                                            ip: { $in: chunk[i].ipsToUnblock }
+                                        },
                                         { $set: { mtime: Date.now() } }
                                     );
                                 }
@@ -168,7 +166,9 @@ module.exports = async (context) => {
                         const del = { siteId: parseInt(siteId, 10), ip: { $in: allIPsToDelete } };
                         const deleted = await context.db.collection(COLLECTION_NAME_BLOCK_IPS).deleteMany(del);
 
-                        await context.log('trace', `[IMPERVA] [${chunkIndex}] mongo - Deleted ${deleted.deletedCount} records for site ${siteId}.`);
+                        if (deleted.deletedCount) {
+                            await context.log('info', `[IMPERVA] [${chunkIndex}] Deleted ${deleted.deletedCount} records for site ${siteId}.`);
+                        }
 
                         // Extend the lock for the next chunk
                         if (chunks.length > 1) {
