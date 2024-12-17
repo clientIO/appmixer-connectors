@@ -12,11 +12,9 @@ module.exports = {
 
         const client = DocumentIntelligence(endpoint, { key: apiKey });
 
-        let options;
-
         const fileInfo = await context.getFileInfo(fileId);
         const fileStream = await context.getFileReadStream(fileId);
-        options = {
+        const options = {
             contentType: fileInfo.contentType || 'application/octet-stream',
             body: fileStream
         };
