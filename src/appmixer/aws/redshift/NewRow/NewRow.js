@@ -14,7 +14,7 @@ module.exports = {
         const { query, compareField: field } = context.properties;
         let lastSeenValue = await context.stateGet('lastSeenValue');
 
-        const sanitizedQuery = query.replace(';', '');
+        const sanitizedQuery = query.replace(/;$/, '');
 
         try {
             if (lastSeenValue === null) {

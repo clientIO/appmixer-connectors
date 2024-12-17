@@ -9,7 +9,7 @@ module.exports = {
         let { lastUpdated } = await context.stateGet('lastUpdated') || {};
         let processedKeys = await context.stateGet('processedKeys') || {};
 
-        const sanitizedQuery = query.replace(';', '');
+        const sanitizedQuery = query.replace(/;$/, '');
 
         try {
             if (!lastUpdated) {
