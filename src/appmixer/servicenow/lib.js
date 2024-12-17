@@ -148,7 +148,7 @@ async function getTablesColumnsProperties(context, { tables = [] }) {
         }
     };
 
-    const { data } = await callEndpoint(context, options);
+    const { data } = await callEndpointCached(context, options);
 
     return data.result;
 }
@@ -177,7 +177,7 @@ async function getTableReferences(context, { tableName, tableId }) {
                 }
             };
 
-        const { data } = await callEndpoint(context, options);
+        const { data } = await callEndpointCached(context, options);
 
         const table = tableId ? data?.result : data?.result[0];
 
