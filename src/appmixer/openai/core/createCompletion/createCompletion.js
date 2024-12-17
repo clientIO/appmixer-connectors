@@ -5,8 +5,6 @@ module.exports = {
     receive: async function(context) {
         const { content } = context.messages.in;
 
-        context.log({ step: 'auth', auth: context.auth });
-
         const requestBody = content;
 
         const req = {
