@@ -3,53 +3,87 @@ const { MongoClient, Timestamp } = require('mongodb');
 const fs = require('fs');
 const tmp = require('tmp');
 
-module.exports = {
+// Global MongoDB Connection Management
+let MONGODB_CONNECTOR_OPEN_CONNECTIONS;
+if (process.MONGODB_CONNECTOR_OPEN_CONNECTIONS) {
+    MONGODB_CONNECTOR_OPEN_CONNECTIONS = process.MONGODB_CONNECTOR_OPEN_CONNECTIONS;
+} else {
+    process.MONGODB_CONNECTOR_OPEN_CONNECTIONS = MONGODB_CONNECTOR_OPEN_CONNECTIONS = {};
+}
 
+// Helper to clean up temporary folders
+async function removeTmpFolder(tmpDir) {
+    await new Promise((resolve, reject) => {
+        fs.rm(tmpDir.name, { recursive: true }, (err) => {
+            if (err) reject(err);
+            resolve();
+        });
+    });
+}
+
+module.exports = {
     async getClient(context) {
+        const { connectionUri, tlsCAFileContent, tlsAllowInvalidHostnames, tlsAllowInvalidCertificates } = context;
+
+        // Check if the connection already exists
+        if (MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri]) {
+            return MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri];
+        }
 
         let tmpFile;
         let tmpDir;
         const options = {
-            tls: !!context.tlsCAFileContent
+            useNewUrlParser: true,
+            useUnifiedTopology: true
         };
-        if (context.tlsCAFileContent) {
-            tmpDir = tmp.dirSync();
-            tmpFile = tmpDir.name + '/key.crt';
-            // Write the contents to the temporary file
-            fs.writeFileSync(tmpFile, context.tlsCAFileContent);
+
+        // Handle inline TLS CA file content
+        if (tlsCAFileContent) {
+            tmpDir = tmp.dirSync(); // Create temporary directory
+            tmpFile = tmpDir.name + '/key.crt'; // Define file path
+            fs.writeFileSync(tmpFile, tlsCAFileContent); // Write CA content to file
+            options.tls = true;
             options.tlsCAFile = tmpFile;
         }
-        if (context.tlsAllowInvalidHostnames == 'true') {
+
+        // Handle additional TLS options
+        if (tlsAllowInvalidHostnames === 'true') {
             options.tlsAllowInvalidHostnames = true;
         }
-        if (context.tlsAllowInvalidCertificates == 'true') {
+        if (tlsAllowInvalidCertificates === 'true') {
             options.tlsAllowInvalidCertificates = true;
         }
-        const client = new MongoClient(context.connectionUri, context.tlsCAFileContent && options);
+
+        const client = new MongoClient(connectionUri, options);
+
         try {
             await client.connect();
+            MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri] = client; // Save client for reuse
+            return client;
         } catch (error) {
-            if (context.tlsCAFileContent) {
-                // Removing the temporary file and directory if the connection fails
-                await removeTmpFolder(tmpDir);
+            if (tlsCAFileContent) {
+                await removeTmpFolder(tmpDir); // Clean up temp files if connection fails
             }
             throw error;
         }
+    },
 
-        if (context.tlsCAFileContent) {
-            await removeTmpFolder(tmpDir);
+    async cleanupConnections(context) {
+        for (const [uri, client] of Object.entries(MONGODB_CONNECTOR_OPEN_CONNECTIONS)) {
+            if (!await context.service.stateGet(uri)) {
+                await client.close();
+                delete MONGODB_CONNECTOR_OPEN_CONNECTIONS[uri];
+                await context.log('info', `[MongoDB] Connection ${uri} closed.`);
+            }
         }
-        return client;
     },
 
     getCollection(client, dbName, collectionName) {
-
         const db = client.db(dbName);
         return db.collection(collectionName);
     },
 
     async getReplicaSetStatus(client) {
-
         const db = client.db('admin');
         try {
             await db.admin().command({ replSetGetStatus: 1 });
@@ -60,10 +94,7 @@ module.exports = {
     },
 
     getChangeStream(operation, collection, { startAtOperationTime, resumeToken }) {
-
-        const matchStage = {
-            $match: { 'operationType': operation }
-        };
+        const matchStage = { $match: { operationType: operation } };
 
         const options = {};
         if (resumeToken) {
@@ -76,7 +107,6 @@ module.exports = {
     },
 
     async ensureStore(context, name, storeId) {
-
         const stateStoreId = await context.stateGet('storeId');
         let returnStoreId = storeId || stateStoreId;
 
@@ -85,13 +115,10 @@ module.exports = {
                 const newStoreResponse = await context.callAppmixer({
                     endPoint: '/stores',
                     method: 'POST',
-                    body: {
-                        name
-                    }
+                    body: { name }
                 });
                 returnStoreId = newStoreResponse.storeId;
             } catch (err) {
-                // Ignore error if the store already exists
                 if (!err.message.includes('duplicate key error')) {
                     throw err;
                 }
@@ -103,18 +130,17 @@ module.exports = {
                 returnStoreId = selectedStore.storeId;
             }
         }
+
         await context.stateSet('storeId', returnStoreId);
         return returnStoreId;
     },
 
     async setOperationalTimestamp(context) {
-
         const ts = Math.floor(new Date().getTime() / 1000);
         await context.stateSet('startAtOperationTime', ts);
     },
 
     async processDocuments({ lock, client, context, storeId, docIds }) {
-
         const db = client.db(context.auth.database);
         const collection = db.collection(context.properties.collection);
         const cursor = await collection.find();
@@ -127,17 +153,3 @@ module.exports = {
         }
     }
 };
-
-async function removeTmpFolder(tmpDir) {
-
-    await new Promise((resolve, reject) => {
-
-        fs.rm(tmpDir.name, { recursive: true }, (err) => {
-
-            if (err) {
-                reject(err);
-            }
-            resolve();
-        });
-    });
-}
