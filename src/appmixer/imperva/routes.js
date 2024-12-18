@@ -8,7 +8,7 @@ module.exports = (context, options) => {
 
     const MAX_IPS_PER_RULE = parseInt(context.config.blockIpMaxIpsPerRule, 10) || 20;
     /** Max POST, PUT and DELETE requests to Imperva API at the same time. */
-    const MAX_PARRALEL_REQUESTS = parseInt(context.config.blockIpMaxParallelRequests, 10) || 5;
+    const MAX_PARALLEL_REQUESTS = parseInt(context.config.blockIpMaxParallelRequests, 10) || 5;
     /**
      * Max number of custom rules in Imperva.
      * @see https://docs.imperva.com/bundle/cloud-application-security/page/rules/create-rule.htm
@@ -93,8 +93,8 @@ module.exports = (context, options) => {
                     });
                     // Batches of promises to be processed in parallel by MAX_PARRALEL_REQUESTS.
                     const parallelChunks = [];
-                    for (let i = 0; i < promisesUpdate.length; i += MAX_PARRALEL_REQUESTS) {
-                        const chunk = promisesUpdate.slice(i, i + MAX_PARRALEL_REQUESTS);
+                    for (let i = 0; i < promisesUpdate.length; i += MAX_PARALLEL_REQUESTS) {
+                        const chunk = promisesUpdate.slice(i, i + MAX_PARALLEL_REQUESTS);
                         parallelChunks.push(chunk);
                     }
 
@@ -120,14 +120,14 @@ module.exports = (context, options) => {
 
                         // Process `MAX_PARRALEL_REQUESTS` rule chunks in parallel
                         const parallelChunks = [];
-                        for (let i = 0; i < ruleIPChunks.length; i += MAX_PARRALEL_REQUESTS) {
-                            const chunk = ruleIPChunks.slice(i, i + MAX_PARRALEL_REQUESTS);
+                        for (let i = 0; i < ruleIPChunks.length; i += MAX_PARALLEL_REQUESTS) {
+                            const chunk = ruleIPChunks.slice(i, i + MAX_PARALLEL_REQUESTS);
                             parallelChunks.push(chunk);
                         }
 
                         for (const chunk of parallelChunks) {
                             const promises = chunk.map((ruleIps, i) => {
-                                const totalOrder = (i + 1) + (parallelChunks.indexOf(chunk) * MAX_PARRALEL_REQUESTS);
+                                const totalOrder = (i + 1) + (parallelChunks.indexOf(chunk) * MAX_PARALLEL_REQUESTS);
                                 return createRule(auth, siteId, ruleIps, ruleName, totalOrder, processedRuleIPPairs);
                             });
                             const results = await Promise.allSettled(promises);
@@ -170,11 +170,11 @@ module.exports = (context, options) => {
         const rules = results.filter(result => result.status === 'fulfilled').map(result => result.value);
         // Some rules failed to create.
         // Save the successful rules to the database to be in sync with Imperva.
-        const recordsSavedToImeprva = getModelRecords(processed, siteId, removeAfter, auth);
+        const recordsSavedToImperva = getModelRecords(processed, siteId, removeAfter, auth);
         if (rules.length > 0) {
             const inserted = await context.db.collection(BlockIPRuleModel.collection)
-                .insertMany(recordsSavedToImeprva);
-            context.log('trace', `Inserted ${inserted.insertedCount} new block IP records after an error occured.`, { new: recordsSavedToImeprva });
+                .insertMany(recordsSavedToImperva);
+            context.log('trace', `Inserted ${inserted.insertedCount} new block IP records after an error occured.`, { new: recordsSavedToImperva });
         }
 
         const errors = results.filter(result => result.status === 'rejected');
