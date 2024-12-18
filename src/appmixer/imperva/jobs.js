@@ -12,7 +12,7 @@ module.exports = async (context) => {
 
         try {
             const lock = await context.job.lock('imperva-rule-block-ips-delete-job', { ttl: config.ruleDeleteJob.lockTTL });
-            await context.log('trace', '[IMPERVA] rule delete job started.');
+            await context.log('trace', '[imperva-rule-block-ips-delete-job] rule delete job started.');
 
             try {
                 // Important assumptions:
@@ -25,7 +25,7 @@ module.exports = async (context) => {
                     .find({ removeAfter: { $lt: Date.now() } })
                     .toArray();
                 if (expiredIPs.length) {
-                    await context.log('info', `[IMPERVA] Found ${expiredIPs.length} expired IPs. Processing...`);
+                    await context.log('info', `[imperva-rule-block-ips-delete-job] Found ${expiredIPs.length} expired IPs. Processing...`);
                 }
 
                 // For the expired IPs we need to also load all the other IPs in the same rule.
@@ -141,13 +141,19 @@ module.exports = async (context) => {
                         all.forEach((result, i) => {
                             if (result.status === 'fulfilled') {
                                 siteIPsToDelete.push(chunk[i].ipsToUnblock);
+                                const action = result.value?.data?.filter ? 'updated' : 'deleted';
+                                const details = { action };
+                                if (action === 'updated') {
+                                    details.filter = result.value.data.filter;
+                                }
+                                context.log('info', `[imperva-rule-block-ips-delete-job] [${chunkIndex}] Processed rule ${chunk[i].ruleId} for site ${siteId} via Imperva API.`, details);
                             } else {
                                 if (result.reason.response?.status === 404) {
                                     // Rule not found, probably already deleted
                                     siteIPsToDelete.push(chunk[i].ipsToUnblock);
-                                    context.log('info', `[IMPERVA] [${chunkIndex}] Rule ${chunk[i].ruleId} not found in Imperva for site ${siteId}. Probably already deleted.`);
+                                    context.log('info', `[imperva-rule-block-ips-delete-job] [${chunkIndex}] Rule ${chunk[i].ruleId} not found in Imperva for site ${siteId}. Probably already deleted.`);
                                 } else {
-                                    context.log('error', `[IMPERVA] [${chunkIndex}] Error deleting rule ${chunk[i].ruleId}`, context.utils.Error.stringify(result.reason));
+                                    context.log('error', `[imperva-rule-block-ips-delete-job] [${chunkIndex}] Error deleting rule ${chunk[i].ruleId}`, context.utils.Error.stringify(result.reason));
                                     // Modify the mtime for either all the IPs in the rule or just the IPs that failed to delete
                                     context.db.collection(COLLECTION_NAME_BLOCK_IPS).updateMany(
                                         {
@@ -167,23 +173,23 @@ module.exports = async (context) => {
                         const deleted = await context.db.collection(COLLECTION_NAME_BLOCK_IPS).deleteMany(del);
 
                         if (deleted.deletedCount) {
-                            await context.log('info', `[IMPERVA] [${chunkIndex}] Deleted ${deleted.deletedCount} records for site ${siteId}.`);
+                            await context.log('info', `[imperva-rule-block-ips-delete-job] [${chunkIndex}] Deleted ${deleted.deletedCount} IP records for site ${siteId} from the DB.`, { deletedIPs: allIPsToDelete });
                         }
 
                         // Extend the lock for the next chunk
                         if (chunks.length > 1) {
                             await lock.extend(config.ruleDeleteJob.lockTTL);
-                            await context.log('info', `[IMPERVA] [${chunkIndex}] Lock extended.`);
+                            await context.log('info', `[imperva-rule-block-ips-delete-job] [${chunkIndex}] Lock extended.`);
                         }
                     }
                 }
             } finally {
                 lock.unlock();
-                await context.log('trace', '[IMPERVA] rule delete job finished. Lock unlocked.');
+                await context.log('trace', '[imperva-rule-block-ips-delete-job] rule delete job finished. Lock unlocked.');
             }
         } catch (err) {
             if (err.message !== 'locked') {
-                context.log('error', '[IMPERVA] Error checking rules to delete', context.utils.Error.stringify(err));
+                context.log('error', '[imperva-rule-block-ips-delete-job] Error checking rules to delete', context.utils.Error.stringify(err));
             }
         }
     });
