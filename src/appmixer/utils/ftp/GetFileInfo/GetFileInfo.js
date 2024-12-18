@@ -13,7 +13,7 @@ module.exports = {
 
         let content;
         try {
-            content = await client.list(path);
+            content = await client.retrieveOne(path);
         } catch (e) {
             if (e.code === 550) {
                 return context.sendJson({
