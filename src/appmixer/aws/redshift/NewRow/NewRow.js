@@ -14,15 +14,17 @@ module.exports = {
         const { query, compareField: field } = context.properties;
         let lastSeenValue = await context.stateGet('lastSeenValue');
 
+        const sanitizedQuery = query.replace(/;$/, '');
+
         try {
             if (lastSeenValue === null) {
                 // On the first run, query only the latest row to set the lastSeenValue
-                const latestRowQuery = `${query} ORDER BY ${field} DESC LIMIT 1`;
+                const latestRowQuery = `${sanitizedQuery} ORDER BY ${field} DESC LIMIT 1`;
                 const latestRowResult = await runQuery({ context: context.auth, query: latestRowQuery });
                 lastSeenValue = latestRowResult.rows.length ? latestRowResult.rows[0][field] : 0;
                 await context.stateSet('lastSeenValue', lastSeenValue);
             } else {
-                const newRows = await this.checkForNewRows(context, query, field, lastSeenValue);
+                const newRows = await this.checkForNewRows(context, sanitizedQuery, field, lastSeenValue);
                 if (newRows.length) {
                     const lastValue = newRows[newRows.length - 1][field];
                     for (const row of newRows) {
