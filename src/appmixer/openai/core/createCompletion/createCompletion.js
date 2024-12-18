@@ -5,7 +5,14 @@ module.exports = {
     receive: async function(context) {
         const { content } = context.messages.in;
 
-        const requestBody = content;
+        let requestBody;
+
+        if (content.model === 'gpt-3.5-turbo-instruct') {
+            requestBody = content;
+        } else {
+            delete content.suffix;
+            requestBody = content;
+        }
 
         const req = {
             url: 'https://api.openai.com/v1/completions',
