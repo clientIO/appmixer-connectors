@@ -34,7 +34,7 @@ module.exports = (context, options) => {
                     // Change the removeAfter date to the new date.
                     const extended = await context.db.collection(BlockIPRuleModel.collection)
                         .updateMany({ ip: { $in: ips }, siteId }, { $set: { removeAfter } });
-                    context.log('info', `[IMPERVA] Extended ${extended.modifiedCount} existing block IP records.`, { extended: existingBlockIPRules });
+                    context.log('info', `[imperva-route-rules-block-ips] Extended ${extended.modifiedCount} existing block IP records.`, { extended: existingBlockIPRules });
                 }
                 const extendedIPs = existingBlockIPRules.map(rule => rule.ip);
                 // Find the new blocked IPs, ie. the ones that are not already blocked.
@@ -147,7 +147,7 @@ module.exports = (context, options) => {
                     if (recordsToInsert.length > 0) {
                         const inserted = await context.db.collection(BlockIPRuleModel.collection)
                             .insertMany(recordsToInsert);
-                        context.log('info', `[IMPERVA] Inserted ${inserted.insertedCount} new block IP records.`, { new: recordsToInsert });
+                        context.log('info', `[imperva-route-rules-block-ips] Inserted ${inserted.insertedCount} new block IP records.`, { new: recordsToInsert });
                     }
                 }
 
