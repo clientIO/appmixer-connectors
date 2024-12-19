@@ -1,31 +1,31 @@
 'use strict';
-const { 
-    getClient, 
-    getCollection, 
-    getChangeStream, 
-    getReplicaSetStatus, 
-    ensureStore, 
-    setOperationalTimestamp, 
-    processDocuments 
+const {
+    getClient,
+    getCollection,
+    getChangeStream,
+    getReplicaSetStatus,
+    ensureStore,
+    setOperationalTimestamp,
+    processDocuments
 } = require('../../common');
 
 module.exports = {
     async start(context) {
         const client = await getClient(context);
+        context.log(client);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
             await context.stateSet('isReplicaSet', isReplicaSet);
-    
+
             if (isReplicaSet) {
                 await setOperationalTimestamp(context);
-                return; // Exit early for replica sets
+                return;
             }
-    
+
             const storeId = await ensureStore(context, 'UpdatedDoc-' + context.componentId);
             await processDocuments({ client, context, storeId });
             await context.store.registerWebhook(storeId, ['insert', 'update']);
         } catch (error) {
-            await context.log('error', `Error in start: ${error.message}`);
             throw error;
         }
     },
