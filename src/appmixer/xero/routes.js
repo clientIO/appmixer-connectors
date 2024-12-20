@@ -30,7 +30,7 @@ module.exports = async context => {
 
 module.exports.webhookHandler = async (context, req, h) => {
 
-    context.log('info', 'xero-plugin-route-webhook-hit', { payload: req.payload });
+    context.log('info', 'xero-plugin-route-webhook-hit');
 
     /** Raw payload from the webhook. We can't use the parsed payload as it's already parsed by the framework.
      *  We can't use JSON.stringify(req.payload) as it will remove any whitespace and the signature will not match
@@ -57,63 +57,40 @@ module.exports.webhookHandler = async (context, req, h) => {
         return h.response(undefined).code(401);
     }
 
-    let registeredComponents = {};
+    context.log('debug', 'xero-plugin-route-webhook-payload', { payload: req.payload });
+
     const tenantIds = [...new Set(req.payload.events?.map(event => event.tenantId))];
     /**
 	 * Combination of eventType and eventCategory
-	 * @example ['CONTACT.Create', 'INVOICE.Create', 'CONTACT.Update'];
+	 * @example ['CONTACT.CREATE', 'INVOICE.CREATE', 'CONTACT.UPDATE'];
 	 * @type {string[]} */
     const triggerTypes = [...new Set(req.payload.events.flatMap(event => {
         return `${event.eventCategory}.${event.eventType}`;
     }))];
     context.log('debug', 'xero-plugin-route-webhook-log', { tenantIds, triggerTypes, events: req.payload.events.length });
 
+    let totalEventCount = 0;
     for (const tenantId of tenantIds) {
-        registeredComponents[tenantId] = {};
         for (const triggerType of triggerTypes) {
-            const components = await context.service.stateGet(`${triggerType}:${tenantId}`);
-            if (components) {
-                registeredComponents[tenantId][triggerType] = components;
+            const eventName = `${triggerType}:${tenantId}`;
+            // Send only resourceIds as array of strings.
+            const payload = req.payload.events
+                .filter(event => `${event.eventCategory}.${event.eventType}` === triggerType && event.tenantId === tenantId)
+                .map(event => event.resourceId);
+            const eventCount = payload.length;
+            totalEventCount += eventCount;
+            if (eventCount === 0) {
+                continue;
             }
+            await context.triggerListeners({
+                eventName,
+                payload
+            });
+            await context.log('info', 'xero-plugin-route-webhook-trigger-ok', { tenantId, triggerType });
         }
     }
 
-    const componentsCount = Object.values(registeredComponents)
-        .map(components => Object.values(components).filter(c => c).length)
-        .reduce((acc, val) => acc + val, 0);
-    context.log('debug', 'xero-plugin-route-webhook-log', { registeredComponentsCount: componentsCount, registeredComponents });
-
-    // Loop over tenants
-    for (const tenantId of tenantIds) {
-        // Loop over components registered for the tenant
-        for (const triggerType of triggerTypes) {
-            // Get all components registered for the tenant and triggerType
-            const components = registeredComponents[tenantId][triggerType] || [];
-            // Get all events for the tenant and triggerType
-            const events = req.payload.events
-                .filter(event => event.tenantId === tenantId && `${event.eventCategory}.${event.eventType}` === triggerType);
-            const resourceIds = events.map(event => event.resourceId);
-
-            context.log('debug', 'xero-plugin-route-webhook-log', triggerType, components.length, events.length);
-            // Send all the events once for each component
-            for (const component of components) {
-                context.log('debug', 'xero-plugin-route-webhook-trigger-start', { tenantId, component, events });
-                try {
-                    const resp = await context.triggerComponent(
-                        component.flowId,
-                        component.componentId,
-                        resourceIds,
-                        { enqueueOnly: true }, {}
-                    );
-                    await context.log('info', 'xero-plugin-route-webhook-trigger-ok', { tenantId, component, resp });
-                } catch (error) {
-                    await context.log('error', 'xero-plugin-route-webhook-trigger-error', { tenantId, component, error });
-                }
-            }
-        }
-    }
-
-    context.log('info', 'xero-plugin-route-webhook-success', { registeredComponentsCount: componentsCount });
+    context.log('info', 'xero-plugin-route-webhook-success', { totalEventCount });
 
     // Empty response
     return h.response(undefined).code(200);
