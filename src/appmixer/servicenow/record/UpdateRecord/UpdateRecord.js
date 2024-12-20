@@ -15,11 +15,23 @@ module.exports = {
         const { tableName, generateInspector, generateOutputPortOptions } = context.properties;
 
         if (generateOutputPortOptions) {
-            return lib.toOutputScheme(context, await lib.getColumns(context, { tableName }), sysparm_fields);
+            const columns = await lib.getColumns(context, { tableName });
+            return lib.toOutputScheme(context, columns, sysparm_fields);
         }
 
         if (generateInspector) {
-            return lib.toInspector(context, await lib.getColumns(context, { tableName }), sysparm_fields);
+            const columns = await lib.getColumns(context, { tableName });
+            return lib.toInspector(context, {
+                columns,
+                fields: sysparm_fields,
+                schema: {
+                    properties: {
+                        record_sys_id: { type: 'string' },
+                        sysparm_fields: { type: 'string' }
+                    },
+                    required: ['record_sys_id']
+                }
+            });
         }
 
         const inputs = context.messages.in.content;
@@ -29,7 +41,8 @@ module.exports = {
             action: `table/${tableName}/${record_sys_id}`,
             data: inputs,
             params: {
-                sysparm_fields
+                // explicitly includes the sys_id param
+                sysparm_fields: sysparm_fields ? `${sysparm_fields},sys_id` : sysparm_fields
             }
         });
 
