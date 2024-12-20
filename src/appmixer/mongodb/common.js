@@ -23,11 +23,21 @@ async function removeTmpFolder(tmpDir) {
 
 module.exports = {
     async getClient(context) {
-        const { connectionUri, tlsCAFileContent, tlsAllowInvalidHostnames, tlsAllowInvalidCertificates } = context;
+        const connectionUri = context.connectionUri || (context.auth && context.auth.connectionUri);
+        const { tlsCAFileContent, tlsAllowInvalidHostnames, tlsAllowInvalidCertificates } = context;
 
         // Check if the connection already exists
         if (MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri]) {
-            return MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri];
+            const client = MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri];
+
+            // Ensure the client is connected
+            if (client.topology && client.topology.isConnected()) {
+                console.log('[MongoDB] Reusing existing client.');
+                return client;
+            } else {
+                await client.connect();
+                return client;
+            }
         }
 
         let tmpFile;

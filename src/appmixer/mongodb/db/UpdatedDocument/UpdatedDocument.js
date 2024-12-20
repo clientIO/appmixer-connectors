@@ -12,7 +12,6 @@ const {
 module.exports = {
     async start(context) {
         const client = await getClient(context);
-        context.log(client);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
             await context.stateSet('isReplicaSet', isReplicaSet);
@@ -59,7 +58,8 @@ module.exports = {
         try {
             lock = await context.lock('MongoDbUpdatedDoc-' + context.componentId, {
                 ttl: 1000 * 60 * 5, // 5 minutes
-                maxRetryCount: 0
+                maxRetryCount: 5,
+                retryDelay: 3000
             });
 
             const isReplicaSet = await context.stateGet('isReplicaSet');
@@ -79,7 +79,7 @@ module.exports = {
                         await context.stateSet('resumeToken', changeStream.resumeToken['_data']);
                     }
                 } catch (error) {
-                    await context.log('error', `Error in change stream: ${error.message}`);
+                    throw error;
                 }
             } else {
                 // Non-replica set logic
@@ -87,7 +87,7 @@ module.exports = {
                 await processDocuments({ lock, client, context, storeId });
             }
         } catch (error) {
-            await context.log('error', `Error in tick: ${error.message}`);
+            throw error;
         } finally {
             lock && await lock.unlock();
         }
