@@ -7,21 +7,17 @@ module.exports = {
     start: async function(context) {
 
         const { tenantId } = context.properties;
-        const { componentId, flowId } = context;
-        const webhook = 'INVOICE.UPDATE:' + tenantId;
-        await context.log({ step: 'Registering webhook', webhook });
-        // Subscribe to a static webhook events received via ../../plugin.js.
-        return context.service.stateAddToSet(webhook, { flowId, componentId, webhook });
+        const eventName = 'INVOICE.UPDATE:' + tenantId;
+        await context.log({ step: 'Registering webhook', eventName });
+        return context.addListener(eventName);
     },
 
     stop: async function(context) {
 
         const { tenantId } = context.properties;
-        const { componentId, flowId } = context;
-        const webhook = 'INVOICE.UPDATE:' + tenantId;
-        await context.log({ step: 'Unregistering webhook', flowId, componentId, webhook });
-        // Unsubscribe from a static webhook events received via ../../plugin.js.
-        return context.service.stateRemoveFromSet(webhook, { componentId, flowId });
+        const eventName = 'INVOICE.UPDATE:' + tenantId;
+        await context.log({ step: 'Unregistering webhook', eventName });
+        return context.removeListener(eventName);
     },
 
     receive: async function(context) {

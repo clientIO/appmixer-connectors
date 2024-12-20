@@ -1,4 +1,5 @@
 'use strict';
+const path = require('path');
 const Ftp = require('basic-ftp');
 const Sftp = require('ssh2-sftp-client');
 const lib = require('./lib');
@@ -42,6 +43,17 @@ class FtpClient {
     async close() {
 
         return this.isFtp ? this.client.close() : this.client.end();
+    }
+
+    async retrieveOne(filePath) {
+        if (this.isFtp) {
+            return await this.client.list(filePath);
+        } else {
+            const fileName = path.basename(filePath);
+
+            const folderPath = filePath.replace(fileName, '');
+            return await this.client.list(folderPath, (f) => f.name === fileName);
+        }
     }
 
     async list(path) {
