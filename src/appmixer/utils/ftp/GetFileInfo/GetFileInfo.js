@@ -12,8 +12,10 @@ module.exports = {
         const client = await FtpClient.getClientAndConnect(secure, config);
         const { path } = context.messages.in.content;
 
+        const isFtp = FtpClient.isFtp(secure);
+
         if (generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, FtpClient.isFtp(secure));
+            return this.getOutputPortOptions(context, isFtp);
         }
 
         let content;
@@ -37,7 +39,11 @@ module.exports = {
         const firstFound = content && content[0];
         if (firstFound) {
             const fileInfo = JSON.parse(JSON.stringify(firstFound));
-            return context.sendJson(fileInfo, 'out');
+            if (isFtp) {
+                return context.sendJson({ ...fileInfo, rawModifiedAt: Date.parse(fileInfo.rawModifiedAt), modifiedAt: Date.parse(fileInfo.modifiedAt) }, 'out');
+            } else {
+                return context.sendJson(fileInfo, 'out');
+            }
         }
     },
 
@@ -47,8 +53,8 @@ module.exports = {
                 { label: 'Name', value: 'name', schema: { type: 'string' } },
                 { label: 'Type', value: 'type', schema: { type: 'number' } },
                 { label: 'Size', value: 'size', schema: { type: 'number' } },
-                { label: 'Raw Modified At', value: 'rawModifiedAt', schema: { type: 'date' } },
-                { label: 'Modifie dAt', value: 'modifiedAt', schema: { type: 'date' } }
+                { label: 'Raw Modified At', value: 'rawModifiedAt', schema: { type: 'number' } },
+                { label: 'Modified At', value: 'modifiedAt', schema: { type: 'number' } }
             ], 'out');
         } else {
             return context.sendJson([
