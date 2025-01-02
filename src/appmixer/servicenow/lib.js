@@ -222,8 +222,12 @@ function toOutputScheme(context, columns, fields = '') {
     return context.sendJson(scheme, 'out');
 }
 
-function toInspector(context, columns, fields = '') {
+function toInspector(context, { columns, fields = '', schema: initialSchemaFields }) {
     const inputs = {};
+    const schema = {
+        type: 'object',
+        ...initialSchemaFields
+    };
 
     const types = {
         string: 'text',
@@ -233,17 +237,26 @@ function toInspector(context, columns, fields = '') {
 
     const fieldsItems = fields.split(',');
     const columnsFiltered = fields ? columns.filter(item => fieldsItems.includes(item.element)) : columns;
-
     columnsFiltered.forEach((column, index) => {
-        if (column.active === 'true' && !IGNORE_PROPERTIES_INSPECTOR.includes(column.element)) {
+        if (column.element && column.active === 'true' && !IGNORE_PROPERTIES_INSPECTOR.includes(column.element)) {
+            const required = column.mandatory === 'true';
+
             inputs[column.element] = {
                 label: column.column_label,
                 type: types[column.internal_type.value] || 'text',
-                required: column.mandatory === 'true',
+                required,
                 tooltip: column.reference ? `Reference Table: ${column.reference.value}` : '',
                 index,
                 group: 'record'
             };
+
+            schema.properties[column.element] = {
+                type: types[column.internal_type.value] ? column.internal_type.value : 'string'
+            };
+
+            if (required) {
+                schema.required.push(column.element);
+            }
         }
     });
 
@@ -258,7 +271,7 @@ function toInspector(context, columns, fields = '') {
         }
     };
 
-    return context.sendJson({ inputs, groups }, 'out');
+    return context.sendJson({ schema, inputs, groups }, 'out');
 }
 
 module.exports = {
