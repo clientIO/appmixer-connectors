@@ -1,4 +1,5 @@
 'use strict';
+<<<<<<< Updated upstream
 const {
     getClient,
     getCollection,
@@ -9,6 +10,9 @@ const {
     processDocuments
 } = require('../../common');
 
+=======
+const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments, closeClient } = require('../../common');
+>>>>>>> Stashed changes
 module.exports = {
     async start(context) {
         const client = await getClient(context);
@@ -38,6 +42,7 @@ module.exports = {
     },
 
     async stop(context) {
+<<<<<<< Updated upstream
         const client = await getClient(context);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
@@ -48,11 +53,26 @@ module.exports = {
             }
         } catch (error) {
             await context.log('error', `Error in stop: ${error.message}`);
+=======
+        const client = await getClient(context.auth);
+        try {
+            const isReplicaSet = await getReplicaSetStatus(client);
+            if (isReplicaSet) return;
+
+            const savedStoredId = await context.stateGet('storeId');
+            await context.store.unregisterWebhook(savedStoredId);
+        } finally {
+            await closeClient(context.auth.connectionUri);
+>>>>>>> Stashed changes
         }
     },
 
     async tick(context) {
+<<<<<<< Updated upstream
         const client = await getClient(context);
+=======
+        let client = await getClient(context.auth);
+>>>>>>> Stashed changes
         let lock;
 
         try {
@@ -61,11 +81,20 @@ module.exports = {
                 maxRetryCount: 5,
                 retryDelay: 3000
             });
+<<<<<<< Updated upstream
 
+=======
+        } catch (err) {
+            return;  // Exit if lock cannot be acquired
+        }
+
+        try {
+>>>>>>> Stashed changes
             const isReplicaSet = await context.stateGet('isReplicaSet');
             const collection = getCollection(client, context.auth.database, context.properties.collection);
 
             if (isReplicaSet) {
+<<<<<<< Updated upstream
                 // Change Stream logic for replica sets
                 const resumeToken = await context.stateGet('resumeToken');
                 let startAtOperationTime = await context.stateGet('startAtOperationTime');
@@ -80,6 +109,21 @@ module.exports = {
                     }
                 } catch (error) {
                     throw error;
+=======
+                const resumeToken = await context.stateGet('resumeToken');
+                const changeStream = getChangeStream('update', collection, { resumeAfter: resumeToken });
+
+                while (await changeStream.hasNext()) {
+                    const next = await changeStream.next();
+                    const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
+
+                    // Send updated document
+                    await context.sendJson({ document: jsonDoc }, 'out');
+
+                    // Save resume token and operational timestamp
+                    await context.stateSet('resumeToken', changeStream.resumeToken);
+                    await setOperationalTimestamp(context, next.clusterTime);
+>>>>>>> Stashed changes
                 }
             } else {
                 // Non-replica set logic
@@ -87,7 +131,11 @@ module.exports = {
                 await processDocuments({ lock, client, context, storeId });
             }
         } catch (error) {
+<<<<<<< Updated upstream
             throw error;
+=======
+            console.error('Tick error:', error);
+>>>>>>> Stashed changes
         } finally {
             lock && await lock.unlock();
         }
