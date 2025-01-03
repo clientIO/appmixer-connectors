@@ -1,6 +1,7 @@
 'use strict';
 const { Timestamp } = require('mongodb');
 const { getOrCreateConnection } = require('./connections');
+<<<<<<< Updated upstream
 
 // Global MongoDB Connection Management
 let MONGODB_CONNECTOR_OPEN_CONNECTIONS;
@@ -19,9 +20,12 @@ async function removeTmpFolder(tmpDir) {
         });
     });
 }
+=======
+>>>>>>> Stashed changes
 
 module.exports = {
     async getClient(context) {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         const connectionUri = context.connectionUri || (context.auth && context.auth.connectionUri);
         const { tlsCAFileContent, tlsAllowInvalidHostnames, tlsAllowInvalidCertificates } = context;
@@ -45,11 +49,15 @@ module.exports = {
 =======
         const connectionUri = context.connectionUri;
 >>>>>>> Stashed changes
+=======
+        const connectionUri = context.connectionUri;
+>>>>>>> Stashed changes
         const options = {
             useNewUrlParser: true,
             useUnifiedTopology: true
         };
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         // Handle inline TLS CA file content
         if (tlsCAFileContent) {
@@ -90,6 +98,16 @@ module.exports = {
                 await context.log('info', `[MongoDB] Connection ${uri} closed.`);
             }
         }
+=======
+        if (context.tlsAllowInvalidHostnames === 'true') {
+            options.tlsAllowInvalidHostnames = true;
+        }
+        if (context.tlsAllowInvalidCertificates === 'true') {
+            options.tlsAllowInvalidCertificates = true;
+        }
+
+        return getOrCreateConnection(connectionUri, options);
+>>>>>>> Stashed changes
 =======
         if (context.tlsAllowInvalidHostnames === 'true') {
             options.tlsAllowInvalidHostnames = true;

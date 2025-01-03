@@ -1,6 +1,11 @@
 'use strict';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 const { cleanupConnections } = require('./common');
+=======
+
+const connections = require('./connections');
+>>>>>>> Stashed changes
 =======
 
 const connections = require('./connections');
@@ -9,6 +14,7 @@ const connections = require('./connections');
 let isConnectionSyncInProgress = false;
 
 module.exports = async (context) => {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     await context.scheduleJob('cleanupConnectionsJob', '0 */1 * * * *', async () => {
         if (isConnectionSyncInProgress) {
@@ -22,6 +28,8 @@ module.exports = async (context) => {
         } catch (error) {
             await context.log('error', `[MongoDB] Error cleaning connections: ${error.message}`);
 =======
+=======
+>>>>>>> Stashed changes
     const config = require('./config')(context);
 
     // Synchronize MongoDB connections across cluster nodes
@@ -78,6 +86,9 @@ module.exports = async (context) => {
 
         } catch (error) {
             await context.log('error', `[MongoDB] Error during connection sync: ${error.message}.`);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         } finally {
             isConnectionSyncInProgress = false;

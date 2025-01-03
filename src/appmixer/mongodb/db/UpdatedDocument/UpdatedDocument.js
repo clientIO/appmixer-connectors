@@ -1,5 +1,6 @@
 'use strict';
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 const {
     getClient,
     getCollection,
@@ -10,6 +11,9 @@ const {
     processDocuments
 } = require('../../common');
 
+=======
+const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments, closeClient } = require('../../common');
+>>>>>>> Stashed changes
 =======
 const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments, closeClient } = require('../../common');
 >>>>>>> Stashed changes
@@ -43,6 +47,7 @@ module.exports = {
 
     async stop(context) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         const client = await getClient(context);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
@@ -54,6 +59,8 @@ module.exports = {
         } catch (error) {
             await context.log('error', `Error in stop: ${error.message}`);
 =======
+=======
+>>>>>>> Stashed changes
         const client = await getClient(context.auth);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
@@ -63,13 +70,20 @@ module.exports = {
             await context.store.unregisterWebhook(savedStoredId);
         } finally {
             await closeClient(context.auth.connectionUri);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
         }
     },
 
     async tick(context) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         const client = await getClient(context);
+=======
+        let client = await getClient(context.auth);
+>>>>>>> Stashed changes
 =======
         let client = await getClient(context.auth);
 >>>>>>> Stashed changes
@@ -95,6 +109,7 @@ module.exports = {
 
             if (isReplicaSet) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 // Change Stream logic for replica sets
                 const resumeToken = await context.stateGet('resumeToken');
                 let startAtOperationTime = await context.stateGet('startAtOperationTime');
@@ -113,6 +128,11 @@ module.exports = {
                 const resumeToken = await context.stateGet('resumeToken');
                 const changeStream = getChangeStream('update', collection, { resumeAfter: resumeToken });
 
+=======
+                const resumeToken = await context.stateGet('resumeToken');
+                const changeStream = getChangeStream('update', collection, { resumeAfter: resumeToken });
+
+>>>>>>> Stashed changes
                 while (await changeStream.hasNext()) {
                     const next = await changeStream.next();
                     const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
@@ -123,16 +143,25 @@ module.exports = {
                     // Save resume token and operational timestamp
                     await context.stateSet('resumeToken', changeStream.resumeToken);
                     await setOperationalTimestamp(context, next.clusterTime);
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes
                 }
             } else {
                 // Non-replica set logic
+=======
+                }
+            } else {
+>>>>>>> Stashed changes
                 const storeId = await context.stateGet('storeId');
                 await processDocuments({ lock, client, context, storeId });
             }
         } catch (error) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             throw error;
+=======
+            console.error('Tick error:', error);
+>>>>>>> Stashed changes
 =======
             console.error('Tick error:', error);
 >>>>>>> Stashed changes
