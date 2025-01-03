@@ -1,8 +1,7 @@
 'use strict';
-
 const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments, closeClient } = require('../../common');
-
 module.exports = {
+
     async start(context) {
         const client = await getClient(context);
         try {
