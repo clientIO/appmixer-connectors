@@ -82,9 +82,9 @@ module.exports = {
         return returnStoreId;
     },
 
-    async setOperationalTimestamp(context, clusterTime) {
-        const timestamp = clusterTime instanceof Timestamp ? clusterTime : Timestamp.fromString(clusterTime);
-        await context.stateSet('startAtOperationTime', timestamp);
+    async setOperationalTimestamp(context) {
+        const ts = Math.floor(new Date().getTime() / 1000);
+        await context.stateSet('startAtOperationTime', ts);
     },
 
     async processDocuments({ lock, client, context, storeId, docIds }) {

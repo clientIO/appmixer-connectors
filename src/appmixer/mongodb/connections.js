@@ -30,7 +30,6 @@ module.exports = {
             process.MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionUri] = client;
             return client;
         } catch (err) {
-            console.error(`Failed to connect to MongoDB: ${err.message}`);
             throw err;
         } finally {
             if (tmpDir) {
