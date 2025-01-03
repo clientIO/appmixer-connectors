@@ -10,10 +10,10 @@ module.exports = {
             tls: !!context.auth.tlsCAFileContent
         };
 
-        if (context.auth.tlsAllowInvalidHostnames === 'true') {
+        if (context.auth.tlsAllowInvalidHostnames == 'true') {
             options.tlsAllowInvalidHostnames = true;
         }
-        if (context.auth.tlsAllowInvalidCertificates === 'true') {
+        if (context.auth.tlsAllowInvalidCertificates == 'true') {
             options.tlsAllowInvalidCertificates = true;
         }
 
