@@ -1,35 +1,10 @@
 'use strict';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-const { cleanupConnections } = require('./common');
-=======
 
 const connections = require('./connections');
->>>>>>> Stashed changes
-=======
-
-const connections = require('./connections');
->>>>>>> Stashed changes
 
 let isConnectionSyncInProgress = false;
 
 module.exports = async (context) => {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    await context.scheduleJob('cleanupConnectionsJob', '0 */1 * * * *', async () => {
-        if (isConnectionSyncInProgress) {
-            await context.log('info', '[MongoDB] Connection cleanup already in progress. Skipping...');
-            return;
-        }
-        isConnectionSyncInProgress = true;
-
-        try {
-            await cleanupConnections(context);
-        } catch (error) {
-            await context.log('error', `[MongoDB] Error cleaning connections: ${error.message}`);
-=======
-=======
->>>>>>> Stashed changes
     const config = require('./config')(context);
 
     // Synchronize MongoDB connections across cluster nodes
@@ -43,7 +18,7 @@ module.exports = async (context) => {
 
         try {
             // Load all registered MongoDB connections from cluster state
-            const registeredConnections = await context.service.loadState();
+            const registeredConnections = await context.service.loadState();  // [{key, value}]
             const openConnections = connections.listConnections();
 
             await context.log('info', [
@@ -66,6 +41,7 @@ module.exports = async (context) => {
                     continue;
                 }
 
+                // Recreate connections if they exist in cluster state but not locally
                 if (!openConnections[connectionId]) {
                     const stillNeeded = await context.service.stateGet(connectionId);
                     if (stillNeeded) {
@@ -86,10 +62,6 @@ module.exports = async (context) => {
 
         } catch (error) {
             await context.log('error', `[MongoDB] Error during connection sync: ${error.message}.`);
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         } finally {
             isConnectionSyncInProgress = false;
         }

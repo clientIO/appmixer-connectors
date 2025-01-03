@@ -1,197 +1,96 @@
 'use strict';
 const { Timestamp } = require('mongodb');
 const { getOrCreateConnection } = require('./connections');
-<<<<<<< Updated upstream
 
-// Global MongoDB Connection Management
-let MONGODB_CONNECTOR_OPEN_CONNECTIONS;
-if (process.MONGODB_CONNECTOR_OPEN_CONNECTIONS) {
-    MONGODB_CONNECTOR_OPEN_CONNECTIONS = process.MONGODB_CONNECTOR_OPEN_CONNECTIONS;
-} else {
-    process.MONGODB_CONNECTOR_OPEN_CONNECTIONS = MONGODB_CONNECTOR_OPEN_CONNECTIONS = {};
-}
+// Retrieves the MongoDB client for the given context (authorization info)
+async function getClient(context) {
+    const connectionUri = context.auth.connectionUri;
+    const options = {
+        tls: !!context.auth.tlsCAFileContent
+    };
 
-// Helper to clean up temporary folders
-async function removeTmpFolder(tmpDir) {
-    await new Promise((resolve, reject) => {
-        fs.rm(tmpDir.name, { recursive: true }, (err) => {
-            if (err) reject(err);
-            resolve();
-        });
-    });
-}
-=======
->>>>>>> Stashed changes
-
-module.exports = {
-    async getClient(context) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        const connectionUri = context.connectionUri || (context.auth && context.auth.connectionUri);
-        const { tlsCAFileContent, tlsAllowInvalidHostnames, tlsAllowInvalidCertificates } = context;
-
-        // Check if the connection already exists
-        if (MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri]) {
-            const client = MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri];
-
-            // Ensure the client is connected
-            if (client.topology && client.topology.isConnected()) {
-                console.log('[MongoDB] Reusing existing client.');
-                return client;
-            } else {
-                await client.connect();
-                return client;
-            }
-        }
-
-        let tmpFile;
-        let tmpDir;
-=======
-        const connectionUri = context.connectionUri;
->>>>>>> Stashed changes
-=======
-        const connectionUri = context.connectionUri;
->>>>>>> Stashed changes
-        const options = {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        };
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        // Handle inline TLS CA file content
-        if (tlsCAFileContent) {
-            tmpDir = tmp.dirSync(); // Create temporary directory
-            tmpFile = tmpDir.name + '/key.crt'; // Define file path
-            fs.writeFileSync(tmpFile, tlsCAFileContent); // Write CA content to file
-            options.tls = true;
-            options.tlsCAFile = tmpFile;
-        }
-
-        // Handle additional TLS options
-        if (tlsAllowInvalidHostnames === 'true') {
-            options.tlsAllowInvalidHostnames = true;
-        }
-        if (tlsAllowInvalidCertificates === 'true') {
-            options.tlsAllowInvalidCertificates = true;
-        }
-
-        const client = new MongoClient(connectionUri, options);
-
-        try {
-            await client.connect();
-            MONGODB_CONNECTOR_OPEN_CONNECTIONS[connectionUri] = client; // Save client for reuse
-            return client;
-        } catch (error) {
-            if (tlsCAFileContent) {
-                await removeTmpFolder(tmpDir); // Clean up temp files if connection fails
-            }
-            throw error;
-        }
-    },
-
-    async cleanupConnections(context) {
-        for (const [uri, client] of Object.entries(MONGODB_CONNECTOR_OPEN_CONNECTIONS)) {
-            if (!await context.service.stateGet(uri)) {
-                await client.close();
-                delete MONGODB_CONNECTOR_OPEN_CONNECTIONS[uri];
-                await context.log('info', `[MongoDB] Connection ${uri} closed.`);
-            }
-        }
-=======
-        if (context.tlsAllowInvalidHostnames === 'true') {
-            options.tlsAllowInvalidHostnames = true;
-        }
-        if (context.tlsAllowInvalidCertificates === 'true') {
-            options.tlsAllowInvalidCertificates = true;
-        }
-
-        return getOrCreateConnection(connectionUri, options);
->>>>>>> Stashed changes
-=======
-        if (context.tlsAllowInvalidHostnames === 'true') {
-            options.tlsAllowInvalidHostnames = true;
-        }
-        if (context.tlsAllowInvalidCertificates === 'true') {
-            options.tlsAllowInvalidCertificates = true;
-        }
-
-        return getOrCreateConnection(connectionUri, options);
->>>>>>> Stashed changes
-    },
-
-    getCollection(client, dbName, collectionName) {
-        const db = client.db(dbName);
-        return db.collection(collectionName);
-    },
-
-    async getReplicaSetStatus(client) {
-        const db = client.db('admin');
-        try {
-            await db.admin().command({ replSetGetStatus: 1 });
-            return true;
-        } catch (error) {
-            return false;
-        }
-    },
-
-    getChangeStream(operation, collection, { startAtOperationTime, resumeToken }) {
-        const matchStage = { $match: { operationType: operation } };
-
-        const options = {};
-        if (resumeToken) {
-            options.startAfter = { _data: resumeToken };
-        } else if (startAtOperationTime) {
-            options.startAtOperationTime = new Timestamp(1, startAtOperationTime);
-        }
-
-        return collection.watch([matchStage], options);
-    },
-
-    async ensureStore(context, name, storeId) {
-        const stateStoreId = await context.stateGet('storeId');
-        let returnStoreId = storeId || stateStoreId;
-
-        if (!storeId) {
-            try {
-                const newStoreResponse = await context.callAppmixer({
-                    endPoint: '/stores',
-                    method: 'POST',
-                    body: { name }
-                });
-                returnStoreId = newStoreResponse.storeId;
-            } catch (err) {
-                if (!err.message.includes('duplicate key error')) {
-                    throw err;
-                }
-                const stores = await context.callAppmixer({
-                    endPoint: '/stores',
-                    method: 'GET'
-                });
-                const selectedStore = stores.find(store => store.name === name);
-                returnStoreId = selectedStore.storeId;
-            }
-        }
-
-        await context.stateSet('storeId', returnStoreId);
-        return returnStoreId;
-    },
-
-    async setOperationalTimestamp(context) {
-        const ts = Math.floor(new Date().getTime() / 1000);
-        await context.stateSet('startAtOperationTime', ts);
-    },
-
-    async processDocuments({ lock, client, context, storeId, docIds }) {
-        const db = client.db(context.auth.database);
-        const collection = db.collection(context.properties.collection);
-        const cursor = await collection.find();
-
-        for await (const doc of cursor) {
-            const jsonDoc = JSON.parse(JSON.stringify(doc));
-            await context.store.set(storeId, jsonDoc['_id'], jsonDoc);
-            docIds && docIds.push(jsonDoc['_id']);
-            lock && lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 2);
-        }
+    if (context.auth.tlsAllowInvalidHostnames === 'true') {
+        options.tlsAllowInvalidHostnames = true;
     }
+    if (context.auth.tlsAllowInvalidCertificates === 'true') {
+        options.tlsAllowInvalidCertificates = true;
+    }
+
+    return getOrCreateConnection(connectionUri, options);
+}
+
+// Retrieves a collection from the MongoDB client based on the database and collection name
+function getCollection(client, database, collectionName) {
+    return client.db(database).collection(collectionName);
+}
+
+// Opens a change stream to watch for operations on a collection
+function getChangeStream(operationType, collection, options = {}) {
+    const changeStream = collection.watch([], {
+        fullDocument: 'updateLookup',
+        ...options
+    });
+
+    changeStream.on('change', (change) => {
+        if (change.operationType === operationType) {
+            changeStream.emit('filteredChange', change);
+        }
+    });
+
+    return changeStream;
+}
+
+// Retrieves replica set status to check if the MongoDB instance is part of a replica set
+async function getReplicaSetStatus(client) {
+    const adminDb = client.db('admin');
+    const result = await adminDb.command({ replSetGetStatus: 1 });
+    return result.ok === 1;
+}
+
+// Ensures webhook store is created and returns its ID
+async function ensureStore(context, storeName) {
+    const store = await context.store.get(storeName);
+    if (store) {
+        return store.id;
+    }
+    const newStore = await context.store.create({ name: storeName });
+    return newStore.id;
+}
+
+// Processes documents by iterating and sending them to the Appmixer flow
+async function processDocuments({ lock, client, context, storeId }) {
+    const collection = getCollection(client, context.auth.database, context.properties.collection);
+    const cursor = collection.find({}, {
+        sort: { _id: -1 }
+    }).limit(10);
+
+    while (await cursor.hasNext()) {
+        const doc = await cursor.next();
+        await context.sendJson({ document: doc }, 'out');
+    }
+    await context.store.setState(storeId, 'lastRun', Date.now());
+}
+
+// Saves the resume token to state to track the last processed change stream event
+async function setOperationalTimestamp(context, clusterTime) {
+    const timestamp = clusterTime instanceof Timestamp ? clusterTime : Timestamp.fromString(clusterTime);
+    await context.stateSet('startAtOperationTime', timestamp);
+}
+
+// Closes the MongoDB connection and removes it from the active pool
+async function closeClient(connectionUri) {
+    const { closeConnection } = require('./connections');
+    await closeConnection(connectionUri);
+}
+
+// Export all utility functions
+module.exports = {
+    getClient,
+    getCollection,
+    getChangeStream,
+    getReplicaSetStatus,
+    ensureStore,
+    processDocuments,
+    setOperationalTimestamp,
+    closeClient
 };

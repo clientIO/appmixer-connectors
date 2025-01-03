@@ -1,22 +1,7 @@
 'use strict';
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-const {
-    getClient,
-    getCollection,
-    getChangeStream,
-    getReplicaSetStatus,
-    ensureStore,
-    setOperationalTimestamp,
-    processDocuments
-} = require('../../common');
 
-=======
 const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments, closeClient } = require('../../common');
->>>>>>> Stashed changes
-=======
-const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments, closeClient } = require('../../common');
->>>>>>> Stashed changes
+
 module.exports = {
     async start(context) {
         const client = await getClient(context);
@@ -46,21 +31,6 @@ module.exports = {
     },
 
     async stop(context) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        const client = await getClient(context);
-        try {
-            const isReplicaSet = await getReplicaSetStatus(client);
-
-            if (!isReplicaSet) {
-                const savedStoreId = await context.stateGet('storeId');
-                await context.store.unregisterWebhook(savedStoreId);
-            }
-        } catch (error) {
-            await context.log('error', `Error in stop: ${error.message}`);
-=======
-=======
->>>>>>> Stashed changes
         const client = await getClient(context.auth);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
@@ -70,69 +40,29 @@ module.exports = {
             await context.store.unregisterWebhook(savedStoredId);
         } finally {
             await closeClient(context.auth.connectionUri);
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         }
     },
 
     async tick(context) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        const client = await getClient(context);
-=======
         let client = await getClient(context.auth);
->>>>>>> Stashed changes
-=======
-        let client = await getClient(context.auth);
->>>>>>> Stashed changes
         let lock;
-
         try {
-            lock = await context.lock('MongoDbUpdatedDoc-' + context.componentId, {
-                ttl: 1000 * 60 * 5, // 5 minutes
-                maxRetryCount: 5,
-                retryDelay: 3000
+            lock = await context.lock('MongoDbNewDoc-' + context.componentId, {
+                ttl: 1000 * 60 * 5,
+                maxRetryCount: 0
             });
-<<<<<<< Updated upstream
-
-=======
         } catch (err) {
             return;  // Exit if lock cannot be acquired
         }
 
         try {
->>>>>>> Stashed changes
             const isReplicaSet = await context.stateGet('isReplicaSet');
             const collection = getCollection(client, context.auth.database, context.properties.collection);
 
             if (isReplicaSet) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                // Change Stream logic for replica sets
-                const resumeToken = await context.stateGet('resumeToken');
-                let startAtOperationTime = await context.stateGet('startAtOperationTime');
-                const changeStream = getChangeStream('update', collection, { resumeToken, startAtOperationTime });
-
-                try {
-                    while (await changeStream.hasNext()) {
-                        const next = await changeStream.next();
-                        const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
-                        await context.sendJson({ document: { ...jsonDoc, ...next.updateDescription } }, 'out');
-                        await context.stateSet('resumeToken', changeStream.resumeToken['_data']);
-                    }
-                } catch (error) {
-                    throw error;
-=======
                 const resumeToken = await context.stateGet('resumeToken');
                 const changeStream = getChangeStream('update', collection, { resumeAfter: resumeToken });
 
-=======
-                const resumeToken = await context.stateGet('resumeToken');
-                const changeStream = getChangeStream('update', collection, { resumeAfter: resumeToken });
-
->>>>>>> Stashed changes
                 while (await changeStream.hasNext()) {
                     const next = await changeStream.next();
                     const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
@@ -143,28 +73,13 @@ module.exports = {
                     // Save resume token and operational timestamp
                     await context.stateSet('resumeToken', changeStream.resumeToken);
                     await setOperationalTimestamp(context, next.clusterTime);
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
                 }
             } else {
-                // Non-replica set logic
-=======
-                }
-            } else {
->>>>>>> Stashed changes
                 const storeId = await context.stateGet('storeId');
                 await processDocuments({ lock, client, context, storeId });
             }
         } catch (error) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            throw error;
-=======
             console.error('Tick error:', error);
->>>>>>> Stashed changes
-=======
-            console.error('Tick error:', error);
->>>>>>> Stashed changes
         } finally {
             lock && await lock.unlock();
         }

@@ -1,16 +1,3 @@
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-'use strict';
-
-module.exports = async (context) => {
-    context.log('info', '[MongoDB] Initializing MongoDB plugin.');
-
-    require('./jobs')(context);
-
-    context.log('info', '[MongoDB] MongoDB plugin initialized.');
-=======
-=======
->>>>>>> Stashed changes
 const { syncMongoConnections } = require('./jobs');
 
 module.exports = async function() {
@@ -21,8 +8,4 @@ module.exports = async function() {
             console.error('MongoDB connection sync job failed:', err);
         }
     }, 60 * 1000);  // Run every 1 minute
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 };
