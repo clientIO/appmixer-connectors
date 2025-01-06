@@ -4,27 +4,45 @@
  * @extends {Component}
  */
 module.exports = {
+    async receive(context) {
+        const token = context.auth.apiKey;
+        const { formId } = context.properties;
 
-    receive(context) {
+        if (!formId) {
+            return context.sendJson({ message: 'No form selected', siteId: context.properties.siteId }, 'out');
+        }
 
-        // TODO: In case of Webflow CMS API adds endpoint for forms, refactor this module using those
-        const { formName, fields } = context.properties;
-        return context.sendJson({ name: formName, fields }, 'out');
+        const formSchemaResponse = await context.httpRequest({
+            url: `https://api.webflow.com/v2/forms/${formId}`,
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'accept-version': '2.0.0'
+            }
+        });
+
+        const formSchema = formSchemaResponse.data;
+
+        return context.sendJson(formSchema, 'out');
     },
 
-    toSelectArray(form) {
-
+    toSelectArray(formSchema) {
         const options = [
-            { label: 'Form name', value: 'name' },
-            { label: 'Site id', value: 'site' }
+            { label: 'Form name', value: 'payload.name' },
+            { label: 'Site ID', value: 'payload.siteId' }
         ];
-        if (Array.isArray(form.fields)) {
-            for (let field of form.fields) {
-                options.push({ label: field.name, value: 'data.' + field.name });
-            }
+
+        if (!formSchema || !formSchema.fields) {
+            return options;
         }
+
+        Object.entries(formSchema.fields).forEach(([, field]) => {
+            options.push({
+                label: field.displayName,
+                value: `payload.data.${field.displayName}`
+            });
+        });
 
         return options;
     }
 };
-

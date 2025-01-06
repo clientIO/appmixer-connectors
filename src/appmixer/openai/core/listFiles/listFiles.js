@@ -10,7 +10,7 @@ module.exports = {
             return this.getOutputPortOptions(context, context.messages.in.content.xConnectorOutputType);
         }
 
-        const limit = context.messages.in.content.xConnectorPaginationLimit;
+        const limit = context.messages.in.content.xConnectorPaginationLimit ?? 100;
         const { data } = await this.httpRequest(context);
         const resultsExpression = lib.jsonata('data');
         const result = (await resultsExpression.evaluate(data)).slice(0, limit);

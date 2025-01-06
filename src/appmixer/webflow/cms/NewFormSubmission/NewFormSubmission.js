@@ -75,7 +75,7 @@ module.exports = {
     async receive(context) {
         const { data } = context.messages.webhook.content;
 
-        if (context.properties.form && data.name !== context.properties.form) {
+        if (context.properties.formId && data.payload.formId !== context.properties.formId) {
             // Ignore the webhook if it doesn't match the specified form
             return context.response();
         }
