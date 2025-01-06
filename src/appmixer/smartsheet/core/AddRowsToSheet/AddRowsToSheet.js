@@ -15,7 +15,6 @@ module.exports = {
 
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
-        context.log({ input });
 
         let url = lib.getBaseUrl(context) + `/sheets/${context.properties.sheetId}/rows`;
 
