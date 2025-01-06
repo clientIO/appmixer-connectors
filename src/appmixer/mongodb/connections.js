@@ -46,10 +46,6 @@ module.exports = {
         }
     },
 
-    getConnection(connectionUri) {
-        return process.MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionUri] || null;
-    },
-
     listConnections() {
         return process.MONGO_CONNECTOR_OPEN_CONNECTIONS;
     }
