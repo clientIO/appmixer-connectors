@@ -5,7 +5,7 @@ async function registerWebhook(context, client) {
 
     let response = await client.applications.create(
         // we need to be unique per component
-        'appmixer.plivo.calls.NewCall.' + context.componentId,
+        'plivo-calls-NewCall-' + context.componentId,
         { answerUrl: context.getWebhookUrl() }
     );
     if (response && response.message === 'created') {
