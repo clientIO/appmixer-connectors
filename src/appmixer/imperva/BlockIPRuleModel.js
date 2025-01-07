@@ -20,9 +20,8 @@ module.exports = context => {
             return [
                 'ruleId',
                 'siteId',
-                'ips',
+                'ip',
                 'removeAfter',
-                'created',
                 'auth'
             ];
         }

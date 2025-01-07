@@ -205,6 +205,11 @@ module.exports = {
 
     async receive(context) {
 
+        // Ensure proper configuration first.
+        if (!config.peopleTasksDashboard) {
+            throw new context.http.HttpError.badRequest('People Task dashboard URL is not configured. Please see the documentation for Tasks connector.');
+        }
+
         if (context.messages.webhook) {
             const webhookData = context.messages.webhook.content;
             const { data } = webhookData;

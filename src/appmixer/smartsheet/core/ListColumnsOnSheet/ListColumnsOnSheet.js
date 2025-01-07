@@ -90,35 +90,32 @@ module.exports = {
     },
     columnsToInspector({ columns }) {
 
-        if (!columns) {
+        if (!columns || columns.length === 0) {
             throw new Error('There is not a header row in the sheet.');
         }
 
-        // creating inspector template based on: http://jointjs.com/rappid/docs/ui/inspector
         let inspector = {
-            inputs: {
-                rows: {
-                    type: 'expression',
-                    label: 'Rows',
-                    index: 1,
-                    tooltip: 'Rows to Add.',
-                    levels: ['AND'],
-                    fields: {}
+            inputs: {},
+            groups: {
+                columns: {
+                    label: 'Columns',
+                    index: 1
                 }
             }
         };
 
-        if (Array.isArray(columns) && columns.length > 0) {
-            columns.forEach((column, i) => {
-                const index = i + 1;
-                inspector.inputs.rows.fields[column.id] = {
-                    type: 'text',
-                    label: column.title,
-                    index
-                };
-            });
-        }
+        columns.forEach((column, i) => {
+            const index = i + 1;
+            inspector.inputs[column.id] = {
+                type: 'text',
+                label: column.title,
+                group: 'columns',
+                index
+            };
+        });
+
         return inspector;
     }
+
 
 };
