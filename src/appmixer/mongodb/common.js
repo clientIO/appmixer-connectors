@@ -5,15 +5,15 @@ const { getOrCreateConnection, closeConnection } = require('./connections');
 module.exports = {
 
     async getClient(context) {
-        const connectionUri = context.auth.connectionUri;
+        const connectionUri = context.auth?.connectionUri || context.connectionUri;
         const options = {
-            tls: !!context.auth.tlsCAFileContent
+            tls: !!(context.auth?.tlsCAFileContent || context.tlsCAFileContent)
         };
 
-        if (context.auth.tlsAllowInvalidHostnames == 'true') {
+        if ((context.auth?.tlsAllowInvalidHostnames || context.tlsAllowInvalidHostnames) == 'true') {
             options.tlsAllowInvalidHostnames = true;
         }
-        if (context.auth.tlsAllowInvalidCertificates == 'true') {
+        if ((context.auth?.tlsAllowInvalidCertificates || context.tlsAllowInvalidCertificates) == 'true') {
             options.tlsAllowInvalidCertificates = true;
         }
 
