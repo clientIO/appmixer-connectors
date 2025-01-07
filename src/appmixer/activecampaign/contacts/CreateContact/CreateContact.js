@@ -1,5 +1,4 @@
 'use strict';
-const moment = require('moment');
 const { trimUndefined } = require('../../helpers');
 const ActiveCampaign = require('../../ActiveCampaign');
 
@@ -46,14 +45,15 @@ module.exports = {
             return acc;
         }, {});
 
-        return context.sendJson({
-            id: contact.id,
-            email: contact.email,
-            firstName: contact.firstName,
-            lastName: contact.lastName,
-            phone: contact.phone,
-            createdDate: moment(contact.cdate).toISOString(),
+        const contactResponseModified = {
+            ...contact,
+            createdDate: new Date(contact.cdate).toISOString(),
             ...customFieldsPayload
-        }, 'contact');
+        };
+
+        delete contactResponseModified.cdate;
+        delete contactResponseModified.links;
+
+        return context.sendJson(contactResponseModified, 'contact');
     }
 };
