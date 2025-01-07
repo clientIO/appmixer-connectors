@@ -41,8 +41,11 @@ module.exports = {
     receive(context) {
 
         if (context.messages.webhook) {
+            context.response();
             return context.sendJson(context.messages.webhook.content.data, 'call');
         }
+
+        return context.response('No call data received', 400);
     },
 
     async start(context) {
