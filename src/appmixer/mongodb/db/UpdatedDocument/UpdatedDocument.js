@@ -1,13 +1,14 @@
 'use strict';
-const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments, closeClient } = require('../../common');
+const { getClient, getCollection, getChangeStream, getReplicaSetStatus, ensureStore, setOperationalTimestamp, processDocuments } = require('../../common');
 module.exports = {
 
     async start(context) {
-        const client = await getClient(context);
+
+        const client = await getClient(context.auth);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
+            // await context.log({ isReplicaSet, start: true });
             await context.stateSet('isReplicaSet', isReplicaSet);
-
             if (isReplicaSet) {
                 await setOperationalTimestamp(context);
                 return;
@@ -16,13 +17,14 @@ module.exports = {
             const storeId = await ensureStore(context, 'UpdatedDoc-' + context.componentId);
             await processDocuments({ client, context, storeId });
             await context.store.registerWebhook(storeId, ['insert', 'update']);
-        } catch (error) {
-            throw error;
+        } finally {
+            await client.close();
         }
     },
 
     async receive(context) {
-        if (context.messages.webhook?.content.data.type === 'update') {
+
+        if (context.messages.webhook.content.data.type === 'update') {
             const item = context.messages.webhook.content.data.currentValue;
             await context.sendJson({ document: item.value, oldDocument: item.oldValue }, 'out');
             return context.response('ok');
@@ -30,20 +32,21 @@ module.exports = {
     },
 
     async stop(context) {
+
         const client = await getClient(context.auth);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
             if (isReplicaSet) return;
-
             const savedStoredId = await context.stateGet('storeId');
             await context.store.unregisterWebhook(savedStoredId);
         } finally {
-            await closeClient(context.auth.connectionUri);
+            await client.close();
         }
     },
 
     async tick(context) {
-        let client = await getClient(context.auth);
+
+        const client = await getClient(context.auth);
         let lock;
         try {
             lock = await context.lock('MongoDbNewDoc-' + context.componentId, {
@@ -51,35 +54,40 @@ module.exports = {
                 maxRetryCount: 0
             });
         } catch (err) {
-            return;  // Exit if lock cannot be acquired
+            return;
         }
-
         try {
             const isReplicaSet = await context.stateGet('isReplicaSet');
-            const collection = getCollection(client, context.auth.database, context.properties.collection);
-
             if (isReplicaSet) {
+                // let resumeToken;
+                const collection = getCollection(client, context.auth.database, context.properties.collection);
                 const resumeToken = await context.stateGet('resumeToken');
-                const changeStream = getChangeStream('update', collection, { resumeAfter: resumeToken });
-
-                while (await changeStream.hasNext()) {
-                    const next = await changeStream.next();
-                    const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
-
-                    // Send updated document
-                    await context.sendJson({ document: jsonDoc }, 'out');
-
-                    // Save resume token and operational timestamp
-                    await context.stateSet('resumeToken', changeStream.resumeToken);
-                    await setOperationalTimestamp(context, next.clusterTime);
+                let startAtOperationTime;
+                if (!resumeToken) {
+                    startAtOperationTime = await context.stateGet('startAtOperationTime');
                 }
+                const changeStream = getChangeStream('update', collection, { resumeToken, startAtOperationTime });
+
+                try {
+                    while (await changeStream.hasNext()) {
+                        const next = await changeStream.next();
+                        const jsonDoc = JSON.parse(JSON.stringify(next.documentKey));
+                        await context.sendJson({ document: { ...jsonDoc, ...next.updateDescription } }, 'out');
+                        await context.stateSet('resumeToken', changeStream.resumeToken['_data']);
+
+                    }
+                } catch (error) {
+                    throw error;
+                }
+                // await new Promise(r => setTimeout(r, context.config.changeStreamsTimeout || 55000));
+                // changeStream.close();
             } else {
                 const storeId = await context.stateGet('storeId');
+
                 await processDocuments({ lock, client, context, storeId });
             }
-        } catch (error) {
-            console.error('Tick error:', error);
         } finally {
+            await client.close();
             lock && await lock.unlock();
         }
     }
