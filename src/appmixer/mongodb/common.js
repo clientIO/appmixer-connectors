@@ -6,14 +6,22 @@ module.exports = {
 
     async getClient(context) {
         const connectionUri = context.auth?.connectionUri || context.connectionUri;
-        const options = {
-            tls: !!(context.auth?.tlsCAFileContent || context.tlsCAFileContent)
-        };
 
-        if ((context.auth?.tlsAllowInvalidHostnames || context.tlsAllowInvalidHostnames) == 'true') {
+        const options = {};
+
+        // Apply TLS settings based on source of call (auth.js or other)
+        const tlsCAFileContent = context.auth?.tlsCAFileContent || context.tlsCAFileContent;
+        const tlsAllowInvalidHostnames = context.auth?.tlsAllowInvalidHostnames || context.tlsAllowInvalidHostnames;
+        const tlsAllowInvalidCertificates = context.auth?.tlsAllowInvalidCertificates || context.tlsAllowInvalidCertificates; // eslint-disable-line max-len
+
+        if (tlsCAFileContent) {
+            options.tls = true;
+            options.tlsCAFileContent = tlsCAFileContent;
+        }
+        if (tlsAllowInvalidHostnames == 'true') {
             options.tlsAllowInvalidHostnames = true;
         }
-        if ((context.auth?.tlsAllowInvalidCertificates || context.tlsAllowInvalidCertificates) == 'true') {
+        if (tlsAllowInvalidCertificates == 'true') {
             options.tlsAllowInvalidCertificates = true;
         }
 
@@ -66,7 +74,6 @@ module.exports = {
                 });
                 returnStoreId = newStoreResponse.storeId;
             } catch (err) {
-                // Ignore error if the store already exists
                 if (!err.message.includes('duplicate key error')) {
                     throw err;
                 }

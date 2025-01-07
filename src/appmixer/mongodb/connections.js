@@ -3,7 +3,6 @@ const { MongoClient } = require('mongodb');
 const fs = require('fs');
 const tmp = require('tmp');
 
-// Ensure shared connections persist across different flows and nodes
 process.MONGO_CONNECTOR_OPEN_CONNECTIONS = process.MONGO_CONNECTOR_OPEN_CONNECTIONS || {};
 
 module.exports = {
@@ -13,18 +12,22 @@ module.exports = {
 
         // Handle TLS certificate if provided
         if (options.tls && options.tlsCAFileContent) {
-            tmpDir = tmp.dirSync();
-            tmpFile = tmpDir.name + '/key.crt';
-            fs.writeFileSync(tmpFile, options.tlsCAFileContent);
-            options.tlsCAFile = tmpFile;
+            try {
+                tmpDir = tmp.dirSync();
+                tmpFile = tmpDir.name + '/key.crt';
+                fs.writeFileSync(tmpFile, options.tlsCAFileContent);
+                options.tlsCAFile = tmpFile;
+            } catch (err) {
+                throw err;
+            }
         }
 
-        // Reuse existing connection if available
         if (process.MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionUri]) {
             return process.MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionUri];
         }
 
         const client = new MongoClient(connectionUri, options);
+
         try {
             await client.connect();
             process.MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionUri] = client;
