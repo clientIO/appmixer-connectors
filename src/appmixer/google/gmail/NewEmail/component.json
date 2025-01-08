@@ -24,38 +24,18 @@
     "properties": {
         "schema": {
             "properties": {
-                "labels": {
-                    "type": "object"
+                "query": {
+                    "type": "string"
                 }
             }
         },
         "inspector": {
             "inputs": {
-                "labels": {
-                    "type": "expression",
-                    "label": "Labels",
-                    "levels": [
-                        "AND"
-                    ],
-                    "index": 2,
-                    "tooltip": "Select one or more labels to filter the emails that will trigger this event. The trigger will activate if an email matches any of the selected labels. If no labels are selected, the trigger will activate for all emails, including drafts and sent messages.",
-                    "fields": {
-                        "name": {
-                            "type": "select",
-                            "label": "Name",
-                            "index": 1,
-                            "tooltip": "Select a name of the existing label.",
-                            "source": {
-                                "url": "/component/appmixer/google/gmail/ListLabels?outPort=out",
-                                "data": {
-                                    "properties": {
-                                        "sendWholeArray": true
-                                    },
-                                    "transform": "./ListLabels#labelsToSelectArrayFiltered"
-                                }
-                            }
-                        }
-                    }
+                "query": {
+                    "type": "text",
+                    "label": "Email Query",
+                    "index": 1,
+                    "tooltip": "The search query to find new emails. This allows you to only consider email messages that can be found using the query. See <a target=_blank href=\"https://support.google.com/mail/answer/7190\">Google Documentation</a> for more info. Example: <code>from:amy@example.com AND subject:dinner</code>."
                 }
             }
         }
@@ -66,53 +46,71 @@
             "options": [
                 {
                     "label": "Email Message ID",
-                    "value": "id"
+                    "value": "id",
+                    "schema": { "type": "string" }
                 },
                 {
                     "label": "Thread ID",
-                    "value": "threadId"
+                    "value": "threadId",
+                    "schema": { "type": "string" }
                 },
                 {
                     "label": "Label IDs",
-                    "value": "labelIds"
+                    "value": "labelIds",
+                    "schema": { "type": "array", "items": { "type": "string" } }
                 },
                 {
                     "label": "Snippet",
-                    "value": "snippet"
+                    "value": "snippet",
+                    "schema": { "type": "string" }
                 },
                 {
                     "label": "SizeEstimate",
-                    "value": "sizeEstimate"
+                    "value": "sizeEstimate",
+                    "schema": { "type": "integer" }
                 },
                 {
-                    "label": "Date",
-                    "value": "payload.date"
-                },
-                {
-                    "label": "From",
-                    "value": "payload.from.[0].address"
-                },
-                {
-                    "label": "To",
-                    "value": "payload.to.[0].address"
-                },
-                {
-                    "label": "Subject",
-                    "value": "payload.subject"
-                },
-                {
-                    "label": "Body",
-                    "value": "payload.text"
-                },
-                {
-                    "label": "HTML",
-                    "value": "payload.html"
+                    "label": "Payload",
+                    "value": "payload",
+                    "schema": {
+                        "type": "object",
+                        "title": "Email Payload",
+                        "properties": {
+                            "date": { "type": "string", "format": "date-time", "title": "Email Date" },
+                            "subject": { "type": "string", "title": "Email Subject" },
+                            "text": { "type": "string", "title": "Email Text" },
+                            "html": { "type": "string", "title": "Email HTML" },
+                            "from": {
+                                "type": "array",
+                                "title": "Email Senders",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "address": { "type": "string" },
+                                        "name": { "type": "string" }
+                                    }
+                                }
+                            },
+                            "to": {
+                                "type": "array",
+                                "title": "Email Recipients",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "address": { "type": "string" },
+                                        "name": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 {
                     "label": "Attachments",
                     "value": "attachments",
                     "schema": {
                         "type": "array",
+                        "title": "Email Attachments",
                         "items": {
                             "type": "object",
                             "properties": {

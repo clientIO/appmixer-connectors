@@ -1,116 +1,58 @@
 'use strict';
+
 const emailCommons = require('../gmail-commons');
 const Promise = require('bluebird');
 
 module.exports = {
+
     async tick(context) {
-        let newState = {};
 
-        const { labels: { AND: labels } = { AND: [] } } = context.properties;
-        const isLabelsEmpty = !labels.some(label => label.name);
+        const { download } = context.properties;
+        const state = context.state;
+        let query = context.properties.query;
+        query = (query ? query + ' AND ' : '') + 'has:attachment';
+        const { emails, state: newState } = await emailCommons.listNewMessages(context, query, state);
 
-        // Fetch new messages from the inbox
-        const data = await emailCommons.listNewMessages(
-            { context, userId: 'me' },
-            context.state.id || null
-        );
-
-        // Update the state with the latest message ID
-        newState.id = data.lastMessageId;
-
-        // Fetch the full email data for new messages
-        const emails = await Promise.map(data.newMessages, async message => {
-            return emailCommons.callEndpoint(context, `/users/me/messages/${message.id}`, {
-                method: 'GET',
-                params: { format: 'full' }
-            }).then(response => response.data).catch(err => {
-                // email can be deleted (permanently) in gmail between listNewMessages call and
-                // this getMessage call, in such case - ignore it and return null
-                if (err && err.response && err.response.status === 404) {
-                    return null;
-                }
-                throw err;
-            });
-        }, { concurrency: 10 });
-
-        // Extract attachments from emails
-        let attachments = await Promise.map(emails, email => {
-            if (!email || !email.labelIds) {
-                // Skip if the email was deleted or labelIds is missing
-                return [];
+        // Fetch attachments from emails.
+        const output = [];
+        await Promise.map(emails, async (email) => {
+            if (!email) {
+                // Skip if the email was deleted.
+                return;
+            }
+            if (!emailCommons.isNewInboxEmail(email.labelIds || [])) {
+                // Skip SENT and DRAFT emails.
+                return; 
             }
 
-            // Filter emails based on selected labels
-            if (isLabelsEmpty || labels.some(label => email.labelIds.includes(label.name))) {
-                return downloadAttachments(context, email);
-            }
-            return [];
-        });
-
-        // Flatten the array of attachments
-        attachments = attachments.reduce((a, b) => a.concat(b), []);
-
-        // Save attachments and send them to the output port
-        let attachmentsOutput;
-
-        if (context.properties.download) {
-            attachmentsOutput = await Promise.map(attachments, attachment => {
-                const buffer = Buffer.from(attachment.data, 'base64');
-                return context.saveFileStream(
-                    attachment.filename,
-                    buffer
-                ).then(res => {
-                    return Object.assign(res, {
-                        email: attachment.email,
-                        attachment
-                    });
-                });
-            });
-        } else {
-            attachmentsOutput = attachments.map(attachment => {
-                return Object.assign(attachment, {
-                    email: attachment.email,
+            return Promise.map(email.attachments || [], async (attachment) => {
+                const out = {
+                    email,
                     attachment
-                });
+                };
+                if (download) {
+                    const savedFile = await downloadAttachment(context, email.id, attachment.id, attachment.filename);
+                    out.fileId = savedFile.fileId;
+                    out.filename = savedFile.filename;
+                    out.contentType = savedFile.contentType;
+                }
+                output.push(out);
             });
-        }
-
-        await Promise.map(attachmentsOutput, out => {
-            return context.sendJson(out, 'attachment');
         });
 
-        await context.saveState(newState);
+        await context.sendArray(output, 'attachment');
+        if (JSON.stringify(state != JSON.stringify(newState))) {
+            return context.saveState(newState);
+        }
     }
 };
 
-/**
- * Download attachments from an email.
- * @param {Context} context
- * @param {Object} email
- * @return {Array<Object>} returns array with attachments
- */
-const downloadAttachments = async (context, email) => {
-    if (!emailCommons.isNewInboxEmail(email.labelIds)) {
-        return []; // skip SENT and DRAFT emails
-    }
-
-    // Parse the email content to extract attachments
-    const parsedEmail = emailCommons.normalizeEmail(email);
-
-    return Promise.map(parsedEmail.attachments || [], async (attachment) => {
-        const out = {
-            filename: attachment.filename,
-            mimetype: attachment.mimeType || 'application/octet-stream', // Ensure mimetype is set
-            size: attachment.size,
-            email: parsedEmail,
-            attachment: attachment
-        };
-        if (context.properties.download) {
-            const response = await emailCommons.callEndpoint(context, `/users/me/messages/${email.id}/attachments/${attachment.id}`, {
-                method: 'GET'
-            });
-            out.data = response.data.data;
-        }
-        return out;
+const downloadAttachment = async (context, emailId, attachmentId, filename) => {
+    const response = await emailCommons.callEndpoint(context, `/users/me/messages/${emailId}/attachments/${attachmentId}`, {
+        method: 'GET'
     });
+    const base64 = response.data.data;
+    const buffer = Buffer.from(base64, 'base64');
+    const savedFile = await context.saveFileStream(filename, buffer);
+    return savedFile;
 };
