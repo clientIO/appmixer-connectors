@@ -1,32 +1,80 @@
 'use strict';
-const { Timestamp } = require('mongodb');
-const { getOrCreateConnection, closeConnection } = require('./connections');
+const { MongoClient, Timestamp } = require('mongodb');
+const fs = require('fs');
+const tmp = require('tmp');
+
+let MONGO_CONNECTOR_OPEN_CONNECTIONS;
+if (process.MONGO_CONNECTOR_OPEN_CONNECTIONS) {
+    MONGO_CONNECTOR_OPEN_CONNECTIONS = process.MONGO_CONNECTOR_OPEN_CONNECTIONS;
+} else {
+    process.MONGO_CONNECTOR_OPEN_CONNECTIONS = MONGO_CONNECTOR_OPEN_CONNECTIONS = {};
+}
 
 module.exports = {
 
-    async getClient(context) {
-        const connectionUri = context.auth?.connectionUri || context.connectionUri;
+    async getClient(context, flowId, componentId, auth) {
+        let tmpFile;
+        let tmpDir;
+        const connectionUri = context.auth.connectionUri;
 
+        const connectionId = `client:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
+        if (MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId]) {
+            return MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
+        }
         const options = {};
 
-        // Apply TLS settings based on source of call (auth.js or other)
-        const tlsCAFileContent = context.auth?.tlsCAFileContent || context.tlsCAFileContent;
-        const tlsAllowInvalidHostnames = context.auth?.tlsAllowInvalidHostnames || context.tlsAllowInvalidHostnames;
-        const tlsAllowInvalidCertificates = context.auth?.tlsAllowInvalidCertificates || context.tlsAllowInvalidCertificates; // eslint-disable-line max-len
+        // Apply TLS settings based on auth or direct context
+        const tlsCAFileContent = context.auth.tlsCAFileContent;
+        const tlsAllowInvalidHostnames = context.auth.tlsAllowInvalidHostnames;
+        const tlsAllowInvalidCertificates = context.auth.tlsAllowInvalidCertificates;
 
         if (tlsCAFileContent) {
             options.tls = true;
             options.tlsCAFileContent = tlsCAFileContent;
         }
-        if (tlsAllowInvalidHostnames == 'true') {
+        if (tlsAllowInvalidHostnames === 'true') {
             options.tlsAllowInvalidHostnames = true;
         }
-        if (tlsAllowInvalidCertificates == 'true') {
+        if (tlsAllowInvalidCertificates === 'true') {
             options.tlsAllowInvalidCertificates = true;
         }
 
-        // Reuse or create new connection through connection pooling
-        return getOrCreateConnection(connectionUri, options);
+        // Handle TLS certificate files
+        if (options.tls && options.tlsCAFileContent) {
+            try {
+                tmpDir = tmp.dirSync();
+                tmpFile = `${tmpDir.name}/key.crt`;
+                fs.writeFileSync(tmpFile, options.tlsCAFileContent);
+                options.tlsCAFile = tmpFile;
+            } catch (err) {
+                throw new Error(`Failed to create TLS certificate: ${err.message}`);
+            }
+        }
+
+        // Create a new MongoDB client
+        const client = new MongoClient(connectionUri, options);
+
+        try {
+            // Connect to MongoDB
+            await client.connect();
+            MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId] = client;
+
+            // Store connection in state for tracking
+            await context.service.stateSet(connectionId, {
+                flowId,
+                componentId,
+                auth
+            });
+
+
+            return client;
+        } catch (err) {
+            throw new Error(`Failed to connect to MongoDB: ${err.message}`);
+        } finally {
+            if (tmpDir) {
+                fs.rm(tmpDir.name, { recursive: true }, () => {});
+            }
+        }
     },
 
     getCollection(client, dbName, collectionName) {
@@ -68,9 +116,7 @@ module.exports = {
                 const newStoreResponse = await context.callAppmixer({
                     endPoint: '/stores',
                     method: 'POST',
-                    body: {
-                        name
-                    }
+                    body: { name }
                 });
                 returnStoreId = newStoreResponse.storeId;
             } catch (err) {
@@ -90,7 +136,7 @@ module.exports = {
     },
 
     async setOperationalTimestamp(context) {
-        const ts = Math.floor(new Date().getTime() / 1000);
+        const ts = Math.floor(Date.now() / 1000);
         await context.stateSet('startAtOperationTime', ts);
     },
 
@@ -102,12 +148,66 @@ module.exports = {
         for await (const doc of cursor) {
             const jsonDoc = JSON.parse(JSON.stringify(doc));
             await context.store.set(storeId, jsonDoc['_id'], jsonDoc);
-            docIds && docIds.push(jsonDoc['_id']);
-            lock && lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 2);
+            if (docIds) docIds.push(jsonDoc['_id']);
+            if (lock) lock.extend(parseInt(context.config.lockExtendTime, 10) || 1000 * 60 * 2);
         }
     },
 
-    async closeClient(connectionUri) {
-        await closeConnection(connectionUri);
+    async closeClient(context, connectionId) {
+        await context.service.stateUnset(connectionId);
+        const client = MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
+        if (client) {
+            await client.close();
+            delete MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
+        }
+    },
+    async getClientForAuth(context) {
+        let tmpFile;
+        let tmpDir;
+        const connectionUri = context.connectionUri;
+        const options = {};
+
+        const tlsCAFileContent = context.tlsCAFileContent;
+        const tlsAllowInvalidHostnames = context.tlsAllowInvalidHostnames;
+        const tlsAllowInvalidCertificates = context.tlsAllowInvalidCertificates;
+
+        if (tlsCAFileContent) {
+            options.tls = true;
+            options.tlsCAFileContent = tlsCAFileContent;
+        }
+        if (tlsAllowInvalidHostnames === 'true') {
+            options.tlsAllowInvalidHostnames = true;
+        }
+        if (tlsAllowInvalidCertificates === 'true') {
+            options.tlsAllowInvalidCertificates = true;
+        }
+
+        if (options.tls && options.tlsCAFileContent) {
+            try {
+                tmpDir = tmp.dirSync();
+                tmpFile = `${tmpDir.name}/key.crt`;
+                fs.writeFileSync(tmpFile, options.tlsCAFileContent);
+                options.tlsCAFile = tmpFile;
+            } catch (err) {
+                throw err;
+            }
+        }
+
+        const client = new MongoClient(connectionUri, options);
+
+        try {
+            await client.connect();
+            return client;  // Temporary client returned directly for auth
+        } catch (err) {
+            throw err;
+        } finally {
+            if (tmpDir) {
+                fs.rm(tmpDir.name, { recursive: true }, () => {});
+            }
+        }
+    },
+    listConnections() {
+        return MONGO_CONNECTOR_OPEN_CONNECTIONS;
     }
+
 };

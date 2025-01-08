@@ -1,6 +1,6 @@
 'use strict';
 
-const connections = require('./connections');
+const connections = require('./common');
 
 let isConnectionSyncInProgress = false;
 
@@ -37,7 +37,7 @@ module.exports = async (context) => {
 
                 if (!flow) {
                     await context.log('info', `[MongoDB] Flow ${connectionParameters.flowId} is not running. Removing connection ${connectionId}.`);
-                    await connections.closeConnection(connectionId);
+                    await connections.closeClient(context, connectionId);
                     continue;
                 }
 
@@ -46,7 +46,7 @@ module.exports = async (context) => {
                     const stillNeeded = await context.service.stateGet(connectionId);
                     if (stillNeeded) {
                         await context.log('info', `[MongoDB] Recreating missing connection ${connectionId}.`);
-                        await connections.getOrCreateConnection(connectionParameters.connectionUri, connectionParameters.options); // eslint-disable-line max-len
+                        await connections.getClient(context, connectionParameters.flowId, connectionParameters.componentId, connectionParameters.auth); // eslint-disable-line max-len
                     }
                 }
             }
@@ -56,7 +56,7 @@ module.exports = async (context) => {
                 const conn = await context.service.stateGet(connectionId);
                 if (!conn) {
                     await context.log('info', `[MongoDB] Closing stale connection ${connectionId}.`);
-                    await connections.closeConnection(connectionId);
+                    await connections.closeClient(context, connectionId);
                 }
             }
 

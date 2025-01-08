@@ -12,23 +12,21 @@ const {
 module.exports = {
 
     async start(context) {
+        const { componentId, flowId } = context;
+        const client = await getClient(context, flowId, componentId, context.auth);
 
-        const client = await getClient(context.auth);
-        try {
-            const isReplicaSet = await getReplicaSetStatus(client);
-            await context.stateSet('isReplicaSet', isReplicaSet);
-            if (isReplicaSet) {
-                await setOperationalTimestamp(context);
-                return;
-            }
-            let { storeId } = context.properties;
-
-            storeId = await ensureStore(context, 'NewDoc-' + context.componentId, storeId);
-            await processDocuments({ client, context, storeId });
-            await context.store.registerWebhook(storeId, ['insert']);
-        } finally {
-            await client.close();
+        const isReplicaSet = await getReplicaSetStatus(client);
+        await context.stateSet('isReplicaSet', isReplicaSet);
+        if (isReplicaSet) {
+            await setOperationalTimestamp(context);
+            return;
         }
+        let { storeId } = context.properties;
+
+        storeId = await ensureStore(context, 'NewDoc-' + context.componentId, storeId);
+        await processDocuments({ client, context, storeId });
+        await context.store.registerWebhook(storeId, ['insert']);
+
     },
 
     async receive(context) {
@@ -42,7 +40,7 @@ module.exports = {
 
     async stop(context) {
 
-        const client = await getClient(context.auth);
+        const client = await getClient(context);
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
             if (isReplicaSet) return;
@@ -55,7 +53,7 @@ module.exports = {
 
     async tick(context) {
 
-        const client = await getClient(context.auth);
+        const client = await getClient(context);
         let lock;
         try {
             lock = await context.lock('MongoDbNewDoc-' + context.componentId, {
@@ -94,7 +92,6 @@ module.exports = {
                 await processDocuments({ lock, client, context, storeId });
             }
         } finally {
-            await client.close();
             lock && await lock.unlock();
         }
     }
