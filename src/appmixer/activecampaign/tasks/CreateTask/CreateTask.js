@@ -43,17 +43,17 @@ module.exports = {
 
         const { dealTask } = data;
 
-        return context.sendJson({
-            id: dealTask.id,
-            relationship: dealTask.owner.type,
+        const taskResponseModified = {
+            ...dealTask,
             contactId: dealTask.owner.type === 'contact' ? dealTask.relid : undefined,
             dealId: dealTask.owner.type === 'deal' ? dealTask.relid : undefined,
-            title: dealTask.title,
-            note: dealTask.note,
-            taskType: dealTask.dealTasktype,
-            assignee: dealTask.assignee,
-            due: moment(dealTask.duedate).toISOString(),
-            edate: moment(dealTask.edate).toISOString()
-        }, 'newTask');
+            due: new Date(dealTask.duedate).toISOString(),
+            edate: new Date(dealTask.edate).toISOString()
+        };
+
+        delete taskResponseModified.duedate;
+        delete taskResponseModified.links;
+
+        return context.sendJson(taskResponseModified, 'newTask');
     }
 };

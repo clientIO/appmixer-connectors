@@ -1,5 +1,4 @@
 'use strict';
-const moment = require('moment');
 const ActiveCampaign = require('../../ActiveCampaign');
 const { trimUndefined } = require('../../helpers');
 
@@ -47,6 +46,7 @@ module.exports = {
         }
 
         const { data } = await ac.call('post', 'deals', payload);
+
         const { deal } = data;
 
         const customFieldsPayload = fieldValues.reduce((acc, field) => {
@@ -54,18 +54,16 @@ module.exports = {
             return acc;
         }, {});
 
-        return context.sendJson({
-            id: deal.id,
-            contactId: deal.contact,
-            title: deal.title,
-            description: deal.description,
-            currency: deal.currency,
+        const dealResponseModified = {
+            ...deal,
             value: deal.value / 100,
-            owner: deal.owner,
-            stage: deal.stage,
-            status: deal.status,
-            createdDate: moment(data.deal.cdate).toISOString(),
+            createdDate: new Date(deal.cdate).toISOString(),
             ...customFieldsPayload
-        }, 'deal');
+        };
+
+        delete dealResponseModified.cdate;
+        delete dealResponseModified.links;
+
+        return context.sendJson(dealResponseModified, 'deal');
     }
 };
