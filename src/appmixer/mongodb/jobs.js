@@ -1,6 +1,6 @@
 'use strict';
 
-const connections = require('./common');
+const common = require('./common');
 
 let isConnectionSyncInProgress = false;
 
@@ -19,7 +19,7 @@ module.exports = async (context) => {
         try {
             // Load all registered MongoDB connections from cluster state
             const registeredConnections = await context.service.loadState();  // [{key, value}]
-            const openConnections = connections.listConnections();
+            const openConnections = common.listConnections();
 
             await context.log('info', [
                 '[MongoDB] Syncing MongoDB connections.',
@@ -37,7 +37,7 @@ module.exports = async (context) => {
 
                 if (!flow) {
                     await context.log('info', `[MongoDB] Flow ${connectionParameters.flowId} is not running. Removing connection ${connectionId}.`);
-                    await connections.closeClient(context, connectionId);
+                    await common.closeClient(context, connectionId);
                     continue;
                 }
 
@@ -46,7 +46,7 @@ module.exports = async (context) => {
                     const stillNeeded = await context.service.stateGet(connectionId);
                     if (stillNeeded) {
                         await context.log('info', `[MongoDB] Recreating missing connection ${connectionId}.`);
-                        await connections.getClient(context, connectionParameters.flowId, connectionParameters.componentId, connectionParameters.auth); // eslint-disable-line max-len
+                        await common.getClient(context, connectionParameters.flowId, connectionParameters.componentId, connectionParameters.auth); // eslint-disable-line max-len
                     }
                 }
             }
@@ -56,7 +56,7 @@ module.exports = async (context) => {
                 const conn = await context.service.stateGet(connectionId);
                 if (!conn) {
                     await context.log('info', `[MongoDB] Closing stale connection ${connectionId}.`);
-                    await connections.closeClient(context, connectionId);
+                    await common.closeClient(context, connectionId);
                 }
             }
 

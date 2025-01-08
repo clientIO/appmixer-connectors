@@ -6,7 +6,8 @@ const {
     getReplicaSetStatus,
     ensureStore,
     setOperationalTimestamp,
-    processDocuments
+    processDocuments,
+    closeClient
 } = require('../../common');
 
 module.exports = {
@@ -39,15 +40,21 @@ module.exports = {
     },
 
     async stop(context) {
-
+        const connectionId = await context.stateGet('connectionId');
         const client = await getClient(context);
+
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
             if (isReplicaSet) return;
+
             const savedStoredId = await context.stateGet('storeId');
-            await context.store.unregisterWebhook(savedStoredId);
+            if (savedStoredId) {
+                await context.store.unregisterWebhook(savedStoredId);
+            }
         } finally {
-            await client.close();
+            if (connectionId) {
+                await closeClient(context, connectionId);
+            }
         }
     },
 

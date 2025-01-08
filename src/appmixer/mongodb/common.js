@@ -16,11 +16,18 @@ module.exports = {
         let tmpFile;
         let tmpDir;
         const connectionUri = context.auth.connectionUri;
+        let connectionId = await context.service.stateGet('connectionId');
 
-        const connectionId = `client:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
-        if (MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId]) {
+        if (connectionId && MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId]) {
             return MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
         }
+
+        // If not found, generate a new connectionId
+        if (!connectionId) {
+            connectionId = `client:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
+            await context.service.stateSet('connectionId', connectionId);
+        }
+
         const options = {};
 
         // Apply TLS settings based on auth or direct context
@@ -69,6 +76,7 @@ module.exports = {
 
             return client;
         } catch (err) {
+            await context.service.stateUnset(connectionId);
             throw new Error(`Failed to connect to MongoDB: ${err.message}`);
         } finally {
             if (tmpDir) {
