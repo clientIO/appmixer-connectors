@@ -1,6 +1,6 @@
 'use strict';
 
-const ZoneCloudflareClient = require('../ZoneCloudflareClient');
+const CloudflareListClient = require('./CloudflareListClient');
 
 module.exports = {
 
@@ -35,7 +35,7 @@ module.exports = {
         validate: async function(context) {
 
             const { email, apiKey } = context;
-            const client = new ZoneCloudflareClient({ email, apiKey });
+            const client = new CloudflareListClient({ email, apiKey });
             const { data } = await client.verifyGlobalApiKey(context);
             return data.success || false;
         }

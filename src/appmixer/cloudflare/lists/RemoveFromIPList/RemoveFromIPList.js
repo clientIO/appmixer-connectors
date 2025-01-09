@@ -1,4 +1,4 @@
-const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
+const CloudflareListClient = require('../CloudflareListClient');
 
 let attempts = 0;
 const getStatus = async function(context, client, { account, id }) {
@@ -32,7 +32,7 @@ module.exports = {
 
         const { apiKey, email } = context.auth;
         const { account, list, ips } = context.messages.in.content;
-        const client = new ZoneCloudflareClient({ email, apiKey });
+        const client = new CloudflareListClient({ email, apiKey });
 
         const ipsList = ips.AND;
 

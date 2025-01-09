@@ -1,4 +1,4 @@
-const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
+const CloudflareListClient = require('../CloudflareListClient');
 const lib = require('../lib');
 
 let attempts = 0;
@@ -36,7 +36,7 @@ module.exports = {
         const { accountsFetch, listFetch } = context.properties;
         const { account, list, ips, ttl } = context.messages.in.content;
 
-        const client = new ZoneCloudflareClient({ email, apiKey });
+        const client = new CloudflareListClient({ email, apiKey });
 
         if (accountsFetch || listFetch) {
             return await lib.fetchInputs(context, client, { account, listFetch, accountsFetch });
