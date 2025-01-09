@@ -1,4 +1,4 @@
-const ZoneCloudflareClient = require('./ZoneCloudflareClient');
+const ZoneCloudflareClient = require('./lists/CloudflareListClient');
 const wafJobs = require('./waf/jobs.waf');
 
 module.exports = async (context) => {
