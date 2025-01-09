@@ -50,12 +50,12 @@ const outputSchema = {
     'name': { 'type': 'string', 'title': 'Name' },
     'type': { 'type': 'string', 'title': 'Type' },
     'subscriptionId': { 'type': 'string', 'title': 'Subscription Id' },
-    'subscriptionExternalId': { 'type': 'string', 'title': 'Subscription External Id' },
+    'subscriptionExternalId': { 'type': 'string', 'title': 'Subscription External ID' },
     'graphEntity': {
         'type': 'object',
         'properties': {
             'id': { 'type': 'string', 'title': 'Graph Entity.Id' },
-            'providerUniqueId': { 'type': 'null', 'title': 'Graph Entity.Provider Unique Id' },
+            'providerUniqueId': { 'type': 'null', 'title': 'Graph Entity.Provider Unique ID' },
             'name': { 'type': 'string', 'title': 'Graph Entity.Name' },
             'type': { 'type': 'string', 'title': 'Graph Entity.Type' },
             'projects': {

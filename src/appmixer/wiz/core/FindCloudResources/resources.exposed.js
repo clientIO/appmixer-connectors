@@ -62,10 +62,10 @@ const outputSchema = {
             properties: {
                 type: 'object',
                 properties: {
-                    _productIDs: { type: 'string', title: 'Accessible From.Properties.Product I Ds' },
-                    _vertexID: { type: 'string', title: 'Accessible From.Properties.Vertex I D' },
+                    _productIDs: { type: 'string', title: 'Accessible From.Properties.Product IDs' },
+                    _vertexID: { type: 'string', title: 'Accessible From.Properties.Vertex ID' },
                     cloudPlatform: { type: 'string', title: 'Accessible From.Properties.Cloud Platform' },
-                    cloudProviderURL: { type: 'string', title: 'Accessible From.Properties.Cloud Provider U R L' },
+                    cloudProviderURL: { type: 'string', title: 'Accessible From.Properties.Cloud Provider URL' },
                     creationDate: { type: 'string', title: 'Accessible From.Properties.Creation Date' },
                     externalId: { type: 'string', title: 'Accessible From.Properties.External Id' },
                     fullResourceName: { type: 'null', title: 'Accessible From.Properties.Full Resource Name' },
@@ -117,7 +117,7 @@ const outputSchema = {
         type: 'array',
         items: { type: 'string' }, title: 'Network Protocols'
     },
-    customIPRanges: { type: 'null', title: 'Custom I P Ranges' },
+    customIPRanges: { type: 'null', title: 'Custom IP Ranges' },
     firstSeenAt: { type: 'string', title: 'First Seen At' },
     applicationEndpoints: {
         type: 'array',
@@ -130,13 +130,13 @@ const outputSchema = {
                 properties: {
                     type: 'object',
                     properties: {
-                        _productIDs: { type: 'string', title: 'Application Endpoints.Properties.Product I Ds' },
-                        _vertexID: { type: 'string', title: 'Application Endpoints.Properties.Vertex I D' },
+                        _productIDs: { type: 'string', title: 'Application Endpoints.Properties.Product IDs' },
+                        _vertexID: { type: 'string', title: 'Application Endpoints.Properties.Vertex ID' },
                         allPorts: { type: 'boolean', title: 'Application Endpoints.Properties.All Ports' },
                         cloudPlatform: { type: 'string', title: 'Application Endpoints.Properties.Cloud Platform' },
                         cloudProviderURL: {
                             type: 'null',
-                            title: 'Application Endpoints.Properties.Cloud Provider U R L'
+                            title: 'Application Endpoints.Properties.Cloud Provider URL'
                         },
                         exposureLevel_description: {
                             type: 'string',
@@ -167,10 +167,10 @@ const outputSchema = {
                             type: 'string',
                             title: 'Application Endpoints.Properties.Http Content Type'
                         },
-                        httpGETStatus: { type: 'string', title: 'Application Endpoints.Properties.Http G E T Status' },
+                        httpGETStatus: { type: 'string', title: 'Application Endpoints.Properties.Http GET Status' },
                         httpGETStatusCode: {
                             type: 'number',
-                            title: 'Application Endpoints.Properties.Http G E T Status Code'
+                            title: 'Application Endpoints.Properties.Http GET Status Code'
                         },
                         httpTitleSnippet: {
                             type: 'null',
