@@ -38,7 +38,6 @@ module.exports = {
             const client = new ZoneCloudflareClient({ email, apiKey });
             const { data } = await client.verifyGlobalApiKey(context);
             return data.success || false;
-
         }
     }
 };
