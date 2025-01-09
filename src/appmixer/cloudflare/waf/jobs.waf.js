@@ -1,5 +1,5 @@
-const CloudflareWAFClient = require('./waf/CloudflareWAFClient');
-const lib = require('./waf/lib');
+const CloudflareWAFClient = require('./CloudflareWAFClient');
+const lib = require('./lib');
 
 const deleteExpireIps = async function(context) {
 
@@ -51,7 +51,7 @@ const deleteExpireIps = async function(context) {
                 dbItemsToDelete = dbItemsToDelete.concat(dbItems);
             } else {
                 context.log('info', { type: '[CloudFlareWAF] db item delet 111' });
-                const model = require('./RulesIPsModel')(context);
+                const model = require('../RulesIPsModel')(context);
                 context.log('info', { type: '[CloudFlareWAF] db item delet 222' });
 
                 const operations = dbItems.map(item => ({
@@ -79,7 +79,7 @@ const deleteDBItems = async function(context, ids = []) {
 
     context.log('info', { type: '[CloudFlareWAF] db items to delete', data: ids });
 
-    const model = require('./RulesIPsModel')(context);
+    const model = require('../RulesIPsModel')(context);
     if (ids.length) {
 
         const deleted = await context.db.collection(model.collection)
@@ -91,7 +91,7 @@ const deleteDBItems = async function(context, ids = []) {
 
 const getExpiredItems = async function(context) {
 
-    const model = require('./RulesIPsModel')(context);
+    const model = require('../RulesIPsModel')(context);
 
     const expired = await context.db.collection(model.collection)
         .find({ removeAfter: { $lt: Date.now() } })
