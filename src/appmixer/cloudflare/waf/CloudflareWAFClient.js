@@ -106,25 +106,4 @@ module.exports = class CloudflareWAFClient {
         return context.httpRequest.patch(url, rule, { headers }).then(resp => resp.data);
     }
 
-    async findIdsForIPs({ context, client, ips = [], account, list }) {
-
-        const result = [];
-        for (let ipItem of ips) {
-
-            const { data } = await client.callEndpoint(context, {
-                method: 'GET',
-                action: `/accounts/${account}/rules/lists/${list}/items`,
-                params: {
-                    per_page: 1,
-                    search: ipItem.ip
-                }
-            });
-
-            if (data?.result[0] && data?.result.length === 1) {
-                result.push({ ...data.result[0] });
-            }
-        }
-
-        return result;
-    };
 };

@@ -1,5 +1,5 @@
 const ZoneCloudflareClient = require('./ZoneCloudflareClient');
-const rules = require('./rules');
+const wafJobs = require('./waf/jobs.waf');
 
 module.exports = async (context) => {
 
@@ -16,7 +16,7 @@ module.exports = async (context) => {
 
             try {
                 await deleteExpireIpsFromList(context);
-                await rules.deleteExpireIps(context);
+                await wafJobs.deleteExpireIps(context);
             } finally {
                 lock.unlock();
                 await context.log('trace', '[CloudFlare] rule delete job finished. Lock unlocked.');
