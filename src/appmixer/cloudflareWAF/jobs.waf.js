@@ -5,26 +5,19 @@ const getModel = (context) => require('./RulesIPsModel')(context);
 
 const deleteExpireIps = async function(context) {
 
-    try {
+    const expired = await getExpiredItems(context);
 
-        const expired = await getExpiredItems(context);
-        if (expired.length) {
-            await context.log('info', { type: '[Cloudflare WAF] expired.', data: sanitizeItems(expired) });
-        }
-
-        const rulesToUpdate = await retrieveRulesForUpdate(context, expired);
-        if (rulesToUpdate.length) {
-            await context.log('info', { type: '[Cloudflare WAF] rulesTo update.', data: sanitizeItems(rulesToUpdate) });
-        }
-
-        const dbItemsToDelete = await updateRules(context, rulesToUpdate);
-        await deleteDBItems(context, dbItemsToDelete);
-
-    } catch (e) {
-        await context.log('error', {
-            type: '[Cloudflare WAF] Unexpected error', error: context.utils.Error.stringify(e)
-        });
+    if (expired.length) {
+        await context.log('info', { type: '[Cloudflare WAF] expired.', data: sanitizeItems(expired) });
     }
+
+    const rulesToUpdate = await retrieveRulesForUpdate(context, expired);
+    if (rulesToUpdate.length) {
+        await context.log('info', { type: '[Cloudflare WAF] rules to update.', data: sanitizeItems(rulesToUpdate) });
+    }
+
+    const dbItemsToDelete = await updateRules(context, rulesToUpdate);
+    await deleteDBItems(context, dbItemsToDelete);
 };
 
 const retrieveRulesForUpdate = async function(context, expired = []) {

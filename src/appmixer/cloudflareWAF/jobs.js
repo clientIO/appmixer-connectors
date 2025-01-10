@@ -21,7 +21,7 @@ module.exports = async (context) => {
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare] Error checking rules to delete',
+                    stage: '[CloudFlare WAF] Error checking rules to delete',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
@@ -35,13 +35,12 @@ module.exports = async (context) => {
         let lock = null;
         try {
             lock = await context.job.lock('cloud-flare-waf-ips-cleanup-job', { ttl: config.cleanup.lockTTL });
-            await context.log('trace', '[CloudFlare WAF] IPs cleanup job started.');
 
-            // Delete IPs where the time difference between 'mtime' and 'removeAfter' exceeds the specified timespan,
-            // indicating that deletion attempts have persisted for the entire timespan.
+            // Delete IPs where the time difference between current date and  'removeAfter' exceeds the specified timespan,
+            // indicating that IPs cannot be deleted from the rules.
             const timespan = 30 * 60 * 1000; // 30 min
-            await context.db.collection(RulesIPsModel.collection).deleteMany({
-                $expr: { $gt: [{ $subtract: ['$mtime', '$removeAfter'] }, timespan] }
+            const expired = await context.db.collection(RulesIPsModel.collection).deleteMany({
+                removeAfter: { $lt: new Date(Date.now() - timespan).valueOf() }
             });
 
             if (expired.deletedCount) {
@@ -50,14 +49,13 @@ module.exports = async (context) => {
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare WAF]  Error checking orphaned ips',
+                    stage: '[CloudFlare WAF] Error checking orphaned ips',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
             }
         } finally {
             lock?.unlock();
-            await context.log('trace', '[CloudFlare WAF] IPs cleanup job finished. Lock unlocked.');
         }
     });
 };

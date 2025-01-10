@@ -63,32 +63,6 @@ module.exports = class CloudflareAPI {
         });
     }
 
-    async findIdsForIPs({ context, client, ips = [], account, list }) {
-
-        const result = [];
-        for (let ipItem of ips) {
-
-            try {
-                const { data } = await client.callEndpoint(context, {
-                    method: 'GET',
-                    action: `/accounts/${account}/rules/lists/${list}/items`,
-                    params: {
-                        per_page: 1,
-                        search: ipItem.ip
-                    }
-                });
-                if (data?.result[0] && data?.result.length === 1) {
-                    result.push({ ...data.result[0] });
-                }
-
-            } catch (err) {
-                context.log({ stage: `Invalid IP, IP ${ipItem} hasn't been found in the list ${list}` });
-            }
-        }
-
-        return result;
-    };
-
     // WAF
     /**
      * https://developers.cloudflare.com/api/operations/getZoneRuleset

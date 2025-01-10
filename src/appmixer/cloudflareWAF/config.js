@@ -11,8 +11,8 @@ module.exports = context => {
             lockTTL: context.config.ipDeleteJobLockTTL || 10000
         },
         cleanup: {
-            /** Default: every 10min */
-            schedule: context.config.cleanupJobSchedule || '0 */10 * * * *',
+            /** Default: every hour */
+            schedule: context.config.cleanupJobSchedule || '0 0 * * * *',
             /** Lock TTL, default: 10sec */
             lockTTL: context.config.cleanupJobLockTTL || 10000
         }

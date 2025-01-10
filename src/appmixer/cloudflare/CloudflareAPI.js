@@ -89,7 +89,6 @@ module.exports = class CloudflareAPI {
         return result;
     };
 
-    // WAF
     /**
      * https://developers.cloudflare.com/api/operations/getZoneRuleset
      */

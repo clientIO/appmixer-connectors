@@ -70,7 +70,7 @@ module.exports = {
             });
 
             await context.callAppmixer({
-                endPoint: '/plugins/appmixer/cloudflare/block-ip-rules',
+                endPoint: '/plugins/appmixer/cloudflareWAF/block-ip-rules',
                 method: 'POST',
                 body: { items: dbItems }
             });
