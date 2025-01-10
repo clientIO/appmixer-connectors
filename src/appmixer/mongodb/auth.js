@@ -23,7 +23,7 @@ module.exports = {
                     type: 'text',
                     name: 'Database',
                     tooltip: 'Name of your database'
-                }/*,
+                },
                 tlsCAFileContent: {
                     type: 'textarea',
                     name: 'TLS CA File',
@@ -38,7 +38,6 @@ module.exports = {
                     type: 'text',
                     name: 'TLS Allow Invalid Certificates',
                     tooltip: 'Type <code>true</code> to allow invalid certificates.'
-                }*/
             },
 
             validate: async context => {
