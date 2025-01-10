@@ -47,7 +47,7 @@ module.exports = {
             await context.store.unregisterWebhook(savedStoredId);
         } finally {
             await closeClient(context, connectionId);
-            await context.stateUnset('connectionId')
+            await context.stateUnset('connectionId');
         }
     },
 

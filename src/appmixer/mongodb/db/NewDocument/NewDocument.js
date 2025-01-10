@@ -62,7 +62,7 @@ module.exports = {
         } finally {
             if (connectionId) {
                 await closeClient(context, connectionId);
-                await context.stateUnset('connectionId')
+                await context.stateUnset('connectionId');
             }
         }
     },
