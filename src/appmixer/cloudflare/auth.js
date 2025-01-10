@@ -1,6 +1,6 @@
 'use strict';
 
-const CloudflareAPI = require('../CloudflareAPI');
+const CloudflareAPI = require('./CloudflareAPI');
 
 module.exports = {
 
