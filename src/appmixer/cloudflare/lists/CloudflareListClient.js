@@ -1,4 +1,4 @@
-module.exports = class ZoneCloudflareClient {
+module.exports = class CloudflareListClient {
 
     constructor({ email, apiKey, zoneId, token }) {
         this.email = email;

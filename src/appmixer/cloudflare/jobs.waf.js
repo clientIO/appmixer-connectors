@@ -1,5 +1,5 @@
-const CloudflareWAFClient = require('./CloudflareWAFClient');
-const lib = require('./lib');
+const CloudflareWAFClient = require('./waf/CloudflareWAFClient');
+const lib = require('./waf/lib');
 
 const deleteExpireIps = async function(context) {
 
