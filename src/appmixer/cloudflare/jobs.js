@@ -43,9 +43,6 @@ module.exports = async (context) => {
             const expired = await context.db.collection(IPListModel.collection).deleteMany({
                 $expr: { $gt: [{ $subtract: ['$mtime', '$removeAfter'] }, timespan] }
             });
-            await context.db.collection(RulesIPsModel.collection).deleteMany({
-                $expr: { $gt: [{ $subtract: ['$mtime', '$removeAfter'] }, timespan] }
-            });
 
             if (expired.deletedCount) {
                 await context.log('info', { stage: `[CloudFlare] Deleted ${expired.deletedCount} orphaned rules.` });

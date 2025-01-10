@@ -9,14 +9,14 @@ module.exports = async (context) => {
     await context.scheduleJob('cloud-flare-waf-ips-delete-job', config.ipDeleteJob.schedule, async () => {
 
         try {
-            const lock = await context.job.lock('cloud-flare-lists-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
+            const lock = await context.job.lock('cloud-flare-waf-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
             await context.log('trace', '[CloudFlare WAF] rule delete job started.');
 
             try {
                 await wafJobs.deleteExpireIps(context);
             } finally {
                 lock.unlock();
-                await context.log('trace', '[CloudFlare] rule delete job finished. Lock unlocked.');
+                await context.log('trace', '[CloudFlare WAF] rule delete job finished. Lock unlocked.');
             }
         } catch (err) {
             if (err.message !== 'locked') {
