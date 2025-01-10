@@ -7,53 +7,54 @@ const deleteExpireIps = async function(context) {
 
     try {
 
-        // db model items grouped by ruleId
         const expired = await getExpiredItems(context);
-
-        if (Object.keys(expired).length) {
-            await context.log('info', { type: '[CloudFlareWAF] expired.', expired });
+        if (expired.length) {
+            await context.log('info', { type: '[Cloudflare WAF] expired.', data: sanitizeItems(expired) });
         }
 
         const rulesToUpdate = await retrieveRulesForUpdate(context, expired);
+        if (rulesToUpdate.length) {
+            await context.log('info', { type: '[Cloudflare WAF] rulesTo update.', data: sanitizeItems(rulesToUpdate) });
+        }
 
         const dbItemsToDelete = await updateRules(context, rulesToUpdate);
-
         await deleteDBItems(context, dbItemsToDelete);
 
     } catch (e) {
         await context.log('error', {
-            type: '[CloudFlareWAF] Unexpected error',
-            error: context.utils.Error.stringify(e)
+            type: '[Cloudflare WAF] Unexpected error', error: context.utils.Error.stringify(e)
         });
     }
 };
 
-const retrieveRulesForUpdate = async function(context, expired) {
+const retrieveRulesForUpdate = async function(context, expired = []) {
 
     const rulesToUpdate = [];
-    const groups = Object.values(expired);
-    const getRulePromises = groups.map(item => {
-        const client = new CloudflareAPI({ token: item.auth.token, zoneId: item.zoneId });
-        return client.getRules(context, item.rulesetId);
+    const getRulePromises = expired.map(item => {
+        const { auth, zoneId, rulesetId } = item;
+        const client = new CloudflareAPI({ token: auth.token, zoneId });
+        return client.getRules(context, rulesetId);
     });
 
     (await Promise.allSettled(getRulePromises)).forEach((result, i) => {
 
-        const dbModelItem = groups[i];
+        const item = expired[i];
 
         if (result.status === 'fulfilled') {
 
             const { result: { rules = [] } } = result.value;
-            const rule = rules.find(r => r.id === dbModelItem.ruleId);
+            const rule = rules.find(r => r.id === item.ruleId);
             if (rule) {
                 rulesToUpdate.push({
-                    model: dbModelItem, rule: removeIpsFromRule(rule, dbModelItem?.ips?.map(i => i.ip))
+                    ...item,
+                    rule: removeIpsFromRule(rule, item?.ips?.map(i => i.ip))
                 });
             }
         } else {
-            // eslint-disable-next-line no-unused-vars
-            const { auth, ...info } = dbModelItem;
-            context.log('info', { type: '[CloudFlareWAF] Unable to retrieve rule for expired item', data: info });
+            context.log('info', {
+                type: '[Cloudflare WAF] Unable to retrieve rule for expired item',
+                data: sanitizeItems([item])
+            });
         }
     });
 
@@ -63,9 +64,10 @@ const retrieveRulesForUpdate = async function(context, expired) {
 const updateRules = async function(context, rulesToUpdate) {
 
     let dbItemsToDelete = [];
-    const updatePromises = rulesToUpdate.map(rulesToUpdate => {
+    const updatePromises = rulesToUpdate.map(ruleToUpdate => {
 
-        const { zoneId, rulesetId, auth, rule } = rulesToUpdate;
+        const { zoneId, rulesetId, auth, rule } = ruleToUpdate;
+
         const client = new CloudflareAPI({ token: auth.token, zoneId });
 
         return client.updateBlockRule(context, rulesetId, rule);
@@ -79,11 +81,9 @@ const updateRules = async function(context, rulesToUpdate) {
         if (result.status === 'fulfilled') {
             dbItemsToDelete = dbItemsToDelete.concat(dbItems);
         } else {
-            // eslint-disable-next-line no-unused-vars
-            const { auth, ...info } = item;
             context.log('info', {
-                type: '[CloudFlareWAF] Unable to delete IPs from rule.',
-                data: info
+                type: '[Cloudflare WAF] Unable to delete IPs from rule.',
+                data: sanitizeItems([item])
             });
         }
     });
@@ -105,7 +105,9 @@ const getExpiredItems = async function(context) {
         .find({ removeAfter: { $lt: Date.now() } })
         .toArray();
 
-    return expired.reduce((res, item) => {
+    if (expired.length === 0) return [];
+
+    const groupedByRules = expired.reduce((res, item) => {
         const key = item.ruleId;
         res[key] = res[key] || { ips: [] };
         res[key].ips.push({ ip: item.ip, id: item.id });
@@ -114,9 +116,10 @@ const getExpiredItems = async function(context) {
         res[key].zoneId = item.zoneId;
         res[key].ruleId = item.ruleId;
         res[key].rulesetId = item.rulesetId;
-
         return res;
     }, {});
+
+    return Object.values(groupedByRules);
 };
 
 function removeIpsFromRule(rule, ipsToRemove = []) {
@@ -164,6 +167,20 @@ function removeInterfaceIdentifierAndAddCidr(ip) {
         .slice(0, 4)
         .join(':');
     return `${networkPrefix}::/64`;
+}
+
+/**
+ * remove sensitive info from objects
+ * @param items
+ * @returns {Omit<*, 'auth'>[]}
+ */
+function sanitizeItems(items = []) {
+
+    return items.map(item => {
+        // eslint-disable-next-line no-unused-vars
+        const { auth, ...info } = item;
+        return info;
+    });
 }
 
 module.exports = {
