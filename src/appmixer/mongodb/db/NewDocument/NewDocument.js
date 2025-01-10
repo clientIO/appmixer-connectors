@@ -14,7 +14,11 @@ module.exports = {
 
     async start(context) {
         const { componentId, flowId } = context;
-        const client = await getClient(context, flowId, componentId, context.auth);
+        const connectionUri = context.auth.connectionUri;
+
+        const { client, connectionId } = await getClient(context, flowId, componentId, connectionUri, context.auth);
+
+        context.stateSet('connectionId', connectionId);
 
         const isReplicaSet = await getReplicaSetStatus(client);
         await context.stateSet('isReplicaSet', isReplicaSet);
@@ -40,8 +44,12 @@ module.exports = {
     },
 
     async stop(context) {
+        const { componentId, flowId } = context;
+        const connectionUri = context.auth.connectionUri;
         const connectionId = await context.stateGet('connectionId');
-        const client = await getClient(context);
+
+
+        const { client } = await getClient(context, flowId, componentId, connectionUri, context.auth, connectionId);
 
         try {
             const isReplicaSet = await getReplicaSetStatus(client);
@@ -54,13 +62,41 @@ module.exports = {
         } finally {
             if (connectionId) {
                 await closeClient(context, connectionId);
+                await context.stateUnset('connectionId')
             }
         }
     },
 
     async tick(context) {
+        const { componentId, flowId } = context;
+        const connectionUri = context.auth.connectionUri;
+        const connectionId = await context.stateGet('connectionId');
 
-        const client = await getClient(context);
+        if (!connectionId) {
+
+            await context.log({ step: 'connecting', message: 'Connection to mongo not yet established. Waiting for connectionId.' });
+            // It might have happened that the connectionId was not yet stored to the state in the start() method.
+            // This can occur if another component sent a message to our SendMessage before our start() method finished.
+            // See e.g. the implementation of OnStart (https://github.com/clientIO/appmixer-connectors/blob/dev/src/appmixer/utils/controls/OnStart/OnStart.js).
+            const checkStartTime = new Date;
+            const maxWaitTime = 10000;  // 10 seconds
+            await new Promise((resolve, reject) => {
+                const intervalId = setInterval(async () => {
+                    connectionId = await context.stateGet('connectionId');
+                    if (connectionId) {
+                        clearInterval(intervalId);
+                        await context.log({ step: 'connected', message: 'Connection to mongo established.' });
+                        resolve();
+                    } else if (new Date - checkStartTime > maxWaitTime) {
+                        clearInterval(intervalId);
+                        reject(new Error('Connection not established.'));
+                    }
+                }, 500);
+            });
+        }
+
+        const { client } = await getClient(context, flowId, componentId, connectionUri, context.auth, connectionId);
+
         let lock;
         try {
             lock = await context.lock('MongoDbNewDoc-' + context.componentId, {

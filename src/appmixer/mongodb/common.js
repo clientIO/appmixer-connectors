@@ -12,28 +12,33 @@ if (process.MONGO_CONNECTOR_OPEN_CONNECTIONS) {
 
 module.exports = {
 
-    async getClient(context, flowId, componentId, auth) {
+    async getClient(context, flowId, componentId, connectionUri, auth, connId) {
         let tmpFile;
         let tmpDir;
-        const connectionUri = context.auth.connectionUri;
-        let connectionId = await context.service.stateGet('connectionId');
+        connectionUri = connectionUri || context.auth.connectionUri;
+
+        let connectionId = connId || `client:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
+
+        await context.service.stateSet(connectionId, {
+            flowId,
+            componentId,
+            connectionUri,
+            auth
+        });
 
         if (connectionId && MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId]) {
-            return MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
-        }
-
-        // If not found, generate a new connectionId
-        if (!connectionId) {
-            connectionId = `client:${flowId}:${componentId}:${Math.random().toString(36).substring(7)}`;
-            await context.service.stateSet('connectionId', connectionId);
+            return {
+                client: MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId],
+                connectionId
+            };
         }
 
         const options = {};
 
         // Apply TLS settings based on auth or direct context
-        const tlsCAFileContent = context.auth.tlsCAFileContent;
-        const tlsAllowInvalidHostnames = context.auth.tlsAllowInvalidHostnames;
-        const tlsAllowInvalidCertificates = context.auth.tlsAllowInvalidCertificates;
+        const tlsCAFileContent = auth.tlsCAFileContent;
+        const tlsAllowInvalidHostnames = auth.tlsAllowInvalidHostnames;
+        const tlsAllowInvalidCertificates = auth.tlsAllowInvalidCertificates;
 
         if (tlsCAFileContent) {
             options.tls = true;
@@ -54,6 +59,7 @@ module.exports = {
                 fs.writeFileSync(tmpFile, options.tlsCAFileContent);
                 options.tlsCAFile = tmpFile;
             } catch (err) {
+                await context.service.stateUnset(connectionId);
                 throw new Error(`Failed to create TLS certificate: ${err.message}`);
             }
         }
@@ -66,15 +72,10 @@ module.exports = {
             await client.connect();
             MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId] = client;
 
-            // Store connection in state for tracking
-            await context.service.stateSet(connectionId, {
-                flowId,
-                componentId,
-                auth
-            });
-
-
-            return client;
+            return {
+                client,
+                connectionId
+            };
         } catch (err) {
             await context.service.stateUnset(connectionId);
             throw new Error(`Failed to connect to MongoDB: ${err.message}`);
@@ -164,11 +165,11 @@ module.exports = {
     async closeClient(context, connectionId) {
         await context.service.stateUnset(connectionId);
         const client = MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
-        if (client) {
-            await client.close();
-            delete MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
-        }
+        if (!client) return;
+        await client.close();
+        delete MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     },
+
     async getClientForAuth(context) {
         let tmpFile;
         let tmpDir;

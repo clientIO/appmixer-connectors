@@ -14,11 +14,13 @@ module.exports = async (context) => {
             return;
         }
 
+
         isConnectionSyncInProgress = true;
 
         try {
             // Load all registered MongoDB connections from cluster state
             const registeredConnections = await context.service.loadState();  // [{key, value}]
+
             const openConnections = common.listConnections();
 
             await context.log('info', [
@@ -31,9 +33,12 @@ module.exports = async (context) => {
                 const connectionId = conn.key;
                 const connectionParameters = conn.value;
 
+
                 // Ensure the flow using the connection is still running
+
                 const flow = await context.db.coreCollection('flows')
                     .findOne({ flowId: connectionParameters.flowId, stage: 'running' });
+
 
                 if (!flow) {
                     await context.log('info', `[MongoDB] Flow ${connectionParameters.flowId} is not running. Removing connection ${connectionId}.`);
@@ -44,9 +49,10 @@ module.exports = async (context) => {
                 // Recreate connections if they exist in cluster state but not locally
                 if (!openConnections[connectionId]) {
                     const stillNeeded = await context.service.stateGet(connectionId);
+
                     if (stillNeeded) {
                         await context.log('info', `[MongoDB] Recreating missing connection ${connectionId}.`);
-                        await common.getClient(context, connectionParameters.flowId, connectionParameters.componentId, connectionParameters.auth); // eslint-disable-line max-len
+                        await common.getClient(context, connectionParameters.flowId, connectionParameters.componentId, connectionParameters.connectionUri, connectionParameters.auth, connectionId); // eslint-disable-line max-len
                     }
                 }
             }
