@@ -1,6 +1,6 @@
 'use strict';
 
-const CloudflareListClient = require('./CloudflareListClient');
+const CloudflareAPI = require('../CloudflareAPI');
 
 module.exports = {
 
@@ -35,7 +35,7 @@ module.exports = {
         validate: async function(context) {
 
             const { email, apiKey } = context;
-            const client = new CloudflareListClient({ email, apiKey });
+            const client = new CloudflareAPI({ email, apiKey });
             const { data } = await client.verifyGlobalApiKey(context);
             return data.success || false;
         }

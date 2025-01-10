@@ -1,4 +1,6 @@
-const CloudflareListClient = require('./lists/CloudflareListClient');
+const CloudflareAPI = require('./CloudflareAPI');
+
+const getModel = (context) => require('./IPListModel')(context);
 
 const deleteExpireIpsFromList = async function(context) {
 
@@ -12,7 +14,7 @@ const deleteExpireIpsFromList = async function(context) {
 
         context.log('info', { stage: '[CloudFlare] removing ', ips: chunk.ips, list, account });
 
-        const client = new CloudflareListClient({ email, apiKey });
+        const client = new CloudflareAPI({ email, apiKey });
         // https://developers.cloudflare.com/api/operations/lists-delete-list-items
         return client.callEndpoint(context, {
             method: 'DELETE', action: `/accounts/${account}/rules/lists/${list}/items`, data: { items: chunk.ips }
@@ -31,12 +33,12 @@ const deleteExpireIpsFromList = async function(context) {
                     filter: { id: item.id }, update: { $set: { mtime: new Date } }
                 }
             }));
-            await (context.db.collection(IPListModel.collection)).bulkWrite(operations);
+            await (context.db.collection(getModel(context).collection)).bulkWrite(operations);
         }
     });
 
     if (itemsToDelete.ids.length) {
-        const deleted = await context.db.collection(IPListModel.collection)
+        const deleted = await context.db.collection(getModel(context).collection)
             .deleteMany({ id: { $in: itemsToDelete.ids.map(item => item.id) } });
         await context.log('info', {
             stage: `[CloudFlare] Deleted total ${deleted.deletedCount} ips.`,
@@ -48,7 +50,7 @@ const deleteExpireIpsFromList = async function(context) {
 
 const getExpiredItems = async function(context) {
 
-    const expired = await context.db.collection(IPListModel.collection)
+    const expired = await context.db.collection(getModel(context).collection)
         .find({ removeAfter: { $lt: Date.now() } })
         .toArray();
 

@@ -1,6 +1,6 @@
 'use strict';
 
-const CloudflareWAFClient = require('./CloudflareWAFClient');
+const CloudflareAPI = require('../CloudflareAPI');
 
 module.exports = {
 
@@ -30,7 +30,7 @@ module.exports = {
 
         validate: async function(context) {
 
-            const client = new CloudflareWAFClient({ token: context.apiToken });
+            const client = new CloudflareAPI({ token: context.apiToken });
             const { data } = await client.verify(context);
             return data.success || false;
         }

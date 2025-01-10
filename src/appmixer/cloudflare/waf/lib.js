@@ -1,46 +1,17 @@
-const { Address4, Address6 } = require('ip-address');
 const ruleDescription = 'Salt detected high severity attacker';
 const ruleRefPrefix = 'SALT';
 const RULE_MAX_CAPACITY = 4096;
 
+// extractIPs, getBlockExpression  are also used in jobs.waf. They cannot be here, as jobs.waf
+// cannot require waf/lib, therefore these methods are defined in the jobs.waf.js file
+const { extractIPs, getBlockExpression } = require('../jobs.waf');
+
 module.exports = {
-    extractIPs,
     getIpsFromRules,
     prepareRulesForCreateOrUpdate,
     getBlockRule,
-    findIpsInRules,
-    removeIpsFromRule
+    findIpsInRules
 };
-
-function extractIPs(expression) {
-
-    // Regular expression to match IP addresses within the curly braces
-    // const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
-    // Extracting the section of the expression that contains the IPs
-
-    const match = expression.match(/{([^}]+)}/);
-    if (!match) {
-        // If no match for IP address block found, return empty array
-        return [];
-    }
-
-    const ipsBlock = match[1]; // This contains "192.0.2.0 192.0.2.2 192.0.2.3"
-    return ipsBlock.split(' ');
-}
-
-function removeIpsFromRule(rule, ipsToRemove = []) {
-    const data = extractIPs(rule.expression);
-    const ips = [];
-    data.forEach(ip => {
-        if (!ipsToRemove.includes(ip)) {
-            ips.push(ip);
-        }
-    });
-
-    const expression = getBlockExpression(ips);
-
-    return { ...rule, expression };
-}
 
 function getIpsFromRules(rules) {
 
@@ -137,25 +108,6 @@ function assignIpsToRules(ips, rules, ruleCapacity) {
 function getAvailableRule(rules, requiredCapacity, ruleCapacity = RULE_MAX_CAPACITY) {
 
     return rules.find(rule => rule.usedCapacity + requiredCapacity < ruleCapacity);
-}
-
-function removeInterfaceIdentifierAndAddCidr(ip) {
-    const networkPrefix = ip
-        .split(':')
-        .slice(0, 4)
-        .join(':');
-    return `${networkPrefix}::/64`;
-}
-
-function getBlockExpression(ips) {
-    const ipv4 = ips.filter(ip => Address4.isValid(ip));
-    const ipv6 = ips.filter(ip => Address6.isValid(ip));
-    const formattedIpv6 = ipv6.length > 0
-        ? ipv6.map(ip => removeInterfaceIdentifierAndAddCidr(ip))
-        : ipv6;
-    const allIps = [...ipv4, ...formattedIpv6].sort();
-
-    return `(ip.src in {${allIps.join(' ')}})`;
 }
 
 

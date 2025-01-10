@@ -1,9 +1,9 @@
-module.exports = class CloudflareWAFClient {
+module.exports = class CloudflareAPI {
 
     constructor({ email, apiKey, zoneId, token }) {
         this.email = email;
-        this.apiKey = apiKey;
         this.zoneId = zoneId;
+        this.email = email;
         this.apiKey = apiKey;
         this.token = token;
     }
@@ -23,18 +23,6 @@ module.exports = class CloudflareWAFClient {
         };
     }
 
-    /**
-     * https://developers.cloudflare.com/api/operations/getZoneRuleset
-     */
-    listZoneRulesets(context) {
-
-        return context.httpRequest({
-            method: 'GET',
-            url: `https://api.cloudflare.com/client/v4/zones/${this.zoneId}/rulesets`,
-            headers: this.getHeaders()
-        }).then(resp => resp.data.result);
-    }
-
     async verify(context) {
 
         const headers = this.getHeaders();
@@ -42,6 +30,17 @@ module.exports = class CloudflareWAFClient {
         return context.httpRequest({
             method: 'GET',
             url: 'https://api.cloudflare.com/client/v4/user/tokens/verify',
+            headers
+        });
+    }
+
+    async verifyGlobalApiKey(context) {
+
+        const headers = this.getHeaders();
+
+        return context.httpRequest({
+            method: 'GET',
+            url: 'https://api.cloudflare.com/client/v4/accounts',
             headers
         });
     }
@@ -62,6 +61,45 @@ module.exports = class CloudflareWAFClient {
             data,
             params
         });
+    }
+
+    async findIdsForIPs({ context, client, ips = [], account, list }) {
+
+        const result = [];
+        for (let ipItem of ips) {
+
+            try {
+                const { data } = await client.callEndpoint(context, {
+                    method: 'GET',
+                    action: `/accounts/${account}/rules/lists/${list}/items`,
+                    params: {
+                        per_page: 1,
+                        search: ipItem.ip
+                    }
+                });
+                if (data?.result[0] && data?.result.length === 1) {
+                    result.push({ ...data.result[0] });
+                }
+
+            } catch (err) {
+                context.log({ stage: `Invalid IP, IP ${ipItem} hasn't been found in the list ${list}` });
+            }
+        }
+
+        return result;
+    };
+
+    // WAF
+    /**
+     * https://developers.cloudflare.com/api/operations/getZoneRuleset
+     */
+    listZoneRulesets(context) {
+
+        return context.httpRequest({
+            method: 'GET',
+            url: `https://api.cloudflare.com/client/v4/zones/${this.zoneId}/rulesets`,
+            headers: this.getHeaders()
+        }).then(resp => resp.data.result);
     }
 
     async getRules(context, rulesetId) {
@@ -105,5 +143,4 @@ module.exports = class CloudflareWAFClient {
         const headers = this.getHeaders();
         return context.httpRequest.patch(url, rule, { headers }).then(resp => resp.data);
     }
-
 };

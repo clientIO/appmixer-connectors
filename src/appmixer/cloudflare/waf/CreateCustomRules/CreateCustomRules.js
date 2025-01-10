@@ -1,5 +1,5 @@
-const CloudflareWAFClient = require('../CloudflareWAFClient');
-const lib = require('../../lib');
+const CloudflareAPI = require('../../CloudflareAPI');
+const lib = require('../lib');
 const crypto = require('crypto');
 
 module.exports = {
@@ -14,7 +14,7 @@ module.exports = {
         }
 
         const parsedIps = Array.isArray(ips) ? ips : ips.split(',');
-        const client = new CloudflareWAFClient({ zoneId, token: apiToken });
+        const client = new CloudflareAPI({ zoneId, token: apiToken });
 
         const ruleset = (await client.listZoneRulesets(context))
             .find(ruleset => ruleset.kind === 'zone' && ruleset.phase === 'http_request_firewall_custom');

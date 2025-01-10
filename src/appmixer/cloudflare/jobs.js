@@ -50,7 +50,9 @@ module.exports = async (context) => {
                 $expr: { $gt: [{ $subtract: ['$mtime', '$removeAfter'] }, timespan] }
             });
 
-            await context.log('info', { stage: `[CloudFlare] Deleted ${expired.deletedCount} orphaned rules.` });
+            if (expired.deletedCount) {
+                await context.log('info', { stage: `[CloudFlare] Deleted ${expired.deletedCount} orphaned rules.` });
+            }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
