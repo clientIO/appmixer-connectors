@@ -4,7 +4,11 @@ module.exports = {
 
     async start(context) {
 
-        return context.addListener('slack_team_join', { accessToken: context.auth.accessToken });
+        const componentName = context.flowDescriptor[context.componentId].label || 'New User';
+
+        if (!context.config.signingSecret) {
+            throw new Error(`Missing Slack configuration for component: ${componentName}. Please configure the "signingSecret" with a valid Slack App signing secret.`);
+        }
     },
 
     async stop(context) {
