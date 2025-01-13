@@ -80,4 +80,4 @@ module.exports = {
     findIdsForIPs,
     fetchInputs,
     callEndpoint
-}
+};
