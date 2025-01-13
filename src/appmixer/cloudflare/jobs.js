@@ -35,7 +35,7 @@ module.exports = async (context) => {
         let lock = null;
         try {
             lock = await context.job.lock('cloud-flare-lists-ips-cleanup-job', { ttl: config.cleanup.lockTTL });
-            await context.log('trace', '[CloudFlare  Lists] IPs cleanup job started.');
+            await context.log('trace', '[Cloudflare  Lists] IPs cleanup job started.');
 
             // Delete IPs where the time difference between 'mtime' and 'removeAfter' exceeds the specified timespan,
             // indicating that deletion attempts have persisted for the entire timespan.
