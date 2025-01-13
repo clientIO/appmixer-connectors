@@ -1,62 +1,49 @@
 'use strict';
 
-const lib = require('../../lib');
-
 module.exports = {
 
     receive: async function(context) {
+        const { content } = context.messages.in;
 
-        const { data } = await this.httpRequest(context);
+        const transformedMessages = content.messages.ADD.map(message => ({
+            role: content.model.includes('o1') && message.role === 'system' ? 'developer' : message.role,
+            content: message.content
+        }));
+        context.log({ step: 'transformedMessages', transformedMessages });
+        const transformedStopSequence = content.stop.ADD.map(sequence => {
+            if (Object.keys(sequence).length > 0 && sequence.sequence !== '') {
+                context.log({ step: 'sequence check', check: `sequence is not null or empty string: ${sequence.sequence}` });
+                return sequence.sequence;
+            }
+        });
+        const filteredStopSequence = transformedStopSequence.filter(s => s !== '');
+        context.log({ step: 'transformedStopSequence', transformedStopSequence });
+        context.log({ step: 'filteredStopSequence', filteredStopSequence });
 
-        return context.sendJson(data, 'out');
-    },
+        if (transformedStopSequence.length > 4) {
+            throw new context.CancelError('Request can have a maximum of 4 stop sequences.');
+        }
 
-    httpRequest: async function(context) {
-
-        // eslint-disable-next-line no-unused-vars
-        const input = context.messages.in.content;
-
-        let url = lib.getBaseUrl(context) + '/chat/completions';
-
-        const headers = {};
-
-        const inputMapping = {
-            'model': input['model'],
-            'frequency_penalty': input['frequency_penalty'],
-            'max_tokens': input['max_tokens'],
-            'n': input['n'],
-            'presence_penalty': input['presence_penalty'],
-            'seed': input['seed'],
-            'stop': input['stop'],
-            'stream': input['stream'],
-            'temperature': input['temperature'],
-            'top_p': input['top_p'],
-            'tools': input['tools'],
-            'tool_choice': input['tool_choice'],
-            'user': input['user'],
-            'function_call': input['function_call'],
-            'functions': input['functions'],
-            'messages': [{
-                role: input['prompt_role'],
-                content: input['prompt_content'],
-                name: input['prompt_name']
-            }],
-            'response_format.type': input['response_format|type']
+        const requestBody = {
+            ...content,
+            messages: transformedMessages,
+            stop: filteredStopSequence.length > 0 ? filteredStopSequence : undefined
         };
-        let requestBody = {};
-        lib.setProperties(requestBody, inputMapping);
 
-        headers['Authorization'] = 'Bearer {apiKey}'.replace(/{(.*?)}/g, (match, variable) => context.auth[variable]);
+        context.log({ step: 'requestBody', requestBody });
 
         const req = {
-            url: url,
+            url: 'https://api.openai.com/v1/chat/completions',
             method: 'POST',
             data: requestBody,
-            headers: headers
+            headers: {
+                Authorization: `Bearer ${context.auth.apiKey}`
+            }
         };
 
         try {
             const response = await context.httpRequest(req);
+
             const log = {
                 step: 'http-request-success',
                 request: {
@@ -73,7 +60,8 @@ module.exports = {
                 }
             };
             await context.log(log);
-            return response;
+            return context.sendJson(response.data, 'out');
+
         } catch (err) {
             const log = {
                 step: 'http-request-error',
@@ -94,5 +82,4 @@ module.exports = {
             throw err;
         }
     }
-
 };

@@ -2,7 +2,7 @@
     "version": "1.0.0",
     "name": "appmixer.openai.core.createChatCompletion",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "<label><p>Creates a model response for the given chat conversation.</p></label>",
+    "description": "Creates a model response for the given chat conversation.",
     "private": false,
     "quota": {},
     "inPorts": [
@@ -12,230 +12,51 @@
                 "type": "object",
                 "required": [
                     "model",
-                    "prompt_content"
+                    "messages"
                 ],
                 "properties": {
                     "model": {
-                        "description": "ID of the model to use. See the [model endpoint compatibility](/docs/models/model-endpoint-compatibility) table for details on which models work with the Chat API.",
-                        "example": "gpt-3.5-turbo",
-                        "x-oaiTypeLabel": "string",
-                        "x-connector-source": {
-                            "operationId": "listModels",
-                            "transform": "result[].{value:id, label:id}"
-                        },
-                        "type": "string",
-                        "path": "model"
+                        "type": "string"
                     },
-                    "frequency_penalty": {
-                        "type": "number",
-                        "default": 0,
-                        "minimum": -2,
-                        "maximum": 2,
-                        "nullable": true,
-                        "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.\n\n[See more information about frequency and presence penalties.](/docs/guides/text-generation/parameter-details)\n",
-                        "path": "frequency_penalty"
+                    "messages": {
+                        "type": "object",
+                        "properties": {
+                            "role": {
+                                "type": "string"
+                            },
+                            "content": {
+                                "type": "string"
+                            }
+                        }
                     },
                     "max_tokens": {
-                        "description": "The maximum number of [tokens](/tokenizer) to generate in the chat completion.\n\nThe total length of input tokens and generated tokens is limited by the model's context length. [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken) for counting tokens.\n",
-                        "type": "integer",
-                        "nullable": true,
-                        "path": "max_tokens"
-                    },
-                    "n": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 128,
-                        "default": 1,
-                        "example": 1,
-                        "nullable": true,
-                        "description": "How many chat completion choices to generate for each input message. Note that you will be charged based on the number of generated tokens across all of the choices. Keep `n` as `1` to minimize costs.",
-                        "path": "n"
-                    },
-                    "presence_penalty": {
-                        "type": "number",
-                        "default": 0,
-                        "minimum": -2,
-                        "maximum": 2,
-                        "nullable": true,
-                        "description": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.\n\n[See more information about frequency and presence penalties.](/docs/guides/text-generation/parameter-details)\n",
-                        "path": "presence_penalty"
-                    },
-                    "seed": {
-                        "type": "integer",
-                        "minimum": -9223372036854776000,
-                        "maximum": 9223372036854776000,
-                        "nullable": true,
-                        "description": "This feature is in Beta. \nIf specified, our system will make a best effort to sample deterministically, such that repeated requests with the same `seed` and parameters should return the same result.\nDeterminism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.\n",
-                        "x-oaiMeta": {
-                            "beta": true
-                        },
-                        "path": "seed"
-                    },
-                    "stop": {
-                        "type": "string",
-                        "nullable": true,
-                        "path": "stop"
-                    },
-                    "stream": {
-                        "description": "If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format) as they become available, with the stream terminated by a `data: [DONE]` message. [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).\n",
-                        "type": "boolean",
-                        "nullable": true,
-                        "default": false,
-                        "path": "stream"
+                        "type": "number"
                     },
                     "temperature": {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 2,
-                        "default": 1,
-                        "example": 1,
-                        "nullable": true,
-                        "description": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.\n\nWe generally recommend altering this or `top_p` but not both.\n",
-                        "path": "temperature"
+                        "type": "number"
                     },
                     "top_p": {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1,
-                        "default": 1,
-                        "example": 1,
-                        "nullable": true,
-                        "description": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.\n\nWe generally recommend altering this or `temperature` but not both.\n",
-                        "path": "top_p"
+                        "type": "number"
                     },
-                    "tools": {
-                        "type": "array",
-                        "description": "A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for.\n",
-                        "path": "tools",
-                        "items": {
-                            "type": "object",
-                            "required": [
-                                "type",
-                                "function"
-                            ],
-                            "properties": {
-                                "type": {
-                                    "type": "string",
-                                    "enum": [
-                                        "function"
-                                    ],
-                                    "description": "The type of the tool. Currently, only `function` is supported."
-                                },
-                                "function": {
-                                    "type": "object",
-                                    "required": [
-                                        "name",
-                                        "parameters"
-                                    ],
-                                    "properties": {
-                                        "description": {
-                                            "type": "string",
-                                            "description": "A description of what the function does, used by the model to choose when and how to call the function."
-                                        },
-                                        "name": {
-                                            "type": "string",
-                                            "description": "The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64."
-                                        },
-                                        "parameters": {
-                                            "type": "object",
-                                            "description": "The parameters the functions accepts, described as a JSON Schema object. See the [guide](/docs/guides/text-generation/function-calling) for examples, and the [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation about the format.\n\nTo describe a function that accepts no parameters, provide the value `{\"type\": \"object\", \"properties\": {}}`.",
-                                            "additionalProperties": true
-                                        }
-                                    }
-                                }
+                    "n": {
+                        "type": "number"
+                    },
+                    "frequency_penalty": {
+                        "type": "number"
+                    },
+                    "presence_penalty": {
+                        "type": "number"
+                    },
+                    "seed": {
+                        "type": "number"
+                    },
+                    "stop": {
+                        "type": "object",
+                        "properties": {
+                            "sequence": {
+                                "type": "string"
                             }
                         }
-                    },
-                    "tool_choice": {
-                        "type": "string",
-                        "description": "`none` means the model will not call a function and instead generates a message. `auto` means the model can pick between generating a message or calling a function.\n",
-                        "enum": [
-                            "none",
-                            "auto"
-                        ],
-                        "path": "tool_choice"
-                    },
-                    "user": {
-                        "type": "string",
-                        "example": "user-1234",
-                        "description": "A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).\n",
-                        "path": "user"
-                    },
-                    "function_call": {
-                        "type": "string",
-                        "description": "`none` means the model will not call a function and instead generates a message. `auto` means the model can pick between generating a message or calling a function.\n",
-                        "enum": [
-                            "none",
-                            "auto"
-                        ],
-                        "path": "function_call"
-                    },
-                    "functions": {
-                        "deprecated": true,
-                        "description": "Deprecated in favor of `tools`.\n\nA list of functions the model may generate JSON inputs for.\n",
-                        "type": "array",
-                        "minItems": 1,
-                        "maxItems": 128,
-                        "path": "functions",
-                        "items": {
-                            "type": "object",
-                            "deprecated": true,
-                            "required": [
-                                "name",
-                                "parameters"
-                            ],
-                            "properties": {
-                                "description": {
-                                    "type": "string",
-                                    "description": "A description of what the function does, used by the model to choose when and how to call the function."
-                                },
-                                "name": {
-                                    "type": "string",
-                                    "description": "The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length of 64."
-                                },
-                                "parameters": {
-                                    "type": "object",
-                                    "description": "The parameters the functions accepts, described as a JSON Schema object. See the [guide](/docs/guides/text-generation/function-calling) for examples, and the [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for documentation about the format.\n\nTo describe a function that accepts no parameters, provide the value `{\"type\": \"object\", \"properties\": {}}`.",
-                                    "additionalProperties": true
-                                }
-                            }
-                        }
-                    },
-                    "prompt_role": {
-                        "type": "string",
-                        "enum": [
-                            "system",
-                            "user",
-                            "assistant",
-                            "function"
-                        ],
-                        "default": "user",
-                        "description": "The role of the messages author. One of `system`, `user`, `assistant`, or `function`.",
-                        "x-connector-field-index": -10,
-                        "path": "prompt_role"
-                    },
-                    "prompt_content": {
-                        "type": "string",
-                        "description": "The content of the message.",
-                        "x-connector-field-index": -9,
-                        "path": "prompt_content"
-                    },
-                    "prompt_name": {
-                        "type": "string",
-                        "description": "The name of the author of this message. `name` is required if role is `function`, and it should be the name of the function whose response is in the `content`. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.",
-                        "x-connector-field-index": -8,
-                        "path": "prompt_name"
-                    },
-                    "response_format|type": {
-                        "type": "string",
-                        "enum": [
-                            "text",
-                            "json_object"
-                        ],
-                        "example": "json_object",
-                        "default": "text",
-                        "description": "Must be one of `text` or `json_object`.",
-                        "path": "response_format.type"
                     }
                 }
             },
@@ -245,7 +66,7 @@
                         "type": "select",
                         "index": 0,
                         "label": "Model",
-                        "tooltip": "<p>ID of the model to use. See the <a href=\"https://platform.openai.com/docs/models/model-endpoint-compatibility\" rel=\"noopener noreferrer\" target=\"_blank\">model endpoint compatibility</a> table for details on which models work with the Chat API. Example: gpt-3.5-turbo</p>",
+                        "tooltip": "ID of the model to use. See the <a href=\"https://platform.openai.com/docs/models/model-endpoint-compatibility\" rel=\"noopener noreferrer\" target=\"_blank\">model endpoint compatibility</a> table for details on which models work with the Chat API. Example: gpt-3.5-turbo",
                         "source": {
                             "url": "/component/appmixer/openai/core/listModels?outPort=out",
                             "data": {
@@ -253,181 +74,120 @@
                             }
                         }
                     },
-                    "frequency_penalty": {
-                        "type": "number",
+                    "messages": {
+                        "type": "expression",
+                        "label": "Messages",
+                        "levels": [
+                            "ADD"
+                        ],
                         "index": 1,
-                        "label": "Frequency Penalty",
-                        "tooltip": "<p>Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.</p>\n<p><a href=\"https://platform.openai.com/docs/guides/text-generation/parameter-details\" rel=\"noopener noreferrer\" target=\"_blank\">See more information about frequency and presence penalties.</a></p>",
-                        "defaultValue": 0,
-                        "min": -2,
-                        "max": 2
+                        "fields": {
+                            "role": {
+                                "type": "select",
+                                "index": 0,
+                                "label": "Role",
+                                "options": [
+                                    {
+                                        "label": "Developer/System",
+                                        "value": "system"
+                                    },
+                                    {
+                                        "label": "User",
+                                        "value": "user"
+                                    },
+                                    {
+                                        "label": "Assistant",
+                                        "value": "assistant"
+                                    }
+                                ]
+                            },
+                            "content": {
+                                "type": "text",
+                                "label": "Text content",
+                                "index": 1
+                            }
+                        }
                     },
                     "max_tokens": {
                         "type": "number",
                         "index": 2,
                         "label": "Max Tokens",
-                        "tooltip": "<p>The maximum number of <a href=\"https://platform.openai.com/tokenizer\" rel=\"noopener noreferrer\" target=\"_blank\">tokens</a> to generate in the chat completion.</p>\n<p>The total length of input tokens and generated tokens is limited by the model's context length. <a href=\"https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken\" rel=\"noopener noreferrer\" target=\"_blank\">Example Python code</a> for counting tokens.</p>"
-                    },
-                    "n": {
-                        "type": "number",
-                        "index": 3,
-                        "label": "N",
-                        "tooltip": "<p>How many chat completion choices to generate for each input message. Note that you will be charged based on the number of generated tokens across all of the choices. Keep <code>n</code> as <code>1</code> to minimize costs. Example: 1</p>",
-                        "defaultValue": 1,
-                        "min": 1,
-                        "max": 128
-                    },
-                    "presence_penalty": {
-                        "type": "number",
-                        "index": 4,
-                        "label": "Presence Penalty",
-                        "tooltip": "<p>Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.</p>\n<p><a href=\"https://platform.openai.com/docs/guides/text-generation/parameter-details\" rel=\"noopener noreferrer\" target=\"_blank\">See more information about frequency and presence penalties.</a></p>",
-                        "defaultValue": 0,
-                        "min": -2,
-                        "max": 2
-                    },
-                    "seed": {
-                        "type": "number",
-                        "index": 5,
-                        "label": "Seed",
-                        "tooltip": "<p>This feature is in Beta. \nIf specified, our system will make a best effort to sample deterministically, such that repeated requests with the same <code>seed</code> and parameters should return the same result.\nDeterminism is not guaranteed, and you should refer to the <code>system_fingerprint</code> response parameter to monitor changes in the backend.</p>",
-                        "min": -9223372036854776000,
-                        "max": 9223372036854776000
-                    },
-                    "stop": {
-                        "type": "text",
-                        "index": 6,
-                        "label": "Stop",
-                        "tooltip": ""
-                    },
-                    "stream": {
-                        "type": "toggle",
-                        "index": 7,
-                        "label": "Stream",
-                        "tooltip": "<p>If set, partial message deltas will be sent, like in ChatGPT. Tokens will be sent as data-only <a href=\"https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format\" rel=\"noopener noreferrer\" target=\"_blank\">server-sent events</a> as they become available, with the stream terminated by a <code>data: [DONE]</code> message. <a href=\"https://cookbook.openai.com/examples/how_to_stream_completions\" rel=\"noopener noreferrer\" target=\"_blank\">Example Python code</a>.</p>",
-                        "defaultValue": false
+                        "defaultValue": 2048,
+                        "tooltip": "The maximum number of <a href=\"https://platform.openai.com/tokenizer\" rel=\"noopener noreferrer\" target=\"_blank\">tokens</a> to generate in the chat completion.</p>\n<p>The total length of input tokens and generated tokens is limited by the model's context length. <a href=\"https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken\" rel=\"noopener noreferrer\" target=\"_blank\">Example Python code</a> for counting tokens."
                     },
                     "temperature": {
                         "type": "number",
-                        "index": 8,
+                        "index": 3,
                         "label": "Temperature",
-                        "tooltip": "<p>What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.</p>\n<p>We generally recommend altering this or <code>top_p</code> but not both.\n Example: 1</p>",
+                        "tooltip": "What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. We generally recommend altering this or <code>top_p</code> but not both. Example: 1",
                         "defaultValue": 1,
-                        "min": 0,
-                        "max": 2
+                        "group": "advanced"
                     },
                     "top_p": {
                         "type": "number",
-                        "index": 9,
+                        "index": 4,
                         "label": "Top P",
-                        "tooltip": "<p>An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.</p>\n<p>We generally recommend altering this or <code>temperature</code> but not both.\n Example: 1</p>",
+                        "tooltip": "An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered. We generally recommend altering this or <code>temperature</code> but not both. Example: 1",
                         "defaultValue": 1,
-                        "min": 0,
-                        "max": 1
+                        "group": "advanced"
                     },
-                    "tools": {
-                        "type": "textarea",
-                        "index": 10,
-                        "label": "Tools",
-                        "tooltip": "<p>A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for.</p> JSON array. Example: [{\"type\":\"function\",\"function\":{\"description\":\"sed incididunt consectetur Excepteur dolore\",\"name\":\"nisi\",\"parameters\":{}}}]."
+                    "n": {
+                        "type": "number",
+                        "index": 5,
+                        "label": "Number",
+                        "tooltip": "How many chat completion choices to generate for each input message. Note that you will be charged based on the number of generated tokens across all of the choices. Keep <code>n</code> as <code>1</code> to minimize costs. Example: 1",
+                        "defaultValue": 1,
+                        "min": 1,
+                        "group": "advanced"
                     },
-                    "tool_choice": {
-                        "type": "select",
-                        "index": 11,
-                        "label": "Tool Choice",
-                        "tooltip": "<p><code>none</code> means the model will not call a function and instead generates a message. <code>auto</code> means the model can pick between generating a message or calling a function.</p>",
-                        "options": [
-                            {
-                                "content": "none",
-                                "value": "none"
-                            },
-                            {
-                                "content": "auto",
-                                "value": "auto"
-                            }
-                        ]
+                    "frequency_penalty": {
+                        "type": "number",
+                        "index": 6,
+                        "label": "Frequency Penalty",
+                        "tooltip": "Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.<a href=\"https://platform.openai.com/docs/guides/text-generation/parameter-details\" rel=\"noopener noreferrer\" target=\"_blank\">See more information about frequency and presence penalties.</a>",
+                        "min": -2,
+                        "max": 2,
+                        "group": "advanced"
                     },
-                    "user": {
-                        "type": "text",
-                        "index": 12,
-                        "label": "User",
-                        "tooltip": "<p>A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. <a href=\"https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids\" rel=\"noopener noreferrer\" target=\"_blank\">Learn more</a>.\n Example: user-1234</p>"
+                    "presence_penalty": {
+                        "type": "number",
+                        "index": 7,
+                        "label": "Presence Penalty",
+                        "tooltip": "Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.<a href=\"https://platform.openai.com/docs/guides/text-generation/parameter-details\" rel=\"noopener noreferrer\" target=\"_blank\">See more information about frequency and presence penalties.",
+                        "defaultValue": 0,
+                        "min": -2,
+                        "max": 2,
+                        "group": "advanced"
                     },
-                    "function_call": {
-                        "type": "select",
-                        "index": 13,
-                        "label": "Function Call",
-                        "tooltip": "<p><code>none</code> means the model will not call a function and instead generates a message. <code>auto</code> means the model can pick between generating a message or calling a function.</p>",
-                        "options": [
-                            {
-                                "content": "none",
-                                "value": "none"
-                            },
-                            {
-                                "content": "auto",
-                                "value": "auto"
-                            }
-                        ]
+                    "seed": {
+                        "type": "number",
+                        "index": 8,
+                        "label": "Seed",
+                        "tooltip": "This feature is in Beta. \nIf specified, our system will make a best effort to sample deterministically, such that repeated requests with the same <code>seed</code> and parameters should return the same result. Determinism is not guaranteed, and you should refer to the <code>system_fingerprint</code> response parameter to monitor changes in the backend.",
+                        "group": "advanced"
                     },
-                    "functions": {
-                        "type": "textarea",
-                        "index": 14,
-                        "label": "Functions",
-                        "tooltip": "<p>Deprecated in favor of <code>tools</code>.</p>\n<p>A list of functions the model may generate JSON inputs for.</p> JSON array. Example: [{\"description\":\"ut incididunt labore reprehenderit\",\"name\":\"elit quis\",\"parameters\":{}}]."
-                    },
-                    "prompt_role": {
-                        "type": "select",
-                        "index": -10,
-                        "label": "Prompt Role",
-                        "tooltip": "<p>The role of the messages author. One of <code>system</code>, <code>user</code>, <code>assistant</code>, or <code>function</code>.</p>",
-                        "options": [
-                            {
-                                "content": "system",
-                                "value": "system"
-                            },
-                            {
-                                "content": "user",
-                                "value": "user"
-                            },
-                            {
-                                "content": "assistant",
-                                "value": "assistant"
-                            },
-                            {
-                                "content": "function",
-                                "value": "function"
-                            }
+                    "stop": {
+                        "type": "expression",
+                        "label": "Stop sequence",
+                        "tooltip": "Maximum: 4",
+                        "levels": [
+                            "ADD"
                         ],
-                        "defaultValue": "user"
-                    },
-                    "prompt_content": {
-                        "type": "text",
-                        "index": -9,
-                        "label": "Prompt Content",
-                        "tooltip": "<p>The content of the message.</p>"
-                    },
-                    "prompt_name": {
-                        "type": "text",
-                        "index": -8,
-                        "label": "Prompt Name",
-                        "tooltip": "<p>The name of the author of this message. <code>name</code> is required if role is <code>function</code>, and it should be the name of the function whose response is in the <code>content</code>. May contain a-z, A-Z, 0-9, and underscores, with a maximum length of 64 characters.</p>"
-                    },
-                    "response_format|type": {
-                        "type": "select",
-                        "index": 18,
-                        "label": "Response Format Type",
-                        "tooltip": "<p>Must be one of <code>text</code> or <code>json_object</code>. Example: json_object</p>",
-                        "options": [
-                            {
-                                "content": "text",
-                                "value": "text"
-                            },
-                            {
-                                "content": "json_object",
-                                "value": "json_object"
+                        "index": 9,
+                        "group": "advanced",
+                        "fields": {
+                            "sequence": {
+                                "type": "text",
+                                "label": "Stop sequence text",
+                                "index": 1
                             }
-                        ],
-                        "defaultValue": "text"
+                        }
+                    }
+                },
+                "groups": {
+                    "advanced": {
+                        "label": "Advanced",
+                        "index": 1
                     }
                 }
             }
