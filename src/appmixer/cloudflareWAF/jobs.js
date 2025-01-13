@@ -10,18 +10,18 @@ module.exports = async (context) => {
 
         try {
             const lock = await context.job.lock('cloud-flare-waf-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
-            await context.log('trace', '[CloudFlare WAF] rule delete job started.');
+            await context.log('trace', '[Cloudflare WAF] rule delete job started.');
 
             try {
                 await wafJobs.deleteExpireIps(context);
             } finally {
                 lock.unlock();
-                await context.log('trace', '[CloudFlare WAF] rule delete job finished. Lock unlocked.');
+                await context.log('trace', '[Cloudflare WAF] rule delete job finished. Lock unlocked.');
             }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare WAF] Error checking rules to delete',
+                    stage: '[Cloudflare WAF] Error checking rules to delete',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
@@ -44,12 +44,12 @@ module.exports = async (context) => {
             });
 
             if (expired.deletedCount) {
-                await context.log('info', { stage: `[CloudFlare WAF] Deleted ${expired.deletedCount} orphaned rules.` });
+                await context.log('info', { stage: `[Cloudflare WAF] Deleted ${expired.deletedCount} orphaned rules.` });
             }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare WAF] Error checking orphaned ips',
+                    stage: '[Cloudflare WAF] Error checking orphaned ips',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
