@@ -1,11 +1,11 @@
-const CloudflareAPI = require('../../CloudflareAPI');
+const lib = require('../lib');
 
 let attempts = 0;
-const getStatus = async function(context, client, { account, id }) {
+const getStatus = async function(context, { account, id }) {
 
     context.log({ stage: 'GETTING STATUS', id, attempts });
     // https://developers.cloudflare.com/api/operations/lists-get-bulk-operation-status
-    const { data } = await client.callEndpoint(context, {
+    const { data } = await lib.callEndpoint(context, {
         action: `/accounts/${account}/rules/lists/bulk_operations/${id}`
     });
 
@@ -18,7 +18,7 @@ const getStatus = async function(context, client, { account, id }) {
         attempts++;
         if (attempts <= 10) {
             await new Promise(r => setTimeout(r, 1000));
-            return await getStatus(context, client, { account, id });
+            return await getStatus(context, { account, id });
         } else {
             throw new context.CancelError(data.errors);
         }
@@ -30,26 +30,24 @@ const getStatus = async function(context, client, { account, id }) {
 module.exports = {
     async receive(context) {
 
-        const { apiKey, email } = context.auth;
         const { account, list, ips } = context.messages.in.content;
-        const client = new CloudflareAPI({ email, apiKey });
 
         const ipsList = ips.AND;
 
-        const listItemsWithIds = await client.findIdsForIPs({ context, client, ips: ipsList, account, list });
+        const listItemsWithIds = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
 
         if (!listItemsWithIds.length) {
             return context.sendJson({ id: 'N/A', status: 'Completed', completed: new Date().toISOString() }, 'out');
         }
         context.log({ stage: 'removing IPs ', items: listItemsWithIds });
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
-        const { data } = await client.callEndpoint(context, {
+        const { data } = await lib.callEndpoint(context, {
             method: 'DELETE',
             action: `/accounts/${account}/rules/lists/${list}/items`,
             data: { items: listItemsWithIds.map(item => ({ id: item.id })) }
         });
 
-        const status = await getStatus(context, client, { id: data.result.operation_id, account });
+        const status = await getStatus(context, { id: data.result.operation_id, account });
 
         if (status.error) {
             throw new context.CancelError(status.error);

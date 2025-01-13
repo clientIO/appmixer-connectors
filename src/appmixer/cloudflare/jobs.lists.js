@@ -12,7 +12,7 @@ const deleteExpireIpsFromList = async function(context) {
 
         const { email, apiKey, account, list } = chunk.auth;
 
-        context.log('info', { stage: '[CloudFlare] removing ', ips: chunk.ips, list, account });
+        context.log('info', { stage: '[CloudFlare Lists] removing expired IPs', ips: chunk.ips, list, account });
 
         const client = new CloudflareAPI({ email, apiKey });
         // https://developers.cloudflare.com/api/operations/lists-delete-list-items
@@ -41,7 +41,7 @@ const deleteExpireIpsFromList = async function(context) {
         const deleted = await context.db.collection(getModel(context).collection)
             .deleteMany({ id: { $in: itemsToDelete.ids.map(item => item.id) } });
         await context.log('info', {
-            stage: `[CloudFlare] Deleted total ${deleted.deletedCount} ips.`,
+            stage: `[CloudFlare Lists] Deleted total ${deleted.deletedCount} ips.`,
             lists: itemsToDelete.lists,
             itemIds: itemsToDelete.ids
         });

@@ -10,18 +10,18 @@ module.exports = async (context) => {
 
         try {
             const lock = await context.job.lock('cloud-flare-lists-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
-            await context.log('trace', '[CloudFlare] rule delete job started.');
+            await context.log('trace', '[CloudFlare Lists] rule delete job started.');
 
             try {
                 await listsJobs.deleteExpireIpsFromList(context);
             } finally {
                 lock.unlock();
-                await context.log('trace', '[CloudFlare] rule delete job finished. Lock unlocked.');
+                await context.log('trace', '[CloudFlare Lists] rule delete job finished. Lock unlocked.');
             }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare] Error checking rules to delete',
+                    stage: '[CloudFlare Lists] Error checking rules to delete',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
@@ -35,7 +35,7 @@ module.exports = async (context) => {
         let lock = null;
         try {
             lock = await context.job.lock('cloud-flare-lists-ips-cleanup-job', { ttl: config.cleanup.lockTTL });
-            await context.log('trace', '[CloudFlare] IPs cleanup job started.');
+            await context.log('trace', '[CloudFlare  Lists] IPs cleanup job started.');
 
             // Delete IPs where the time difference between 'mtime' and 'removeAfter' exceeds the specified timespan,
             // indicating that deletion attempts have persisted for the entire timespan.
@@ -45,19 +45,19 @@ module.exports = async (context) => {
             });
 
             if (expired.deletedCount) {
-                await context.log('info', { stage: `[CloudFlare] Deleted ${expired.deletedCount} orphaned rules.` });
+                await context.log('info', { stage: `[CloudFlare Lists] Deleted ${expired.deletedCount} orphaned rules.` });
             }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare]  Error checking orphaned ips',
+                    stage: '[CloudFlare Lists]  Error checking orphaned ips',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
             }
         } finally {
             lock?.unlock();
-            await context.log('trace', '[CloudFlare] IPs cleanup job finished. Lock unlocked.');
+            await context.log('trace', '[CloudFlare Lists] IPs cleanup job finished. Lock unlocked.');
         }
     });
 };
