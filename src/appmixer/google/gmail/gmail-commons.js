@@ -2,7 +2,6 @@
 const mailcomposer = require('mailcomposer');
 const Promise = require('bluebird');
 const mimelib = require('mimelib');
-const { last } = require('lodash');
 
 const BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
 

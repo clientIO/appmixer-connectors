@@ -1,7 +1,6 @@
 'use strict';
 
 const emailCommons = require('../gmail-commons');
-const Promise = require('bluebird');
 
 module.exports = {
 
@@ -22,7 +21,7 @@ module.exports = {
             }
             if (!emailCommons.isNewInboxEmail(email.labelIds || [])) {
                 // Skip SENT and DRAFT emails.
-                return; 
+                return;
             }
 
             return Promise.map(email.attachments || [], async (attachment) => {

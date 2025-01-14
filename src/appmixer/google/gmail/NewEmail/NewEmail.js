@@ -1,6 +1,5 @@
 'use strict';
 const emailCommons = require('../gmail-commons');
-const Promise = require('bluebird');
 
 module.exports = {
 
