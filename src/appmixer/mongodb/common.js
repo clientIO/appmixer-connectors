@@ -217,6 +217,46 @@ module.exports = {
     },
     listConnections() {
         return MONGO_CONNECTOR_OPEN_CONNECTIONS;
+    },
+    async waitForConnectionId(context, maxWaitTime = 10000) {
+        let connectionId = await context.stateGet('connectionId');
+
+        if (!connectionId) {
+            await context.log({ step: 'connecting', message: 'Connection to MongoDB not yet established. Waiting for connectionId.' });
+
+            const checkStartTime = new Date();
+
+            await new Promise((resolve, reject) => {
+                const intervalId = setInterval(async () => {
+                    connectionId = await context.stateGet('connectionId');
+
+                    if (connectionId) {
+                        clearInterval(intervalId);
+                        await context.log({ step: 'connected', message: 'Connection to MongoDB established.' });
+                        resolve();
+                    } else if (new Date() - checkStartTime > maxWaitTime) {
+                        clearInterval(intervalId);
+                        reject(new Error('Connection to MongoDB not established within the timeout period.'));
+                    }
+                }, 500);
+            });
+        }
+
+        return connectionId;
+    },
+
+    async initializeConnection(context, flowId, componentId, connectionUri, auth) {
+        const { client, connectionId } = await getClient(context, flowId, componentId, connectionUri, auth);
+        await context.stateSet('connectionId', connectionId);
+        return { client, connectionId };
+    },
+
+    async terminateConnection(context) {
+        const connectionId = await context.stateGet('connectionId');
+        if (connectionId) {
+            await closeClient(context, connectionId);
+            await context.stateUnset('connectionId');
+        }
     }
 
 };
