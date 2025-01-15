@@ -4,8 +4,8 @@ const axios = require('axios');
 class ActiveCampaign {
 
     constructor(url, apiKey) {
-
-        this.url = `${url}/api/3`;
+        const removedTrailingSlash = url.replace(/\/$/, '');
+        this.url = `${removedTrailingSlash}/api/3`;
         this.apiKey = apiKey;
     }
 
