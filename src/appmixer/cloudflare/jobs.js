@@ -6,10 +6,10 @@ module.exports = async (context) => {
 
     const config = require('./config')(context);
 
-    await context.scheduleJob('cloud-flare-lists-ips-delete-job', config.ipDeleteJob.schedule, async () => {
+    await context.scheduleJob('cloudflare-lists-ips-delete-job', config.ipDeleteJob.schedule, async () => {
 
         try {
-            const lock = await context.job.lock('cloud-flare-lists-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
+            const lock = await context.job.lock('cloudflare-lists-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
             await context.log('trace', '[Cloudflare Lists] rule delete job started.');
 
             try {
@@ -21,7 +21,7 @@ module.exports = async (context) => {
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[Cloudflare Lists] Error checking rules to delete',
+                    step: '[Cloudflare Lists] Error checking rules to delete',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
@@ -30,11 +30,11 @@ module.exports = async (context) => {
     });
 
     // Self-healing job to remove rules that have created>mtime. These rules are stuck in the system and should be removed.
-    await context.scheduleJob('cloud-flare-lists-ips-cleanup-job', config.cleanup.schedule, async () => {
+    await context.scheduleJob('cloudflare-lists-ips-cleanup-job', config.cleanup.schedule, async () => {
 
         let lock = null;
         try {
-            lock = await context.job.lock('cloud-flare-lists-ips-cleanup-job', { ttl: config.cleanup.lockTTL });
+            lock = await context.job.lock('cloudflare-lists-ips-cleanup-job', { ttl: config.cleanup.lockTTL });
             await context.log('trace', '[Cloudflare  Lists] IPs cleanup job started.');
 
             // Delete IPs where the time difference between 'mtime' and 'removeAfter' exceeds the specified timespan,
@@ -45,12 +45,12 @@ module.exports = async (context) => {
             });
 
             if (expired.deletedCount) {
-                await context.log('info', { stage: `[Cloudflare Lists] Deleted ${expired.deletedCount} orphaned rules.` });
+                await context.log('info', { step: `[Cloudflare Lists] Deleted ${expired.deletedCount} orphaned rules.` });
             }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[Cloudflare Lists]  Error checking orphaned ips',
+                    step: '[Cloudflare Lists]  Error checking orphaned ips',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });

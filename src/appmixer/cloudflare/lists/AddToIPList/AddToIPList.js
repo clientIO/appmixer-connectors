@@ -5,13 +5,12 @@ const lib = require('../lib');
 let attempts = 0;
 const getStatus = async function(context,  { account, id }) {
 
-    context.log({ stage: 'GETTING STATUS', id, attempts });
     // https://developers.cloudflare.com/api/operations/lists-get-bulk-operation-status
     const { data } = await lib.callEndpoint(context, {
         action: `/accounts/${account}/rules/lists/bulk_operations/${id}`
     });
 
-    context.log({ stage: 'STATUS DATA', data });
+    context.log({ step: 'getting status', data });
     if (data?.result?.status === 'failed') {
         throw new context.CancelError(data?.result?.error || data?.errors);
     }

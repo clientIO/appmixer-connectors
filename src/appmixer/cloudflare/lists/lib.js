@@ -69,7 +69,7 @@ const findIdsForIPs = async function({ context, ips = [], account, list }) {
             }
 
         } catch (err) {
-            context.log({ stage: `Invalid IP, IP ${ipItem} hasn't been found in the list ${list}` });
+            context.log({ step: `Invalid IP, IP ${ipItem} hasn't been found in the list ${list}` });
         }
     }
 
