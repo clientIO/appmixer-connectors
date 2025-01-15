@@ -2,7 +2,7 @@ const CloudflareAPI = require('./CloudflareAPI');
 
 const getModel = (context) => require('./IPListModel')(context);
 
-const deleteExpireIpsFromList = async function(context) {
+const deleteExpiredIpsFromList = async function(context) {
 
     const expired = await getExpiredItems(context);
 
@@ -65,5 +65,5 @@ const getExpiredItems = async function(context) {
 };
 
 module.exports = {
-    deleteExpireIpsFromList
+    deleteExpiredIpsFromList
 };

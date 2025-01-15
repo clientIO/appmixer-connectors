@@ -10,7 +10,8 @@ module.exports = {
     getIpsFromRules,
     prepareRulesForCreateOrUpdate,
     getBlockRule,
-    findIpsInRules
+    findIpsInRules,
+    extractIPs
 };
 
 function getIpsFromRules(rules) {

@@ -177,5 +177,8 @@ function sanitizeItems(items = []) {
 }
 
 module.exports = {
-    deleteExpireIps, getBlockExpression, extractIPs
+    deleteExpireIps,
+    getBlockExpression,
+    extractIPs,
+    removeIpsFromRule
 };

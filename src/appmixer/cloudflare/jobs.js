@@ -13,7 +13,7 @@ module.exports = async (context) => {
             await context.log('trace', '[Cloudflare Lists] rule delete job started.');
 
             try {
-                await listsJobs.deleteExpireIpsFromList(context);
+                await listsJobs.deleteExpiredIpsFromList(context);
             } finally {
                 lock.unlock();
                 await context.log('trace', '[Cloudflare Lists] rule delete job finished. Lock unlocked.');
