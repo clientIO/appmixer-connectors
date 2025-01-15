@@ -1,14 +1,14 @@
 'use strict';
-const { 
-    getClient, 
-    getCollection, 
-    getChangeStream, 
-    getReplicaSetStatus, 
-    ensureStore, 
-    setOperationalTimestamp, 
-    processDocuments, 
-    closeClient, 
-    waitForConnectionId 
+const {
+    getClient,
+    getCollection,
+    getChangeStream,
+    getReplicaSetStatus,
+    ensureStore,
+    setOperationalTimestamp,
+    processDocuments,
+    closeClient,
+    waitForConnectionId
 } = require('../../common');
 
 module.exports = {
