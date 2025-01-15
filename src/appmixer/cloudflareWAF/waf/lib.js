@@ -1,5 +1,5 @@
-const ruleDescription = 'Salt detected high severity attacker';
-const ruleRefPrefix = 'SALT';
+const ruleDescription = 'Generated Rule';
+const ruleRefPrefix = 'generated_rule';
 const RULE_MAX_CAPACITY = 4096;
 
 // extractIPs, getBlockExpression  are also used in jobs.waf. They cannot be here, as jobs.waf
