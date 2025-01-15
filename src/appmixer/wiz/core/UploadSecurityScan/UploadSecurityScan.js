@@ -87,7 +87,7 @@ const requestUpload = async function(context, { filename }) {
         throw new context.CancelError(data.errors);
     }
 
-    context.log({ stage: 'UPLOAD SUCCESS', upload: data?.data?.requestSecurityScanUpload?.upload });
+    context.log({ stage: 'REQUEST UPLOAD SUCCESS', upload: data?.data?.requestSecurityScanUpload?.upload });
 
     return data.data.requestSecurityScanUpload.upload;
 };
@@ -173,9 +173,8 @@ module.exports = {
         }
 
         const { url, systemActivityId } = await requestUpload(context, { filename });
-        await context.log({ stage: 'REQUEST UPLOAD SUCCESS', url, systemActivityId });
-
-        await uploadFile(context, { url, fileContent: createDocument(context) });
+        const fileContent = createDocument(context);
+        await uploadFile(context, { url, fileContent });
 
         const status = await getStatus(context, systemActivityId);
         return context.sendJson(status, 'out');
