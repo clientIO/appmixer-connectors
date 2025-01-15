@@ -10,7 +10,7 @@ async function registerWebhook(context, client) {
 
     let response = await client.applications.create(
         // we need to be unique per component
-        'appmixer.plivo.sms.SendSMSAndWaitForReply.' + context.componentId,
+        'appmixer-plivo-sms-SendSMSAndWaitForReply-' + context.componentId,
         { messageUrl: context.getWebhookUrl() }
     );
 
@@ -94,7 +94,7 @@ module.exports = {
                     await context.stateUnset(`pending-${data['From']}`);
                 }
             }
-            // store the state
+            // Set response to avoid timeout on Plivo side
             return context.response();
         }
 
