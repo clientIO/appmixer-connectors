@@ -9,6 +9,8 @@ module.exports = {
         if (!context.config.signingSecret) {
             throw new Error(`Missing Slack configuration for component: ${componentName}. Please configure the "signingSecret" with a valid Slack App signing secret.`);
         }
+
+        return context.addListener('slack_team_join', { accessToken: context.auth.accessToken });
     },
 
     async stop(context) {
