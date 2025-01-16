@@ -14,7 +14,7 @@ module.exports = {
 
         const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { query, searchType, folderLocation, fileTypes, outputType } = context.messages.in.content;
+        let { query, searchType, folderLocation, recursive, fileTypes, orderBy, outputType } = context.messages.in.content;
         const escapedQuery = lib.escapeSpecialCharacters(query);
 
         let folderId;
@@ -22,46 +22,44 @@ module.exports = {
             folderId = typeof folderLocation === 'string' ? folderLocation : folderLocation.id;
         }
 
-        const queryParentsSuffix = folderLocation ? ` and '${folderId}' in parents` : '';
-        const querySuffix = ' and trashed=false' + queryParentsSuffix;
-        const queryFolderSuffix = ' and mimeType = \'application/vnd.google-apps.folder\'';
-        const queryFileSuffix = ' and mimeType != \'application/vnd.google-apps.folder\'';
+        const queryNonTrashedSuffix = 'trashed=false';
+        const queryFolderSuffix = 'mimeType = \'application/vnd.google-apps.folder\'';
+        const queryFileSuffix = 'mimeType != \'application/vnd.google-apps.folder\'';
 
-        let q;
+        let q = [];
         if (searchType === 'fileNameExact') {
-            q = `name='${escapedQuery}'` + querySuffix + queryFileSuffix;
+            q = [...(escapedQuery ? [`name='${escapedQuery}'`] : []), queryNonTrashedSuffix, queryFileSuffix];
         } else if (searchType === 'fileNameContains') {
-            q = `name contains '${escapedQuery}'` + querySuffix + queryFileSuffix;
+            q = [...(escapedQuery ? [`name contains '${escapedQuery}'`] : []), queryNonTrashedSuffix, queryFileSuffix];
         } else if (searchType === 'folderNameExact') {
-            q = `name='${escapedQuery}'` + querySuffix + queryFolderSuffix;
+            q = [...(escapedQuery ? [`name='${escapedQuery}'`] : []), queryNonTrashedSuffix, queryFolderSuffix];
         } else if (searchType === 'folderNameContains') {
-            q = `name contains '${escapedQuery}'` + querySuffix + queryFolderSuffix;
+            q = [...(escapedQuery ? [`name contains '${escapedQuery}'`] : []), queryNonTrashedSuffix, queryFolderSuffix];
         } else if (searchType === 'fullText') {
-            q = `fullText contains '${escapedQuery}'` + querySuffix;
+            q = [...(escapedQuery ? [`fullText contains '${escapedQuery}'`] : []), queryNonTrashedSuffix];
         } else {
-            q = query;  // no query suffix, this is a completely custom search.
+            // no query suffix, this is a completely custom search.
+            q = [...(escapedQuery ? [escapedQuery] : [])];
         }
 
         if (fileTypes && fileTypes.length) {
             const mimeTypeQuery = fileTypes.map(fileType => `mimeType contains '${fileType}'`).join(' or ');
-            q += ` and (${mimeTypeQuery})`;
+            q.push(`(${mimeTypeQuery})`);
         }
 
-        const pageSize = outputType === 'firstItem' ? 1 : 1000;
-
-        // First page.
-        const { data } = await drive.files.list({ q, fields: '*', pageSize });
-
-        // While there are more pages, keep fetching them.
-        while (data.nextPageToken) {
-            const nextPage = await drive.files.list({ q, pageToken: data.nextPageToken, pageSize, fields: '*' });
-            data.files = data.files.concat(nextPage.data.files);
-            data.nextPageToken = nextPage.data.nextPageToken;
+        if (recursive) {
+            // Find all subfolder IDs recursively.
+            const subfolderIds = await this.findSubfolders(context, drive, folderId);
+            await context.log({ step: 'subfolders', subfolderIds });
+            subfolderIds.unshift(folderId);
+            q.push(`(${subfolderIds.map(id => `'${id}' in parents`).join(' or ')})`);
+        } else {
+            q.push(`'${folderId}' in parents`);
         }
 
-        const { files = [] } = data;
-        const items = files.map(this.prepareOutputItem);
-
+        const queryString = q.join(' and ');
+        await context.log({ step: 'query', query: queryString });
+        const items = await this.findFiles(context, drive, queryString, orderBy);
         if (items.length === 0) {
             return context.sendJson({ query }, 'notFound');
         }
@@ -115,6 +113,40 @@ module.exports = {
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }
+    },
+
+    async findSubfolders(context, drive, folderId) {
+
+        const query = `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.folder'`;
+        let subfolderIds = [];
+        const subfolders = await this.findFiles(context, drive, query, 'folder', 'files(id)');
+        for (const subfolder of subfolders) {
+            const subfolderId = subfolder.googleDriveFileMetadata.id;
+            subfolderIds.push(subfolderId);
+            const nestedSubfolders = await this.findSubfolders(context, drive, subfolderId);
+            subfolderIds = subfolderIds.concat(nestedSubfolders);
+        }
+        return subfolderIds;
+    },
+
+    async findFiles(context, drive, query, orderBy = 'name asc', fields = '*') {
+
+        const pageSize = 1000;
+
+        // First page.
+        const { data } = await drive.files.list({ q: query, fields, pageSize, orderBy });
+        let files = data.files || [];
+        let nextPageToken = data.nextPageToken;
+
+        // While there are more pages, keep fetching them.
+        while (nextPageToken) {
+            const nextPage = await drive.files.list({ q: query, pageToken: data.nextPageToken, pageSize, fields: '*', orderBy });
+            files = files.concat(nextPage.data.files);
+            nextPageToken = nextPage.data.nextPageToken;
+        }
+
+        const items = files.map(this.prepareOutputItem);
+        return items;
     },
 
     prepareOutputItem(item, index, items) {
