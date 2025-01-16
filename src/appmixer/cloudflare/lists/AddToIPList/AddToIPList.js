@@ -1,16 +1,16 @@
-const ZoneCloudflareClient = require('../../ZoneCloudflareClient');
+'use strict';
+
 const lib = require('../lib');
 
 let attempts = 0;
-const getStatus = async function(context, client, { account, id }) {
+const getStatus = async function(context,  { account, id }) {
 
-    context.log({ stage: 'GETTING STATUS', id, attempts });
     // https://developers.cloudflare.com/api/operations/lists-get-bulk-operation-status
-    const { data } = await client.callEndpoint(context, {
+    const { data } = await lib.callEndpoint(context, {
         action: `/accounts/${account}/rules/lists/bulk_operations/${id}`
     });
 
-    context.log({ stage: 'STATUS DATA', data });
+    context.log({ step: 'getting status', data });
     if (data?.result?.status === 'failed') {
         throw new context.CancelError(data?.result?.error || data?.errors);
     }
@@ -19,7 +19,7 @@ const getStatus = async function(context, client, { account, id }) {
         attempts++;
         if (attempts <= 5) {
             await new Promise(r => setTimeout(r, 2000));
-            return await getStatus(context, client, { account, id });
+            return await getStatus(context, { account, id });
         } else {
             throw new context.CancelError(data.errors);
         }
@@ -28,7 +28,6 @@ const getStatus = async function(context, client, { account, id }) {
     return data.result;
 };
 
-
 module.exports = {
     async receive(context) {
 
@@ -36,10 +35,8 @@ module.exports = {
         const { accountsFetch, listFetch } = context.properties;
         const { account, list, ips, ttl } = context.messages.in.content;
 
-        const client = new ZoneCloudflareClient({ email, apiKey });
-
         if (accountsFetch || listFetch) {
-            return await lib.fetchInputs(context, client, { account, listFetch, accountsFetch });
+            return await lib.fetchInputs(context, { account, listFetch, accountsFetch });
         }
 
         const ipsList = ips.AND;
@@ -49,13 +46,14 @@ module.exports = {
         }
 
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
-        const { data } = await client.callEndpoint(context, {
+        const { data } = await lib.callEndpoint(context, {
             method: 'POST',
             action: `/accounts/${account}/rules/lists/${list}/items`,
             data: ipsList
         });
 
-        const status = await getStatus(context, client, { id: data.result.operation_id, account });
+
+        const status = await getStatus(context, { id: data.result.operation_id, account });
 
         if (status.error) {
             throw new context.CancelError(status.error);
@@ -63,7 +61,7 @@ module.exports = {
 
         if (ttl) {
             const removeAfter = new Date().getTime() + ttl * 1000;
-            const listItemsWithIds = await client.findIdsForIPs({ context, client, ips: ipsList, account, list });
+            const listItemsWithIds = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
 
             const dbItems = listItemsWithIds.map(item => {
                 const { ip, id } = item;
