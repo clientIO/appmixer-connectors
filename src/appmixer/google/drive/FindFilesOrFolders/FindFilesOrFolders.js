@@ -14,7 +14,15 @@ module.exports = {
 
         const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { query, searchType, folderLocation, recursive, fileTypes, orderBy, outputType } = context.messages.in.content;
+        let {
+            query,
+            searchType,
+            folderLocation,
+            recursive,
+            fileTypes,
+            orderBy,
+            outputType
+        } = context.messages.in.content;
         const escapedQuery = lib.escapeSpecialCharacters(query);
 
         let folderId;
