@@ -98,9 +98,11 @@ module.exports = {
                         const promises = [];
 
                         latest.value.forEach((file) => {
+                            const isFile = Object.keys(file).includes('file');
                             const createdDateTime = file.createdDateTime;
+
                             if (
-                                createdDateTime &&
+                                isFile && createdDateTime &&
                                 moment(lastUpdated).isSameOrBefore(createdDateTime)
                             ) {
                                 promises.push(context.sendJson(file, 'file'));
