@@ -13,82 +13,51 @@ module.exports = {
 
     httpRequest: async function(context) {
 
-        // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
+        context.log({ input });
+        const { sheetId, rowId } = context.properties;
 
-        let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}/rows`;
+        // Build URL for updating rows
+        const url = `${lib.getBaseUrl(context)}/sheets/${sheetId}/rows`;
 
-        const headers = {};
-        const query = new URLSearchParams;
-
-        const inputMapping = {
-
+        const headers = {
+            'Authorization': `Bearer ${context.auth.accessToken}`,
+            'Content-Type': 'application/json'
         };
-        let requestBody = {};
-        lib.setProperties(requestBody, inputMapping);
 
-        const queryParameters = { 'accessApiLevel': input['accessApiLevel'],
-            'allowPartialSuccess': input['allowPartialSuccess'],
-            'overrideValidation': input['overrideValidation'] };
+        const cells = Object.entries(input).map(([columnId, value]) => ({
+            columnId: columnId,
+            value: value
+        }));
 
-        Object.keys(queryParameters).forEach(parameter => {
-            if (queryParameters[parameter]) {
-                query.append(parameter, queryParameters[parameter]);
-            }
-        });
+        const rows = [{
+            id: rowId,
+            cells: cells
+        }];
 
-        headers['Authorization'] = 'Bearer ' + context.auth.accessToken;
+        const requestBody = rows;
 
         const req = {
             url: url,
             method: 'PUT',
-            data: requestBody,
-            headers: headers
+            headers,
+            data: requestBody
         };
 
-        const queryString = query.toString();
-        if (queryString) {
-            req.url += '?' + queryString;
-        }
+        const response = await context.httpRequest(req);
 
-        try {
-            const response = await context.httpRequest(req);
-            const log = {
-                step: 'http-request-success',
-                request: {
-                    url: req.url,
-                    method: req.method,
-                    headers: req.headers,
-                    data: req.data
-                },
-                response: {
-                    data: response.data,
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers
-                }
-            };
-            await context.log(log);
-            return response;
-        } catch (err) {
-            const log = {
-                step: 'http-request-error',
-                request: {
-                    url: req.url,
-                    method: req.method,
-                    headers: req.headers,
-                    data: req.data
-                },
-                response: err.response ? {
-                    data: err.response.data,
-                    status: err.response.status,
-                    statusText: err.response.statusText,
-                    headers: err.response.headers
-                } : undefined
-            };
-            await context.log(log);
-            throw err;
-        }
+        await context.log({
+            step: 'http-request-success',
+            request: req,
+            response: {
+                data: response.data,
+                status: response.status,
+                headers: response.headers
+            }
+        });
+
+        return response;
+
     }
 
 };
