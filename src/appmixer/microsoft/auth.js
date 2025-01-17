@@ -19,7 +19,7 @@ module.exports = {
 
         accountNameFromProfileInfo: (context) => {
             const { profileInfo } = context;
-            return profileInfo.displayName || profileInfo.userPrincipalName || profileInfo.id;
+            return profileInfo.displayName.trim() || profileInfo.userPrincipalName.trim() || profileInfo.id;
         },
 
         emailFromProfileInfo: 'mail',
