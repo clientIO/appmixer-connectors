@@ -27,7 +27,7 @@ module.exports = {
                     contact: contactId,
                     title,
                     description,
-                    currency: currency ? currency.toLowerCase() : currency,
+                    currency: currency.toLowerCase(),
                     value: value * 100,
                     owner,
                     stage,
@@ -40,7 +40,12 @@ module.exports = {
         const fieldValues = [];
         if (customFieldsValues.length > 0) {
             customFieldsValues.forEach(customField => {
-                fieldValues.push({ customFieldId: customField.field, fieldValue: customField.value });
+                if (Object.keys(customField).length > 0) {
+                    const cf = { customFieldId: customField.field, fieldValue: customField.value };
+                    if (cf.customFieldId && cf.fieldValue) {
+                        fieldValues.push(cf);
+                    }
+                }
             });
             payload.deal.fields = fieldValues;
         }

@@ -14,7 +14,7 @@ class ActiveCampaign {
         return 100;
     }
 
-    async call(method, path, data = {}, opts = {}) {
+    async call(method, path, data = {}) {
 
         const payload = {
             method,
@@ -36,10 +36,17 @@ class ActiveCampaign {
             if (response.status === 422) {
                 if (response.data?.errors) {
                     const errors = response.data.errors.map(err => err.title).join(', ');
-                    const msg = `Your request have the following errors:\n${errors}`;
+                    const msg = `Your request have the following errors: ${errors}`;
                     throw new Error(msg);
                 }
             }
+            if (response.status === 403) {
+                if (response.data.message) {
+                    const msg = `Your request have the following error: ${response.data.message}`;
+                    throw new Error(msg);
+                }
+            }
+
             throw err;
         }
     }

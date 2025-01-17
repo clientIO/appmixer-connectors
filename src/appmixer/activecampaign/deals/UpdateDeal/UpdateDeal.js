@@ -1,5 +1,4 @@
 'use strict';
-const moment = require('moment');
 const ActiveCampaign = require('../../ActiveCampaign');
 const { trimUndefined } = require('../../helpers');
 
@@ -45,7 +44,12 @@ module.exports = {
         const fieldValues = [];
         if (customFieldsValues.length > 0) {
             customFieldsValues.forEach(customField => {
-                fieldValues.push({ customFieldId: customField.field, fieldValue: customField.value });
+                if (Object.keys(customField).length > 0) {
+                    const cf = { customFieldId: customField.field, fieldValue: customField.value };
+                    if (cf.customFieldId && cf.fieldValue) {
+                        fieldValues.push(cf);
+                    }
+                }
             });
             payload.deal.fields = fieldValues;
         }
@@ -58,18 +62,16 @@ module.exports = {
             return acc;
         }, {});
 
-        return context.sendJson({
-            id: deal.id,
-            contactId: deal.contact,
-            title: deal.title,
-            description: deal.description,
-            currency: deal.currency,
+        const dealResponseModified = {
+            ...deal,
             value: deal.value / 100,
-            owner: deal.owner,
-            stage: deal.stage,
-            status: deal.status,
-            createdDate: moment(deal.cdate).toISOString(),
+            createdDate: new Date(deal.cdate).toISOString(),
             ...customFieldsPayload
-        }, 'deal');
+        };
+
+        delete dealResponseModified.cdate;
+        delete dealResponseModified.links;
+
+        return context.sendJson(dealResponseModified, 'deal');
     }
 };
