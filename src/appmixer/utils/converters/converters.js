@@ -1,4 +1,4 @@
-const { pipeline, Readable } = require('stream');
+const { pipeline } = require('stream');
 const customHtmlTransforms = require('./htmlTransforms');
 const JSONStream = require('JSONStream');
 const { arrayBuffer } = require('node:stream/consumers');
