@@ -33,7 +33,7 @@ module.exports = {
         const result = await pineconeIndex.namespace(namespace).query(query);
 
         const out = { result };
-        if (aggregateMetadataField) {
+        if (aggregateMetadataField && result && result.matches) {
             const aggregatedMetadata = result.matches.reduce((acc, { metadata }) => {
                 const value = metadata[aggregateMetadataField];
                 return acc + (acc ? '\n' : '') + value;
