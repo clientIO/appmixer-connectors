@@ -57,9 +57,11 @@ module.exports = {
 
         if (recursive) {
             // Find all subfolder IDs recursively.
-            const subfolderIds = await lib.findSubfolders(context, drive, folderId);
-            await context.log({ step: 'subfolders', subfolderIds });
-            subfolderIds.unshift(folderId);
+            const subfolders = await lib.findSubfolders(context, drive, folderId);
+            const subfolderIds = [folderId];
+            for (let subfolder of subfolders) {
+                subfolderIds.push(subfolder.googleDriveFileMetadata.id);
+            }
             q.push(`(${subfolderIds.map(id => `'${id}' in parents`).join(' or ')})`);
         } else {
             q.push(`'${folderId}' in parents`);
