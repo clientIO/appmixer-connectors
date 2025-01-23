@@ -9,7 +9,6 @@ module.exports = {
 
     async receive(context) {
 
-        const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const {
             // Filter paramters
             fullname, telephone1, address1_city, emailaddress1, maxRecords,
@@ -21,10 +20,6 @@ module.exports = {
             // Appmixer specific
             outputType
         } = context.messages.in.content;
-
-        if (generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, outputType);
-        }
 
         const url = (context.resource || context.auth.resource) + '/api/data/v9.2/contacts';
         // Query params
