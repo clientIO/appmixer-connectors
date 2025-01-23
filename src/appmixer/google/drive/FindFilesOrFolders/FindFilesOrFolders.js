@@ -57,7 +57,7 @@ module.exports = {
 
         if (recursive) {
             // Find all subfolder IDs recursively.
-            const subfolderIds = await this.findSubfolders(context, drive, folderId);
+            const subfolderIds = await lib.findSubfolders(context, drive, folderId);
             await context.log({ step: 'subfolders', subfolderIds });
             subfolderIds.unshift(folderId);
             q.push(`(${subfolderIds.map(id => `'${id}' in parents`).join(' or ')})`);
@@ -67,7 +67,7 @@ module.exports = {
 
         const queryString = q.join(' and ');
         await context.log({ step: 'query', query: queryString });
-        const items = await this.findFiles(context, drive, queryString, orderBy);
+        const items = await lib.findFiles(context, drive, queryString, orderBy);
         if (items.length === 0) {
             return context.sendJson({ query }, 'notFound');
         }
@@ -121,50 +121,6 @@ module.exports = {
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }
-    },
-
-    async findSubfolders(context, drive, folderId) {
-
-        const query = `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.folder'`;
-        let subfolderIds = [];
-        const subfolders = await this.findFiles(context, drive, query, 'folder', 'files(id)');
-        for (const subfolder of subfolders) {
-            const subfolderId = subfolder.googleDriveFileMetadata.id;
-            subfolderIds.push(subfolderId);
-            const nestedSubfolders = await this.findSubfolders(context, drive, subfolderId);
-            subfolderIds = subfolderIds.concat(nestedSubfolders);
-        }
-        return subfolderIds;
-    },
-
-    async findFiles(context, drive, query, orderBy = 'name asc', fields = '*') {
-
-        const pageSize = 1000;
-
-        // First page.
-        const { data } = await drive.files.list({ q: query, fields, pageSize, orderBy });
-        let files = data.files || [];
-        let nextPageToken = data.nextPageToken;
-
-        // While there are more pages, keep fetching them.
-        while (nextPageToken) {
-            const nextPage = await drive.files.list({ q: query, pageToken: data.nextPageToken, pageSize, fields: '*', orderBy });
-            files = files.concat(nextPage.data.files);
-            nextPageToken = nextPage.data.nextPageToken;
-        }
-
-        const items = files.map(this.prepareOutputItem);
-        return items;
-    },
-
-    prepareOutputItem(item, index, items) {
-        return {
-            index: index,
-            count: items.length,
-            isFolder: item.mimeType === 'application/vnd.google-apps.folder',
-            isFile: item.mimeType !== 'application/vnd.google-apps.folder',
-            googleDriveFileMetadata: item
-        };
     },
 
     getOutputPortOptions(context) {
