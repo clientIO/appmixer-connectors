@@ -1,5 +1,7 @@
 'use strict';
 
+const { createHmac } = require('node:crypto');
+
 module.exports = async context => {
 
     context.onListenerAdded(async listener => {
@@ -34,10 +36,28 @@ module.exports = async context => {
         path: '/events',
         options: {
             auth: false,
-            handler: async req => {
+            handler: async (req, h) => {
 
                 await context.log('info', 'slack-plugin-route-webhook-hit', { type: req.payload?.type });
                 context.log('trace', 'slack-plugin-route-webhook-payload', { payload: req.payload });
+
+                // Validates the payload with the Slack-signature hash
+                const slackSignature = req.headers['x-slack-signature'];
+                const signingSecret = context.config?.signingSecret;
+                if (!signingSecret) {
+                    context.log('error', 'slack-plugin-route-webhook-missing-signingSecret');
+                    return h.response(undefined).code(401);
+                }
+                // Use the raw request body from `req.payload`, without headers, before it has been deserialized from JSON or other forms.
+                const payloadString = JSON.stringify(req.payload);
+                const timestamp = req.headers['x-slack-request-timestamp'];
+                const baseString = `v0:${timestamp}:${payloadString}`;
+                const mySignature = 'v0=' + createHmac('sha256', signingSecret).update(baseString).digest('hex');
+                if (slackSignature !== mySignature) {
+                    context.log('info', 'slack-plugin-route-webhook-invalid-signature', { config: context.config });
+                    context.log('error', 'slack-plugin-route-webhook-invalid-signature', { slackSignature, mySignature, baseString, payloadString });
+                    return h.response(undefined).code(401);
+                }
 
                 if (req.payload.challenge) {
                     return { challenge: req.payload.challenge };
