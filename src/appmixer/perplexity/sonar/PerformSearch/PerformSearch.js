@@ -4,16 +4,16 @@ module.exports = {
 
     receive: async function(context) {
 
-        const { 
-            model, 
-            frequencyPenalty, 
-            maxTokens, 
-            presencePenalty, 
-            searchDomains, 
-            ignoreDomains, 
-            temperature, 
-            topK, 
-            topP 
+        const {
+            model,
+            frequencyPenalty,
+            maxTokens,
+            presencePenalty,
+            searchDomains,
+            ignoreDomains,
+            temperature,
+            topK,
+            topP
         } = context.messages.in.content;
 
         const searchDomainArray = searchDomains.split(',').map(domain => domain.trim());
