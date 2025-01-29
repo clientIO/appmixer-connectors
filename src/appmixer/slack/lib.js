@@ -10,18 +10,26 @@ module.exports = {
      * Send slack channel message.
      * @param {string} channelId
      * @param {string} message
-     * @param {string} accessToken
+     * @param {boolean} asBot
      * @return {Promise<*>}
      */
-    async sendMessage(channelId, message, accessToken) {
+    async sendMessage(context, channelId, message, asBot = false) {
+
+        let token = context.auth.accessToken;
+        if (asBot === true) {
+            // Make sure the bot token is used.
+            token = context.config?.botToken;
+            if (!token) {
+                throw new context.CancelError('Bot token is required for sending messages as bot. Please provide it in the connector configuration.');
+            }
+        }
 
         let entities = new Entities();
-        const web = new WebClient(accessToken);
+        const web = new WebClient(token);
 
         const response = await web.chat.postMessage({
             channel: channelId,
-            text: entities.decode(message),
-            as_user: true
+            text: entities.decode(message)
         });
 
         return response.message;
