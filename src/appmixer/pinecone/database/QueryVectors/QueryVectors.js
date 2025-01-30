@@ -1,6 +1,7 @@
 'use strict';
 
 const { Pinecone } = require('@pinecone-database/pinecone');
+const jsonata = require('jsonata');
 
 module.exports = {
 
@@ -14,7 +15,7 @@ module.exports = {
             filter,
             includeValues,
             includeMetadata,
-            aggregateMetadataField
+            transformation
         } = context.messages.in.content;
 
         const pinecone = new Pinecone({
@@ -27,18 +28,14 @@ module.exports = {
             filter: typeof filter === 'string' ? JSON.parse(filter) : filter,
             topK: topK || 10,
             includeValues,
-            includeMetadata: aggregateMetadataField ? true : includeMetadata
+            includeMetadata: transformation ? true : includeMetadata
         };
 
         const result = await pineconeIndex.namespace(namespace).query(query);
 
-        const out = { result };
-        if (aggregateMetadataField && result && result.matches) {
-            const aggregatedMetadata = result.matches.reduce((acc, { metadata }) => {
-                const value = metadata[aggregateMetadataField];
-                return acc + (acc ? '\n' : '') + value;
-            }, '');
-            out.aggregatedMetadata = aggregatedMetadata;
+        const out = { result, transformedResult: result };
+        if (transformation && result) {
+            out.transformedResult = await jsonata(transformation).evaluate(result);
         }
 
         return context.sendJson(out, 'out');
