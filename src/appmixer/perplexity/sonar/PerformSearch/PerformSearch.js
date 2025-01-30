@@ -26,10 +26,12 @@ module.exports = {
         let messages = [];
         let stateMessages = [];
 
+        // Add instructions to messages if provided
         if (instructions) {
             messages.push({ role: 'system', content: instructions });
         }
 
+        // Retrieve state messages if conversationId is provided
         if (conversationId) {
             stateMessages = await context.flow.stateGet(conversationId);
             if (stateMessages && stateMessages.messages) {
@@ -37,6 +39,7 @@ module.exports = {
             }
         }
 
+        // Add the current user prompt to messages
         messages.push({ role: 'user', content: prompt });
 
         const req = {
@@ -71,15 +74,32 @@ module.exports = {
             { role: 'assistant', content: data.choices[0].message.content }
         ];
 
+        // Calculate the total tokens in the new messages
+        const newTokens = newMessages.reduce((acc, msg) => acc + msg.content.split(' ').length, 0);
+
         if (conversationId) {
             if (!stateMessages || !stateMessages.messages) { // First run, no previous messages
                 await context.flow.stateSet(conversationId, { messages: newMessages });
             } else { // Subsequent runs, add to existing messages
+                let totalTokens = newTokens;
+                totalTokens += stateMessages.messages.reduce((acc, msg) => acc + msg.content.split(' ').length, 0);
+
+                // Remove older messages if total tokens exceed 4000
+                while (totalTokens > 4000 && stateMessages.messages.length > 0) {
+                    const removedMessage = stateMessages.messages.shift();
+                    totalTokens -= removedMessage.content.split(' ').length;
+                }
                 const updatedMessages = stateMessages.messages.concat(newMessages);
                 await context.flow.stateSet(conversationId, { messages: updatedMessages });
             }
         }
 
-        return context.sendJson(data, 'out');
+        // Convert choices array to an object
+        const outputData = {
+            ...data,
+            choices: data.choices[0]
+        };
+        context.log({ step: 'Response', outputData });
+        return context.sendJson(outputData, 'out');
     }
 };
