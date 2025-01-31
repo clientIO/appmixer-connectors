@@ -18,7 +18,8 @@ async function main() {
         chats,
         agents,
         activeChat,
-        withCache: true
+        withCache: true,
+        ...OPTIONS
     });
     chat.api.on('add-message', ({ id, message }) => addMessage(id, message));
 }

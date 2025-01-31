@@ -24,6 +24,12 @@ module.exports = {
 
             const req = context.messages.webhook.content;
 
+            // https://docs.dhtmlx.com/chatbot/guides/styling/
+            const options = {
+                format: context.properties.format || 'markdown', // markdown, text
+                render: context.properties.render || 'blocks'  // blocks, bubbles, flow, cards
+            };
+
             await context.log({ step: 'webhook', req });
 
             if (req.method === 'GET') {
@@ -48,7 +54,7 @@ module.exports = {
                     return context.response(res, 200, { 'Content-Type': 'application/json' });
                 } else {
                     // Main page.
-                    const page = lib.generateWebUI(context.getWebhookUrl());
+                    const page = lib.generateWebUI(context.getWebhookUrl(), options);
                     return context.response(page, 200, { 'Content-Type': 'text/html' });
                 }
             } else if (req.method === 'POST') {

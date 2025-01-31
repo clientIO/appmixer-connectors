@@ -140,7 +140,10 @@ const chat = new ChatBot("#chat-container", {
     chats,
     agents,
     activeChat,
-    withCache: true
+    withCache: true,
+	format: 'markdown',
+	render: 'bubbles',
+	sidebar: true
 });
 
 //loadData(activeChat);
@@ -179,7 +182,7 @@ function addMessage(chatId, message) {
         message: {
             role: "agent",
             content: "Sorry, this is a demo only. Your message was: " + message.content,
-            typing: -1,
+            typing: 0,
         },
     });
 }
