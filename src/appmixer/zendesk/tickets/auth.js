@@ -2,6 +2,9 @@
 
 const hasGlobalKeys = function(context) {
     const globalKeys = context.config?.globalKeys;
+    if (globalKeys === undefined) {
+        return true;
+    }
     return globalKeys === true || typeof globalKeys === 'string' && globalKeys.toLowerCase() === 'true' || false;
 };
 
