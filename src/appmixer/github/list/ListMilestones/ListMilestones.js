@@ -1,22 +1,18 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
 
 /**
- * Component for fetching list of milestones from repository
+ * Component for fetching list of labels from repository
  * @extends {Component}
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
+        const { repositoryId } = context.properties;
 
-        return commons.getAll(github, 'issues', 'listMilestonesForRepo',
-            commons.buildUserRepoRequest(repositoryId)
-        ).then(res => {
-            return context.sendJson(res, 'milestones');
-        });
+        const { data } = await lib.callEndpoint(context, `repos/${repositoryId}/milestones`);
+
+        return context.sendJson(data, 'milestones');
     }
 };
-

@@ -1,5 +1,4 @@
 'use strict';
-const commons = require('../../lib');
 const lib = require('../../lib');
 
 /**
@@ -11,21 +10,10 @@ module.exports = {
 
     async receive(context) {
 
-        let { repositoryId } = context.properties;
+        const { repositoryId } = context.properties;
 
-        const { data } = await lib.callEndpoint(context, `repos/${repositoryId}/assignees`, {
-            method: 'POST',
-            data: { issue }
-        });
+        const { data } = await lib.callEndpoint(context, `repos/${repositoryId}/assignees`);
 
         return context.sendJson(data, 'assignees');
-
-        let github = commons.getGithubAPI(context.auth.accessToken);
-
-        return commons.getAll(github, 'issues', 'listAssignees',
-            commons.buildUserRepoRequest(repositoryId)
-        ).then(res => {
-            return context.sendJson(res, 'assignees');
-        });
     }
 };

@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
 
 /**
  * Component for fetching list of branches from repository
@@ -7,16 +7,13 @@ const commons = require('../../lib');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
+        const { repositoryId } = context.properties;
 
-        return commons.getAll(github, 'repos', 'listBranches',
-            commons.buildUserRepoRequest(repositoryId)
-        ).then(res => {
-            return context.sendJson(res, 'branches');
-        });
+        const { data } = await lib.callEndpoint(context, `repos/${repositoryId}/branches`);
+
+        return context.sendJson(data, 'branches');
     }
 };
 
