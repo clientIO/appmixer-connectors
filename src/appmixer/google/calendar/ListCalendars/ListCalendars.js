@@ -17,6 +17,7 @@ module.exports = {
 
         return listCalendars({
             auth: commons.getOauth2Client(context.auth),
+            minAccessRole: 'writer',
             userId: 'me',
             quotaUser: context.auth.userId
         }).then((data) => {
