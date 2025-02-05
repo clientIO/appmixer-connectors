@@ -1,7 +1,5 @@
 'use strict';
-const { Octokit } = require('@octokit/rest');
 const repoReg = /[^\/]+/g;
-
 
 module.exports = {
 
@@ -52,6 +50,28 @@ module.exports = {
 
         let options = github[entity][func]['endpoint'].merge(params);
         return github.paginate(options);
+    },
+
+    async callEndpoint(context, action, {
+        method = 'GET',
+        data = {},
+        params
+    } = {}) {
+
+        const url = `https://api.github.com/${action}`;
+        console.log(url, data);
+        const options = {
+            method,
+            url,
+            headers: {
+                'X-GitHub-Api-Version': '2022-11-28',
+                'Authorization': `Bearer ${context.accessToken || context.auth?.accessToken}`
+            },
+            data,
+            params
+        };
+
+        return await context.httpRequest(options);
     },
 
     /**

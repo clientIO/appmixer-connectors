@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('./github-commons');
+const lib = require('./lib');
 
 module.exports = {
 
@@ -15,15 +15,13 @@ module.exports = {
 
         requestProfileInfo: async context => {
 
-            let github = commons.getGithubAPI(context.accessToken);
-            const { data } = await github.users.getAuthenticated();
+            const { data } = await lib.callEndpoint(context, 'user');
             return data;
         },
 
         validateAccessToken: async context => {
 
-            let github = commons.getGithubAPI(context.accessToken);
-            const { data } = await github.users.getAuthenticated();
+            const { data } = await lib.callEndpoint(context, 'user');
             return data;
         }
     }

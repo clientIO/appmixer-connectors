@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../github-commons');
+const lib = require('../../lib');
 
 /**
  * Component for fetching list of repositories
@@ -7,13 +7,9 @@ const commons = require('../../github-commons');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let github = commons.getGithubAPI(context.auth.accessToken);
-
-        return commons.getAll(github, 'repos', 'list')
-            .then(res => {
-                return context.sendJson(res, 'repositories');
-            });
+        const { data } = await lib.callEndpoint(context, 'user/repos');
+        return context.sendJson(data, 'repositories');
     }
 };

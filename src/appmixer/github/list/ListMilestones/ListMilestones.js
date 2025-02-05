@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../github-commons');
+const commons = require('../../lib');
 
 /**
  * Component for fetching list of milestones from repository
