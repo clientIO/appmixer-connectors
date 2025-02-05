@@ -9,6 +9,71 @@ function createMetaToInspector(fields) {
     return commons.toInspector(fields, excludeFields);
 }
 
+function createIssueMetaToInspector(fields) {
+    const inspector = {
+        schema: {
+            type: 'object',
+            properties: {},
+            required: []
+        },
+        inputs: {
+        }
+    };
+
+    Object.keys(fields).forEach((key, index) => {
+        if (excludeFields.includes(key) || key.includes('customfield_')) {
+            return;
+        }
+
+        const { name, schema, required, allowedValues, autoCompleteUrl, projectId } = fields[key];
+        inspector.schema.properties[key] = {
+            type: 'string'
+        };
+
+        if (required) {
+            inspector.schema.required.push(key);
+        }
+
+        inspector.inputs[key] = {
+            label: name,
+            type: 'text',
+            index: index + 1
+        };
+
+        if (Array.isArray(allowedValues)) {
+            inspector.inputs[key].type = 'select';
+            inspector.inputs[key].options = allowedValues.map(value => ({ content: value.name, value: value.id }));
+        }
+
+        if (schema.type === 'array') {
+            inspector.schema.properties[key] = {
+                type: 'array',
+                items: {
+                    type: 'string'
+                }
+            };
+
+            inspector.inputs[key].type = 'multiselect';
+        }
+
+        if (schema.type === 'date') {
+            inspector.inputs[key].type = 'date-time';
+        }
+
+        if (autoCompleteUrl) {
+            inspector.inputs[key].source = {
+                url: '/component/appmixer/jira/issues/ListField?outPort=out',
+                data: {
+                    messages: { in: { 'endpoint': '/rest/api/3/user/assignable/search', projectId } },
+                    transform: './ListField#fieldToSelectArray'
+                }
+            };
+        }
+    });
+
+    return inspector;
+}
+
 function updateMetaToInspector(fields) {
 
     const inspector = commons.toInspector(fields, excludeFields);
@@ -55,7 +120,10 @@ module.exports = {
             return context.sendJson([], 'out');
         }
 
-        return context.sendJson(type.fields, 'out');
+        const fieldsObj = type.fields;
+        fieldsObj.projectId = project;
+
+        return context.sendJson(fieldsObj, 'out');
     },
 
     projectsToSelectArray(projects) {
@@ -77,5 +145,6 @@ module.exports = {
     },
 
     createMetaToInspector,
-    updateMetaToInspector
+    updateMetaToInspector,
+    createIssueMetaToInspector
 };

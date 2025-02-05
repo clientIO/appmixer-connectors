@@ -29,6 +29,14 @@ module.exports = {
             return context.sendJson(filteredReporters, 'out');
         }
 
+        if (endpoint.includes('rest/api/3/user/assignable/search')) {
+            const { projectId } = context.messages.in.content;
+            endpoint = `${apiUrl}user/assignable/search?project=${projectId}`;
+            const response = await commons.get(endpoint, auth);
+
+            return context.sendJson(response, 'out');
+        }
+
         const response = await commons.get(endpoint, auth);
         return context.sendJson(response, 'out');
     },
