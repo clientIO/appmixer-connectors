@@ -82,7 +82,6 @@ module.exports = {
         issue.project = project;
         issue.issuetype = issueType;
 
-
         const id = issue.id;
         delete issue.id;
 
