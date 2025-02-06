@@ -123,7 +123,7 @@ module.exports = {
                 return;
             }
 
-            const { name, schema, required, allowedValues, autoCompleteUrl, projectId } = fields[key];
+            const { name, schema, required, allowedValues, autoCompleteUrl } = fields[key];
             inspector.schema.properties[key] = {
                 type: 'string'
             };
@@ -158,12 +158,11 @@ module.exports = {
                 inspector.inputs[key].type = 'date-time';
             }
 
-            // projectId will only have value for assignee property from Create/Update Issue
             if (autoCompleteUrl) {
                 inspector.inputs[key].source = {
                     url: '/component/appmixer/jira/issues/ListField?outPort=out',
                     data: {
-                        messages: { in: { 'endpoint': autoCompleteUrl, projectId } },
+                        messages: { in: { 'endpoint': autoCompleteUrl } },
                         transform: './ListField#fieldToSelectArray'
                     }
                 };
