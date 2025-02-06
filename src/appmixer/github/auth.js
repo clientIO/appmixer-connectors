@@ -15,13 +15,13 @@ module.exports = {
 
         requestProfileInfo: async context => {
 
-            const { data } = await lib.callEndpoint(context, 'user');
+            const { data } = await lib.apiRequest(context, 'user');
             return data;
         },
 
         validateAccessToken: async context => {
 
-            const { data } = await lib.callEndpoint(context, 'user');
+            const { data } = await lib.apiRequest(context, 'user');
             return data;
         }
     }

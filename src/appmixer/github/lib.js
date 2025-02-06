@@ -3,90 +3,84 @@ const repoReg = /[^\/]+/g;
 
 module.exports = {
 
-    /**
-     * Get new GithubAPI
-     * @param {string} token
-     * @returns {*} github
-     */
-    getGithubAPI(token) {
-
-        return new Octokit({
-            auth: token,
-            debug: false,
-            protocol: 'https',
-            host: 'api.github.com',
-            userAgent: 'AppMixer',
-            Promise: require('bluebird'),
-            followRedirects: false,
-            request: {
-                timeout: 15000
-            }
-        });
-    },
-
-    /**
-     * Build options.
-     * @param {string} repoId
-     * @param {Object} req
-     * @returns {*} github
-     */
-    buildUserRepoRequest(repoId, req = {}) {
-
-        let [owner, repo] = repoId.match(repoReg);
-        Object.assign(req, { owner, repo });
-
-        return req;
-    },
-
-    /**
-     * Get all records.
-     * @param github
-     * @param {string} entity - repos, ...
-     * @param {string} func - getAll, ...
-     * @param {*} [params]
-     * @return {Promise<*>}
-     */
-    getAll(github, entity, func, params = null) {
-
-        let options = github[entity][func]['endpoint'].merge(params);
-        return github.paginate(options);
-    },
-
-    async callEndpoint(context, action, {
+    async apiRequest(context, action, {
         method = 'GET',
-        data = {},
-        params
+        body = {},
+        params = {}
     } = {}) {
 
         const url = `https://api.github.com/${action}`;
-        console.log(url, data);
         const options = {
             method,
             url,
             headers: {
+                'accept': 'application/vnd.github+json',
                 'X-GitHub-Api-Version': '2022-11-28',
                 'Authorization': `Bearer ${context.accessToken || context.auth?.accessToken}`
             },
-            data,
+            data: body,
             params
         };
 
         return await context.httpRequest(options);
     },
 
+    async apiRequestPaginated(context, action, {
+        method = 'GET',
+        body = {},
+        params = {}
+    } = {}) {
+
+        let items = [];
+        let page = 1;
+        let hasNextPage = true;
+
+        while (hasNextPage) {
+            const { data, headers } = await this.apiRequest(context, action, {
+                method,
+                body,
+                params: {
+                    ...params,
+                    per_page: 100,
+                    page
+                }
+            });
+
+            items = items.concat(data);
+
+            const linkHeader = headers.link;
+            if (linkHeader) {
+                const links = linkHeader.split(',').map(link => link.trim());
+                const nextLink = links.find(link => link.includes('rel="next"'));
+                hasNextPage = !!nextLink;
+            } else {
+                hasNextPage = false;
+            }
+
+            page++;
+        }
+
+        return items;
+    },
+
     /**
      * Process items to find newly added.
-     * @param {Set} knownItems
+     * @param knowItems
      * @param {Set} actualItems
-     * @param {Set} newItems
      * @param {String} key
-     * @param {Object} item
      */
-    processItems(knownItems, actualItems, newItems, key, item) {
+    getNewItems(knowItems, actualItems, key) {
 
-        if (knownItems && !knownItems.has(item[key])) {
-            newItems.add(item);
-        }
-        actualItems.add(item[key]);
+        const newItems = new Set();
+        const actual = new Set();
+
+        actualItems.forEach(item => {
+            if (knowItems && !knowItems.has(item[key])) {
+                newItems.add(item);
+            }
+            actual.add(item[key]);
+        });
+
+        return { diff: Array.from(newItems), actual: Array.from(actual) };
     }
 };

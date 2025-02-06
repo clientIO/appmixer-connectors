@@ -11,9 +11,7 @@ module.exports = {
     async receive(context) {
 
         const { repositoryId } = context.properties;
-
-        const { data } = await lib.callEndpoint(context, `repos/${repositoryId}/assignees`);
-
-        return context.sendJson(data, 'assignees');
+        const items = await lib.apiRequestPaginated(context, `repos/${repositoryId}/assignees`);
+        return context.sendJson(items, 'assignees');
     }
 };

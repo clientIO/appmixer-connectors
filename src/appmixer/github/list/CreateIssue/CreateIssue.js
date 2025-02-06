@@ -17,9 +17,9 @@ module.exports = {
             delete issue.labelId;
         }
 
-        const { data } = await lib.callEndpoint(context, `repos/${repositoryId}/issues`, {
+        const { data } = await lib.apiRequest(context, `repos/${repositoryId}/issues`, {
             method: 'POST',
-            data: { issue }
+            body: issue
         });
 
         return context.sendJson(data, 'newIssue');
