@@ -1,5 +1,4 @@
 'use strict';
-const repoReg = /[^\/]+/g;
 
 module.exports = {
 
