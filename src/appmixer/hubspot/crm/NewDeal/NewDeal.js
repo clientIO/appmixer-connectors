@@ -19,6 +19,8 @@ class NewDeal extends BaseSubscriptionComponent {
 
         this.configureHubspot(context);
 
+        const eventsByObjectId = context.messages.webhook.content.data;
+
         // Get all objectIds that will be used to fetch the contacts in bulk
         let ids = [];
         // Locking to avoid duplicates. HubSpot payloads can come within milliseconds of each other.

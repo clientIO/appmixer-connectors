@@ -97,14 +97,36 @@ module.exports = async (context) => {
                         filteredEvents.push(...subscriptionEvents);
                     }
                     const eventsByObjectId = _.keyBy(filteredEvents, 'objectId');
-                    if (!Object.keys(eventsByObjectId).length) {
+                    const objectIds = Object.keys(eventsByObjectId);
+                    if (!objectIds.length) {
                         continue;
                     }
 
-                    await context.triggerListeners({
-                        eventName: `${subscriptionType}:${portalId}`,
-                        payload: eventsByObjectId
-                    });
+                    // Here instead of directly triggering the listeners, we store the events in the MongoDB database.
+                    // Store only `create` events in MongoDB
+                    if (subscriptionType.endsWith('creation')) {
+                        // Await all promises
+                        const storePromises = objectIds.map(async objectId => {
+                            const event = eventsByObjectId[objectId];
+                            // Store in MongoDB
+                            return context.service.stateSet(`${portalId}:${subscriptionType}:${objectId}`, event.occurredAt);
+                        });
+                        await Promise.all(storePromises);
+                    }
+
+                    // Trigger listeners in 5 seconds
+                    setTimeout(async function() {
+                        await triggerListenersDelayed(context, `${subscriptionType}:${portalId}`, eventsByObjectId);
+                    }, context.config?.webhookTriggerDelayMs || 5000);
+
+                    // Clear the cache in 10 seconds, after the listeners are triggered
+                    setTimeout(async () => {
+                        const deletePromises = objectIds.map(async objectId => {
+                            return context.service.stateUnset(`${portalId}:${subscriptionType}:${objectId}`);
+                        });
+                        await Promise.all(deletePromises);
+                    }, context.config?.webhookCacheClearMs || 10000);
+
                     eventCount += filteredEvents.length;
                 }
 
@@ -114,6 +136,28 @@ module.exports = async (context) => {
         }
     });
 };
+
+// Trigger listeners after 5 seconds. This is to avoid duplicate events.
+// See https://github.com/clientIO/appmixer-components/issues/1700#issuecomment-2605687394
+async function triggerListenersDelayed(context, eventName, payload) {
+
+    // If this is an update event, check if the object was created in the last 5 seconds
+    // If it was, skip the update event
+    if (eventName.includes('.propertyChange:')) {
+        const objectId = Object.keys(payload)[0];
+        const subscriptionType = eventName.split(':')[0];
+        const subscriptionTypeCreated = subscriptionType.replace('.propertyChange', '.creation');
+        const portalId = eventName.split(':')[1];
+        // Looking for the created timestamp in the database for the same object.
+        const createdTimestamp = await context.service.stateGet(`${portalId}:${subscriptionTypeCreated}:${objectId}`);
+        if (createdTimestamp && payload[objectId].occurredAt <= createdTimestamp) {
+            // This is an update event for an object that was created in the last 5 seconds.
+            return;
+        }
+    }
+
+    await context.triggerListeners({ eventName, payload });
+}
 
 function getSubscriptionsByType(subscriptionType) {
 
