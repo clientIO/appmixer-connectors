@@ -13,7 +13,7 @@ module.exports = {
             url: {
                 type: 'text',
                 name: 'URL',
-                tooltip: 'Your ActiveCampaign URL. You can find it in your account inside Settings > Developer'
+                tooltip: 'Your ActiveCampaign URL. You can find it in your account inside Settings > Developer. Example: https://dummyurl12345.api-us1.com'
             },
             apiKey: {
                 type: 'text',

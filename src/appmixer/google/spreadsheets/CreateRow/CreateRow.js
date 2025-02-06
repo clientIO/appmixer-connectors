@@ -23,8 +23,11 @@ module.exports = {
             range: `${worksheetId.split('/')[1]}!1:1` // Assuming headers are in the first row
         });
 
-        const headerValues = headerResponse.values[0];
+        const headerValues = headerResponse.values ? headerResponse.values[0] : [];
 
+        if (headerValues.length === 0) {
+            throw new context.CancelError('No headers found in the worksheet.');
+        }
         // Map the incoming values to the columns in the sheet
         const orderedValues = headerValues.map(column => values[column] || '');
 

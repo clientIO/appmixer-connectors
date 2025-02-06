@@ -46,7 +46,6 @@ class UpdatedDeal extends BaseSubscriptionComponent {
                     }
                     // Cache the event for 5s to avoid duplicates
                     await context.staticCache.set(cacheKey, event.occurredAt, context.config?.eventCacheTTL || 5000);
-                    // Store the event to send it later
                     events[dealId] = { occurredAt: event.occurredAt };
                 }
             }

@@ -15,18 +15,26 @@ module.exports = {
 
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
+        const toSheetId = input['to|sheetId'];
+        let rowIds = [];
+
+        try {
+            rowIds = JSON.parse(input.rowIds).map(Number);
+        } catch (error) {
+            throw new Error('Invalid rowIds format. Expected a JSON array string, e.g., "[123,456]".');
+        }
 
         let url = lib.getBaseUrl(context) + `/sheets/${input['sheetId']}/rows/move`;
 
         const headers = {};
         const query = new URLSearchParams;
 
-        const inputMapping = {
-            'rowIds': input['rowIds'],
-            'to.sheetId': input['to|sheetId']
+        const requestBody = {
+            rowIds: rowIds,
+            to: {
+                sheetId: toSheetId
+            }
         };
-        let requestBody = {};
-        lib.setProperties(requestBody, inputMapping);
 
         const queryParameters = { 'include': input['include'],
             'ignoreRowsNotFound': input['ignoreRowsNotFound'] };

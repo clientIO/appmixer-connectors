@@ -1,5 +1,5 @@
 'use strict';
-const { getClient } = require('./common');
+const { getClientForAuth } = require('./common');
 
 module.exports = {
 
@@ -45,7 +45,7 @@ module.exports = {
 
                 let conn;
                 try {
-                    conn = await getClient(context);
+                    conn = await getClientForAuth(context);
                     return true;
                 } finally {
                     conn && await conn.close();

@@ -1,4 +1,4 @@
-const ZoneCloudflareClient = require('./ZoneCloudflareClient');
+const listsJobs = require('./jobs.lists');
 
 module.exports = async (context) => {
 
@@ -6,22 +6,22 @@ module.exports = async (context) => {
 
     const config = require('./config')(context);
 
-    await context.scheduleJob('cloud-flare-lists-ips-delete-job', config.ipDeleteJob.schedule, async () => {
+    await context.scheduleJob('cloudflare-lists-ips-delete-job', config.ipDeleteJob.schedule, async () => {
 
         try {
-            const lock = await context.job.lock('cloud-flare-lists-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
-            await context.log('trace', '[CloudFlare] rule delete job started.');
+            const lock = await context.job.lock('cloudflare-lists-rule-block-ips-delete-job', { ttl: config.ipDeleteJob.lockTTL });
+            await context.log('trace', '[Cloudflare Lists] rule delete job started.');
 
             try {
-                await deleteExpireIps(context);
+                await listsJobs.deleteExpiredIpsFromList(context);
             } finally {
                 lock.unlock();
-                await context.log('trace', '[CloudFlare] rule delete job finished. Lock unlocked.');
+                await context.log('trace', '[Cloudflare Lists] rule delete job finished. Lock unlocked.');
             }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare] Error checking rules to delete',
+                    step: '[Cloudflare Lists] Error checking rules to delete',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
@@ -29,77 +29,13 @@ module.exports = async (context) => {
         }
     });
 
-    const deleteExpireIps = async function(context) {
-
-        const expired = await getExpiredItems(context);
-
-        const groups = Object.values(expired);
-
-        const promises = groups.map(chunk => {
-
-            const { email, apiKey, account, list } = chunk.auth;
-
-            context.log('info', { stage: '[CloudFlare] removing ', ips: chunk.ips, list, account });
-
-            const client = new ZoneCloudflareClient({ email, apiKey });
-            // https://developers.cloudflare.com/api/operations/lists-delete-list-items
-            return client.callEndpoint(context, {
-                method: 'DELETE',
-                action: `/accounts/${account}/rules/lists/${list}/items`,
-                data: { items: chunk.ips }
-            });
-        });
-
-        const itemsToDelete = { ids: [], lists: [] };
-
-        (await Promise.allSettled(promises)).forEach(async (result, i) => {
-            if (result.status === 'fulfilled') {
-                itemsToDelete.ids = itemsToDelete.ids.concat(groups[i].ips);
-                itemsToDelete.lists.push(groups[i]?.auth?.list);
-            } else {
-                const operations = groups[i].ips.map(item => ({
-                    updateOne: {
-                        filter: { id: item.id }, update: { $set: { mtime: new Date } }
-                    }
-                }));
-                await (context.db.collection(IPListModel.collection)).bulkWrite(operations);
-            }
-        });
-
-        if (itemsToDelete.ids.length) {
-            const deleted = await context.db.collection(IPListModel.collection)
-                .deleteMany({ id: { $in: itemsToDelete.ids.map(item => item.id) } });
-            await context.log('info', {
-                stage: `[CloudFlare] Deleted total ${deleted.deletedCount} ips.`,
-                lists: itemsToDelete.lists,
-                itemIds: itemsToDelete.ids
-            });
-        }
-    };
-
-    const getExpiredItems = async function(context) {
-
-        const expired = await context.db.collection(IPListModel.collection)
-            .find({ removeAfter: { $lt: Date.now() } })
-            .toArray();
-
-        return expired.reduce((res, item) => {
-            const key = item.auth.list; // listId
-            res[key] = res[key] || { ips: [] };
-            res[key].auth = item.auth;
-            res[key].ips.push({ id: item.id });
-
-            return res;
-        }, {});
-    };
-
     // Self-healing job to remove rules that have created>mtime. These rules are stuck in the system and should be removed.
-    await context.scheduleJob('cloud-flare-lists-ips-cleanup-job', config.cleanup.schedule, async () => {
+    await context.scheduleJob('cloudflare-lists-ips-cleanup-job', config.cleanup.schedule, async () => {
 
         let lock = null;
         try {
-            lock = await context.job.lock('cloud-flare-lists-ips-cleanup-job', { ttl: config.cleanup.lockTTL });
-            await context.log('trace', '[CloudFlare] IPs cleanup job started.');
+            lock = await context.job.lock('cloudflare-lists-ips-cleanup-job', { ttl: config.cleanup.lockTTL });
+            await context.log('trace', '[Cloudflare  Lists] IPs cleanup job started.');
 
             // Delete IPs where the time difference between 'mtime' and 'removeAfter' exceeds the specified timespan,
             // indicating that deletion attempts have persisted for the entire timespan.
@@ -108,18 +44,20 @@ module.exports = async (context) => {
                 $expr: { $gt: [{ $subtract: ['$mtime', '$removeAfter'] }, timespan] }
             });
 
-            await context.log('info', { stage: `[CloudFlare] Deleted ${expired.deletedCount} orphaned rules.` });
+            if (expired.deletedCount) {
+                await context.log('info', { step: `[Cloudflare Lists] Deleted ${expired.deletedCount} orphaned rules.` });
+            }
         } catch (err) {
             if (err.message !== 'locked') {
                 context.log('error', {
-                    stage: '[CloudFlare]  Error checking orphaned ips',
+                    step: '[Cloudflare Lists]  Error checking orphaned ips',
                     error: err,
                     errorRaw: context.utils.Error.stringify(err)
                 });
             }
         } finally {
             lock?.unlock();
-            await context.log('trace', '[CloudFlare] IPs cleanup job finished. Lock unlocked.');
+            await context.log('trace', '[Cloudflare Lists] IPs cleanup job finished. Lock unlocked.');
         }
     });
 };
