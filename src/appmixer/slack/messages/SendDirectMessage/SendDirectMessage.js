@@ -23,7 +23,7 @@ module.exports = {
         }
 
         // Then, send the message to the channel.
-        const message = await lib.sendMessage(response.channel.id, text, context.auth.accessToken);
+        const message = await lib.sendMessage(context, response.channel.id, text, false);
 
         return context.sendJson(message, 'out');
     }

@@ -9,9 +9,9 @@ module.exports = {
 
     async receive(context) {
 
-        const { channelId, text } = context.messages.message.content;
+        const { channelId, text, asBot } = context.messages.message.content;
 
-        const message = await lib.sendMessage(channelId, text, context.auth.accessToken);
+        const message = await lib.sendMessage(context, channelId, text, asBot);
         return context.sendJson(message, 'newMessage');
     }
 };
