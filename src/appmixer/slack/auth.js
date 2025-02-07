@@ -23,6 +23,8 @@ module.exports = {
                 let params = new URLSearchParams([
                     ['client_id', context.clientId],
                     ['redirect_uri', context.callbackUrl],
+                    // Also add the default 'scope' param with the 'chat:write' value. Needed when sending messages as a bot.
+                    ['scope', 'chat:write'],
                     ['state', context.ticket]
                 ]);
                 if (Array.isArray(context.scope) && context.scope.length > 0) {
