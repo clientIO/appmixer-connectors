@@ -29,33 +29,45 @@ module.exports = {
     async receive(context) {
 
         const { profileInfo: { apiUrl }, auth } = context;
-        const metadata = await commons.get(
-            `${apiUrl}issue/createmeta`,
-            auth,
-            { expand: 'projects.issuetypes.fields' }
-        );
 
         let { project, issueType } = context.messages.in.content;
 
         if (!project) {
-            return context.sendJson(metadata.projects, 'out');
-        }
+            const projects = await commons.pager({
+                endpoint: `${apiUrl}project/search`,
+                credentials: auth,
+                key: 'values',
+                params: { maxResults: 100 }
+            });
 
-        const projectMetadata = metadata.projects.find(p => p.id === project);
-        if (!projectMetadata) {
-            return context.sendJson([], 'out');
+            return context.sendJson(projects, 'out');
         }
 
         if (!issueType) {
-            return context.sendJson(projectMetadata.issuetypes || [], 'out');
+            const { issueTypes } = await commons.get(
+                `${apiUrl}issue/createmeta/${project}/issuetypes`,
+                auth
+            );
+
+            return context.sendJson(issueTypes || [], 'out');
         }
 
-        const type = projectMetadata.issuetypes.find(it => it.id === issueType);
-        if (!type) {
+        const { fields } = await commons.get(
+            `${apiUrl}issue/createmeta/${project}/issuetypes/${issueType}`,
+            auth
+        );
+
+        if (!fields) {
             return context.sendJson([], 'out');
         }
 
-        return context.sendJson(type.fields, 'out');
+        const fieldsModified = fields.reduce((acc, field) => {
+            const { fieldId, ...rest } = field;
+            acc[fieldId] = rest;
+            return acc;
+        }, {});
+
+        return context.sendJson(fieldsModified, 'out');
     },
 
     projectsToSelectArray(projects) {

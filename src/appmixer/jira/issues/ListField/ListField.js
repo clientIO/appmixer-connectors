@@ -7,11 +7,7 @@ module.exports = {
     async receive(context) {
 
         const { profileInfo: { apiUrl }, auth } = context;
-        let { type, endpoint } = context.messages.in.content;
-
-        if (type === 'assignee') {
-            endpoint = `${apiUrl}user/search?query=`;
-        }
+        let { endpoint } = context.messages.in.content;
 
         // Fix labels endpoint. The one provided by Get create issue metadata is not working.
         if (endpoint.includes('rest/api/1.0/labels/suggest')) {
