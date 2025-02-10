@@ -1,13 +1,25 @@
 'use strict';
 
+const uuid = require('uuid');
+
 module.exports = {
-
+    
     async receive(context) {
+        
+        let { threadId, content } = context.messages.in.content;
+        const message = {
+            id: uuid.v4(),
+            content,
+            role: 'agent',
+            componentId: context.componentId,
+            flowId: context.flowId
 
-        let { chatId, content } = context.messages.in.content;
-        const res = {
-            chatId, content
         };
-        return context.response(res, 200, { 'Content-Type': 'application/json' });
+        const res = await context.callAppmixer({
+            endPoint: '/plugins/appmixer/utils/chat/messages/' + threadId,
+            method: 'POST',
+            body: message
+        });
+        return context.sendJson(res, 'out');
     }
 };

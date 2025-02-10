@@ -1,9 +1,39 @@
 'use strict';
 
+const { flow } = require('lodash');
 const lib = require('../lib');
-
+const uuid = require('uuid');
 
 module.exports = {
+
+    async start(context) {
+
+        const agent = await context.callAppmixer({
+            endPoint: '/plugins/appmixer/utils/chat/agents',
+            method: 'POST',
+            body: {
+                name: context.properties.agentName || 'Agent',
+                avatar: context.properties.agentAvatar || 'https://img.freepik.com/premium-vector/avatar-icon002_750950-52.jpg',
+                message: context.properties.agentMessage || 'Hello! How can I help you?',
+                componentId: context.componentId,
+                flowId: context.flowId
+            }
+        });
+
+        return context.saveState({ agent });
+    },
+
+    async stop(context) {
+
+        const { agent } = context.getState();
+
+        await context.callAppmixer({
+            endPoint: '/plugins/appmixer/utils/chat/agents/' + agent.id,
+            method: 'DELETE'
+        });
+
+        return context.stateClear();
+    },
     
     async receive(context) {
         
@@ -23,44 +53,103 @@ module.exports = {
         if (context.messages.webhook) {
 
             const req = context.messages.webhook.content;
-
-            // https://docs.dhtmlx.com/chatbot/guides/styling/
-            const options = {
-                format: context.properties.format || 'markdown', // markdown, text
-                render: context.properties.render || 'blocks'  // blocks, bubbles, flow, cards
-            };
-
             await context.log({ step: 'webhook', req });
+            const action = req.query.action;
 
-            if (req.method === 'GET') {
-
-                if (req.query.init) {
-
-                    const res = {
-                        chats: [{
-                            id: 1,
-                            data: [],
-                            agent: 1,
-                            theme: 'Ask me anything',
-                            created: new Date()
-                        }],
-                        agents: [{
-                            id: 1,
-                            name: 'Agent',
-                            avatar: 'https://img.freepik.com/premium-vector/avatar-icon002_750950-52.jpg'
-                        }],
-                        messages: []
-                    };
-                    return context.response(res, 200, { 'Content-Type': 'application/json' });
-                } else {
-                    // Main page.
-                    const page = lib.generateWebUI(context.getWebhookUrl(), options);
-                    return context.response(page, 200, { 'Content-Type': 'text/html' });
+            switch (action) {
+                case 'load-session': {
+                    // Return threads and agents.
+                    const agent = await context.stateGet('agent');
+                    const session = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/sessions/' + req.query.sessionId,
+                        method: 'GET'
+                    });
+                    if (!session) {
+                        return context.response({}, 404, { 'Content-Type': 'application/json' });
+                    }
+                    session.agents = [agent];
+                    return context.response(session, 200, { 'Content-Type': 'application/json' });
                 }
-            } else if (req.method === 'POST') {
-
-                // { chatId, messageId, content }
-                await context.sendJson(req.data, 'out');
+                case 'create-session': {
+                    // Create a session and return thread and agents.
+                    const session = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/sessions',
+                        method: 'POST',
+                        body: {}
+                    });
+                    const agent = await context.stateGet('agent');
+                    const thread = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/threads',
+                        method: 'POST',
+                        body: {
+                            agentId: agent.id,
+                            sessionId: session.id,
+                            theme: req.data?.theme || context.properties.chatTheme || 'Ask me anything'
+                        }
+                    });
+                    session.threads = [thread];
+                    session.agents = [agent];
+                    return context.response(session, 200, { 'Content-Type': 'application/json' });
+                }
+                case 'add-thread': {
+                    // Add a new thread to the session and return it.
+                    const threadData = req.data;
+                    const thread = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/threads',
+                        method: 'POST',
+                        body: threadData
+                    });
+                    await context.log({ step: 'thread-created', thread });
+                    return context.response(thread, 200, { 'Content-Type': 'application/json' });
+                }
+                case 'delete-thread': {
+                    // Add a new thread to the session and return it.
+                    const { threadId } = req.data;
+                    const thread = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/threads/' + threadId,
+                        method: 'DELETE'
+                    });
+                    await context.log({ step: 'thread-deleted', threadId });
+                    return context.response({}, 200, { 'Content-Type': 'application/json' });
+                }
+                case 'load-thread': {
+                    // Load messages in a thread.
+                    const threadId = req.query.threadId;
+                    const thread = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/threads/' + threadId,
+                        method: 'GET'
+                    });
+                    if (!thread) {
+                        return context.response({}, 404, { 'Content-Type': 'application/json' });
+                    }
+                    const messages = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/messages/' + threadId,
+                        method: 'GET'
+                    });
+                    thread.messages = messages;
+                    return context.response(thread, 200, { 'Content-Type': 'application/json' });
+                }
+                case 'send-message': {
+                    // Send a message to a thread.
+                    const message = req.data;
+                    await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/messages/' + message.threadId,
+                        method: 'POST',
+                        body: {
+                            id: message.id,
+                            content: message.content,
+                            role: 'user',
+                            componentId: context.componentId,
+                            flowId: context.flowId
+                        }
+                    });
+                    await context.sendJson(message, 'out');
+                    return context.response({}, 200, { 'Content-Type': 'application/json' });
+                }
+                default:
+                    // Main page.
+                    const page = lib.generateWebUI(context.getWebhookUrl());
+                    return context.response(page, 200, { 'Content-Type': 'text/html' });
             }
         }
     }

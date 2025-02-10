@@ -1,24 +1,28 @@
 const fs = require('fs');
+const { URL } = require('url');
 
+/*
 const chatLibJs = fs.readFileSync(__dirname + '/chat.lib.js', 'utf8');
 const chatLibCss = fs.readFileSync(__dirname + '/chat.lib.css', 'utf8');
 const chatMainJs = fs.readFileSync(__dirname + '/chat.main.js', 'utf8');
+*/
 
-const page = (endpoint, options) => {
+const page = (baseUrl, endpoint) => {
     return `
         <!DOCTYPE html>
         <html>
         <head>
-        <style type="text/css">${chatLibCss}</style>
+        <link rel="stylesheet" href="${baseUrl}/plugins/appmixer/utils/chat/assets/chat.lib.css"/>
+        <link rel="stylesheet" href="${baseUrl}/plugins/appmixer/utils/chat/assets/chat.main.css"/>
         </head>
         <body>
         <div id="chat-container"></div>
-        <script type="text/javascript">${chatLibJs}</script>
+        <div style="display: none" id="chat-waiting">waiting...</div>
+        <script type="text/javascript" src="${baseUrl}/plugins/appmixer/utils/chat/assets/chat.lib.js"></script>
         <script type="text/javascript">
            const ENDPOINT = '${endpoint}';
-           const OPTIONS = ${JSON.stringify(options)};
         </script>
-        <script type="text/javascript">${chatMainJs}</script>
+        <script type="text/javascript" src="${baseUrl}/plugins/appmixer/utils/chat/assets/chat.main.js"></script>
         </body>
         </html>
         `;
@@ -26,7 +30,9 @@ const page = (endpoint, options) => {
 
 module.exports = {
 
-    generateWebUI: function(endpoint, options) {
-        return page(endpoint, options);
+    generateWebUI: function(endpoint) {
+        const parsedUrl = new URL(endpoint);
+        const baseUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}`;
+        return page(baseUrl, endpoint);
     }
 };
