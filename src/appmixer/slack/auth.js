@@ -19,10 +19,21 @@ module.exports = {
 
             authUrl: context => {
 
+                const botScopes = [
+                    // Join public channels in a workspace
+                    'channels:join',
+                    // New Slack apps do not begin life with the ability to post in all public channels.
+                    // For your new Slack app to gain the ability to post in all public channels, request the chat:write.public scope.
+                    'chat:write.public',
+                    'chat:write'
+                ];
+
                 let urlObject = new URL('https://slack.com/oauth/v2/authorize');
                 let params = new URLSearchParams([
                     ['client_id', context.clientId],
                     ['redirect_uri', context.callbackUrl],
+                    // Also add the default 'scope' param with the 'chat:write' value. Needed when sending messages as a bot.
+                    ['scope', botScopes.join(',')],
                     ['state', context.ticket]
                 ]);
                 if (Array.isArray(context.scope) && context.scope.length > 0) {
