@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 'use strict';
 
 const pathModule = require('path');
@@ -16,18 +17,26 @@ module.exports = {
     async sendMessage(context, channelId, message, asBot = false) {
 
         let token = context.auth.accessToken;
+
+        // Only for bot messages.
+        let iconUrl;
+        let username;
         if (asBot === true) {
             // Make sure the bot token is used.
             token = context.config?.botToken;
             if (!token) {
                 throw new context.CancelError('Bot token is required for sending messages as bot. Please provide it in the connector configuration.');
             }
+
+            ({ iconUrl, username } = context.messages.message.content);
         }
 
         let entities = new Entities();
         const web = new WebClient(token);
 
         const response = await web.chat.postMessage({
+            icon_url: iconUrl,
+            username,
             channel: channelId,
             text: entities.decode(message)
         });
