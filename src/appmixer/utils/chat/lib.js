@@ -17,7 +17,7 @@ const page = (baseUrl, endpoint) => {
         </head>
         <body>
         <div id="chat-container"></div>
-        <div style="display: none" id="chat-waiting">waiting...</div>
+        <div id="chat-waiting" class="lds-ellipsis off"><div></div><div></div><div></div><div></div></div>
         <script type="text/javascript" src="${baseUrl}/plugins/appmixer/utils/chat/assets/chat.lib.js"></script>
         <script type="text/javascript">
            const ENDPOINT = '${endpoint}';

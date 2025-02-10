@@ -28,7 +28,7 @@ async function main() {
         thread.agent = thread.agentId;
     });
 
-    let activeChat = session.threads[0].id;
+    let activeChat = session.threads[session.threads.length - 1].id;
     
     chat = new ChatBot('#chat-container', {
         chats: session.threads,
@@ -52,6 +52,8 @@ async function pollForMessages() {
     }
 }
 
+let lastMessageId;
+
 async function loadMessages(threadId) {
 
     if (!threadId) return;
@@ -66,8 +68,11 @@ async function loadMessages(threadId) {
                 message.author = thread.agentId;
             }
         });
-        if (thread.messages.length) {
-            setWaiting(false);
+        if (thread.messages.length && thread.messages[thread.messages.length - 1].id !== lastMessageId) {
+            if (lastMessageId) {
+                setWaiting(false);
+            }
+            lastMessageId = thread.messages[thread.messages.length - 1].id;
         }
         chat.parse(threadId, thread.messages);
     } catch (err) {
@@ -78,11 +83,12 @@ async function loadMessages(threadId) {
 
 function setWaiting(waiting) {
 
-    if (waiting) {
-        document.getElementById('chat-waiting').style.display = 'block';
-    } else {
-        document.getElementById('chat-waiting').style.display = 'none';
-    }
+    const el = document.querySelector('#chat-waiting');
+	if (waiting) {
+		el.classList.remove('off');
+	} else {
+		el.classList.add('off');
+	}
 }
 
 async function deleteThread(threadId) {
@@ -146,6 +152,8 @@ async function addMessage(threadId, message) {
             content: message.content
         }),
     });
+
+    lastMessageId = message.id;
 }
 
 main();
