@@ -25,6 +25,10 @@ module.exports = {
     async receive(context) {
 
         if (context.messages.webhook) {
+            if (context.properties.ignoreBotMessages && context.messages.webhook.content.data.subtype === 'bot_message') {
+                // Ignore bot messages.
+                return;
+            }
             await context.sendJson(context.messages.webhook.content.data, 'message');
         }
     }
