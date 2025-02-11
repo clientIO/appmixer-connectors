@@ -117,9 +117,11 @@ const initClient = async (context, auth, connectionId) => {
             throw new Error(`Failed to create Access Certificate: ${err.message}`);
         }
     }
-    // If any SASL options are provided, ignore the SSL options
+    // If any SASL options are provided, ignore the SSL certificate options. Keep `rejectUnauthorized` if provided.
     if (saslMechanism) {
-        delete config.ssl;
+        delete config.ssl?.ca;
+        delete config.ssl?.key;
+        delete config.ssl?.cert;
     }
 
     return new Kafka(config);
@@ -214,7 +216,7 @@ const addProducer = async (context, flowId, componentId, auth, connId) => {
     await context.service.stateSet(connectionId, {
         flowId, componentId, auth
     });
-    const client = await initClient(context, auth);
+    const client = await initClient(context, auth, connectionId);
     const producer = client.producer();
 
     await producer.connect();

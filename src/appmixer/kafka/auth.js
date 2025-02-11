@@ -59,7 +59,7 @@ module.exports = {
                 saslMechanism: {
                     type: 'text',
                     name: 'SASL Mechanism',
-                    tooltip: 'SASL mechanism type. Supported values: SCRAM-SHA-256, SCRAM-SHA-512, PLAIN. If provided, the saslUsername and saslPassword fields are required and all the SSL fields are ignored.'
+                    tooltip: 'SASL mechanism type. Supported values: SCRAM-SHA-256, SCRAM-SHA-512, PLAIN. If provided, the saslUsername and saslPassword fields are required and all the SSL certificates are ignored.'
                 },
                 saslUsername: {
                     type: 'text',
