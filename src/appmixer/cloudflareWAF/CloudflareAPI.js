@@ -34,35 +34,6 @@ module.exports = class CloudflareAPI {
         });
     }
 
-    async verifyGlobalApiKey(context) {
-
-        const headers = this.getHeaders();
-
-        return context.httpRequest({
-            method: 'GET',
-            url: 'https://api.cloudflare.com/client/v4/accounts',
-            headers
-        });
-    }
-
-    async callEndpoint(context, {
-        action,
-        method = 'GET',
-        data,
-        params
-    }) {
-
-        const headers = this.getHeaders();
-
-        return context.httpRequest({
-            method,
-            url: `https://api.cloudflare.com/client/v4${action}`,
-            headers,
-            data,
-            params
-        });
-    }
-
     // WAF
     /**
      * https://developers.cloudflare.com/api/operations/getZoneRuleset
@@ -87,7 +58,7 @@ module.exports = class CloudflareAPI {
         return response.data;
     }
 
-    async createRulesetAndBlockRule(context, ips) {
+    async createRulesetAndBlockRule(context, rules) {
 
         const { data } = await context.httpRequest({
             method: 'POST',
@@ -97,8 +68,8 @@ module.exports = class CloudflareAPI {
                 kind: 'zone',
                 phase: 'http_request_firewall_custom',
                 name: 'Http Request Firewall Custom Ruleset',
-                description: 'Created by Salt Security\'s Cloudflare Integration. Firewall rules of identified attackers will be added to this ruleset.',
-                rules: [this.getBlockRule(1, ips)]
+                description: 'Generated Ruleset.',
+                rules
             }
         });
 

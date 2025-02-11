@@ -16,12 +16,13 @@ module.exports = {
         const parsedIps = ips.split(/\s+|,/); // Split by comma or any whitespace
         const client = new CloudflareAPI({ zoneId, token: apiToken });
 
-        const ruleset = (await client.listZoneRulesets(context))
+        let ruleset = (await client.listZoneRulesets(context))
             .find(ruleset => ruleset.kind === 'zone' && ruleset.phase === 'http_request_firewall_custom');
 
         let resultRules = []; // all affected rules - created or updated
         if (!ruleset) {
-            const { data } = await client.createRulesetAndBlockRule(context, parsedIps);
+            const data = await client.createRulesetAndBlockRule(context, [lib.getBlockRule(1, parsedIps)]);
+            ruleset = data?.result;
             resultRules = data?.result?.rules || [];
         } else {
             const { result: { rules = [] } } = await client.getRules(context, ruleset.id);
@@ -51,7 +52,7 @@ module.exports = {
         const updatedIps = lib.findIpsInRules(resultRules, parsedIps);
         const updatedIpsArray = Object.entries(updatedIps).map(([ip, { id }]) => ({ ip, ruleId: id }));
 
-        if (ttl) {
+        if (ttl && updatedIpsArray.length) {
 
             const removeAfter = new Date().getTime() + ttl * 1000;
             const dbItems = updatedIpsArray.map(item => {
