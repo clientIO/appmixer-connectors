@@ -1,6 +1,8 @@
 'use strict';
 
 const { Kafka, logLevel } = require('kafkajs');
+const tmp = require('tmp');
+const fs = require('fs');
 const RegexParser = require('regex-parser');
 
 // Note that we cannot simply define with `const KAFKA_CONNECTOR_OPEN_CONNECTIONS = {}; `.
@@ -15,7 +17,7 @@ if (process.KAFKA_CONNECTOR_OPEN_CONNECTIONS) {
     process.KAFKA_CONNECTOR_OPEN_CONNECTIONS = KAFKA_CONNECTOR_OPEN_CONNECTIONS = {};
 }
 
-const initClient = (context, auth) => {
+const initClient = async (context, auth) => {
 
     const {
         clientId,
@@ -24,7 +26,8 @@ const initClient = (context, auth) => {
         saslMechanism,
         saslUsername,
         saslPassword,
-        connectionTimeout = 10000
+        connectionTimeout = 10000,
+        sslRejectUnauthorized
     } = auth;
     const config = {
         clientId,
@@ -63,6 +66,14 @@ const initClient = (context, auth) => {
             }
             : undefined
     };
+
+    // Additional SSL options. They can override the default SSL options.
+    if (sslRejectUnauthorized === 'true' || sslRejectUnauthorized === 'false') {
+        config.ssl = {
+            rejectUnauthorized: sslRejectUnauthorized === 'true'
+        };
+    }
+
     return new Kafka(config);
 };
 
@@ -81,7 +92,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         topic.topic.startsWith('/') ? RegexParser(topic.topic) : topic.topic
     );
 
-    const client = initClient(context, auth);
+    const client = await initClient(context, auth);
     const consumer = client.consumer({ groupId });
 
     await consumer.connect();
@@ -155,7 +166,7 @@ const addProducer = async (context, flowId, componentId, auth, connId) => {
     await context.service.stateSet(connectionId, {
         flowId, componentId, auth
     });
-    const client = initClient(context, auth);
+    const client = await initClient(context, auth);
     const producer = client.producer();
 
     await producer.connect();
