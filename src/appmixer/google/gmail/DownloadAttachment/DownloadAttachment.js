@@ -1,5 +1,5 @@
 'use strict';
-const emailCommons = require('../gmail-commons');
+const emailCommons = require('../lib');
 
 module.exports = {
 
