@@ -17,8 +17,10 @@ if (process.KAFKA_CONNECTOR_OPEN_CONNECTIONS) {
     process.KAFKA_CONNECTOR_OPEN_CONNECTIONS = KAFKA_CONNECTOR_OPEN_CONNECTIONS = {};
 }
 
-const initClient = async (context, auth) => {
+const initClient = async (context, auth, connectionId) => {
 
+    let tmpDir;
+    let tmpFile;
     const {
         clientId,
         brokers,
@@ -68,10 +70,56 @@ const initClient = async (context, auth) => {
     };
 
     // Additional SSL options. They can override the default SSL options.
+    if (auth.tlsCA || auth.tlsKey || auth.tlsCert || sslRejectUnauthorized === 'true' || sslRejectUnauthorized === 'false') {
+        config.ssl = {};
+    }
     if (sslRejectUnauthorized === 'true' || sslRejectUnauthorized === 'false') {
         config.ssl = {
             rejectUnauthorized: sslRejectUnauthorized === 'true'
         };
+    }
+    if (auth.tlsCA) {
+        try {
+            tmpDir = tmp.dirSync();
+            tmpFile = `${tmpDir.name}/ca.pem`;
+            fs.writeFileSync(tmpFile, auth.tlsCA);
+            config.ssl.ca = [fs.readFileSync(tmpFile, 'utf-8')];
+        } catch (err) {
+            if (connectionId) {
+                await context.service.stateUnset(connectionId);
+            }
+            throw new Error(`Failed to create CA certificate: ${err.message}`);
+        }
+    }
+    if (auth.tlsKey) {
+        try {
+            tmpDir = tmp.dirSync();
+            tmpFile = `${tmpDir.name}/key.pem`;
+            fs.writeFileSync(tmpFile, auth.tlsKey);
+            config.ssl.key = fs.readFileSync(tmpFile, 'utf-8');
+        } catch (err) {
+            if (connectionId) {
+                await context.service.stateUnset(connectionId);
+            }
+            throw new Error(`Failed to create Access Key: ${err.message}`);
+        }
+    }
+    if (auth.tlsCert) {
+        try {
+            tmpDir = tmp.dirSync();
+            tmpFile = `${tmpDir.name}/cert.pem`;
+            fs.writeFileSync(tmpFile, auth.tlsCert);
+            config.ssl.cert = fs.readFileSync(tmpFile, 'utf-8');
+        } catch (err) {
+            if (connectionId) {
+                await context.service.stateUnset(connectionId);
+            }
+            throw new Error(`Failed to create Access Certificate: ${err.message}`);
+        }
+    }
+    // If any SASL options are provided, ignore the SSL options
+    if (saslMechanism) {
+        delete config.ssl;
     }
 
     return new Kafka(config);
@@ -92,7 +140,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         topic.topic.startsWith('/') ? RegexParser(topic.topic) : topic.topic
     );
 
-    const client = await initClient(context, auth);
+    const client = await initClient(context, auth, connectionId);
     const consumer = client.consumer({ groupId });
 
     await consumer.connect();
