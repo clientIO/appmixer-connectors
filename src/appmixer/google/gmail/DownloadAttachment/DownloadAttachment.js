@@ -9,9 +9,11 @@ module.exports = {
         const attachment = await emailCommons.callEndpoint(context, endpoint, {
             headers: { 'Content-Type': 'application/json' }
         });
+
         const buffer = Buffer.from(attachment.data.data, 'base64');
-        const { fileId } = await context.saveFileStream(fileName, buffer);
-        return context.sendJson({ fileId }, 'out');
+        const name = fileName || `gmail-attachment-${messageId}-${attachmentId.substring(0, 20)}`;
+        const file = await context.saveFileStream(name, buffer);
+        return context.sendJson(file, 'out');
     }
 
 };
