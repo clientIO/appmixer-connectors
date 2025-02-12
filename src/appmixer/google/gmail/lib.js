@@ -33,7 +33,7 @@ function getGmailPartContent(part, _content) {
 }
 
 module.exports = {
-    async callEndpoint(context, endpoint, { method = 'GET', params = {}, data = null, headers = {} } = {}) {
+    async callEndpoint(context, endpoint, { method = 'GET', params = {}, data = null, headers = {}, responseType = 'json' } = {}) {
         const options = {
             method,
             url: `${BASE_URL}${endpoint}`,
@@ -41,7 +41,8 @@ module.exports = {
                 Authorization: `Bearer ${context.auth.accessToken}`,
                 ...headers
             },
-            params
+            params,
+            responseType
         };
 
         if (data) {
@@ -107,6 +108,7 @@ module.exports = {
             labelIds: gmailMessageResource.labelIds,
             snippet: gmailMessageResource.snippet,
             sizeEstimate: gmailMessageResource.sizeEstimate,
+            internalDate: gmailMessageResource.internalDate,
             payload: {
                 date: new Date(parseInt(gmailMessageResource.internalDate, 10)),
                 to: [],
@@ -188,62 +190,96 @@ module.exports = {
         return labelIds.length !== 1 || (labelIds.indexOf('SENT') === -1 && labelIds.indexOf('DRAFT') === -1);
     },
 
-    async listNewMessages(options, lastMessageId, result = {}, limit = null) {
-        const maxResults = options.maxResults || 300;
-        const endpoint = `/users/${options.userId}/messages`;
+    async listNewMessages(context, query, state) {
 
-        do {
-            const response = await this.callEndpoint(options.context, endpoint, {
-                params: {
-                    maxResults,
-                    pageToken: options.pageToken || ''
-                }
+        const newState = {};
+        let maxResults;
+
+        if (state.lastMessageInternalDate) {
+            // The size of the max results is not that important since
+            // if not all messages are fetched, the next run will fetch them
+            // (or the run before which the influx of emails stabilized).
+            maxResults = 50;
+            // Fetch only new messages that we haven't seen. Subtract 2 seconds to avoid
+            // missing messages due to the internalDate resolution (the 'after' term only
+            // accepts seconds while the internal date is in milliseconds).
+            const internalDateSeconds = Math.floor(state.lastMessageInternalDate / 1000) - 2;
+            query = (query ? query + ' AND ' : '') + 'after:' + internalDateSeconds;
+        } else {
+            maxResults = 1;
+            await context.log({
+                step: 'initialization',
+                message: 'Fetching the latest message internal date from the inbox to be able to detect new incoming messages.',
+                query
             });
+            // During the initialization phase, we only need to get the latest message
+            // regardless of whether it matches our query. Otherwise, we would always
+            // miss the first email matching the query.
+            query = '';
+        }
 
-            if (!lastMessageId) {
-                return {
-                    lastMessageId: response.data.messages ? response.data.messages[0].id : null,
-                    newMessages: []
-                };
-            }
-
-            if (!result.hasOwnProperty('lastMessageId')) {
-                result.lastMessageId = response.data.messages ? response.data.messages[0].id : undefined;
-            }
-
-            if (!result.hasOwnProperty('newMessages')) {
-                result.newMessages = [];
-            }
-
-            const diff = this.getNewMessages(lastMessageId, response.data.messages || []);
-            result.newMessages = result.newMessages.concat(diff);
-
-            if (limit && result.newMessages.length >= limit) {
-                return result;
-            }
-
-            options.pageToken = response.data.nextPageToken;
-        } while (options.pageToken);
-
-        return result;
-    },
-
-    getNewMessages(latestMessageId, messages) {
-        let differences = [];
-
-        messages.sort((a, b) => {
-            return -this.compareIds(a.id, b.id);
+        const endpoint = '/users/me/messages';
+        const params = {
+            maxResults,
+            q: query
+        };
+        const response = await this.callEndpoint(context, endpoint, { params });
+        let messages = response.data.messages || [];
+        await context.log({
+            step: 'query',
+            query,
+            messagesReturned: messages.length,
+            lastMessageInternalDate: state.lastMessageInternalDate,
+            lastMessageId: state.lastMessageId
         });
 
-        for (let i = 0; i < messages.length; i++) {
-            let message = messages[i];
-            if (this.compareIds(message.id, latestMessageId) === 1) {
-                differences.push(message);
-            } else {
-                return differences;
+        if (state.lastMessageId) {
+            // Get emails that we haven't seen. state.lastMessageId contains the ID of the last
+            // message we have processed in the previous run.
+            for (let i = 0; i < messages.length; i++) {
+                if (messages[i].id === state.lastMessageId) {
+                    messages = messages.slice(0, i);
+                    break;
+                }
             }
         }
 
-        return differences;
+        if (messages.length === 0) {
+            // No new messages found.
+            return { emails: [], state };
+        }
+
+        // Fetch the full email data for new messages.
+        let emails = await Promise.map(messages, async (message) => {
+            try {
+                const response = await this.callEndpoint(context, `/users/me/messages/${message.id}`, {
+                    method: 'GET',
+                    params: { format: 'full' }
+                });
+                return this.normalizeEmail(response.data);
+            } catch (err) {
+                // email can be deleted (permanently) in gmail between listNewMessages call and
+                // this getMessage call, in such case - ignore it and return null.
+                if (err && err.response && err.response.status === 404) {
+                    return null;
+                }
+                throw err;
+            }
+        }, { concurrency: 10 });
+
+        // Update the state with the latest message ID.
+        const lastMessage = emails[0];
+        newState.lastMessageInternalDate = lastMessage.internalDate;
+        newState.lastMessageId = lastMessage.id;
+
+        await context.log({ step: 'emails-fetched', count: emails.length, lastMessage });
+
+        if (!state.lastMessageId) {
+            // Init phase. Just remember the last internalDate;
+            await context.log({ step: 'initialized', lastMessage });
+            return { emails: [], state: newState };
+        }
+
+        return { emails, state: newState };
     }
 };

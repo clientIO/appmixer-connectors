@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../gmail-commons');
+const commons = require('../lib');
 module.exports = {
     async receive(context) {
         const {
