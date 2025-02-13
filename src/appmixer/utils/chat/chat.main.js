@@ -3,23 +3,66 @@ const { ChatBot } = chatbot;
 let chat;
 let sessionId;
 
-async function main() {
+function getSessionId() {
 
     // Session ID associates chats and agents with the user.
-    sessionId = sessionStorage.getItem('appmixer-chat-session-id');
+    // Also, we need to load the proper session ID for the flowId/componentId pair since
+    // sessionStorage is for the entire domain.
+    let sessions;
+    try {
+        sessions = JSON.parse(sessionStorage.getItem('appmixer-chat-sessions'));
+    } catch (err) {}
+    sessions = sessions || {};
+    return sessions[location.href];
+}
+
+function setSessionId(sessionId) {
+
+    let sessions;
+    try {
+        sessions = JSON.parse(sessionStorage.getItem('appmixer-chat-sessions'));
+    } catch (err) {}
+    sessions = sessions || {};
+    sessions[location.href] = sessionId;
+    sessionStorage.setItem('appmixer-chat-sessions', JSON.stringify(sessions));
+}
+
+function removeSessionId() {
+
+    let sessions;
+    try {
+        sessions = JSON.parse(sessionStorage.getItem('appmixer-chat-sessions'));
+    } catch (err) {}
+    sessions = sessions || {};
+    delete sessions[location.href];
+    sessionStorage.setItem('appmixer-chat-sessions', JSON.stringify(sessions));
+}
+
+async function main() {
+
+    sessionId = getSessionId();
 
     // Initialize session.
     let session;
     if (sessionId) {
         const params = new URLSearchParams({ action: 'load-session', sessionId });
         const response = await fetch(ENDPOINT + '?' + params);
-        session = await response.json();
-    } else {
+        if (response.ok) {
+            session = await response.json();
+        } else if (response.status === 404) {
+            // Session was deleted on the server. Create a new one.
+            console.log('Session ' + sessionId + ' was deleted on the server. Creating a new one.');
+            removeSessionId();
+        } else {
+            throw new Error('Failed to load session: ' + response.statusText);
+        }
+    }
+    if (!session) {
         const params = new URLSearchParams({ action: 'create-session' });
         const response = await fetch(ENDPOINT + '?' + params);
         session = await response.json();
         sessionId = session.id;
-        sessionStorage.setItem('appmixer-chat-session-id', sessionId);
+        setSessionId(sessionId);
     }
 
     // Normalize for ChatBot UI widget.
@@ -36,7 +79,8 @@ async function main() {
         activeChat,
         withCache: false,
         format: 'markdown',
-        render: 'bubbles'
+        render: 'bubbles',
+        focus: true
     });
     chat.api.on('add-message', ({ id, message }) => addMessage(id, message));
     chat.api.on('request-messages', ({ id }) => loadMessages(id));
@@ -52,15 +96,36 @@ async function pollForMessages() {
     }
 }
 
-let lastMessageId;
-
 async function loadMessages(threadId) {
 
     if (!threadId) return;
 
     try {
+        const activeChat = chat.getConfig().activeChat;
+        let lastMessageId = null;
+        let threadMessages = chat.getConfig().messages || [];
+        if (threadId === activeChat) {
+            // Loading new messages to the active chat. Load only those that we are missing.
+            const lastMessage = threadMessages[threadMessages.length - 1];
+            if (lastMessage) {
+                lastMessageId = lastMessage.id;
+            }
+        } else {
+            // Switching threads, always set waiting to false.
+            setWaiting(false);
+        }
+
         const params = new URLSearchParams({ action: 'load-thread', threadId });
+        if (lastMessageId) {
+            params.append('sinceId', lastMessageId);
+        }
         const response = await fetch(ENDPOINT + '?' + params);
+        if (!response.ok && response.status === 404) {
+            // Thread was removed in the mean time. No need to keep polling it.
+            chat.removeChat(threadId);
+            return;
+        }
+
         const thread = await response.json();
         thread.messages = thread.messages || [];
         thread.messages.forEach(message => {
@@ -68,11 +133,14 @@ async function loadMessages(threadId) {
                 message.author = thread.agentId;
             }
         });
-        if (thread.messages.length && thread.messages[thread.messages.length - 1].id !== lastMessageId) {
-            if (lastMessageId) {
-                setWaiting(false);
-            }
-            lastMessageId = thread.messages[thread.messages.length - 1].id;
+
+        if (lastMessageId && thread.messages.length && thread.messages[thread.messages.length - 1].id !== lastMessageId) {
+            setWaiting(false);
+        }
+        if (lastMessageId) {
+            // Since we only loaded messages since lastMessageId, we need to merge with those
+            // already in the chat.
+            thread.messages = threadMessages.concat(thread.messages);
         }
         chat.parse(threadId, thread.messages);
     } catch (err) {
@@ -83,11 +151,10 @@ async function loadMessages(threadId) {
 
 function setWaiting(waiting) {
 
-    const el = document.querySelector('#chat-waiting');
 	if (waiting) {
-		el.classList.remove('off');
+        chat.container.classList.add('chat-waiting');
 	} else {
-		el.classList.add('off');
+		chat.container.classList.remove('chat-waiting');
 	}
 }
 
@@ -113,7 +180,7 @@ async function addMessage(threadId, message) {
 
     if (!threadId) {
         const agentId = chat.getConfig().activeAgent;
-        const theme = message.content.substring(0, 16);
+        const theme = message.content.substring(0, 32);
         const params = new URLSearchParams({ action: 'add-thread' });
         const response = await fetch(ENDPOINT + '?' + params, {
             method: 'POST',
@@ -153,7 +220,8 @@ async function addMessage(threadId, message) {
         }),
     });
 
-    lastMessageId = message.id;
+    const serverMessage = await response.json();
+    message.id = serverMessage.id;
 }
 
 main();

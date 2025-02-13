@@ -27,7 +27,17 @@ const agents = [
 		"id": "65019b40-4644-41fd-83d2-00339f5a5672",
 		"userId": "583c06511afb7b0016ef120b",
 		"createdAt": "2025-02-10T16:21:29.089Z"
-	}
+	}/*,
+	{
+		"name": "Agent David 2",
+		"avatar": "https://img.freepik.com/premium-vector/avatar-icon002_750950-52.jpg",
+		"message": "Hello! How can I help you?",
+		"componentId": "47a8691a-dbf9-4c4b-a0fd-dffcd66f519e",
+		"flowId": "1037c66b-c2a8-489c-aa3e-efe548a38a3e",
+		"id": "XXX65019b40-4644-41fd-83d2-00339f5a5672",
+		"userId": "583c06511afb7b0016ef120b",
+		"createdAt": "2025-02-10T16:21:29.089Z"
+	}*/
 ];
 
 const messages = [
@@ -87,10 +97,14 @@ const chat = new ChatBot("#chat-container", {
     agents,
     activeChat,
 	//messages: messages[0].messages,
-    withCache: false,
+    withCache: true,
 	format: 'markdown',
 	render: 'bubbles',
-	sidebar: true
+	sidebar: true,
+	user: {
+		name: 'David',
+		avatar: 'https://cdn1.iconfinder.com/data/icons/unicons-line-vol-6/24/user-circle-256.png'
+	}
 });
 
 loadData(activeChat);
@@ -100,13 +114,29 @@ chat.api.on("request-messages", ({ id }) => loadData(id));
 chat.api.on("add-message", ({ id, message }) =>
     addMessage(id, message)
 );
+chat.api.on("add-chat", ({ chat }) => {
+	alert('add-chat');
+	console.log('add-chat', chat);
+});
+
+document.addEventListener(
+	'click',
+	function (event) {
+	  if (event.target.closest('.sidebar button.primary')) {
+		//chat.parse(null, []);
+		//return false;
+		console.log('Element clicked during capture phase');
+	  }
+	},
+	true // This ensures the event is captured during the capture phase
+  );
 
 function setWaiting(waiting) {
-	const el = document.querySelector('#chat-waiting');
+
 	if (waiting) {
-		el.classList.remove('off');
+        chat.container.classList.add('chat-waiting');
 	} else {
-		el.classList.add('off');
+		chat.container.classList.remove('chat-waiting');
 	}
 }
 
@@ -116,13 +146,27 @@ function loadData(chatId) {
 	setWaiting(false);
 }
 
+function addThread() {
+		// User clicked on "new chat" button.
+        const chatId = new Date().getTime();
+        chat.addChat({
+            convert: true,
+            chat: {
+                id: chatId,
+                agent: chat.getConfig().activeAgent,
+                theme: message.content.substring(0, 16),
+                created: new Date(),
+            }
+        });
+}
+
 function addMessage(chatId, message) {
-	
+
     if (message.role !== "user") return;
+	message.id = 'def235';
 	setWaiting(true);
     
     if (!chatId) {
-		debugger;
 		// User clicked on "new chat" button.
         chatId = new Date().getTime();
         chat.addChat({
@@ -142,6 +186,7 @@ function addMessage(chatId, message) {
     chat.addMessage({
         id: chatId,
         message: {
+			id: 'abc123',
             role: "agent",
             content: "Sorry, this is a demo only. Your message was: " + message.content,
             typing: 0,

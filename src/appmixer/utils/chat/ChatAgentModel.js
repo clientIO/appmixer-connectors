@@ -27,6 +27,12 @@ module.exports = context => {
                 'createdAt'
             ];
         }
+
+        static async deleteById(id) {
+
+            return context.db.collection(this.collection)
+                .deleteOne({ [this.idProperty]: id });
+        }
     }
 
     ChatAgentModel.createSettersAndGetters();

@@ -19,6 +19,7 @@ const uuid = require('uuid');
 
 const chatLibJs = fs.readFileSync(__dirname + '/chat.lib.js', 'utf8');
 const chatMainJs = fs.readFileSync(__dirname + '/chat.main.js', 'utf8');
+const chatWidgetJs = fs.readFileSync(__dirname + '/chat.widget.js', 'utf8');
 const chatLibCss = fs.readFileSync(__dirname + '/chat.lib.css', 'utf8');
 const chatMainCss = fs.readFileSync(__dirname + '/chat.main.css', 'utf8');
 
@@ -66,6 +67,17 @@ module.exports = (context) => {
 
     context.http.router.register({
         method: 'GET',
+        path: '/assets/chat.widget.js',
+        options: {
+            auth: false,
+            handler: async (req, h) => {
+                return h.response(chatWidgetJs).type('text/javascript');
+            }
+        }
+    });
+
+    context.http.router.register({
+        method: 'GET',
         path: '/assets/chat.main.css',
         options: {
             auth: false,
@@ -90,6 +102,7 @@ module.exports = (context) => {
                 const userId = user.getId();
                 // { id, content, role, flowId, componentId }
                 const message = req.payload;
+                message.id = uuid.v6(); // UUID v6 is time ordered.
                 message.threadId = threadId;
                 message.createdAt = new Date;
                 message.userId = userId;
@@ -107,11 +120,16 @@ module.exports = (context) => {
             },
             handler: async (req) => {
                 const { threadId } = req.params;
+                const { sinceId } = req.query;
                 const user = await context.http.auth.getUser(req);
                 const userId = user.getId();
                 // TODO: pagination.
                 const query = { threadId, userId };
-                const options = { sort: { createdAt: 1 } };
+                if (sinceId) {
+                    // ID is a time ordered UUID (v6).
+                    query.id = { $gt: sinceId };
+                }
+                const options = { sort: { id: 1 } };
                 const messages = await ChatMessage.find(query, options);
                 return messages;
             }
@@ -249,6 +267,27 @@ module.exports = (context) => {
     });
 
     context.http.router.register({
+        method: 'GET',
+        path: '/agents',
+        options: {
+            auth: {
+                strategies: ['jwt-strategy', 'public']
+            },
+            handler: async (req) => {
+                const { flowId, componentId } = req.query;
+                const user = await context.http.auth.getUser(req);
+                const userId = user.getId();
+                const query = { userId };
+                if (flowId) query.flowId = flowId;
+                if (componentId) query.componentId = componentId;
+                const options = { sort: { createdAt: -1 } };
+                const agents = await ChatAgent.find(query);
+                return agents;
+            }
+        }
+    });
+
+    context.http.router.register({
         method: 'POST',
         path: '/agents',
         options: {
@@ -267,6 +306,25 @@ module.exports = (context) => {
     });
 
     context.http.router.register({
+        method: 'PUT',
+        path: '/agents/{agentId}',
+        options: {
+            auth: {
+                strategies: ['jwt-strategy', 'public']
+            },
+            handler: async (req) => {
+                const { agentId } = req.params;
+                const update = req.payload;
+                const user = await context.http.auth.getUser(req);
+                const userId = user.getId();
+                const query = { id: agentId, userId };
+                const agent = await ChatAgent.findOne(query);
+                return agent.populate(update).save();
+            }
+        }
+    });
+
+    context.http.router.register({
         method: 'DELETE',
         path: '/agents/{agentId}',
         options: {
@@ -275,9 +333,7 @@ module.exports = (context) => {
             },
             handler: async (req) => {
                 const { agentId } = req.params;
-                const user = await context.http.auth.getUser(req);
-                const userId = user.getId();
-                await ChatAgent.delete({ id, userId });
+                await ChatAgent.deleteById(agentId);
                 return {};
             }
         }

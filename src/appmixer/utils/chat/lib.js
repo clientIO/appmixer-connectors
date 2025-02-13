@@ -1,12 +1,6 @@
 const fs = require('fs');
 const { URL } = require('url');
 
-/*
-const chatLibJs = fs.readFileSync(__dirname + '/chat.lib.js', 'utf8');
-const chatLibCss = fs.readFileSync(__dirname + '/chat.lib.css', 'utf8');
-const chatMainJs = fs.readFileSync(__dirname + '/chat.main.js', 'utf8');
-*/
-
 const page = (baseUrl, endpoint) => {
     return `
         <!DOCTYPE html>
@@ -17,7 +11,6 @@ const page = (baseUrl, endpoint) => {
         </head>
         <body>
         <div id="chat-container"></div>
-        <div id="chat-waiting" class="lds-ellipsis off"><div></div><div></div><div></div><div></div></div>
         <script type="text/javascript" src="${baseUrl}/plugins/appmixer/utils/chat/assets/chat.lib.js"></script>
         <script type="text/javascript">
            const ENDPOINT = '${endpoint}';

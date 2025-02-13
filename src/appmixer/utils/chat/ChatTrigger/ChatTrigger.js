@@ -3,29 +3,59 @@
 const { flow } = require('lodash');
 const lib = require('../lib');
 const uuid = require('uuid');
+const { URL } = require('url');
+
+const chatScriptSnippet = `
+<script>
+!function(){window.AppmixerChatWidget=window.AppmixerChatWidget||{chatUrl:"{{CHAT_URL}}"};var e=document.createElement("script");e.src="{{CHAT_WIDGET_SCRIPT_URL}}",e.async=!0,document.head.appendChild(e)}();
+window.AppmixerChatWidget.widgetPosition = 'bottom-right'; // or 'bottom-left'
+window.AppmixerChatWidget.widgetWidth = '50%';
+</script>
+`;
 
 module.exports = {
 
     async start(context) {
 
-        const agent = await context.callAppmixer({
-            endPoint: '/plugins/appmixer/utils/chat/agents',
-            method: 'POST',
-            body: {
-                name: context.properties.agentName || 'Agent',
-                avatar: context.properties.agentAvatar || 'https://img.freepik.com/premium-vector/avatar-icon002_750950-52.jpg',
-                message: context.properties.agentMessage || 'Hello! How can I help you?',
-                componentId: context.componentId,
-                flowId: context.flowId
-            }
+        const config = {
+            name: context.properties.agentName || 'Agent',
+            avatar: context.properties.agentAvatar || 'https://img.freepik.com/premium-vector/avatar-icon002_750950-52.jpg',
+            message: context.properties.agentMessage || 'Hello! How can I help you?'
+        };
+
+        const agents = await context.callAppmixer({
+            endPoint: '/plugins/appmixer/utils/chat/agents?flowId=' + context.flowId + '&componentId=' + context.componentId,
+            method: 'GET'
         });
 
+        let agent;
+        if (agents.length) {
+            agent = agents[0];
+            // Update the existing agent with possible new properties.
+            await context.callAppmixer({
+                endPoint: '/plugins/appmixer/utils/chat/agents/' + agent.id,
+                method: 'PUT',
+                body: config
+            });
+        } else {
+            // Create a new one. This is the first time this component runs.
+            agent = await context.callAppmixer({
+                endPoint: '/plugins/appmixer/utils/chat/agents',
+                method: 'POST',
+                body: {
+                    ...config,
+                    componentId: context.componentId,
+                    flowId: context.flowId
+                }
+            });
+        }
+        
         return context.saveState({ agent });
     },
 
     async stop(context) {
 
-        const { agent } = context.getState();
+        const agent = context.stateGet('agent');
 
         await context.callAppmixer({
             endPoint: '/plugins/appmixer/utils/chat/agents/' + agent.id,
@@ -38,6 +68,8 @@ module.exports = {
     async receive(context) {
         
         if (context.properties.generateInspector) {
+            const parsedUrl = new URL(context.getWebhookUrl());
+            const baseUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}`;
             return context.sendJson({
                 inputs: {
                     url: {
@@ -45,6 +77,15 @@ module.exports = {
                         type: 'text',
                         readonly: true,
                         defaultValue: context.getWebhookUrl()
+                    },
+                    script: {
+                        label: 'Chat Script',
+                        type: 'text',
+                        readonly: true,
+                        defaultValue: chatScriptSnippet
+                            .replace('{{CHAT_URL}}', context.getWebhookUrl())
+                            .replace('{{CHAT_WIDGET_SCRIPT_URL}}', `${baseUrl}/plugins/appmixer/utils/chat/assets/chat.widget.js`),
+                        tooltip: 'Add this script to your website to embed the chat widget.'
                     }
                 }
             }, 'out');
@@ -122,8 +163,9 @@ module.exports = {
                     if (!thread) {
                         return context.response({}, 404, { 'Content-Type': 'application/json' });
                     }
+                    const query = req.query.sinceId ? '?sinceId=' + req.query.sinceId : '';
                     const messages = await context.callAppmixer({
-                        endPoint: '/plugins/appmixer/utils/chat/messages/' + threadId,
+                        endPoint: '/plugins/appmixer/utils/chat/messages/' + threadId + query,
                         method: 'GET'
                     });
                     thread.messages = messages;
@@ -131,20 +173,19 @@ module.exports = {
                 }
                 case 'send-message': {
                     // Send a message to a thread.
-                    const message = req.data;
-                    await context.callAppmixer({
-                        endPoint: '/plugins/appmixer/utils/chat/messages/' + message.threadId,
+                    const messageData = req.data;
+                    const message = await context.callAppmixer({
+                        endPoint: '/plugins/appmixer/utils/chat/messages/' + messageData.threadId,
                         method: 'POST',
                         body: {
-                            id: message.id,
-                            content: message.content,
+                            content: messageData.content,
                             role: 'user',
                             componentId: context.componentId,
                             flowId: context.flowId
                         }
                     });
                     await context.sendJson(message, 'out');
-                    return context.response({}, 200, { 'Content-Type': 'application/json' });
+                    return context.response(message, 200, { 'Content-Type': 'application/json' });
                 }
                 default:
                     // Main page.
