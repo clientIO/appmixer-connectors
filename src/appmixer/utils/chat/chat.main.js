@@ -2,18 +2,28 @@ const { ChatBot } = chatbot;
 
 let chat;
 let sessionId;
+let authHeader = {};
 
 function getSessionId() {
 
     // Session ID associates chats and agents with the user.
+    let sessions;
+
+    // First, try to read the session ID from the URL.
+    const urlParams = new URLSearchParams(window.location.search);
+    sessionId = urlParams.get('session_id');
+    if (sessionId) {
+        return sessionId;
+    }
+
+    // If not in the URL, try to read it from the session storage.
     // Also, we need to load the proper session ID for the flowId/componentId pair since
     // sessionStorage is for the entire domain.
-    let sessions;
     try {
         sessions = JSON.parse(sessionStorage.getItem('appmixer-chat-sessions'));
     } catch (err) {}
     sessions = sessions || {};
-    return sessions[location.href];
+    return sessions[location.origin + location.pathname];
 }
 
 function setSessionId(sessionId) {
@@ -23,47 +33,44 @@ function setSessionId(sessionId) {
         sessions = JSON.parse(sessionStorage.getItem('appmixer-chat-sessions'));
     } catch (err) {}
     sessions = sessions || {};
-    sessions[location.href] = sessionId;
+    sessions[location.origin + location.pathname] = sessionId;
     sessionStorage.setItem('appmixer-chat-sessions', JSON.stringify(sessions));
 }
 
-function removeSessionId() {
+function getToken() {
 
-    let sessions;
-    try {
-        sessions = JSON.parse(sessionStorage.getItem('appmixer-chat-sessions'));
-    } catch (err) {}
-    sessions = sessions || {};
-    delete sessions[location.href];
-    sessionStorage.setItem('appmixer-chat-sessions', JSON.stringify(sessions));
+    // First, try to read the token from the URL.
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('chat_token');
+    if (token) {
+        return token;
+    }
+
+    // If not in the URL, try to read it from the session storage.
+    return sessionStorage.getItem('appmixer-chat-token');
 }
 
 async function main() {
 
     sessionId = getSessionId();
+    const token = getToken();
+    if (token) {
+        authHeader = {
+            'x-appmixer-chat-token': token
+        };
+    }
 
     // Initialize session.
-    let session;
-    if (sessionId) {
-        const params = new URLSearchParams({ action: 'load-session', sessionId });
-        const response = await fetch(ENDPOINT + '?' + params);
-        if (response.ok) {
-            session = await response.json();
-        } else if (response.status === 404) {
-            // Session was deleted on the server. Create a new one.
-            console.log('Session ' + sessionId + ' was deleted on the server. Creating a new one.');
-            removeSessionId();
-        } else {
-            throw new Error('Failed to load session: ' + response.statusText);
+    const params = new URLSearchParams({ action: 'ensure-session', session_id: sessionId || '' });
+    const response = await fetch(ENDPOINT + '?' + params, {
+        method: 'POST',
+        headers: {
+            ...authHeader
         }
-    }
-    if (!session) {
-        const params = new URLSearchParams({ action: 'create-session' });
-        const response = await fetch(ENDPOINT + '?' + params);
-        session = await response.json();
-        sessionId = session.id;
-        setSessionId(sessionId);
-    }
+    });
+    const session = await response.json();
+    sessionId = session.id;
+    setSessionId(sessionId);
 
     // Normalize for ChatBot UI widget.
     session.threads.forEach(thread => {
@@ -115,11 +122,16 @@ async function loadMessages(threadId) {
             setWaiting(false);
         }
 
-        const params = new URLSearchParams({ action: 'load-thread', threadId });
+        const params = new URLSearchParams({ action: 'load-thread', thread_id: threadId });
         if (lastMessageId) {
-            params.append('sinceId', lastMessageId);
+            params.append('since_id', lastMessageId);
         }
-        const response = await fetch(ENDPOINT + '?' + params);
+        const response = await fetch(ENDPOINT + '?' + params, {
+            method: 'GET',
+            headers: {
+                ...authHeader
+            }
+        });
         if (!response.ok && response.status === 404) {
             // Thread was removed in the mean time. No need to keep polling it.
             chat.removeChat(threadId);
@@ -162,11 +174,12 @@ function setWaiting(waiting) {
 
 async function deleteThread(threadId) {
 
-    const params = new URLSearchParams({ action: 'delete-thread', sessionId });
+    const params = new URLSearchParams({ action: 'delete-thread', session_id: sessionId || '' });
     await fetch(ENDPOINT + '?' + params, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...authHeader
         },
         body: JSON.stringify({
             threadId
@@ -187,7 +200,8 @@ async function addMessage(threadId, message) {
         const response = await fetch(ENDPOINT + '?' + params, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                ...authHeader
             },
             body: JSON.stringify({
                 sessionId,
@@ -209,11 +223,12 @@ async function addMessage(threadId, message) {
     }
 
     // Send message to the server.
-    const params = new URLSearchParams({ action: 'send-message', sessionId });
+    const params = new URLSearchParams({ action: 'send-message', session_id: sessionId || '' });
     const response = await fetch(ENDPOINT + '?' + params, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            ...authHeader
         },
         body: JSON.stringify({
             threadId,

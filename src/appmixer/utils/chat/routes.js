@@ -186,7 +186,7 @@ module.exports = (context) => {
             handler: async (req) => {
                 const session = req.payload;
                 const user = await context.http.auth.getUser(req);
-                session.id = uuid.v4();
+                session.id = session.id || uuid.v4();
                 session.userId = user.getId();
                 session.createdAt = new Date;
                 return new ChatSession().populate(session).save();
