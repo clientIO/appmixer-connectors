@@ -87,7 +87,6 @@ const prepareFileOutputItem = (item, index, items) => {
 const findFiles = async (context, drive, query, orderBy = 'name asc', fields = '*') => {
 
     const pageSize = 1000;
-
     // First page.
     const { data } = await drive.files.list({ q: query, fields, pageSize, orderBy });
     let files = data.files || [];
