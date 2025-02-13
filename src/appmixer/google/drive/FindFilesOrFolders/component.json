@@ -31,10 +31,11 @@
                         { "type": "object" }
                     ]
                 },
+                "recursive": { "type": "boolean" },
+                "orderBy": { "type": "string" },
                 "fileTypes": { "type": "array", "items": { "type": "string" } },
                 "outputType": { "type": "string" }
-            },
-            "required": ["query"]
+            }
         },
         "inspector": {
             "inputs": {
@@ -42,7 +43,7 @@
                     "type": "text",
                     "index": 1,
                     "label": "Query",
-                    "tooltip": "Enter a search query. Depending on the search type, this can be a full or partial file/folder name or text contained within a file (fullText search)."
+                    "tooltip": "Enter a search query. Depending on the search type, this can be a full or partial file/folder name or text contained within a file (fullText search) or a completely custom search query (see <a target=_blank href=\"https://developers.google.com/drive/api/guides/ref-search-terms\">Google Drive Docs</a> for details)."
                 },
                 "searchType": {
                     "type": "select",
@@ -67,6 +68,13 @@
                     "tooltip": "Search within a specific folder. If not specified, the search will be conducted across the entire drive.",
                     "view": "FOLDERS"
                 },
+                "recursive": {
+                    "type": "toggle",
+                    "index": 4,
+                    "label": "Recursive Search",
+                    "defaultValue": false,
+                    "tooltip": "Set if you want to find files or folders recursively in all subfolders of the selected folder."
+                },
                 "fileTypes": {
                     "type": "multiselect",
                     "options": [
@@ -78,17 +86,33 @@
                         { "content": "Google Docs (application/vnd.google-apps.document)", "value": "application/vnd.google-apps.document" },
                         { "content": "Google Sheets (application/vnd.google-apps.spreadsheet)", "value": "application/vnd.google-apps.spreadsheet" },
                         { "content": "Google Slides (application/vnd.google-apps.presentation)", "value": "application/vnd.google-apps.presentation" },
-                        { "content": "Google Drawings (application/vnd.google-apps.drawing)", "value": "application/vnd.google-apps.drawing" }
+                        { "content": "Google Drawings (application/vnd.google-apps.drawing)", "value": "application/vnd.google-apps.drawing" },
+                        { "content": "Folders (application/vnd.google-apps.folder)", "value": "application/vnd.google-apps.folder" }
                     ],
                     "defaultValue": [],
-                    "index": 4,
+                    "index": 5,
                     "label": "File Types",
                     "tooltip": "Restrict the search to specific file types."
+                },
+                "orderBy": {
+                    "type": "select",
+                    "options": [
+                        { "content": "Name (ascending)", "value": "name asc" },
+                        { "content": "Name (descending)", "value": "name desc" },
+                        { "content": "Last modified date (ascending)", "value": "modifiedTime asc" },
+                        { "content": "Last modified date (descending)", "value": "modifiedTime desc" },
+                        { "content": "Created date (ascending)", "value": "createdTime asc" },
+                        { "content": "Created date (descending)", "value": "createdTime desc" }
+                    ],
+                    "defaultValue": "name asc",
+                    "tooltip": "Sort returned files or folders by different criteria. Note that sorting is not available for queries that use fulltext search. The results will always be arranged in order of descending relevance",
+                    "label": "Order By",
+                    "index": 6
                 },
                 "outputType": {
                     "type": "select",
                     "label": "Output Type",
-                    "index": 5,
+                    "index": 7,
                     "defaultValue": "firstItem",
                     "tooltip": "Choose whether you want to receive only the first file or folder found, the entire result set as one complete list, output one item at a time or store the items in a CSV file.",
                     "options": [
