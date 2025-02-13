@@ -1,4 +1,3 @@
-const fs = require('fs');
 const { URL } = require('url');
 
 const page = (baseUrl, endpoint) => {

@@ -72,7 +72,7 @@ async function main() {
     });
 
     let activeChat = session.threads[session.threads.length - 1].id;
-    
+
     chat = new ChatBot('#chat-container', {
         chats: session.threads,
         agents: session.agents,
@@ -134,7 +134,9 @@ async function loadMessages(threadId) {
             }
         });
 
-        if (lastMessageId && thread.messages.length && thread.messages[thread.messages.length - 1].id !== lastMessageId) {
+        if (lastMessageId &&
+            thread.messages.length &&
+            thread.messages[thread.messages.length - 1].id !== lastMessageId) {
             setWaiting(false);
         }
         if (lastMessageId) {
@@ -151,17 +153,17 @@ async function loadMessages(threadId) {
 
 function setWaiting(waiting) {
 
-	if (waiting) {
+    if (waiting) {
         chat.container.classList.add('chat-waiting');
-	} else {
-		chat.container.classList.remove('chat-waiting');
-	}
+    } else {
+        chat.container.classList.remove('chat-waiting');
+    }
 }
 
 async function deleteThread(threadId) {
 
     const params = new URLSearchParams({ action: 'delete-thread', sessionId });
-    const response = await fetch(ENDPOINT + '?' + params, {
+    await fetch(ENDPOINT + '?' + params, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -202,7 +204,7 @@ async function addMessage(threadId, message) {
                 agent: agentId,
                 theme,
                 created: new Date(thread.createdAt)
-            },
+            }
         });
     }
 
@@ -217,7 +219,7 @@ async function addMessage(threadId, message) {
             threadId,
             id: message.id,
             content: message.content
-        }),
+        })
     });
 
     const serverMessage = await response.json();

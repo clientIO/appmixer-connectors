@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 const { ChatBot } = chatbot;
 
 const threads = [
@@ -27,7 +29,7 @@ const agents = [
 		"id": "65019b40-4644-41fd-83d2-00339f5a5672",
 		"userId": "583c06511afb7b0016ef120b",
 		"createdAt": "2025-02-10T16:21:29.089Z"
-	}/*,
+	},
 	{
 		"name": "Agent David 2",
 		"avatar": "https://img.freepik.com/premium-vector/avatar-icon002_750950-52.jpg",
@@ -37,7 +39,7 @@ const agents = [
 		"id": "XXX65019b40-4644-41fd-83d2-00339f5a5672",
 		"userId": "583c06511afb7b0016ef120b",
 		"createdAt": "2025-02-10T16:21:29.089Z"
-	}*/
+	}
 ];
 
 const messages = [

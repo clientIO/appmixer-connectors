@@ -1,8 +1,6 @@
 'use strict';
 
-const { flow } = require('lodash');
 const lib = require('../lib');
-const uuid = require('uuid');
 const { URL } = require('url');
 
 const chatScriptSnippet = `
@@ -49,7 +47,7 @@ module.exports = {
                 }
             });
         }
-        
+
         return context.saveState({ agent });
     },
 
@@ -64,9 +62,9 @@ module.exports = {
 
         return context.stateClear();
     },
-    
+
     async receive(context) {
-        
+
         if (context.properties.generateInspector) {
             const parsedUrl = new URL(context.getWebhookUrl());
             const baseUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}`;
@@ -146,7 +144,7 @@ module.exports = {
                 case 'delete-thread': {
                     // Add a new thread to the session and return it.
                     const { threadId } = req.data;
-                    const thread = await context.callAppmixer({
+                    await context.callAppmixer({
                         endPoint: '/plugins/appmixer/utils/chat/threads/' + threadId,
                         method: 'DELETE'
                     });

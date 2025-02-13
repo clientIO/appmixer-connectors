@@ -4,7 +4,7 @@
 //     -H 'Content-Type: application/json' \
 //     -H "Authorization: Bearer ACCESS_TOKEN" \
 //     -d '{
-//         "id": "msg123", 
+//         "id": "msg123",
 //         "content": "Hi, what's the capital of Czechia?",
 //         "role": "user",
 //         "flowId": "flow123",
@@ -281,7 +281,7 @@ module.exports = (context) => {
                 if (flowId) query.flowId = flowId;
                 if (componentId) query.componentId = componentId;
                 const options = { sort: { createdAt: -1 } };
-                const agents = await ChatAgent.find(query);
+                const agents = await ChatAgent.find(query, options);
                 return agents;
             }
         }

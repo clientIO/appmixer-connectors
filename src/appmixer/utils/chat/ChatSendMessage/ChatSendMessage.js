@@ -3,9 +3,9 @@
 const uuid = require('uuid');
 
 module.exports = {
-    
+
     async receive(context) {
-        
+
         let { threadId, content } = context.messages.in.content;
         const message = {
             id: uuid.v4(),
