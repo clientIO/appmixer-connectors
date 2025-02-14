@@ -1,0 +1,83 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.akamai.clientlist.ActivateList",
+    "author": "Zbynek Pelunek <zbynek.pelunek@client.io>",
+    "description": "Activates a client list on the staging or production network.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:akamai"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "listId": {
+                        "type": "string"
+                    },
+                    "action": {
+                        "type": "string"
+                    },
+                    "network": {
+                        "type": "string"
+                    },
+                    "comments": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "listId",
+                    "action",
+                    "network"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "listId": {
+                        "type": "select",
+                        "label": "List",
+                        "index": 0,
+                        "source": {
+                            "url": "/component/appmixer/akamai/clientlist/GetLists?outPort=out",
+                            "data": {
+                                "transform": "./GetLists#listsToSelectArray"
+                            }
+                        }
+                    },
+                    "action": {
+                        "type": "select",
+                        "label": "Action",
+                        "tooltip": "Actions you can take for the client list.",
+                        "index": 1,
+                        "options": [
+                            { "label": "Activate", "value": "ACTIVATE" },
+                            { "label": "Deactivate", "value": "DEACTIVATE" }
+                        ]
+                    },
+                    "network": {
+                        "type": "select",
+                        "label": "Network",
+                        "tooltip": "The network environment where you activate your client list.",
+                        "index": 1,
+                        "options": [
+                            { "label": "Staging", "value": "STAGING" },
+                            { "label": "Production", "value": "PRODUCTION" }
+                        ]
+                    },
+                    "comments": {
+                        "index": 2,
+                        "type": "text",
+                        "label": "Comments",
+                        "tooltip": "A brief description for the activation."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out"
+        }
+    ]
+}
