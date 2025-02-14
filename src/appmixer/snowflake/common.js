@@ -1,4 +1,3 @@
-// 'use strict';
 const snowflake = require('snowflake-sdk');
 const { promisify } = require('util');
 
@@ -12,23 +11,21 @@ class SnowflakeDB {
         await promisify(connection.connect).bind(connection)();
         return connection;
     }
-    async runQuery(context, sql) {
+    async getRows(auth, statement) {
 
-        const connection = await this.getConnection(context);
-        const executedQuery = connection.execute({
-            sqlText: sql
-        });
-        return executedQuery;
-    }
-    async getRows(context, statement) {
-
-        const connection = await this.getConnection(context);
+        const connection = await this.getConnection(auth);
         const executedStatement = connection.execute(statement);
         return executedStatement.streamRows();
     }
-    async collectRows(context, statement) {
+    async collectRows(auth, statement) {
 
-        const rowStream = await this.getRows(context, statement);
+        let rowStream;
+        try {
+            rowStream = await this.getRows(auth, statement);
+        } catch (error) {
+            // We can't throw Snoflake error directly, because it will terminate the node process.
+            throw 'Snowflake error message: ' + error.message + '\nType: ' + error.data?.type;
+        }
         const rows = [];
         for await (const row of rowStream) {
             rows.push(row);
