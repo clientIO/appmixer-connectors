@@ -3,9 +3,8 @@
 module.exports = {
 
     receive: async function(context) {
-        const { prompt } = context.messages.in.content;
-        const apiKey = context.auth.apiKey;
 
+        const apiKey = context.auth.apiKey;
         const url = 'https://api.openai.com/v1/models';
         const { data } = await context.httpRequest.get(url, {
             headers: {

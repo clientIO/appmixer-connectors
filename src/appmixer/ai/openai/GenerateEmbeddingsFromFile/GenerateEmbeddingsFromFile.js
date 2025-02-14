@@ -13,7 +13,6 @@ module.exports = {
 
     receive: async function(context) {
 
-        const messageId = context.messages.in.messageId;
         const {
             fileId
         } = context.messages.in.content;
@@ -115,33 +114,33 @@ module.exports = {
 function splitStream(inputStream, chunkSize) {
 
     let leftover = Buffer.alloc(0);
-  
+
     const transformStream = new Transform({
-      transform(chunk, encoding, callback) {
-        // Combine leftover buffer with the new chunk
-        const combined = Buffer.concat([leftover, chunk]);
-        const combinedLength = combined.length;
-  
-        // Emit chunks of the desired size
-        let offset = 0;
-        while (offset + chunkSize <= combinedLength) {
-          this.push(combined.slice(offset, offset + chunkSize));
-          offset += chunkSize;
+        transform(chunk, encoding, callback) {
+            // Combine leftover buffer with the new chunk
+            const combined = Buffer.concat([leftover, chunk]);
+            const combinedLength = combined.length;
+
+            // Emit chunks of the desired size
+            let offset = 0;
+            while (offset + chunkSize <= combinedLength) {
+                this.push(combined.slice(offset, offset + chunkSize));
+                offset += chunkSize;
+            }
+
+            // Store leftover data
+            leftover = combined.slice(offset);
+
+            callback();
+        },
+        flush(callback) {
+            // Push any remaining data as the final chunk
+            if (leftover.length > 0) {
+                this.push(leftover);
+            }
+            callback();
         }
-  
-        // Store leftover data
-        leftover = combined.slice(offset);
-  
-        callback();
-      },
-      flush(callback) {
-        // Push any remaining data as the final chunk
-        if (leftover.length > 0) {
-          this.push(leftover);
-        }
-        callback();
-      },
     });
-  
+
     return inputStream.pipe(transformStream);
-  }
+}
