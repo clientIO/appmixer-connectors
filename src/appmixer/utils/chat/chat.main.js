@@ -78,7 +78,10 @@ async function main() {
         thread.agent = thread.agentId;
     });
 
-    let activeChat = session.threads[session.threads.length - 1].id;
+    let activeChat = null;
+    if (session.threads && session.threads.length > 0) {
+        session.threads[session.threads.length - 1].id;
+    }
 
     chat = new ChatBot('#chat-container', {
         chats: session.threads,
