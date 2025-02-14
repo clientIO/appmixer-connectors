@@ -33,7 +33,7 @@ module.exports = {
                 if (source[agentComponentId] && source[agentComponentId].includes(toolsPort)) {
                     tools[componentId] = component;
                     if (component.type !== 'appmixer.ai.agenttools.ToolStart') {
-                        error = `Component ${componentId} is not of type 'ToolStart' but ${comopnent.type}.
+                        error = `Component ${componentId} is not of type 'ToolStart' but ${component.type}.
                             Every tool chain connected to the '${toolsPort}' port of the AI Agent
                             must start with 'ToolStart' and end with 'ToolOutput'.
                             This is where you describe what the tool does and what parameters should the AI model provide to it.`;
