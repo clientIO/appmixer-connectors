@@ -14,18 +14,28 @@ class SnowflakeDB {
     async getRows(auth, statement) {
 
         const connection = await this.getConnection(auth);
-        const executedStatement = connection.execute(statement);
-        return executedStatement.streamRows();
+        const promise = await new Promise((resolve, reject) => {
+            connection.execute({
+                sqlText: statement.sqlText,
+                asyncExec: true,
+                complete: async function(err, stmt, rows) {
+                    let queryId = stmt.getQueryId();
+                    try {
+                        const results = await connection.getResultsFromQueryId({ queryId });
+                        resolve(results);
+                    } catch (error) {
+                        // We can't throw Snoflake error directly, because it will terminate the node process.
+                        reject(error.message);
+                    }
+                }
+            });
+        });
+
+        return promise.streamRows();
     }
     async collectRows(auth, statement) {
 
-        let rowStream;
-        try {
-            rowStream = await this.getRows(auth, statement);
-        } catch (error) {
-            // We can't throw Snoflake error directly, because it will terminate the node process.
-            throw 'Snowflake error message: ' + error.message + '\nType: ' + error.data?.type;
-        }
+        const rowStream = await this.getRows(auth, statement);
         const rows = [];
         for await (const row of rowStream) {
             rows.push(row);
