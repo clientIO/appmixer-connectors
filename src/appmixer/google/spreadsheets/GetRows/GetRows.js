@@ -70,7 +70,7 @@ module.exports = {
         const response = await getRows({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: sheetId,
-            range: worksheetName,
+            range: encodeURIComponent(worksheetName),
             majorDimension: 'ROWS'
         });
         let rows = response['values'] || [];
