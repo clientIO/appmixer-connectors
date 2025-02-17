@@ -54,8 +54,6 @@ const initClient = async (context, auth, connectionId) => {
                         'gridInstanceId: ' + context.gridInstanceId,
                         'log: ' + logString
                     ].join('; '));
-                    // temp logs for debugging settings
-                    context.log('info', '[KAFKA] temp: ' + JSON.stringify({ clientId, brokers, ssl, saslMechanism, saslUsername, saslPassword, connectionTimeout, sslRejectUnauthorized }));
                 }
             };
         },
@@ -126,10 +124,6 @@ const initClient = async (context, auth, connectionId) => {
         delete config.ssl?.cert;
     }
 
-    if (typeof context.log === 'function') {
-        context.log('info', '[KAFKA] Initializing Kafka client with config: ' + JSON.stringify(config));
-    }
-
     return new Kafka(config);
 };
 
@@ -149,7 +143,6 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
     );
 
     const client = await initClient(context, auth, connectionId);
-    context.log('info', '[KAFKA] Adding consumer with connection ID: ' + connectionId);
     const consumer = client.consumer({ groupId });
 
     await consumer.connect();
@@ -234,20 +227,12 @@ const addProducer = async (context, flowId, componentId, auth, connId) => {
 
 const sendMessage = async (context, flowId, componentId, connectionId, payload) => {
 
-    context.log('info', `[KAFKA] sendMessage: ${JSON.stringify({payload, connectionId})}`);
     let producer = KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     if (!producer) {
-        context.log('info', `[KAFKA] Producer not found for connection ${connectionId}. Reconnecting.`);
         const connection = await context.service.stateGet(connectionId);
-        context.log('info', `[KAFKA] Connection: ${JSON.stringify(connection)}`);
         await addProducer(context, flowId, componentId, connection.auth, connectionId);
-        context.log('info', `[KAFKA] Producer added for connection ${connectionId}.`);
         producer = KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
-    } else {
-        context.log('info', `[KAFKA] Producer found for connection ${connectionId}.`);
-        context.log('info', `[KAFKA] Producer details: ${JSON.stringify(producer)}.`);
     }
-
     /**
      When acks is set to 0, the promise is not resolved causing `connection.sendMessage` call timeout.
      Considering the nature of `acks=0`, we can assume the message has been sent (unless no exceptions are thrown).
@@ -259,12 +244,9 @@ const sendMessage = async (context, flowId, componentId, connectionId, payload) 
      https://kafka.apache.org/documentation/#producerconfigs_acks
      */
     if (payload.acks === '0') {
-        context.log('info', `[KAFKA] Sending message with acks=0: ${JSON.stringify(payload)}`);
         producer.send(payload);
-        context.log('info', `[KAFKA] Message sent with acks=0: ${JSON.stringify(payload)}`);
         return Promise.resolve({});
     }
-    context.log('info', `[KAFKA] Sending message with acks=1: ${JSON.stringify(payload)}`);
 
     return await producer.send(payload);
 };
