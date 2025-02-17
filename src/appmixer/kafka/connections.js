@@ -28,8 +28,8 @@ const initClient = async (context, auth, connectionId) => {
         saslMechanism,
         saslUsername,
         saslPassword,
-        connectionTimeout = 10000,
-        sslRejectUnauthorized
+        sslRejectUnauthorized,
+        connectionTimeout = 10000
     } = auth;
     const config = {
         clientId,
@@ -233,6 +233,7 @@ const sendMessage = async (context, flowId, componentId, connectionId, payload) 
         await addProducer(context, flowId, componentId, connection.auth, connectionId);
         producer = KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     }
+
     /**
      When acks is set to 0, the promise is not resolved causing `connection.sendMessage` call timeout.
      Considering the nature of `acks=0`, we can assume the message has been sent (unless no exceptions are thrown).
