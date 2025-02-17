@@ -90,7 +90,7 @@ module.exports = {
         const response = await getSheetRows({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: sheetId,
-            range: worksheetName,
+            range: encodeURIComponent(worksheetName),
             majorDimension: 'ROWS',
             dateTimeRenderOption: 'FORMATTED_STRING',
             valueRenderOption: 'UNFORMATTED_VALUE'

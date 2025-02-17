@@ -10,16 +10,16 @@ module.exports = {
         const getRows = Promise.promisify(sheets.spreadsheets.values.get, { context: sheets.spreadsheets.values });
 
         const indexColumn = context.properties.index.toUpperCase();
-        const worksheet = context.properties.worksheetId.split('/')[1];
+        const worksheetName = encodeURIComponent(context.properties.worksheetId.split('/')[1]);
 
         // Construct the range based on the index column
-        const range = `${worksheet}!${indexColumn}1:${indexColumn}`;
+        const range = `${worksheetName}!${indexColumn}1:${indexColumn}`;
 
         // Fetch the data from the specified index column
         const res = await getRows({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
-            range: range,
+            range,
             majorDimension: 'COLUMNS' // Fetch the data as a column
         });
 
@@ -56,7 +56,7 @@ module.exports = {
         if (diff.length > 0) {
             const startRow = Math.min(...diff);
             const endRow = Math.max(...diff);
-            const rowRange = `${worksheet}!A${startRow}:ZZ${endRow}`;
+            const rowRange = `${worksheetName}!A${startRow}:ZZ${endRow}`;
 
             const newRowsRes = await getRows({
                 auth: commons.getOauth2Client(context.auth),
@@ -68,7 +68,7 @@ module.exports = {
             const headers = (await getRows({
                 auth: commons.getOauth2Client(context.auth),
                 spreadsheetId: context.properties.sheetId,
-                range: `${worksheet}!A1:ZZ1`,
+                range: `${worksheetName}!A1:ZZ1`,
                 majorDimension: 'ROWS'
             })).values[0];
 

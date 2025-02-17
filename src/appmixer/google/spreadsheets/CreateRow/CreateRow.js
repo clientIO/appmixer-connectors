@@ -17,10 +17,11 @@ module.exports = {
         const values = context.messages.in.content;
 
         // Retrieve header row to get the order of columns
+        const worksheetName = encodeURIComponent(worksheetId.split('/')[1]);
         const headerResponse = await getHeader({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: sheetId,
-            range: `${worksheetId.split('/')[1]}!1:1` // Assuming headers are in the first row
+            range: `${worksheetName}!1:1` // Assuming headers are in the first row
         });
 
         const headerValues = headerResponse.values ? headerResponse.values[0] : [];
@@ -39,7 +40,7 @@ module.exports = {
         const response = await createRow({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: sheetId,
-            range: `${worksheetId.split('/')[1]}!A:A`, // Start appending from column A
+            range: `${worksheetName}!A:A`, // Start appending from column A
             valueInputOption: 'RAW',
             insertDataOption: 'INSERT_ROWS',
             resource
