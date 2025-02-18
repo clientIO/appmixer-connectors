@@ -20,7 +20,7 @@ module.exports = {
 
         const url = 'https://api.openai.com/v1/chat/completions';
         const { data } = await context.httpRequest.post(url, {
-            model: context.config.TransformTextToJSONModel || 'gpt-4o-2024-08-06',
+            model: context.config.TransformTextToJSONModel || 'gpt-4o',
             messages: [
                 {
                     role: 'system',
