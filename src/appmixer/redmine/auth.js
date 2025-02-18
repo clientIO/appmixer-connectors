@@ -48,7 +48,15 @@ module.exports = {
                 'X-Redmine-API-Key': '{apiKey}'
             };
             options.headers = JSON.parse(this.replaceVariables(context, JSON.stringify(options.headers)));
-            await context.httpRequest(options);
+            const { data, status, statusText } = await context.httpRequest(options);
+
+            if (status !== 200) {
+                throw `Failed to connect to Redmine API: ${statusText}. Status code: ${status}`;
+            }
+
+            if (!data.user || !data.user.login || !data.user.api_key) {
+                throw 'Invalid response from Redmine API: ' + JSON.stringify(data);
+            }
             return true;
         }
     }
