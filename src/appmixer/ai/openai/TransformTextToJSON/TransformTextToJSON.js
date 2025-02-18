@@ -4,7 +4,7 @@ module.exports = {
 
     receive: async function(context) {
 
-        const { text, jsonSchema: jsonSchemaString } = context.messages.in.content;
+        const { text, jsonSchema: jsonSchemaString, model } = context.messages.in.content;
 
         const jsonSchema = JSON.parse(jsonSchemaString);
 
@@ -12,15 +12,11 @@ module.exports = {
             return this.getOutputPortOptions(context, jsonSchema);
         }
 
-        const apiKey = context.config.apiKey;
-
-        if (!apiKey) {
-            throw new context.CancelError('Missing \'apiKey\' system setting of the appmixer.utils.ai module pointing to OpenAI. Please provide it in the Connector Configuration section of the Appmixer Backoffice.');
-        }
+        const apiKey = context.auth.apiKey;
 
         const url = 'https://api.openai.com/v1/chat/completions';
         const { data } = await context.httpRequest.post(url, {
-            model: context.config.TransformTextToJSONModel || 'gpt-4o',
+            model: model || 'gpt-4o',
             messages: [
                 {
                     role: 'system',
