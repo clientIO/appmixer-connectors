@@ -11,7 +11,6 @@ module.exports = {
 
     receive: async function(context) {
 
-        const messageId = context.messages.in.messageId;
         const {
             text,
             model = 'text-embedding-ada-002',

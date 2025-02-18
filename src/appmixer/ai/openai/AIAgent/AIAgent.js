@@ -86,7 +86,7 @@ module.exports = {
                 type: 'function',
                 function: {
                     name: componentId,
-                    description: component.config.properties.description,
+                    description: component.config.properties.description
                 }
             };
             if (parameters.length) {
