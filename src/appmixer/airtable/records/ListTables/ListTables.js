@@ -8,7 +8,7 @@ module.exports = {
     async receive(context) {
 
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
-        const { baseId, outputType, isSource } = context.messages.in.content;
+        const { baseId, outputType, isSource, tableId } = context.messages.in.content;
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
@@ -16,6 +16,12 @@ module.exports = {
             // This is the case when component is added to the inspector and user didn't select a base yet.
             // We don't want to throw an error yet.
             return context.sendJson({ items: [] }, 'out');
+        }
+
+        if (!tableId || isAppmixerVariable(tableId)) {
+            // This is the case when component is added to the inspector and user didn't select a table yet.
+            // We don't want to throw an error yet.
+            return context.sendJson({ fields: [] }, 'out');
         }
 
         const cacheKey = 'airtable_tables_' + baseId;
@@ -27,6 +33,13 @@ module.exports = {
             if (isSource) {
                 const tablesCached = await context.staticCache.get(cacheKey);
                 if (tablesCached) {
+                    if (tableId) {
+                        const pickedTable = tablesCached.find((table) => {
+                            table.id === tableId || table.name === tableId;
+                        });
+
+                        return context.sendJson({ fields: pickedTable.fields }, 'out');
+                    };
                     return context.sendJson({ items: tablesCached }, 'out');
                 }
             }
@@ -63,6 +76,15 @@ module.exports = {
         return items.map(table => {
             return { label: table.name, value: table.id };
         });
+    },
+
+    triggerFieldsSelectArray({ fields }) {
+        return fields.map(field => {
+            if (field.type === 'createdTime' || field.type === 'lastModifiedTime') {
+                return { label: field.name, value: field.name };
+            }
+        });
+
     },
 
     getOutputPortOptions(context, outputType) {
@@ -111,13 +133,18 @@ module.exports = {
                 [
                     {
                         label: 'Tables', value: 'result',
-                        schema: { type: 'array',
-                            items: { type: 'object',
+                        schema: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
                                 properties: {
                                     description: { type: 'string', title: 'description' },
-                                    fields: { type: 'object', title: 'fields',
-                                        schema: { type: 'array',
-                                            items: { type: 'object',
+                                    fields: {
+                                        type: 'object', title: 'fields',
+                                        schema: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
                                                 properties: {
                                                     description: { label: 'description', value: 'description' },
                                                     id: { label: 'id', value: 'id' },
@@ -130,9 +157,12 @@ module.exports = {
                                     id: { type: 'string', title: 'id' },
                                     name: { type: 'string', title: 'name' },
                                     primaryFieldId: { type: 'string', title: 'primaryFieldId' },
-                                    views: { type: 'object', title: 'views',
-                                        schema: { type: 'array',
-                                            items: { type: 'object',
+                                    views: {
+                                        type: 'object', title: 'views',
+                                        schema: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
                                                 properties: {
                                                     id: { label: 'id', value: 'id' },
                                                     name: { label: 'name', value: 'name' },
