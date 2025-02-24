@@ -5,7 +5,7 @@ const subscriptionType = 'deal.creation';
 
 class NewDeal extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
         return [{
             enabled: true,
@@ -19,47 +19,47 @@ class NewDeal extends BaseSubscriptionComponent {
 
         this.configureHubspot(context);
 
+        const eventsByObjectId = context.messages.webhook.content.data;
 
-        if (context.messages.webhook) {
+        // Get all objectIds that will be used to fetch the contacts in bulk
+        let ids = [];
+        // Locking to avoid duplicates. HubSpot payloads can come within milliseconds of each other.
+        let lock;
 
-            const eventsByObjectId = context.messages.webhook.content.data;
+        try {
+            lock = await context.lock(context.componentId, {
+                ttl: 1000 * 10,
+                retryDelay: 500,
+                maxRetryCount: 3
+            });
 
             for (const [dealId] of Object.entries(eventsByObjectId)) {
-                let lock;
-                try {
-                    lock = await context.lock(`CreatedDeal-${dealId}`);
-
-                    const previousTimeout = await context.stateGet(`deal-${dealId}`);
-                    if (previousTimeout) {
-                        await context.clearTimeout(previousTimeout.timeoutId);
-                    }
-
-                    const timeoutId = await context.setTimeout({ dealId }, context.config.triggerTimeout || 5000);
-                    await context.stateSet(`deal-${dealId}`, { timeoutId });
-                } finally {
-                    if (lock) {
-                        lock.unlock();
-                    }
+                const cacheKey = 'hubspot-deal-created-' + dealId;
+                const cached = await context.staticCache.get(cacheKey);
+                if (cached) {
+                    continue;
                 }
+                // Cache the event for 5s to avoid duplicates
+                await context.staticCache.set(cacheKey, dealId, context.config?.eventCacheTTL || 5000);
+                ids.push(dealId);
             }
+        } finally {
+            await lock?.unlock();
+        }
 
+        if (!ids.length) {
+            // No new contacts to fetch
             return context.response();
         }
 
-        if (context.messages.timeout) {
-            const { dealId } = context.messages.timeout.content;
-            await context.stateUnset(`deal-${dealId}`);
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/deals/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
 
-            try {
-                const { data } = await this.hubspot.call('get', `crm/v3/objects/deals/${dealId}`);
-                await context.sendJson(data, 'deal');
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
-                }
-            }
-        }
+        await context.sendArray(data.results, 'deal');
+
+        return context.response();
     }
 }
 

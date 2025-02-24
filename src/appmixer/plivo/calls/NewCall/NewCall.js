@@ -5,7 +5,7 @@ async function registerWebhook(context, client) {
 
     let response = await client.applications.create(
         // we need to be unique per component
-        'appmixer.plivo.calls.NewCall.' + context.componentId,
+        'plivo-calls-NewCall-' + context.componentId,
         { answerUrl: context.getWebhookUrl() }
     );
     if (response && response.message === 'created') {
@@ -41,8 +41,11 @@ module.exports = {
     receive(context) {
 
         if (context.messages.webhook) {
+            context.response();
             return context.sendJson(context.messages.webhook.content.data, 'call');
         }
+
+        return context.response('No call data received', 400);
     },
 
     async start(context) {

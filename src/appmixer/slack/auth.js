@@ -1,5 +1,5 @@
 'use strict';
-const axios = require('axios');
+
 const { URL } = require('url');
 const { URLSearchParams } = require('url');
 const FormData = require('form-data');
@@ -19,10 +19,21 @@ module.exports = {
 
             authUrl: context => {
 
+                const botScopes = [
+                    // Join public channels in a workspace
+                    'channels:join',
+                    // New Slack apps do not begin life with the ability to post in all public channels.
+                    // For your new Slack app to gain the ability to post in all public channels, request the chat:write.public scope.
+                    'chat:write.public',
+                    'chat:write'
+                ];
+
                 let urlObject = new URL('https://slack.com/oauth/v2/authorize');
                 let params = new URLSearchParams([
                     ['client_id', context.clientId],
                     ['redirect_uri', context.callbackUrl],
+                    // Also add the default 'scope' param with the 'chat:write' value. Needed when sending messages as a bot.
+                    ['scope', botScopes.join(',')],
                     ['state', context.ticket]
                 ]);
                 if (Array.isArray(context.scope) && context.scope.length > 0) {
@@ -45,11 +56,12 @@ module.exports = {
                 form.append('client_id', context.clientId);
                 form.append('client_secret', context.clientSecret);
 
-                return axios.post(
-                    'https://slack.com/api/oauth.v2.access',
-                    form,
-                    { headers: form.getHeaders() }
-                ).then(response => {
+                return context.httpRequest({
+                    method: 'POST',
+                    url: 'https://slack.com/api/oauth.v2.access',
+                    headers: form.getHeaders(),
+                    data: form.getBuffer()
+                }).then(response => {
                     if (!response.data) {
                         throw new Error(response.status);
                     }
@@ -75,7 +87,7 @@ module.exports = {
 
             validateAccessToken: context => {
 
-                return axios({
+                return context.httpRequest({
                     method: 'POST',
                     url: 'https://slack.com/api/auth.test',
                     headers: {

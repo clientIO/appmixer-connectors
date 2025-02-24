@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 'use strict';
 
-const { getBasicAuth } = require('../../commons');
+const { getBasicAuth } = require('../../lib');
 
 module.exports = {
 

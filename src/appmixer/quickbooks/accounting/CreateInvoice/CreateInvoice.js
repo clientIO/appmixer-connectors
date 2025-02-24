@@ -71,8 +71,9 @@ module.exports = {
                 BillEmailCc: {
                     Address: billEmailCc
                 },
-                ShipFromAddr: getAddress(context, 'shipFromAddr'),
-                BillAddr: getAddress(context, 'billAddr'),
+                ShipFromAddr: getAddress(context, 'shipFrom'),
+                BillAddr: getAddress(context, 'bill'),
+                ShipAddr:  getAddress(context,'ship'),
                 ShipDate: shipDate,
                 DueDate: dueDate,
                 CustomerMemo: {

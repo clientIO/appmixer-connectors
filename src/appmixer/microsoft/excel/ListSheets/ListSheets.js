@@ -12,7 +12,7 @@ module.exports = {
         const { accessToken } = context.auth;
         const workbooks = await request({
             method: 'GET',
-            url: 'https://graph.microsoft.com/v1.0/me/drive/root/search(q=\'*.xlsx\')',
+            url: 'https://graph.microsoft.com/v1.0/me/drive/root/search(q=\'xlsx\')',
             auth: { bearer: accessToken },
             headers: { 'Accept': 'application/json' },
             json: true

@@ -1,0 +1,115 @@
+{
+    "version": "1.0.0",
+    "name": "appmixer.imperva.waf.SetBlockIPRule",
+    "label": "Block IPs",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Blocks a list of IP addresses by adding a blocking custom rule to the WAF (using RULE_ACTION_BLOCK action).",
+    "private": false,
+    "auth": {
+        "service": "appmixer:imperva"
+    },
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "siteId": {
+                         "type": "number"
+                    },
+                    "ips": {
+                        "type": "string"
+                    },
+                    "ttl": {
+                        "type": "integer"
+                    }
+                },
+                "required": ["siteId", "ips"]
+            },
+            "inspector": {
+                "inputs": {
+                    "siteId": {
+                        "type": "select",
+                        "index": 0,
+                        "label": "Site ID",
+                        "source": {
+                            "url": "/component/appmixer/imperva/waf/ListSites?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/isSource": true
+                                },
+                                "transform": "./ListSites#toSelectArray"
+                            }
+                        }
+                    },
+                    "ips": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "IPs",
+                        "tooltip": "List of IP address which will be blocked by adding a blocking custom rule to the waf. The values must be separated by a comma, space or newline."
+                    },
+                    "ttl": {
+                        "type": "number",
+                        "index": 2,
+                        "label": "TTL",
+                        "tooltip": "Time to live in seconds. The rule will be automatically removed after this time. If not set, the rule will be permanent."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Site ID",
+                    "value": "siteId",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "IPs",
+                    "value": "ips",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "label": "Rules",
+                    "value": "rules",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "rule_id": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "action": {
+                                    "type": "string"
+                                },
+                                "filter": {
+                                    "type": "string"
+                                },
+                                "sendNotifications": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "properties": {},
+    "icon": "data:image/png;base64,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"
+}

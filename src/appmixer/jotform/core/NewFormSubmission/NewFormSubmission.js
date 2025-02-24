@@ -17,11 +17,6 @@ module.exports = {
 
             let out = await this.replaceRuntimeExpressions('$request.body', context, {}, context.messages
                 .webhook.content);
-            const expCondition = dependencies.jsonata('$exists(submissionID)');
-            const condition = await expCondition.evaluate(out, {
-                parameters: context.properties
-            });
-            if (!condition) return null;
             await context.sendJson(out, 'out');
             return context.response(out);
         }

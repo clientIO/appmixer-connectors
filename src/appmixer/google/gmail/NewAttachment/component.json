@@ -1,11 +1,11 @@
 {
     "name": "appmixer.google.gmail.NewAttachment",
-    "author": "Martin Krčmář <martin@client.io>",
-    "description": "This trigger fires every time any new attachment arrives in your inbox.",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "This trigger activates whenever a new attachment is received in your Gmail inbox.",
     "tick": true,
     "version": "1.0.1",
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:gmail",
         "scope": [
             "https://www.googleapis.com/auth/gmail.readonly"
         ]
@@ -18,14 +18,115 @@
             "userId": "{{userId}}"
         }
     },
+    "properties": {
+        "schema": {
+            "properties": {
+                "query": { "type": "string" },
+                "download": { "type": "boolean" }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "query": {
+                    "type": "text",
+                    "label": "Email Query",
+                    "index": 1,
+                    "tooltip": "The search query to find new emails. This allows you to only consider email messages that can be found using the query. See <a target=_blank href=\"https://support.google.com/mail/answer/7190\">Google Documentation</a> for more info. Example: <code>from:amy@example.com AND subject:dinner</code>."
+                },
+                "download": {
+                    "type": "toggle",
+                    "label": "Download Attachment",
+                    "defaultValue": true,
+                    "index": 2,
+                    "tooltip": "Set if you want to download the attachment content. Otherwise, set to false and use the Download Attachment component to get the attachment content. This can be useful if you want to filter attachments using the Condition utility based on custom criteria (e.g. the 'From' address of the sender) and only download attachments passing the filter."
+                }
+            }
+        }
+    },
     "outPorts": [
         {
             "name": "attachment",
             "options": [
-                { "label": "fileId", "value": "fileId" },
-                { "label": "filename", "value": "filename" },
-                { "label": "contentType", "value": "contentType" },
-                { "label": "subject", "value":  "subject" }
+                { "label": "File ID", "value": "fileId", "schema": { "type": "string", "format": "appmixer-file-id" } },
+                { "label": "File Name", "value": "filename", "schema": { "type": "string" } },
+                { "label": "Content Type", "value": "contentType", "schema": { "type": "string" } },
+                { "label": "Attachment", "value": "attachment", "schema": {
+                    "type": "object",
+                    "properties": {
+                        "id": { "type": "string", "title": "Attachment ID" },
+                        "filename": { "type": "string", "title": "Attachment File Name" },
+                        "size": { "type": "integer", "title":"Attachment File Size" },
+                        "mimeType": { "type": "string", "title": "Attachment MIME Type" }
+                    }
+                } },
+                { "label": "Email", "value":  "email",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "id": { "type": "string", "title": "Email ID" },
+                            "threadId": { "type": "string", "title": "Email Thread ID" },
+                            "labelIds": { "type": "array", "items": { "type": "string" }, "title": "Email Label IDs" },
+                            "snippet": { "type": "string", "title": "Email Snippet" },
+                            "sizeEstimate": { "type": "integer", "title": "Email Size Estimate" },
+                            "payload": {
+                                "type": "object",
+                                "title": "Email Payload",
+                                "properties": {
+                                    "date": { "type": "string", "format": "date-time", "title": "Email Date" },
+                                    "subject": { "type": "string", "title": "Email Subject" },
+                                    "text": { "type": "string", "title": "Email Text" },
+                                    "html": { "type": "string", "title": "Email HTML" },
+                                    "from": {
+                                        "type": "array",
+                                        "title": "Email Senders",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "address": { "type": "string" },
+                                                "name": { "type": "string" }
+                                            }
+                                        }
+                                    },
+                                    "to": {
+                                        "type": "array",
+                                        "title": "Email Recipients",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "address": { "type": "string" },
+                                                "name": { "type": "string" }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "attachments": {
+                                "type": "array",
+                                "title": "Email Attachments",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "title": "Attachment ID"
+                                        },
+                                        "filename": {
+                                            "type": "string",
+                                            "title": "Attachment Name"
+                                        },
+                                        "size": {
+                                            "type": "string",
+                                            "title": "Attachment Size"
+                                        },
+                                        "mimeType": {
+                                            "type": "string",
+                                            "title": "Attachment MIME Type"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                } }
             ]
         }
     ],

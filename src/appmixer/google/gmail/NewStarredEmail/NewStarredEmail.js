@@ -1,51 +1,54 @@
 'use strict';
-const gmail = require('googleapis').gmail('v1');
-const google = require('../../google-commons');
+const emailCommons = require('../lib');
 const Promise = require('bluebird');
 
-const getEmail = Promise.promisify(gmail.users.messages.get, { context: gmail.users.messages });
-
-/**
- * Trigger for GMail when new starred email appears.
- * @extends {Component}
- */
 module.exports = {
-
-    tick(context) {
-
+    async tick(context) {
         let newState = {};
 
-        return google.getAllMessageIds({
-            auth: google.getOauth2Client(context.auth),
+        // Retrieve all starred message IDs
+        const messages = await emailCommons.getAllMessageIds({
+            context,
             userId: 'me',
-            quotaUser: context.auth.userId,
             labelIds: ['STARRED']
-        }).then(messages => {
-            let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-            let current = [];
-            let diff = [];
+        });
 
-            // process all messages given by the service
-            messages.forEach(
-                context.utils.processItem.bind(
-                    null, known, current, diff, message => message.id));
+        const knownMessages = new Set(context.state.known || []);
+        const currentMessages = [];
+        const newMessages = [];
 
-            newState = { known: current };
-            return Promise.map(diff, message => {
-                return getEmail({
-                    auth: google.getOauth2Client(context.auth),
-                    userId: 'me',
-                    quotaUser: context.auth.userId,
-                    format: 'full',
-                    id: message.id
+        messages.forEach(message => {
+            currentMessages.push(message.id);
+            if (!knownMessages.has(message.id)) {
+                if (context.state.known) {
+                    newMessages.push(message);
+                }
+            }
+        });
+
+        newState.known = currentMessages;
+
+        await context.saveState(newState);
+
+        if (context.state.known) {
+            const emails = await Promise.map(newMessages, async message => {
+                return emailCommons.callEndpoint(context, `/users/me/messages/${message.id}`, {
+                    method: 'GET',
+                    params: { format: 'full' }
+                }).then(response => response.data).catch(err => {
+                    if (err && err.response && err.response.status === 404) {
+                        return null;
+                    }
+                    throw err;
                 });
             }, { concurrency: 10 });
-        }).then(emails => {
-            return Promise.map(emails || [], email => {
-                return context.sendJson(google.normalizeEmail(email), 'out');
+
+            await Promise.each(emails || [], async email => {
+                if (!email || !email.labelIds) {
+                    throw new context.CancelError('Invalid email or email label');
+                }
+                await context.sendJson(emailCommons.normalizeEmail(email), 'out');
             });
-        }).then(() => {
-            return context.saveState(newState);
-        });
+        }
     }
 };

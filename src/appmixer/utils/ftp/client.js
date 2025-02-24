@@ -1,4 +1,5 @@
 'use strict';
+const path = require('path');
 const Ftp = require('basic-ftp');
 const Sftp = require('ssh2-sftp-client');
 const lib = require('./lib');
@@ -17,7 +18,7 @@ class FtpClient {
         this.config = config;
 
         if (FtpClient.isFtp(secure)) {
-            if (config.privateKey != '') {
+            if (!!config.privateKey) {
                 throw new Error('Private key can be used only for SFTP');
             }
             this.isFtp = true;
@@ -31,6 +32,7 @@ class FtpClient {
     async connect() {
 
         if (this.isFtp) {
+            this.config.user = this.config.username;
             await this.client.access(this.config);
         } else {
             delete this.config.secure;
@@ -41,6 +43,17 @@ class FtpClient {
     async close() {
 
         return this.isFtp ? this.client.close() : this.client.end();
+    }
+
+    async retrieveOne(filePath) {
+        if (this.isFtp) {
+            return await this.client.list(filePath);
+        } else {
+            const fileName = path.basename(filePath);
+
+            const folderPath = filePath.replace(fileName, '');
+            return await this.client.list(folderPath, (f) => f.name === fileName);
+        }
     }
 
     async list(path) {
@@ -85,7 +98,7 @@ class FtpClient {
      */
     static isFtp(secure) {
 
-        return ['yes', 'implicit'].includes(secure);
+        return secure !== 'sftp';
     }
 
     static createConfig(authContext) {

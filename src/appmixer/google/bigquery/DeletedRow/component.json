@@ -1,7 +1,7 @@
 {
     "name": "appmixer.google.bigquery.DeletedRow",
     "author": "Camilo Manrique <camilo@client.io>",
-    "description": "Watch for deleted rows in your BigQuery dataset.",
+    "description": "Monitors your BigQuery dataset for deleted rows. While the flow is active, a temporary storage is created specifically for this trigger. This storage will automatically be removed when the flow stops. To ensure smooth operation, please avoid modifying or deleting the storage during the flow's execution.",
     "quota": {
         "manager": "appmixer:google:bigquery",
         "resources": "requests",
@@ -22,36 +22,36 @@
         "schema": {
             "type": "object",
             "properties": {
-                "storeId": { "type": "string" },
+                "projectId":{ "type": "string" },
                 "query": { "type": "string" },
                 "idField": { "type": "string" }
             },
-            "required": ["query", "idField"]
+            "required": ["query", "idField", "projectId"]
         },
         "inspector": {
             "inputs": {
-                "storeId": {
+                "projectId": {
                     "type": "select",
-                    "label": "Storage",
+                    "label": "Project",
                     "index": 1,
                     "source": {
-                        "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                        "url": "/component/appmixer/google/bigquery/ListProjects?outPort=out",
                         "data": {
-                            "transform": "./ListStores#toSelectArray"
+                            "transform": "./ListProjects#projectsToSelectArray"
                         }
                     },
-                    "tooltip": "Select a data store. The data store will be used to store data streamed from BigQuery so that we can compare them later to detect new rows. If you do not select a data store, one will be automatically created for you when the flow starts and deleted when the flow stops. If you do select a data store manually, you are responsible for clearing/deleting it when you don't need it anymore (note that the data in the data store is populated automatically, so any data left in the store affects the next flow run)."
+                    "tooltip": "Select a BigQuery project from the list to run your query in."
                 },
                 "query": {
                     "type": "textarea",
-                    "index": 2,
+                    "index": 3,
                     "label": "SQL Query",
                     "tooltip": "Enter an SQL query."
                 },
                 "idField": {
                     "type": "text",
                     "label": "ID field",
-                    "index": 3,
+                    "index": 4,
                     "tooltip": "Select a column that will be used as reference to detect deleted rows. It should an unique field."
                 }
             }

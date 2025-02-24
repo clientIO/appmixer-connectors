@@ -1,5 +1,5 @@
 'use strict';
-const axios = require('axios');
+
 const Hubspot = require('./Hubspot');
 
 class BaseSubscriptionComponent {
@@ -18,7 +18,7 @@ class BaseSubscriptionComponent {
         this.hubspot.setToken(auth.accessToken);
     }
 
-    async getSubscriptions(context) {
+    getSubscriptions(context) {
 
         throw new Error('Must be extended to return subscriptions');
     }
@@ -31,39 +31,17 @@ class BaseSubscriptionComponent {
     async start(context) {
 
         this.configureHubspot(context);
-        await this.subscribe(context);
-        return context.service.stateAddToSet(this.subscriptionType, {
-            componentId: context.componentId,
-            flowId: context.flowId
-        });
+        // Use hub_id from context to differentiate between different HubSpot portals/users.
+        const portalId = context.auth?.profileInfo?.hub_id;
+        return context.addListener(`${this.subscriptionType}:${portalId}`, { apiKey: context.config.apiKey, appId: context.config.appId });
     }
 
     async stop(context) {
 
         this.configureHubspot(context);
-        await this.deleteSubscriptions(context);
-        return context.service.stateRemoveFromSet(this.subscriptionType, {
-            componentId: context.componentId,
-            flowId: context.flowId
-        });
+        const portalId = context.auth?.profileInfo?.hub_id;
+        return context.removeListener(`${this.subscriptionType}:${portalId}`);
     }
-
-    async subscribe(context) {
-
-        const subscriptions = await this.getSubscriptions(context);
-        const { appmixerApiUrl } = context;
-        const endpoint = `/plugins/appmixer/hubspot/subscribe/${this.subscriptionType}`;
-        const url = appmixerApiUrl.concat(endpoint);
-        return axios.post(url, subscriptions);
-    };
-
-    async deleteSubscriptions(context) {
-
-        const { appmixerApiUrl } = context;
-        const endpoint = `/plugins/appmixer/hubspot/subscribe/${this.subscriptionType}`;
-        const url = appmixerApiUrl.concat(endpoint);
-        return axios.delete(url);
-    };
 }
 
 module.exports = BaseSubscriptionComponent;

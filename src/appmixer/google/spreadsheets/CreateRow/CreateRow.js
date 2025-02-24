@@ -17,32 +17,30 @@ module.exports = {
         const values = context.messages.in.content;
 
         // Retrieve header row to get the order of columns
+        const worksheetName = encodeURIComponent(worksheetId.split('/')[1]);
         const headerResponse = await getHeader({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: sheetId,
-            range: `${worksheetId.split('/')[1]}!1:1` // Assuming headers are in the first row
+            range: `${worksheetName}!1:1` // Assuming headers are in the first row
         });
 
-        const headerValues = headerResponse.values[0];
+        const headerValues = headerResponse.values ? headerResponse.values[0] : [];
+
+        if (headerValues.length === 0) {
+            throw new context.CancelError('No headers found in the worksheet.');
+        }
+        // Map the incoming values to the columns in the sheet
         const orderedValues = headerValues.map(column => values[column] || '');
 
         const resource = {
             values: [orderedValues]
         };
 
-        // Find the next available row for insertion
-        const rangeResponse = await sheets.spreadsheets.values.get({
-            auth: commons.getOauth2Client(context.auth),
-            spreadsheetId: sheetId,
-            range: worksheetId.split('/')[1]
-        });
-
-        const nextRow = rangeResponse.values ? rangeResponse.values.length + 1 : 1;
-
+        // Append the new row directly to the sheet using INSERT_ROWS
         const response = await createRow({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: sheetId,
-            range: `${worksheetId.split('/')[1]}!A${nextRow}`, // Start from column A and next available row
+            range: `${worksheetName}!A:A`, // Start appending from column A
             valueInputOption: 'RAW',
             insertDataOption: 'INSERT_ROWS',
             resource
@@ -60,4 +58,3 @@ module.exports = {
         }
     }
 };
-

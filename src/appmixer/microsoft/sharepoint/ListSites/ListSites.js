@@ -1,36 +1,42 @@
 'use strict';
-const { makeRequest } = require('../common');
-
-const PAGE_SIZE = 50; // Number of items to retrieve per page
+const PAGE_SIZE = 500; // Number of items to retrieve per page
 
 module.exports = {
 
     async receive(context) {
 
-        const { limit } = context.messages.in.content;
-        const MAX_LIMIT = limit || 100;
+        const { query, limit } = context.messages.in.content;
+        const { accessToken } = context.auth;
+        const MAX_LIMIT = limit || 500;
         let sites = [];
         let nextLink = null;
         let totalSites = 0;
         do {
-            const result = await makeRequest(
-                {
-                    url:
-                        nextLink ||
-                        `https://graph.microsoft.com/v1.0/sites?$top=${Math.min(
-                            PAGE_SIZE,
-                            MAX_LIMIT - totalSites
-                        )}&search=`,
-                    method: 'GET',
-                    body: null
+            const queryParams = {
+                $top: Math.min(
+                    PAGE_SIZE,
+                    MAX_LIMIT - totalSites
+                ),
+                search: query ?? '*'
+            };
+
+            const { data } = await context.httpRequest({
+                method: 'GET',
+                url: 'https://graph.microsoft.com/v1.0/sites',
+                headers: {
+                    'Authorization': 'Bearer ' + accessToken
                 },
-                context
-            );
-            sites = sites.concat(result.value);
-            nextLink = result['@odata.nextLink'];
-            totalSites += result.value.length;
+                params: queryParams
+            });
+
+            if (!data || !data.value) break;
+
+            sites = sites.concat(data.value);
+            nextLink = data['@odata.nextLink'];
+            totalSites += data.value.length;
         } while (nextLink && totalSites < MAX_LIMIT);
-        return context.sendJson({ sites }, 'out');
+
+        return await context.sendJson({ sites }, 'out');
     },
 
     sitesToSelectArray({ sites }) {

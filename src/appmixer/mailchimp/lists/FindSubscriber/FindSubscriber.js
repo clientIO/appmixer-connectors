@@ -19,6 +19,12 @@ module.exports = {
 
         if (response) {
             const matches = [...response.full_search.members, ...response.exact_matches.members];
+
+            // Check if matches are found
+            if (matches.length === 0) {
+                return context.sendJson('User not found', 'notFound');
+            }
+
             return Promise.all(matches.map(member => context.sendJson(member, 'out')));
         }
     }

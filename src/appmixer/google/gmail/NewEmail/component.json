@@ -1,14 +1,14 @@
 {
     "name": "appmixer.google.gmail.NewEmail",
-    "author": "Tomas Waldauf <tomas@client.io>",
-    "description": "This trigger fires every time any new email arrives in your inbox.",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Triggers whenever a new email is received or created in your Gmail account. This includes emails across all labels or specific labels as configured.",
     "tick": true,
     "version": "1.2.0",
     "dependencies": {
         "module": "1.2.0"
     },
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:gmail",
         "scope": [
             "https://www.googleapis.com/auth/gmail.readonly"
         ]
@@ -21,59 +21,96 @@
             "userId": "{{userId}}"
         }
     },
+    "properties": {
+        "schema": {
+            "properties": {
+                "query": {
+                    "type": "string"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "query": {
+                    "type": "text",
+                    "label": "Email Query",
+                    "index": 1,
+                    "tooltip": "The search query to find new emails. This allows you to only consider email messages that can be found using the query. See <a target=_blank href=\"https://support.google.com/mail/answer/7190\">Google Documentation</a> for more info. Example: <code>from:amy@example.com AND subject:dinner</code>."
+                }
+            }
+        }
+    },
     "outPorts": [
         {
             "name": "out",
             "options": [
                 {
-                    "label": "Id",
-                    "value": "id"
+                    "label": "Email Message ID",
+                    "value": "id",
+                    "schema": { "type": "string" }
                 },
                 {
-                    "label": "ThreadId",
-                    "value": "threadId"
+                    "label": "Thread ID",
+                    "value": "threadId",
+                    "schema": { "type": "string" }
                 },
                 {
-                    "label": "LabelIds",
-                    "value": "labelIds"
+                    "label": "Label IDs",
+                    "value": "labelIds",
+                    "schema": { "type": "array", "items": { "type": "string" } }
                 },
                 {
                     "label": "Snippet",
-                    "value": "snippet"
+                    "value": "snippet",
+                    "schema": { "type": "string" }
                 },
                 {
                     "label": "SizeEstimate",
-                    "value": "sizeEstimate"
+                    "value": "sizeEstimate",
+                    "schema": { "type": "integer" }
                 },
                 {
-                    "label": "Date",
-                    "value": "payload.date"
-                },
-                {
-                    "label": "From",
-                    "value": "payload.from.[0].address"
-                },
-                {
-                    "label": "To",
-                    "value": "payload.to.[0].address"
-                },
-                {
-                    "label": "Subject",
-                    "value": "payload.subject"
-                },
-                {
-                    "label": "Body",
-                    "value": "payload.text"
-                },
-                {
-                    "label": "HTML",
-                    "value": "payload.html"
+                    "label": "Payload",
+                    "value": "payload",
+                    "schema": {
+                        "type": "object",
+                        "title": "Email Payload",
+                        "properties": {
+                            "date": { "type": "string", "format": "date-time", "title": "Email Date" },
+                            "subject": { "type": "string", "title": "Email Subject" },
+                            "text": { "type": "string", "title": "Email Text" },
+                            "html": { "type": "string", "title": "Email HTML" },
+                            "from": {
+                                "type": "array",
+                                "title": "Email Senders",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "address": { "type": "string" },
+                                        "name": { "type": "string" }
+                                    }
+                                }
+                            },
+                            "to": {
+                                "type": "array",
+                                "title": "Email Recipients",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "address": { "type": "string" },
+                                        "name": { "type": "string" }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 {
                     "label": "Attachments",
                     "value": "attachments",
                     "schema": {
                         "type": "array",
+                        "title": "Email Attachments",
                         "items": {
                             "type": "object",
                             "properties": {

@@ -1,17 +1,17 @@
 {
     "name": "appmixer.google.gmail.MoveEmail",
-    "author": "Harsha Surisetty <harsha@client.io>",
-    "description": "Moves a email to another folder.",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Moves an email to another folder.",
     "private": false,
     "version": "1.0.1",
     "auth": {
-        "service": "appmixer:google",
+        "service": "appmixer:google:gmail",
         "scope": ["https://www.googleapis.com/auth/gmail.modify"]
     },
     "quota": {
         "manager": "appmixer:google:gmail",
         "maxWait": 5000,
-        "resources": "messages.polling",
+        "resources": "messages.modify",
         "scope": {
             "userId": "{{userId}}"
         }
@@ -25,8 +25,11 @@
                     "emailId": {
                         "type": "string"
                     },
-                    "labels": {
-                        "type": "object"
+                    "folder": {
+                        "type": "string"
+                    },
+                    "destinationFolder": {
+                        "type": "string"
                     }
                 },
                 "required": ["emailId"]
@@ -35,20 +38,20 @@
                 "inputs": {
                     "emailId": {
                         "type": "text",
+                        "label": "Email Message ID",
                         "index": 1,
-                        "label": "Email ID",
-                        "tooltip": "Email ID of the message that you want to retrieve."
+                        "tooltip": "Insert an email message ID to move."
                     },
                     "folder": {
                         "type": "select",
                         "label": "Folder",
+                        "tooltip": "Select a name of the folder where you want to move the email from.",
                         "index": 2,
-                        "tooltip": "Select a name of folder where you want to move the email from.",
                         "source": { 
                             "url": "/component/appmixer/google/gmail/ListLabels?outPort=out",
                             "data": {
                                 "properties": { "sendWholeArray": true },
-                                "transform": "./ListLabels#labelsToSelectArray"
+                                "transform": "./ListLabels#labelsToSelectArrayFiltered"
                             }
                         }
                     },
@@ -61,7 +64,7 @@
                             "url": "/component/appmixer/google/gmail/ListLabels?outPort=out",
                             "data": {
                                 "properties": { "sendWholeArray": true },
-                                "transform": "./ListLabels#labelsToSelectArray"
+                                "transform": "./ListLabels#labelsToSelectArrayFiltered"
                             }
                         }
                     }

@@ -17,6 +17,14 @@ module.exports = {
         return projects.map(project => {
             return { label: project.id, value: project.id };
         });
+    },
+    projectsToSelectArray({ projects }) {
+
+        return projects.map(project => {
+            return { label: project.friendlyName, value: project.id };
+        }
+
+        );
     }
 
 };

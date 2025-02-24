@@ -7,11 +7,7 @@ module.exports = {
     async receive(context) {
 
         const { profileInfo: { apiUrl }, auth } = context;
-        let { type, endpoint } = context.messages.in.content;
-
-        if (type === 'assignee') {
-            endpoint = `${apiUrl}user/search?query=`;
-        }
+        let { endpoint } = context.messages.in.content;
 
         // Fix labels endpoint. The one provided by Get create issue metadata is not working.
         if (endpoint.includes('rest/api/1.0/labels/suggest')) {
@@ -19,6 +15,14 @@ module.exports = {
             const response = await commons.get(endpoint, auth);
 
             return context.sendJson(response?.values, 'out');
+        }
+
+        // Fix reporters endpoint. The one provided by Get create issue metadata is not working
+        if (endpoint.includes('rest/api/3/user/recommend?context=Reporter')) {
+            endpoint = `${apiUrl}users`;
+            const response = await commons.get(endpoint, auth);
+            const filteredReporters = response.filter(user => user.active && user.accountType === 'atlassian');
+            return context.sendJson(filteredReporters, 'out');
         }
 
         const response = await commons.get(endpoint, auth);

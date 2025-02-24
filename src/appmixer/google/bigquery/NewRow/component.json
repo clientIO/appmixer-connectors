@@ -1,7 +1,7 @@
 {
     "name": "appmixer.google.bigquery.NewRow",
     "author": "Camilo Manrique <camilo@client.io>",
-    "description": "Watch for new rows in your BigQuery dataset.",
+    "description": "Tracks new rows added to your BigQuery dataset. A temporary storage will be created while the flow is running for this trigger, and it will be automatically removed when the flow stops. To ensure continuous operation, kindly refrain from altering or deleting the storage during the flow's execution.",
     "quota": {
         "manager": "appmixer:google:bigquery",
         "resources": "requests",
@@ -25,43 +25,43 @@
         "schema": {
             "type": "object",
             "properties": {
-                "storeId": { "type": "string" },
+                "projectId":{ "type": "string" },
                 "query": { "type": "string" },
                 "idField": { "type": "string" },
                 "detectOnStop": { "type": "boolean" }
             },
-            "required": ["query", "idField"]
+            "required": ["query", "idField", "projectId"]
         },
         "inspector": {
             "inputs": {
-                "storeId": {
+                "projectId": {
                     "type": "select",
-                    "label": "Storage",
+                    "label": "Project",
                     "index": 1,
                     "source": {
-                        "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                        "url": "/component/appmixer/google/bigquery/ListProjects?outPort=out",
                         "data": {
-                            "transform": "./ListStores#toSelectArray"
+                            "transform": "./ListProjects#projectsToSelectArray"
                         }
                     },
-                    "tooltip": "Select a data store. The data store will be used to store data streamed from BigQuery so that we can compare them later to detect new rows. If you do not select a data store, one will be automatically created for you when the flow starts and deleted when the flow stops. If you do select a data store manually, you are responsible for clearing/deleting it when you don't need it anymore (note that the data in the data store is populated automatically, so any data left in the store affects the next flow run)."
+                    "tooltip": "Select a BigQuery project from the list to run your query in."
                 },
                 "detectOnStop": {
                     "type": "toggle",
-                    "index": 2,
+                    "index": 3,
                     "label": "Detect new rows while stopped",
                     "tooltip": "If this is set to true, rows that are added while the flow was stopped will be processed next time the flow is started."
                 },
                 "query": {
                     "type": "textarea",
-                    "index": 3,
+                    "index": 4,
                     "label": "SQL Query",
                     "tooltip": "Enter an SQL query. If your query contains a <code>?</code> character placeholder, then the NewRow component replaces the placeholder with the last timestamp (milliseconds since epoch) the component was triggered to query only data that has been added since the the last time the component was triggered. Note that the replaced timestamp is an integer, so you might need to use a function like TIMESTAMP_MILLIS to make date comparisons. Also note that this is only possible if your result set contains an \"created_at\" type of field. A typical use case is, e.g. <code>select * from myproject.mydataset.mytable where created_at > TIMESTAMP_MILLIS(?)</code>. If you do not provide the <code>?</code> placeholder, then the component will always query all data periodically."
                 },
                 "idField": {
                     "type": "text",
                     "label": "ID field",
-                    "index": 4,
+                    "index": 5,
                     "tooltip": "Select a column that will be used as reference to detect new rows. It should be an unique field."
                 }
             }

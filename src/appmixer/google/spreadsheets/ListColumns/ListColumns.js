@@ -30,10 +30,12 @@ module.exports = {
     receive(context) {
         const sheets = google.sheets('v4');
         const listRows = Promise.promisify(sheets.spreadsheets.values.get, { context: sheets.spreadsheets.values });
+        const workSheetName = context.properties.worksheetId.split('/')[1];
+        const range = `${workSheetName}!1:1`;
         return listRows({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
-            range: `${context.properties.worksheetId.split('/')[1]}!1:1`, // Fetch only the first row
+            range, // Fetch only the first row
             majorDimension: 'ROWS' // Fetch data by rows
         }).then(res => {
             // Extract only the first row from the retrieved data
@@ -45,6 +47,30 @@ module.exports = {
     columnsToSelectArray(columns) {
 
         let transformed = [];
+        if (Array.isArray(columns)) {
+            columns.forEach((column, i) => {
+                const name = columnName(column, i + 1);
+                transformed.push({
+                    label: name,
+                    value: name
+                });
+            });
+        }
+
+        return transformed;
+    },
+
+    // New transformer function with Row ID included
+    columnsToSelectArrayWithRow(columns) {
+        let transformed = [];
+
+        // Add Row ID as the first entry
+        transformed.push({
+            label: 'Row ID',
+            value: 'rowId'
+        });
+
+        // Include existing columns
         if (Array.isArray(columns)) {
             columns.forEach((column, i) => {
                 const name = columnName(column, i + 1);

@@ -1,7 +1,7 @@
 {
     "name": "appmixer.microsoft.sharepoint.NewFile",
     "author": "Harsha Surisetty <harsha@client.io>",
-    "description": "This trigger fires every time there's a new file uploaded.",
+    "description": "This trigger fires every time there's a new file uploaded to the selected Drive. Files uploaded to sub-folders of the Drive won't trigger.",
     "version": "1.0.0",
     "private": false,
     "webhook": true,
@@ -53,46 +53,127 @@
             }
         }
     },
-
     "outPorts": [
         {
             "name": "file",
             "options": [
-                { "label": "File ID", "value": "id" },
-                { "label": "Name", "value": "name" },
-                { "label": "Date Created", "value": "createdDateTime" },
-                { "label": "cTag", "value": "cTag" },
-                { "label": "eTag", "value": "eTag" },
-                { "label": "Last Modified Date", "value": "lastModifiedDateTime" },
-                { "label": "Size", "value": "size" },
-                { "label": "Web URL", "value": "webUrl" },
-                { "label": "Reactions", "value": "reactions" },
-                { "label": "Comment Count", "value": "reactions.commentCount" },
-                { "label": "Created By", "value": "createdBy" },
-                { "label": "createdBy.application", "value": "createdBy.application" },
-                { "label": "createdBy.application.id", "value": "createdBy.application.id" },
-                { "label": "createdBy.user", "value": "createdBy.user" },
-                { "label": "createdBy.user.id", "value": "createdBy.user.id" },
-                { "label": "createdBy.user.displayName", "value": "createdBy.user.displayName" },
-                { "label": "Modified By", "value": "lastModifiedBy" },
-                { "label": "lastModifiedBy.application", "value": "lastModifiedBy.application" },
                 {
-                    "label": "lastModifiedBy.application.id",
-                    "value": "lastModifiedBy.application.id"
+                    "label": "@Odata.Type", "value": "@odata.type",
+                    "schema": { "type": "string" }
                 },
-                { "label": "lastModifiedBy.user", "value": "lastModifiedBy.user" },
-                { "label": "lastModifiedBy.user.id", "value": "lastModifiedBy.user.id" },
                 {
-                    "label": "lastModifiedBy.user.displayName",
-                    "value": "lastModifiedBy.user.displayName"
+                    "label": "Created By", "value": "createdBy",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "type": "object",
+                                "properties": {
+                                    "email": { "type": "string", "title": "Created By.User.Email" },
+                                    "id": { "type": "string", "title": "Created By.User.Id" },
+                                    "displayName": { "type": "string", "title": "Created By.User.Display Name" }
+                                }, "title": "Created By.User"
+                            }
+                        }
+                    }
                 },
-                { "label": "Parent Reference", "value": "parentReference" },
-                { "label": "File", "value": "file" },
-                { "label": "Mime Type", "value": "file.mimeType" },
-                { "label": "File Hashes", "value": "file.hashes" },
-                { "label": "File System Info", "value": "fileSystemInfo" },
-                { "label": "Image", "value": "image" },
-                { "label": "Photo", "value": "photo" }
+                {
+                    "label": "Created Date Time", "value": "createdDateTime",
+                    "schema": { "type": "string" }
+                },
+                {
+                    "label": "E Tag", "value": "eTag",
+                    "schema": { "type": "string" }
+                },
+                {
+                    "label": "Item Id", "value": "id",
+                    "schema": { "type": "string" }
+                },
+                {
+                    "label": "Last Modified By", "value": "lastModifiedBy",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "user": {
+                                "type": "object",
+                                "properties": {
+                                    "email": { "type": "string", "title": "Last Modified By.User.Email" },
+                                    "id": { "type": "string", "title": "Last Modified By.User.Id" },
+                                    "displayName": { "type": "string", "title": "Last Modified By.User.Display Name" }
+                                }, "title": "Last Modified By.User"
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Last Modified Date Time", "value": "lastModifiedDateTime",
+                    "schema": { "type": "string" }
+                },
+                {
+                    "label": "Name", "value": "name",
+                    "schema": { "type": "string" }
+                },
+                {
+                    "label": "Parent Reference", "value": "parentReference",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "driveType": { "type": "string", "title": "Parent Reference.Drive Type" },
+                            "driveId": { "type": "string", "title": "Parent Reference.Drive Id" },
+                            "id": { "type": "string", "title": "Parent Reference.Id" },
+                            "path": { "type": "string", "title": "Parent Reference.Path" },
+                            "siteId": { "type": "string", "title": "Parent Reference.Site Id" }
+                        }
+                    }
+                },
+                {
+                    "label": "Web Url", "value": "webUrl",
+                    "schema": { "type": "string" }
+                },
+                {
+                    "label": "C Tag", "value": "cTag",
+                    "schema": { "type": "string" }
+                },
+                {
+                    "label": "File", "value": "file",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "hashes": {
+                                "type": "object",
+                                "properties": {
+                                    "quickXorHash": { "type": "string", "title": "File.Hashes.Quick Xor Hash" }
+                                }, "title": "File.Hashes"
+                            },
+                            "mimeType": { "type": "string", "title": "File.Mime Type" }
+                        }
+                    }
+                },
+                {
+                    "label": "File System Info", "value": "fileSystemInfo",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "createdDateTime": { "type": "string", "title": "File System Info.Created Date Time" },
+                            "lastModifiedDateTime": {
+                                "type": "string", "title": "File System Info.Last Modified Date Time"
+                            }
+                        }
+                    }
+                },
+                {
+                    "label": "Shared", "value": "shared",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "scope": { "type": "string", "title": "Shared.Scope" }
+                        }
+                    }
+                },
+                {
+                    "label": "Size", "value": "size",
+                    "schema": { "type": "number" }
+                }
             ]
         }
     ],

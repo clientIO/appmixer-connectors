@@ -27,10 +27,10 @@ function andMemberConvertor(andMember) {
             return convertOperatorField('due_by', andMember.dueByOperator, `'${moment(andMember.dueByValue).format('YYYY-MM-DD')}'`);
         case 'frDueBy':
             return convertOperatorField('fr_due_by', andMember.frDueByOperator, `'${moment(andMember.frDueByValue).format('YYYY-MM-DD')}'`);
-        case 'created_at':
+        case 'createdAt':
             return convertOperatorField('created_at', andMember.createdAtOperator, `'${moment(andMember.createdAtValue).format('YYYY-MM-DD')}'`);
-        case 'updated_at':
-            return convertOperatorField('created_at', andMember.updatedAtOperator, `'${moment(andMember.updatedAtValue).format('YYYY-MM-DD')}'`);
+        case 'updatedAt':
+            return convertOperatorField('updated_at', andMember.updatedAtOperator, `'${moment(andMember.updatedAtValue).format('YYYY-MM-DD')}'`);
         default:
             return null;
     }
@@ -121,6 +121,8 @@ module.exports = {
         }
         return context.sendJson({ tickets }, 'tickets');
     },
+
+    getQuery,
 
     ticketsToSelectArray({ tickets }) {
         return tickets.map(ticket => {

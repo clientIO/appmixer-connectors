@@ -53,23 +53,30 @@ module.exports = {
     },
 
     async handleRowOutputs(context, queryResponse, outputType) {
-
         const rows = [];
-        const rowsAffected = queryResponse.rowsAffected?.[0];
-        for (const row of queryResponse.recordset) {
+        const rowsAffected = queryResponse.rowsAffected?.[0] || 0;
 
+        if (queryResponse.recordset) {
+            // Handle SELECT query results
+            for (const row of queryResponse.recordset) {
+                if (outputType === 'object') {
+                    await context.sendJson({ result: row }, 'out');
+                } else {
+                    rows.push(row);
+                }
+            }
+            if (outputType === 'array') {
+                await context.sendJson({ result: rows }, 'out');
+            }
+        } else {
+            // Handle non-SELECT queries (e.g., INSERT, UPDATE, DELETE)
             if (outputType === 'object') {
-
-                await context.sendJson({ result: row }, 'out');
-            } else {
-                rows.push(row);
+                await context.sendJson({ result: { rowsAffected } }, 'out');
+            } else if (outputType === 'array') {
+                await context.sendJson({ result: [{ rowsAffected }] }, 'out');
             }
         }
 
-        if (outputType === 'array') {
-
-            await context.sendJson({ result: rows }, 'out');
-        }
         await context.sendJson(this.getMetadata(context, rowsAffected), 'info');
     },
 

@@ -1,28 +1,10 @@
 'use strict';
 
-function transformAndObject(andObject) {
-
-    const result = {};
-    const keys = Object.keys(andObject);
-
-    if (keys.length === 2) {
-        result.column = andObject[keys[0]];
-        result.value = andObject[keys[1]];
-    } else {
-        result.column = andObject[keys[0]];
-        result.operator = andObject[keys[1]];
-        result.value = andObject[keys[2]];
-    }
-
-    return result;
-}
-
 function convertRowWithColumnsToObject(rowWithColumns) {
     const rowObject = {};
     if (rowWithColumns?.AND) {
         rowWithColumns.AND?.forEach(columnValuePair => {
-            const [columnName, columnValue] = columnValuePair;
-            rowObject[columnName] = columnValue;
+            rowObject[columnValuePair.column] = columnValuePair.value;
         });
     }
     return rowObject;
@@ -38,7 +20,7 @@ function expressionTransformer(expressionInput) {
                 const andGroup = [];
                 Object.values(andObject).forEach((andArray) => {
                     andArray.forEach(andObject => {
-                        andGroup.push(transformAndObject(andObject));
+                        andGroup.push(andObject);
                     });
                 });
                 result.push(andGroup);
@@ -46,7 +28,7 @@ function expressionTransformer(expressionInput) {
         } else {
             const andValue = Array.isArray(value) ? value : [value];
             andValue.forEach(andObject => {
-                result.push(transformAndObject(andObject));
+                result.push(andObject);
             });
         }
     });

@@ -1,0 +1,151 @@
+{
+    "name": "appmixer.google.drive.FindFilesOrFolders",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Find files or folders in your Google Drive.",
+    "private": false,
+    "version": "2.0.0",
+    "auth": {
+        "service": "appmixer:google:drive",
+        "scope": [
+            "https://www.googleapis.com/auth/drive.readonly"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:google:drive",
+        "resources": "readandwrite",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+        "name": "in",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "query": { "type": "string" },
+                "searchType": { "type": "string" },
+                "folderLocation": {
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "object" }
+                    ]
+                },
+                "recursive": { "type": "boolean" },
+                "orderBy": { "type": "string" },
+                "fileTypes": { "type": "array", "items": { "type": "string" } },
+                "outputType": { "type": "string" }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "query": {
+                    "type": "text",
+                    "index": 1,
+                    "label": "Query",
+                    "tooltip": "Enter a search query. Depending on the search type, this can be a full or partial file/folder name or text contained within a file (fullText search) or a completely custom search query (see <a target=_blank href=\"https://developers.google.com/drive/api/guides/ref-search-terms\">Google Drive Docs</a> for details)."
+                },
+                "searchType": {
+                    "type": "select",
+                    "options": [
+                        { "content": "Exact file name", "value": "fileNameExact" },
+                        { "content": "Exact folder name", "value": "folderNameExact" },
+                        { "content": "File name containing search query", "value": "fileNameContains" },
+                        { "content": "Folder name containing search query", "value": "folderNameContains" },
+                        { "content": "Fulltext search", "value": "fullText" },
+                        { "content": "Custom search query", "value": "customQuery" }
+                    ],
+                    "defaultValue": "fileNameExact",
+                    "index": 2,
+                    "label": "Search Type",
+                    "tooltip": "Type of search. You can search based on exact or partial file/folder names, perform a fullText search (file content), or provide a custom search query (for advanced use)."
+                },
+                "folderLocation": {
+                    "type": "googlepicker",
+                    "index": 3,
+                    "label": "Folder",
+                    "placeholder": "Choose a folder...",
+                    "tooltip": "Search within a specific folder. If not specified, the search will be conducted across the entire drive.",
+                    "view": "FOLDERS"
+                },
+                "recursive": {
+                    "type": "toggle",
+                    "index": 4,
+                    "label": "Recursive Search",
+                    "defaultValue": false,
+                    "tooltip": "Set if you want to find files or folders recursively in all subfolders of the selected folder."
+                },
+                "fileTypes": {
+                    "type": "multiselect",
+                    "options": [
+                        { "content": "Images (any format, image/*)", "value": "image/" },
+                        { "content": "Videos (any format, video/*)", "value": "video/" },
+                        { "content": "Audio files (any format, audio/*)", "value": "audio/" },
+                        { "content": "Documents and text files (any format text/*)", "value": "text/" },
+                        { "content": "PDF files (application/pdf)", "value": "application/pdf" },
+                        { "content": "Google Docs (application/vnd.google-apps.document)", "value": "application/vnd.google-apps.document" },
+                        { "content": "Google Sheets (application/vnd.google-apps.spreadsheet)", "value": "application/vnd.google-apps.spreadsheet" },
+                        { "content": "Google Slides (application/vnd.google-apps.presentation)", "value": "application/vnd.google-apps.presentation" },
+                        { "content": "Google Drawings (application/vnd.google-apps.drawing)", "value": "application/vnd.google-apps.drawing" },
+                        { "content": "Folders (application/vnd.google-apps.folder)", "value": "application/vnd.google-apps.folder" }
+                    ],
+                    "defaultValue": [],
+                    "index": 5,
+                    "label": "File Types",
+                    "tooltip": "Restrict the search to specific file types."
+                },
+                "orderBy": {
+                    "type": "select",
+                    "options": [
+                        { "content": "Name (ascending)", "value": "name asc" },
+                        { "content": "Name (descending)", "value": "name desc" },
+                        { "content": "Last modified date (ascending)", "value": "modifiedTime asc" },
+                        { "content": "Last modified date (descending)", "value": "modifiedTime desc" },
+                        { "content": "Created date (ascending)", "value": "createdTime asc" },
+                        { "content": "Created date (descending)", "value": "createdTime desc" }
+                    ],
+                    "defaultValue": "name asc",
+                    "tooltip": "Sort returned files or folders by different criteria. Note that sorting is not available for queries that use fulltext search. The results will always be arranged in order of descending relevance",
+                    "label": "Order By",
+                    "index": 6
+                },
+                "outputType": {
+                    "type": "select",
+                    "label": "Output Type",
+                    "index": 7,
+                    "defaultValue": "firstItem",
+                    "tooltip": "Choose whether you want to receive only the first file or folder found, the entire result set as one complete list, output one item at a time or store the items in a CSV file.",
+                    "options": [
+                        { "label": "First item only", "value": "firstItem" },
+                        { "label": "All items at once", "value": "items" },
+                        { "label": "One item at a time", "value": "item" },
+                        { "label": "Store items in CSV file", "value": "file" }
+                    ]
+                }
+            }
+        }
+    }
+    ],
+    "outPorts": [{
+        "name": "out",
+        "source": {
+            "url": "/component/appmixer/google/drive/FindFilesOrFolders?outPort=out",
+            "data": {
+                "properties": {
+                    "generateOutputPortOptions": true
+                },
+                "messages": {
+                    "in/outputType": "inputs/in/outputType",
+                    "in/query": "dummy"
+                }
+            }
+        }
+    }, {
+        "name": "notFound",
+        "options": [
+            { "label": "Query", "value": "query", "schema": { "type": "string" } }
+        ]
+    }],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMC8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvVFIvMjAwMS9SRUMtU1ZHLTIwMDEwOTA0L0RURC9zdmcxMC5kdGQnPjxzdmcgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgMzIgMzIiIGhlaWdodD0iMzJweCIgaWQ9IkxheWVyXzEiIHZlcnNpb249IjEuMCIgdmlld0JveD0iMCAwIDMyIDMyIiB3aWR0aD0iMzJweCIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGc+PHBvbHlsaW5lIGZpbGw9IiM1MzdBQkQiIHBvaW50cz0iMzEuODY4LDIxIDkuODY4LDIxIDQuODY4LDMwIDI2LjU1NiwzMCAgIi8+PHBvbHlsaW5lIGZpbGw9IiMyRUI2NzIiIHBvaW50cz0iMTAuOTYyLDIgLTAuMDM4LDIwIDQuOTYyLDMwIDE1LjY4MywxMC4zNDUgICIvPjxwb2x5bGluZSBmaWxsPSIjRkVEMTRCIiBwb2ludHM9IjIwLjk2MiwyIDEwLjk2MiwyIDIxLjcxMiwyMSAzMS45NjIsMjEgMjAuOTYyLDIgICIvPjwvZz48Zy8+PGcvPjxnLz48Zy8+PGcvPjxnLz48L3N2Zz4="
+}
+

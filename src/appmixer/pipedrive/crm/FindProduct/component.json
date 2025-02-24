@@ -4,51 +4,63 @@
     "description": "This action finds person.",
     "inPorts": [
         {
-            "name": "query",
+            "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
                     "term": {
                         "type": "string",
-                        "minLength": 3
+                        "minLength": 2
                     },
-                    "currency": { "type": "string" },
-                    "start": { "type": "number" },
-                    "limit": { "type": "number" }
+                    "exactMatch": {
+                        "type": "boolean"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
                 },
-                "required": [ "term" ]
+                "required": [
+                    "term"
+                ]
             },
             "inspector": {
                 "inputs": {
                     "term": {
                         "type": "text",
-                        "index": 1,
+                        "index": 0,
                         "label": "Term to search for",
                         "tooltip": "The term should contain at least 2 characters."
                     },
-                    "currency": {
-                        "type": "text",
+                    "exactMatch": {
+                        "type": "toggle",
+                        "index": 1,
+                        "label": "Full exact match",
+                        "tooltip": "When enabled, only full exact matches against the given term are returned. It is <strong>not</strong> case sensitive."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
                         "index": 2,
-                        "label": "Currency",
-                        "tooltip": "Currency code in which prices should be returned in. If omitted, prices in user's default currency will be returned. Accepts a 3-character currency code.",
-                        "source": {
-                            "url": "/component/appmixer/pipedrive/crm/ListCurrencies?outPort=out",
-                            "data": {
-                                "transform": "./transformers#currenciesToSelectArray"
+                        "defaultValue": "first",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the rows to a file is the most efficient method.",
+                        "options": [
+                            {
+                                "label": "First Found",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "File",
+                                "value": "file"
                             }
-                        }
-                    },
-                    "start": {
-                        "type": "number",
-                        "index": 3,
-                        "label": "Pagination start",
-                        "tooltip": "Pagination start"
-                    },
-                    "limit": {
-                        "type": "number",
-                        "index": 4,
-                        "label": "Limit",
-                        "tooltip": "How many product you want to find."
+                        ]
                     }
                 }
             }
@@ -56,30 +68,22 @@
     ],
     "outPorts": [
         {
-            "name": "product",
-            "options": [
-                { "label": "id", "value": "id" },
-                { "label": "active_flag", "value": "active_flag" },
-                { "label": "add_time", "value": "add_time" },
-                { "label": "code", "value": "code" },
-                { "label": "files_count", "value": "files_count" },
-                { "label": "first_char", "value": "first_char" },
-                { "label": "followers_count", "value": "followers_count" },
-                { "label": "name", "value": "name" },
-                { "label": "owner_id", "value": "owner_id" },
-                { "label": "closed_deals_count", "value": "closed_deals_count" },
-                { "label": "prices.[0].cost", "value": "prices.[0].cost" },
-                { "label": "prices.[0].currency", "value": "prices.[0].currency" },
-                { "label": "prices.[0].id", "value": "prices.[0].id" },
-                { "label": "prices.[0].overhead_cost", "value": "prices.[0].cost" },
-                { "label": "prices.[0].price", "value": "prices.[0].price" },
-                { "label": "prices.[0].product_id", "value": "prices.[0].product_id" },
-                { "label": "selectable", "value": "selectable" },
-                { "label": "tax", "value": "tax" },
-                { "label": "unit", "value": "unit" },
-                { "label": "update_time", "value": "update_time" },
-                { "label": "visible_to", "value": "visible_to" }
-            ]
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/pipedrive/crm/FindProduct?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/term": "abc"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
         }
     ],
     "auth": {

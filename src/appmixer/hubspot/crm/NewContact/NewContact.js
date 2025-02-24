@@ -5,7 +5,7 @@ const subscriptionType = 'contact.creation';
 
 class NewContact extends BaseSubscriptionComponent {
 
-    async getSubscriptions() {
+    getSubscriptions() {
 
         return [{
             enabled: true,
@@ -20,21 +20,44 @@ class NewContact extends BaseSubscriptionComponent {
         const eventsByObjectId = context.messages.webhook.content.data;
 
         this.configureHubspot(context);
-        // eslint-disable-next-line no-unused-vars
-        for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-            try {
-                const { data } = await this.hubspot.call(
-                    'get',
-                    `crm/v3/objects/contacts/${contactId}`
-                );
-                await context.sendJson(data, 'contact');
-            } catch (error) {
-                // ignore 404 errors, object could be deleted.
-                if ((error.status || (error.response && error.response.status)) !== 404) {
-                    throw error;
+
+        // Get all objectIds that will be used to fetch the contacts in bulk
+        let ids = [];
+        // Locking to avoid duplicates. HubSpot payloads can come within milliseconds of each other.
+        let lock;
+
+        try {
+            lock = await context.lock(context.componentId, {
+                ttl: 1000 * 10,
+                retryDelay: 500,
+                maxRetryCount: 3
+            });
+
+            for (const [contactId] of Object.entries(eventsByObjectId)) {
+                const cacheKey = 'hubspot-contact-created-' + contactId;
+                const cached = await context.staticCache.get(cacheKey);
+                if (cached) {
+                    continue;
                 }
+                // Cache the event for 5s to avoid duplicates
+                await context.staticCache.set(cacheKey, contactId, context.config?.eventCacheTTL || 5000);
+                ids.push(contactId);
             }
+        } finally {
+            await lock?.unlock();
         }
+
+        if (!ids.length) {
+            // No new contacts to fetch
+            return context.response();
+        }
+
+        // Call the API to get the contacts in bulk
+        const { data } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
+            inputs: ids.map((id) => ({ id }))
+        });
+
+        await context.sendArray(data.results, 'contact');
 
         return context.response();
     }

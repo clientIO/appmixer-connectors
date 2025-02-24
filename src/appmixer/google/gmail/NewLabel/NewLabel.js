@@ -1,47 +1,37 @@
 'use strict';
-const gmail = require('googleapis').gmail('v1');
-const google = require('../../google-commons');
+const emailCommons = require('../lib');
 const Promise = require('bluebird');
 
-/**
- * Component which triggers whenever new label is added to the gmail.
- * @extends {Component}
- */
 module.exports = {
 
-    tick(context) {
+    async tick(context) {
+        let newState = {};
 
-        const listLabels = Promise.promisify(gmail.users.labels.list, { context: gmail.users.labels });
-        const newLabel = Promise.promisify(gmail.users.labels.get, { context: gmail.users.labels });
+        const listLabels = await emailCommons.callEndpoint(context, '/users/me/labels', {
+            method: 'GET'
+        }).then(response => response.data.labels);
 
-        return listLabels({
-            auth: google.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId
-        }).then(res => {
-            let labels = res['labels'];
-            let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-            let current = [];
-            let diff = [];
+        const knownLabels = new Set(context.state.known || []);
+        const currentLabels = [];
+        const newLabels = [];
 
-            labels.forEach(
-                context.utils.processItem.bind(
-                    null, known, current, diff, label => label.id));
+        listLabels.forEach(label => {
+            currentLabels.push(label.id);
+            if (!knownLabels.has(label.id)) {
+                if (context.state.known) { // Only consider it new if state.known is already set
+                    newLabels.push(label);
+                }
+            }
+        });
 
-            context.state = { known: Array.from(current) };
+        newState.known = currentLabels;
 
-            return Promise.map(diff, label => {
-                return newLabel({
-                    auth: google.getOauth2Client(context.auth),
-                    userId: 'me',
-                    quotaUser: context.auth.userId,
-                    id: label.id
-                });
-            }, { concurrency: 10 });
-        }).then(labels => {
-            return Promise.map(labels, label => {
+        await context.saveState(newState);
+
+        if (context.state.known) { // Only send new labels if state.known is already set
+            await Promise.map(newLabels, label => {
                 return context.sendJson(label, 'out');
             });
-        });
+        }
     }
 };

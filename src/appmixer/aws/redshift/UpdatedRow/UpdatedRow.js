@@ -9,10 +9,12 @@ module.exports = {
         let { lastUpdated } = await context.stateGet('lastUpdated') || {};
         let processedKeys = await context.stateGet('processedKeys') || {};
 
+        const sanitizedQuery = query.replace(/;$/, '');
+
         try {
             if (!lastUpdated) {
                 // On first tick, fetch only the most recent update to set lastUpdated
-                const latestRowQuery = `${query} ORDER BY ${updatedDateColumn} DESC LIMIT 1`;
+                const latestRowQuery = `${sanitizedQuery} ORDER BY ${updatedDateColumn} DESC LIMIT 1`;
                 const latestRowResult = await runQuery({ context: context.auth, query: latestRowQuery });
                 lastUpdated = latestRowResult.rows.length
                     ? latestRowResult.rows[0][updatedDateColumn]
@@ -20,7 +22,12 @@ module.exports = {
 
                 await context.stateSet('lastUpdated', { lastUpdated });
             } else {
-                const updatedRows = await this.checkForUpdatedRows(context, query, updatedDateColumn, lastUpdated);
+                const updatedRows = await this.checkForUpdatedRows(
+                    context,
+                    sanitizedQuery,
+                    updatedDateColumn,
+                    lastUpdated
+                );
                 for (const row of updatedRows) {
 
                     if (!primaryKey || !processedKeys[row[primaryKey]]) {

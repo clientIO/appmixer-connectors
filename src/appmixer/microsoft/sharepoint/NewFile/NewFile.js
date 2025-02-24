@@ -43,7 +43,8 @@ module.exports = {
     async start(context) {
 
         const { accessToken } = context.auth;
-        const latest = await getLatestChanges('/me/drive/root/delta?token=latest', accessToken);
+        const { driveId } = context.properties;
+        const latest = await getLatestChanges(`/drives/${driveId}/root/delta?token=latest`, accessToken);
         const state = {
             deltaLink: latest['@odata.deltaLink'],
             lastUpdated: moment().toISOString()
@@ -97,9 +98,11 @@ module.exports = {
                         const promises = [];
 
                         latest.value.forEach((file) => {
+                            const isFile = Object.keys(file).includes('file');
                             const createdDateTime = file.createdDateTime;
+
                             if (
-                                createdDateTime &&
+                                isFile && createdDateTime &&
                                 moment(lastUpdated).isSameOrBefore(createdDateTime)
                             ) {
                                 promises.push(context.sendJson(file, 'file'));

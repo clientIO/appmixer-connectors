@@ -1,25 +1,18 @@
 'use strict';
-const GoogleApi = require('googleapis');
-const commons = require('../../google-commons');
-const { promisify } = require('util');
-
-// GoogleApi initialization & promisify of some api function for convenience
-const gmail = GoogleApi.gmail('v1');
+const commons = require('../lib');
 
 module.exports = {
     async receive(context) {
-
         const { emailId } = context.messages.in.content;
-        const modifyLabel = promisify(gmail.users.messages.modify.bind(gmail.users.messages.modify));
-        const email = await modifyLabel({
-            auth: commons.getOauth2Client(context.auth),
-            userId: 'me',
-            quotaUser: context.auth.userId,
-            resource: {
+        const endpoint = `/users/me/messages/${emailId}/modify`;
+        const options = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            data: {
                 addLabelIds: ['UNREAD']
-            },
-            id: emailId
-        });
-        return context.sendJson(email, 'out');
+            }
+        };
+        const response = await commons.callEndpoint(context, endpoint, options);
+        return context.sendJson(response.data, 'out');
     }
 };
