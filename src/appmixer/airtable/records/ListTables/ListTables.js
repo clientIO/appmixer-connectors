@@ -8,7 +8,7 @@ module.exports = {
     async receive(context) {
 
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
-        const { baseId, outputType, isSource, tableId } = context.messages.in.content;
+        const { baseId, outputType, isSource } = context.messages.in.content;
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
@@ -18,11 +18,11 @@ module.exports = {
             return context.sendJson({ items: [] }, 'out');
         }
 
-        if (!tableId || isAppmixerVariable(tableId)) {
-            // This is the case when component is added to the inspector and user didn't select a table yet.
-            // We don't want to throw an error yet.
-            return context.sendJson({ fields: [] }, 'out');
-        }
+        // if (!tableId || isAppmixerVariable(tableId)) {
+        //     // This is the case when component is added to the inspector and user didn't select a table yet.
+        //     // We don't want to throw an error yet.
+        //     return context.sendJson({ fields: [] }, 'out');
+        // }
 
         const cacheKey = 'airtable_tables_' + baseId;
         let lock;
@@ -33,13 +33,13 @@ module.exports = {
             if (isSource) {
                 const tablesCached = await context.staticCache.get(cacheKey);
                 if (tablesCached) {
-                    if (tableId) {
-                        const pickedTable = tablesCached.find((table) => {
-                            table.id === tableId || table.name === tableId;
-                        });
+                    // if (tableId) {
+                    //     const pickedTable = tablesCached.find((table) => {
+                    //         table.id === tableId || table.name === tableId;
+                    //     });
 
-                        return context.sendJson({ fields: pickedTable.fields }, 'out');
-                    };
+                    //     return context.sendJson({ fields: pickedTable.fields }, 'out');
+                    // };
                     return context.sendJson({ items: tablesCached }, 'out');
                 }
             }
