@@ -1,42 +1,44 @@
 'use strict';
 
-const getLatestUniqueCellValues = (payloads) => {
-    const latestRecords = new Map(); // Map to track the latest values by record ID
+// const getLatestUniqueCellValues = (payloads) => {
+//     const latestRecords = new Map(); // Map to track the latest values by record ID
 
-    payloads.forEach(payload => {
-        Object.values(payload.changedTablesById).forEach(table => {
-            // Process created records
-            if (table.createdRecordsById) {
-                Object.entries(table.createdRecordsById).forEach(([recordId, record]) => {
-                    latestRecords.set(recordId, record.cellValuesByFieldId);
-                });
-            }
+//     payloads.forEach(payload => {
+//         Object.values(payload.changedTablesById).forEach(table => {
+//             // Process created records
+//             if (table.createdRecordsById) {
+//                 Object.entries(table.createdRecordsById).forEach(([recordId, record]) => {
+//                     latestRecords.set(recordId, record.cellValuesByFieldId);
+//                 });
+//             }
 
-            // Process changed records
-            if (table.changedRecordsById) {
-                Object.entries(table.changedRecordsById).forEach(([recordId, record]) => {
-                    if (record.current) {
-                        latestRecords.set(recordId, record.current.cellValuesByFieldId);
-                    }
-                });
-            }
-        });
-    });
+//             // Process changed records
+//             if (table.changedRecordsById) {
+//                 Object.entries(table.changedRecordsById).forEach(([recordId, record]) => {
+//                     if (record.current) {
+//                         latestRecords.set(recordId, record.current.cellValuesByFieldId);
+//                     }
+//                 });
+//             }
+//         });
+//     });
 
-    return Array.from(latestRecords.values()); // Return as an array of unique cellValuesByFieldId
-};
+//     return Array.from(latestRecords.values()); // Return as an array of unique cellValuesByFieldId
+// };
 
 const registerWebhook = async (context) => {
 
     const { baseId, tableId } = context.properties;
     const { accessToken } = context.auth;
+    context.log({ step: 'accessToken', accessToken });
     const body = {
         notificationUrl: context.getWebhookUrl(),
         specification: {
             options: {
                 filters: {
                     dataTypes: ['tableData'],
-                    recordChangeScope: tableId
+                    recordChangeScope: tableId,
+                    changeTypes: ['add']
                 }
             }
         }
@@ -111,21 +113,19 @@ module.exports = {
 
             const { payloads } = data;
             if (Array.isArray(payloads) && payloads.length > 0) {
-                let lock;
+                //let lock;
 
-                try {
-                    lock = await context.lock(context.componentId, {
-                        ttl: 1000 * 10,
-                        retryDelay: 500,
-                        maxRetryCount: 3
-                    });
+                // try {
+                //     lock = await context.lock(context.componentId, {
+                //         ttl: 1000 * 10,
+                //         retryDelay: 500,
+                //         maxRetryCount: 3
+                //     });
 
-                    const latestCellValues = getLatestUniqueCellValues(data.payloads);
-
-                    await context.sendArray(latestCellValues, 'out');
-                } finally {
-                    await lock?.unlock();
-                }
+                await context.sendArray(data.payloads, 'out');
+                // } finally {
+                //     await lock?.unlock();
+                // }
 
 
             }
@@ -172,7 +172,6 @@ module.exports = {
     },
 
     async tick(context) {
-
         const { accessToken } = context.auth;
 
         let lock;
@@ -181,7 +180,7 @@ module.exports = {
 
             const state = await context.loadState();
 
-            const { webhookId, expirationTime } = state.webhookId;
+            const { webhookId, expirationTime } = state;
 
             context.log({ step: 'tick webhookId', webhookId });
             context.log({ step: 'tick expirationTime', expirationTime });
