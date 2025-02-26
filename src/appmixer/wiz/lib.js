@@ -63,7 +63,7 @@ module.exports = {
 
     async makeApiCall({ context, method = 'GET', data }) {
 
-        const url = context.config.apiEndpointUrl || 'https://api.eu4.app.wiz.io/graphql';
+        const url = context.config.apiEndpointUrl || 'https://api.us18.app.wiz.io/graphql';
 
         return context.httpRequest({
             method,
