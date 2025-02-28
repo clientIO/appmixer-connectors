@@ -7,7 +7,7 @@ module.exports = {
     // Private component used only to list tables in a base in the inspector.
     async receive(context) {
 
-        const generateOutputPortOptions = context.properties.generateOutputPortOptions;
+        const { generateOutputPortOptions, tableId, isWebhookOutput } = context.properties;
         const { baseId, outputType, isSource } = context.messages.in.content;
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
@@ -18,12 +18,6 @@ module.exports = {
             return context.sendJson({ items: [] }, 'out');
         }
 
-        // if (!tableId || isAppmixerVariable(tableId)) {
-        //     // This is the case when component is added to the inspector and user didn't select a table yet.
-        //     // We don't want to throw an error yet.
-        //     return context.sendJson({ fields: [] }, 'out');
-        // }
-
         const cacheKey = 'airtable_tables_' + baseId;
         let lock;
         try {
@@ -33,13 +27,6 @@ module.exports = {
             if (isSource) {
                 const tablesCached = await context.staticCache.get(cacheKey);
                 if (tablesCached) {
-                    // if (tableId) {
-                    //     const pickedTable = tablesCached.find((table) => {
-                    //         table.id === tableId || table.name === tableId;
-                    //     });
-
-                    //     return context.sendJson({ fields: pickedTable.fields }, 'out');
-                    // };
                     return context.sendJson({ items: tablesCached }, 'out');
                 }
             }
@@ -63,6 +50,18 @@ module.exports = {
 
                 return context.sendJson({ items: tables }, 'out');
             }
+            if (isWebhookOutput) {
+                if (!tableId) {
+                    return context.sendJson([], 'out');
+                }
+                const fieldsOutput = [{ label: 'Record ID', value: 'id' }];
+                const selectedTable = tables.filter((table) => table.id === tableId);
+                const fields = selectedTable[0].fields.map((field) => {
+                    return { label: field.name, value: field.name };
+                });
+
+                return context.sendJson(fieldsOutput.concat(fields), 'out');
+            }
 
             // Returning values to the flow.
             await sendArrayOutput({ context, outputType, records: tables });
@@ -76,15 +75,6 @@ module.exports = {
         return items.map(table => {
             return { label: table.name, value: table.id };
         });
-    },
-
-    triggerFieldsSelectArray({ fields }) {
-        return fields.map(field => {
-            if (field.type === 'createdTime' || field.type === 'lastModifiedTime') {
-                return { label: field.name, value: field.name };
-            }
-        });
-
     },
 
     getOutputPortOptions(context, outputType) {
