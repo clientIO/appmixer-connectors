@@ -14,13 +14,9 @@ module.exports = {
             await context.sendJson({ result: records }, outputPortName);
         } else if (outputType === 'file') {
 
-            // Into CSV file.
-            const csvString = toCsv(records);
-
-            let buffer = Buffer.from(csvString, 'utf8');
             const componentName = context.flowDescriptor[context.componentId].label || context.componentId;
-            const fileName = `${context.config.outputFilePrefix || 'wiz-objects-export'}-${componentName}.csv`;
-            const savedFile = await context.saveFileStream(pathModule.normalize(fileName), buffer);
+            const fileName = `${context.config.outputFilePrefix || 'wiz-objects-export'}-${componentName}.json`;
+            const savedFile = await context.saveFileStream(pathModule.normalize(fileName), JSON.stringify(records));
 
             await context.log({ step: 'File was saved', fileName, fileId: savedFile.fileId });
             await context.sendJson({ fileId: savedFile.fileId }, outputPortName);

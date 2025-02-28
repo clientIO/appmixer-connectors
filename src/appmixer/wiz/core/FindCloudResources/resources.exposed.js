@@ -1,39 +1,18 @@
 const lib = require('../../lib');
 
 const query = `
-query NetworkExposuresTable($filterBy: NetworkExposureFilters, $first: Int, $after: String) {
-    networkExposures(filterBy: $filterBy, first: $first, after: $after) {
+query CloudResourceSearch(
+    $filterBy: CloudResourceFilters
+    $first: Int
+    $after: String
+  ) {
+    cloudResources(
+      filterBy: $filterBy
+      first: $first
+      after: $after
+    ) {
       nodes {
-        id
-        exposedEntity {
-          id
-          name
-          type
-        }
-        accessibleFrom {
-          id
-          name
-          type
-          properties
-        }
-        sourceIpRange
-        destinationIpRange
-        portRange
-        appProtocols
-        networkProtocols
-        customIPRanges {
-          id
-          name
-          ipRanges
-        }
-        firstSeenAt
-        applicationEndpoints {
-          id
-          name
-          type
-          properties
-        }
-        type
+        ...CloudResourceFragment
       }
       pageInfo {
         hasNextPage
@@ -41,190 +20,242 @@ query NetworkExposuresTable($filterBy: NetworkExposureFilters, $first: Int, $aft
       }
     }
   }
+  fragment CloudResourceFragment on CloudResource {
+    id
+    name
+    type
+    subscriptionId
+    subscriptionExternalId
+    graphEntity{
+      id
+      providerUniqueId
+      name
+      type
+      projects {
+        id
+      }
+      properties
+      firstSeen
+      lastSeen
+    }
+  }
  `;
 
 const outputSchema = {
-    id: { type: 'string', title: 'Id' },
-    exposedEntity: {
-        type: 'object',
-        properties: {
-            id: { type: 'string', title: 'Exposed Entity.Id' },
-            name: { type: 'string', title: 'Exposed Entity.Name' },
-            type: { type: 'string', title: 'Exposed Entity.Type' }
-        }, title: 'Exposed Entity'
+    id: {
+        type: 'string',
+        title: 'Id'
     },
-    accessibleFrom: {
+    name: {
+        type: 'string',
+        title: 'Name'
+    },
+    type: {
+        type: 'string',
+        title: 'Type'
+    },
+    subscriptionId: {
+        type: 'string',
+        title: 'Subscription Id'
+    },
+    subscriptionExternalId: {
+        type: 'string',
+        title: 'Subscription External Id'
+    },
+    graphEntity: {
         type: 'object',
         properties: {
-            id: { type: 'string', title: 'Accessible From.Id' },
-            name: { type: 'string', title: 'Accessible From.Name' },
-            type: { type: 'string', title: 'Accessible From.Type' },
+            id: {
+                type: 'string',
+                title: 'Graph Entity.Id'
+            },
+            providerUniqueId: {
+                type: 'null',
+                title: 'Graph Entity.Provider Unique Id'
+            },
+            name: {
+                type: 'string',
+                title: 'Graph Entity.Name'
+            },
+            type: {
+                type: 'string',
+                title: 'Graph Entity.Type'
+            },
+            projects: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'string',
+                            title: 'Graph Entity.Projects.Id'
+                        }
+                    }
+                },
+                title: 'Graph Entity.Projects'
+            },
             properties: {
                 type: 'object',
                 properties: {
-                    _productIDs: { type: 'string', title: 'Accessible From.Properties.Product IDs' },
-                    _vertexID: { type: 'string', title: 'Accessible From.Properties.Vertex ID' },
-                    cloudPlatform: { type: 'string', title: 'Accessible From.Properties.Cloud Platform' },
-                    cloudProviderURL: { type: 'string', title: 'Accessible From.Properties.Cloud Provider URL' },
-                    creationDate: { type: 'string', title: 'Accessible From.Properties.Creation Date' },
-                    externalId: { type: 'string', title: 'Accessible From.Properties.External Id' },
-                    fullResourceName: { type: 'null', title: 'Accessible From.Properties.Full Resource Name' },
-                    name: { type: 'string', title: 'Accessible From.Properties.Name' },
-                    nativeType: { type: 'string', title: 'Accessible From.Properties.Native Type' },
-                    providerUniqueId: { type: 'string', title: 'Accessible From.Properties.Provider Unique Id' },
-                    region: { type: 'string', title: 'Accessible From.Properties.Region' },
+                    _environments: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Environments'
+                    },
+                    _productIDs: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Product I Ds'
+                    },
+                    _vertexID: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Vertex I D'
+                    },
+                    allPorts: {
+                        type: 'boolean',
+                        title: 'Graph Entity.Properties.All Ports'
+                    },
+                    cloudPlatform: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Cloud Platform'
+                    },
+                    cloudProviderURL: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Cloud Provider U R L'
+                    },
+                    exposureLevel_description: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Exposure Level Description'
+                    },
+                    exposureLevel_name: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Exposure Level Name'
+                    },
+                    exposureLevel_value: {
+                        type: 'number',
+                        title: 'Graph Entity.Properties.Exposure Level Value'
+                    },
+                    externalId: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.External Id'
+                    },
+                    finalHost: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Final Host'
+                    },
+                    finalPort: {
+                        type: 'number',
+                        title: 'Graph Entity.Properties.Final Port'
+                    },
+                    fullResourceName: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Full Resource Name'
+                    },
+                    hasScreenshot: {
+                        type: 'boolean',
+                        title: 'Graph Entity.Properties.Has Screenshot'
+                    },
+                    host: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Host'
+                    },
+                    httpContentType: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Http Content Type'
+                    },
+                    httpGETStatus: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Http G E T Status'
+                    },
+                    httpGETStatusCode: {
+                        type: 'number',
+                        title: 'Graph Entity.Properties.Http G E T Status Code'
+                    },
+                    httpTitleSnippet: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Http Title Snippet'
+                    },
+                    name: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Name'
+                    },
+                    nativeType: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Native Type'
+                    },
+                    path: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Path'
+                    },
+                    port: {
+                        type: 'number',
+                        title: 'Graph Entity.Properties.Port'
+                    },
+                    portEnd: {
+                        type: 'number',
+                        title: 'Graph Entity.Properties.Port End'
+                    },
+                    portRange: {
+                        type: 'boolean',
+                        title: 'Graph Entity.Properties.Port Range'
+                    },
+                    portStart: {
+                        type: 'number',
+                        title: 'Graph Entity.Properties.Port Start'
+                    },
+                    portValidationResult: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Port Validation Result'
+                    },
+                    protocol: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Protocol'
+                    },
+                    protocols: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Protocols'
+                    },
+                    providerUniqueId: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Provider Unique Id'
+                    },
+                    region: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Region'
+                    },
                     resourceGroupExternalId: {
                         type: 'null',
-                        title: 'Accessible From.Properties.Resource Group External Id'
+                        title: 'Graph Entity.Properties.Resource Group External Id'
                     },
-                    status: { type: 'string', title: 'Accessible From.Properties.Status' },
+                    status: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Status'
+                    },
                     subscriptionExternalId: {
                         type: 'string',
-                        title: 'Accessible From.Properties.Subscription External Id'
+                        title: 'Graph Entity.Properties.Subscription External Id'
                     },
-                    tags: {
-                        type: 'object',
-                        properties: {
-                            'aws:cloudformation:logical-id': {
-                                type: 'string',
-                                title: 'Accessible From.Properties.Tags.Aws:Cloudformation:Logical-Id'
-                            },
-                            'aws:cloudformation:stack-id': {
-                                type: 'string',
-                                title: 'Accessible From.Properties.Tags.Aws:Cloudformation:Stack-Id'
-                            },
-                            'aws:cloudformation:stack-name': {
-                                type: 'string',
-                                title: 'Accessible From.Properties.Tags.Aws:Cloudformation:Stack-Name'
-                            }
-                        }, title: 'Accessible From.Properties.Tags'
+                    updatedAt: {
+                        type: 'string',
+                        title: 'Graph Entity.Properties.Updated At'
                     },
-                    updatedAt: { type: 'string', title: 'Accessible From.Properties.Updated At' },
-                    wafEnabled: { type: 'boolean', title: 'Accessible From.Properties.Waf Enabled' },
-                    zone: { type: 'null', title: 'Accessible From.Properties.Zone' }
-                }, title: 'Accessible From.Properties'
-            }
-        }, title: 'Accessible From'
-    },
-    sourceIpRange: { type: 'string', title: 'Source Ip Range' },
-    destinationIpRange: { type: 'string', title: 'Destination Ip Range' },
-    portRange: { type: 'string', title: 'Port Range' },
-    appProtocols: {
-        type: 'array',
-        items: { type: 'string' }, title: 'App Protocols'
-    },
-    networkProtocols: {
-        type: 'array',
-        items: { type: 'string' }, title: 'Network Protocols'
-    },
-    customIPRanges: { type: 'null', title: 'Custom IP Ranges' },
-    firstSeenAt: { type: 'string', title: 'First Seen At' },
-    applicationEndpoints: {
-        type: 'array',
-        items: {
-            type: 'object',
-            properties: {
-                id: { type: 'string', title: 'Application Endpoints.Id' },
-                name: { type: 'string', title: 'Application Endpoints.Name' },
-                type: { type: 'string', title: 'Application Endpoints.Type' },
-                properties: {
-                    type: 'object',
-                    properties: {
-                        _productIDs: { type: 'string', title: 'Application Endpoints.Properties.Product IDs' },
-                        _vertexID: { type: 'string', title: 'Application Endpoints.Properties.Vertex ID' },
-                        allPorts: { type: 'boolean', title: 'Application Endpoints.Properties.All Ports' },
-                        cloudPlatform: { type: 'string', title: 'Application Endpoints.Properties.Cloud Platform' },
-                        cloudProviderURL: {
-                            type: 'null',
-                            title: 'Application Endpoints.Properties.Cloud Provider URL'
-                        },
-                        exposureLevel_description: {
-                            type: 'string',
-                            title: 'Application Endpoints.Properties.Exposure Level Description'
-                        },
-                        exposureLevel_name: {
-                            type: 'string',
-                            title: 'Application Endpoints.Properties.Exposure Level Name'
-                        },
-                        exposureLevel_value: {
-                            type: 'number',
-                            title: 'Application Endpoints.Properties.Exposure Level Value'
-                        },
-                        externalId: { type: 'string', title: 'Application Endpoints.Properties.External Id' },
-                        finalHost: { type: 'string', title: 'Application Endpoints.Properties.Final Host' },
-                        finalPort: { type: 'number', title: 'Application Endpoints.Properties.Final Port' },
-                        fullResourceName: {
-                            type: 'null',
-                            title: 'Application Endpoints.Properties.Full Resource Name'
-                        },
-                        hasScreenshot: { type: 'boolean', title: 'Application Endpoints.Properties.Has Screenshot' },
-                        hasSensitiveData: {
-                            type: 'boolean',
-                            title: 'Application Endpoints.Properties.Has Sensitive Data'
-                        },
-                        host: { type: 'string', title: 'Application Endpoints.Properties.Host' },
-                        httpContentType: {
-                            type: 'string',
-                            title: 'Application Endpoints.Properties.Http Content Type'
-                        },
-                        httpGETStatus: { type: 'string', title: 'Application Endpoints.Properties.Http GET Status' },
-                        httpGETStatusCode: {
-                            type: 'number',
-                            title: 'Application Endpoints.Properties.Http GET Status Code'
-                        },
-                        httpTitleSnippet: {
-                            type: 'null',
-                            title: 'Application Endpoints.Properties.Http Title Snippet'
-                        },
-                        name: { type: 'string', title: 'Application Endpoints.Properties.Name' },
-                        nativeType: { type: 'null', title: 'Application Endpoints.Properties.Native Type' },
-                        path: { type: 'string', title: 'Application Endpoints.Properties.Path' },
-                        port: { type: 'number', title: 'Application Endpoints.Properties.Port' },
-                        portEnd: { type: 'number', title: 'Application Endpoints.Properties.Port End' },
-                        portRange: { type: 'boolean', title: 'Application Endpoints.Properties.Port Range' },
-                        portStart: { type: 'number', title: 'Application Endpoints.Properties.Port Start' },
-                        portValidationResult: {
-                            type: 'string',
-                            title: 'Application Endpoints.Properties.Port Validation Result'
-                        },
-                        protocol: { type: 'null', title: 'Application Endpoints.Properties.Protocol' },
-                        protocols: { type: 'string', title: 'Application Endpoints.Properties.Protocols' },
-                        providerUniqueId: {
-                            type: 'null',
-                            title: 'Application Endpoints.Properties.Provider Unique Id'
-                        },
-                        region: { type: 'null', title: 'Application Endpoints.Properties.Region' },
-                        resourceGroupExternalId: {
-                            type: 'null',
-                            title: 'Application Endpoints.Properties.Resource Group External Id'
-                        },
-                        severity_description: {
-                            type: 'string',
-                            title: 'Application Endpoints.Properties.Severity Description'
-                        },
-                        severity_name: { type: 'string', title: 'Application Endpoints.Properties.Severity Name' },
-                        severity_value: { type: 'number', title: 'Application Endpoints.Properties.Severity Value' },
-                        status: { type: 'null', title: 'Application Endpoints.Properties.Status' },
-                        subscriptionExternalId: {
-                            type: 'string',
-                            title: 'Application Endpoints.Properties.Subscription External Id'
-                        },
-                        updatedAt: { type: 'string', title: 'Application Endpoints.Properties.Updated At' },
-                        zone: { type: 'null', title: 'Application Endpoints.Properties.Zone' }
-                    }, title: 'Application Endpoints.Properties'
-                }
+                    zone: {
+                        type: 'null',
+                        title: 'Graph Entity.Properties.Zone'
+                    }
+                },
+                title: 'Graph Entity.Properties'
             },
-            required: [
-                'id',
-                'name',
-                'type',
-                'properties'
-            ]
-        }, title: 'Application Endpoints'
-    },
-    type: { type: 'string', title: 'Type' }
+            firstSeen: {
+                type: 'string',
+                title: 'Graph Entity.First Seen'
+            },
+            lastSeen: {
+                type: 'string',
+                title: 'Graph Entity.Last Seen'
+            }
+        },
+        title: 'Graph Entity'
+    }
 };
-
 module.exports = {
     schema: outputSchema,
     async getResources(context, { PAGE_SIZE = 500, limit, filterBy }) {
@@ -234,22 +265,21 @@ module.exports = {
         let records = [];
 
         do {
-            const filter = {
-                ...filterBy,
-                publicInternetExposureFilters: {
-                    hasApplicationEndpoint: true
-                }
+            const variables = {
+                first: Math.min(PAGE_SIZE, limit - totalRecordsCount),
+                filterBy
             };
+
+            if (nextPageToken) {
+                variables.after = nextPageToken;
+            }
+
             const { data } = await lib.makeApiCall({
                 context,
                 method: 'POST',
                 data: {
                     query,
-                    variables: {
-                        first: Math.min(PAGE_SIZE, limit - totalRecordsCount),
-                        after: nextPageToken,
-                        filterBy: filter
-                    }
+                    variables
                 }
             });
 
@@ -257,7 +287,7 @@ module.exports = {
                 throw new context.CancelError(data.errors);
             }
 
-            const { pageInfo = {}, nodes } = data.data.networkExposures;
+            const { pageInfo = {}, nodes } = data.data.cloudResources;
 
             if (nodes.length === 0) {
                 return context.sendJson({ filter }, 'notFound');
