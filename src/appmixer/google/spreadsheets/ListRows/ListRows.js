@@ -10,10 +10,11 @@ module.exports = {
 
     receive(context) {
 
+        const worksheetName = encodeURIComponent(context.properties.worksheetId.split('/')[1]);
         return listRows({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
-            range: context.properties.worksheetId.split('/')[1]
+            range: worksheetName
         }).then(res => {
             return context.sendJson(res['values'], 'out');
         });

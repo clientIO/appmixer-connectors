@@ -73,10 +73,11 @@ module.exports = {
 
         const sheets = google.sheets('v4');
         const findRow = Promise.promisify(sheets.spreadsheets.values.get, { context: sheets.spreadsheets.values });
+        const worksheetName = encodeURIComponent(context.properties.worksheetId.split('/')[1]);
         return findRow({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
-            range: context.properties.worksheetId.split('/')[1],
+            range: worksheetName,
             majorDimension: 'ROWS'
         }).then(res => {
             const foundRows = findRows(res.values, context.messages.in.content);
