@@ -161,12 +161,12 @@ module.exports = {
                         method: 'POST'
                     });
 
-                    state.expirationTime = data.expirationTime;
+                    state.expirationTime = Date.parse(data.expirationTime);
                 } catch (err) {
                     if (err?.statusCode === 404) {
                         const { id, expirationTime } = await registerWebhook(context);
                         state.webhookId = id;
-                        state.expirationTime = expirationTime;
+                        state.expirationTime = Date.parse(expirationTime);
                     } else {
                         throw err;
                     }
