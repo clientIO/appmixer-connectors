@@ -7,7 +7,7 @@ module.exports = {
     // docs: https://win.wiz.io/reference/pull-cloud-resources
     async receive(context) {
 
-        const { outputType, filter, limit = 10 } = context.messages.in.content;
+        const { filter, limit = 10 } = context.messages.in.content;
 
         let filterBy;
         if (filter) {
@@ -20,6 +20,6 @@ module.exports = {
 
         const records = await resources.exposed.getResources(context, { filterBy, limit });
 
-        return lib.sendArrayOutput({ context, records, outputType });
+        return lib.sendArrayOutput({ context, records, outputType: 'object' });
     }
 };

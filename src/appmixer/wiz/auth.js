@@ -2,7 +2,7 @@
 
 module.exports = {
 
-    type: 'apiKey',
+    type: 'pwd',
 
     definition: {
 
