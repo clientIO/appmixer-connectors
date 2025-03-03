@@ -10,10 +10,11 @@ module.exports = {
 
     receive(context) {
 
+        const worksheetName = encodeURIComponent(context.messages.in.content.worksheetId.split('/')[1]);
         return findRow({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
-            range: context.messages.in.content.worksheetId.split('/')[1],
+            range: worksheetName,
             majorDimension: 'ROWS'
         }).then(res => {
             const row = {

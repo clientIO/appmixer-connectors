@@ -28,12 +28,38 @@ module.exports = {
                 ssl: {
                     type: 'text',
                     name: 'SSL',
-                    tooltip: 'Enable/Disable SSL. Enter the string "TRUE" if you want to enable SSL.'
+                    tooltip: 'Enable/Disable SSL. Enter the string "TRUE" if you want to enable SSL. This will be overridden when `sslRejectUnauthorized` is set or a certificate is provided.'
+                },
+                sslRejectUnauthorized: {
+                    type: 'select',
+                    name: 'SSL Reject Unauthorized',
+                    // Providing an example in case the customer is on Appmixer < 6.1.
+                    tooltip: 'Reject unauthorized SSL certificates. `true` or `false`.',
+                    placeholder: 'Select an option',
+                    options: [
+                        { label: 'true', value: 'true' },
+                        { label: 'false', value: 'false' }
+                    ]
+                },
+                tlsCA: {
+                    type: 'textarea',
+                    name: 'TLS CA File',
+                    tooltip: 'Paste text content of <code>ca.pem</code> file.'
+                },
+                tlsKey: {
+                    type: 'textarea',
+                    name: 'TLS Key',
+                    tooltip: 'Paste text content of <code>service.key</code> file.'
+                },
+                tlsCert: {
+                    type: 'textarea',
+                    name: 'TLS Cert',
+                    tooltip: 'Paste text content of <code>service.cert</code> file.'
                 },
                 saslMechanism: {
                     type: 'text',
                     name: 'SASL Mechanism',
-                    tooltip: 'SASL mechanism type. Supported values: SCRAM-SHA-256, SCRAM-SHA-512, PLAIN.'
+                    tooltip: 'SASL mechanism type. Supported values: SCRAM-SHA-256, SCRAM-SHA-512, PLAIN. If provided, the saslUsername and saslPassword fields are required and all the SSL certificates are ignored.'
                 },
                 saslUsername: {
                     type: 'text',
@@ -49,7 +75,7 @@ module.exports = {
 
             validate: async context => {
 
-                const client = connections.initClient(context, context);
+                const client = await connections.initClient(context, context);
                 const testProducer = client.producer();
                 await testProducer.connect();
                 await testProducer.disconnect();
