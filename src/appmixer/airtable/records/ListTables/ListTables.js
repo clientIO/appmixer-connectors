@@ -54,7 +54,7 @@ module.exports = {
                 if (!tableId) {
                     return context.sendJson([], 'out');
                 }
-                const fieldsOutput = [{ label: 'Record ID', value: 'id' }];
+                const fieldsOutput = [{ label: 'Record ID', value: 'id' }, { label: 'Created Time', value: 'createdTime' }];
                 const selectedTable = tables.filter((table) => table.id === tableId);
                 const fields = selectedTable[0].fields.map((field) => {
                     return { label: field.name, value: field.name };

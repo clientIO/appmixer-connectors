@@ -29,10 +29,6 @@ const registerWebhook = async (context) => {
     return data;
 };
 
-/**
- * Component which triggers whenever a new file is created.
- * @extends {Component}
- */
 module.exports = {
 
     async start(context) {
@@ -81,8 +77,7 @@ module.exports = {
                 const firstCreatedRecordTime = Date.parse(
                     payloads[0].changedTablesById[tableId].createdRecordsById[allNewRecordIds[0]].createdTime
                 );
-                const firstCreatedRecordMinusMillisecond = firstCreatedRecordTime - 1;
-                const timeForFilterFormula = new Date(firstCreatedRecordMinusMillisecond).toISOString();
+                const timeForFilterFormula = new Date(firstCreatedRecordTime - 1).toISOString();
                 const { data: records } = await context.httpRequest({
                     url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
                     method: 'GET',
@@ -94,7 +89,15 @@ module.exports = {
                     }
                 });
 
-                await context.sendJson(records.records, 'out');
+                const newRecords = records.records.map((record) => {
+                    return {
+                        id: record.id,
+                        createdTime: record.createdTime,
+                        ...record.fields
+                    };
+                });
+
+                await context.sendArray(newRecords, 'out');
             }
 
             // calling '/payloads' endpoint should also extend the webhook expiration time by 7 days according to
