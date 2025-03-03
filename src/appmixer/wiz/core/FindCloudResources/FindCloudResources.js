@@ -9,10 +9,6 @@ module.exports = {
 
         const { outputType, filter, limit = 10 } = context.messages.in.content;
 
-        if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, resources.exposed.schema);
-        }
-
         let filterBy;
         if (filter) {
             try {
