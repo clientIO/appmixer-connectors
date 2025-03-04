@@ -33,10 +33,18 @@ module.exports = {
 
         const ipsList = ips.AND;
 
-        const listItemsWithIds = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
+        const { items: listItemsWithIds, notFound } = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
+
+        context.log({ step: 'not found ', notFound });
 
         if (!listItemsWithIds.length) {
-            return context.sendJson({ id: 'N/A', status: 'Completed', completed: new Date().toISOString() }, 'out');
+            return context.sendJson({
+                id: null,
+                status: 'Completed',
+                completed: new Date().toISOString(),
+                deleted: [],
+                notFound: ipsList.map(item => ( item.ip))
+            }, 'out');
         }
         context.log({ step: 'removing IPs ', items: listItemsWithIds });
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
@@ -52,6 +60,6 @@ module.exports = {
             throw new context.CancelError(status.error);
         }
 
-        return context.sendJson({ ...status }, 'out');
+        return context.sendJson({ ...status, notFound, deleted: listItemsWithIds.map(item => item.ip) }, 'out');
     }
 };

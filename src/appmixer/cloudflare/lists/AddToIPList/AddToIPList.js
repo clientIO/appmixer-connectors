@@ -3,7 +3,7 @@
 const lib = require('../lib');
 
 let attempts = 0;
-const getStatus = async function(context,  { account, id }) {
+const getStatus = async function(context, { account, id }) {
 
     // https://developers.cloudflare.com/api/operations/lists-get-bulk-operation-status
     const { data } = await lib.callEndpoint(context, {
@@ -45,13 +45,16 @@ module.exports = {
             throw new context.CancelError('Maximum IPs count is 10.');
         }
 
+        if (!ipsList.length) {
+            throw new context.CancelError('No IPs provided.');
+        }
+
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await lib.callEndpoint(context, {
             method: 'POST',
             action: `/accounts/${account}/rules/lists/${list}/items`,
             data: ipsList
         });
-
 
         const status = await getStatus(context, { id: data.result.operation_id, account });
 
@@ -61,7 +64,7 @@ module.exports = {
 
         if (ttl) {
             const removeAfter = new Date().getTime() + ttl * 1000;
-            const listItemsWithIds = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
+            const { items: listItemsWithIds } = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
 
             const dbItems = listItemsWithIds.map(item => {
                 const { ip, id } = item;
