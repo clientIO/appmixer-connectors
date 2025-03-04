@@ -31,7 +31,7 @@ module.exports = {
         const sheets = google.sheets('v4');
         const listRows = Promise.promisify(sheets.spreadsheets.values.get, { context: sheets.spreadsheets.values });
         const workSheetName = context.properties.worksheetId.split('/')[1];
-        const range = `${workSheetName}!1:1`;
+        const range = `${encodeURIComponent(workSheetName)}!1:1`;
         return listRows({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
