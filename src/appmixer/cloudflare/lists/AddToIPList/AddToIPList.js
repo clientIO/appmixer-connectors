@@ -45,10 +45,6 @@ module.exports = {
             throw new context.CancelError('Maximum IPs count is 10.');
         }
 
-        if (!ipsList.length) {
-            throw new context.CancelError('No IPs provided.');
-        }
-
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await lib.callEndpoint(context, {
             method: 'POST',

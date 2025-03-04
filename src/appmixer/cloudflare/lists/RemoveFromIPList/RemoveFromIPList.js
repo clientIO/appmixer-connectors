@@ -35,8 +35,6 @@ module.exports = {
 
         const { items: listItemsWithIds, notFound } = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
 
-        context.log({ step: 'not found ', notFound });
-
         if (!listItemsWithIds.length) {
             return context.sendJson({
                 id: null,
@@ -47,6 +45,7 @@ module.exports = {
             }, 'out');
         }
         context.log({ step: 'removing IPs ', items: listItemsWithIds });
+
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await lib.callEndpoint(context, {
             method: 'DELETE',
