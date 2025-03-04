@@ -16,14 +16,24 @@ module.exports = {
         // eslint-disable-next-line no-unused-vars
         const input = context.messages.in.content;
 
-        let url = lib.getBaseUrl(context) + '/edits';
+        // /edits is deprecated now, see https://platform.openai.com/docs/deprecations#edit-models-endpoint
+        let url = lib.getBaseUrl(context) + '/chat/completions';
 
         const headers = {};
 
         const inputMapping = {
-            'instruction': input['instruction'],
             'model': input['model'],
-            'input': input['input'],
+            messages: [
+                {
+                    role: 'system',
+                    content: input['instruction'],
+                    name: 'instruction'
+                }, {
+                    role: 'user',
+                    content: input['input'],
+                    name: 'input'
+                }
+            ],
             'n': input['n'],
             'temperature': input['temperature'],
             'top_p': input['top_p']
@@ -58,6 +68,14 @@ module.exports = {
                 }
             };
             await context.log(log);
+            // Altering the response to fit the expected legacy output
+            if (response.data.choices && response.data.choices.length > 0) {
+                response.data.choices.forEach(choice => {
+                    choice.text = choice.message?.content;
+                    delete choice.message;
+                });
+            }
+
             return response;
         } catch (err) {
             const log = {

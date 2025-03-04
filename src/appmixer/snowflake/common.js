@@ -1,4 +1,3 @@
-// 'use strict';
 const snowflake = require('snowflake-sdk');
 const { promisify } = require('util');
 
@@ -12,23 +11,31 @@ class SnowflakeDB {
         await promisify(connection.connect).bind(connection)();
         return connection;
     }
-    async runQuery(context, sql) {
+    async getRows(auth, statement) {
 
-        const connection = await this.getConnection(context);
-        const executedQuery = connection.execute({
-            sqlText: sql
+        const connection = await this.getConnection(auth);
+        const promise = await new Promise((resolve, reject) => {
+            connection.execute({
+                sqlText: statement.sqlText,
+                asyncExec: true,
+                complete: async function(err, stmt, rows) {
+                    let queryId = stmt.getQueryId();
+                    try {
+                        const results = await connection.getResultsFromQueryId({ queryId });
+                        resolve(results);
+                    } catch (error) {
+                        // We can't throw Snoflake error directly, because it will terminate the node process.
+                        reject(error.message);
+                    }
+                }
+            });
         });
-        return executedQuery;
-    }
-    async getRows(context, statement) {
 
-        const connection = await this.getConnection(context);
-        const executedStatement = connection.execute(statement);
-        return executedStatement.streamRows();
+        return promise.streamRows();
     }
-    async collectRows(context, statement) {
+    async collectRows(auth, statement) {
 
-        const rowStream = await this.getRows(context, statement);
+        const rowStream = await this.getRows(auth, statement);
         const rows = [];
         for await (const row of rowStream) {
             rows.push(row);

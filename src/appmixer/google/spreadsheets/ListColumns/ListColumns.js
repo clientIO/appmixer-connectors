@@ -30,10 +30,12 @@ module.exports = {
     receive(context) {
         const sheets = google.sheets('v4');
         const listRows = Promise.promisify(sheets.spreadsheets.values.get, { context: sheets.spreadsheets.values });
+        const workSheetName = context.properties.worksheetId.split('/')[1];
+        const range = `${workSheetName}!1:1`;
         return listRows({
             auth: commons.getOauth2Client(context.auth),
             spreadsheetId: context.properties.sheetId,
-            range: `${context.properties.worksheetId.split('/')[1]}!1:1`, // Fetch only the first row
+            range, // Fetch only the first row
             majorDimension: 'ROWS' // Fetch data by rows
         }).then(res => {
             // Extract only the first row from the retrieved data
