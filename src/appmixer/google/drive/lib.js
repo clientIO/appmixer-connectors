@@ -61,14 +61,14 @@ const escapeSpecialCharacters = (string) => {
     return string;
 };
 
-const findSubfolders = async (context, drive, folderId) => {
+const findSubfolders = async (context, drive, folderId, orderBy) => {
 
     const query = `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.folder'`;
     let subfolders = [];
-    const foundSubfolders = await findFiles(context, drive, query, 'folder', 'files(id)');
+    const foundSubfolders = await findFiles(context, drive, query, orderBy || 'folder', 'files(id)');
     for (const subfolder of foundSubfolders) {
         subfolders.push(subfolder);
-        const nestedSubfolders = await findSubfolders(context, drive, subfolder.googleDriveFileMetadata.id);
+        const nestedSubfolders = await findSubfolders(context, drive, subfolder.googleDriveFileMetadata.id, orderBy);
         subfolders = subfolders.concat(nestedSubfolders);
     }
     return subfolders;
