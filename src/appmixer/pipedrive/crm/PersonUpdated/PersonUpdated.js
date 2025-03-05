@@ -13,7 +13,7 @@ module.exports = {
 
     async receive(context) {
         const { data } = context.messages.webhook.content;
-        
+       
         if (data && data.meta && data.meta.action === 'updated' && data.meta.object === 'person') {
             const addTime = new Date(data.current.add_time).getTime();
             const updateTime = new Date(data.current.update_time).getTime();
@@ -26,7 +26,7 @@ module.exports = {
 
             await context.sendJson(data.current, 'out');
         }
-        
+    
         return context.response();
     }
 };

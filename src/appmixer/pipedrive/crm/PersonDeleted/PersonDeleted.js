@@ -13,7 +13,7 @@ module.exports = {
 
     async receive(context) {
         const { data } = context.messages.webhook.content;
-        
+       
         if (data && data.meta && data.meta.action === 'deleted' && data.meta.object === 'person') {
             await context.sendJson(data.previous, 'out');
             return context.response();
