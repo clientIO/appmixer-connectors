@@ -124,7 +124,8 @@ module.exports = {
                 newDate.setTime(newDate.getTime() + (data.expires_in * 1000));
                 return {
                     accessToken: data.access_token,
-                    accessTokenExpDate: newDate
+                    accessTokenExpDate: newDate,
+                    refreshToken: data.refresh_token
                 };
             },
 
