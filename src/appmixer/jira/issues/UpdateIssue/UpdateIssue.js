@@ -83,7 +83,20 @@ module.exports = {
         issue.issuetype = issueType;
 
         const id = issue.id;
+        const { status } = issue;
+
+        if (status) {
+            await commons.post(
+                `${apiUrl}issue/${id}/transitions`, auth,
+                {
+                    transition: {
+                        id: status
+                    }
+                });
+        }
+
         delete issue.id;
+        delete issue.status;
 
         await commons.put(`${apiUrl}issue/${id}`, auth, buildIssue(issue));
         return context.sendJson({ id }, 'out');
