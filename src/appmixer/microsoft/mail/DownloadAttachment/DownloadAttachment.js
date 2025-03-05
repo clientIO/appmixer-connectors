@@ -10,9 +10,13 @@ module.exports = {
         const attachmentUrl = `/me/messages/${messageId}/attachments/${attachmentId}`;
         const attachmentResponse = await makeRequest(context, { path: attachmentUrl, method: 'GET' });
 
-        const contentUrl = `/me/messages/${messageId}/attachments/${attachmentId}/$value`;
-        const attachmentContentResponse = await makeRequest(context, {
-            path: contentUrl,
+        const contentUrl = `https://graph.microsoft.com/v1.0/me/messages/${messageId}/attachments/${attachmentId}/$value`;
+        const attachmentContentResponse = await context.httpRequest({
+            url: contentUrl,
+            // Not sending accept header to get the raw data
+            headers: {
+                Authorization: `Bearer ${context.auth?.accessToken || context.accessToken}`
+            },
             method: 'GET',
             responseType: 'arraybuffer'
         });
