@@ -6,6 +6,7 @@ module.exports = {
 
     receive: async function(context) {
         const { hostnameUrl, accessToken, clientSecret, clientToken } = context.auth;
+        const { listId } = context.messages.in.content;
         const { url, method, headers: { Authorization } } = generateAuthorizationHeader(
             {
                 hostnameUrl,
@@ -13,7 +14,7 @@ module.exports = {
                 clientToken,
                 clientSecret,
                 method: 'GET',
-                path: '/client-list/v1/lists'
+                path: `/client-list/v1/lists/${listId}/items`
             }
         );
 
@@ -24,12 +25,5 @@ module.exports = {
         const { content } = data;
 
         return context.sendArray(content, 'out');
-    },
-
-    listsToSelectArray(lists) {
-
-        return lists.map(list => {
-            return { label: list.name, value: list.listId };
-        });
     }
 };

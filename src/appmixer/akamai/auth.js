@@ -35,7 +35,7 @@ module.exports = {
 
         validate: async context => {
             let { hostnameUrl } = context;
-            if (hostnameUrl.contains('http')) {
+            if (hostnameUrl.includes('http')) {
                 hostnameUrl = hostnameUrl.replace(/^http?:\/\//, '');
             } else {
                 hostnameUrl = hostnameUrl.replace(/^https?:\/\//, '');
