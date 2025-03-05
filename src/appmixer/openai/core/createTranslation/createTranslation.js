@@ -68,6 +68,11 @@ module.exports = {
 
         try {
             const response = await context.httpRequest(req);
+
+            // Normalize response data for `srt`, `text` and `vtt` response formats.
+            if (['srt', 'text', 'vtt'].includes(input['response_format'])) {
+                response.data = { text: response.data };
+            }
             const log = {
                 step: 'http-request-success',
                 request: {
