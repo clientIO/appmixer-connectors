@@ -34,6 +34,9 @@ function updateMetaToInspector(fields) {
                 messages: {
                     'in/id': 'inputs/in/id'
                 },
+                properties: {
+                    variablesFetch: true
+                },
                 transform: './GetIssueTransitions#transitionsToSelectArray'
             }
         }
