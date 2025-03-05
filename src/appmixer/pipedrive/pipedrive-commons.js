@@ -10,7 +10,6 @@ const PagingAggregator = appmixerLib.PagingAggregator;
  * @return {Array.<Object>}
  */
 function stringToContactArray(contacts) {
-
     let getPrimary = () => { getPrimary = () => false; return true; };
     return typeof contacts == 'string' ?
         contacts.split(',').map(contact => ({ value: contact, primary: getPrimary() })) :
@@ -24,15 +23,11 @@ function stringToContactArray(contacts) {
  * @return {function}
  */
 function promisifier(originalMethod) {
-
     // return a function
     return function promisified(...args) {
-
         // which returns a promise
         return new Promise((resolve, reject) => {
-
             args.push((error, data, reserved, res) => {
-
                 if (error) {
                     return reject(error);
                 }
@@ -60,14 +55,12 @@ function promisifier(originalMethod) {
 }
 
 module.exports = {
-
     /**
      * Get new Pipedrive API wrapper
      * @param {string} token
      * @returns {*}
      */
     getAPI(token) {
-
         return new Pipedrive.Client(token, { strictMode: true });
     },
 
@@ -78,9 +71,50 @@ module.exports = {
      * @return {Object}
      */
     getPromisifiedClient(token, collectionName) {
-
         const client = this.getAPI(token);
         return Promise.promisifyAll(client[collectionName], { promisifier });
+    },
+
+    async registerWebhook(context, eventAction, eventObject) {
+        try {
+            const options = {
+                method: 'POST',
+                url: `https://api.pipedrive.com/v1/webhooks?api_token=${context.auth.apiKey}`,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                data: {
+                    event_action: eventAction,
+                    event_object: eventObject,
+                    subscription_url: context.getWebhookUrl()
+                }
+            };
+
+            const response = await context.httpRequest(options);
+            if (response.status !== 201) {
+                throw new Error('Failed to register webhook');
+            }
+
+            await context.saveState({ webhookId: response.data.data.id });
+        } catch (error) {
+            throw new Error(`Failed to register webhook: ${error.message}`);
+        }
+    },
+
+    async unregisterWebhook(context) {
+        const webhookId = context.state?.webhookId;
+
+        if (webhookId) {
+            try {
+                const options = {
+                    method: 'DELETE',
+                    url: `https://api.pipedrive.com/v1/webhooks/${webhookId}?api_token=${context.auth.apiKey}`
+                };
+                await context.httpRequest(options);
+            } catch (error) {
+                throw new Error(`Failed to unregister webhook: ${error.message}`);
+            }
+        }
     },
 
     stringToContactArray,
