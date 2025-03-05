@@ -26,7 +26,7 @@ function updateMetaToInspector(fields) {
     inspector.inputs.status = {
         label: 'Status',
         type: 'text',
-        tooltip: 'We can only provide the available statuses for the issue mentioned in the above field (Issue Key or ID).',
+        tooltip: 'Depending on the selected issue ("Issue Key or ID" field), specific statuses can be listed for the ticket. Alternatively, you have the option to enter the status ID.',
         index: 1,
         source: {
             url: '/component/appmixer/jira/issues/GetIssueTransitions?outPort=out',
