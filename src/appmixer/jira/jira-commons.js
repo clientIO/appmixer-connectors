@@ -106,7 +106,7 @@ module.exports = {
     },
 
     // See IssueMetadata.js
-    toInspector(fields, excludeFields) {
+    toInspector(fields, excludeFields, starIndex = 1) {
 
         const inspector = {
             schema: {
@@ -135,7 +135,7 @@ module.exports = {
             inspector.inputs[key] = {
                 label: name,
                 type: 'text',
-                index: index + 1
+                index: index + starIndex
             };
 
             if (Array.isArray(allowedValues)) {
