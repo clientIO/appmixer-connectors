@@ -1,5 +1,3 @@
-'use strict';
-
 const commons = require('../../jira-commons');
 
 function buildIssue(issueInfo) {
@@ -18,6 +16,9 @@ function buildIssue(issueInfo) {
         versions,
         assignee
     } = issueInfo;
+
+    issueInfo.id = undefined;
+    issueInfo.status = undefined;
 
     if (parent) {
         issueInfo.parent = { key: parent };
@@ -94,9 +95,6 @@ module.exports = {
                     }
                 });
         }
-
-        delete issue.id;
-        delete issue.status;
 
         await commons.put(`${apiUrl}issue/${id}`, auth, buildIssue(issue));
         return context.sendJson({ id }, 'out');

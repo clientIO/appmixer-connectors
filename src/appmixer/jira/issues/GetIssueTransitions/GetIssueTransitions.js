@@ -20,6 +20,12 @@ module.exports = {
         }
     },
 
+    /**
+     * Transforms Jira transitions data into a format suitable for select/dropdown components.
+     * @param {Object} result - The API response containing transitions
+     * @param {Array} [result.transitions] - Array of transition objects
+     * @returns {Array<{label: string, value: string}>} - Formatted array for select components
+     */
     transitionsToSelectArray(result) {
         if (Array.isArray(result?.transitions)) {
             return result.transitions.map(item => ({ label: `${item.name} (ID:${item.id})`, value: item.id }));
