@@ -12,8 +12,7 @@ module.exports = {
     },
 
     async receive(context) {
-        const { data } = context.messages.webhook.content;
-     
+        const { data } = context.messages.webhook.content;     
         if (data && data.meta && data.meta.action === 'added' && data.meta.object === 'person') {
             await context.sendJson(data.current, 'out');
             return context.response();
