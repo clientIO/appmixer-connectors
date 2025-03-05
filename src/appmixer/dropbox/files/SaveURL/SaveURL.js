@@ -24,7 +24,7 @@ function checkJobStatus(context, params, callback) {
                     checkJobStatus(context, params, callback);
                 }, 3000);
             } else {
-                callback(null, data);
+                callback(null, { data });
             }
         })
         .catch((err) => {
