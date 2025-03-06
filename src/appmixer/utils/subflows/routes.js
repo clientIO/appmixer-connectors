@@ -20,7 +20,6 @@ module.exports = (context) => {
                 input.flowId = flowId;
                 input.componentId = componentId;
                 await context.service.stateSet(`subflows:input:${flowId}:${componentId}`, input);
-                context.log('info', '[UTILS.SUBFLOWS] Input Definition for flow ' + flowId + '/' + componentId + '; input: ' + JSON.stringify(input));
                 return {};
             }
         }
@@ -57,7 +56,6 @@ module.exports = (context) => {
                 output.componentId = componentId;
                 output.createdAt = new Date();
                 await context.service.stateSet(`subflows:output:${flowId}`, output);
-                context.log('info', '[UTILS.SUBFLOWS] Output Definition for flow ' + flowId + '; output: ' + JSON.stringify(output));
                 return {};
             }
         }
