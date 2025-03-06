@@ -11,14 +11,35 @@ function createMetaToInspector(fields) {
 
 function updateMetaToInspector(fields) {
 
-    const inspector = commons.toInspector(fields, excludeFields);
+    const inspector = commons.toInspector(fields, excludeFields, 2);
+
     inspector.schema.properties['id'] = { type: 'string' };
+    inspector.schema.properties['status'] = { type: 'string' };
     inspector.schema.required = ['id'];
     inspector.inputs.id = {
         label: 'Issue Key or ID',
         type: 'text',
         tooltip: 'The Key or ID of the issue',
         index: 0
+    };
+
+    inspector.inputs.status = {
+        label: 'Status',
+        type: 'text',
+        tooltip: 'The status can only be selected from the list of available options after entering the Issue ID or Key, as the status is dependent on the specific issue. Alternatively, you may directly enter the status ID.',
+        index: 1,
+        source: {
+            url: '/component/appmixer/jira/issues/GetIssueTransitions?outPort=out',
+            data: {
+                messages: {
+                    'in/id': 'inputs/in/id'
+                },
+                properties: {
+                    variablesFetch: true
+                },
+                transform: './GetIssueTransitions#transitionsToSelectArray'
+            }
+        }
     };
 
     return inspector;
