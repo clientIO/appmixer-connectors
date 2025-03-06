@@ -31,7 +31,10 @@
                     "source": {
                         "url": "/component/appmixer/akamai/clientlist/GetLists?outPort=out",
                         "data": {
-                            "transform": "./GetLists#listsToSelectArray"
+                            "transform": "./GetLists#listsToSelectArray",
+                            "messages": {
+                                "in/isSource": true
+                            }
                         }
                     }
                 },
@@ -45,7 +48,17 @@
                             "type": "text",
                             "label": "Value",
                             "required": true,
-                            "tooltip": "Value of the entry, which is either an IP address, an Autonomous System Number (ASN), a Geolocation, a TLS fingerprint, or a file hash."
+                            "tooltip": "Value of the entry, which is either an IP address, an Autonomous System Number (ASN), a Geolocation, a TLS fingerprint, or a file hash.",
+                            "source": {
+                                "url": "/component/appmixer/akamai/clientlist/GetListEntries?outPort=out",
+                                "data": {
+                                    "transform": "./GetListEntries#listEntriesToSelectArray",
+                                    "messages": {
+                                        "in/listId": "inputs/in/listId",
+                                        "in/isSource": true
+                                    }
+                                }
+                            }
                         },
                         "description": {
                             "type": "text",
@@ -53,14 +66,14 @@
                             "tooltip": "Any additional description of the client list entry."
                         },
                         "expirationDate": {
-                            "type": "date-time",
-                            "label": "Expiration date",
-                            "tooltip": "Date indicating when the entry expires."
+                            "type": "number",
+                            "label": "TTL",
+                            "tooltip": "Time to live in seconds indicating when the entry expires."
                         },
                         "tags": {
                             "type": "text",
                             "label": "Tags",
-                            "tooltip": "Any defined tags for a specified client list. Separate by a comma. Example: `tag1,tag2,tag3`"
+                            "tooltip": "Any defined tags for a specified client list. Separate by a comma. Example: <code>tag1,tag2,tag3</code>. In case of update, the tags will be added to existing ones."
                         }
                     }
                 }
