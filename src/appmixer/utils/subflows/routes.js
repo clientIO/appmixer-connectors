@@ -19,7 +19,7 @@ module.exports = (context) => {
                 input.createdAt = new Date();
                 input.flowId = flowId;
                 input.componentId = componentId;
-                await context.service.stateSet(`input:${flowId}:${componentId}`, input);
+                await context.service.stateSet(`subflows:input:${flowId}:${componentId}`, input);
                 context.log('info', '[UTILS.SUBFLOWS] Input Definition for flow ' + flowId + '/' + componentId + '; input: ' + JSON.stringify(input));
                 return {};
             }
@@ -35,7 +35,7 @@ module.exports = (context) => {
             },
             handler: async (req) => {
                 const { flowId, componentId } = req.params;
-                const input = await context.service.stateGet(`input:${flowId}:${componentId}`);
+                const input = await context.service.stateGet(`subflows:input:${flowId}:${componentId}`);
                 return input;
             }
         }
@@ -56,7 +56,7 @@ module.exports = (context) => {
                 output.flowId = flowId;
                 output.componentId = componentId;
                 output.createdAt = new Date();
-                await context.service.stateSet(`output:${flowId}`, output);
+                await context.service.stateSet(`subflows:output:${flowId}`, output);
                 context.log('info', '[UTILS.SUBFLOWS] Output Definition for flow ' + flowId + '; output: ' + JSON.stringify(output));
                 return {};
             }
@@ -72,7 +72,7 @@ module.exports = (context) => {
             },
             handler: async (req) => {
                 const { flowId } = req.params;
-                const output = await context.service.stateGet(`output:${flowId}`);
+                const output = await context.service.stateGet(`subflows:output:${flowId}`);
                 return output;
             }
         }

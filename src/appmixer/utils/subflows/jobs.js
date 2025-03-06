@@ -12,11 +12,14 @@ module.exports = async (context) => {
 
         try {
             // Input (OnFlowCall) and output (FlowCallOutput) definitions.
-            const definitions = await context.service.loadState(); // [{key, value}]
+            const definitions = await context.db.coreCollection('serviceState')
+                .find({ key: /^subflows:/ })
+                .limit(config.cleanupDefinitions.batchSize)
+                .toArray();
             for (const definition of definitions) {
                 const key = definition.key;
-                if (key.startsWith('input:') || key.startsWith('output:')) {
-                    const [, flowId] = key.split(':');
+                if (key.startsWith('subflows:input:') || key.startsWith('subflows:output:')) {
+                    const [,, flowId] = key.split(':');
                     const flow = await context.db.coreCollection('flows').findOne({ flowId });
                     if (!flow) {
                         await context.service.stateUnset(key);
