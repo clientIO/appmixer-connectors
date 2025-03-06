@@ -35,6 +35,6 @@ module.exports = {
             answer = data.choices[0].message.content;
         }
 
-        return context.sendJson({ answer }, 'out');
+        return context.sendJson({ answer, prompt }, 'out');
     }
 };

@@ -50,18 +50,12 @@ module.exports = {
                 if (!firstVector) {
                     firstVector = item.embedding;
                 }
-                try {
-                    const embedding = {
-                        text: batch[index],
-                        vector: item.embedding,
-                        index: i + index
-                    };
-                    embeddings.push(embedding);
-                } catch (err) {
-                    // It does not make sense to retry the component call.
-                    // Things "won't" improve.
-                    throw new context.CancelError(err);
-                }
+                const embedding = {
+                    text: batch[index],
+                    vector: item.embedding,
+                    index: i + index
+                };
+                embeddings.push(embedding);
             });
         }
         return context.sendJson({ embeddings, firstVector }, 'out');
