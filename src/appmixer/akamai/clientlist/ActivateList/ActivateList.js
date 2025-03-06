@@ -3,7 +3,7 @@
 const { generateAuthorizationHeader } = require('../../signature');
 
 module.exports = {
-    receive: async function (context) {
+    async receive(context) {
         const { hostnameUrl, accessToken, clientSecret, clientToken } =
             context.auth;
         const { listId, action, network, comments } =
