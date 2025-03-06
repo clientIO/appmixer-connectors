@@ -13,10 +13,16 @@ module.exports = {
 
         const resource = {
             role,
-            type,
-            emailAddress,
-            domain
+            type
         };
+
+        if (domain) {
+            resource.domain = domain;
+        }
+
+        if (emailAddress) {
+            resource.emailAddress = emailAddress;
+        }
 
         const fileId = typeof googleDriveFileId === 'string' ? googleDriveFileId : googleDriveFileId.id;
 
