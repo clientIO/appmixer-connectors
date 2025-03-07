@@ -1,6 +1,8 @@
 'use strict';
 
-const crypto = require('crypto');
+const baseX = require('base-x').default;
+const BASE62_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const base62 = baseX(BASE62_ALPHABET);
 
 module.exports = (context) => {
 
@@ -76,7 +78,7 @@ module.exports = (context) => {
         }
     });
 
-    // Trigger callee flow.
+    // Trigger callee flow (i.e. trigger the OnFlowCall component).
 
     context.http.router.register({
         method: 'POST',
@@ -88,15 +90,15 @@ module.exports = (context) => {
             handler: async (req) => {
                 const { calleeFlowId, calleeComponentId } = req.params;
                 const {
-                    callerCorrelationId,
-                    callerFlowId,
-                    callerComponentId,
+                    callerWebhookUrl,
                     payload
                 } = req.payload;
 
                 // Generate a correlationId to be able to track the message and be able
-                // to get ID of the caller component later in the callback (i.e. when FlowCallOutput is done).
-                const correlationId = `${callerFlowId}:${callerComponentId}:${callerCorrelationId}:${crypto.randomUUID()}`;
+                // to call back the CallFlow component later in the callback (i.e. when FlowCallOutput is done).
+                // Note that we use base62 since base64 is not URL safe. The base62 encoded string contains
+                // the webhook URL of the callee.
+                const correlationId = base62.encode(Buffer.from(callerWebhookUrl));
 
                 await context.triggerComponent(
                     calleeFlowId,
@@ -116,24 +118,23 @@ module.exports = (context) => {
 
     context.http.router.register({
         method: 'POST',
-        path: '/callback/{correlationId}',
+        path: '/callback',
         options: {
             auth: {
                 strategies: ['jwt-strategy', 'public']
             },
             handler: async (req) => {
 
-                const correlationId = req.params.correlationId;
-                const [callerFlowId, callerComponentId, callerCorrelationId] = correlationId.split(':');
+                const correlationId = req.payload.correlationId;
+                const payload = req.payload.payload;
+                // The correlation ID is base62 encoded webhook URL of the CallFlow component.
+                const callerWebhookUrl = Buffer.from(base62.decode(correlationId)).toString('utf8');
 
-                const output = req.payload;
-
-                await context.triggerComponent(
-                    callerFlowId,
-                    callerComponentId,
-                    output.payload,
-                    { enqueueOnly: 'true', correlationId: callerCorrelationId }
-                );
+                await context.httpRequest({
+                    method: 'POST',
+                    url: callerWebhookUrl,
+                    data: payload
+                });
                 return {};
             }
         }

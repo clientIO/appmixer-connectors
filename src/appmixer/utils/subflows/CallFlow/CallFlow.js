@@ -60,9 +60,7 @@ module.exports = {
             endPoint: `/plugins/appmixer/utils/subflows/trigger/${calleeFlowId}/${calleeComponentId}`,
             method: 'POST',
             body: {
-                callerCorrelationId: context.messages.in.correlationId,
-                callerFlowId: context.flowId,
-                callerComponentId: context.componentId,
+                callerWebhookUrl: context.getWebhookUrl({ enqueueOnly: true }),
                 payload
             }
         });

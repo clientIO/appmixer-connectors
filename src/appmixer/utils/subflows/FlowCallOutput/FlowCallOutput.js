@@ -31,11 +31,10 @@ module.exports = {
 
         const correlationId = context.messages.in.correlationId;
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/utils/subflows/callback/${correlationId}`,
+            endPoint: '/plugins/appmixer/utils/subflows/callback',
             method: 'POST',
             body: {
-                flowId: context.flowId,
-                componentId: context.componentId,
+                correlationId,
                 payload: context.messages.in.content.output?.ADD || []
             }
         });
