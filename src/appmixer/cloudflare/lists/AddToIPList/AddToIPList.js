@@ -39,11 +39,20 @@ module.exports = {
             return await lib.fetchInputs(context, { account, listFetch, accountsFetch });
         }
 
-        const ipsList = ips.AND;
+        const ipsListInput = ips.AND;
 
-        if (ipsList.length > 10) {
+        if (ipsListInput.length > 10) {
             throw new context.CancelError('Maximum IPs count is 10.');
         }
+
+        const ipsList = ipsListInput.reduce((res, item) => {
+            const { comment, ip } = item;
+            ip.split(/\s+|,/)
+                .filter(item => item.length)
+                .forEach(ip => res.push({ ip, comment }));
+
+            return res;
+        }, []);
 
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await lib.callEndpoint(context, {
