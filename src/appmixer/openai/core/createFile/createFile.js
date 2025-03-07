@@ -67,7 +67,10 @@ module.exports = {
                 request: {
                     url: req.url,
                     method: req.method,
-                    headers: req.headers
+                    headers: {
+                        ...req.headers,
+                        Authorization: req.headers.Authorization ? 'Bearer ***' : req.headers.Authorization
+                    }
                 },
                 response: {
                     data: response.data,
@@ -84,17 +87,16 @@ module.exports = {
                 request: {
                     url: req.url,
                     method: req.method,
-                    headers: req.headers
+                    headers: {
+                        ...req.headers,
+                        Authorization: req.headers.Authorization ? 'Bearer ***' : req.headers.Authorization
+                    }
                 },
                 response: err.response ? {
-                    data: err.response.data,
-                    status: err.response.status,
-                    statusText: err.response.statusText,
-                    headers: err.response.headers
+                    message: err.response.data.error.message
                 } : undefined
             };
-            await context.log(log);
-            throw err;
+            throw new context.CancelError(log);
         }
     }
 
