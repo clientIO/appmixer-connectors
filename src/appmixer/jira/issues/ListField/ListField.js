@@ -43,13 +43,7 @@ module.exports = {
                 });
             }
 
-            const filtered = response.filter(res => {
-                if (res.emailAddress) {
-                    return res;
-                }
-            });
-
-            return filtered.map(res => {
+            return response.map(res => {
 
                 return {
                     label: res.displayName,
