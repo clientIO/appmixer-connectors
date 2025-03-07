@@ -69,7 +69,7 @@ module.exports = {
                     method: req.method,
                     headers: {
                         ...req.headers,
-                        Authorization: req.Authorization ? 'Bearer ***' : req.Authorization
+                        Authorization: req.headers.Authorization ? 'Bearer ***' : req.headers.Authorization
                     }
                 },
                 response: {
@@ -89,14 +89,14 @@ module.exports = {
                     method: req.method,
                     headers: {
                         ...req.headers,
-                        Authorization: req.Authorization ? 'Bearer ***' : req.Authorization
+                        Authorization: req.headers.Authorization ? 'Bearer ***' : req.headers.Authorization
                     }
                 },
                 response: err.response ? {
-                    message: err.response.data.error.message,
+                    message: err.response.data.error.message
                 } : undefined
             };
-            throw new context.CancelError(log);;
+            throw new context.CancelError(log);
         }
     }
 
