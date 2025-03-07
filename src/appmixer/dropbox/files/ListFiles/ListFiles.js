@@ -1,5 +1,6 @@
 'use strict';
 const { pager } = require('../../dropbox-commons');
+const pathModule = require('path');
 
 module.exports = {
 
@@ -18,28 +19,31 @@ module.exports = {
 
         if (outputType === 'files') {
             return context.sendJson({ files }, 'out');
-        }
-
-        const headers = Object.keys(files[0]);
-        const csvRows = [headers.join(',')];
-
-        for (const file of files) {
-            if (outputType === 'file') {
-                await context.sendJson(file, 'out');
-            } else {
-                const row = Object.values(file).join(',');
-                csvRows.push(row);
+        } else if (outputType === 'file') {
+            return context.sendArray(files, 'out');
+        } else if (outputType === 'saveToFile') {
+            // Into CSV file.
+            const headers = Object.keys(files[0] || {});
+            let csvRows = [];
+            csvRows.push(headers.join(','));
+            for (const record of files) {
+                const values = headers.map(header => {
+                    const val = record[header];
+                    return `"${val}"`;
+                });
+                // To add ',' separator between each value
+                csvRows.push(values.join(','));
             }
-        }
-
-        if (outputType === 'saveToFile') {
             const csvString = csvRows.join('\n');
-            const buffer = Buffer.from(csvString, 'utf8');
-            const filename = `dropbox-list-files-${context.componentId}.csv`;
-            const savedFile = await context.saveFileStream(filename, buffer);
+            let buffer = Buffer.from(csvString, 'utf8');
+            const componentName = context.flowDescriptor[context.componentId].label || context.componentId;
+            const fileName = `${context.config.outputFilePrefix || 'dropbox-export'}-${componentName}.csv`;
+            const savedFile = await context.saveFileStream(pathModule.normalize(fileName), buffer);
+            await context.log({ step: 'File was saved', fileName, fileId: savedFile.fileId });
             await context.sendJson({ fileId: savedFile.fileId }, 'out');
+        } else {
+            throw new context.CancelError('Unsupported outputType ' + outputType);
         }
-        return context.sendJson(files, 'files');
     },
 
     getOutputPortOptions(context, outputType) {
@@ -47,48 +51,46 @@ module.exports = {
         if (outputType === 'file') {
             return context.sendJson(
                 [
-                    [
-                        {
-                            label: 'Tag',
-                            value: '.tag'
-                        },
-                        {
-                            label: 'Client Modified',
-                            value: 'client_modified'
-                        },
-                        {
-                            label: 'Content Hash',
-                            value: 'content_hash'
-                        },
-                        {
-                            label: 'Id',
-                            value: 'id'
-                        },
-                        {
-                            label: 'Name',
-                            value: 'name'
-                        },
-                        {
-                            label: 'Path Display',
-                            value: 'path_display'
-                        },
-                        {
-                            label: 'Path Lower',
-                            value: 'path_lower'
-                        },
-                        {
-                            label: 'Rev',
-                            value: 'rev'
-                        },
-                        {
-                            label: 'Server Modified',
-                            value: 'server_modified'
-                        },
-                        {
-                            label: 'Size',
-                            value: 'size'
-                        }
-                    ]
+                    {
+                        label: 'Tag',
+                        value: '.tag'
+                    },
+                    {
+                        label: 'Client Modified',
+                        value: 'client_modified'
+                    },
+                    {
+                        label: 'Content Hash',
+                        value: 'content_hash'
+                    },
+                    {
+                        label: 'Id',
+                        value: 'id'
+                    },
+                    {
+                        label: 'Name',
+                        value: 'name'
+                    },
+                    {
+                        label: 'Path Display',
+                        value: 'path_display'
+                    },
+                    {
+                        label: 'Path Lower',
+                        value: 'path_lower'
+                    },
+                    {
+                        label: 'Rev',
+                        value: 'rev'
+                    },
+                    {
+                        label: 'Server Modified',
+                        value: 'server_modified'
+                    },
+                    {
+                        label: 'Size',
+                        value: 'size'
+                    }
                 ],
                 'out'
             );

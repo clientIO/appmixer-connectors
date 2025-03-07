@@ -1,31 +1,44 @@
 'use strict';
+
 const Dropbox = require('dropbox').Dropbox;
 
 const pager = async (accessToken, hasMore = false, cursor, context) => {
-
     const dbx = new Dropbox({ accessToken });
-    let currentPage;
-    if (hasMore) {
-        currentPage = await dbx.filesListFolderContinue({ cursor });
-    } else {
-        currentPage = await dbx.filesListFolder({
-            path: context.messages.in.content.path || '',
-            recursive: context.messages.in.content.recursive || false
-        });
-    }
 
-    const nextPage = await pager(
-        accessToken,
-        currentPage.result.has_more,
-        currentPage.result.cursor,
-        context
-    );
-    return currentPage.result.entries.concat(nextPage);
+    let currentPage;
+    try {
+        if (hasMore && cursor) {
+            currentPage = await dbx.filesListFolderContinue({ cursor });
+        } else {
+            currentPage = await dbx.filesListFolder({
+                path: context.messages.in.content.path || '',
+                recursive: context.messages.in.content.recursive || false
+            });
+        }
+
+        // Base case: Stop recursion when there are no more pages
+        if (!currentPage.result.has_more) {
+            return currentPage.result.entries;
+        }
+
+        // Recursive call only if there are more pages
+        const nextPage = await pager(
+            accessToken,
+            currentPage.result.has_more,
+            currentPage.result.cursor,
+            context
+        );
+
+        return currentPage.result.entries.concat(nextPage);
+    } catch (error) {
+        throw new context.CancelError('Failed to list files');
+    }
 };
 
 module.exports = {
     /**
      * Request for dropbox.
+     * @param {Object} context
      * @param {string} authtoken
      * @param {string} endpoint
      * @param {string} action
@@ -33,8 +46,7 @@ module.exports = {
      * @returns {*}
      */
     dropboxRequest(context, authtoken, endpoint, action, params) {
-
-        let options = {
+        const options = {
             method: 'POST',
             url: `https://api.dropboxapi.com/2/${endpoint}/${action}`,
             headers: {
@@ -49,6 +61,7 @@ module.exports = {
 
     /**
      * Upload request for dropbox.
+     * @param {Object} context
      * @param {string} authtoken
      * @param {string} endpoint
      * @param {string} action
@@ -57,8 +70,7 @@ module.exports = {
      * @returns {*}
      */
     uploadDropboxRequest(context, authtoken, endpoint, action, params, data) {
-
-        let options = {
+        const options = {
             method: 'POST',
             url: `https://content.dropboxapi.com/2/${endpoint}/${action}`,
             headers: {
