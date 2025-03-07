@@ -290,7 +290,7 @@ module.exports = {
             const { pageInfo = {}, nodes } = data.data.cloudResources;
 
             if (nodes.length === 0) {
-                return context.sendJson({ filter }, 'notFound');
+                return context.sendJson({ filter: filterBy }, 'notFound');
             }
 
             records = records.concat(nodes);
