@@ -5,7 +5,6 @@ const Airtable = require('airtable');
 module.exports = {
 
     async receive(context) {
-
         const {
             baseId, tableIdOrName, fields,
             returnFieldsByFieldId = false, typecast = false
@@ -28,8 +27,6 @@ module.exports = {
         } catch (error) {
             throw new context.CancelError('Invalid fields JSON');
         }
-
-        context.log({ step: 'Creating record', queryParams, fieldsObject });
 
         const result = await base(tableIdOrName).create([{ fields: fieldsObject }], queryParams);
 

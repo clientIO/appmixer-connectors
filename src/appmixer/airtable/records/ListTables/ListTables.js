@@ -7,7 +7,7 @@ module.exports = {
     // Private component used only to list tables in a base in the inspector.
     async receive(context) {
 
-        const generateOutputPortOptions = context.properties.generateOutputPortOptions;
+        const { generateOutputPortOptions, tableId, isWebhookOutput } = context.properties;
         const { baseId, outputType, isSource } = context.messages.in.content;
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
@@ -49,6 +49,23 @@ module.exports = {
                 );
 
                 return context.sendJson({ items: tables }, 'out');
+            }
+            if (isWebhookOutput) {
+                if (!tableId) {
+                    return context.sendJson([], 'out');
+                }
+
+                const selectedTable = tables.filter((table) => table.id === tableId);
+                if (!selectedTable.length || !selectedTable[0].fields) {
+                    return context.sendJson([], 'out');
+                }
+
+                const fields = selectedTable[0].fields.map((field) => {
+                    return { label: field.name, value: field.name };
+                });
+                const fieldsOutput = [{ label: 'Record ID', value: 'id' }, { label: 'Created Time', value: 'createdTime' }];
+
+                return context.sendJson(fieldsOutput.concat(fields), 'out');
             }
 
             // Returning values to the flow.
@@ -111,13 +128,18 @@ module.exports = {
                 [
                     {
                         label: 'Tables', value: 'result',
-                        schema: { type: 'array',
-                            items: { type: 'object',
+                        schema: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
                                 properties: {
                                     description: { type: 'string', title: 'description' },
-                                    fields: { type: 'object', title: 'fields',
-                                        schema: { type: 'array',
-                                            items: { type: 'object',
+                                    fields: {
+                                        type: 'object', title: 'fields',
+                                        schema: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
                                                 properties: {
                                                     description: { label: 'description', value: 'description' },
                                                     id: { label: 'id', value: 'id' },
@@ -130,9 +152,12 @@ module.exports = {
                                     id: { type: 'string', title: 'id' },
                                     name: { type: 'string', title: 'name' },
                                     primaryFieldId: { type: 'string', title: 'primaryFieldId' },
-                                    views: { type: 'object', title: 'views',
-                                        schema: { type: 'array',
-                                            items: { type: 'object',
+                                    views: {
+                                        type: 'object', title: 'views',
+                                        schema: {
+                                            type: 'array',
+                                            items: {
+                                                type: 'object',
                                                 properties: {
                                                     id: { label: 'id', value: 'id' },
                                                     name: { label: 'name', value: 'name' },
