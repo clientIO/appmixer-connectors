@@ -47,13 +47,15 @@ module.exports = {
 
         const ipsList = ipsListInput.reduce((res, item) => {
             const { comment, ip } = item;
-            ip.split(/\s+|,/)
+
+            (Array.isArray(ip) ? ip : ip.split(/\s+|,/))
                 .filter(item => item.length)
                 .forEach(ip => res.push({ ip, comment }));
 
             return res;
         }, []);
 
+        console.log(ipsList);
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await lib.callEndpoint(context, {
             method: 'POST',
