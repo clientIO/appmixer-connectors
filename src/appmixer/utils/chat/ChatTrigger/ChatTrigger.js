@@ -95,7 +95,6 @@ module.exports = {
         if (context.messages.webhook) {
 
             const req = context.messages.webhook.content;
-            await context.log({ step: 'webhook', req });
             const action = req.query.action;
             let jwtPayload = {};
             let jwtToken;
@@ -154,6 +153,7 @@ module.exports = {
                     });
                     session.threads = [thread];
                     session.agents = [agent];
+                    await context.log({ step: 'session-created', session });
                     return context.response(session, 200, { 'Content-Type': 'application/json' });
                 }
                 case 'add-thread': {
