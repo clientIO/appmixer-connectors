@@ -96,6 +96,11 @@ module.exports = {
                             schema: { type: 'string' }
                         },
                         {
+                            label: 'Expiration Date',
+                            value: 'expirationDate',
+                            schema: { type: 'string' }
+                        },
+                        {
                             label: 'Production Status',
                             value: 'productionStatus',
                             schema: {
@@ -176,6 +181,10 @@ module.exports = {
                                         description: {
                                             type: 'string',
                                             title: 'Description'
+                                        },
+                                        expirationDate: {
+                                            type: 'string',
+                                            title: 'Expiration Date'
                                         },
                                         productionStatus: {
                                             type: 'string',
