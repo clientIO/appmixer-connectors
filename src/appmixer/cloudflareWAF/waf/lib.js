@@ -6,12 +6,27 @@ const RULE_MAX_CAPACITY = 4096;
 // cannot require waf/lib, therefore these methods are defined in the jobs.waf.js file
 const { extractIPs, getBlockExpression } = require('../jobs.waf');
 
-module.exports = {
-    getIpsFromRules,
-    prepareRulesForCreateOrUpdate,
-    getBlockRule,
-    findIpsInRules,
-    extractIPs
+const parseIPs = (input) => {
+
+    let ips = [];
+
+    if (typeof input === 'string') {
+        // Check if the string is a JSON array
+        try {
+            const parsed = JSON.parse(input);
+            if (Array.isArray(parsed)) {
+                ips = parsed;
+            } else {
+                ips = input.split(',').map(ip => ip.trim());
+            }
+        } catch (e) {
+            ips = input.split(',').map(ip => ip.trim());
+        }
+    } else if (Array.isArray(input)) {
+        ips = input;
+    }
+
+    return ips;
 };
 
 function getIpsFromRules(rules) {
@@ -111,4 +126,11 @@ function getAvailableRule(rules, requiredCapacity, ruleCapacity = RULE_MAX_CAPAC
     return rules.find(rule => rule.usedCapacity + requiredCapacity < ruleCapacity);
 }
 
-
+module.exports = {
+    getIpsFromRules,
+    prepareRulesForCreateOrUpdate,
+    getBlockRule,
+    findIpsInRules,
+    extractIPs,
+    parseIPs
+};
