@@ -55,7 +55,6 @@ module.exports = {
             return res;
         }, []);
 
-        console.log(ipsList);
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await lib.callEndpoint(context, {
             method: 'POST',
