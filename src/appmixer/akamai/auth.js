@@ -35,12 +35,12 @@ module.exports = {
 
         validate: async context => {
             let { hostnameUrl } = context;
-            if (hostnameUrl.includes('http')) {
+            if (hostnameUrl.includes('http://')) {
                 hostnameUrl = hostnameUrl.replace(/^http?:\/\//, '');
-            } else {
+            } else if (hostnameUrl.includes('https://')) {
                 hostnameUrl = hostnameUrl.replace(/^https?:\/\//, '');
             }
-            hostnameUrl.replace(/\/$/, '');
+            hostnameUrl = hostnameUrl.replace(/\/$/, '');
 
             const { url, method, headers: { Authorization } } = generateAuthorizationHeader(
                 {

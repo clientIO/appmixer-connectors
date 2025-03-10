@@ -47,9 +47,8 @@ module.exports = {
             const componentName =
                 context.flowDescriptor[context.componentId].label ||
                 context.componentId;
-            const fileName = `${
-                context.config.outputFilePrefix || 'akamai-lists'
-            }-${componentName}.csv`;
+            const fileName = `${context.config.outputFilePrefix || 'akamai-lists'
+                }-${componentName}.csv`;
             const savedFile = await context.saveFileStream(
                 pathModule.normalize(fileName),
                 buffer
@@ -60,7 +59,7 @@ module.exports = {
                 fileId: savedFile.fileId
             });
             await context.sendJson(
-                { fileId: savedFile.fileId, coudnt: records.length },
+                { fileId: savedFile.fileId, count: records.length },
                 outputPortName
             );
         } else {

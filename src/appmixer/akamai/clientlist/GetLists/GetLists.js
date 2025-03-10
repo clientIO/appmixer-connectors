@@ -16,44 +16,52 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        const {
-            url,
-            method,
-            headers: { Authorization }
-        } = generateAuthorizationHeader({
-            hostnameUrl,
-            accessToken,
-            clientToken,
-            clientSecret,
-            method: 'GET',
-            path: '/client-list/v1/lists'
-        });
+        try {
+            const {
+                url,
+                method,
+                headers: { Authorization }
+            } = generateAuthorizationHeader({
+                hostnameUrl,
+                accessToken,
+                clientToken,
+                clientSecret,
+                method: 'GET',
+                path: '/client-list/v1/lists'
+            });
 
-        const { data } = await context.httpRequest({
-            url,
-            method,
-            headers: { Authorization }
-        });
+            const { data } = await context.httpRequest({
+                url,
+                method,
+                headers: { Authorization }
+            });
 
-        const { content } = data;
+            const { content } = data;
 
-        if (isSource) {
-            if (content.length === 0) {
-                return context.sendJson({}, 'out');
+            if (isSource) {
+                if (content.length === 0) {
+                    return context.sendJson({}, 'out');
+                }
+                return context.sendJson(content, 'out');
             }
-            return context.sendJson(content, 'out');
-        }
 
-        if (content.length === 0) {
-            return context.sendJson({}, 'notFound');
-        }
+            if (content.length === 0) {
+                return context.sendJson({}, 'notFound');
+            }
 
-        return await sendArrayOutput({
-            context,
-            outputPortName,
-            outputType,
-            records: content
-        });
+            return await sendArrayOutput({
+                context,
+                outputPortName,
+                outputType,
+                records: content
+            });
+        } catch (error) {
+            if (error.name === 'AxiosError') {
+                throw new context.CancelError(error.response.data);
+            } else {
+                throw new context.CancelError(error);
+            }
+        }
     },
 
     listsToSelectArray(lists) {
@@ -342,9 +350,7 @@ module.exports = {
                 );
 
             default:
-                return context.cancelError(
-                    'Unsupported outputType ' + outputType
-                );
+                throw new context.CancelError('Unsupported outputType ' + outputType);
         }
     }
 };
