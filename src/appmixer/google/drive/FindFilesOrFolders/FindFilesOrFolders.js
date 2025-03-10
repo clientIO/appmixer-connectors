@@ -55,9 +55,10 @@ module.exports = {
             q.push(`(${mimeTypeQuery})`);
         }
 
+        const orderByNormalized  = searchType === 'fullText' ? null : orderBy;
         if (recursive && folderId) {
             // Find all subfolder IDs recursively.
-            const subfolders = await lib.findSubfolders(context, drive, folderId);
+            const subfolders = await lib.findSubfolders(context, drive, folderId, orderByNormalized);
             const subfolderIds = [folderId];
             for (let subfolder of subfolders) {
                 subfolderIds.push(subfolder.googleDriveFileMetadata.id);
@@ -70,8 +71,7 @@ module.exports = {
         }
 
         const queryString = q.join(' and ');
-        await context.log({ step: 'query', query: queryString });
-        const items = await lib.findFiles(context, drive, queryString, orderBy);
+        const items = await lib.findFiles(context, drive, queryString, orderByNormalized);
         if (items.length === 0) {
             return context.sendJson({ query }, 'notFound');
         }

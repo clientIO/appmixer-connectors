@@ -9,13 +9,20 @@ module.exports = {
 
         const auth = lib.getOauth2Client(context.auth);
         const drive = google.drive({ version: 'v3', auth });
-        let { googleDriveFileId, type, role, emailAddress } = context.messages.in.content;
+        let { googleDriveFileId, type, role, emailAddress, domain } = context.messages.in.content;
 
         const resource = {
             role,
-            type,
-            emailAddress
+            type
         };
+
+        if (domain) {
+            resource.domain = domain;
+        }
+
+        if (emailAddress) {
+            resource.emailAddress = emailAddress;
+        }
 
         const fileId = typeof googleDriveFileId === 'string' ? googleDriveFileId : googleDriveFileId.id;
 
