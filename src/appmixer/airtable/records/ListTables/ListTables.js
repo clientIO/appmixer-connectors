@@ -54,11 +54,16 @@ module.exports = {
                 if (!tableId) {
                     return context.sendJson([], 'out');
                 }
-                const fieldsOutput = [{ label: 'Record ID', value: 'id' }, { label: 'Created Time', value: 'createdTime' }];
+
                 const selectedTable = tables.filter((table) => table.id === tableId);
+                if (!selectedTable.length || !selectedTable[0].fields) {
+                    return context.sendJson([], 'out');
+                }
+
                 const fields = selectedTable[0].fields.map((field) => {
                     return { label: field.name, value: field.name };
                 });
+                const fieldsOutput = [{ label: 'Record ID', value: 'id' }, { label: 'Created Time', value: 'createdTime' }];
 
                 return context.sendJson(fieldsOutput.concat(fields), 'out');
             }
