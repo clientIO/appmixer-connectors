@@ -32,11 +32,9 @@ module.exports = {
         const appendArr = [];
         const updateArr = [];
         upsert.ADD.forEach((entry) => {
-
             entry.expirationDate = entry.expirationDate
                 ? new Date().getTime() + entry.expirationDate * 1000
                 : undefined;
-            const newTags = entry.tags?.split(',').filter(tag => tag !== '');
             const ips = entry.value.split(',');
 
             if (ips.length === 1) {
@@ -44,11 +42,7 @@ module.exports = {
                     (e) => e === entry.value
                 );
                 if (entryIndex > -1) {
-                    entry.tags =
-                        listEntries.content[entryIndex].tags.concat(newTags);
-                    updateArr.push(entry);
                 } else {
-                    entry.tags = newTags;
                     appendArr.push(entry);
                 }
             } else {
@@ -62,12 +56,8 @@ module.exports = {
                         value: ip
                     };
                     if (ipIndex > -1) {
-                        const lisEntriesIndex = listEntries.content.findIndex(c => c.value === ip);
-                        newEntry.tags =
-                            listEntries.content[lisEntriesIndex].tags.concat(newTags);
                         updateArr.push(newEntry);
                     } else {
-                        newEntry.tags = newTags;
                         appendArr.push(newEntry);
                     }
                 });
