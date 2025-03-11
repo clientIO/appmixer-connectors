@@ -25,7 +25,7 @@ module.exports = {
                     value = parseFloat(value);
                     break;
                 case 'boolean':
-                    value = new Boolean(value);
+                    value = Boolean(value);
                     break;
                 case 'array':
                     value = Array.isArray(value) ? value : JSON.parse(value);
