@@ -41,7 +41,7 @@ module.exports = {
     async receive(context) {
 
         const { profileInfo, auth } = context;
-        const { id, outputType } = context.messages.in.content;
+        const { id, outputType, name } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, {
@@ -51,15 +51,28 @@ module.exports = {
         }
 
         try {
-            const transitions = await commons.get(`${profileInfo.apiUrl}issue/${id}/transitions`, auth);
+            const results = (await commons.get(`${profileInfo.apiUrl}issue/${id}/transitions`, auth));
+
+            let records = results.transitions;
+            if (name) {
+                const lowerCaseName = name.toLowerCase();
+                records = records.filter(transition => transition.name ?
+                    transition.name.toLocaleLowerCase().includes(lowerCaseName) : false);
+            }
+
+            if (records.length === 0) {
+                context.sendJson({ name, id }, 'noFound');
+            }
+
             return lib.sendArrayOutput({
                 context,
-                records: transitions,
+                records,
+                arrayPropertyValue: 'transitions',
                 outputType
             });
         } catch (e) {
             if (context.properties.variablesFetch) {
-                return lib.sendArrayOutput({ context, records: transitions, outputType: 'array' });
+                return lib.sendArrayOutput({ context, records: [], outputType: 'array' });
             }
             throw e;
         }

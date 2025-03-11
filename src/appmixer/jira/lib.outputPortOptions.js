@@ -4,7 +4,7 @@ const DEFAULT_PREFIX = 'jira-export';
 
 module.exports = {
 
-    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
+    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [], arrayPropertyValue = 'result' }) {
         if (outputType === 'first') {
             // One by one.
             await context.sendJson(records[0], outputPortName);
@@ -13,7 +13,9 @@ module.exports = {
             await context.sendArray(records, outputPortName);
         } else if (outputType === 'array') {
             // All at once.
-            await context.sendJson({ result: records }, outputPortName);
+            const res = {};
+            res[arrayPropertyValue] = records;
+            await context.sendJson(res, outputPortName);
         } else if (outputType === 'file') {
 
             // Into CSV file.
