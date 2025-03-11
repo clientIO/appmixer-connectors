@@ -11,36 +11,27 @@ module.exports = {
 
         const body = { action, network, comments };
 
-        try {
-            const {
-                url,
-                method,
-                headers: { Authorization }
-            } = generateAuthorizationHeader({
-                hostnameUrl,
-                accessToken,
-                clientToken,
-                clientSecret,
-                method: 'POST',
-                path: `/client-list/v1/lists/${listId}/activations`,
-                body
-            });
+        const {
+            url,
+            method,
+            headers: { Authorization }
+        } = generateAuthorizationHeader({
+            hostnameUrl,
+            accessToken,
+            clientToken,
+            clientSecret,
+            method: 'POST',
+            path: `/client-list/v1/lists/${listId}/activations`,
+            body
+        });
 
-            const { data } = await context.httpRequest({
-                url,
-                method,
-                headers: { Authorization },
-                data: body
-            });
+        const { data } = await context.httpRequest({
+            url,
+            method,
+            headers: { Authorization },
+            data: body
+        });
 
-            return context.sendJson(data, 'out');
-        } catch (error) {
-            if (error.name === 'AxiosError') {
-                throw new context.CancelError(error.response.data);
-            } else {
-                throw new context.CancelError(error);
-            }
-        }
-
+        return context.sendJson(data, 'out');
     }
 };

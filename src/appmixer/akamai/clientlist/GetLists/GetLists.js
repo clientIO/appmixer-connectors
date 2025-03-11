@@ -16,52 +16,44 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        try {
-            const {
-                url,
-                method,
-                headers: { Authorization }
-            } = generateAuthorizationHeader({
-                hostnameUrl,
-                accessToken,
-                clientToken,
-                clientSecret,
-                method: 'GET',
-                path: '/client-list/v1/lists'
-            });
+        const {
+            url,
+            method,
+            headers: { Authorization }
+        } = generateAuthorizationHeader({
+            hostnameUrl,
+            accessToken,
+            clientToken,
+            clientSecret,
+            method: 'GET',
+            path: '/client-list/v1/lists'
+        });
 
-            const { data } = await context.httpRequest({
-                url,
-                method,
-                headers: { Authorization }
-            });
+        const { data } = await context.httpRequest({
+            url,
+            method,
+            headers: { Authorization }
+        });
 
-            const { content } = data;
+        const { content } = data;
 
-            if (isSource) {
-                if (content.length === 0) {
-                    return context.sendJson({}, 'out');
-                }
-                return context.sendJson(content, 'out');
-            }
-
+        if (isSource) {
             if (content.length === 0) {
-                return context.sendJson({}, 'notFound');
+                return context.sendJson({}, 'out');
             }
-
-            return await sendArrayOutput({
-                context,
-                outputPortName,
-                outputType,
-                records: content
-            });
-        } catch (error) {
-            if (error.name === 'AxiosError') {
-                throw new context.CancelError(error.response.data);
-            } else {
-                throw new context.CancelError(error);
-            }
+            return context.sendJson(content, 'out');
         }
+
+        if (content.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
+
+        return await sendArrayOutput({
+            context,
+            outputPortName,
+            outputType,
+            records: content
+        });
     },
 
     listsToSelectArray(lists) {
