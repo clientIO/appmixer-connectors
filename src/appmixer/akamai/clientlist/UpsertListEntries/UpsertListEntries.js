@@ -37,32 +37,22 @@ module.exports = {
             : undefined;
         const ips = value.split(',');
 
-        if (ips.length === 1) {
-            const entryIndex = currentEntries.findIndex(
-                (e) => e === entry.value
+        ips.forEach(ip => {
+            ip = ip.trim();
+            const ipIndex = currentEntries.findIndex(
+                (e) => e === ip
             );
-            if (entryIndex > -1) {
+            const newEntry = {
+                value: ip,
+                expirationDate,
+                description
+            };
+            if (ipIndex > -1) {
+                updateArr.push(newEntry);
             } else {
-                appendArr.push({ value: ip, expirationDate, description });
+                appendArr.push(newEntry);
             }
-        } else {
-            ips.forEach(ip => {
-                ip = ip.trim();
-                const ipIndex = currentEntries.findIndex(
-                    (e) => e === ip
-                );
-                const newEntry = {
-                    value: ip,
-                    expirationDate,
-                    description
-                };
-                if (ipIndex > -1) {
-                    updateArr.push(newEntry);
-                } else {
-                    appendArr.push(newEntry);
-                }
-            });
-        }
+        });
 
         const body = {
             append: appendArr,
