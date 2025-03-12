@@ -88,15 +88,18 @@ function  buildRequestOptions(method, options) {
         }
     }
 
-    let encoding = options.responseEncoding;
+    let encoding = options.responseEncoding === 'noEncoding' ? null : options.responseEncoding;
 
     let json = {
         method,
         url,
         headers,
-        ...(method.toLowerCase() === 'get' ? { params: body } : { data: body }),
-        responseEncoding: encoding
+        ...(method.toLowerCase() === 'get' ? { params: body } : { data: body })
     };
+
+    if (encoding !== null) {
+        json.responseEncoding = encoding;
+    }
 
     return { options: json, errors };
 }

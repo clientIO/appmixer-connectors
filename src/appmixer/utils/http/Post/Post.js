@@ -9,7 +9,11 @@ module.exports = {
 
     async receive(context) {
 
-        const { url, headers, bodyType } = context.messages.in.content;
+        const { url, headers, bodyType, fileId } = context.messages.in.content;
+
+        if (bodyType === 'binary') {
+            return await sendBinaryData(context, url, headers, fileId);
+        }
 
         if (bodyType === 'form-data') {
 
@@ -27,6 +31,28 @@ module.exports = {
             .then(response => {
                 return context.sendJson(response, 'response');
             });
+    }
+};
+
+const sendBinaryData = async (context, url, headers, binaryFileId) => {
+    try {
+        const fileStream = await context.getFileReadStream(binaryFileId);
+        const fileInfo = await context.getFileInfo(binaryFileId);
+
+        const response = await context.httpRequest({
+            method: 'post',
+            url,
+            data: fileStream,
+            headers: {
+                'Content-Type': 'application/octet-stream',
+                'Content-Length': fileInfo.length,
+                ...headers
+            }
+        });
+
+        return await context.sendJson(response.data, 'response');
+    } catch (error) {
+        throw new Error(`Failed to send binary data: ${error.message}`);
     }
 };
 
