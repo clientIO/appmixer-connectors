@@ -66,9 +66,7 @@ class UpdatedContact extends BaseSubscriptionComponent {
         if (!properties) {
             // Return all properties by default.
             const { data } = await this.hubspot.call('get', 'crm/v3/properties/contacts');
-            const contactProperties = data.results;
-            context.log({ step: 'contacts-read 1', data, contactProperties });
-            pripertiesToReturn = contactProperties.map((property) => property.name);
+            pripertiesToReturn = data.results?.map((property) => property.name);
         } else {
             pripertiesToReturn = properties.split(',');
         }
