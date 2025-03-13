@@ -37,7 +37,7 @@ module.exports = {
                     method: 'GET',
                     url: 'https://api.atlassian.com/oauth/token/accessible-resources',
                     headers: {
-                        Authorization: `Bearer ${context.accessToken}`,
+                        Authorization: `Bearer ${context.accessToken}`
                     }
                 });
 
