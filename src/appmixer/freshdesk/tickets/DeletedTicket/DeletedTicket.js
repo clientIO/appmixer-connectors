@@ -4,7 +4,6 @@ const axios = require('axios');
 module.exports = {
     async tick(context) {
         const { auth } = context;
-        
         let since = new Date();
         let deletedTickets = [];
 
@@ -55,8 +54,7 @@ module.exports = {
             deletedTickets.forEach(ticket => {
                 context.sendJson(ticket, 'ticket');
             });
-        }        
-
+        }
         await context.saveState({ since });
     }
 };
