@@ -1,22 +1,27 @@
 'use strict';
+
 const twilio = require('twilio');
 
 module.exports = {
-
-    receive(context) {
+    async receive(context) {
 
         if (context.messages.webhook) {
             return context.sendJson(context.messages.webhook.content.data, 'call');
         }
 
-        let { accountSID, authenticationToken } = context.auth;
-        let { from, to } = context.messages.in.content;
-        let client = twilio(accountSID, authenticationToken);
+        const { accountSID, authenticationToken } = context.auth;
+        const { from, to } = context.messages.in.content;
+        const client = twilio(accountSID, authenticationToken);
 
-        return client.calls.create({
+        await client.calls.create({
+            statusCallback: context.getWebhookUrl(),
+            statusCallbackEvent: [
+                'completed', 'busy',
+                'failed', 'no-answer', 'canceled'
+            ],
             url: context.getWebhookUrl(),
-            to: to,
-            from: from
+            to,
+            from
         });
     }
 };
