@@ -61,20 +61,20 @@ class UpdatedContact extends BaseSubscriptionComponent {
             return context.response();
         }
 
-        let pripertiesToReturn;
+        let propertiesToReturn;
         const { properties } = context.properties;
         if (!properties) {
             // Return all properties by default.
             const { data } = await this.hubspot.call('get', 'crm/v3/properties/contacts');
-            pripertiesToReturn = data.results?.map((property) => property.name);
+            propertiesToReturn = data.results?.map((property) => property.name);
         } else {
-            pripertiesToReturn = properties.split(',');
+            propertiesToReturn = properties.split(',');
         }
 
         // Call the API to get the contacts in bulk
         const { data } = await this.hubspot.call('post', 'crm/v3/objects/contacts/batch/read', {
             inputs: ids.map((id) => ({ id })),
-            properties: pripertiesToReturn
+            properties: propertiesToReturn
         });
 
         const results = [];
