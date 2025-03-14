@@ -20,7 +20,8 @@ module.exports = {
 
         } else if (context.messages.webhook) {
             // Twilio HTTP callback request.
-            return context.sendJson(context.messages.webhook.content.data, 'call');
+            await context.sendJson(context.messages.webhook.content.data, 'call');
+            return context.response(); 
         }
     }
 };
