@@ -16,8 +16,8 @@ module.exports = {
         const endpoint = context.getWebhookUrl();
         await client.calls.create({
             statusCallback: endpoint,
-            statusCallbackEvent: ["initiated", "answered"],
-            statusCallbackMethod: "POST",
+            statusCallbackEvent: ['initiated', 'answered'],
+            statusCallbackMethod: 'POST',
             url: endpoint,
             to,
             from
