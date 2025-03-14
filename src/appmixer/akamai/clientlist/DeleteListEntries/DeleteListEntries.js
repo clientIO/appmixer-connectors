@@ -6,10 +6,20 @@ module.exports = {
     receive: async (context) => {
         const { hostnameUrl, accessToken, clientSecret, clientToken } =
             context.auth;
-        const { listId, deleteEntries } = context.messages.in.content;
+        const { listId, value } = context.messages.in.content;
+
+        const deleteArr = [];
+
+        const ips = value.split(',');
+
+        ips.forEach(ip => {
+            ip = ip.trim();
+
+            deleteArr.push({ value: ip });
+        });
 
         const body = {
-            delete: deleteEntries.ADD
+            delete: deleteArr
         };
 
         const {
