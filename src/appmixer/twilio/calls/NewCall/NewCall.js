@@ -2,7 +2,7 @@
 
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         if (context.properties.generateInspector) {
             // Trick to return dynamic inspector from within receive().
