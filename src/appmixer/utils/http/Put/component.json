@@ -32,23 +32,161 @@
                         "group": "transformation",
                         "tooltip": "JSON object containing request headers."
                     },
+                    "bodyType": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Body type",
+                        "group": "transformation",
+                        "defaultValue": "raw",
+                        "options": [
+                            { "value": "raw", "content": "raw" },
+                            { "value": "form-data", "content": "form-data" },
+                            { "value": "binary", "content": "binary" }
+                        ],
+                        "tooltip": "Select type of the body format."
+                    },
                     "body": {
                         "type": "textarea",
-                        "index": 3,
+                        "index": 4,
                         "label" : "Request body",
                         "group": "transformation",
-                        "tooltip": "Data to be send as request body."
+                        "tooltip": "Data to be send as request body.",
+                        "when": {
+                            "eq": {
+                                "./bodyType": "raw"
+                            }
+                        }
+                    },
+                    "fileId": {
+                        "type": "filepicker",
+                        "index": 5,
+                        "label" : "File",
+                        "group": "transformation",
+                        "tooltip": "File attachment",
+                        "when": {
+                            "eq": {
+                                "./bodyType": "binary"
+                            }
+                        }
+                    },
+                    "bodyFormData": {
+                        "type": "expression",
+                        "label": "Form data",
+                        "group": "transformation",
+                        "levels": [
+                            "ADD"
+                        ],
+                        "index": 6,
+                        "tooltip": "Provide Form data values.",
+                        "fields": {
+                            "text": {
+                                "type": "text",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Enter a text value.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "text"
+                                    }
+                                }
+                            },
+                            "date-time": {
+                                "type": "date-time",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Pick a date and time.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "date-time"
+                                    }
+                                }
+                            },
+                            "number": {
+                                "type": "number",
+                                "label": "Value",
+                                "index": 1,
+                                "tooltip": "Enter a number value.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "number"
+                                    }
+                                }
+                            },
+                            "toggle": {
+                                "type": "toggle",
+                                "label": "Value",
+                                "index": 1,
+                                "defaultValue": false,
+                                "tooltip": "Toggle a value.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "toggle"
+                                    }
+                                }
+                            },
+                            "filepicker": {
+                                "type": "filepicker",
+                                "label": "Content",
+                                "index": 1,
+                                "tooltip": "File ID assigned to file once stored in this application or select a file from your computer.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "filepicker"
+                                    }
+                                }
+                            },
+                            "name": {
+                                "type": "text",
+                                "label": "Name",
+                                "index": 2,
+                                "tooltip": "Enter the variable name."
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "index": 3,
+                                "tooltip": "Select the variable type.",
+                                "defaultValue": "text",
+                                "options": [
+                                    {
+                                        "label": "Number",
+                                        "value": "number"
+                                    },
+                                    {
+                                        "label": "Text",
+                                        "value": "text"
+                                    },
+                                    {
+                                        "label": "Date",
+                                        "value": "date-time"
+                                    },
+                                    {
+                                        "label": "Boolean",
+                                        "value": "toggle"
+                                    },
+                                    {
+                                        "label": "File",
+                                        "value": "filepicker"
+                                    }
+                                ]
+                            }
+                        },
+                        "when": {
+                            "eq": {
+                                "./bodyType": "form-data"
+                            }
+                        }
                     },
                     "bodyBase64Encode": {
                         "type": "toggle",
-                        "index": 4,
+                        "index": 7,
                         "label" : "Request body in base64",
                         "group": "advanced",
                         "tooltip": "Turn it on to encode request body in base64."
                     },
                     "responseEncoding": {
                         "type": "select",
-                        "index": 5,
+                        "index": 8,
                         "group": "advanced",
                         "label": "Response encoding",
                         "defaultValue": "utf8",
@@ -60,9 +198,9 @@
                             { "value": "latin1", "content": "latin1" },
                             { "value": "binary", "content": "binary" },
                             { "value": "hex", "content": "hex" },
-                            { "value": null, "content": "no encoding" }
+                            { "value": "noEncoding", "content": "no encoding" }
                         ],
-                        "tooltip": "Set the encoding for response. Use <b>null</b> for binary. <br/>Note: Today's browsers follow the WHATWG spec which aliases both 'latin1' and ISO-8859-1 to win-1252. This means that while doing something like http.get(), if the returned charset is one of those listed in the WHATWG spec it's possible that the server actually returned win-1252-encoded data, and using 'latin1' encoding may incorrectly decode the characters."
+                        "tooltip": "Set the encoding for response. <br/>Note: Today's browsers follow the WHATWG spec which aliases both 'latin1' and ISO-8859-1 to win-1252. This means that while doing something like http.get(), if the returned charset is one of those listed in the WHATWG spec it's possible that the server actually returned win-1252-encoded data, and using 'latin1' encoding may incorrectly decode the characters."
                     }
                 },
                 "groups": {
@@ -84,19 +222,26 @@
                         "type": "string",
                         "format": "uri"
                     },
-                    "body": {
-                        "oneOf": [
-                            { "type": "string" },
-                            { "type": "object" }
-                        ]
-                    },
-                    "bodyBase64Encode": { "type": "boolean" },
                     "headers": {
                         "oneOf": [
                             { "type": "string" },
                             { "type": "object" }
                         ]
                     },
+                    "bodyType": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "object" }
+                        ]
+                    },
+                    "fileId": {"type": "string"},
+                    "bodyFormData": {
+                        "type": "object"
+                    },
+                    "bodyBase64Encode": { "type": "boolean" },
                     "method": { "type": "string" },
                     "responseEncoding": {
                         "enum": [
@@ -107,7 +252,7 @@
                             "latin1",
                             "binary",
                             "hex",
-                            null
+                            "noEncoding"
                         ]
                     }
                 },
