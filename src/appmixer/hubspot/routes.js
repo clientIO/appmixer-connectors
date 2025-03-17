@@ -16,7 +16,7 @@ module.exports = async (context) => {
 
             try {
                 const subscriptionType = eventName.split(':')[0];
-                const subscriptions = getSubscriptionsByType(subscriptionType);
+                const subscriptions = getSubscriptionsByType(subscriptionType, context);
                 const results = await getHubSpotSubscriptions(context, params);
                 const currentSubs = results.map(s => s.eventType);
 
@@ -159,7 +159,7 @@ async function triggerListenersDelayed(context, eventName, payload) {
     await context.triggerListeners({ eventName, payload });
 }
 
-function getSubscriptionsByType(subscriptionType) {
+function getSubscriptionsByType(subscriptionType, context) {
 
     let subscriptions = [];
 
@@ -180,6 +180,11 @@ function getSubscriptionsByType(subscriptionType) {
             }
         }));
     } else if (subscriptionType === 'contact.creation' || subscriptionType === 'deal.creation') {
+        subscriptions = [{
+            enabled: true,
+            subscriptionDetails: { subscriptionType }
+        }];
+    } else if (subscriptionType === 'contact.deletion') {
         subscriptions = [{
             enabled: true,
             subscriptionDetails: { subscriptionType }
