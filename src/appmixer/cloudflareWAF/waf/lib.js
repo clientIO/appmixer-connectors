@@ -17,10 +17,14 @@ const parseIPs = (input) => {
             if (Array.isArray(parsed)) {
                 ips = parsed;
             } else {
-                ips = input.split(',').map(ip => ip.trim());
+                ips = input.split(/\s+|,/)
+                    .filter(item => item)
+                    .map(ip => ip.trim());
             }
         } catch (e) {
-            ips = input.split(',').map(ip => ip.trim());
+            ips = input.split(/\s+|,/)
+                .filter(item => item)
+                .map(ip => ip.trim());
         }
     } else if (Array.isArray(input)) {
         ips = input;
