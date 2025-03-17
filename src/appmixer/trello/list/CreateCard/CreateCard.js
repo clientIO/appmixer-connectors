@@ -65,6 +65,9 @@ module.exports = {
                 }
             });
 
+            // Add the newChecklist id to the newCard object
+            newCard.idChecklists = [{ id: newChecklist.id }];
+
             // Add checklist items to the checklist
             if (checklistItems) {
                 const items = checklistItems.split('\n');
