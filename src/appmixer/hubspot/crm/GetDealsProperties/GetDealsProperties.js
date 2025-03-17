@@ -64,6 +64,22 @@ module.exports = {
         return inspector;
     },
 
+    dealToLabelNameArray(dealsProperties) {
+
+        const transformed = [];
+        if (Array.isArray(dealsProperties)) {
+            dealsProperties.forEach((property) => {
+                if (!property.hidden) {
+                    transformed.push({
+                        label: property.label || property.name,
+                        value: property.name
+                    });
+                }
+            });
+        }
+        return transformed;
+    },
+
     dealToSelectArray(dealsProperties) {
 
         const transformed = [];
