@@ -1,0 +1,20 @@
+name: Trigger Marketplace QA update in appmixer-components
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  trigger-workflow:
+    # By default run only on the main repository. Comment out the next line to run on forks.
+    if: github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger appmixer-components workflow marketplace.yml
+        run: |
+          curl -f -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.PAT }}" \
+          https://api.github.com/repos/clientIO/appmixer-components/actions/workflows/marketplace.yml/dispatches \
+          -d '{"ref":"dev"}'
