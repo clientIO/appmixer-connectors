@@ -1,6 +1,3 @@
-'use strict';
-const request = require('request-promise');
-
 module.exports = {
 
     type: 'oauth2',
@@ -36,15 +33,15 @@ module.exports = {
 
             async requestProfileInfo(context) {
 
-                const resources = await request({
+                const { data } = await context.httpRequest({
                     method: 'GET',
                     url: 'https://api.atlassian.com/oauth/token/accessible-resources',
-                    auth: { bearer: context.accessToken },
-                    headers: { 'Accept': 'application/json' },
-                    json: true
+                    headers: {
+                        Authorization: `Bearer ${context.accessToken}`
+                    }
                 });
 
-                const { id: cloudId, name } = resources[0];
+                const { id: cloudId, name } = data[0];
                 return {
                     cloudId,
                     name,
@@ -63,18 +60,17 @@ module.exports = {
                     'redirect_uri': context.callbackUrl
                 };
 
-                const result = await request({
+                const { data } = await context.httpRequest({
                     method: 'POST',
                     url: 'https://auth.atlassian.com/oauth/token',
-                    body,
-                    json: true
+                    data: body
                 });
 
                 const {
                     access_token: accessToken,
                     expires_in: expiresIn,
                     refresh_token: refreshToken
-                } = result;
+                } = data;
                 const accessTokenExpDate = new Date();
                 accessTokenExpDate.setSeconds(accessTokenExpDate.getSeconds() + expiresIn);
 
@@ -90,18 +86,17 @@ module.exports = {
                     'refresh_token': context.refreshToken
                 };
 
-                const result = await request({
+                const { data } = await context.httpRequest({
                     method: 'POST',
                     url: 'https://auth.atlassian.com/oauth/token',
-                    body,
-                    json: true
+                    data: body
                 });
 
                 const {
                     access_token: accessToken,
                     expires_in: expiresIn,
                     refresh_token: refreshToken
-                } = result;
+                } = data;
                 const accessTokenExpDate = new Date();
                 accessTokenExpDate.setSeconds(accessTokenExpDate.getSeconds() + expiresIn);
 
