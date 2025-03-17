@@ -6,8 +6,9 @@ module.exports = {
     receive: async (context) => {
         const { hostnameUrl, accessToken, clientSecret, clientToken } =
             context.auth;
-        const { listId, upsert } = context.messages.in.content;
+        const { listId, value, description, ttl, network } = context.messages.in.content;
 
+        // GET list items to check whether to append or update
         const {
             url: getItemsUrl,
             method: getItemsMethod,
@@ -31,45 +32,35 @@ module.exports = {
 
         const appendArr = [];
         const updateArr = [];
-        upsert.ADD.forEach((entry) => {
-            entry.expirationDate = entry.expirationDate
-                ? new Date().getTime() + entry.expirationDate * 1000
-                : undefined;
-            const ips = entry.value.split(',');
 
-            if (ips.length === 1) {
-                const entryIndex = currentEntries.findIndex(
-                    (e) => e === entry.value
-                );
-                if (entryIndex > -1) {
-                } else {
-                    appendArr.push(entry);
-                }
+        const expirationDate = ttl
+            ? new Date().getTime() + ttl * 1000
+            : undefined;
+        const ips = value.split(',');
+
+        ips.forEach(ip => {
+            ip = ip.trim();
+            const ipIndex = currentEntries.findIndex(
+                (e) => e === ip
+            );
+            const newEntry = {
+                value: ip,
+                expirationDate,
+                description
+            };
+            if (ipIndex > -1) {
+                updateArr.push(newEntry);
             } else {
-                ips.forEach(ip => {
-                    ip = ip.trim();
-                    const ipIndex = currentEntries.findIndex(
-                        (e) => e === ip
-                    );
-                    const newEntry = {
-                        ...entry,
-                        value: ip
-                    };
-                    if (ipIndex > -1) {
-                        updateArr.push(newEntry);
-                    } else {
-                        appendArr.push(newEntry);
-                    }
-                });
+                appendArr.push(newEntry);
             }
-
-
         });
+
         const body = {
             append: appendArr,
             update: updateArr
         };
 
+        // POST new or updated list items
         const {
             url,
             method,
@@ -91,21 +82,45 @@ module.exports = {
             data: body
         });
 
+        // Activate list
+        const activateBody = { action: 'ACTIVATE', network };
+
+        const {
+            url: ActivateUrl,
+            method: ActivateMethod,
+            headers: { Authorization: ActivateAuthorization }
+        } = generateAuthorizationHeader({
+            hostnameUrl,
+            accessToken,
+            clientToken,
+            clientSecret,
+            method: 'POST',
+            path: `/client-list/v1/lists/${listId}/activations`,
+            body: activateBody
+        });
+
+        await context.httpRequest({
+            url: ActivateUrl,
+            method: ActivateMethod,
+            headers: { Authorization: ActivateAuthorization },
+            data: activateBody
+        });
+
         let addedResponse = [];
         let updatedResponse = [];
         if (data.appended.length > 0) {
             addedResponse = data.appended.map(r => {
                 return {
-                    ...r,
-                    action: 'added'
+                    action: 'added',
+                    ...r
                 };
             });
         }
         if (data.updated.length > 0) {
             updatedResponse = data.updated.map(r => {
                 return {
-                    ...r,
-                    action: 'updated'
+                    action: 'updated',
+                    ...r
                 };
             });
         }
