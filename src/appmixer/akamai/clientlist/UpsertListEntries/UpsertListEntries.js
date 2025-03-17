@@ -6,8 +6,9 @@ module.exports = {
     receive: async (context) => {
         const { hostnameUrl, accessToken, clientSecret, clientToken } =
             context.auth;
-        const { listId, value, description, ttl } = context.messages.in.content;
+        const { listId, value, description, ttl, network } = context.messages.in.content;
 
+        // GET list items to check whether to append or update
         const {
             url: getItemsUrl,
             method: getItemsMethod,
@@ -59,6 +60,7 @@ module.exports = {
             update: updateArr
         };
 
+        // POST new or updated list items
         const {
             url,
             method,
@@ -80,21 +82,45 @@ module.exports = {
             data: body
         });
 
+        // Activate list
+        const activateBody = { action: 'ACTIVATE', network };
+
+        const {
+            url: ActivateUrl,
+            method: ActivateMethod,
+            headers: { Authorization: ActivateAuthorization }
+        } = generateAuthorizationHeader({
+            hostnameUrl,
+            accessToken,
+            clientToken,
+            clientSecret,
+            method: 'POST',
+            path: `/client-list/v1/lists/${listId}/activations`,
+            body: activateBody
+        });
+
+        await context.httpRequest({
+            url: ActivateUrl,
+            method: ActivateMethod,
+            headers: { Authorization: ActivateAuthorization },
+            data: activateBody
+        });
+
         let addedResponse = [];
         let updatedResponse = [];
         if (data.appended.length > 0) {
             addedResponse = data.appended.map(r => {
                 return {
-                    ...r,
-                    action: 'added'
+                    action: 'added',
+                    ...r
                 };
             });
         }
         if (data.updated.length > 0) {
             updatedResponse = data.updated.map(r => {
                 return {
-                    ...r,
-                    action: 'updated'
+                    action: 'updated',
+                    ...r
                 };
             });
         }
