@@ -12,10 +12,7 @@ module.exports = {
         if (ips.length === 0) {
             return context.sendJson([], 'out');
         }
-
         const parsedIps = lib.parseIPs(ips);
-
-        context.log({ step: 'parsed ips', parsedIps });
         const client = new CloudflareAPI({ zoneId, token: apiToken });
 
         let ruleset = (await client.listZoneRulesets(context))
