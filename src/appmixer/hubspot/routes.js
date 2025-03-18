@@ -9,6 +9,12 @@ module.exports = async (context) => {
     // This will create a subscription in HubSpot for the given subscriptionType if it does not exist.
     context.onListenerAdded(async (listener) => {
 
+        const isAuthHub = !!process.env.AUTH_HUB_URL && !process.env.AUTH_HUB_TOKEN;
+        if (isAuthHub) {
+            // This is AuthHub, we don't need to create subscriptions here.
+            return;
+        }
+
         const { eventName, params } = listener;
 
         try {
