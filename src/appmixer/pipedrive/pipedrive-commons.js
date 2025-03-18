@@ -86,6 +86,7 @@ module.exports = {
                 data: {
                     event_action: eventAction,
                     event_object: eventObject,
+                    version: '1.0',
                     subscription_url: context.getWebhookUrl()
                 }
             };
