@@ -60,9 +60,9 @@ const getStatus = async function(context, id, attempts = 0) {
         attempts++;
         if (attempts <= 5) {
             await new Promise(r => setTimeout(r, 2000));
-            return await getStatus(context, id);
+            return await getStatus(context, id, attempts);
         } else {
-            throw new context.CancelError(data.errors);
+            throw new context.CancelError(`Exceeded max attempts systemActivity: ${id}`);
         }
     }
 
@@ -161,9 +161,9 @@ const createDocument = function(context) {
 };
 
 module.exports = {
-
     // docs: https://win.wiz.io/reference/pull-cloud-resources
     async receive(context) {
+
 
         const { filename } = context.messages.in.content;
 

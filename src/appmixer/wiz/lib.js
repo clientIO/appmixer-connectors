@@ -63,6 +63,7 @@ module.exports = {
 
         const url = context.config.apiEndpointUrl || 'https://api.us18.app.wiz.io/graphql';
 
+
         return context.httpRequest({
             method,
             url,
