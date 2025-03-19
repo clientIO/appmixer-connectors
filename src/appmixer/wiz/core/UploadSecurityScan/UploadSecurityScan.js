@@ -42,8 +42,7 @@ const statusQuery = `query SystemActivity($id: ID!) {
           handled
       }`;
 
-let attempts = 0;
-const getStatus = async function(context, id) {
+const getStatus = async function(context, id, attempts = 0) {
 
     context.log({ stage: 'GETTING STATUS', systemActivityId: id, attempts });
     const { data } = await lib.makeApiCall({
