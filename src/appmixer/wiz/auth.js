@@ -9,7 +9,7 @@ module.exports = {
         auth: {
             url: {
                 type: 'text',
-                name: 'Endpoint URL. For example: https://api.us18.app.wiz.io/graphql'
+                name: 'Wiz Endpoint URL. For example: https://api.us18.app.wiz.io/graphql'
             },
             clientId: {
                 type: 'text',
