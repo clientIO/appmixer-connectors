@@ -164,7 +164,6 @@ module.exports = {
     // docs: https://win.wiz.io/reference/pull-cloud-resources
     async receive(context) {
 
-
         const { filename } = context.messages.in.content;
 
         if (context.properties.generateInspector) {

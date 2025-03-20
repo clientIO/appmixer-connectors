@@ -7,6 +7,10 @@ module.exports = {
     definition: {
 
         auth: {
+            url: {
+                type: 'text',
+                name: 'Client ID'
+            },
             clientId: {
                 type: 'text',
                 name: 'Client ID'
