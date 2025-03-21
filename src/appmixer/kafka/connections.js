@@ -130,30 +130,30 @@ const initClient = async (context, auth, connectionId) => {
 const loadConsumerOptions = function(context) {
 
     const retry = {
-        maxRetryTime: parseInt(context.config.CONSUMER_RETRY_MAX_RETRY_TIME, 10),
-        initialRetryTime: parseInt(context.config.CONSUMER_RETRY_INITIAL_RETRY_TIME, 10),
-        factor: parseFloat(context.config.CONSUMER_RETRY_FACTOR),
-        multiplier: parseFloat(context.config.CONSUMER_RETRY_MULTIPLIER),
-        retries: parseInt(context.config.CONSUMER_RETRY_RETRIES, 10)
+        maxRetryTime: parseInt(context.config.consumerRetryMaxRetryTime, 10),
+        initialRetryTime: parseInt(context.config.consumerRetryInitialRetryTime, 10),
+        factor: parseFloat(context.config.consumerRetryFactor),
+        multiplier: parseFloat(context.config.consumerRetryMultiplier),
+        retries: parseInt(context.config.consumerRetryRetries, 10)
     };
 
     const options = {
-        sessionTimeout: parseInt(context.config.CONSUMER_SESSION_TIMEOUT, 10),
-        rebalanceTimeout: parseInt(context.config.CONSUMER_REBALANCE_TIMEOUT, 10),
-        heartbeatInterval: parseInt(context.config.CONSUMER_HEARTBEAT_INTERVAL, 10),
-        metadataMaxAge: parseInt(context.config.CONSUMER_METADATA_MAX_AGE, 10),
-        allowAutoTopicCreation: context.config.CONSUMER_ALLOW_AUTO_TOPIC_CREATION !== undefined ? context.config.CONSUMER_ALLOW_AUTO_TOPIC_CREATION === 'true' : undefined,
-        maxBytesPerPartition: parseInt(context.config.CONSUMER_MAX_BYTES_PER_PARTITION, 10),
-        minBytes: parseInt(context.config.CONSUMER_MIN_BYTES, 10),
-        maxBytes: parseInt(context.config.CONSUMER_MAX_BYTES, 10),
-        maxWaitTimeInMs: parseInt(context.config.CONSUMER_MAX_WAIT_TIME_IN_MS, 10),
+        sessionTimeout: parseInt(context.config.consumerSessionTimeout, 10),
+        rebalanceTimeout: parseInt(context.config.consumerRebalanceTimeout, 10),
+        heartbeatInterval: parseInt(context.config.consumerHeartbeatInterval, 10),
+        metadataMaxAge: parseInt(context.config.consumerMetadataMaxAge, 10),
+        allowAutoTopicCreation: context.config.consumerAllowAutoTopicCreation !== undefined ? context.config.consumerAllowAutoTopicCreation === 'true' : undefined,
+        maxBytesPerPartition: parseInt(context.config.consumerMaxBytesPerPartition, 10),
+        minBytes: parseInt(context.config.consumerMinBytes, 10),
+        maxBytes: parseInt(context.config.consumerMaxBytes, 10),
+        maxWaitTimeInMs: parseInt(context.config.consumerMaxWaitTimeInMs, 10),
         retry: Object.keys(retry).reduce((res, key) => {
             if (retry[key] !== undefined && !isNaN(options[key])) { res[key] = options[key]; }
             return res;
         }, {}),
-        readUncommitted: context.config.CONSUMER_READ_UNCOMMITTED !== undefined ? context.config.CONSUMER_READ_UNCOMMITTED === 'true' : undefined,
-        maxInFlightRequests: parseInt(context.config.CONSUMER_MAX_IN_FLIGHT_REQUESTS, 10),
-        rackId: context.config.CONSUMER_RACK_ID
+        readUncommitted: context.config.consumerReadUncommitted !== undefined ? context.config.consumerReadUncommitted === 'true' : undefined,
+        maxInFlightRequests: parseInt(context.config.consumerMaxInFlightRequests, 10),
+        rackId: context.config.consumerRackId
     };
 
     // return only value with defined value
@@ -203,20 +203,21 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         delete KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     });
 
-    // First, make sure the consumer is still needed. The flow might have stopped
-    // which disconnected the consumer from open connections but only on one node in the cluster.
-    // move connection out of the loop.
-    const connection = await context.service.stateGet(connectionId);
-    if (!connection) {
-        await context.log('info', '[KAFKA] Kafka consumer connection is not available (' + connectionId + ').');
-        return connectionId;
-    }
-
     await consumer.run({
         eachBatchAutoResolve: false,
         // eachBatch has to be used instead of eachMessage because we don't want to resolve the
         // offset if connection to the consumer was removed from the cluster state.
         eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
+
+            // First, make sure the consumer is still needed. The flow might have stopped
+            // which disconnected the consumer from open connections but only on one node in the cluster.
+            // move connection out of the loop.
+            const connection = await context.service.stateGet(connectionId);
+            if (!connection) {
+                await context.log('info', '[KAFKA] Kafka consumer connection is not available (' + connectionId + ').');
+                return connectionId;
+            }
+
             for (let message of batch.messages) {
                 if (!isRunning() || isStale()) break;
 
