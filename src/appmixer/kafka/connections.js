@@ -148,7 +148,7 @@ const loadConsumerOptions = function(context) {
         maxBytes: parseInt(context.config.consumerMaxBytes, 10),
         maxWaitTimeInMs: parseInt(context.config.consumerMaxWaitTimeInMs, 10),
         retry: Object.keys(retry).reduce((res, key) => {
-            if (retry[key] !== undefined && !isNaN(options[key])) { res[key] = options[key]; }
+            if (retry[key] !== undefined && !isNaN(retry[key])) { res[key] = retry[key]; }
             return res;
         }, {}),
         readUncommitted: context.config.consumerReadUncommitted !== undefined ? context.config.consumerReadUncommitted === 'true' : undefined,
