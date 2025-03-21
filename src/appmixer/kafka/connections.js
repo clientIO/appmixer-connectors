@@ -127,9 +127,16 @@ const initClient = async (context, auth, connectionId) => {
     return new Kafka(config);
 };
 
+const cleanupEmpty = (obj) => {
+    return  Object.keys(obj).reduce((res, key) => {
+        if (obj[key] !== undefined && !isNaN(obj[key])) { res[key] = obj[key]; }
+        return res;
+    }, {});
+};
+
 const loadConsumerOptions = function(context) {
 
-    const retry = {
+    let retry = {
         maxRetryTime: parseInt(context.config.consumerRetryMaxRetryTime, 10),
         initialRetryTime: parseInt(context.config.consumerRetryInitialRetryTime, 10),
         factor: parseFloat(context.config.consumerRetryFactor),
@@ -137,7 +144,7 @@ const loadConsumerOptions = function(context) {
         retries: parseInt(context.config.consumerRetryRetries, 10)
     };
 
-    const options = {
+    let options = {
         sessionTimeout: parseInt(context.config.consumerSessionTimeout, 10),
         rebalanceTimeout: parseInt(context.config.consumerRebalanceTimeout, 10),
         heartbeatInterval: parseInt(context.config.consumerHeartbeatInterval, 10),
@@ -147,21 +154,19 @@ const loadConsumerOptions = function(context) {
         minBytes: parseInt(context.config.consumerMinBytes, 10),
         maxBytes: parseInt(context.config.consumerMaxBytes, 10),
         maxWaitTimeInMs: parseInt(context.config.consumerMaxWaitTimeInMs, 10),
-        retry: Object.keys(retry).reduce((res, key) => {
-            if (retry[key] !== undefined && !isNaN(retry[key])) { res[key] = retry[key]; }
-            return res;
-        }, {}),
         readUncommitted: context.config.consumerReadUncommitted !== undefined ? context.config.consumerReadUncommitted === 'true' : undefined,
         maxInFlightRequests: parseInt(context.config.consumerMaxInFlightRequests, 10),
         rackId: context.config.consumerRackId
     };
 
-    // return only value with defined value
-    return Object.keys(options).reduce((res, key) => {
-        if (options[key] !== undefined && !isNaN(options[key])) { res[key] = options[key]; }
-        return res;
-    }, {});
+    options = cleanupEmpty(options);
+    retry = cleanupEmpty(retry);
 
+    if (Object.keys(retry).length) {
+        options.retry = retry;
+    }
+
+    return options;
 };
 
 const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth, connId) => {
@@ -186,7 +191,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         groupId
     };
 
-    await context.log('info', '[KAFKA] Kafka consumer options: ', consumerOptions);
+    await context.log('info', '[KAFKA] Kafka consumer options: ' + JSON.stringify(consumerOptions));
     const consumer = client.consumer(consumerOptions);
 
     await consumer.connect();
