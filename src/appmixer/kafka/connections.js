@@ -159,18 +159,23 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         delete KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId];
     });
 
+    // First, make sure the consumer is still needed. The flow might have stopped
+    // which disconnected the consumer from open connections but only on one node in the cluster.
+    // move connection out of the loop.
+    const connection = await context.service.stateGet(connectionId);
+    if (!connection) {
+        // todo log
+        return connectionId;
+    };
+
     await consumer.run({
         eachBatchAutoResolve: false,
         // eachBatch has to be used instead of eachMessage because we don't want to resolve the
         // offset if connection to the consumer was removed from the cluster state.
         eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
+            // zpracovat paralelne (??)
             for (let message of batch.messages) {
                 if (!isRunning() || isStale()) break;
-
-                // First, make sure the consumer is still needed. The flow might have stopped
-                // which disconnected the consumer from open connections but only on one node in the cluster.
-                const connection = await context.service.stateGet(connectionId);
-                if (!connection) break;
 
                 const normalizedMessage = normalizeMessageData(message);
 
