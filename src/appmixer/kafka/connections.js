@@ -178,7 +178,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
                     flowId,
                     componentId,
                     normalizedMessage,
-                    { enqueueOnly: true }
+                    { enqueueOnly: 'true' }
                 );
 
                 resolveOffset(message.offset);
