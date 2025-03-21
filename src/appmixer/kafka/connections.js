@@ -128,7 +128,7 @@ const initClient = async (context, auth, connectionId) => {
 };
 
 const cleanupEmpty = (obj) => {
-    return  Object.keys(obj).reduce((res, key) => {
+    return Object.keys(obj).reduce((res, key) => {
         if (obj[key] !== undefined && !isNaN(obj[key])) { res[key] = obj[key]; }
         return res;
     }, {});
