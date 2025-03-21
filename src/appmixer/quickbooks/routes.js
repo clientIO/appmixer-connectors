@@ -95,7 +95,7 @@ module.exports.webhookHandler = async (context, req, h) => {
                         component.flowId,
                         component.componentId,
                         entityIds,
-                        { enqueueOnly: 'true' }, {}
+                        { enqueueOnly: true }, {}
                     );
                     await context.log('info', 'quickbooks-plugin-route-webhook-trigger-ok', { realmId, component, resp });
                 } catch (error) {

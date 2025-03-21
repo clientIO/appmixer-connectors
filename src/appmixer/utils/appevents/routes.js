@@ -37,7 +37,7 @@ module.exports = (context, options) => {
 
                 // Use enqueueOnly=true in query to enqueue message to Appmixer ASAP without waiting
                 // for the entire receive() to finish.
-                query.enqueueOnly = 'true';
+                query.enqueueOnly = true;
 
                 const errors = [];
 

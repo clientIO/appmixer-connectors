@@ -173,7 +173,6 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         // eachBatch has to be used instead of eachMessage because we don't want to resolve the
         // offset if connection to the consumer was removed from the cluster state.
         eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
-            // zpracovat paralelne (??)
             for (let message of batch.messages) {
                 if (!isRunning() || isStale()) break;
 
