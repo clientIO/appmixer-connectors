@@ -127,6 +127,43 @@ const initClient = async (context, auth, connectionId) => {
     return new Kafka(config);
 };
 
+const loadConsumerOptions = function(context) {
+
+    const retry = {
+        maxRetryTime: parseInt(context.config.CONSUMER_RETRY_MAX_RETRY_TIME, 10),
+        initialRetryTime: parseInt(context.config.CONSUMER_RETRY_INITIAL_RETRY_TIME, 10),
+        factor: parseFloat(context.config.CONSUMER_RETRY_FACTOR),
+        multiplier: parseFloat(context.config.CONSUMER_RETRY_MULTIPLIER),
+        retries: parseInt(context.config.CONSUMER_RETRY_RETRIES, 10)
+    };
+
+    const options = {
+        sessionTimeout: parseInt(context.config.CONSUMER_SESSION_TIMEOUT, 10),
+        rebalanceTimeout: parseInt(context.config.CONSUMER_REBALANCE_TIMEOUT, 10),
+        heartbeatInterval: parseInt(context.config.CONSUMER_HEARTBEAT_INTERVAL, 10),
+        metadataMaxAge: parseInt(context.config.CONSUMER_METADATA_MAX_AGE, 10),
+        allowAutoTopicCreation: context.config.CONSUMER_ALLOW_AUTO_TOPIC_CREATION !== undefined ? context.config.CONSUMER_ALLOW_AUTO_TOPIC_CREATION === 'true' : undefined,
+        maxBytesPerPartition: parseInt(context.config.CONSUMER_MAX_BYTES_PER_PARTITION, 10),
+        minBytes: parseInt(context.config.CONSUMER_MIN_BYTES, 10),
+        maxBytes: parseInt(context.config.CONSUMER_MAX_BYTES, 10),
+        maxWaitTimeInMs: parseInt(context.config.CONSUMER_MAX_WAIT_TIME_IN_MS, 10),
+        retry: Object.keys(retry).reduce((res, key) => {
+            if (retry[key] !== undefined && !isNaN(options[key])) { res[key] = options[key]; }
+            return res;
+        }, {}),
+        readUncommitted: context.config.CONSUMER_READ_UNCOMMITTED !== undefined ? context.config.CONSUMER_READ_UNCOMMITTED === 'true' : undefined,
+        maxInFlightRequests: parseInt(context.config.CONSUMER_MAX_IN_FLIGHT_REQUESTS, 10),
+        rackId: context.config.CONSUMER_RACK_ID
+    };
+
+    // return only value with defined value
+    return Object.keys(options).reduce((res, key) => {
+        if (options[key] !== undefined && !isNaN(options[key])) { res[key] = options[key]; }
+        return res;
+    }, {});
+
+};
+
 const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth, connId) => {
 
     // Genereate a unique consumer connection ID that differes between flow runs. Therefore, one setting
@@ -143,7 +180,14 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
     );
 
     const client = await initClient(context, auth, connectionId);
-    const consumer = client.consumer({ groupId });
+
+    const consumerOptions = {
+        ...loadConsumerOptions(context),
+        groupId
+    };
+
+    await context.log('info', '[KAFKA] Kafka consumer options: ', consumerOptions);
+    const consumer = client.consumer(consumerOptions);
 
     await consumer.connect();
     KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId] = consumer;
@@ -164,9 +208,9 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
     // move connection out of the loop.
     const connection = await context.service.stateGet(connectionId);
     if (!connection) {
-        // todo log
+        await context.log('info', '[KAFKA] Kafka consumer connection is not available (' + connectionId + ').');
         return connectionId;
-    };
+    }
 
     await consumer.run({
         eachBatchAutoResolve: false,
