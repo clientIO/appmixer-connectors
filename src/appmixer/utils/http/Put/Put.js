@@ -12,7 +12,14 @@ module.exports = {
         const { url, headers, bodyType, fileId } = context.messages.in.content;
 
         if (bodyType === 'binary') {
-            return await sendBinaryData(context, url, headers ? JSON.parse(headers) : undefined, fileId);
+
+            let headersParsed;
+            try {
+                headersParsed = headers ? JSON.parse(headers) : undefined;
+            } catch (error) {
+                throw new context.CancelError('Message property "headers" parse error. ' + error.message);
+            }
+            return await sendBinaryData(context, url, headersParsed, fileId);
         }
 
         if (bodyType === 'form-data') {
