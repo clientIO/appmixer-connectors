@@ -13,15 +13,15 @@ module.exports = {
 
         if (!Array.isArray(events) || events.length === 0) {
             events = [
-                "envelope-sent",
-                "envelope-resent",
-                "envelope-delivered",
-                "envelope-completed",
-                "envelope-declined",
-                "envelope-voided",
-                "envelope-corrected",
-                "envelope-purge",
-                "envelope-deleted"
+                'envelope-sent',
+                'envelope-resent',
+                'envelope-delivered',
+                'envelope-completed',
+                'envelope-declined',
+                'envelope-voided',
+                'envelope-corrected',
+                'envelope-purge',
+                'envelope-deleted'
             ];
         }
     
