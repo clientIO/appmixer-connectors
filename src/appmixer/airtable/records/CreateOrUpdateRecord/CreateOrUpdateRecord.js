@@ -6,31 +6,36 @@ module.exports = {
 
     async receive(context) {
         const {
-            baseId, tableId,
+            baseId, tableId, fieldsToMergeOn,
             returnFieldsByFieldId = false, typecast = false
         } = context.properties;
         const { accessToken } = context.auth;
         const fields = context.messages.in.content;
+        const { recordId } = fields;
 
         const bodyFields = transformFieldstoBodyFields(fields);
 
         const body = {
             returnFieldsByFieldId,
             typecast,
-            fields: bodyFields
+            performUpsert: {
+                fieldsToMergeOn
+            },
+            records: [{ fields: bodyFields, id: recordId }]
         };
 
         const { data } = await context.httpRequest({
             url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
-            method: 'POST',
+            method: 'PATCH',
             headers: { Authorization: `Bearer ${accessToken}` },
             data: body
         });
 
         const outputRecord = {
-            id: data.id,
-            createdTime: data.createdTime,
-            ...data.fields
+            action: data.createdRecords.includes(data.records[0].id) ? 'created' : 'updated',
+            id: data.records[0].id,
+            createdTime: data.records[0].createdTime,
+            ...data.records[0].fields
         };
 
         context.sendJson(outputRecord, 'out');

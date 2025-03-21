@@ -1,12 +1,11 @@
 'use strict';
 
-const Airtable = require('airtable');
 const { sendArrayOutput } = require('../../airtable-commons');
 
 module.exports = {
 
     async receive(context) {
-
+        const { accessToken } = context.auth;
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const {
             baseId, tableIdOrName,
@@ -14,16 +13,8 @@ module.exports = {
             fields,
             filterByFormula,
             maxRecords = 10000,
-            // Page size and offset doesn't make sense as the SDK does pagination automatically.
-            // pageSize,
-            // offset,
             sort,
             view,
-            cellFormat = 'json',
-            timeZone,
-            userLocale,
-            // method ?: string;
-            returnFieldsByFieldId,
             recordMetadata,
             // Appmixer specific
             outputType
@@ -33,17 +24,11 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        Airtable.configure({
-            endpointUrl: 'https://api.airtable.com',
-            apiKey: context.auth.accessToken
-        });
-        const base = Airtable.base(baseId);
-
         const queryParams = {
             // If not provided by user, use our default value.
             maxRecords,
             // If not provided by user, use our default value json.
-            cellFormat
+            cellFormat: 'json'
         };
         if (fields) {
             queryParams.fields = fields.trim().split(',');
@@ -62,26 +47,22 @@ module.exports = {
         if (view) {
             queryParams.view = view;
         }
-        if (timeZone) {
-            queryParams.timeZone = timeZone;
-        }
-        if (userLocale) {
-            queryParams.userLocale = userLocale;
-        }
-        if (returnFieldsByFieldId) {
-            queryParams.returnFieldsByFieldId = returnFieldsByFieldId;
-        }
         if (recordMetadata) {
-            // This one works only with ['commentCount']. If provided other values, it fails with 422: INVALID_REQUEST_UNKNOWN.
+            // This one works only with ['commentCount'].
             queryParams.recordMetadata = ['commentCount'];
         }
         context.log({ step: 'queryParams', queryParams });
 
-        const all = await base(tableIdOrName).select(queryParams).all();
-        const items = all.map(item => {
+        const { data } = await context.httpRequest({
+            url: `https://api.airtable.com/v0/${baseId}/${tableIdOrName}`,
+            method: 'GET',
+            headers: { Authorization: `Bearer ${accessToken}` },
+            params: queryParams
+        });
+        const items = data.map(item => {
             const record = {
                 // eslint-disable-next-line no-underscore-dangle
-                createdTime: item.createdTime || item._rawJson?.createdTime,
+                createdTime: item.createdTime,
                 fields: item.fields,
                 id: item.id
             };
@@ -102,7 +83,8 @@ module.exports = {
             return context.sendJson(
                 [
                     { label: 'Created Time', value: 'createdTime' },
-                    { label: 'Fields', value: 'fields',
+                    {
+                        label: 'Fields', value: 'fields',
                         // We can't know table columns beforehand, so we'll just use empty object as schema.
                         schema: { type: 'object' }
                     },
@@ -114,12 +96,16 @@ module.exports = {
         } else if (outputType === 'array') {
             return context.sendJson(
                 [
-                    { label: 'Records', value: 'result',
-                        schema: { type: 'array',
-                            items: { type: 'object',
+                    {
+                        label: 'Records', value: 'result',
+                        schema: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
                                 properties: {
                                     createdTime: { type: 'string', title: 'createdTime' },
-                                    fields: { type: 'object', title: 'fields',
+                                    fields: {
+                                        type: 'object', title: 'fields',
                                         // We can't know table columns beforehand, so we'll just use empty object as schema.
                                         schema: { type: 'object' }
                                     },

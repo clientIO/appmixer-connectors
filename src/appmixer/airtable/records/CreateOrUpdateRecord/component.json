@@ -1,10 +1,10 @@
 {
-    "name": "appmixer.airtable.records.CreateRecord",
-    "author": "Jiří Hofman <jirka@client.io>",
-    "label": "Create Record",
-    "description": "Creates a single record in a table.",
+    "name": "appmixer.airtable.records.CreateOrUpdateRecord",
+    "author": "Zbyněk Peluněk <zbynek.pelunek@client.io>",
+    "label": "Create or Update Record",
+    "description": "Creates or updates a single record in a table.",
     "private": false,
-    "version": "1.0.2",
+    "version": "1.0.0",
     "auth": {
         "service": "appmixer:airtable",
         "scope": ["data.records:write"]
@@ -21,10 +21,14 @@
             "type": "object",
             "properties": {
                 "baseId": { "type": "string" },
-                "tableId": { "type": "string" }
+                "tableId": { "type": "string" },
+                "fieldsToMergeOn": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                }
             },
             "required": [
-                "baseId","tableId"
+                "baseId","tableId","fieldsToMergeOn"
             ]
         },
         "inspector": {
@@ -57,6 +61,26 @@
                             "transform": "./ListTables#toSelectArray"
                         }
                     }
+                },
+                "fieldsToMergeOn": {
+                    "type": "multiselect",
+                    "label": "Merge Fields",
+                    "tooltip": "Select fields which will be used to update by. If the selected field value filled here matches value already presented on Airtable, the record will be updated with filled fields, otherwise a new record will be created.",
+                    "index": 3,
+                    "source": {
+                        "url": "/component/appmixer/airtable/records/ListTables?outPort=out",
+                        "data": {
+                            "properties": {
+                                "tableId": "properties/tableId",
+                                "selectedTableFieldsOutput": true,
+                                "tableFieldsData": true
+                            },
+                            "messages": {
+                                "in/baseId": "properties/baseId"
+                            },
+                            "transform": "./transformers#transformFieldsToMergeOnFields"
+                        }
+                    }
                 }
             }
         }
@@ -70,7 +94,8 @@
                     "properties": {
                         "tableId": "properties/tableId",
                         "selectedTableFieldsOutput": true,
-                        "tableFieldsData": true
+                        "tableFieldsData": true,
+                        "addFields": ["recordId"]
                     },
                     "messages": {
                         "in/baseId": "properties/baseId"
@@ -88,7 +113,8 @@
                 "data": {
                     "properties": {
                         "tableId": "properties/tableId",
-                        "selectedTableFieldsOutput": true
+                        "selectedTableFieldsOutput": true,
+                        "addActionTypeToOutput": true
                     },
                     "messages": {
                         "in/baseId": "properties/baseId"

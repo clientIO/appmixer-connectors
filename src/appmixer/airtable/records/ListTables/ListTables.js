@@ -7,7 +7,14 @@ module.exports = {
     // Private component used only to list tables in a base in the inspector.
     async receive(context) {
 
-        const { generateOutputPortOptions, tableId, isWebhookOutput } = context.properties;
+        const {
+            generateOutputPortOptions,
+            tableId,
+            selectedTableFieldsOutput,
+            tableFieldsData,
+            addActionTypeToOutput,
+            addFields
+        } = context.properties;
         const { baseId, outputType, isSource } = context.messages.in.content;
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
@@ -50,7 +57,7 @@ module.exports = {
 
                 return context.sendJson({ items: tables }, 'out');
             }
-            if (isWebhookOutput) {
+            if (selectedTableFieldsOutput) {
                 if (!tableId) {
                     return context.sendJson([], 'out');
                 }
@@ -60,10 +67,17 @@ module.exports = {
                     return context.sendJson([], 'out');
                 }
 
+                if (tableFieldsData) {
+                    return context.sendJson({ fields: selectedTable[0].fields, addFields }, 'out');
+                }
+
                 const fields = selectedTable[0].fields.map((field) => {
                     return { label: field.name, value: field.name };
                 });
                 const fieldsOutput = [{ label: 'Record ID', value: 'id' }, { label: 'Created Time', value: 'createdTime' }];
+                if (addActionTypeToOutput) {
+                    fieldsOutput.unshift({ label: 'Action', value: 'action' });
+                }
 
                 return context.sendJson(fieldsOutput.concat(fields), 'out');
             }

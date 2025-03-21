@@ -40,5 +40,40 @@ module.exports = {
     isAppmixerVariable(variable) {
 
         return variable?.startsWith('{{{') && variable?.endsWith('}}}');
+    },
+
+    transformFieldstoBodyFields(fields) {
+        const bodyFields = {};
+
+        Object.entries(fields).forEach(([key, value]) => {
+            if (key === 'recordId') {
+                return;
+            }
+            if (key.includes('|')) {
+                const [baseKey, subKey] = key.split('|');
+                if (subKey === 'multipleAttachments') {
+                    bodyFields[baseKey] = Array.isArray(value.ADD)
+                        ? value.ADD.map(item => ({
+                            filename: item.fileName,
+                            url: item.fileUrl
+                        }))
+                        : [];
+                } else {
+                    // Remove any leading characters until the first uppercase letter.
+                    const match = subKey.match(/[A-Z].*$/);
+                    const finalSubKey = match
+                        ? match[0].charAt(0).toLowerCase() + match[0].slice(1)
+                        : subKey;
+                    if (!bodyFields[baseKey]) {
+                        bodyFields[baseKey] = {};
+                    }
+                    bodyFields[baseKey][finalSubKey] = value;
+                }
+            } else {
+                bodyFields[key] = value;
+            }
+        });
+
+        return bodyFields;
     }
 };
