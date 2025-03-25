@@ -23,8 +23,8 @@ module.exports = {
         return context.service.stateRemoveFromSet(webhook, { componentId, flowId });
     },
 
-    receive: async function(context) {
+    receive: function(context) {
 
-        return await webhookHandler(context, ENTITY_NAME);
+        return webhookHandler(context, ENTITY_NAME);
     }
 };
