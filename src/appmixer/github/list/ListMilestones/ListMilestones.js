@@ -2,7 +2,10 @@
 const lib = require('../../lib');
 
 /**
- * Component for fetching list of labels from repository
+/**
+ * Component for fetching list of milestones from repository
+ * @extends {Component}
+ */
  * @extends {Component}
  */
 module.exports = {
