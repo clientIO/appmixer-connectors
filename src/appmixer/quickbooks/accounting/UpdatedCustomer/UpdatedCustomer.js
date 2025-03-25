@@ -25,8 +25,6 @@ module.exports = {
 
     receive: async function(context) {
 
-        await webhookHandler(context, ENTITY_NAME);
-
-        return context.response();
+        return await webhookHandler(context, ENTITY_NAME);
     }
 };
