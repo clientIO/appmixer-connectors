@@ -1,6 +1,6 @@
 'use strict';
-const commons = require('../../github-commons');
 const Promise = require('bluebird');
+const lib = require('../../lib');
 
 /**
  * Component which triggers whenever new pull request is created.
@@ -11,29 +11,18 @@ module.exports = {
     async tick(context) {
 
         let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
+        const res = await lib.apiRequestPaginated(context, `repos/${repositoryId}/pulls`);
 
-        const res = await commons.getAll(
-            github,
-            'pulls',
-            'list',
-            commons.buildUserRepoRequest(repositoryId)
-        );
-        let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-        let actual = new Set();
-        let diff = new Set();
+        const known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
 
-        if (Array.isArray(res)) {
-            res.forEach(commons.processItems.bind(null, known, actual, diff, 'id'));
-        }
+        const { diff, actual } = lib.getNewItems(known, res, 'id');
 
-        if (diff.size) {
-            await Promise.map(diff, pr => {
-                return context.sendJson(pr, 'pullRequest');
+        if (diff.length) {
+            await Promise.map(diff, branch => {
+                context.sendJson(branch, 'pullRequest');
             });
         }
-
-        await context.saveState({ known: Array.from(actual) });
+        await context.saveState({ known: actual });
     }
 };
 

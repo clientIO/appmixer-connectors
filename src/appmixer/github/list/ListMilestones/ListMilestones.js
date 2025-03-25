@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../github-commons');
+const lib = require('../../lib');
 
 /**
  * Component for fetching list of milestones from repository
@@ -7,16 +7,10 @@ const commons = require('../../github-commons');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
-
-        return commons.getAll(github, 'issues', 'listMilestonesForRepo',
-            commons.buildUserRepoRequest(repositoryId)
-        ).then(res => {
-            return context.sendJson(res, 'milestones');
-        });
+        const { repositoryId } = context.properties;
+        const items = await lib.apiRequestPaginated(context, `repos/${repositoryId}/milestones`);
+        return context.sendJson(items, 'milestones');
     }
 };
-
