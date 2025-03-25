@@ -53,6 +53,7 @@ const fetchInputs = async function(context, { account, accountsFetch, listFetch 
 const findIdsForIPs = async function({ context, ips = [], account, list }) {
 
     const result = [];
+    const notFound = [];
     for (let ipItem of ips) {
 
         try {
@@ -66,6 +67,8 @@ const findIdsForIPs = async function({ context, ips = [], account, list }) {
             });
             if (data?.result[0] && data?.result.length === 1) {
                 result.push({ ...data.result[0] });
+            } else {
+                notFound.push(ipItem.ip);
             }
 
         } catch (err) {
@@ -73,7 +76,7 @@ const findIdsForIPs = async function({ context, ips = [], account, list }) {
         }
     }
 
-    return result;
+    return { items: result, notFound };
 };
 
 module.exports = {
