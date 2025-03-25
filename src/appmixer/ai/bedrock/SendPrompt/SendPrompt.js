@@ -1,14 +1,14 @@
 'use strict';
 
-const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
+const { BedrockRuntimeClient, ConverseCommand } = require('@aws-sdk/client-bedrock-runtime');
 
 module.exports = {
 
     receive: async function(context) {
 
-        const { input = {}, region, model } = context.messages.in.content;
+        const { prompt, customInput = {}, region, model } = context.messages.in.content;
 
-        const bedrockClient = new BedrockRuntimeClient({
+        const client = new BedrockRuntimeClient({
             region: region || 'us-east-1',
             credentials: {
                 accessKeyId: context.auth.accessKeyId,
@@ -16,8 +16,19 @@ module.exports = {
             }
         });
 
-        const payload = {};
-        (input?.ADD || []).forEach(field => {
+        const request = {
+            modelId: model,
+            messages: [{
+                role: 'user',
+                content: [{
+                    text: prompt
+                }]
+            }]
+        };
+
+        (customInput?.ADD || []).forEach(field => {
+
+            if (!field.key) return;
             let value = field.value;
 
             switch (field.type) {
@@ -34,21 +45,15 @@ module.exports = {
                     value = typeof value === 'object' ? value : JSON.parse(value);
                     break;
             }
-            payload[field.key] = value;
+            request[field.key] = value;
         });
 
-        const params = {
-            modelId: model,
-            contentType: 'application/json',
-            accept: 'application/json',
-            body: JSON.stringify(payload)
-        };
-
-        const command = new InvokeModelCommand(params);
+        await context.log({ step: 'invoke-model', request });
+        const command = new ConverseCommand(request);
 
         let response;
         try {
-            response = await bedrockClient.send(command);
+            response = await client.send(command);
         } catch (err) {
             // Re-throw with just the error message. Otherwise a
             // [unable to serialize, circular reference is too complex to analyze]
@@ -56,7 +61,7 @@ module.exports = {
             throw new context.CancelError(err.message);
         }
 
-        const result = JSON.parse(Buffer.from(response.body).toString('utf-8'));
-        return context.sendJson({ result, input }, 'out');
+        const answer = response.output.message.content[0].text;
+        return context.sendJson({ answer, input: request }, 'out');
     }
 };

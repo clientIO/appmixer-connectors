@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.ai.bedrock.SendPrompt",
+    "name": "appmixer.ai.bedrock.Converse",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Send a prompt to an LLM and receive a response. Note that different models expect different input parameters and produce a different result. Read the documentation of each model to understand what result format to expect and what input parameters to provide.",
+    "description": "Send messages to an LLM and receive a response. Apart from sending text prompts, Converse also supports video, audio, documents and image prompts.",
     "auth": {
         "service": "appmixer:ai:bedrock"
     },
@@ -10,7 +10,7 @@
         "schema": {
             "type": "object",
             "properties": {
-                "prompt": { "type": "string" },
+                "messages": { "type": "object" },
                 "customInput": { "type": "object" },
                 "region": { "type": "string" },
                 "model": { "type": "string" }
@@ -19,11 +19,113 @@
         },
         "inspector": {
             "inputs": {
-                "prompt": {
-                    "label": "Prompt",
-                    "type": "textarea",
-                    "tooltip": "The text prompt to send to the model.",
-                    "index": 1
+                "messages": {
+                    "type": "expression",
+                    "label": "Messages",
+                    "tooltip": "",
+                    "index": 1,
+                    "levels": ["ADD"],
+                    "fields": {
+                        "type": {
+                            "type": "select",
+                            "label": "Type",
+                            "defaultValue": "text",
+                            "options": [
+                                { "value": "text", "label": "Text" },
+                                { "value": "document", "label": "Document" },
+                                { "value": "video", "label": "Video" },
+                                { "value": "image", "label": "Image" }
+                            ],
+                            "index": 1
+                        },
+                        "text": {
+                            "type": "text",
+                            "label": "Text Content",
+                            "tooltip": "The content of the message.",
+                            "index": 2,
+                            "when": { "eq": { "./type": "text" } }
+                        },
+                        "imageFormat": {
+                            "type": "select",
+                            "options": [
+                                { "value": "jpeg", "label": "JPEG" },
+                                { "value": "png", "label": "PNG" },
+                                { "value": "gif", "label": "GIF" },
+                                { "value": "webp", "label": "WebP" }
+                            ],
+                            "label": "Image Format",
+                            "index": 3,
+                            "when": { "eq": { "./type": "image" } }
+                        },
+                        "documentFormat": {
+                            "type": "select",
+                            "options": [
+                                { "value": "pdf", "label": "PDF" },
+                                { "value": "csv", "label": "CSV" },
+                                { "value": "doc", "label": "DOC" },
+                                { "value": "docx", "label": "DOCX" },
+                                { "value": "xls", "label": "XLS" },
+                                { "value": "xlsx", "label": "XLSX" },
+                                { "value": "html", "label": "HTML" },
+                                { "value": "txt", "label": "TXT" },
+                                { "value": "md", "label": "Markdown" }
+                            ],
+                            "label": "Document Format",
+                            "index": 3,
+                            "when": { "eq": { "./type": "document" } }
+                        },
+                        "documentName": {
+                            "type": "text",
+                            "label": "Document Name",
+                            "index": 3,
+                            "when": { "eq": { "./type": "document" } }
+                        },
+                        "videoFormat": {
+                            "type": "select",
+                            "options": [
+                                { "value": "mkv", "label": "MKV" },
+                                { "value": "mov", "label": "MOV" },
+                                { "value": "mp4", "label": "MP4" },
+                                { "value": "webm", "label": "WEBM" },
+                                { "value": "flv", "label": "FLV" },
+                                { "value": "mpeg", "label": "MPEG" },
+                                { "value": "mpg", "label": "MPG" },
+                                { "value": "wmv", "label": "WMV" },
+                                { "value": "three_gp", "label": "3GP" }
+                            ],
+                            "label": "Video Format",
+                            "index": 3,
+                            "when": { "eq": { "./type": "video" } }
+                        },
+                        "fileId": {
+                            "type": "filepicker",
+                            "label": "File",
+                            "tooltip": "You can pass a file as an input to your model. This can only be used for files up to 2MB in size.",
+                            "index": 4,
+                            "when": { "ne": { "./type": "text" } }
+                        },
+                        "s3ObjectBucket": {
+                            "type": "text",
+                            "label": "S3 Object Bucket",
+                            "tooltip": "You can pass an S3 object as an input to your model. Select a bucket where your S3 object is located.",
+                            "when": { "eq": { "./type": "video" } },
+                            "source": {
+                                "url": "/component/appmixer/ai/bedrock/ListBuckets?outPort=out",
+                                "data": {
+                                    "messages": { "in/region": "inputs/in/region" },
+                                    "transform": "./ListBuckets#toSelectArray"
+                                }
+                            },
+                            "index": 5
+                        },
+                        "s3ObjectKey": {
+                            "type": "text",
+                            "label": "S3 Object Key",
+                            "tooltip": "You can pass an S3 object as an input to your model. Enter an object key to use as input to your model.",
+                            "when": { "eq": { "./type": "video" } },
+                            "index": 6
+                        }
+                    }
                 },
                 "customInput": {
                     "label": "Custom Model Input",
@@ -91,9 +193,9 @@
     "outPorts": [{
         "name": "out",
         "options": [{
-            "label": "Answer",
-            "value": "answer",
-            "schema": { "type": "string" }
+            "label": "Response",
+            "value": "response",
+            "schema": { "type": "object" }
         }, {
             "label": "Input",
             "value": "input",
