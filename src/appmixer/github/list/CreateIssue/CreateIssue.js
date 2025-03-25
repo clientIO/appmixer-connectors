@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../github-commons');
+const lib = require('../../lib');
 
 /**
  * Component for creating a new issue
@@ -7,7 +7,7 @@ const commons = require('../../github-commons');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
         let repositoryId = context.properties.repositoryId;
         let issue = context.messages.issue.content;
@@ -17,16 +17,11 @@ module.exports = {
             delete issue.labelId;
         }
 
-        let github = commons.getGithubAPI(context.auth.accessToken);
-
-        return github.issues.create(
-            commons.buildUserRepoRequest(
-                repositoryId,
-                issue
-            )
-        ).then(newIssue => {
-            const { data } = newIssue;
-            return context.sendJson(data, 'newIssue');
+        const { data } = await lib.apiRequest(context, `repos/${repositoryId}/issues`, {
+            method: 'POST',
+            body: issue
         });
+
+        return context.sendJson(data, 'newIssue');
     }
 };
