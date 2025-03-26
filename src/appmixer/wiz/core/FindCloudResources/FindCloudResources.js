@@ -1,13 +1,11 @@
-'use strict';
-const lib = require('../../lib');
-const resources = require('./resources');
+const resources = require('./resources.exposed');
 
 module.exports = {
 
     // docs: https://win.wiz.io/reference/pull-cloud-resources
     async receive(context) {
 
-        const { filter, limit = 10 } = context.messages.in.content;
+        const { filter, limit } = context.messages.in.content;
 
         let filterBy;
         if (filter) {
@@ -18,8 +16,7 @@ module.exports = {
             }
         }
 
-        const records = await resources.exposed.getResources(context, { filterBy, limit });
-
-        return lib.sendArrayOutput({ context, records, outputType: 'object' });
+        const records = await resources.getResources(context, { filterBy, limit });
+        return context.sendArray(records, 'out');
     }
 };

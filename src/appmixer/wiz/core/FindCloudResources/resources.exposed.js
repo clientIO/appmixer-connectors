@@ -103,11 +103,11 @@ const outputSchema = {
                     },
                     _productIDs: {
                         type: 'string',
-                        title: 'Graph Entity.Properties.Product I Ds'
+                        title: 'Graph Entity.Properties.Product IDs'
                     },
                     _vertexID: {
                         type: 'string',
-                        title: 'Graph Entity.Properties.Vertex I D'
+                        title: 'Graph Entity.Properties.Vertex ID'
                     },
                     allPorts: {
                         type: 'boolean',
@@ -119,7 +119,7 @@ const outputSchema = {
                     },
                     cloudProviderURL: {
                         type: 'null',
-                        title: 'Graph Entity.Properties.Cloud Provider U R L'
+                        title: 'Graph Entity.Properties.Cloud Provider URL'
                     },
                     exposureLevel_description: {
                         type: 'string',
@@ -163,11 +163,11 @@ const outputSchema = {
                     },
                     httpGETStatus: {
                         type: 'string',
-                        title: 'Graph Entity.Properties.Http G E T Status'
+                        title: 'Graph Entity.Properties.Http GET Status'
                     },
                     httpGETStatusCode: {
                         type: 'number',
-                        title: 'Graph Entity.Properties.Http G E T Status Code'
+                        title: 'Graph Entity.Properties.Http GET Status Code'
                     },
                     httpTitleSnippet: {
                         type: 'string',
