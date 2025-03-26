@@ -27,16 +27,19 @@ module.exports = {
         const correlationId = context.messages.in.correlationId;
 
         const genAI = new GoogleGenerativeAI(context.auth.apiKey);
-        const client = genAI.getGenerativeModel({
+        const params = {
             model,
-            systemInstruction: instructions || 'You are a helpful assistant. If you detect you cannot use any tool, always reply directly as if no tools were given to you.',
-            tools: {
-                functionDeclarations: await context.stateGet('functionDeclarations')
-            },
-            functionCallingConfig: {
+            systemInstruction: instructions || 'You are a helpful assistant. If you detect you cannot use any tool, always reply directly as if no tools were given to you.'
+        };
+        const functionDeclarations = await context.stateGet('functionDeclarations');
+        if (functionDeclarations && functionDeclarations.length) {
+            params.tools = { functionDeclarations };
+            params.functionCallingConfig = {
                 mode: 'AUTO' // Options: 'AUTO', 'ANY', 'NONE'
-            }
-        });
+            };
+        }
+
+        const client = genAI.getGenerativeModel(params);
 
         const messages = threadId ? await context.stateGet(`history:${threadId}`) || [] : [];
         messages.push({ role: 'user', parts: [{ text: prompt }] });
@@ -50,11 +53,8 @@ module.exports = {
 
             const result = await client.generateContent({ contents: messages });
 
-            const functionCalls = result.response.functionCalls();
+            let functionCalls = result.response.functionCalls();
             if (functionCalls && functionCalls.length) {
-                if (!Array.isArray(functionCalls)) {
-                    functionCalls = [functionCalls]; // Convert to array if it's a single function call
-                }
 
                 messages.push({ role: 'model', parts: functionCalls.map(call => ({ functionCall: call })) });
 
