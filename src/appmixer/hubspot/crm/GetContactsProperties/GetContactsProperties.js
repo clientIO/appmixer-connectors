@@ -1,5 +1,6 @@
 'use strict';
 const Hubspot = require('../../Hubspot');
+const { getObjectProperties } = require('../../commons');
 
 module.exports = {
 
@@ -7,9 +8,9 @@ module.exports = {
 
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
-        const { data } = await hs.call('get', 'crm/v3/properties/contacts');
+        const properties = await getObjectProperties(context, hs, 'contacts', 'all');
 
-        return context.sendJson(data.results, 'out');
+        return context.sendJson(properties, 'out');
     },
 
     contactsPropertiesToContactInspector(contactsProperties) {

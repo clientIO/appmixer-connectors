@@ -46,6 +46,5 @@ module.exports = {
         const { data } = await hs.call('patch', `crm/v3/objects/deals/${dealId}`, payload);
 
         return context.sendJson(data, 'updateDeal');
-
     }
 };

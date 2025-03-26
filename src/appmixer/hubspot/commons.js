@@ -36,7 +36,37 @@ module.exports = {
     },
 
     WATCHED_PROPERTIES_CONTACT: ['email', 'firstname', 'lastname', 'phone', 'website', 'company', 'address', 'city', 'state', 'zip'],
-    WATCHED_PROPERTIES_DEAL: ['dealname', 'dealstage', 'pipeline', 'hubSpotOwnerId', 'closedate', 'amount']
+    WATCHED_PROPERTIES_DEAL: ['dealname', 'dealstage', 'pipeline', 'hubSpotOwnerId', 'closedate', 'amount'],
+
+    async getObjectProperties(context, hubspot, objectType, output = 'all') {
+
+        const cacheKeyPrefix = 'hubspot_properties_' + objectType;
+        let lock;
+        try {
+            lock = await context.lock('hubspot_properties');
+            const cached = await context.staticCache.get(cacheKeyPrefix + '_' + output);
+            if (cached) {
+                return cached;
+            }
+
+            // Get all properties from HubSpot.
+            const { data } = await hubspot.call('get', `crm/v3/properties/${objectType}`);
+            const properties = data.results.map(property => property.name);
+            // Save to cache both versions: triggers and actions.
+            await context.staticCache.set(cacheKeyPrefix + '_all', data.results, context.config.objectPropertiesCacheTTL || (20 * 1000));
+            await context.staticCache.set(cacheKeyPrefix + '_names', properties, context.config.objectPropertiesCacheTTL || (20 * 1000));
+
+            // For triggers return array of names: ['email', 'firstname', ...]
+            if (output === 'names') {
+                return properties;
+            }
+
+            // For actions return array of objects: [{ name: 'email', type: 'string', ... }, ...]
+            return data.results;
+        } finally {
+            await lock?.unlock();
+        }
+    }
 };
 
 /**
