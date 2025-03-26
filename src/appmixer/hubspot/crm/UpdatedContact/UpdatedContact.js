@@ -1,6 +1,6 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
-const { WATCHED_PROPERTIES_CONTACT } = require('../../commons');
+const { WATCHED_PROPERTIES_CONTACT, getObjectProperties } = require('../../commons');
 
 const subscriptionType = 'contact.propertyChange';
 
