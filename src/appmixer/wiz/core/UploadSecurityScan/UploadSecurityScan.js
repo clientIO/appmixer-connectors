@@ -44,7 +44,7 @@ const statusQuery = `query SystemActivity($id: ID!) {
 
 const getStatus = async function(context, id, attempts = 0) {
 
-    context.log({ stage: 'GETTING STATUS', systemActivityId: id, attempts });
+    context.log({ stage: 'retrieving-upload-status', systemActivityId: id, attempts });
     const { data } = await lib.makeApiCall({
         context,
         method: 'POST',
@@ -64,6 +64,13 @@ const getStatus = async function(context, id, attempts = 0) {
         } else {
             throw new context.CancelError(`Exceeded max attempts systemActivity: ${id}`);
         }
+    }
+
+    if (data?.data?.systemActivity?.status !== 'SUCCESS') {
+        throw new context.CancelError({
+            reason: 'status activity returned error, there is a issue in the security scan',
+            systemActivity: data?.data?.systemActivity
+        });
     }
 
     return data.data.systemActivity;
@@ -86,7 +93,7 @@ const requestUpload = async function(context, { filename }) {
         throw new context.CancelError(data.errors);
     }
 
-    context.log({ stage: 'REQUEST UPLOAD SUCCESS', upload: data?.data?.requestSecurityScanUpload?.upload });
+    context.log({ stage: 'upload-requested', upload: data?.data?.requestSecurityScanUpload?.upload });
 
     return data.data.requestSecurityScanUpload.upload;
 };
@@ -101,7 +108,7 @@ const uploadFile = async function(context, { url, fileContent }) {
             'Content-Type': 'application/json'
         }
     });
-    await context.log({ stage: 'UPLOAD FINISHED', uploadData: upload.statusCode, fileContent });
+    await context.log({ stage: 'upload-finished', uploadData: upload.statusCode, fileContent });
 };
 
 const normalizeEvents = function(events) {
