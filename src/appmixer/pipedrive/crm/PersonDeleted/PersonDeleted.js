@@ -4,7 +4,7 @@ const commons = require('../../pipedrive-commons');
 
 module.exports = {
     async start(context) {
-        await commons.registerWebhook(context, 'deleted', 'person');
+        await commons.registerWebhook(context, 'delete', 'person');
     },
 
     async stop(context) {
@@ -13,7 +13,7 @@ module.exports = {
 
     async receive(context) {
         const { data } = context.messages.webhook.content;
-        if (data && data.meta && data.meta.action === 'deleted' && data.meta.object === 'person') {
+        if (data && data.meta && data.meta.action === 'delete' && data.meta.entity === 'person') {
             await context.sendJson(data.previous, 'out');
             return context.response();
         }
