@@ -21,6 +21,12 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
+        const customFieldsArray = context.messages.in.content.customProperties?.AND || [];
+        const customProperties = customFieldsArray.reduce((acc, field) => {
+            acc[field.name] = field.value;
+            return acc;
+        }, {});
+
         const payload = {
             properties: {
                 email,
@@ -32,7 +38,8 @@ module.exports = {
                 address: address || '',
                 city: city || '' ,
                 state: state || '' ,
-                zip: zip || ''
+                zip: zip || '',
+                ...customProperties
             }
         };
         const { data } = await hs.call('post', 'crm/v3/objects/contacts', payload);

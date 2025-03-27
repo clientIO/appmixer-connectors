@@ -17,13 +17,20 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
+        const customFieldsArray = context.messages.in.content.customProperties?.AND || [];
+        const customProperties = customFieldsArray.reduce((acc, field) => {
+            acc[field.name] = field.value;
+            return acc;
+        }, {});
+
         const payload = {
             properties: {
                 amount: amount || '',
                 dealname: dealname,
                 dealstage: dealstage || 'appointmentscheduled',
                 hubspot_owner_id: hubSpotOwnerId,
-                pipeline:  pipeline || 'default'
+                pipeline:  pipeline || 'default',
+                ...customProperties
             }
         };
 

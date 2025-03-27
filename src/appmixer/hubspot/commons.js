@@ -40,6 +40,7 @@ module.exports = {
 
     async getObjectProperties(context, hubspot, objectType, output = 'all') {
 
+        const objectPropertiesCacheTTL = context.config.objectPropertiesCacheTTL || (60 * 1000);
         const cacheKeyPrefix = 'hubspot_properties_' + objectType;
         let lock;
         try {
@@ -52,9 +53,10 @@ module.exports = {
             // Get all properties from HubSpot.
             const { data } = await hubspot.call('get', `crm/v3/properties/${objectType}`);
             const properties = data.results.map(property => property.name);
+
             // Save to cache both versions: triggers and actions.
-            await context.staticCache.set(cacheKeyPrefix + '_all', data.results, context.config.objectPropertiesCacheTTL || (20 * 1000));
-            await context.staticCache.set(cacheKeyPrefix + '_names', properties, context.config.objectPropertiesCacheTTL || (20 * 1000));
+            await context.staticCache.set(cacheKeyPrefix + '_all', data.results, objectPropertiesCacheTTL);
+            await context.staticCache.set(cacheKeyPrefix + '_names', properties, objectPropertiesCacheTTL);
 
             // For triggers return array of names: ['email', 'firstname', ...]
             if (output === 'names') {

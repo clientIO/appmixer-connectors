@@ -65,6 +65,17 @@ module.exports = {
         return inspector;
     },
 
+    /** Only returns properties where `createdUserId` exists. */
+    customFieldsToSelectArray(contactsProperties) {
+
+        return contactsProperties
+            .filter((property) => property.createdUserId)
+            .filter((property) => property.formField)
+            .map((property) => {
+                return { label: property.label, value: property.name };
+            });
+    },
+
     dealToLabelNameArray(dealsProperties) {
 
         const transformed = [];
