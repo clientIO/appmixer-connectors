@@ -4,10 +4,11 @@ module.exports = {
 
     async receive(context) {
         const { accessToken } = context.auth;
-        const { baseId, tableIdOrName, recordId } = context.messages.in.content;
+        const { baseId, tableId } = context.properties;
+        const { recordId } = context.messages.in.content;
 
         const { data } = await context.httpRequest({
-            url: `https://api.airtable.com/v0/${baseId}/${tableIdOrName}/${recordId}`,
+            url: `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`,
             method: 'GET',
             headers: { Authorization: `Bearer ${accessToken}` }
         });

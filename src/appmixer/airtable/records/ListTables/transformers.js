@@ -1,12 +1,16 @@
 'use strict';
 
 module.exports = {
-    transformFieldsToInspector({ fields, addFields = [] }) {
+    transformFieldsToInspector({ fields, addFields = [], requiredFields = [] }) {
+        if (!fields) {
+            return [];
+        }
         const ignoredFieldTypes = ['autoNumber', 'formula', 'createdTime', 'lastModifiedTime', 'createdBy', 'lastModifiedBy', 'button'];
         const specialFieldTypes = ['singleCollaborator', 'multipleAttachments', 'barcode'];
         const inspector = {
             schema: {
-                properties: {}
+                properties: {},
+                required: requiredFields
             },
             inputs: {},
             groups: {}
@@ -30,7 +34,7 @@ module.exports = {
                 return;
             }
             if (!specialFieldTypes.includes(field.type)) {
-                const fieldTypes = checkFieldType(field);
+                const fieldTypes = checkFieldTypeInputs(field);
 
                 inspector.schema.properties[`${field.id}`] = fieldTypes.schema;
                 inspector.inputs[`${field.id}`] = {
@@ -128,8 +132,29 @@ module.exports = {
         return inspector;
     },
 
-    transformFieldsToMergeOnFields({ fields, addFields = [] }) {
-        const allowedFieldTypes = ['number', 'singleLineText', 'multilineText', 'singleSelect', 'multipleSelects', 'date'];
+    transformFieldsToMultiselect({ fields }) {
+        if (!fields) {
+            return [];
+        }
+
+        if (Array.isArray(fields) && fields.length > 0) {
+            return fields.map((field) => {
+                return {
+                    label: field.name,
+                    value: field.id
+                };
+            });
+        } else {
+            return [];
+        }
+    },
+
+    transformFieldsToMergeOnFields({ fields }) {
+        if (!fields) {
+            return [];
+        }
+
+        const allowedFieldTypes = ['number', 'singleLineText', 'multilineText', 'email', 'singleSelect', 'multipleSelects'];
         const filteredFields = fields.filter((field) => {
             return allowedFieldTypes.includes(field.type);
         });
@@ -140,10 +165,71 @@ module.exports = {
                 value: field.id
             };
         });
+    },
+
+    transformFieldsToOutput({ fields, addFields = [], outputType = 'object' }) {
+        const specialFieldTypes = ['singleCollaborator', 'multipleAttachments', 'barcode', 'multipleSelects', 'createdBy', 'lastModifiedBy', 'button'];
+
+        const outputFields = [
+            { label: 'Record ID', value: 'id', schema: { type: 'string' } },
+            { label: 'Created Time', value: 'createdTime', schema: { type: 'string' } }];
+
+        if (addFields.includes('action')) {
+            outputFields.unshift({ label: 'Action', value: 'action', schema: { type: 'string' } });
+        }
+
+        if (!fields || !Array.isArray(fields) || fields.length === 0) {
+            return outputFields;
+        }
+
+        fields.forEach((field) => {
+            if (specialFieldTypes.includes(field.type)) {
+                checkFieldTypeOutputs(field, outputFields);
+            } else {
+                outputFields.push({ label: field.name, value: field.name });
+            }
+        });
+
+        switch (outputType) {
+            case 'first':
+            case 'object':
+                if (addFields.includes('currentPageIndex')) {
+                    outputFields.unshift({ label: 'Current Record Index', value: 'index', schema: { type: 'integer' } });
+                }
+
+                if (addFields.includes('pagesCount')) {
+                    outputFields.unshift({ label: 'Records Count', value: 'count', schema: { type: 'integer' } });
+                }
+                return outputFields;
+            case 'array':
+                const arrayFields = transformSchemaToArray(outputFields);
+                return [
+                    { label: 'Records Count', value: 'count', schema: { type: 'integer' } },
+                    {
+                        label: 'Records', value: 'result',
+                        schema: {
+                            type: 'array', items: {
+                                type: 'object', properties: {
+                                    ...arrayFields
+                                }
+                            }
+                        }
+                    }
+                ];
+            case 'file':
+                return [
+                    { label: 'File ID', value: 'fileId' },
+                    { label: 'Records Count', value: 'count', schema: { type: 'integer' } }
+                ];
+            default:
+                return outputFields;
+        }
+
+
     }
 };
 
-function checkFieldType(field) {
+function checkFieldTypeInputs(field) {
     const propertyField = {
         schema: {},
         input: {}
@@ -184,7 +270,7 @@ function checkFieldType(field) {
             propertyField.input.options = field.options.choices.map((choice) => {
                 return {
                     label: choice.name,
-                    value: choice.id
+                    value: choice.name
                 };
             });
             propertyField.input.options.unshift({ label: '<empty>', clearItem: true });
@@ -196,7 +282,7 @@ function checkFieldType(field) {
             propertyField.input.options = field.options.choices.map((choice) => {
                 return {
                     label: choice.name,
-                    value: choice.id
+                    value: choice.name
                 };
             });
             break;
@@ -216,4 +302,215 @@ function checkFieldType(field) {
     }
 
     return propertyField;
+}
+
+function checkFieldTypeOutputs(field, outputFields) {
+    const defaultProperties = {
+        label: field.name,
+        value: field.name
+    };
+
+    switch (field.type) {
+        case 'singleCollaborator':
+            outputFields.push({
+                ...defaultProperties,
+                schema: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string', title: `${field.name} ID` },
+                        email: { type: 'string', title: `${field.name} Email` },
+                        name: { type: 'string', title: `${field.name} Name` }
+                    }
+                }
+            });
+            break;
+        case 'multipleSelects':
+            outputFields.push({
+                ...defaultProperties,
+                schema: {
+                    type: 'array',
+                    items: { type: 'string' }
+                }
+            });
+            break;
+        case 'barcode':
+            outputFields.push({
+                ...defaultProperties,
+                schema: {
+                    type: 'object',
+                    properties: {
+                        text: {
+                            type: 'string',
+                            title: `${field.name} Text`
+                        }
+                    }
+                }
+            });
+            break;
+        case 'button':
+            outputFields.push({
+                ...defaultProperties,
+                schema: {
+                    type: 'object',
+                    properties: {
+                        label: {
+                            type: 'string',
+                            title: `${field.name} Label`
+                        },
+                        url: {
+                            type: 'string',
+                            title: `${field.name} URL`
+                        }
+                    }
+                }
+            });
+            break;
+        case 'lastModifiedBy':
+        case 'createdBy':
+            outputFields.push({
+                ...defaultProperties,
+                schema: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'string',
+                            title: `${field.name} ID`
+                        },
+                        email: {
+                            type: 'string',
+                            title: `${field.name} Email`
+                        },
+                        name: {
+                            type: 'string',
+                            title: `${field.name} Name`
+                        }
+                    }
+                }
+            });
+            break;
+        case 'multipleAttachments':
+            outputFields.push({
+                ...defaultProperties,
+                schema: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            id: {
+                                type: 'string',
+                                title: `${field.name} ID`
+                            },
+                            width: {
+                                type: 'number',
+                                title: `${field.name} Width`
+                            },
+                            height: {
+                                type: 'number',
+                                title: `${field.name} Height`
+                            },
+                            url: {
+                                type: 'string',
+                                title: `${field.name} Url`
+                            },
+                            filename: {
+                                type: 'string',
+                                title: `${field.name} Filename`
+                            },
+                            size: {
+                                type: 'number',
+                                title: `${field.name} Size`
+                            },
+                            type: {
+                                type: 'string',
+                                title: `${field.name} Type`
+                            },
+                            thumbnails: {
+                                type: 'object',
+                                properties: {
+                                    small: {
+                                        type: 'object',
+                                        properties: {
+                                            url: {
+                                                type: 'string',
+                                                title: `${field.name} Thumbnails Small Url`
+                                            },
+                                            width: {
+                                                type: 'number',
+                                                title: `${field.name} Thumbnails Small Width`
+                                            },
+                                            height: {
+                                                type: 'number',
+                                                title: `${field.name} Thumbnails Small Height`
+                                            }
+                                        },
+                                        title: `${field.name} Thumbnails Small`
+                                    },
+                                    large: {
+                                        type: 'object',
+                                        properties: {
+                                            url: {
+                                                type: 'string',
+                                                title: `${field.name} Thumbnails Large Url`
+                                            },
+                                            width: {
+                                                type: 'number',
+                                                title: `${field.name} Thumbnails Large Width`
+                                            },
+                                            height: {
+                                                type: 'number',
+                                                title: `${field.name} Thumbnails Large Height`
+                                            }
+                                        },
+                                        title: `${field.name} Thumbnails Large`
+                                    },
+                                    full: {
+                                        type: 'object',
+                                        properties: {
+                                            url: {
+                                                type: 'string',
+                                                title: `${field.name} Thumbnails Full Url`
+                                            },
+                                            width: {
+                                                type: 'number',
+                                                title: `${field.name} Thumbnails Full Width`
+                                            },
+                                            height: {
+                                                type: 'number',
+                                                title: `${field.name} Thumbnails Full Height`
+                                            }
+                                        },
+                                        title: `${field.name} Thumbnails Full`
+                                    }
+                                },
+                                title: `${field.name} Thumbnails`
+                            }
+                        }
+                    }
+                }
+            });
+            break;
+        default:
+            outputFields.push(defaultProperties);
+    }
+}
+
+function transformSchemaToArray(fieldsArray) {
+    return fieldsArray.reduce((acc, field) => {
+        // If a schema is provided and its type is "object" or "array",
+        // we copy the entire schema and add the title from the field's label.
+        if (field.schema && (field.schema.type === 'object' || field.schema.type === 'array')) {
+            acc[field.value] = {
+                ...field.schema,
+                title: field.label
+            };
+        } else {
+            // Otherwise, default to the provided schema type or "string"
+            const type = (field.schema && field.schema.type) || 'string';
+            acc[field.value] = {
+                type,
+                title: field.label
+            };
+        }
+        return acc;
+    }, {});
 }

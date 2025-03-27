@@ -16,50 +16,63 @@
             "userId": "{{userId}}"
         }
     },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "baseId": { "type": "string" },
+                "tableId": { "type": "string" }
+            },
+            "required": [
+                "baseId","tableId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "baseId": {
+                    "type": "select",
+                    "label": "Base ID",
+                    "index": 1,
+                    "source": {
+                        "url": "/component/appmixer/airtable/records/ListBases?outPort=out",
+                        "data": {
+                            "messages": {
+                                "in/isSource": true
+                            },
+                            "transform": "./ListBases#toSelectArray"
+                        }
+                    }
+                },
+                "tableId": {
+                    "type": "select",
+                    "label": "Table ID",
+                    "index": 2,
+                    "source": {
+                        "url": "/component/appmixer/airtable/records/ListTables?outPort=out",
+                        "data": {
+                            "messages": {
+                                "in/baseId": "properties/baseId",
+                                "in/isSource": true
+                            },
+                            "transform": "./ListTables#toSelectArray"
+                        }
+                    }
+                }
+            }
+        }
+    },
     "inPorts": [
         {
             "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
-                    "baseId": { "type": "string" },
-                    "tableIdOrName": { "type": "string" },
-                    "recordId": { "type": "string" },
-                    "returnFieldsByFieldId": { "type": "boolean" }
+                    "recordId": { "type": "string" }
                 },
-                "required": ["baseId", "tableIdOrName", "recordId"]
+                "required": ["recordId"]
             },
             "inspector": {
                 "inputs": {
-                    "baseId": {
-                        "type": "select",
-                        "label": "Base ID",
-                        "index": 1,
-                        "source": {
-                            "url": "/component/appmixer/airtable/records/ListBases?outPort=out",
-                            "data": {
-                                "messages": {
-                                    "in/isSource": true
-                                },
-                                "transform": "./ListBases#toSelectArray"
-                            }
-                        }
-                    },
-                    "tableIdOrName": {
-                        "type": "select",
-                        "label": "Table ID or Name",
-                        "index": 2,
-                        "source": {
-                            "url": "/component/appmixer/airtable/records/ListTables?outPort=out",
-                            "data": {
-                                "messages": {
-                                    "in/baseId": "inputs/in/baseId",
-                                    "in/isSource": true
-                                },
-                                "transform": "./ListTables#toSelectArray"
-                            }
-                        }
-                    },
                     "recordId": {
                         "type": "text",
                         "label": "Record ID",
@@ -76,12 +89,14 @@
                 "url": "/component/appmixer/airtable/records/ListTables?outPort=out",
                 "data": {
                     "properties": {
-                        "tableId": "inputs/in/tableIdOrName",
-                        "selectedTableFieldsOutput": true
+                        "tableId": "properties/tableId",
+                        "selectedTableFieldsOutput": true,
+                        "returnType": "outPorts"
                     },
                     "messages": {
-                        "in/baseId": "inputs/in/baseId"
-                    }
+                        "in/baseId": "properties/baseId"
+                    },
+                    "transform": "./transformers#transformFieldsToOutput"
                 }
             }
         }

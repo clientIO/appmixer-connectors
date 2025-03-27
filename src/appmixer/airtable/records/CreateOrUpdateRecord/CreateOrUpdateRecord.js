@@ -13,6 +13,10 @@ module.exports = {
         const fields = context.messages.in.content;
         const { recordId } = fields;
 
+        if (fieldsToMergeOn.length > 3) {
+            throw new context.CancelError('Cannot have more than 3 fields selected in Merge Fields.');
+        }
+
         const bodyFields = transformFieldstoBodyFields(fields);
 
         const body = {
@@ -23,6 +27,10 @@ module.exports = {
             },
             records: [{ fields: bodyFields, id: recordId }]
         };
+
+        context.log({ step: 'recordId', recordId });
+        context.log({ step: 'accessToken', accessToken });
+        context.log({ step: 'requestBody', body });
 
         const { data } = await context.httpRequest({
             url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
