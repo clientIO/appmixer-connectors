@@ -6,7 +6,6 @@ module.exports = {
 
     async receive(context) {
         const { accessToken } = context.auth;
-        context.log({ step: 'accessToken', accessToken });
         const { baseId, tableId } = context.properties;
         const {
             // Optional query params
@@ -38,7 +37,6 @@ module.exports = {
         if (view) {
             queryParams.view = view;
         }
-        context.log({ step: 'queryParams', queryParams });
 
         const { data } = await context.httpRequest({
             url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
@@ -46,7 +44,6 @@ module.exports = {
             headers: { Authorization: `Bearer ${accessToken}` },
             params: queryParams
         });
-        context.log({ step: 'response data', data });
 
         const { records } = data;
 

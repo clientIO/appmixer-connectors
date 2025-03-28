@@ -20,8 +20,6 @@ module.exports = {
             fields: bodyFields
         };
 
-        context.log({ step: 'createRequestBody', body });
-
         const { data } = await context.httpRequest({
             url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
             method: 'POST',

@@ -13,8 +13,6 @@ module.exports = {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
 
-        context.log({ step: 'responseData', data });
-
         const outputRecord = {
             id: data.id,
             createdTime: data.createdTime,

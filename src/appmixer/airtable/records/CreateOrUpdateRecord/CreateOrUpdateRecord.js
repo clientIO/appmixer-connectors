@@ -28,10 +28,6 @@ module.exports = {
             records: [{ fields: bodyFields, id: recordId }]
         };
 
-        context.log({ step: 'recordId', recordId });
-        context.log({ step: 'accessToken', accessToken });
-        context.log({ step: 'requestBody', body });
-
         const { data } = await context.httpRequest({
             url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
             method: 'PATCH',
