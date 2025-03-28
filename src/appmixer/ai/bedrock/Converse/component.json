@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.ai.bedrock.SendPrompt",
+    "name": "appmixer.ai.bedrock.Converse",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Send a prompt to an LLM and receive a response. Note that different models expect different input parameters and produce a different result. Read the documentation of each model to understand what result format to expect and what input parameters to provide.",
+    "description": "Send messages to an LLM and receive a response. Apart from sending text prompts, Converse also supports video, audio, documents and image prompts.",
     "auth": {
         "service": "appmixer:ai:bedrock"
     },
@@ -10,20 +10,122 @@
         "schema": {
             "type": "object",
             "properties": {
-                "prompt": { "type": "string" },
+                "messages": { "type": "object" },
                 "customInput": { "type": "object" },
                 "region": { "type": "string" },
                 "model": { "type": "string" }
             },
-            "required": ["model"]
+            "required": ["region", "model"]
         },
         "inspector": {
             "inputs": {
-                "prompt": {
-                    "label": "Prompt",
-                    "type": "textarea",
-                    "tooltip": "The text prompt to send to the model.",
-                    "index": 1
+                "messages": {
+                    "type": "expression",
+                    "label": "Messages",
+                    "tooltip": "",
+                    "index": 1,
+                    "levels": ["ADD"],
+                    "fields": {
+                        "type": {
+                            "type": "select",
+                            "label": "Type",
+                            "defaultValue": "text",
+                            "options": [
+                                { "value": "text", "label": "Text" },
+                                { "value": "document", "label": "Document" },
+                                { "value": "video", "label": "Video" },
+                                { "value": "image", "label": "Image" }
+                            ],
+                            "index": 1
+                        },
+                        "text": {
+                            "type": "text",
+                            "label": "Text Content",
+                            "tooltip": "The content of the message.",
+                            "index": 2,
+                            "when": { "eq": { "./type": "text" } }
+                        },
+                        "imageFormat": {
+                            "type": "select",
+                            "options": [
+                                { "value": "jpeg", "label": "JPEG" },
+                                { "value": "png", "label": "PNG" },
+                                { "value": "gif", "label": "GIF" },
+                                { "value": "webp", "label": "WebP" }
+                            ],
+                            "label": "Image Format",
+                            "index": 3,
+                            "when": { "eq": { "./type": "image" } }
+                        },
+                        "documentFormat": {
+                            "type": "select",
+                            "options": [
+                                { "value": "pdf", "label": "PDF" },
+                                { "value": "csv", "label": "CSV" },
+                                { "value": "doc", "label": "DOC" },
+                                { "value": "docx", "label": "DOCX" },
+                                { "value": "xls", "label": "XLS" },
+                                { "value": "xlsx", "label": "XLSX" },
+                                { "value": "html", "label": "HTML" },
+                                { "value": "txt", "label": "TXT" },
+                                { "value": "md", "label": "Markdown" }
+                            ],
+                            "label": "Document Format",
+                            "index": 3,
+                            "when": { "eq": { "./type": "document" } }
+                        },
+                        "documentName": {
+                            "type": "text",
+                            "label": "Document Name",
+                            "index": 3,
+                            "when": { "eq": { "./type": "document" } }
+                        },
+                        "videoFormat": {
+                            "type": "select",
+                            "options": [
+                                { "value": "mkv", "label": "MKV" },
+                                { "value": "mov", "label": "MOV" },
+                                { "value": "mp4", "label": "MP4" },
+                                { "value": "webm", "label": "WEBM" },
+                                { "value": "flv", "label": "FLV" },
+                                { "value": "mpeg", "label": "MPEG" },
+                                { "value": "mpg", "label": "MPG" },
+                                { "value": "wmv", "label": "WMV" },
+                                { "value": "three_gp", "label": "3GP" }
+                            ],
+                            "label": "Video Format",
+                            "index": 3,
+                            "when": { "eq": { "./type": "video" } }
+                        },
+                        "fileId": {
+                            "type": "filepicker",
+                            "label": "File",
+                            "tooltip": "You can pass a file as an input to your model. This can only be used for files up to 2MB in size.",
+                            "index": 4,
+                            "when": { "ne": { "./type": "text" } }
+                        },
+                        "s3ObjectBucket": {
+                            "type": "text",
+                            "label": "S3 Object Bucket",
+                            "tooltip": "You can pass an S3 object as an input to your model. Select a bucket where your S3 object is located.",
+                            "when": { "eq": { "./type": "video" } },
+                            "source": {
+                                "url": "/component/appmixer/ai/bedrock/ListBuckets?outPort=out",
+                                "data": {
+                                    "messages": { "in/region": "inputs/in/region" },
+                                    "transform": "./ListBuckets#toSelectArray"
+                                }
+                            },
+                            "index": 5
+                        },
+                        "s3ObjectKey": {
+                            "type": "text",
+                            "label": "S3 Object Key",
+                            "tooltip": "You can pass an S3 object as an input to your model. Enter an object key to use as input to your model.",
+                            "when": { "eq": { "./type": "video" } },
+                            "index": 6
+                        }
+                    }
                 },
                 "customInput": {
                     "label": "Custom Model Input",
@@ -57,7 +159,7 @@
                             "index": 3
                         }
                     },
-                    "tooltip": "Different models require different input parameter formats. Please refer to the <a target=_blank href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html\">model documentation</a> for the correct input format. For example, the Anthropic Claude text models expect <code>prompt</code> (required), <code>temperature</code>, ....; while the Amazon Titan text models expect <code>inputText</code> as a required parameter. Use the Custom Model Input to define a custom input if your model does not support the standard input format. In this case, leave the Prompt field empty. You can also use Custom Model Input to add additional parameters alongside a standard prompt, such as <code>temperature</code> or <code>max_tokens</code>.",
+                    "tooltip": "Different models require different input parameter formats. Please refer to the <a target=_blank href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html\">model documentation</a> for the correct input format. For example, the Anthropic Claud text models expect <code>prompt</code> (required), <code>temperature</code>, ....; while the Amazon Titan text models expect <code>inputText</code> as a required parameter. Use the Custom Model Input to define a custom input if your model does not support the standard input format which. In this case, leave the Messages field empty. Also, you can use the Custom Model Input to add any additional parameters next to the standard input format, for example <code>temperature</code> or <code>max_tokens</code>.",
                     "index": 2
 
                 },
@@ -91,9 +193,9 @@
     "outPorts": [{
         "name": "out",
         "options": [{
-            "label": "Answer",
-            "value": "answer",
-            "schema": { "type": "string" }
+            "label": "Response",
+            "value": "response",
+            "schema": { "type": "object" }
         }, {
             "label": "Input",
             "value": "input",
