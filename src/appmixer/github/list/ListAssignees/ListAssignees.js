@@ -1,21 +1,17 @@
 'use strict';
-const commons = require('../../github-commons');
+const lib = require('../../lib');
 
 /**
  * Component for fetching list of assignees from repository
  * @extends {Component}
  */
+// https://docs.github.com/en/rest/issues/assignees?apiVersion=2022-11-28#list-assignees
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
-
-        return commons.getAll(github, 'issues', 'listAssignees',
-            commons.buildUserRepoRequest(repositoryId)
-        ).then(res => {
-            return context.sendJson(res, 'assignees');
-        });
+        const { repositoryId } = context.properties;
+        const items = await lib.apiRequestPaginated(context, `repos/${repositoryId}/assignees`);
+        return context.sendJson(items, 'assignees');
     }
 };

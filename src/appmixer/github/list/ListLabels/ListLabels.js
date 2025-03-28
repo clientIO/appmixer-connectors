@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../github-commons');
+const lib = require('../../lib');
 
 /**
  * Component for fetching list of labels from repository
@@ -7,15 +7,10 @@ const commons = require('../../github-commons');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
-
-        return commons.getAll(github, 'issues', 'listLabelsForRepo',
-            commons.buildUserRepoRequest(repositoryId)
-        ).then(res => {
-            return context.sendJson(res, 'labels');
-        });
+        const { repositoryId } = context.properties;
+        const items = await lib.apiRequestPaginated(context, `repos/${repositoryId}/labels`);
+        return context.sendJson(items, 'labels');
     }
 };

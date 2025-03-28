@@ -1,6 +1,6 @@
 'use strict';
 const Promise = require('bluebird');
-const commons = require('../../github-commons');
+const commons = require('../../lib');
 
 /**
  * Component which triggers whenever new stargazer stars a repo
