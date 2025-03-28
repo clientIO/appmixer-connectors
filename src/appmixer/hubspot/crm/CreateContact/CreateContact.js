@@ -55,7 +55,11 @@ module.exports = {
             phone: properties.phone ? properties.phone : '',
             state: properties.state ? properties.state : '',
             address: properties.address ? properties.address : '',
-            email: properties.email ? properties.email : ''
+            email: properties.email ? properties.email : '',
+            company: properties.company ? properties.company : '',
+            ...Object.entries(properties)
+                .filter(([key]) => Object.keys(customProperties).includes(key))
+                .reduce((acc, [key, value]) => ({ ...acc, [key]: value || '' }), {})
         }, 'contact');
 
     }

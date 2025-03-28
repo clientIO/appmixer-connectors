@@ -40,11 +40,13 @@ module.exports = {
 
     async getObjectProperties(context, hubspot, objectType, output = 'all') {
 
+        // Default cache TTL set to 1 minute as property definitions rarely change
+        // Can be configured via context.config.objectPropertiesCacheTTL if needed
         const objectPropertiesCacheTTL = context.config.objectPropertiesCacheTTL || (60 * 1000);
         const cacheKeyPrefix = 'hubspot_properties_' + objectType;
         let lock;
         try {
-            lock = await context.lock('hubspot_properties');
+            lock = await context.lock(`hubspot_properties_${objectType}`);
             const cached = await context.staticCache.get(cacheKeyPrefix + '_' + output);
             if (cached) {
                 return cached;
