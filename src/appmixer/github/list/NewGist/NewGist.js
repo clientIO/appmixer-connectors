@@ -1,33 +1,26 @@
 'use strict';
-const commons = require('../../github-commons');
 const Promise = require('bluebird');
+const lib = require('../../lib');
 
 /**
- * Component which triggers whenever new gist is created
- * @extends {Component}
+ * https://docs.github.com/en/rest/gists/gists?apiVersion=2022-11-28#list-gists-for-the-authenticated-user
  */
 module.exports = {
 
     async tick(context) {
 
-        let github = commons.getGithubAPI(context.auth.accessToken);
+        const res = await lib.apiRequestPaginated(context, 'gists');
 
-        const res = await commons.getAll(github, 'gists', 'list');
-        let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-        let actual = new Set();
-        let diff = new Set();
+        const known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
 
-        if (Array.isArray(res)) {
-            res.forEach(commons.processItems.bind(null, known, actual, diff, 'id'));
-        }
+        const { diff, actual } = lib.getNewItems(known, res, 'id');
 
-        if (diff.size) {
-            await Promise.map(diff, gist => {
-                return context.sendJson(gist, 'gist');
+        if (diff.length) {
+            await Promise.map(diff, branch => {
+                context.sendJson(branch, 'gist');
             });
         }
-
-        await context.saveState({ known: Array.from(actual) });
+        await context.saveState({ known: actual });
     }
 };
 

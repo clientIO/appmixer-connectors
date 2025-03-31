@@ -127,6 +127,48 @@ const initClient = async (context, auth, connectionId) => {
     return new Kafka(config);
 };
 
+const cleanupEmpty = (obj) => {
+    return Object.keys(obj).reduce((res, key) => {
+        if (obj[key] !== undefined && !isNaN(obj[key])) { res[key] = obj[key]; }
+        return res;
+    }, {});
+};
+
+const loadConsumerOptions = function(context) {
+
+    let retry = {
+        maxRetryTime: parseInt(context.config.consumerRetryMaxRetryTime, 10),
+        initialRetryTime: parseInt(context.config.consumerRetryInitialRetryTime, 10),
+        factor: parseFloat(context.config.consumerRetryFactor),
+        multiplier: parseFloat(context.config.consumerRetryMultiplier),
+        retries: parseInt(context.config.consumerRetryRetries, 10)
+    };
+
+    let options = {
+        sessionTimeout: parseInt(context.config.consumerSessionTimeout, 10),
+        rebalanceTimeout: parseInt(context.config.consumerRebalanceTimeout, 10),
+        heartbeatInterval: parseInt(context.config.consumerHeartbeatInterval, 10),
+        metadataMaxAge: parseInt(context.config.consumerMetadataMaxAge, 10),
+        allowAutoTopicCreation: context.config.consumerAllowAutoTopicCreation !== undefined ? context.config.consumerAllowAutoTopicCreation === 'true' : undefined,
+        maxBytesPerPartition: parseInt(context.config.consumerMaxBytesPerPartition, 10),
+        minBytes: parseInt(context.config.consumerMinBytes, 10),
+        maxBytes: parseInt(context.config.consumerMaxBytes, 10),
+        maxWaitTimeInMs: parseInt(context.config.consumerMaxWaitTimeInMs, 10),
+        readUncommitted: context.config.consumerReadUncommitted !== undefined ? context.config.consumerReadUncommitted === 'true' : undefined,
+        maxInFlightRequests: parseInt(context.config.consumerMaxInFlightRequests, 10),
+        rackId: context.config.consumerRackId
+    };
+
+    options = cleanupEmpty(options);
+    retry = cleanupEmpty(retry);
+
+    if (Object.keys(retry).length) {
+        options.retry = retry;
+    }
+
+    return options;
+};
+
 const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth, connId) => {
 
     // Genereate a unique consumer connection ID that differes between flow runs. Therefore, one setting
@@ -143,7 +185,14 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
     );
 
     const client = await initClient(context, auth, connectionId);
-    const consumer = client.consumer({ groupId });
+
+    const consumerOptions = {
+        ...loadConsumerOptions(context),
+        groupId
+    };
+
+    await context.log('info', '[KAFKA] Kafka consumer options: ' + JSON.stringify(consumerOptions));
+    const consumer = client.consumer(consumerOptions);
 
     await consumer.connect();
     KAFKA_CONNECTOR_OPEN_CONNECTIONS[connectionId] = consumer;
@@ -164,13 +213,18 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
         // eachBatch has to be used instead of eachMessage because we don't want to resolve the
         // offset if connection to the consumer was removed from the cluster state.
         eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
+
+            // First, make sure the consumer is still needed. The flow might have stopped
+            // which disconnected the consumer from open connections but only on one node in the cluster.
+            // move connection out of the loop.
+            const connection = await context.service.stateGet(connectionId);
+            if (!connection) {
+                await context.log('info', '[KAFKA] Kafka consumer connection is not available (' + connectionId + ').');
+                return connectionId;
+            }
+
             for (let message of batch.messages) {
                 if (!isRunning() || isStale()) break;
-
-                // First, make sure the consumer is still needed. The flow might have stopped
-                // which disconnected the consumer from open connections but only on one node in the cluster.
-                const connection = await context.service.stateGet(connectionId);
-                if (!connection) break;
 
                 const normalizedMessage = normalizeMessageData(message);
 
@@ -178,7 +232,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
                     flowId,
                     componentId,
                     normalizedMessage,
-                    { enqueueOnly: true }
+                    { enqueueOnly: 'true' }
                 );
 
                 resolveOffset(message.offset);

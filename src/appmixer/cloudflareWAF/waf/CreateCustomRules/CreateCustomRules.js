@@ -13,7 +13,7 @@ module.exports = {
             return context.sendJson([], 'out');
         }
 
-        const parsedIps = ips.split(/\s+|,/); // Split by comma or any whitespace
+        const parsedIps = lib.parseIPs(ips);
         const client = new CloudflareAPI({ zoneId, token: apiToken });
 
         let ruleset = (await client.listZoneRulesets(context))
