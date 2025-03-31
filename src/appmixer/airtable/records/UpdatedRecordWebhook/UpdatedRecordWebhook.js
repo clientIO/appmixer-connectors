@@ -109,8 +109,6 @@ module.exports = {
                     }
                 });
 
-
-
                 const updatedRecords = records.records.map((record) => {
                     return {
                         id: record.id,
@@ -205,5 +203,5 @@ module.exports = {
         return items.map(table => {
             return { label: table.name, value: table.id };
         });
-    },
+    }
 };

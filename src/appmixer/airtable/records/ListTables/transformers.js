@@ -106,13 +106,13 @@ module.exports = {
                         inspector.inputs[`${field.id}|multipleAttachments`].fields.fileUrl = {
                             index: 1,
                             type: 'text',
-                            label: `File URL`,
+                            label: 'File URL',
                             tooltip: 'Airtable will download the file at the given url and keep its own copy of it.'
                         };
                         inspector.inputs[`${field.id}|multipleAttachments`].fields.fileName = {
                             index: 2,
                             type: 'text',
-                            label: `File Name`,
+                            label: 'File Name',
                             tooltip: 'Name must contain suffix, for example: <code>.png</code> . If empty, Airtable will generate the name automatically.'
                         };
                         break;
