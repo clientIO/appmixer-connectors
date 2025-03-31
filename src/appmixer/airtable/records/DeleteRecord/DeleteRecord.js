@@ -1,22 +1,26 @@
 'use strict';
 
-const Airtable = require('airtable');
-
 module.exports = {
 
     async receive(context) {
-
+        const { accessToken } = context.auth;
         const {
             baseId, tableIdOrName, recordId
         } = context.messages.in.content;
 
-        Airtable.configure({
-            endpointUrl: 'https://api.airtable.com',
-            apiKey: context.auth.accessToken
-        });
-        const base = Airtable.base(baseId);
-        const { id } = await base(tableIdOrName).destroy(recordId);
+        const queryParams = {
+            records: recordId.split(',')
+        };
 
-        context.sendJson({ id }, 'out');
+        const { data } = await context.httpRequest({
+            url: `https://api.airtable.com/v0/${baseId}/${tableIdOrName}`,
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${accessToken}` },
+            params: queryParams
+        });
+
+        const { records } = data;
+
+        context.sendJson({ records }, 'out');
     }
 };
