@@ -11,7 +11,7 @@ module.exports = {
 
         if (isSource && !pipelineId) {
             // Return empty array as the API call would fail.
-            return await context.sendJson([], 'out');
+            return context.sendJson({ stages: [] }, 'out');
         }
 
         const { auth } = context;
@@ -31,7 +31,7 @@ module.exports = {
             return context.sendJson({ stages: data.results }, 'out');
         } catch (err) {
             if (isSource) {
-                return context.sendJson([], 'out');
+                return context.sendJson({ stages: [] }, 'out');
             }
             throw err;
         }
