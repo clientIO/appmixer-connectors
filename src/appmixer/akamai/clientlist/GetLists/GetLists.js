@@ -58,7 +58,7 @@ module.exports = {
 
     listsToSelectArray(lists) {
         return lists.map((list) => {
-            return { label: list.name, value: list.listId };
+            return { label: `${list.name} <${list.type}>`, value: list.listId };
         });
     },
 
