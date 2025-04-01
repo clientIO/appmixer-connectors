@@ -1,0 +1,27 @@
+name: Sonar
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      # - sonar*
+
+jobs:
+  sonarqube:
+    if: github.event.repository.fork == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4.2.1
+        with:
+          args: >
+            -Dsonar.projectKey=clientIO_appmixer-connectors_AY7J_O6GZsPR2eThxIf0
+            -Dsonar.sources=src
+            -Dsonar.exclusions=*/test/**
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

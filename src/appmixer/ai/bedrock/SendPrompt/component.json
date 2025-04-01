@@ -10,16 +10,23 @@
         "schema": {
             "type": "object",
             "properties": {
-                "input": { "type": "object" },
+                "prompt": { "type": "string" },
+                "customInput": { "type": "object" },
                 "region": { "type": "string" },
                 "model": { "type": "string" }
             },
-            "required": ["input", "region", "model"]
+            "required": ["model"]
         },
         "inspector": {
             "inputs": {
-                "input": {
-                    "label": "Model Input",
+                "prompt": {
+                    "label": "Prompt",
+                    "type": "textarea",
+                    "tooltip": "The text prompt to send to the model.",
+                    "index": 1
+                },
+                "customInput": {
+                    "label": "Custom Model Input",
                     "type": "expression",
                     "levels": ["ADD"],
                     "fields": {
@@ -50,14 +57,14 @@
                             "index": 3
                         }
                     },
-                    "tooltip": "Different models require different input parameter formats. Please refer to the <a target=_blank href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html\">model documentation</a> for the correct input format. For example, the Anthropic Claud text models expect <code>prompt</code> (required), <code>temperature</code>, ....; while the Amazon Titan text models expect <code>inputText</code> as a required parameter.",
-                    "index": 1
+                    "tooltip": "Different models require different input parameter formats. Please refer to the <a target=_blank href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters.html\">model documentation</a> for the correct input format. For example, the Anthropic Claude text models expect <code>prompt</code> (required), <code>temperature</code>, ....; while the Amazon Titan text models expect <code>inputText</code> as a required parameter. Use the Custom Model Input to define a custom input if your model does not support the standard input format. In this case, leave the Prompt field empty. You can also use Custom Model Input to add additional parameters alongside a standard prompt, such as <code>temperature</code> or <code>max_tokens</code>.",
+                    "index": 2
 
                 },
                 "region": {
                     "type": "text",
                     "label": "Region",
-                    "index": 2,
+                    "index": 3,
                     "tooltip": "Your AWS instance region. If not select, us-east-1 will be used as default.",
                     "source": {
                         "url": "/component/appmixer/ai/bedrock/ListRegions?outPort=out"
@@ -65,7 +72,7 @@
                 },
                 "model": {
                     "type": "text",
-                    "index": 3,
+                    "index": 4,
                     "label": "Model",
                     "tooltip": "ID of the model to use.",
                     "source": {
@@ -84,9 +91,9 @@
     "outPorts": [{
         "name": "out",
         "options": [{
-            "label": "Result",
-            "value": "result",
-            "schema": { "type": "object" }
+            "label": "Answer",
+            "value": "answer",
+            "schema": { "type": "string" }
         }, {
             "label": "Input",
             "value": "input",

@@ -36,7 +36,7 @@ module.exports = {
             const command = new ListFoundationModelsCommand({});
             const response = await bedrockClient.send(command);
 
-            return response.modelSummaries;
+            return response.models;
         }
     }
 };

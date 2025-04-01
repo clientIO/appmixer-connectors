@@ -1,19 +1,15 @@
 'use strict';
-const commons = require('../../github-commons');
+const lib = require('../../lib');
 
 /**
  * Component for fetching list of repositories
- * @extends {Component}
+ * https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repositories-for-the-authenticated-user
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        let github = commons.getGithubAPI(context.auth.accessToken);
-
-        return commons.getAll(github, 'repos', 'list')
-            .then(res => {
-                return context.sendJson(res, 'repositories');
-            });
+        const items = await lib.apiRequestPaginated(context, 'user/repos');
+        return context.sendJson(items, 'repositories');
     }
 };

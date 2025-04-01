@@ -7,7 +7,14 @@ module.exports = {
     // Private component used only to list tables in a base in the inspector.
     async receive(context) {
 
-        const { generateOutputPortOptions, tableId, isWebhookOutput } = context.properties;
+        const {
+            generateOutputPortOptions,
+            tableId,
+            selectedTableFieldsOutput,
+            addFields,
+            requiredFields,
+            returnType
+        } = context.properties;
         const { baseId, outputType, isSource } = context.messages.in.content;
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
@@ -50,7 +57,7 @@ module.exports = {
 
                 return context.sendJson({ items: tables }, 'out');
             }
-            if (isWebhookOutput) {
+            if (selectedTableFieldsOutput) {
                 if (!tableId) {
                     return context.sendJson([], 'out');
                 }
@@ -60,12 +67,17 @@ module.exports = {
                     return context.sendJson([], 'out');
                 }
 
-                const fields = selectedTable[0].fields.map((field) => {
-                    return { label: field.name, value: field.name };
-                });
-                const fieldsOutput = [{ label: 'Record ID', value: 'id' }, { label: 'Created Time', value: 'createdTime' }];
-
-                return context.sendJson(fieldsOutput.concat(fields), 'out');
+                switch (returnType) {
+                    case 'outPorts':
+                        return context.sendJson({ fields: selectedTable[0].fields, addFields, outputType }, 'out');
+                    case 'inPorts':
+                        return context.sendJson({ fields: selectedTable[0].fields, addFields, requiredFields }, 'out');
+                    default:
+                        return context.sendJson([], 'out');
+                }
+            }
+            if (tables.length === 0) {
+                return context.sendJson({}, 'notFound');
             }
 
             // Returning values to the flow.
@@ -84,38 +96,40 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'object') {
+        if (outputType === 'object' || outputType === 'first') {
             return context.sendJson(
                 [
-                    { label: 'description', value: 'description' },
+                    { label: 'Current Table Index', value: 'index', schema: { type: 'integer' } },
+                    { label: 'Tables Count', value: 'count', schema: { type: 'integer' } },
+                    { label: 'Description', value: 'description' },
                     {
-                        label: 'fields', value: 'fields',
+                        label: 'Fields', value: 'fields',
                         schema: {
                             type: 'array',
                             items: {
                                 type: 'object',
                                 properties: {
-                                    description: { label: 'description', value: 'description' },
-                                    id: { label: 'id', value: 'id' },
-                                    name: { label: 'name', value: 'name' },
-                                    type: { label: 'type', value: 'type' }
+                                    description: { label: 'Description', value: 'description' },
+                                    id: { label: 'Field ID', value: 'id' },
+                                    name: { label: 'Field Name', value: 'name' },
+                                    type: { label: 'Field Type', value: 'type' }
                                 }
                             }
                         }
                     },
-                    { label: 'id', value: 'id' },
-                    { label: 'name', value: 'name' },
-                    { label: 'primaryFieldId', value: 'primaryFieldId' },
+                    { label: 'Table ID', value: 'id' },
+                    { label: 'Table Name', value: 'name' },
+                    { label: 'Primary Field ID', value: 'primaryFieldId' },
                     {
-                        label: 'views', value: 'views',
+                        label: 'Views', value: 'views',
                         schema: {
                             type: 'array',
                             items: {
                                 type: 'object',
                                 properties: {
-                                    id: { label: 'id', value: 'id' },
-                                    name: { label: 'name', value: 'name' },
-                                    type: { label: 'type', value: 'type' }
+                                    id: { label: 'View ID', value: 'id' },
+                                    name: { label: 'View Name', value: 'name' },
+                                    type: { label: 'View Type', value: 'type' }
                                 }
                             }
                         }
@@ -126,6 +140,7 @@ module.exports = {
         } else if (outputType === 'array') {
             return context.sendJson(
                 [
+                    { label: 'Tables Count', value: 'count', schema: { type: 'integer' } },
                     {
                         label: 'Tables', value: 'result',
                         schema: {
@@ -133,35 +148,35 @@ module.exports = {
                             items: {
                                 type: 'object',
                                 properties: {
-                                    description: { type: 'string', title: 'description' },
+                                    description: { type: 'string', title: 'Description' },
                                     fields: {
-                                        type: 'object', title: 'fields',
+                                        type: 'object', title: 'Fields',
                                         schema: {
                                             type: 'array',
                                             items: {
                                                 type: 'object',
                                                 properties: {
-                                                    description: { label: 'description', value: 'description' },
-                                                    id: { label: 'id', value: 'id' },
-                                                    name: { label: 'name', value: 'name' },
-                                                    type: { label: 'type', value: 'type' }
+                                                    description: { label: 'Description', value: 'description' },
+                                                    id: { label: 'Field ID', value: 'id' },
+                                                    name: { label: 'Field Name', value: 'name' },
+                                                    type: { label: 'Field Type', value: 'type' }
                                                 }
                                             }
                                         }
                                     },
-                                    id: { type: 'string', title: 'id' },
-                                    name: { type: 'string', title: 'name' },
-                                    primaryFieldId: { type: 'string', title: 'primaryFieldId' },
+                                    id: { type: 'string', title: 'Table ID' },
+                                    name: { type: 'string', title: 'Table Name' },
+                                    primaryFieldId: { type: 'string', title: 'Primary Field ID' },
                                     views: {
-                                        type: 'object', title: 'views',
+                                        type: 'object', title: 'Views',
                                         schema: {
                                             type: 'array',
                                             items: {
                                                 type: 'object',
                                                 properties: {
-                                                    id: { label: 'id', value: 'id' },
-                                                    name: { label: 'name', value: 'name' },
-                                                    type: { label: 'type', value: 'type' }
+                                                    id: { label: 'View ID', value: 'id' },
+                                                    name: { label: 'View Name', value: 'name' },
+                                                    type: { label: 'View Type', value: 'type' }
                                                 }
                                             }
                                         }
@@ -175,7 +190,10 @@ module.exports = {
             );
         } else {
             // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
+            return context.sendJson([
+                { label: 'File ID', value: 'fileId' },
+                { label: 'Tables Count', value: 'count', schema: { type: 'integer' } }
+            ], 'out');
         }
     }
 };

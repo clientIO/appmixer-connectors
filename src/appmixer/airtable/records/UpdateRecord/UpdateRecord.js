@@ -1,48 +1,39 @@
 'use strict';
 
-const Airtable = require('airtable');
+const { transformFieldstoBodyFields } = require('../../airtable-commons');
 
 module.exports = {
 
     async receive(context) {
-
         const {
-            baseId, tableIdOrName, recordId, fields,
-            replace,
+            baseId, tableId,
             returnFieldsByFieldId = false, typecast = false
-        } = context.messages.in.content;
+        } = context.properties;
+        const { accessToken } = context.auth;
+        const fields = context.messages.in.content;
+        const { recordId } = fields;
 
-        Airtable.configure({
-            endpointUrl: 'https://api.airtable.com',
-            apiKey: context.auth.accessToken
-        });
-        const base = Airtable.base(baseId);
+        const bodyFields = transformFieldstoBodyFields(fields);
 
-        const queryParams = {
+        const body = {
             returnFieldsByFieldId,
-            typecast
+            typecast,
+            fields: bodyFields
         };
 
-        let fieldsObject = {};
-        try {
-            fieldsObject = JSON.parse(fields);
-        } catch (error) {
-            throw new context.CancelError('Invalid fields JSON');
-        }
-        const data = { fields: fieldsObject, id: recordId };
+        const { data } = await context.httpRequest({
+            url: `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`,
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${accessToken}` },
+            data: body
+        });
 
-        context.log({ step: 'Updating record', data, queryParams });
+        const outputRecord = {
+            id: data.id,
+            createdTime: data.createdTime,
+            ...data.fields
+        };
 
-        let result;
-        if (replace === true) {
-            result = await base(tableIdOrName).replace([data], queryParams);
-        } else {
-            result = await base(tableIdOrName).update([data], queryParams);
-        }
-        // Make it the same as in REST API
-        // eslint-disable-next-line no-underscore-dangle
-        const item = result[0]._rawJson;
-
-        context.sendJson(item, 'out');
+        context.sendJson(outputRecord, 'out');
     }
 };

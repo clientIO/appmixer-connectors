@@ -1,24 +1,24 @@
 'use strict';
 
-const Airtable = require('airtable');
-
 module.exports = {
 
     async receive(context) {
+        const { accessToken } = context.auth;
+        const { baseId, tableId } = context.properties;
+        const { recordId } = context.messages.in.content;
 
-        const { baseId, tableIdOrName, recordId } = context.messages.in.content;
-
-        Airtable.configure({
-            endpointUrl: 'https://api.airtable.com',
-            apiKey: context.auth.accessToken
+        const { data } = await context.httpRequest({
+            url: `https://api.airtable.com/v0/${baseId}/${tableId}/${recordId}`,
+            method: 'GET',
+            headers: { Authorization: `Bearer ${accessToken}` }
         });
-        const base = Airtable.base(baseId);
 
-        const result = await base(tableIdOrName).find(recordId);
-        // Make it the same as in REST API
-        // eslint-disable-next-line no-underscore-dangle
-        const item = result._rawJson;
+        const outputRecord = {
+            id: data.id,
+            createdTime: data.createdTime,
+            ...data.fields
+        };
 
-        context.sendJson(item, 'out');
+        context.sendJson(outputRecord, 'out');
     }
 };
