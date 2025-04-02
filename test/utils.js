@@ -81,6 +81,7 @@ function createMockContext(options) {
         sendJson: sinon.stub(),
         sendArray: sinon.stub(),
         response: sinon.stub(),
+        callAppmixer: sinon.stub().throws(new Error('Not implemented')),
         service: {
             stateSet: sinon.stub().callsFake((key, value) => {
                 global.serviceState[key] = value;
