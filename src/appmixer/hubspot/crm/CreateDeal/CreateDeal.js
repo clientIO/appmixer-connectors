@@ -17,8 +17,8 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
-        const customFieldsArray = context.messages.in.content.customProperties?.AND || [];
-        const customProperties = customFieldsArray.reduce((acc, field) => {
+        const additionalPropertiesArray = context.messages.in.content.additionalProperties?.AND || [];
+        const additionalProperties = additionalPropertiesArray.reduce((acc, field) => {
             acc[field.name] = field.value;
             return acc;
         }, {});
@@ -30,7 +30,7 @@ module.exports = {
                 dealstage: dealstage || 'appointmentscheduled',
                 hubspot_owner_id: hubSpotOwnerId,
                 pipeline:  pipeline || 'default',
-                ...customProperties
+                ...additionalProperties
             }
         };
 
