@@ -7,7 +7,6 @@ describe('imperva-rule-block-ips-delete-job', () => {
 
     let context = testUtils.createMockContext();
     let handler;
-    let BlockIPRuleModel;
     const AUTH = { id: 'test-unit-id', key: 'test-unit-key' };
 
     beforeEach(async () => {
@@ -18,18 +17,9 @@ describe('imperva-rule-block-ips-delete-job', () => {
             scheduleJob: sinon.stub()
         };
 
-        config = {
-            ruleDeleteJob: {
-                schedule: '0 0 * * *',
-                lockTTL: 60000
-            }
-        };
-
         BlockIPRuleModel = {
             collection: 'block_ip_rules'
         };
-
-        COLLECTION_NAME_BLOCK_IPS = BlockIPRuleModel.collection;
 
         // Register the jobs the same way Appmixer does.
         await jobs(context);
