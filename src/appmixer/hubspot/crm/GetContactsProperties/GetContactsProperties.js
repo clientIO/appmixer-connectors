@@ -1,4 +1,5 @@
 'use strict';
+
 const Hubspot = require('../../Hubspot');
 const { getObjectProperties, WATCHED_PROPERTIES_CONTACT } = require('../../commons');
 
@@ -9,6 +10,15 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
         const properties = await getObjectProperties(context, hs, 'contacts', 'all');
+
+        const propertiesToOutput = context.messages.in.content?.properties;
+        if (propertiesToOutput) {
+            // We have a set of properties defined in the inspector.
+            // We only want to return these properties. See GetContact/component.json - outPorts
+            const propertiesToReturn = properties.filter((property) => propertiesToOutput.includes(property.name));
+
+            return context.sendJson(propertiesToReturn, 'out');
+        }
 
         return context.sendJson(properties, 'out');
     },

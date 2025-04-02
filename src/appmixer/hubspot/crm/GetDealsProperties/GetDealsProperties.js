@@ -1,6 +1,6 @@
 'use strict';
 const Hubspot = require('../../Hubspot');
-const { getObjectProperties } = require('../../commons');
+const { getObjectProperties, WATCHED_PROPERTIES_DEAL } = require('../../commons');
 
 module.exports = {
 
@@ -65,12 +65,12 @@ module.exports = {
         return inspector;
     },
 
-    /** Only returns properties where `createdUserId` exists. */
-    customFieldsToSelectArray(contactsProperties) {
+    /** Returns properties that not hardcoded into the component. Both custom and HubSpot properties. */
+    additionalFieldsToSelectArray(dealsProperties) {
 
-        return contactsProperties
-            .filter((property) => property.createdUserId)
+        return dealsProperties
             .filter((property) => property.formField)
+            .filter((property) => !WATCHED_PROPERTIES_DEAL.includes(property.name))
             .map((property) => {
                 return { label: property.label, value: property.name };
             });
