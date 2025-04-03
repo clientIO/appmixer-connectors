@@ -48,7 +48,7 @@ module.exports = {
         const ipsList = ipsListInput.reduce((res, item) => {
             const { comment, ip } = item;
 
-            (Array.isArray(ip) ? ip : ip.split(/\s+|,/))
+            (Array.isArray(ip) ? ip : lib.parseIPs(ip))
                 .filter(item => item.length)
                 .forEach(ip => res.push({ ip, comment }));
 

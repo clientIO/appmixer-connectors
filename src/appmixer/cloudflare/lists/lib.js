@@ -77,10 +77,39 @@ const findIdsForIPs = async function({ context, ips = [], account, list }) {
     }
 
     return { items: result, notFound };
+
+};
+
+const parseIPs = function(input) {
+
+    let ips = [];
+
+    if (typeof input === 'string') {
+        // Check if the string is a JSON array
+        try {
+            const parsed = JSON.parse(input);
+            if (Array.isArray(parsed)) {
+                ips = parsed;
+            } else {
+                ips = input.split(/\s+|,/)
+                    .filter(item => item)
+                    .map(ip => ip.trim());
+            }
+        } catch (e) {
+            ips = input.split(/\s+|,/)
+                .filter(item => item)
+                .map(ip => ip.trim());
+        }
+    } else if (Array.isArray(input)) {
+        ips = input;
+    }
+
+    return ips;
 };
 
 module.exports = {
     findIdsForIPs,
     fetchInputs,
-    callEndpoint
+    callEndpoint,
+    parseIPs
 };
