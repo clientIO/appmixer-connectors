@@ -1,6 +1,6 @@
 'use strict';
 
-const { generateAuthorizationHeader } = require('./signature');
+const { generateAuthorizationHeader } = require('./lib');
 
 module.exports = {
 
