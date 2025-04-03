@@ -62,13 +62,13 @@ const findIdsForIPs = async function({ context, ips = [], account, list }) {
                 action: `/accounts/${account}/rules/lists/${list}/items`,
                 params: {
                     per_page: 1,
-                    search: ipItem.ip
+                    search: ipItem
                 }
             });
             if (data?.result[0] && data?.result.length === 1) {
                 result.push({ ...data.result[0] });
             } else {
-                notFound.push(ipItem.ip);
+                notFound.push(ipItem);
             }
 
         } catch (err) {
