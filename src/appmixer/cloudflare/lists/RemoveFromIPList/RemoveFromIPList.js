@@ -41,7 +41,7 @@ module.exports = {
                 status: 'Completed',
                 completed: new Date().toISOString(),
                 deleted: [],
-                notFound: ipsList.map(item => (item.ip))
+                notFound: ipsList
             }, 'out');
         }
         context.log({ step: 'removing IPs ', items: listItemsWithIds });
