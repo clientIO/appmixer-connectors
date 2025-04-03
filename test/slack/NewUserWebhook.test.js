@@ -12,7 +12,7 @@ describe('NewUserWebhook', () => {
         context = testUtils.createMockContext();
         // Set the profile info.
         context.auth = {
-            accessToken: 'slack_access_token',
+            accessToken: 'slack_access_token'
         };
         context.config = {
             signingSecret: 'signing_secret'
