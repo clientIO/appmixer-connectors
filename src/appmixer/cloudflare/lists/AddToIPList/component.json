@@ -22,29 +22,9 @@
                     "account": { "type": "string" },
                     "list": { "type": "string" },
                     "ttl": { "type": "number" },
-                    "ips": {
-                        "type": "object",
-                        "properties": {
-                            "AND": {
-                                "type": "array",
-                                "minLength": 1,
-                                "items": {
-                                    "properties": {
-                                        "ip": {
-                                            "type": ["string", "array"],
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "comment": { "type": "string" }
-                                    },
-                                    "required": ["ip"]
-                                }
-                            }
-                        }
-                    }
+                    "ips": { "type": "string" }
                 },
-                "required": ["account", "list"]
+                "required": ["account", "list", "ips"]
             },
             "inspector": {
                 "inputs": {
@@ -58,7 +38,8 @@
                             "data": {
                                 "messages": {
                                     "in/account": "any",
-                                    "in/list": "any"
+                                    "in/list": "any",
+                                    "in/ips": "any"
                                 },
                                 "properties": {
                                     "accountsFetch": true
@@ -76,7 +57,8 @@
                             "data": {
                                 "messages": {
                                     "in/account": "inputs/in/account",
-                                    "in/list": "any"
+                                    "in/list": "any",
+                                    "in/ips": "any"
                                 },
                                 "properties": {
                                     "listFetch": true
@@ -84,28 +66,22 @@
                             }
                         }
                     },
+                    "ips": {
+                        "type": "text",
+                        "label": "IPs",
+                        "tooltip": "Enter a single IPv4 or IPv6 address, or multiple IP addresses separated by commas. JSON format is also supported, for example: [\"1.1.1.1\", \"2.2.2.2\"].",
+                        "index": 3
+                    },
                     "ttl": {
                         "type": "number",
                         "label": "TTL",
-                        "index": 3,
-                        "tooltip": "Time to live in seconds. The rule will be automatically removed after this time."
-                    },
-                    "ips": {
-                        "type": "expression",
-                        "label": "IPs",
                         "index": 4,
-                        "levels": ["AND"],
-                        "fields": {
-                            "ip": {
-                                "type": "text",
-                                "label": "IPs",
-                                "tooltip": "Enter a single IPv4 or IPv6 address, or multiple IP addresses separated by commas."
-                            },
-                            "comment": {
-                                "type": "text",
-                                "label": "Description"
-                            }
-                        }
+                        "tooltip": "Time to live in seconds. The IPs will be automatically removed after this duration. If not set, the IPs will remain permanent."
+                    },
+                    "comment": {
+                        "type": "text",
+                        "label": "Comment",
+                        "index": 5
                     }
                 }
             }
@@ -116,16 +92,25 @@
             "name": "out",
             "options": [
                 {
-                    "label": "Operation Id", "value": "id",
-                    "schema": { "type": "string" }
+                    "label": "Operation Id",
+                    "value": "id",
+                    "schema": {
+                        "type": "string"
+                    }
                 },
                 {
-                    "label": "Status", "value": "status",
-                    "schema": { "type": "string" }
+                    "label": "Status",
+                    "value": "status",
+                    "schema": {
+                        "type": "string"
+                    }
                 },
                 {
-                    "label": "Completed", "value": "completed",
-                    "schema": { "type": "string" }
+                    "label": "Completed",
+                    "value": "completed",
+                    "schema": {
+                        "type": "string"
+                    }
                 }
             ]
         }
