@@ -176,6 +176,19 @@ const loadConsumerOptions = function(context) {
     return options;
 };
 
+/**
+ * Adds a Kafka consumer with the specified configuration.
+ * @param {Object} context The application context
+ * @param {Array} topics The topics to subscribe to
+ * @param {string} flowId The flow ID
+ * @param {string} componentId The component ID
+ * @param {string} groupId The consumer group ID
+ * @param {boolean} fromBeginning Whether to consume from the beginning of the topic
+ * @param {Object} auth Authentication configuration
+ * @param {string} connId Optional connection ID
+ * @param {number} partitionsConsumedConcurrently Number of partitions to consume concurrently (default: 3)
+ * @returns {string} The connection ID
+ */
 const addConsumer = async (
     context, topics, flowId, componentId, groupId, fromBeginning, auth, connId, partitionsConsumedConcurrently = 3
 ) => {
@@ -219,7 +232,7 @@ const addConsumer = async (
 
     await consumer.run({
         eachBatchAutoResolve: false,
-        partitionsConsumedConcurrently,
+        partitionsConsumedConcurrently: Math.max(1, parseInt(partitionsConsumedConcurrently, 10) || 3),
         // eachBatch has to be used instead of eachMessage because we don't want to resolve the
         // offset if connection to the consumer was removed from the cluster state.
         eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
