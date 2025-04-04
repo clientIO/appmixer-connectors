@@ -1,6 +1,6 @@
 'use strict';
 
-const { generateAuthorizationHeader } = require('../../signature');
+const { generateAuthorizationHeader, parseIPs } = require('../../lib');
 
 module.exports = {
     receive: async (context) => {
@@ -8,18 +8,10 @@ module.exports = {
             context.auth;
         const { listId, value } = context.messages.in.content;
 
-        const deleteArr = [];
-
-        const ips = value.split(',');
-
-        ips.forEach(ip => {
-            ip = ip.trim();
-
-            deleteArr.push({ value: ip });
-        });
+        const ips = parseIPs(value);
 
         const body = {
-            delete: deleteArr
+            delete: ips.map(ip => ({ value: ip }))
         };
 
         const {
