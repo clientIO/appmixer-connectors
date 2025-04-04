@@ -1,9 +1,10 @@
 'use strict';
 
-const { Kafka, logLevel } = require('kafkajs');
+const { Kafka, logLevel, CompressionTypes, CompressionCodecs } = require('kafkajs');
 const tmp = require('tmp');
-const fs = require('fs');
 const RegexParser = require('regex-parser');
+const SnappyCodec = require('kafkajs-snappy');
+CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
 
 // Note that we cannot simply define with `const KAFKA_CONNECTOR_OPEN_CONNECTIONS = {}; `.
 // This is because the Appmixer engine clears the "require" cache
@@ -124,6 +125,7 @@ const initClient = async (context, auth, connectionId) => {
         delete config.ssl?.cert;
     }
 
+    // Return the Kafka client initialized with the configuration
     return new Kafka(config);
 };
 
