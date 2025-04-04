@@ -32,6 +32,8 @@ const initClient = async (context, auth, connectionId) => {
         sslRejectUnauthorized,
         connectionTimeout = 10000
     } = auth;
+
+    // Define the Kafka client configuration
     const config = {
         clientId,
         logLevel: context.config?.logLevel ? logLevel[context.config.logLevel.toUpperCase()] : logLevel.INFO,
