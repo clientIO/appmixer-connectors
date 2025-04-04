@@ -171,7 +171,9 @@ const loadConsumerOptions = function(context) {
     return options;
 };
 
-const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth, connId) => {
+const addConsumer = async (
+    context, topics, flowId, componentId, groupId, fromBeginning, auth, connId, partitionsConsumedConcurrently = 3
+) => {
 
     // Genereate a unique consumer connection ID that differes between flow runs. Therefore, one setting
     // of the consumer followed by a flow stop and restart is not going to cause the job or message consumption
@@ -212,6 +214,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
 
     await consumer.run({
         eachBatchAutoResolve: false,
+        partitionsConsumedConcurrently,
         // eachBatch has to be used instead of eachMessage because we don't want to resolve the
         // offset if connection to the consumer was removed from the cluster state.
         eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {
