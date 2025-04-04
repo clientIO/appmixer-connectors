@@ -105,6 +105,9 @@ const initClient = async (context, auth, connectionId) => {
             throw new Error(`Failed to create Access Key: ${err.message}`);
         }
     }
+    if (auth.tlsPassphrase) {
+        config.ssl.passphrase = auth.tlsPassphrase;
+    }
     if (auth.tlsCert) {
         try {
             tmpDir = tmp.dirSync();
