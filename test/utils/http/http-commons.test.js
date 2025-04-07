@@ -4,8 +4,6 @@ const axios = require('axios');
 const sinon = require('sinon');
 const assert = require('assert');
 
-require('axios');
-
 describe('processResponse', () => {
 
     let axiosRequestStub;
