@@ -270,4 +270,52 @@ describe('POST /events handler', () => {
             assert.deepEqual(context.triggerListeners.getCall(0).args[0].payload.profile.email, req.payload.event.user.profile.email, 'triggerListeners should be called with the correct user email');
         });
     });
+
+    it('auth-hub/send-message with valid params', async () => {
+        // Get the handler for the POST /auth-hub/send-message route
+        const sendMessageHandler = context.http.router.register.getCall(1).args[0].options.handler;
+
+        // Mock successful message sending
+        context.config.botToken = 'mock_bot_token';
+
+        // Create request with valid params
+        const req = {
+            payload: {
+                iconUrl: 'http://example.com/icon.png',
+                username: 'TestBot',
+                channelId: 'C12345',
+                text: 'Test message'
+            }
+        };
+
+        // Call the handler
+        await sendMessageHandler(req, h);
+
+        // Assert correct response
+        assert.equal(h.response.callCount, 1);
+        assert.equal(h.response.getCall(0).returnValue.code.callCount, 1);
+        assert.equal(h.response.getCall(0).returnValue.code.getCall(0).args[0], 200);
+    });
+
+    it('auth-hub/send-message with missing params', async () => {
+        // Get the handler for the POST /auth-hub/send-message route
+        const sendMessageHandler = context.http.router.register.getCall(1).args[0].options.handler;
+
+        // Create request with missing params
+        const req = {
+            payload: {
+                iconUrl: 'http://example.com/icon.png',
+                username: 'TestBot'
+                // Missing channelId and text
+            }
+        };
+
+        // Call the handler
+        await sendMessageHandler(req, h);
+
+        // Assert error response
+        assert.equal(h.response.callCount, 1);
+        assert.equal(h.response.getCall(0).returnValue.code.callCount, 1);
+        assert.equal(h.response.getCall(0).returnValue.code.getCall(0).args[0], 400);
+    });
 });
