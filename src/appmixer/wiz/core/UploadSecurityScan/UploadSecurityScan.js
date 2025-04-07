@@ -108,7 +108,7 @@ const uploadFile = async function(context, { url, fileContent }) {
             'Content-Type': 'application/json'
         }
     });
-    await context.log({ stage: 'upload-finished', uploadData: upload.statusCode, fileContent});
+    await context.log({ stage: 'upload-finished', uploadData: upload.statusCode, fileContent });
 };
 
 const normalizeEvents = function(events) {
