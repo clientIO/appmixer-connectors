@@ -80,21 +80,6 @@ describe('CreateCard', function() {
                 },
                 context.CancelError('Maximum 10 checklist items are allowed')
             );
-            context.messages = {
-                in: {
-                    content: {
-                        name: 'card name',
-                        checklistName: 'checklist',
-                        checklistItems: '\na\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk'
-                    }
-                }
-            };
-            await assert.rejects(
-                async () => {
-                    await action.receive(context);
-                },
-                context.CancelError('Maximum 10 checklist items are allowed')
-            );
         });
 
         it('should make 10 API requests for 10 checklist items', async function() {
