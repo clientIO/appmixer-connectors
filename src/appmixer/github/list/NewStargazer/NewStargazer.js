@@ -23,5 +23,5 @@ module.exports = {
         }
 
         await context.saveState({ known: actual });
-    },
+    }
 };
