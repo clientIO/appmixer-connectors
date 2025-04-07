@@ -25,7 +25,8 @@ describe('POST /events handler', () => {
         };
 
         context.config = {
-            signingSecret: 'signing_secret'
+            signingSecret: 'signing_secret',
+            usesAuthHub: false
         };
 
         h = {

@@ -15,4 +15,3 @@ module.exports = {
         return context.sendJson(message, 'newMessage');
     }
 };
-

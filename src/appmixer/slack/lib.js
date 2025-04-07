@@ -24,7 +24,7 @@ module.exports = {
         if (asBot === true) {
             // Make sure the bot token is used.
             token = context.config?.botToken;
-            if (!token) {
+            if (!token && !context.config?.usesAuthHub) {
                 throw new context.CancelError('Bot token is required for sending messages as bot. Please provide it in the connector configuration.');
             }
 
@@ -34,6 +34,24 @@ module.exports = {
         let entities = new Entities();
         const web = new WebClient(token);
 
+        // Move to plugin route. Only if engine version >= 6.1.0
+        if (context.config?.usesAuthHub) {
+            // Send in AuthHub via route
+            const msg = await context.callAppmixer({
+                endPoint: '/plugins/appmixer/slack/auth-hub/send-message',
+                method: 'POST',
+                body: {
+                    iconUrl,
+                    username,
+                    channelId,
+                    text: entities.decode(message)
+                }
+            });
+            return msg;
+        }
+
+        // Auth token or Bot token is set. AuthHub is not used.
+        // Directly send as bot.
         const response = await web.chat.postMessage({
             icon_url: iconUrl,
             username,
