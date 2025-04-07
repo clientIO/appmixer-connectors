@@ -26,7 +26,7 @@ function parseContentType(value) {
 function processResponse(response) {
 
     const data = {
-        headers: {}
+        headers: response.headers
     };
 
     data.statusCode = response.status;
