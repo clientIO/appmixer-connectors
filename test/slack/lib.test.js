@@ -105,7 +105,7 @@ describe('lib.js', () => {
             const channelId = 'testChannelId';
             const message = 'testMessage';
             context.config.usesAuthHub = undefined;
-            delete context.config.botToken;
+            context.config.botToken = undefined;
 
             await assert.rejects(
                 sendMessage(context, channelId, message, true),
