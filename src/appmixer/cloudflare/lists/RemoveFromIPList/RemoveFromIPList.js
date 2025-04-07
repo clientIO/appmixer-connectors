@@ -31,7 +31,7 @@ module.exports = {
 
         const { account, list, ips } = context.messages.in.content;
 
-        const ipsList = ips.AND;
+        const ipsList = lib.parseIPs(ips);
 
         const { items: listItemsWithIds, notFound } = await lib.findIdsForIPs({ context, ips: ipsList, account, list });
 
@@ -41,7 +41,7 @@ module.exports = {
                 status: 'Completed',
                 completed: new Date().toISOString(),
                 deleted: [],
-                notFound: ipsList.map(item => ( item.ip))
+                notFound: ipsList
             }, 'out');
         }
         context.log({ step: 'removing IPs ', items: listItemsWithIds });

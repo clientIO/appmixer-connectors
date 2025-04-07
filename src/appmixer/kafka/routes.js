@@ -10,8 +10,9 @@ module.exports = (context) => {
             handler: async (req) => {
 
                 const { flowId, componentId, topics, groupId, fromBeginning, auth } = req.payload;
+                const partitionsConsumedConcurrently = context.config?.partitionsConsumedConcurrently;
                 // eslint-disable-next-line max-len
-                const connectionId = await connections.addConsumer(context, topics, flowId, componentId, groupId, fromBeginning, auth);
+                const connectionId = await connections.addConsumer(context, topics, flowId, componentId, groupId, fromBeginning, auth, partitionsConsumedConcurrently);
                 return { connectionId };
             }
         }
