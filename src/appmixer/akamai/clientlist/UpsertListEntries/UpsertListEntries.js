@@ -1,6 +1,6 @@
 'use strict';
 
-const { generateAuthorizationHeader } = require('../../signature');
+const { generateAuthorizationHeader, parseIPs } = require('../../lib');
 
 module.exports = {
     receive: async (context) => {
@@ -36,10 +36,10 @@ module.exports = {
         const expirationDate = ttl
             ? new Date().getTime() + ttl * 1000
             : undefined;
-        const ips = value.split(',');
+
+        const ips = parseIPs(value);
 
         ips.forEach(ip => {
-            ip = ip.trim();
             const ipIndex = currentEntries.findIndex(
                 (e) => e === ip
             );

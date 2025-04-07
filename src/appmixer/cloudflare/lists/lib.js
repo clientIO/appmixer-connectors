@@ -62,13 +62,13 @@ const findIdsForIPs = async function({ context, ips = [], account, list }) {
                 action: `/accounts/${account}/rules/lists/${list}/items`,
                 params: {
                     per_page: 1,
-                    search: ipItem.ip
+                    search: ipItem
                 }
             });
             if (data?.result[0] && data?.result.length === 1) {
                 result.push({ ...data.result[0] });
             } else {
-                notFound.push(ipItem.ip);
+                notFound.push(ipItem);
             }
 
         } catch (err) {
@@ -77,10 +77,39 @@ const findIdsForIPs = async function({ context, ips = [], account, list }) {
     }
 
     return { items: result, notFound };
+
+};
+
+const parseIPs = function(input) {
+
+    let ips = [];
+
+    if (typeof input === 'string') {
+        // Check if the string is a JSON array
+        try {
+            const parsed = JSON.parse(input);
+            if (Array.isArray(parsed)) {
+                ips = parsed;
+            } else {
+                ips = input.split(/\s+|,/)
+                    .filter(item => item)
+                    .map(ip => ip.trim());
+            }
+        } catch (e) {
+            ips = input.split(/\s+|,/)
+                .filter(item => item)
+                .map(ip => ip.trim());
+        }
+    } else if (Array.isArray(input)) {
+        ips = input;
+    }
+
+    return ips;
 };
 
 module.exports = {
     findIdsForIPs,
     fetchInputs,
-    callEndpoint
+    callEndpoint,
+    parseIPs
 };
