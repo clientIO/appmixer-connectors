@@ -73,7 +73,7 @@ module.exports = {
                 const items = checklistItems.split('\n');
 
                 if (items.length > 10) {
-                    throw new context.CancelError('Maximum 5 checklist items are allowed');
+                    throw new context.CancelError('Maximum 10 checklist items are allowed');
                 }
 
                 for (let i = 0; i < items.length; i++) {
