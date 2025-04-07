@@ -3,7 +3,7 @@ const oneDriveAPI = require('onedrive-api');
 const querystring = require('querystring');
 
 const commons = require('../../microsoft-commons');
-const PAGE_SIZE = 100; // Number of items to retrieve per page
+const PAGE_SIZE = 10000; // Number of items to retrieve per page
 
 module.exports = {
 

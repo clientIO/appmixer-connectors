@@ -39,8 +39,9 @@ module.exports = {
 
         const { accessToken } = context.auth;
         const { driveId, parentPath } = context.properties;
-        const url = parentPath ? `drives/${driveId}/root:/${parentPath}:` : `drives/${driveId}/root`;
-        const latest = await getLatestChanges(`/${url}/delta?token=latest`, accessToken);
+        const path = parentPath ? `:/${parentPath}:` : '';
+        const latest = await getLatestChanges(`/drives/${driveId}/root${path}/delta?token=latest`, accessToken);
+        context.log({ step: 'deletedLatest', latest });
         const state = {
             deltaLink: latest['@odata.deltaLink'],
             lastUpdated: new Date().toISOString()
@@ -91,35 +92,12 @@ module.exports = {
                         state.deltaLink = latest['@odata.deltaLink'];
 
                         const promises = [];
-                        const { fileTypesRestriction } = context.properties;
 
                         latest.value.forEach((file) => {
-                            if (fileTypesRestriction?.length > 0) {
-                                fileTypesRestriction.forEach((typeRestriction) => {
-                                    if (typeRestriction === 'folders') {
-                                        const isFolder = Object.keys(fileOrFolder).includes('folder');
-                                        if (isFolder) {
-                                            allowedFilesOrFolders.push(fileOrFolder);
-                                            return;
-                                        }
-                                    }
-                                    const isFile = Object.keys(fileOrFolder).includes('file');
-                                    if (typeRestriction === 'files') {
-                                        if (isFile) {
-                                            allowedFilesOrFolders.push(fileOrFolder);
-                                            return;
-                                        }
-                                    }
-                                });
-                            } else {
-                                const isFile = Object.keys(file).includes('file');
-                                const isDeleted = Object.keys(file).includes('deleted');
-                                if (
-                                    isFile && isDeleted
-                                ) {
-                                    context.log({ step: 'deletedFile', file });
-                                    promises.push(context.sendJson(file, 'file'));
-                                }
+                            const isFile = Object.keys(file).includes('file');
+                            const isDeleted = Object.keys(file).includes('deleted');
+                            if (isFile && isDeleted) {
+                                promises.push(context.sendJson(file, 'file'));
                             }
                         });
                         state.lastUpdated = new Date().toISOString();

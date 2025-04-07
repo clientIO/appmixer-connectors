@@ -38,20 +38,7 @@ module.exports = {
             const allowedFilesOrFolders = [];
             fileTypesRestriction.forEach((typeRestriction) => {
                 filesAndFolder.forEach((fileOrFolder) => {
-                    if (typeRestriction === 'folders') {
-                        const isFolder = Object.keys(fileOrFolder).includes('folder');
-                        if (isFolder) {
-                            allowedFilesOrFolders.push(fileOrFolder);
-                            return;
-                        }
-                    }
                     const isFile = Object.keys(fileOrFolder).includes('file');
-                    if (typeRestriction === 'files') {
-                        if (isFile) {
-                            allowedFilesOrFolders.push(fileOrFolder);
-                            return;
-                        }
-                    }
                     if (isFile && fileOrFolder.file.mimeType.startsWith(typeRestriction)) {
                         allowedFilesOrFolders.push(fileOrFolder);
                     }
@@ -60,7 +47,7 @@ module.exports = {
             if (allowedFilesOrFolders.length === 0) {
                 return context.sendJson({}, 'notFound');
             }
-            context.log({ step: 'sendingAllowedFiles', allowedFiles: allowedFilesOrFolders });
+
             return await commons.sendArrayOutput({
                 context,
                 outputType,

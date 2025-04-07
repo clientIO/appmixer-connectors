@@ -34,18 +34,14 @@ const registerWebhook = async (context) => {
     });
 };
 
-/**
- * Component which triggers whenever a new file is created.
- * @extends {Component}
- */
 module.exports = {
 
     async start(context) {
 
         const { accessToken } = context.auth;
         const { driveId, parentPath } = context.properties;
-        const url = parentPath ? `drives/${driveId}/root:/${parentPath}:` : `drives/${driveId}/root`;
-        const latest = await getLatestChanges(`/${url}/delta?token=latest`, accessToken);
+        const path = parentPath ? `:/${parentPath}:` : '';
+        const latest = await getLatestChanges(`/drives/${driveId}/root${path}/delta?token=latest`, accessToken);
         const state = {
             deltaLink: latest['@odata.deltaLink'],
             lastUpdated: new Date().toISOString()
