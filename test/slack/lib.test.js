@@ -27,7 +27,7 @@ const { sendMessage } = require('../../src/appmixer/slack/lib.js');
 
 describe('lib.js', () => {
 
-    describe('sendMessage', () => {
+    describe('sendMessage - asBot', () => {
 
         let context;
 
@@ -44,10 +44,18 @@ describe('lib.js', () => {
             context.auth = {
                 accessToken: 'testAccessToken'
             };
+            context.messages = {
+                message: {
+                    content: {
+                        iconUrl: 'https://example.com/icon.png',
+                        username: 'MySlackBot'
+                    }
+                }
+            };
         });
 
         afterEach(() => {
-            mockWebClient.chat.postMessage.resetHistory();
+            mockWebClient?.chat?.postMessage?.resetHistory();
             mockWebClient = null;
             delete require.cache[require.resolve('@slack/web-api')];
             require('@slack/web-api');
@@ -58,13 +66,13 @@ describe('lib.js', () => {
             const message = 'testMessage';
             context.config.botToken = 'testBotToken';
 
-            const result = await sendMessage(context, channelId, message);
+            const result = await sendMessage(context, channelId, message, true);
 
             assert.equal(mockWebClient.chat.postMessage.callCount, 1);
             assert.deepEqual(result, { text: 'testMessage' });
             assert.deepEqual(mockWebClient.chat.postMessage.getCall(0).args[0], {
-                icon_url: undefined,
-                username: undefined,
+                icon_url: 'https://example.com/icon.png',
+                username: 'MySlackBot',
                 channel: channelId,
                 text: message
             });
@@ -75,30 +83,32 @@ describe('lib.js', () => {
             const message = 'testMessage';
             context.config.usesAuthHub = true;
 
-            context.callAppmixer = sinon.stub().resolves({ data: { text: message } });
+            context.callAppmixer = sinon.stub().resolves({ text: message });
 
-            const result = await sendMessage(context, channelId, message);
+            const result = await sendMessage(context, channelId, message, true);
 
             assert.deepEqual(result, { text: message });
             assert.equal(context.callAppmixer.callCount, 1);
             assert.deepEqual(context.callAppmixer.getCall(0).args[0], {
-                componentId: 'appmixer.slack.SendMessage',
-                transform: false,
-                data: {
-                    channelId: channelId,
+                endPoint: '/plugins/appmixer/slack/auth-hub/send-message',
+                method: 'POST',
+                body: {
+                    iconUrl: 'https://example.com/icon.png',
+                    username: 'MySlackBot',
+                    channelId,
                     text: message
                 }
             });
         });
 
-        it('should throw an error when using AuthHub and botToken is not available', async () => {
+        it('should throw an error when not using AuthHub and botToken is not available', async () => {
             const channelId = 'testChannelId';
             const message = 'testMessage';
-            context.config.usesAuthHub = false;
+            context.config.usesAuthHub = undefined;
             delete context.config.botToken;
 
             await assert.rejects(
-                sendMessage(context, channelId, message),
+                sendMessage(context, channelId, message, true),
                 Error,
                 'Bot token is required for sending messages as bot. Please provide it in the connector configuration.'
             );
