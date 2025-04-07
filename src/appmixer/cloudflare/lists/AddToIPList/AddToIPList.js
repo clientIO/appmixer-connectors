@@ -33,33 +33,19 @@ module.exports = {
 
         const { apiKey, email } = context.auth;
         const { accountsFetch, listFetch } = context.properties;
-        const { account, list, ips, ttl } = context.messages.in.content;
+        const { account, list, ips, ttl, comment } = context.messages.in.content;
 
         if (accountsFetch || listFetch) {
             return await lib.fetchInputs(context, { account, listFetch, accountsFetch });
         }
 
-        const ipsListInput = ips.AND;
-
-        if (ipsListInput.length > 10) {
-            throw new context.CancelError('Maximum IPs count is 10.');
-        }
-
-        const ipsList = ipsListInput.reduce((res, item) => {
-            const { comment, ip } = item;
-
-            (Array.isArray(ip) ? ip : ip.split(/\s+|,/))
-                .filter(item => item.length)
-                .forEach(ip => res.push({ ip, comment }));
-
-            return res;
-        }, []);
+        const ipsList = lib.parseIPs(ips);
 
         // https://developers.cloudflare.com/api/operations/lists-create-list-items
         const { data } = await lib.callEndpoint(context, {
             method: 'POST',
             action: `/accounts/${account}/rules/lists/${list}/items`,
-            data: ipsList
+            data: ipsList.map(ip => ({ ip, comment }))
         });
 
         const status = await getStatus(context, { id: data.result.operation_id, account });

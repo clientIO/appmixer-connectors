@@ -1,20 +1,16 @@
-'use strict';
+const EdgeGrid = require('akamai-edgegrid');
 
 module.exports = {
+    generateAuthorizationHeader({ clientToken, clientSecret, accessToken, hostnameUrl, method, path, body, debug }) {
+        const eg = new EdgeGrid(clientToken, clientSecret, accessToken, hostnameUrl, debug);
 
-    baseUrl: 'https://my.imperva.com/api/prov',
+        const auth = eg.auth({
+            path,
+            method,
+            body
+        });
 
-    /**
-     * @param {object} auth Auth object
-     * @param {string} auth.id API ID
-     * @param {string} auth.key API Key
-     */
-    getAuthHeader: function(auth) {
-
-        return {
-            'x-API-Id': auth.id,
-            'x-API-Key': auth.key
-        };
+        return auth.request;
     },
 
     parseIPs(input) {
@@ -43,4 +39,5 @@ module.exports = {
 
         return ips;
     }
+
 };

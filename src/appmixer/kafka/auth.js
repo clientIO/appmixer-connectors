@@ -51,6 +51,11 @@ module.exports = {
                     name: 'TLS Key',
                     tooltip: 'Paste text content of <code>service.key</code> file.'
                 },
+                tlsPassphrase: {
+                    type: 'text',
+                    name: 'TLS Key passphrase/password',
+                    tooltip: 'TLS passphrase/password (optional).'
+                },
                 tlsCert: {
                     type: 'textarea',
                     name: 'TLS Cert',
