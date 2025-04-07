@@ -243,6 +243,6 @@ const getOutputPortOptions = (context, outputType) => {
         );
     } else {
         // outputType === 'file'
-        return context.sendJson([{ label: 'File ID', value: 'fileId' }, { label: 'Items Count', value: 'count', schema: { type: 'integer' } },], 'out');
+        return context.sendJson([{ label: 'File ID', value: 'fileId' }, { label: 'Items Count', value: 'count', schema: { type: 'integer' } }], 'out');
     }
 };
