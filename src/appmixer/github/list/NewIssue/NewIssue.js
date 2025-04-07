@@ -28,20 +28,14 @@ module.exports = {
     async tick(context) {
 
         let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
 
-        const res = await commons.getAll(
-            github,
-            'issues',
-            'listForRepo',
-            commons.buildUserRepoRequest(repositoryId)
-        );
+        const res = await commons.apiRequest(context, `repos/${repositoryId}/issues`);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
 
-        res.forEach(processIssues.bind(null, known, actual, diff));
+        res.data.forEach(processIssues.bind(null, known, actual, diff));
 
         if (diff.size) {
             await Promise.map(diff, issue => {

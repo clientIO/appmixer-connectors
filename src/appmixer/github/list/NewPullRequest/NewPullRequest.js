@@ -11,11 +11,11 @@ module.exports = {
     async tick(context) {
 
         let { repositoryId } = context.properties;
-        const res = await lib.apiRequestPaginated(context, `repos/${repositoryId}/pulls`);
+        const res = await lib.apiRequest(context, `repos/${repositoryId}/pulls`);
 
         const known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
 
-        const { diff, actual } = lib.getNewItems(known, res, 'id');
+        const { diff, actual } = lib.getNewItems(known, res.data, 'id');
 
         if (diff.length) {
             await Promise.map(diff, branch => {

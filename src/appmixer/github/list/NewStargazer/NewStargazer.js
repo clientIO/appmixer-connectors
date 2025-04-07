@@ -7,34 +7,21 @@ const commons = require('../../lib');
  * @extends {Component}
  */
 module.exports = {
-
     async tick(context) {
-
         let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
 
-        const res = await commons.getAll(
-            github,
-            'activity',
-            'listStargazersForRepo',
-            commons.buildUserRepoRequest(repositoryId)
-        );
+        const res = await commons.apiRequest(context, `repos/${repositoryId}/stargazers`);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-        let actual = new Set();
-        let diff = new Set();
 
-        if (Array.isArray(res)) {
-            res.forEach(commons.processItems.bind(null, known, actual, diff, 'id'));
-        }
+        const { diff, actual } = commons.getNewItems(known, res.data, 'id');
 
-        if (diff.size) {
+        if (diff.length) {
             await Promise.map(diff, issue => {
                 return context.sendJson(issue, 'stargazer');
             });
         }
 
-        await context.saveState({ known: Array.from(actual) });
-    }
+        await context.saveState({ known: actual });
+    },
 };
-

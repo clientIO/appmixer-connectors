@@ -9,8 +9,8 @@ module.exports = {
     async receive(context) {
 
         const { repositoryId } = context.properties;
-        const items = await lib.apiRequestPaginated(context, `repos/${repositoryId}/branches`);
-        return context.sendJson(items, 'branches');
+        const items = await lib.apiRequest(context, `repos/${repositoryId}/branches`);
+        return context.sendJson(items.data, 'branches');
     }
 };
 

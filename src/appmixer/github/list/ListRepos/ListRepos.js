@@ -9,7 +9,7 @@ module.exports = {
 
     async receive(context) {
 
-        const items = await lib.apiRequestPaginated(context, 'user/repos');
-        return context.sendJson(items, 'repositories');
+        const items = await lib.apiRequest(context, 'user/repos');
+        return context.sendJson(items.data, 'repositories');
     }
 };
