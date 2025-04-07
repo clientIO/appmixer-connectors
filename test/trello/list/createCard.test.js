@@ -63,13 +63,14 @@ describe('CreateCard', function() {
 	            context.CancelError('Card name is required')
 	        );
         });
-        it('should fail with too many checklist items due to leading newline', async function() {
+
+        it('should fail with too many checklist items', async function() {
             context.messages = {
                 in: {
                     content: {
                         name: 'card name',
                         checklistName: 'checklist',
-                        checklistItems: '\na\nb\nc\nd\ne\nf\ng\nh\ni\nj'
+                        checklistItems: '\na\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk'
                     }
                 }
             };
@@ -79,15 +80,12 @@ describe('CreateCard', function() {
                 },
                 context.CancelError('Maximum 10 checklist items are allowed')
             );
-        });
-
-        it('should fail with too many checklist items due to trailing newline', async function() {
             context.messages = {
                 in: {
                     content: {
                         name: 'card name',
                         checklistName: 'checklist',
-                        checklistItems: '\na\nb\nc\nd\ne\nf\ng\nh\ni\nj\n'
+                        checklistItems: '\na\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk'
                     }
                 }
             };
