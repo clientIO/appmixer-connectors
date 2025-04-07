@@ -108,7 +108,7 @@ const uploadFile = async function(context, { url, fileContent }) {
             'Content-Type': 'application/json'
         }
     });
-    await context.log({ stage: 'upload-finished', uploadData: upload.statusCode, fileContent });
+    await context.log({ stage: 'upload-finished', uploadData: upload.statusCode, fileContent});
 };
 
 const normalizeEvents = function(events) {
@@ -130,10 +130,12 @@ const createDocument = function(context) {
         dataSourceAnalysisDate: analysisDate,
         cloudPlatform,
         providerId,
-        vulnerabilityFindings,
+        // vulnerabilityFindings,
         webAppVulnerabilityFindings,
         events
     } = context.messages.in.content;
+
+    const { type } = context.properties;
 
     const asset = {
         assetIdentifier: {
@@ -142,16 +144,20 @@ const createDocument = function(context) {
         }
     };
 
-    if (events && events.AND.length) {
+    if (type === 'events' && events?.AND?.length) {
         asset.events = normalizeEvents(events.AND);
     }
 
+    /*
+    Ignore vulnerabilityFindings
     if (vulnerabilityFindings && vulnerabilityFindings.AND.length) {
         asset.vulnerabilityFindings = vulnerabilityFindings.AND.map(finding => {
             return { ...finding };
         });
     }
-    if (webAppVulnerabilityFindings && webAppVulnerabilityFindings.AND.length) {
+    */
+
+    if (type === 'vulnerabilityFindings' && webAppVulnerabilityFindings?.AND?.length) {
         asset.webAppVulnerabilityFindings = webAppVulnerabilityFindings.AND.map(finding => {
             return { ...finding };
         });
