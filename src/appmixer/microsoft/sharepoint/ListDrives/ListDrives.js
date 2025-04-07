@@ -19,6 +19,9 @@ module.exports = {
     },
 
     drivesToSelectArray({ drives }) {
+        if (!drives) {
+            return [];
+        }
 
         return drives.map((drive) => {
             return { label: drive.name, value: drive.id };

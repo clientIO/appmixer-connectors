@@ -100,11 +100,12 @@ module.exports = {
 
                         latest.value.forEach((file) => {
                             const isFile = Object.keys(file).includes('file');
+                            const isDeleted = Object.keys(file).includes('deleted');
                             const createdDateTime = file.createdDateTime;
 
                             if (
                                 isFile && createdDateTime &&
-                                new Date(lastUpdated) <= new Date(createdDateTime)
+                                new Date(lastUpdated) > new Date(createdDateTime) && !isDeleted
                             ) {
                                 if (fileTypesRestriction?.length > 0) {
                                     fileTypesRestriction.forEach((typeRestriction) => {

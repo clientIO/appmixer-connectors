@@ -28,16 +28,11 @@ const registerWebhook = async (context) => {
         expirationDateTime: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString(),
         clientState: context.componentId
     };
-
     return commons.formatError(() => {
         return commons.post('/subscriptions', context.auth.accessToken, body);
     });
 };
 
-/**
- * Component which triggers whenever a new file is created.
- * @extends {Component}
- */
 module.exports = {
 
     async start(context) {
@@ -64,6 +59,7 @@ module.exports = {
      * @return {*}
      */
     async receive(context) {
+
         if (context.messages.webhook) {
             const { query, data } = context.messages.webhook.content;
 
@@ -89,7 +85,6 @@ module.exports = {
 
                     const state = await context.loadState();
                     const deltaLink = state.deltaLink;
-                    const lastUpdated = state.lastUpdated;
 
                     if (clientStatesValid && deltaLink) {
                         const latest = await getLatestChanges(deltaLink, accessToken);
@@ -99,20 +94,30 @@ module.exports = {
                         const { fileTypesRestriction } = context.properties;
 
                         latest.value.forEach((file) => {
-                            const isFile = Object.keys(file).includes('file');
-                            const createdDateTime = file.createdDateTime;
-
-                            if (
-                                isFile && createdDateTime &&
-                                new Date(lastUpdated) <= new Date(createdDateTime)
-                            ) {
-                                if (fileTypesRestriction?.length > 0) {
-                                    fileTypesRestriction.forEach((typeRestriction) => {
-                                        if (file.file.mimeType.startsWith(typeRestriction)) {
-                                            promises.push(context.sendJson(file, 'file'));
+                            if (fileTypesRestriction?.length > 0) {
+                                fileTypesRestriction.forEach((typeRestriction) => {
+                                    if (typeRestriction === 'folders') {
+                                        const isFolder = Object.keys(fileOrFolder).includes('folder');
+                                        if (isFolder) {
+                                            allowedFilesOrFolders.push(fileOrFolder);
+                                            return;
                                         }
-                                    });
-                                } else {
+                                    }
+                                    const isFile = Object.keys(fileOrFolder).includes('file');
+                                    if (typeRestriction === 'files') {
+                                        if (isFile) {
+                                            allowedFilesOrFolders.push(fileOrFolder);
+                                            return;
+                                        }
+                                    }
+                                });
+                            } else {
+                                const isFile = Object.keys(file).includes('file');
+                                const isDeleted = Object.keys(file).includes('deleted');
+                                if (
+                                    isFile && isDeleted
+                                ) {
+                                    context.log({ step: 'deletedFile', file });
                                     promises.push(context.sendJson(file, 'file'));
                                 }
                             }
