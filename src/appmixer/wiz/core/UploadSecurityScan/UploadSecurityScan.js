@@ -66,12 +66,10 @@ const getStatus = async function(context, id, attempts = 0) {
         }
     }
 
-    if (data?.data?.systemActivity?.status !== 'SUCCESS') {
-        throw new context.CancelError({
-            reason: 'status activity returned error, there is a issue in the security scan',
-            systemActivity: data?.data?.systemActivity
-        });
-    }
+    const systemActivity = data?.data?.systemActivity || {};
+
+    // throw error if the system activity is not valid.
+    lib.validateUploadStatus(context, { systemActivity });
 
     return data.data.systemActivity;
 };
@@ -186,7 +184,6 @@ module.exports = {
         const { url, systemActivityId } = await requestUpload(context, { filename });
         const fileContent = createDocument(context);
         await uploadFile(context, { url, fileContent });
-
         const status = await getStatus(context, systemActivityId);
         return context.sendJson(status, 'out');
     }
