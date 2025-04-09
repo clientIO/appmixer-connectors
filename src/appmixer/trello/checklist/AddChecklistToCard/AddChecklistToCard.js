@@ -21,7 +21,7 @@ module.exports = {
 
         // Add checklist items to the checklist
         if (checklistItems) {
-            const items = checklistItems.split('\n');
+            const items = checklistItems.trim().split('\n');
 
             if (items.length > 10) {
                 throw new context.CancelError('Maximum 10 checklist items are allowed');
