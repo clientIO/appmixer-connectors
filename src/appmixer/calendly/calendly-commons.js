@@ -16,7 +16,7 @@ module.exports = {
 
         const { data } = await context.httpRequest({
             method: 'POST',
-            url: `https://api.calendly.com/webhook_subscriptions`,
+            url: 'https://api.calendly.com/webhook_subscriptions',
             headers: {
                 'Authorization': `Bearer ${accessToken}`
             },
