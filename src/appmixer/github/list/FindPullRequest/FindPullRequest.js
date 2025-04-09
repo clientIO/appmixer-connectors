@@ -11,15 +11,15 @@ module.exports = {
     async receive(context) {
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { repositoryId, state, outputType, title } = context.messages.in.content;
-        context.log({ repositoryId, state, outputType, title });
+
         const query = `is:pr+repo:${repositoryId}+in:title+${title}` + (state !== 'all' ? `+state:${state}` : '');
-        context.log({ query });
+
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        const result = await lib.apiRequest(context, `search/issues`, { params: { q: query } });
-        context.log({ step: 'result', result: result.data });
+        const result = await lib.apiRequest(context, `search/issues?q=${query}`);
+
         const items = (result.data.items || []).map(item => ({
             id: item.id,
             title: item.title,
