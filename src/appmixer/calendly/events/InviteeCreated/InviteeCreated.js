@@ -53,7 +53,7 @@ module.exports = {
      */
     unregisterWebhook(context) {
 
-        let webhookUri = context.state.webhookUri;
+        const { webhookUri } = context.state;
         if (!webhookUri) {
             return;
         }
