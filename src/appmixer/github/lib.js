@@ -1,4 +1,5 @@
 'use strict';
+const axios = require('axios');
 
 module.exports = {
 
@@ -23,7 +24,10 @@ module.exports = {
                 per_page: 100
             }
         };
-        return await context.httpRequest(options);
+        context.log({ options });
+        const response = await axios(options);
+        context.log ({ step: 'response', response: response.data });
+        return response;
     },
 
     async apiRequestPaginated(context, action, {
