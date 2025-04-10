@@ -18,13 +18,20 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
+        const additionalPropertiesArray = context.messages.in.content.additionalProperties?.AND || [];
+        const additionalProperties = additionalPropertiesArray.reduce((acc, field) => {
+            acc[field.name] = field.value;
+            return acc;
+        }, {});
+
         const payload = {
             properties: {
                 amount: amount,
                 dealname: dealname,
                 dealstage: dealstage,
                 hubspot_owner_id: hubSpotOwnerId,
-                pipeline:  pipeline
+                pipeline:  pipeline,
+                ...additionalProperties
             }
         };
 
@@ -46,6 +53,5 @@ module.exports = {
         const { data } = await hs.call('patch', `crm/v3/objects/deals/${dealId}`, payload);
 
         return context.sendJson(data, 'updateDeal');
-
     }
 };

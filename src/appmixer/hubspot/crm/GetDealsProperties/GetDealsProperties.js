@@ -1,5 +1,6 @@
 'use strict';
 const Hubspot = require('../../Hubspot');
+const { getObjectProperties, WATCHED_PROPERTIES_DEAL } = require('../../commons');
 
 module.exports = {
 
@@ -7,9 +8,9 @@ module.exports = {
 
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
-        const { data } = await hs.call('get', 'crm/v3/properties/deals');
+        const properties = await getObjectProperties(context, hs, 'deals', 'all');
 
-        return context.sendJson(data.results, 'out');
+        return context.sendJson(properties, 'out');
     },
 
     dealsPropertiesToDealInspector(dealsProperties) {
@@ -62,6 +63,17 @@ module.exports = {
         }
 
         return inspector;
+    },
+
+    /** Returns properties that not hardcoded into the component. Both custom and HubSpot properties. */
+    additionalFieldsToSelectArray(dealsProperties) {
+
+        return dealsProperties
+            .filter((property) => property.formField)
+            .filter((property) => !WATCHED_PROPERTIES_DEAL.includes(property.name))
+            .map((property) => {
+                return { label: property.label, value: property.name };
+            });
     },
 
     dealToLabelNameArray(dealsProperties) {
