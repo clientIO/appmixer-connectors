@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
 const Promise = require('bluebird');
 
 /**
@@ -15,11 +15,11 @@ module.exports = {
             ? `users/${context.auth.profileInfo.login}/events`
             : `users/${context.auth.profileInfo.login}/received_events`;
 
-        const res = await commons.apiRequest(context, endpoint);
+        const res = await lib.apiRequest(context, endpoint);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
 
-        const { diff, actual } = commons.getNewItems(known, res.data, 'id');
+        const { diff, actual } = lib.getNewItems(known, res.data, 'id');
 
         if (diff.length) {
             await Promise.map(diff, event => {

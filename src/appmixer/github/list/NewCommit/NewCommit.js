@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
 const Promise = require('bluebird');
 
 /**
@@ -17,11 +17,11 @@ module.exports = {
             params.sha = branchId;
         }
 
-        const res = await commons.apiRequest(context, `repos/${repositoryId}/commits`, { params });
+        const res = await lib.apiRequest(context, `repos/${repositoryId}/commits`, { params });
 
         const known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
 
-        const { diff, actual } = commons.getNewItems(known, res.data, 'sha');
+        const { diff, actual } = lib.getNewItems(known, res.data, 'sha');
         if (diff.length) {
             await Promise.map(diff, commit => context.sendJson(commit, 'commit'));
         }

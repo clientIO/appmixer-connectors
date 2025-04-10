@@ -2,7 +2,7 @@
 const lib = require('../../lib');
 
 /**
- * Component for fetching list of labels from repository
+ * Component for fetching pull request by PR number from repository
  * @extends {Component}
  */
 module.exports = {

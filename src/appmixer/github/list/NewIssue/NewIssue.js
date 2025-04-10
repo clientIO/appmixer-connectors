@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
 const Promise = require('bluebird');
 
 /**
@@ -29,7 +29,7 @@ module.exports = {
 
         let { repositoryId } = context.properties;
 
-        const res = await commons.apiRequest(context, `repos/${repositoryId}/issues`);
+        const res = await lib.apiRequest(context, `repos/${repositoryId}/issues`);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();

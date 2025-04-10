@@ -3,7 +3,7 @@ const lib = require('../../lib');
 const Promise = require('bluebird');
 
 /**
- * Component which triggers whenever new milestone is created
+ * Component which triggers whenever new review is requested from a specified user
  * @extends {Component}
  */
 module.exports = {
