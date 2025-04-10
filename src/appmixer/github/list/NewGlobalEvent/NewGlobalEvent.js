@@ -11,8 +11,8 @@ module.exports = {
     async tick(context) {
         const { actor } = context.properties;
 
-        const endpoint = actor === 'me' 
-            ? `users/${context.auth.profileInfo.login}/events` 
+        const endpoint = actor === 'me'
+            ? `users/${context.auth.profileInfo.login}/events`
             : `users/${context.auth.profileInfo.login}/received_events`;
 
         const res = await commons.apiRequest(context, endpoint);
