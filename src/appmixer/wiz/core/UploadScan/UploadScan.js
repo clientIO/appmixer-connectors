@@ -65,7 +65,6 @@ module.exports = {
         const nextDate = referenceDate.add(scheduleValue, scheduleType);
         const diff = nextDate.diff(now);
 
-        context.log({ step: 'schedule - diff', diff: diff / 1000 });
         await context.setTimeout({}, diff);
     },
 
@@ -78,10 +77,8 @@ module.exports = {
             dataSources: documents
         };
 
-        context.log({ step: 'filecontent', fileContent });
         await lib.uploadFile(context, { url, fileContent });
         const systemActivity = await lib.getStatus(context, systemActivityId);
-        context.log({ step: 'systemActivity', systemActivity });
 
         await context.stateUnset('documents');
         // throw error if the system activity is not valid.
