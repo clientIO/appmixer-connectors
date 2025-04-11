@@ -68,23 +68,38 @@ async function generateInspector(context) {
     let fieldsInputs = {};
 
     if (objectName && !rawJson) {
+        const objectPropertiesCacheTTL = context.config.objectPropertiesCacheTTL || (5 * 60 * 1000);
+        const cacheKey = 'salesforce_properties_objectFields_' + objectName;
+        let lock;
+        try {
+            lock = await context.lock(cacheKey);
+            const cached = await context.staticCache.get(cacheKey);
+            if (cached) {
+                fieldsInputs = cached;
+            } else {
+                const fields = await commons.api.getObjectFields(context, { objectName });
 
-        const fields = await commons.api.getObjectFields(context, { objectName });
+                fieldsInputs = fields.reduce((res, item, index) => {
 
-        fieldsInputs = fields.reduce((res, item, index) => {
+                    // IMPORTANT - we can list properties, which we actually can update
+                    if (item.updateable) {
+                        res[item.name] = {
+                            index: index + 3,
+                            type: 'text',
+                            name: item.name,
+                            label: item.name,
+                            tooltip: item.label || item.name
+                        };
+                    }
+                    return res;
+                }, {});
 
-            // IMPORTANT - we can list properties, which we actually can update
-            if (item.updateable) {
-                res[item.name] = {
-                    index: index + 3,
-                    type: 'text',
-                    name: item.name,
-                    label: item.name,
-                    tooltip: item.label || item.name
-                };
+                await context.staticCache.set(cacheKey, fieldsInputs, objectPropertiesCacheTTL);
             }
-            return res;
-        }, {});
+        } finally {
+            lock?.unlock();
+        }
+
     }
 
     const inputs = {
@@ -96,7 +111,10 @@ async function generateInspector(context) {
             source: {
                 url: '/component/appmixer/salesforce/crm/ListObjects?outPort=out',
                 data: {
-                    'transform': './transformers#toSelectArray'
+                    'transform': './transformers#toSelectArray',
+                    properties: {
+                        onlyUpdateable: true
+                    }
                 }
             },
             tooltip: 'Select object name.'

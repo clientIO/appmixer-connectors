@@ -7,29 +7,60 @@ const commons = require('../salesforce-commons');
 module.exports = {
 
     async receive(context) {
-
         const {
             outputType,
             customOnly
         } = context.messages.in.content;
+        const { generateOutputPortOptions, onlyCreateable, onlyUpdateable } = context.properties;
 
-        if (context.properties.generateOutputPortOptions) {
+        if (generateOutputPortOptions) {
             return getOutputPortOptions(context, outputType);
         }
 
-        const { data } = await commons.api.salesForceRq(context, {
-            action: 'sobjects'
-        });
+        // This is a private component, no need to check if the call is from another component
+        const cacheKeyPrefix = 'salesforce_objects_listObjects_';
+        let lock;
+        try {
+            let cacheKeySuffix = 'all';
+            if (onlyCreateable) {
+                cacheKeySuffix = 'createable';
+            }
+            if (onlyUpdateable) {
+                cacheKeySuffix = 'updateable';
+            }
+            const cacheKey = cacheKeyPrefix + cacheKeySuffix;
+            lock = await context.lock(cacheKey);
 
-        const sobjects = data.sobjects || [];
-        const customSoObjects = customOnly ? sobjects.filter(item => item.custom) : sobjects;
+            const objectsCached = await context.staticCache.get(cacheKey);
+            if (objectsCached) {
+                return context.sendJson({ result: objectsCached }, 'out');
+            }
 
-        return commons.sendArrayOutput({
-            context,
-            outputPortName: 'out',
-            outputType,
-            records: customSoObjects
-        });
+            const { data } = await commons.api.salesForceRq(context, {
+                action: 'sobjects'
+            });
+
+            const sobjects = data.sobjects || [];
+            const customSoObjects = sobjects
+                .filter(item => !customOnly || item.custom)
+                .filter(item => !onlyCreateable || item.createable)
+                .filter(item => !onlyUpdateable || item.updateable);
+
+            await context.staticCache.set(
+                cacheKey,
+                customSoObjects,
+                context.config.listObjectsCacheTTL || (20 * 1000)
+            );
+
+            return commons.sendArrayOutput({
+                context,
+                outputPortName: 'out',
+                outputType,
+                records: customSoObjects
+            });
+        } finally {
+            lock?.unlock();
+        }
     }
 };
 
