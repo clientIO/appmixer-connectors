@@ -2,7 +2,6 @@ const assert = require('assert');
 const sinon = require('sinon');
 const testUtils = require('../utils.js');
 const uploadScan = require('../../src/appmixer/wiz/core/UploadScan/UploadScan.js');
-const moment = require('moment');
 
 describe('wiz.uploadScan', () => {
 
