@@ -36,7 +36,41 @@ module.exports = {
     },
 
     WATCHED_PROPERTIES_CONTACT: ['email', 'firstname', 'lastname', 'phone', 'website', 'company', 'address', 'city', 'state', 'zip'],
-    WATCHED_PROPERTIES_DEAL: ['dealname', 'dealstage', 'pipeline', 'hubSpotOwnerId', 'closedate', 'amount']
+    WATCHED_PROPERTIES_DEAL: ['dealname', 'dealstage', 'pipeline', 'hubSpotOwnerId', 'closedate', 'amount'],
+
+    async getObjectProperties(context, hubspot, objectType, output = 'all') {
+
+        // Default cache TTL set to 1 minute as property definitions rarely change
+        // Can be configured via context.config.objectPropertiesCacheTTL if needed
+        const objectPropertiesCacheTTL = context.config.objectPropertiesCacheTTL || (60 * 1000);
+        const cacheKeyPrefix = 'hubspot_properties_' + objectType;
+        let lock;
+        try {
+            lock = await context.lock(`hubspot_properties_${objectType}`);
+            const cached = await context.staticCache.get(cacheKeyPrefix + '_' + output);
+            if (cached) {
+                return cached;
+            }
+
+            // Get all properties from HubSpot.
+            const { data } = await hubspot.call('get', `crm/v3/properties/${objectType}`);
+            const properties = data.results.map(property => property.name);
+
+            // Save to cache both versions: triggers and actions.
+            await context.staticCache.set(cacheKeyPrefix + '_all', data.results, objectPropertiesCacheTTL);
+            await context.staticCache.set(cacheKeyPrefix + '_names', properties, objectPropertiesCacheTTL);
+
+            // For triggers return array of names: ['email', 'firstname', ...]
+            if (output === 'names') {
+                return properties;
+            }
+
+            // For actions return array of objects: [{ name: 'email', type: 'string', ... }, ...]
+            return data.results;
+        } finally {
+            await lock?.unlock();
+        }
+    }
 };
 
 /**
