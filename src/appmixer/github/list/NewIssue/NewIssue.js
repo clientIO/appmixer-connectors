@@ -12,7 +12,6 @@ const Promise = require('bluebird');
  * @param {Object} issue
  */
 function processIssues(knownIssues, actualIssues, newIssues, issue) {
-
     if (knownIssues && !issue['pull_request'] && !knownIssues.has(issue['id'])) {
         newIssues.add(issue);
     }
@@ -26,16 +25,24 @@ function processIssues(knownIssues, actualIssues, newIssues, issue) {
 module.exports = {
 
     async tick(context) {
+        let { repositoryId, includePr = false, state = 'all', labels = [] } = context.properties;
 
-        let { repositoryId } = context.properties;
+        const query = [
+            `repo:${repositoryId}`,
+            labels.length ? `label:${labels.join(',')}` : '',
+            state !== 'all' ? `state:${state}` : '',
+            !includePr ? 'is:issue' : ''
+        ].filter(Boolean).join('+');
 
-        const res = await lib.apiRequest(context, `repos/${repositoryId}/issues`);
+        context.log({ query });
 
+        const res = await lib.apiRequest(context, `search/issues?q=${query}`);
+        context.log({ step: 'result', result: res.data });
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
 
-        res.data.forEach(processIssues.bind(null, known, actual, diff));
+        res.data.items.forEach(processIssues.bind(null, known, actual, diff));
 
         if (diff.size) {
             await Promise.map(diff, issue => {
@@ -46,4 +53,3 @@ module.exports = {
         await context.saveState({ known: Array.from(actual) });
     }
 };
-
