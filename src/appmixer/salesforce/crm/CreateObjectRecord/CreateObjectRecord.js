@@ -59,7 +59,7 @@ async function generateInspector(context) {
 
     if (objectName && !rawJson) {
         const objectPropertiesCacheTTL = context.config.objectPropertiesCacheTTL || (5 * 60 * 1000);
-        const cacheKey = 'salesforce_properties_objectFields_' + objectName;
+        const cacheKey = 'salesforce_properties_objectFields_' + objectName + '_' + context.auth.userId + context.auth.profileInfo.email;
         let lock;
         try {
             lock = await context.lock(cacheKey);

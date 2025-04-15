@@ -28,7 +28,7 @@ module.exports = {
             if (onlyUpdateable) {
                 cacheKeySuffix = 'updateable';
             }
-            const cacheKey = cacheKeyPrefix + cacheKeySuffix;
+            const cacheKey = cacheKeyPrefix + cacheKeySuffix + '_' + context.auth.userId + context.auth.profileInfo.email;
             lock = await context.lock(cacheKey);
 
             const objectsCached = await context.staticCache.get(cacheKey);
