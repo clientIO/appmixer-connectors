@@ -54,6 +54,12 @@ module.exports = {
 
             // Get all properties from HubSpot.
             const { data } = await hubspot.call('get', `crm/v3/properties/${objectType}`);
+            // Custom fields should have `[custom]` in the label
+            data.results.forEach(property => {
+                if (property.createdUserId) {
+                    property.label = `${property.label} [custom]`;
+                }
+            });
             const properties = data.results.map(property => property.name);
 
             // Save to cache both versions: triggers and actions.

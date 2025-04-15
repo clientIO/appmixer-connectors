@@ -1,14 +1,6 @@
 'use strict';
-const getEnvVar = (name, defaultValue, parser) => {
 
-    let envVar = process.env[name];
-    return envVar ? (typeof parser === 'function' ? parser(envVar) : envVar) : defaultValue;
-};
-
-module.exports = context => {
-
-    return {
-        appId: context.config.appId || getEnvVar('HUBSPOT_APP_ID', null),
-        apiKey: context.config.apiKey || getEnvVar('HUBSPOT_API_KEY', null)
-    };
-};
+module.exports = ({ config }) => ({
+    appId: config.appId || process.env.HUBSPOT_APP_ID,
+    apiKey: config.apiKey || process.env.HUBSPOT_API_KEY
+});
