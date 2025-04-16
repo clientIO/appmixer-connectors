@@ -174,7 +174,7 @@ describe('POST /events handler', () => {
             // Fixtures
             const EVENT_NAME = 'slack_team_join';
             const payload = {
-                token: 'nqOj9fVV0kpyxkKsd1EEe76m',
+                token: 'mock_verification_token',
                 team_id: 'T07XXUJTGNB',
                 api_app_id: 'A07XX083UD9',
                 event: {
