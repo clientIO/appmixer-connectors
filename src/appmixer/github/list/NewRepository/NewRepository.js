@@ -3,14 +3,13 @@ const Promise = require('bluebird');
 const lib = require('../../lib');
 
 /**
- * Component which triggers whenever new watcher is added to a repo
+ * Component which triggers whenever new repo is created
  * @extends {Component}
  */
 module.exports = {
     async tick(context) {
-        let { repositoryId } = context.properties;
 
-        const res = await lib.apiRequest(context, `repos/${repositoryId}/watchers`);
+        const res = await lib.apiRequest(context, `user/repos`);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
 
