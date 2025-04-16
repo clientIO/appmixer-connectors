@@ -243,20 +243,5 @@ module.exports = {
         }
 
         return connectionId;
-    },
-
-    async initializeConnection(context, flowId, componentId, connectionUri, auth) {
-        const { client, connectionId } = await getClient(context, flowId, componentId, connectionUri, auth);
-        await context.stateSet('connectionId', connectionId);
-        return { client, connectionId };
-    },
-
-    async terminateConnection(context) {
-        const connectionId = await context.stateGet('connectionId');
-        if (connectionId) {
-            await closeClient(context, connectionId);
-            await context.stateUnset('connectionId');
-        }
     }
-
 };
