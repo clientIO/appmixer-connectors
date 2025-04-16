@@ -38,7 +38,7 @@ module.exports = {
         if (context.config?.usesAuthHub && asBot) {
             // Send into AuthHub route
             const authHubUrl = process.env.AUTH_HUB_URL + '/plugins/appmixer/slack/auth-hub/send-message';
-            const msg = await context.httpRequest({
+            const { data } = await context.httpRequest({
                 url: authHubUrl,
                 method: 'POST',
                 headers: {
@@ -52,7 +52,8 @@ module.exports = {
                     text: entities.decode(message)
                 }
             });
-            return msg;
+
+            return data;
         }
 
         const web = new WebClient(token);

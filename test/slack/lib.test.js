@@ -102,7 +102,7 @@ describe('lib.js', () => {
             context.config.usesAuthHub = true;
 
             context.httpRequest = sinon.stub().resolves({
-                text: message
+                data: { text: message }
             });
 
             const result = await sendMessage(context, channelId, message, true);
