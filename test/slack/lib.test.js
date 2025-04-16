@@ -113,8 +113,8 @@ describe('lib.js', () => {
                 url: process.env.AUTH_HUB_URL + '/plugins/appmixer/slack/auth-hub/send-message',
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`,
-                    'x-appmixer-version-slack': require('../../src/appmixer/slack/bundle.json').version
+                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`
+                    // 'x-appmixer-version-slack': require('../../src/appmixer/slack/bundle.json').version
                 },
                 data: {
                     iconUrl: 'https://example.com/icon.png',

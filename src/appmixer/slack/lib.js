@@ -4,7 +4,8 @@
 const pathModule = require('path');
 const Entities = require('html-entities').AllHtmlEntities;
 const { WebClient } = require('@slack/web-api');
-const slackConnectorVersion = require('./bundle.json').version;
+// TODO: Uncomment when https://github.com/clientIO/appmixer-core/issues/2889 is fixed
+// const slackConnectorVersion = require('./bundle.json').version;
 
 module.exports = {
 
@@ -34,7 +35,6 @@ module.exports = {
 
         let entities = new Entities();
 
-        // Move to plugin route. Only if engine version >= 6.1.0
         if (context.config?.usesAuthHub && asBot) {
             // Send into AuthHub route
             const authHubUrl = process.env.AUTH_HUB_URL + '/plugins/appmixer/slack/auth-hub/send-message';
@@ -42,8 +42,8 @@ module.exports = {
                 url: authHubUrl,
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`,
-                    'x-appmixer-version-slack': slackConnectorVersion
+                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`
+                    // 'x-appmixer-version-slack': slackConnectorVersion
                 },
                 data: {
                     iconUrl,

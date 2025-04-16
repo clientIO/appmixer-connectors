@@ -119,6 +119,16 @@ module.exports = async context => {
                 }
             }
         });
+
+        // Easily check the version of the plugin in AuthHub.
+        context.http.router.register({
+            method: 'GET',
+            path: '/auth-hub/version',
+            options: {
+                handler: () => ({ version: require('./bundle.json').version }),
+                auth: false
+            }
+        });
     }
 
     /** Supposed to be called from AuthHub only. */
