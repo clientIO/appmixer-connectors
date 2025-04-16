@@ -24,8 +24,8 @@ module.exports = {
             metric,
             spec: {
                 serverless: {
-                    cloud: serverlessCloud,
-                    region: serverlessRegion
+                    cloud: serverlessCloud.trim(),
+                    region: serverlessRegion.trim()
                 }
             },
             deletionProtection
