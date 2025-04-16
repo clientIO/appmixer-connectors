@@ -98,25 +98,28 @@ module.exports = async context => {
         }
     });
 
-    // Register API route for sending messages from AuthHub only.
-    context.http.router.register({
-        method: 'POST',
-        path: '/auth-hub/send-message',
-        options: {
-            auth: false,
-            handler: async (req, h) => {
+    const isAuthHubPod = !!process.env.AUTH_HUB_URL && !process.env.AUTH_HUB_TOKEN;
+    if (isAuthHubPod) {
+        // Register API route for sending bot messages in AuthHub only.
+        context.http.router.register({
+            method: 'POST',
+            path: '/auth-hub/send-message',
+            options: {
+                handler: async (req, h) => {
 
-                const { iconUrl, username, channelId, text } = req.payload;
-                if (!channelId || !text) {
-                    context.log('error', 'slack-plugin-route-webhook-send-message-missing-params', req.payload);
-                    return h.response(undefined).code(400);
+                    const { iconUrl, username, channelId, text } = req.payload;
+                    await context.log('debug', 'slack-plugin-route-auth-hub-send-message', { iconUrl, username, channelId, text });
+                    if (!channelId || !text) {
+                        context.log('error', 'slack-plugin-route-webhook-send-message-missing-params', req.payload);
+                        return h.response(undefined).code(400);
+                    }
+
+                    const message = await sendBotMessageFromAuthHub(context, { iconUrl, username, channelId, text });
+                    return h.response(message).code(200);
                 }
-
-                const message = await sendBotMessageFromAuthHub(context, { iconUrl, username, channelId, text });
-                return h.response(message).code(200);
             }
-        }
-    });
+        });
+    }
 
     /** Supposed to be called from AuthHub only. */
     async function sendBotMessageFromAuthHub(context, { iconUrl, username, channelId, text }) {

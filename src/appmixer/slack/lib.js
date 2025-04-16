@@ -4,6 +4,7 @@
 const pathModule = require('path');
 const Entities = require('html-entities').AllHtmlEntities;
 const { WebClient } = require('@slack/web-api');
+const slackConnectorVersion = require('./bundle.json').version;
 
 module.exports = {
 
@@ -32,7 +33,6 @@ module.exports = {
         }
 
         let entities = new Entities();
-        const web = new WebClient(token);
 
         // Move to plugin route. Only if engine version >= 6.1.0
         if (context.config?.usesAuthHub && asBot) {
@@ -42,7 +42,8 @@ module.exports = {
                 url: authHubUrl,
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`
+                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`,
+                    'x-appmixer-version-slack': slackConnectorVersion
                 },
                 data: {
                     iconUrl,
@@ -53,6 +54,8 @@ module.exports = {
             });
             return msg;
         }
+
+        const web = new WebClient(token);
 
         // Auth token or Bot token is set. AuthHub is not used.
         // Directly send as bot.
