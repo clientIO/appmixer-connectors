@@ -16,8 +16,8 @@ module.exports = {
         const { diff, actual } = lib.getNewItems(known, res.data, 'id');
 
         if (diff.length) {
-            await Promise.map(diff, branch => {
-                context.sendJson(branch, 'gist');
+            await Promise.map(diff, gist => {
+                context.sendJson(gist, 'gist');
             });
         }
         await context.saveState({ known: actual });

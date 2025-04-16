@@ -17,8 +17,8 @@ module.exports = {
         const { diff, actual } = lib.getNewItems(known, res.data, 'id');
 
         if (diff.length) {
-            await Promise.map(diff, issue => {
-                return context.sendJson(issue, 'out');
+            await Promise.map(diff, watcher => {
+                return context.sendJson(watcher, 'out');
             });
         }
 
