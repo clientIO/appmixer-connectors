@@ -44,7 +44,7 @@ module.exports = {
         // Can be configured via context.config.objectPropertiesCacheTTL if needed
         const objectPropertiesCacheTTL = context.config.objectPropertiesCacheTTL || (60 * 1000);
         // Use hub_id from context to differentiate between different HubSpot portals/users.
-        const portalId = context.auth?.profileInfo?.hub_id;
+        const portalId = context.auth?.profileInfo?.hub_id || 'default';
         const cacheKeyPrefix = 'hubspot_properties_' + objectType + '_' + portalId;
         let lock;
         try {
