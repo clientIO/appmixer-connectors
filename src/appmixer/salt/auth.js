@@ -21,8 +21,12 @@ module.exports = {
 
         accountNameFromProfileInfo: 'key',
 
-        validate() {
-            return true;
+        validate: {
+            method: 'GET',
+            url: 'https://api.secured-api.com/v1/apigovern/posture/gaps?limit=1&offset=0',
+            headers: {
+                'Authorization': 'Bearer {{apiKey}}'
+            }
         }
     }
 };

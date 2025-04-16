@@ -1,4 +1,4 @@
-const apiCall = (context, { offset, limit }) => {
+    const apiCall = (context, { offset, limit }) => {
     return context.httpRequest({
         method: 'GET',
         url: `https://api.secured-api.com/v1/apigovern/posture/gaps?limit=${limit}&offset=${offset}`,
@@ -10,7 +10,7 @@ const apiCall = (context, { offset, limit }) => {
 
 module.exports = {
     async receive(context) {
-        const {} = context.messages.in.content;
+        const { limit: limitTotal } = context.messages.in.content;
 
         let records = [];
         let totalRecordsCount = 0;
@@ -24,6 +24,11 @@ module.exports = {
             offset = endOffset;
             records = records.concat(items);
             totalRecordsCount += itemsCount;
+            if (totalRecordsCount >= limitTotal) {
+                records = records.slice(0, limitTotal);
+                totalRecordsCount = limitTotal;
+                break;
+            }
         } while (itemsCount > 0);
 
         context.log({ step: 'results', totalRecordsCount });
