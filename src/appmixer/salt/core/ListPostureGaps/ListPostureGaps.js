@@ -1,8 +1,11 @@
+const apiCall = (context, { offset, limit, severity = [], status = [] }) => {
 
-const apiCall = (context, { offset, limit }) => {
+    const severityParam = severity.length > 0 ? `&severity=${severity.join(',')}` : '';
+    const statusParam = status.length > 0 ? `&status=${status.join(',')}` : '';
+
     return context.httpRequest({
         method: 'GET',
-        url: `https://api.secured-api.com/v1/apigovern/posture/gaps?limit=${limit}&offset=${offset}`,
+        url: `https://api.secured-api.com/v1/apigovern/posture/gaps?limit=${limit}&offset=${offset}&details=true${severityParam}${statusParam}`,
         headers: {
             'Authorization': `Bearer ${context.auth.apiKey}`
         }
@@ -11,7 +14,7 @@ const apiCall = (context, { offset, limit }) => {
 
 module.exports = {
     async receive(context) {
-        const { limit: limitTotal } = context.messages.in.content;
+        const { limit: limitTotal, severity, status } = context.messages.in.content;
 
         let records = [];
         let totalRecordsCount = 0;
@@ -19,7 +22,7 @@ module.exports = {
         let offset = 0;
 
         do {
-            const { data } = await apiCall(context, { limit: 100, offset });
+            const { data } = await apiCall(context, { limit: 100, offset, severity, status });
             const { endOffset, response: items } = data;
             itemsCount = items.length;
             offset = endOffset;
