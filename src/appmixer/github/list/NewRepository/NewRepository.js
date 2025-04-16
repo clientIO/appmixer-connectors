@@ -9,7 +9,7 @@ const lib = require('../../lib');
 module.exports = {
     async tick(context) {
 
-        const res = await lib.apiRequest(context, `user/repos`);
+        const res = await lib.apiRequest(context, 'user/repos');
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
 
