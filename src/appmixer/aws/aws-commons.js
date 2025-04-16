@@ -46,9 +46,9 @@ module.exports = {
      * Create and subscribe topic to AWS SNS.
      * @param {Context} context
      * @param {Object} payload
-     * @param {Object} payload.topicPrefix
-     * @param {Object} payload.eventPrefix
-     * @param {Object} payload.eventType
+     * @param {string} payload.topicPrefix
+     * @param {string} payload.eventPrefix
+     * @param {string} payload.eventType
      * @return {Promise}
      */
     async registerWebhook(context, payload) {

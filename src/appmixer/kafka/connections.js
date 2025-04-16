@@ -1,9 +1,10 @@
 'use strict';
 
-const { Kafka, logLevel } = require('kafkajs');
+const { Kafka, logLevel, CompressionTypes, CompressionCodecs } = require('kafkajs');
 const tmp = require('tmp');
-const fs = require('fs');
 const RegexParser = require('regex-parser');
+const SnappyCodec = require('kafkajs-snappy');
+CompressionCodecs[CompressionTypes.Snappy] = SnappyCodec;
 
 // Note that we cannot simply define with `const KAFKA_CONNECTOR_OPEN_CONNECTIONS = {}; `.
 // This is because the Appmixer engine clears the "require" cache
@@ -31,6 +32,8 @@ const initClient = async (context, auth, connectionId) => {
         sslRejectUnauthorized,
         connectionTimeout = 10000
     } = auth;
+
+    // Define the Kafka client configuration
     const config = {
         clientId,
         logLevel: context.config?.logLevel ? logLevel[context.config.logLevel.toUpperCase()] : logLevel.INFO,
@@ -104,6 +107,9 @@ const initClient = async (context, auth, connectionId) => {
             throw new Error(`Failed to create Access Key: ${err.message}`);
         }
     }
+    if (auth.tlsPassphrase) {
+        config.ssl.passphrase = auth.tlsPassphrase;
+    }
     if (auth.tlsCert) {
         try {
             tmpDir = tmp.dirSync();
@@ -124,6 +130,7 @@ const initClient = async (context, auth, connectionId) => {
         delete config.ssl?.cert;
     }
 
+    // Return the Kafka client initialized with the configuration
     return new Kafka(config);
 };
 
@@ -169,7 +176,22 @@ const loadConsumerOptions = function(context) {
     return options;
 };
 
-const addConsumer = async (context, topics, flowId, componentId, groupId, fromBeginning, auth, connId) => {
+/**
+ * Adds a Kafka consumer with the specified configuration.
+ * @param {Object} context The application context
+ * @param {Array} topics The topics to subscribe to
+ * @param {string} flowId The flow ID
+ * @param {string} componentId The component ID
+ * @param {string} groupId The consumer group ID
+ * @param {boolean} fromBeginning Whether to consume from the beginning of the topic
+ * @param {Object} auth Authentication configuration
+ * @param {string} connId Optional connection ID
+ * @param {number} partitionsConsumedConcurrently Number of partitions to consume concurrently (default: 3)
+ * @returns {Promise<string>} The connection ID of the created consumer
+ */
+const addConsumer = async (
+    context, topics, flowId, componentId, groupId, fromBeginning, auth, connId, partitionsConsumedConcurrently = 3
+) => {
 
     // Genereate a unique consumer connection ID that differes between flow runs. Therefore, one setting
     // of the consumer followed by a flow stop and restart is not going to cause the job or message consumption
@@ -210,6 +232,7 @@ const addConsumer = async (context, topics, flowId, componentId, groupId, fromBe
 
     await consumer.run({
         eachBatchAutoResolve: false,
+        partitionsConsumedConcurrently: Math.max(1, parseInt(partitionsConsumedConcurrently, 10) || 3),
         // eachBatch has to be used instead of eachMessage because we don't want to resolve the
         // offset if connection to the consumer was removed from the cluster state.
         eachBatch: async ({ batch, resolveOffset, heartbeat, isRunning, isStale }) => {

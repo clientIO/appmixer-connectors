@@ -21,6 +21,12 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
+        const additionalPropertiesArray = context.messages.in.content.additionalProperties?.AND || [];
+        const additionalProperties = additionalPropertiesArray.reduce((acc, field) => {
+            acc[field.name] = field.value;
+            return acc;
+        }, {});
+
         const payload = {
             properties: {
                 email,
@@ -32,7 +38,8 @@ module.exports = {
                 address: address || '',
                 city: city || '' ,
                 state: state || '' ,
-                zip: zip || ''
+                zip: zip || '',
+                ...additionalProperties
             }
         };
         const { data } = await hs.call('post', 'crm/v3/objects/contacts', payload);
@@ -48,7 +55,9 @@ module.exports = {
             phone: properties.phone ? properties.phone : '',
             state: properties.state ? properties.state : '',
             address: properties.address ? properties.address : '',
-            email: properties.email ? properties.email : ''
+            email: properties.email ? properties.email : '',
+            company: properties.company ? properties.company : '',
+            ...additionalProperties
         }, 'contact');
 
     }

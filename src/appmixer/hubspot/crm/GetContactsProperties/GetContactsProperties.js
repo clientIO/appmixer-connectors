@@ -1,5 +1,7 @@
 'use strict';
+
 const Hubspot = require('../../Hubspot');
+const { getObjectProperties, WATCHED_PROPERTIES_CONTACT } = require('../../commons');
 
 module.exports = {
 
@@ -7,9 +9,28 @@ module.exports = {
 
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
-        const { data } = await hs.call('get', 'crm/v3/properties/contacts');
+        const properties = await getObjectProperties(context, hs, 'contacts', 'all');
 
-        return context.sendJson(data.results, 'out');
+        const propertiesToOutput = context.messages.in.content?.properties;
+        if (propertiesToOutput) {
+            // We have a set of properties defined in the inspector.
+            // We only want to return these properties. See GetContact/component.json - outPorts
+            const propertiesToReturn = properties.filter((property) => propertiesToOutput.includes(property.name));
+
+            return context.sendJson(propertiesToReturn, 'out');
+        }
+
+        return context.sendJson(properties, 'out');
+    },
+
+    /** Returns properties that not hardcoded into the component. Both custom and HubSpot properties. */
+    additionalFieldsToSelectArray(contactsProperties) {
+        return contactsProperties
+            .filter((property) => property.formField)
+            .filter((property) => !WATCHED_PROPERTIES_CONTACT.includes(property.name))
+            .map((property) => {
+                return { label: property.label, value: property.name };
+            });
     },
 
     contactsPropertiesToContactInspector(contactsProperties) {

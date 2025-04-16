@@ -1,6 +1,5 @@
 'use strict';
 const commons = require('../../calendly-commons');
-const Promise = require('bluebird');
 
 /**
  * Component which triggers whenever new event is created.
@@ -9,6 +8,7 @@ const Promise = require('bluebird');
 module.exports = {
 
     start(context) {
+        context.log({ step: 'auth', auth: context.auth });
 
         return this.registerWebhook(context);
     },
@@ -19,22 +19,20 @@ module.exports = {
     },
 
     /**
-     * When webhook is triggered by Calendly check the data and if it's a member list
-     * change, send it to output port.
      * @param {Context} context
      * @return {*}
      */
     async receive(context) {
+        if (context.messages.webhook) {
+            const { data: webhookData } = context.messages.webhook.content;
+            context.log({ step: 'webhookData received', webhookData });
 
-        let data = context.messages.webhook.content.data;
-        if (!data) {
-            return;
+            if (webhookData) {
+                await context.sendJson(webhookData, 'out');
+            }
+
+            return context.response();
         }
-        await Promise.map([data], data => {
-            data.payload.event['assigned_to'] = data.payload.event['assigned_to'].join(', ');
-            return context.sendJson(data, 'event');
-        });
-        return context.response();
     },
 
     /**
@@ -42,30 +40,24 @@ module.exports = {
      * @param {Context} context
      * @return {Promise}
      */
-    registerWebhook(context) {
-
-        let url = context.getWebhookUrl();
-
-        return this.unregisterWebhook(context)
-            .then(() => {
-                return commons.registerWebhookSubscription(context.auth.accessToken, 'invitee.created', url);
-            }).then(response => {
-                return context.saveState({ webhookId: response.id });
-            });
+    async registerWebhook(context) {
+        await this.unregisterWebhook(context);
+        const response = await commons.registerWebhookSubscription(context, 'invitee.created');
+        return context.saveState({ webhookUri: response.uri });
     },
 
     /**
-     * Delete registered webhook. If there is no webhookId in state, do nothing.
+     * Delete registered webhook. If there is no webhookUri in state, do nothing.
      * @param {Context} context
      * @return {Promise}
      */
     unregisterWebhook(context) {
 
-        let webhookId = context.state.webhookId;
-        if (!webhookId) {
-            return Promise.resolve();
+        const { webhookUri } = context.state;
+        if (!webhookUri) {
+            return;
         }
 
-        return commons.removeWebhookSubscription(webhookId, context.auth.accessToken);
+        return commons.removeWebhookSubscription(webhookUri, context);
     }
 };

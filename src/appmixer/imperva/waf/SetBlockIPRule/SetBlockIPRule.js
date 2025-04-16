@@ -1,6 +1,7 @@
 'use strict';
 
 const { Address4, Address6 } = require('ip-address');
+const { parseIPs } = require('../../lib');
 
 module.exports = {
 
@@ -12,7 +13,9 @@ module.exports = {
 
         const ipsValid = [];
         const ipsInvalid = [];
-        const allIps = ips.split(/\s+|,/); // Split by comma or any whitespace
+
+        const allIps = parseIPs(ips);
+
         for (const ip of allIps) {
             if (Address4.isValid(ip) || Address6.isValid(ip)) {
                 if (ipsValid.indexOf(ip) === -1) {

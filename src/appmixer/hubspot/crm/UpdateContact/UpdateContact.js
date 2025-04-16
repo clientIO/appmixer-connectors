@@ -22,6 +22,12 @@ module.exports = {
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
+        const additionalPropertiesArray = context.messages.in.content.additionalProperties?.AND || [];
+        const additionalProperties = additionalPropertiesArray.reduce((acc, field) => {
+            acc[field.name] = field.value;
+            return acc;
+        }, {});
+
         const payload = {
             properties: {
                 email,
@@ -33,7 +39,8 @@ module.exports = {
                 address: address,
                 city: city,
                 state: state,
-                zip: zip
+                zip: zip,
+                ...additionalProperties
             }
         };
         Object.keys(payload.properties).forEach(property => {
