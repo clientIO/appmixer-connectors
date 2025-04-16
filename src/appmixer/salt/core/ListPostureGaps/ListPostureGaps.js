@@ -1,4 +1,5 @@
-    const apiCall = (context, { offset, limit }) => {
+
+const apiCall = (context, { offset, limit }) => {
     return context.httpRequest({
         method: 'GET',
         url: `https://api.secured-api.com/v1/apigovern/posture/gaps?limit=${limit}&offset=${offset}`,
