@@ -35,12 +35,16 @@ module.exports = {
         const web = new WebClient(token);
 
         // Move to plugin route. Only if engine version >= 6.1.0
-        if (context.config?.usesAuthHub) {
-            // Send in AuthHub via route
-            const msg = await context.callAppmixer({
-                endPoint: '/plugins/appmixer/slack/auth-hub/send-message',
+        if (context.config?.usesAuthHub && asBot) {
+            // Send into AuthHub route
+            const authHubUrl = process.env.AUTH_HUB_URL + '/plugins/appmixer/slack/auth-hub/send-message';
+            const msg = await context.httpRequest({
+                url: authHubUrl,
                 method: 'POST',
-                body: {
+                headers: {
+                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`
+                },
+                data: {
                     iconUrl,
                     username,
                     channelId,
