@@ -30,6 +30,8 @@ describe('lib.js', () => {
     describe('sendMessage - asBot', () => {
 
         let context;
+        const channelId = 'testChannelId';
+        const message = 'testMessage';
 
         before(() => {
             // Stop if there are node modules installed in the connector folder.
@@ -59,11 +61,11 @@ describe('lib.js', () => {
             mockWebClient = null;
             delete require.cache[require.resolve('@slack/web-api')];
             require('@slack/web-api');
+            process.env.AUTH_HUB_URL = undefined;
+            process.env.AUTH_HUB_TOKEN = undefined;
         });
 
         it('should call web.chat.postMessage when not using AuthHub', async () => {
-            const channelId = 'testChannelId';
-            const message = 'testMessage';
             context.config.botToken = 'testBotToken';
 
             const result = await sendMessage(context, channelId, message, true);
@@ -78,21 +80,42 @@ describe('lib.js', () => {
             });
         });
 
-        it('should call context.callAppmixer when using AuthHub', async () => {
-            const channelId = 'testChannelId';
-            const message = 'testMessage';
+        it('should call web.chat.postMessage when using AuthHub but not as bot', async () => {
+            context.config.usesAuthHub = true;
+            context.config.botToken = undefined;
+
+            const result = await sendMessage(context, channelId, message, false);
+            assert.equal(mockWebClient.chat.postMessage.callCount, 1);
+            assert.deepEqual(result, { text: 'testMessage' });
+            assert.deepEqual(mockWebClient.chat.postMessage.getCall(0).args[0], {
+                icon_url: undefined,
+                username: undefined,
+                channel: channelId,
+                text: message
+            });
+        });
+
+        it('should call AuthHub route when using AuthHub and as bot', async () => {
+
+            process.env.AUTH_HUB_URL = 'https://auth-hub.example.com';
+            process.env.AUTH_HUB_TOKEN = 'testAuthHubToken';
             context.config.usesAuthHub = true;
 
-            context.callAppmixer = sinon.stub().resolves({ text: message });
+            context.httpRequest = sinon.stub().resolves({
+                text: message
+            });
 
             const result = await sendMessage(context, channelId, message, true);
 
             assert.deepEqual(result, { text: message });
-            assert.equal(context.callAppmixer.callCount, 1);
-            assert.deepEqual(context.callAppmixer.getCall(0).args[0], {
-                endPoint: '/plugins/appmixer/slack/auth-hub/send-message',
+            assert.equal(context.httpRequest.callCount, 1);
+            assert.deepEqual(context.httpRequest.getCall(0).args[0], {
+                url: process.env.AUTH_HUB_URL + '/plugins/appmixer/slack/auth-hub/send-message',
                 method: 'POST',
-                body: {
+                headers: {
+                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`
+                },
+                data: {
                     iconUrl: 'https://example.com/icon.png',
                     username: 'MySlackBot',
                     channelId,
@@ -102,8 +125,6 @@ describe('lib.js', () => {
         });
 
         it('should throw an error when not using AuthHub and botToken is not available', async () => {
-            const channelId = 'testChannelId';
-            const message = 'testMessage';
             context.config.usesAuthHub = undefined;
             context.config.botToken = undefined;
 
