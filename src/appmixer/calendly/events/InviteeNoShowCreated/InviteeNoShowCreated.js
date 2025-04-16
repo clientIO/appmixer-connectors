@@ -2,13 +2,11 @@
 const commons = require('../../calendly-commons');
 
 /**
- * Component which triggers whenever new event is created.
  * @extends {Component}
  */
 module.exports = {
 
     start(context) {
-        context.log({ step: 'auth', auth: context.auth });
 
         return this.registerWebhook(context);
     },
@@ -23,6 +21,7 @@ module.exports = {
      * @return {*}
      */
     async receive(context) {
+
         if (context.messages.webhook) {
             const { data: webhookData } = context.messages.webhook.content;
             context.log({ step: 'webhookData received', webhookData });
@@ -42,7 +41,7 @@ module.exports = {
      */
     async registerWebhook(context) {
         await this.unregisterWebhook(context);
-        const response = await commons.registerWebhookSubscription(context, 'invitee.created');
+        const response = await commons.registerWebhookSubscription(context, 'invitee_no_show.created');
         return context.saveState({ webhookUri: response.uri });
     },
 

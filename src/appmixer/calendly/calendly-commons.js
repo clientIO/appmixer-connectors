@@ -1,44 +1,51 @@
 'use strict';
-const request = require('request-promise');
 
 module.exports = {
 
     /**
      * Get request for calendly.
-     * @param {string} token
-     * @param {string} event - should be one of ['invitee.created', 'invitee.canceled']
-     * @param {string} url - webhook callback url that will be registered
+     * @param {Context} context
+     * @param {string} event - should be one of ['invitee.created', 'invitee.canceled', 'invitee_no_show.created', 'invitee_no_show.deleted']
+
      * @returns {*}
      */
-    registerWebhookSubscription(token, event, url) {
+    async registerWebhookSubscription(context, event) {
+        const { accessToken, profileInfo: { resource } } = context.auth;
+        const url = context.getWebhookUrl();
+        context.log({ step: 'registerWebhookSubscription webhookUrl', url });
 
-        return request({
+        const { data } = await context.httpRequest({
             method: 'POST',
-            url: 'https://calendly.com/api/v1/hooks',
+            url: 'https://api.calendly.com/webhook_subscriptions',
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${accessToken}`
             },
-            json: true,
-            body: {
+            data: {
                 url: url,
-                events: [event]
+                events: [event],
+                scope: 'user',
+                user: resource.uri,
+                organization: resource.current_organization
             }
         });
+        context.log({ step: 'registerWebhookSubscription response', data });
+        return data.resource;
     },
 
     /**
      * DELETE request for calendly to remove webhook subscription.
-     * @param {string} webhookId
-     * @param {string} token
+     * @param {string} webhookUri
+     * @param {Context} context
      * @returns {*}
      */
-    removeWebhookSubscription(webhookId, token) {
+    async removeWebhookSubscription(webhookUri, context) {
+        const { accessToken } = context.auth;
 
-        return request({
+        await context.httpRequest({
             method: 'DELETE',
-            url: `https://calendly.com/api/v1/hooks/${webhookId}`,
+            url: webhookUri,
             headers: {
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${accessToken}`
             }
         });
     }
