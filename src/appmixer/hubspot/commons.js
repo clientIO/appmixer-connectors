@@ -43,7 +43,9 @@ module.exports = {
         // Default cache TTL set to 1 minute as property definitions rarely change
         // Can be configured via context.config.objectPropertiesCacheTTL if needed
         const objectPropertiesCacheTTL = context.config.objectPropertiesCacheTTL || (60 * 1000);
-        const cacheKeyPrefix = 'hubspot_properties_' + objectType;
+        // Use hub_id from context to differentiate between different HubSpot portals/users.
+        const portalId = context.auth?.profileInfo?.hub_id;
+        const cacheKeyPrefix = 'hubspot_properties_' + objectType + '_' + portalId;
         let lock;
         try {
             lock = await context.lock(`hubspot_properties_${objectType}`);
