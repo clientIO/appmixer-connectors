@@ -3,9 +3,11 @@ const apiCall = (context, { offset, limit, severity = [], status = [] }) => {
     const severityParam = severity.length > 0 ? `&severity=${severity.join(',')}` : '';
     const statusParam = status.length > 0 ? `&status=${status.join(',')}` : '';
 
+    const baseUrl = context.config.baseUrl || 'https://api.secured-api.com';
+
     return context.httpRequest({
         method: 'GET',
-        url: `https://api.secured-api.com/v1/apigovern/posture/gaps?limit=${limit}&offset=${offset}&details=true${severityParam}${statusParam}`,
+        url: `${baseUrl}/v1/apigovern/posture/gaps?limit=${limit}&offset=${offset}&details=true${severityParam}${statusParam}`,
         headers: {
             'Authorization': `Bearer ${context.auth.apiKey}`
         }
