@@ -80,6 +80,9 @@ module.exports = {
 
         const nextDate = referenceDate.add(scheduleValue, scheduleType);
         const diff = nextDate.diff(now);
+        if (diff <= 0) {
+            throw new context.CancelError(`Computed timeout is non‑positive (${diff} ms). Check schedule parameters.`);
+        }
 
         await context.setTimeout({}, diff);
     },
