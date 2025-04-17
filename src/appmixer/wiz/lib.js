@@ -123,8 +123,8 @@ module.exports = {
 
         if (data.errors || data?.data?.systemActivity?.status === 'IN_PROGRESS') {
             attempts++;
-            if (attempts <= 5) {
-                await new Promise(r => setTimeout(r, 2000));
+            if (attempts <= 10) {
+                await new Promise(r => setTimeout(r, 1000));
                 return await this.getStatus(context, id, attempts);
             } else {
                 throw new context.CancelError(`Exceeded max attempts systemActivity: ${id}`);

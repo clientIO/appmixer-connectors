@@ -1,9 +1,23 @@
 const lib = require('../../lib');
 const moment = require('moment');
 
+const getLockConfiguration = (context) => {
+
+    return {
+        retryDelay: parseInt(context.config.uploadLockRetryDelay, 10) || 3000,
+        ttl: parseInt(context.config.uploadLockTtl, 10) || 15 * 60 * 1000,
+        maxRetryCount: parseInt(context.config.uploadLockMaxRetryCount, 10) || 60
+    };
+};
+
 module.exports = {
 
     start(context) {
+
+        context.log({
+            step: 'start',
+            lockConfiguration: getLockConfiguration(context)
+        });
 
         const { scheduleValue } = context.properties;
         if (scheduleValue) {
@@ -18,8 +32,11 @@ module.exports = {
 
         let lock;
         try {
-            lock = await context.lock(context.componentId);
 
+            // https://docs.appmixer.com/6.0/v4.1/component-definition/behaviour#async-context.lock-lockname-options
+            lock = await context.lock(context.componentId, getLockConfiguration(context));
+
+            context.log({ step: 'lock', lock });
             const documents = await context.stateGet('documents') || [];
 
             if (context.messages.timeout) {
