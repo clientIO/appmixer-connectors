@@ -8,7 +8,7 @@ const lib = require('../../lib');
 module.exports = {
 
     async receive(context) {
-        context.log({ step: 'inputs', inputs: context.messages.in.content });
+
         let repositoryId = context.properties.repositoryId;
         let issue = context.messages.in.content;
 

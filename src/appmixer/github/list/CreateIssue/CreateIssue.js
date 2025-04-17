@@ -11,7 +11,7 @@ module.exports = {
 
         let repositoryId = context.properties.repositoryId;
         let issue = context.messages.issue.content;
-        context.log({ step: 'inputs', inputs: context.messages.issue.content });
+
         const { data } = await lib.apiRequest(context, `repos/${repositoryId}/issues`, {
             method: 'POST',
             body: issue

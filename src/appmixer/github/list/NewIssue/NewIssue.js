@@ -29,15 +29,12 @@ module.exports = {
 
         const query = [
             `repo:${repositoryId}`,
-            labels.length ? `label:${labels.join(',')}` : '',
+            labels.length ? `label:${labels.map(label => `"${label}"`).join(',')}` : '',
             state !== 'all' ? `state:${state}` : '',
             !includePr ? 'is:issue' : ''
         ].filter(Boolean).join('+');
 
-        context.log({ query });
-
         const res = await lib.apiRequest(context, `search/issues?q=${query}`);
-        context.log({ step: 'result', result: res.data });
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
