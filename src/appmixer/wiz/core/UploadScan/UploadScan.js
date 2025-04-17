@@ -36,7 +36,6 @@ module.exports = {
             // https://docs.appmixer.com/6.0/v4.1/component-definition/behaviour#async-context.lock-lockname-options
             lock = await context.lock(context.componentId, getLockConfiguration(context));
 
-            context.log({ step: 'lock', lock });
             const documents = await context.stateGet('documents') || [];
 
             if (context.messages.timeout) {
