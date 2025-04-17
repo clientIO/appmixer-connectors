@@ -16,7 +16,7 @@ module.exports = {
             method: 'POST',
             body: requestBody
         });
-    
+
         context.log('data', data);
         return context.sendJson(data, 'out');
     }

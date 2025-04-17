@@ -10,7 +10,7 @@ module.exports = {
     async receive(context) {
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { repositoryId, state = 'all', outputType, title = '', labels = [] } = context.messages.in.content;
-        
+
         const query = [
             `is:issue+repo:${repositoryId}+in:title+${title}`,
             labels.length ? `label:${labels.map(label => `"${label}"`).join(',')}` : '',
