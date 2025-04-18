@@ -9,17 +9,9 @@ module.exports = {
 
     async receive(context) {
 
-        let repositoryId = context.properties.repositoryId;
-        let issue = context.messages.in.content;
-
-        if (issue.labelId) {
-            issue.labels = [issue.labelId];
-            delete issue.labelId;
-        }
-
-        const { data } = await lib.apiRequest(context, `repos/${repositoryId}/issues/${context.messages.in.content.issue}`, {
+        const { data } = await lib.apiRequest(context, `repos/${context.properties.repositoryId}/issues/${context.messages.in.content.issue}`, {
             method: 'PATCH',
-            body: issue
+            body: context.messages.in.content
         });
 
         return context.sendJson(data, 'out');
