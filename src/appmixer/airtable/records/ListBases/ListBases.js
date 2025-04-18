@@ -47,6 +47,10 @@ module.exports = {
                 return context.sendJson({ items: bases }, 'out');
             }
 
+            if (bases.length === 0) {
+                return context.sendJson({}, 'notFound');
+            }
+
             // Returning values to the flow.
             await sendArrayOutput({ context, outputType, records: bases });
         } finally {
@@ -63,18 +67,21 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'object') {
+        if (outputType === 'object' || outputType === 'first') {
             return context.sendJson(
                 [
-                    { label: 'id', value: 'id' },
-                    { label: 'name', value: 'name' },
-                    { label: 'permissionLevel', value: 'permissionLevel' }
+                    { label: 'Current Base Index', value: 'index', schema: { type: 'integer' } },
+                    { label: 'Bases Count', value: 'count', schema: { type: 'integer' } },
+                    { label: 'Base ID', value: 'id' },
+                    { label: 'Base Name', value: 'name' },
+                    { label: 'Permission Level', value: 'permissionLevel' }
                 ],
                 'out'
             );
         } else if (outputType === 'array') {
             return context.sendJson(
                 [
+                    { label: 'Bases Count', value: 'count', schema: { type: 'integer' } },
                     {
                         label: 'Bases', value: 'result',
                         schema: {
@@ -82,9 +89,9 @@ module.exports = {
                             items: {
                                 type: 'object',
                                 properties: {
-                                    id: { type: 'string', title: 'id' },
-                                    name: { type: 'string', title: 'name' },
-                                    permissionLevel: { type: 'string', title: 'permissionLevel' }
+                                    id: { type: 'string', title: 'Base ID' },
+                                    name: { type: 'string', title: 'Base Name' },
+                                    permissionLevel: { type: 'string', title: 'Permission Level' }
                                 }
                             }
                         }
@@ -94,7 +101,10 @@ module.exports = {
             );
         } else {
             // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
+            return context.sendJson([
+                { label: 'File ID', value: 'fileId' },
+                { label: 'Bases Count', value: 'count', schema: { type: 'integer' } }
+            ], 'out');
         }
     }
 };

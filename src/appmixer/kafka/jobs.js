@@ -58,7 +58,8 @@ module.exports = async (context) => {
                                 connectionParameters.groupId,
                                 connectionParameters.fromBeginning,
                                 connectionParameters.auth,
-                                connectionId
+                                connectionId,
+                                connectionParameters.partitionsConsumedConcurrently
                             );
                         } else {
                             await connections.addProducer(
