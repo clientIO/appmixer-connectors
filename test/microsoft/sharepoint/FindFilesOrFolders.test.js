@@ -142,6 +142,8 @@ const driveStructure = {
 // Needs to be updated before test
 const accessToken = '';
 
+const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
+
 // all tests assume nobody did anything inside the MochaTestLib like adding/deleting file etc
 describe('Search files in root', () => {
     let context;
@@ -167,12 +169,10 @@ describe('Search files in root', () => {
     });
 
     it('Finds all files and folders with no restriction', async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
-
         await action.receive(context);
 
         const data = context.sendJson.args[0][0];
-        //console.log(data);
+
         const rootSubfolderIndex = data.result.findIndex((item) => item.name === 'rootSubfolder1');
 
         assert.equal(context.sendJson.callCount, 1, 'should call sendJson once');
@@ -181,7 +181,6 @@ describe('Search files in root', () => {
     });
 
     it('Finds all text files', async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
         const mimeType = mimeTypes.text;
         context.messages = {
             in: {
@@ -203,7 +202,6 @@ describe('Search files in root', () => {
     });
 
     it('Finds all image files', async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
         const mimeType = mimeTypes.image;
         context.messages = {
             in: {
@@ -225,7 +223,6 @@ describe('Search files in root', () => {
     });
 
     it('Finds all document files', async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
         const mimeType = mimeTypes.document;
         context.messages = {
             in: {
@@ -247,7 +244,6 @@ describe('Search files in root', () => {
     });
 
     it('Finds all sheet files', async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
         const mimeType = mimeTypes.sheet;
         context.messages = {
             in: {
@@ -269,7 +265,6 @@ describe('Search files in root', () => {
     });
 
     it('Finds all PDF files', async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
         const mimeType = mimeTypes.pdf;
         context.messages = {
             in: {
@@ -291,7 +286,7 @@ describe('Search files in root', () => {
     });
 });
 
-describe.only('Search files with parent path', () => {
+describe('Search files with parent path', () => {
     let context;
     const parentPaths = {
         rootSubfolder1: 'rootSubfolder1',
@@ -319,9 +314,8 @@ describe.only('Search files with parent path', () => {
         };
     });
 
-    it(`Finds all files in /${parentPaths.rootSubfolder1} recursively`, async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
-        const totalFiles = 10;
+    it(`Finds all files and folders in /${parentPaths.rootSubfolder1} recursively`, async () => {
+        const totalFiles = 12;
 
         context.messages = {
             in: {
@@ -340,9 +334,8 @@ describe.only('Search files with parent path', () => {
         assert.equal(data.count, totalFiles, `should return ${totalFiles} files in total`);
     });
 
-    it(`Finds all files in /${parentPaths.rootSubfolder2} recursively`, async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
-        const totalFiles = 5;
+    it(`Finds all files and folders in /${parentPaths.rootSubfolder2} recursively`, async () => {
+        const totalFiles = 6;
 
         context.messages = {
             in: {
@@ -361,9 +354,8 @@ describe.only('Search files with parent path', () => {
         assert.equal(data.count, totalFiles, `should return ${totalFiles} files in total`);
     });
 
-    it(`Finds all files in /${parentPaths.subfolder1Subfolder} recursively`, async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
-        const totalFiles = 5;
+    it(`Finds all files and folders in /${parentPaths.subfolder1Subfolder} recursively`, async () => {
+        const totalFiles = 6;
 
         context.messages = {
             in: {
@@ -383,7 +375,6 @@ describe.only('Search files with parent path', () => {
     });
 
     it(`Finds all text files in /${parentPaths.rootSubfolder1} recursively`, async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
         const totalFiles = 2;
         const mimeType = mimeTypes.text;
 
@@ -407,31 +398,57 @@ describe.only('Search files with parent path', () => {
         assert.equal(allCorrectTypes, true, `all files should have mimeType: ${mimeType}`);
     });
 
-    it(`Finds all files in /${parentPaths.rootSubfolder1} recursively with name 'subfolder1Subfolder'`, async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
-        const totalFiles = 5;
+    it(`Finds all files in /${parentPaths.rootSubfolder1} recursively with name 'testImage'`, async () => {
+        const totalFiles = 2;
 
         context.messages = {
             in: {
                 content: {
                     ...context.messages.in.content,
                     parentPath: parentPaths.rootSubfolder1,
-                    q: 'subfolder1Subfolder'
+                    q: 'testImage'
                 }
             }
         };
 
         await action.receive(context);
 
-        const data = context.sendJson.args[0][0];
+        const [data, outportName] = context.sendJson.args[0];
 
         assert.equal(context.sendJson.callCount, 1, 'should call sendJson once');
+        assert.notDeepStrictEqual(data, {}, 'should NOT be an empty object');
+        assert.equal(outportName, 'out', "should be sent to 'out' output port");
         assert.equal(data.count, totalFiles, `should return ${totalFiles} files in total`);
+        assert.equal(data.result[0].name.includes('testImage'), true, `file 1 name should contain 'testImage'`);
+        assert.equal(data.result[1].name.includes('testImage'), true, `file 2 name should contain 'testImage'`);
     });
 
-    it.only(`Finds all files in /${parentPaths.rootSubfolder1} recursively with name 'rootSubfolder2'`, async () => {
-        const action = require('../../../src/appmixer/microsoft/sharepoint/FindFilesOrFolders/FindFilesOrFolders.js');
+    it(`Finds all files in /${parentPaths.rootSubfolder1} recursively with name 'testExcel'`, async () => {
+        const totalFiles = 2;
 
+        context.messages = {
+            in: {
+                content: {
+                    ...context.messages.in.content,
+                    parentPath: parentPaths.rootSubfolder1,
+                    q: 'testExcel'
+                }
+            }
+        };
+
+        await action.receive(context);
+
+        const [data, outportName] = context.sendJson.args[0];
+
+        assert.equal(context.sendJson.callCount, 1, 'should call sendJson once');
+        assert.notDeepStrictEqual(data, {}, 'should NOT be an empty object');
+        assert.equal(outportName, 'out', "should be sent to 'out' output port");
+        assert.equal(data.count, totalFiles, `should return ${totalFiles} files in total`);
+        assert.equal(data.result[0].name.includes('testExcel'), true, `file 1 name should contain 'testExcel'`);
+        assert.equal(data.result[1].name.includes('testExcel'), true, `file 2 name should contain 'testExcel'`);
+    });
+
+    it(`Finds all files in /${parentPaths.rootSubfolder1} recursively with name 'rootSubfolder2'`, async () => {
         context.messages = {
             in: {
                 content: {
@@ -445,7 +462,6 @@ describe.only('Search files with parent path', () => {
         await action.receive(context);
 
         const [data, outportName] = context.sendJson.args[0];
-        console.log(data);
 
         assert.equal(context.sendJson.callCount, 1, 'should call sendJson once');
         assert.deepStrictEqual(data, {}, 'should be an empty object');

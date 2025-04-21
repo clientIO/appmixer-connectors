@@ -8,37 +8,41 @@ const MAX_SIZE = 10000;
 module.exports = {
 
     async receive(context) {
-        context.log({ step: 'AUTH', auth: context.auth });
         const { driveId, parentPath, fileTypesRestriction, outputType } = context.messages.in.content;
         let { q } = context.messages.in.content;
-        const path = parentPath ? `:/${parentPath}:` : '';
 
         if (!q) q = '';
-        console.log('query: ', q);
+        const encodedQuery = encodeURIComponent(q);
 
         let filesAndFolder = [];
-        let nextLink = `https://graph.microsoft.com/v1.0/drives/${driveId}/root${path}/search(q='${q}')?$top=${MAX_SIZE}`;
 
-        context.log({ step: 'urlCalled', nextLink });
+        let url;
+
+        // Different URL is only used, because using /root:/<parentPath>:/search is unreliable, for example, it doesn't return all images even when searched for them using the query
+        if (parentPath) {
+            url = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${parentPath}:/delta?$top=${MAX_SIZE}`;
+        } else {
+            url = `https://graph.microsoft.com/v1.0/drives/${driveId}/root/search(q='${encodedQuery}')?$top=${MAX_SIZE}`;
+        }
 
         const { value } = await makeRequest(
             {
-                url: nextLink,
+                url,
                 method: 'GET',
                 body: null
             },
             context
         );
 
-        context.log({ step: 'response', value });
-
         filesAndFolder = value;
+
+        if (parentPath && q) {
+            filesAndFolder = filesAndFolder.filter((f) => f.name.includes(encodedQuery));
+        }
 
         if (filesAndFolder.length === 0) {
             return context.sendJson({}, 'notFound');
         }
-
-        //console.log('filesAndFolder result: ', filesAndFolder);
 
         if (fileTypesRestriction?.length > 0) {
             const allowedFilesOrFolders = [];
