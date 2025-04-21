@@ -419,8 +419,8 @@ describe('Search files with parent path', () => {
         assert.notDeepStrictEqual(data, {}, 'should NOT be an empty object');
         assert.equal(outportName, 'out', "should be sent to 'out' output port");
         assert.equal(data.count, totalFiles, `should return ${totalFiles} files in total`);
-        assert.equal(data.result[0].name.includes('testImage'), true, `file 1 name should contain 'testImage'`);
-        assert.equal(data.result[1].name.includes('testImage'), true, `file 2 name should contain 'testImage'`);
+        assert.equal(data.result[0].name.includes('testImage'), true, "file 1 name should contain 'testImage'");
+        assert.equal(data.result[1].name.includes('testImage'), true, "file 2 name should contain 'testImage'");
     });
 
     it(`Finds all files in /${parentPaths.rootSubfolder1} recursively with name 'testExcel'`, async () => {
@@ -444,8 +444,8 @@ describe('Search files with parent path', () => {
         assert.notDeepStrictEqual(data, {}, 'should NOT be an empty object');
         assert.equal(outportName, 'out', "should be sent to 'out' output port");
         assert.equal(data.count, totalFiles, `should return ${totalFiles} files in total`);
-        assert.equal(data.result[0].name.includes('testExcel'), true, `file 1 name should contain 'testExcel'`);
-        assert.equal(data.result[1].name.includes('testExcel'), true, `file 2 name should contain 'testExcel'`);
+        assert.equal(data.result[0].name.includes('testExcel'), true, "file 1 name should contain 'testExcel'");
+        assert.equal(data.result[1].name.includes('testExcel'), true, "file 2 name should contain 'testExcel'");
     });
 
     it(`Finds all files in /${parentPaths.rootSubfolder1} recursively with name 'rootSubfolder2'`, async () => {

@@ -18,7 +18,8 @@ module.exports = {
 
         let url;
 
-        // Different URL is only used, because using /root:/<parentPath>:/search is unreliable, for example, it doesn't return all images even when searched for them using the query
+        // Different URL is only used, because using /root:/<parentPath>:/search is unreliable
+        // For example, it doesn't return all images even when searched for them using the query
         if (parentPath) {
             url = `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${parentPath}:/delta?$top=${MAX_SIZE}`;
         } else {
