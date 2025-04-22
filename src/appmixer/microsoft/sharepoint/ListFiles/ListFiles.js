@@ -23,14 +23,11 @@ module.exports = {
 
         if (Array.isArray(files) && files.length > 0) {
             if (fileTypesRestriction?.length > 0) {
-                const allowedFiles = [];
-                fileTypesRestriction.forEach((typeRestriction) => {
-                    files.forEach((file) => {
-                        if (file.file.mimeType.startsWith(typeRestriction)) {
-                            allowedFiles.push(file);
-                        }
-                    });
-                });
+                const allowedFiles = files.filter(file =>
+                    fileTypesRestriction.some(typeRestriction =>
+                        file.file?.mimeType.startsWith(typeRestriction)
+                    )
+                );
                 if (allowedFiles.length === 0) {
                     return context.sendJson({}, 'notFound');
                 }

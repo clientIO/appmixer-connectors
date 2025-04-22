@@ -168,7 +168,9 @@ describe('Search files in root', () => {
         };
     });
 
-    it('Finds all files and folders with no restriction', async () => {
+    it('Finds all files and folders with no restriction', async function() {
+        // function cannot be arrow function for 'this.timeout' to work
+        this.timeout(5000);
         await action.receive(context);
 
         const data = context.sendJson.args[0][0];
