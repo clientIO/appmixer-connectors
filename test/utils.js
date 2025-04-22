@@ -104,8 +104,13 @@ function createMockContext(options) {
             get: sinon.stub().callsFake(key => {
                 return global.serviceState[key];
             }),
-            set: sinon.stub().callsFake((key, value) => {
+            set: sinon.stub().callsFake((key, value, ttl) => {
                 global.serviceState[key] = value;
+                if (ttl) {
+                    setTimeout(() => {
+                        delete global.serviceState[key];
+                    }, ttl);
+                }
             })
         },
         componentStaticCall: sinon.stub(),
