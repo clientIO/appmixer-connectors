@@ -10,7 +10,6 @@ describe('GetAttributes', function() {
     beforeEach(function() {
 
         sinon.reset();
-        sinon.clock.restore();
     });
 
     describe('Attributes', function() {
@@ -46,6 +45,8 @@ describe('GetAttributes', function() {
 
             it('should cache the results for 20 sec', async function() {
 
+                const clock = sinon.useFakeTimers();
+
                 // First call to staticCache.get should return null. All other calls should return the cached value.
                 context.staticCache.get.onFirstCall().resolves(null)
                     .onSecondCall().resolves(42)
@@ -60,9 +61,7 @@ describe('GetAttributes', function() {
                 await action.receive(context); // 3rd call should use cache.
 
                 // Jump 1 minute into the future.
-                const now = new Date();
-                now.setMinutes(now.getMinutes() + 1);
-                sinon.useFakeTimers(now);
+                await clock.tickAsync(60 * 1000);
 
                 await action.receive(context); // 4th call should not use cache.
                 assert.equal(context.httpRequest.callCount, 2);
