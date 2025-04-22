@@ -110,7 +110,7 @@ module.exports = {
                     );
 
                 } else {
-                    await context.log({ step: 'no-tool-outputs', tools: toolCalls });
+                    await context.log({ step: 'no-tool-outputs', tools: calls });
                 }
             } else {
                 // Final answer, no more function calls.
