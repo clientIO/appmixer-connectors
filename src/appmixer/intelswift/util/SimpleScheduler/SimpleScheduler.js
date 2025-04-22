@@ -11,11 +11,13 @@ const getLockConfiguration = (context) => {
 
 module.exports = {
 
-    start(context) {
+    async start(context) {
 
         const { scheduleValue } = context.properties;
         if (scheduleValue) {
-            return this.scheduleDrain(context);
+            await this.scheduleDrain(context);
+            const { nextDate } = await context.loadState();
+            await context.log({ step: 'start', nextDate });
         }
     },
 
