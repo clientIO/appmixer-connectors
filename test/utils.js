@@ -67,6 +67,12 @@ function createMockContext(options) {
         authorizationCode: 'testAuthorizationCode',
         callbackUrl: 'testCallbackUrl',
         ticket: 'testTicket',
+        componentId: 'componentId-1',
+        flowDescriptor: {
+            'componentId-1': {
+                label: 'Foo'
+            }
+        },
         scope: ['offline_access'],
         httpRequest: sinon.stub(),
         accessToken: 'testAccessToken',
