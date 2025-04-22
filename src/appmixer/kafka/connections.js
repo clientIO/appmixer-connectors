@@ -187,7 +187,7 @@ const loadConsumerOptions = function(context) {
  * @param {Object} auth Authentication configuration
  * @param {string} connId Optional connection ID
  * @param {number} partitionsConsumedConcurrently Number of partitions to consume concurrently (default: 3)
- * @returns {string} The connection ID
+ * @returns {Promise<string>} The connection ID of the created consumer
  */
 const addConsumer = async (
     context, topics, flowId, componentId, groupId, fromBeginning, auth, connId, partitionsConsumedConcurrently = 3

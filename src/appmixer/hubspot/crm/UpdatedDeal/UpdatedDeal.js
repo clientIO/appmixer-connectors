@@ -1,6 +1,6 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
-const { WATCHED_PROPERTIES_DEAL } = require('../../commons');
+const { WATCHED_PROPERTIES_DEAL, getObjectProperties } = require('../../commons');
 
 const subscriptionType = 'deal.propertyChange';
 
@@ -63,8 +63,7 @@ class UpdatedDeal extends BaseSubscriptionComponent {
         const { properties } = context.properties;
         if (!properties) {
             // Return all properties by default.
-            const { data } = await this.hubspot.call('get', 'crm/v3/properties/deals');
-            propertiesToReturn = data.results?.map((property) => property.name);
+            propertiesToReturn = await getObjectProperties(context, this.hubspot, 'deals', 'names');
         } else {
             propertiesToReturn = properties.split(',');
         }

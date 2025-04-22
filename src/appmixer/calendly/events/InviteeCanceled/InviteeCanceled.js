@@ -1,9 +1,8 @@
 'use strict';
 const commons = require('../../calendly-commons');
-const Promise = require('bluebird');
 
 /**
- * Component which triggers whenever new event is canceled.
+ * Component which triggers whenever an event is canceled.
  * @extends {Component}
  */
 module.exports = {
@@ -24,15 +23,16 @@ module.exports = {
      */
     async receive(context) {
 
-        let data = context.messages.webhook.content.data;
-        if (!data) {
-            return;
+        if (context.messages.webhook) {
+            const { data: webhookData } = context.messages.webhook.content;
+            context.log({ step: 'webhookData received', webhookData });
+
+            if (webhookData) {
+                await context.sendJson(webhookData, 'out');
+            }
+
+            return context.response();
         }
-        await Promise.map([data], data => {
-            data.payload.event['assigned_to'] = data.payload.event['assigned_to'].join(', ');
-            return context.sendJson(data, 'event');
-        });
-        return context.response();
     },
 
     /**
@@ -40,30 +40,24 @@ module.exports = {
      * @param {Context} context
      * @return {Promise}
      */
-    registerWebhook(context) {
-
-        let url = context.getWebhookUrl();
-
-        return this.unregisterWebhook(context)
-            .then(() => {
-                return commons.registerWebhookSubscription(context.auth.accessToken, 'invitee.canceled', url);
-            }).then(response => {
-                return context.saveState({ webhookId: response.id });
-            });
+    async registerWebhook(context) {
+        await this.unregisterWebhook(context);
+        const response = await commons.registerWebhookSubscription(context, 'invitee.canceled');
+        return context.saveState({ webhookUri: response.uri });
     },
 
     /**
-     * Delete registered webhook. If there is no webhookId in state, do nothing.
+     * Delete registered webhook. If there is no webhookUri in state, do nothing.
      * @param {Context} context
      * @return {Promise}
      */
     unregisterWebhook(context) {
 
-        let webhookId = context.state.webhookId;
-        if (!webhookId) {
-            return Promise.resolve();
+        const { webhookUri } = context.state;
+        if (!webhookUri) {
+            return;
         }
 
-        return commons.removeWebhookSubscription(webhookId, context.auth.accessToken);
+        return commons.removeWebhookSubscription(webhookUri, context);
     }
 };

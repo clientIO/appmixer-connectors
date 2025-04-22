@@ -6,10 +6,10 @@ module.exports = {
     async receive(context) {
         const { hostnameUrl, accessToken, clientSecret, clientToken } =
             context.auth;
-        const { listId, action, network, comments } =
+        const { listId, network, comments } =
             context.messages.in.content;
 
-        const body = { action, network, comments };
+        const body = { action: 'ACTIVATE', network, comments };
 
         const {
             url,

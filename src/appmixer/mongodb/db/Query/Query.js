@@ -1,5 +1,5 @@
 'use strict';
-const { getClient, getCollection, waitForConnectionId } = require('../../common');
+const { getClient, getCollection, waitForConnectionId, closeClient } = require('../../common');
 
 module.exports = {
     async start(context) {
