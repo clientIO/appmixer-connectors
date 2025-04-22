@@ -1,16 +1,9 @@
 const assert = require('assert');
-const sinon = require('sinon');
 const testUtils = require('../test-utils');
 
 describe('Delete components', function() {
 
     let context = testUtils.createMockContext();
-
-    beforeEach(function() {
-
-        sinon.reset();
-    });
-
 
     beforeEach(function() {
 

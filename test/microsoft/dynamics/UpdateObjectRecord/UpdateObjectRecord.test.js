@@ -14,29 +14,6 @@ describe('UpdateObjectRecord', function() {
 
     describe('Lead', function() {
 
-        describe('receive - generateInspector', function() {
-
-            beforeEach(function() {
-
-                // Set properties to generate inspector.
-                context.properties = { generateInspector: true, objectName: 'lead' };
-            });
-
-            // TODO: figure out how to mock the generateInspector function.
-            it.skip('should call dynamics-commons.generateInspector', async function() {
-
-                let { generateInspector } = require('../../../../../src/appmixer/microsoft/dynamics/dynamics-commons');
-                generateInspector = sinon.stub();
-
-                // Call the action and inspect its output.
-                await action.receive(context);
-
-                // Assert that the generateInspector function was called.
-                assert.equal(generateInspector.callCount, 1, 'should call generateInspector once');
-                assert.equal(context.sendJson.callCount, 1, 'should call sendJson once');
-            });
-        });
-
         describe('receive - update', function() {
 
             const leadResponseStub = {
@@ -72,6 +49,7 @@ describe('UpdateObjectRecord', function() {
                             subject: leadResponseStub.data.subject,
                             lastname: leadResponseStub.data.lastname,
                             emailaddress1: leadResponseStub.data.emailaddress1,
+                            // Note: The pipe character is used in the input and transformed to a dot in the component
                             'parentaccountid@odata|bind': leadResponseStub.data['parentaccountid@odata.bind']
                         }
                     }
