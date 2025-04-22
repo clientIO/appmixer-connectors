@@ -8,7 +8,6 @@ const MAX_SIZE = 10000;
 module.exports = {
 
     async receive(context) {
-        context.log({ step: 'AUTH', auth: context.auth });
         const { driveId, parentPath, fileTypesRestriction, outputType } = context.messages.in.content;
         let { q } = context.messages.in.content;
 
@@ -35,10 +34,8 @@ module.exports = {
                 },
                 context
             );
-            console.log('response length: ', response.value.length);
 
             nextLink = response['@odata.nextLink'];
-            console.log('NEXT_LINK: ', nextLink);
             filesAndFolder = filesAndFolder.concat(response.value);
 
         } while (nextLink);
