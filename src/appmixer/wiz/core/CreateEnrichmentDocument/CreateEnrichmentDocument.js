@@ -18,7 +18,6 @@ const createDocument = function(context) {
         dataSourceAnalysisDate: analysisDate,
         cloudPlatform,
         providerId,
-        // vulnerabilityFindings,
         webAppVulnerabilityFindings,
         events
     } = context.messages.in.content;
@@ -35,15 +34,6 @@ const createDocument = function(context) {
     if (type === 'events' && events?.AND?.length) {
         asset.events = normalizeEvents(events.AND);
     }
-
-    /*
-    Ignore vulnerabilityFindings
-    if (vulnerabilityFindings && vulnerabilityFindings.AND.length) {
-        asset.vulnerabilityFindings = vulnerabilityFindings.AND.map(finding => {
-            return { ...finding };
-        });
-    }
-    */
 
     // webAppVulnerabilityFindings
     if (type === 'vulnerabilityFindings' && webAppVulnerabilityFindings?.AND?.length) {
