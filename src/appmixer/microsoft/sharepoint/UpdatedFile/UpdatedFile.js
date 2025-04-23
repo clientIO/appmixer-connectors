@@ -1,6 +1,4 @@
 'use strict';
-const Promise = require('bluebird');
-
 const commons = require('../../microsoft-commons');
 
 const getLatestChanges = async (deltaLink, accessToken) => {
