@@ -24,16 +24,56 @@ describe('NewChannelMessageRT', () => {
             channelId: 'slack_channel_id'
         };
         context.messages = { webhook: { content: { data: null } } };
+        context.flowDescriptor = {
+            'componentId-1': {
+                label: 'New Channel Message'
+            }
+        };
     });
 
-    it('start', async () => {
+    describe('start', async () => {
 
-        await NewChannelMessageRT.start(context);
+        it('ok', async () => {
 
-        // Assert the listener was added.
-        assert.equal(context.addListener.callCount, 1);
-        const addListenerCall = context.addListener.getCall(0);
-        assert.equal(addListenerCall.args[0], context.properties.channelId);
+            await NewChannelMessageRT.start(context);
+
+            // Assert the listener was added.
+            assert.equal(context.addListener.callCount, 1);
+            const addListenerCall = context.addListener.getCall(0);
+            assert.equal(addListenerCall.args[0], context.properties.channelId);
+        });
+        it('start - missing authToken', async () => {
+
+            context.config.authToken = null;
+
+            try {
+                await NewChannelMessageRT.start(context);
+            } catch (error) {
+                assert.equal(error.message, 'Missing Slack configuration for component: New Channel Message. Please configure the "authToken" with a valid Slack App token.');
+            }
+        });
+        it('start - missing signingSecret', async () => {
+
+            context.config.signingSecret = null;
+
+            try {
+                await NewChannelMessageRT.start(context);
+            } catch (error) {
+                assert.equal(error.message, 'Missing Slack configuration for component: New Channel Message. Please configure the "signingSecret" with a valid Slack App signing secret.');
+            }
+        });
+        it('start - missing signingSecret - AuthHub', async () => {
+
+            context.config.signingSecret = null;
+            context.config.usesAuthHub = true;
+
+            await NewChannelMessageRT.start(context);
+
+            // Assert the listener was added.
+            assert.equal(context.addListener.callCount, 1);
+            const addListenerCall = context.addListener.getCall(0);
+            assert.equal(addListenerCall.args[0], context.properties.channelId);
+        });
     });
 
     it('stop', async () => {
