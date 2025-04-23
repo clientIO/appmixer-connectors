@@ -67,6 +67,12 @@ function createMockContext(options) {
         authorizationCode: 'testAuthorizationCode',
         callbackUrl: 'testCallbackUrl',
         ticket: 'testTicket',
+        componentId: 'componentId-1',
+        flowDescriptor: {
+            'componentId-1': {
+                label: 'Foo'
+            }
+        },
         scope: ['offline_access'],
         httpRequest: sinon.stub(),
         accessToken: 'testAccessToken',
@@ -98,8 +104,13 @@ function createMockContext(options) {
             get: sinon.stub().callsFake(key => {
                 return global.serviceState[key];
             }),
-            set: sinon.stub().callsFake((key, value) => {
+            set: sinon.stub().callsFake((key, value, ttl) => {
                 global.serviceState[key] = value;
+                if (ttl) {
+                    setTimeout(() => {
+                        delete global.serviceState[key];
+                    }, ttl);
+                }
             })
         },
         componentStaticCall: sinon.stub(),

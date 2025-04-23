@@ -12,6 +12,7 @@ describe('commons.js', () => {
 
         // Reset the context.
         context = testUtils.createMockContext();
+        context.auth = { profileInfo: { hub_id: '123456' } };
         context.messages = { in: { content: {} } };
         context.config = {
             objectPropertiesCacheTTL: 1
@@ -57,5 +58,9 @@ describe('commons.js', () => {
         assert(properties.length > 0);
         assert.equal(properties[0].label, 'Jirka Notes [custom]', 'Custom field should have [custom] suffix');
         assert.equal(properties[1].label, 'Job Title', 'Non custom field should not have [custom] suffix');
+
+        // Should use `hub_id` from context to differentiate between different HubSpot portals/users.
+        const setCacheArgs = context.staticCache.set.getCall(0).args;
+        assert.equal(setCacheArgs[0], 'hubspot_properties_contacts_123456_all', 'Cache key should contain hub_id');
     });
 });
