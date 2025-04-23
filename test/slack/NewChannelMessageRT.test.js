@@ -52,6 +52,17 @@ describe('NewChannelMessageRT', () => {
                 assert.equal(error.message, 'Missing Slack configuration for component: New Channel Message. Please configure the "authToken" with a valid Slack App token.');
             }
         });
+        it('start - missing authToken - AuthHub', async () => {
+            context.config.authToken = null;
+            context.config.usesAuthHub = true;
+
+            await NewChannelMessageRT.start(context);
+
+            // Assert the listener was added.
+            assert.equal(context.addListener.callCount, 1);
+            const addListenerCall = context.addListener.getCall(0);
+            assert.equal(addListenerCall.args[0], context.properties.channelId);
+        });
         it('start - missing signingSecret', async () => {
 
             context.config.signingSecret = null;
