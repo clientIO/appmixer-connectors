@@ -4,6 +4,8 @@
 const pathModule = require('path');
 const Entities = require('html-entities').AllHtmlEntities;
 const { WebClient } = require('@slack/web-api');
+// TODO: Uncomment when https://github.com/clientIO/appmixer-core/issues/2889 is fixed
+// const slackConnectorVersion = require('./bundle.json').version;
 
 module.exports = {
 
@@ -24,7 +26,7 @@ module.exports = {
         if (asBot === true) {
             // Make sure the bot token is used.
             token = context.config?.botToken;
-            if (!token) {
+            if (!token && !context.config?.usesAuthHub) {
                 throw new context.CancelError('Bot token is required for sending messages as bot. Please provide it in the connector configuration.');
             }
 
@@ -32,8 +34,32 @@ module.exports = {
         }
 
         let entities = new Entities();
+
+        if (context.config?.usesAuthHub && asBot) {
+            // Send into AuthHub route
+            const authHubUrl = process.env.AUTH_HUB_URL + '/plugins/appmixer/slack/auth-hub/send-message';
+            const { data } = await context.httpRequest({
+                url: authHubUrl,
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${process.env.AUTH_HUB_TOKEN}`
+                    // 'x-appmixer-version-slack': slackConnectorVersion
+                },
+                data: {
+                    iconUrl,
+                    username,
+                    channelId,
+                    text: entities.decode(message)
+                }
+            });
+
+            return data;
+        }
+
         const web = new WebClient(token);
 
+        // Auth token or Bot token is set. AuthHub is not used.
+        // Directly send as bot.
         const response = await web.chat.postMessage({
             icon_url: iconUrl,
             username,
