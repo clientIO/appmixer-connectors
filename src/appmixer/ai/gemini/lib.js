@@ -1,3 +1,4 @@
+const { Transform } = require('stream');
 const { OpenAI }  = require('openai');
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 
@@ -75,27 +76,6 @@ module.exports = {
         return json;
     },
 
-    generateEmbeddingsFromFile: async function(context, config, input, outputFunction) {
-
-        const {
-            fileId
-        } = input;
-        const client = new OpenAI(config);
-
-        const readStream = await context.getFileReadStream(fileId);
-        const fileInfo = await context.getFileInfo(fileId);
-        await context.log({ step: 'split-file', message: 'Splitting file into parts.', partSize: FILE_PART_SIZE, fileInfo });
-        let firstVector;
-        const partsStream = this.splitStream(readStream, FILE_PART_SIZE);
-        for await (const part of partsStream) {
-            const embeddings = await this.generateEmbeddings(context, client, part.toString());
-            if (!firstVector) {
-                firstVector = embeddings[0].vector;
-            }
-            await outputFunction({ embeddings, firstVector });
-        }
-    },
-
     /**
      * Generate embeddings for a text.
      * @param {String} config.apiKey
@@ -111,7 +91,7 @@ module.exports = {
         const client = new OpenAI(config);
         const {
             text,
-            model = 'text-embedding-ada-002',
+            model = 'text-embedding-004',
             chunkSize = 500,
             chunkOverlap = 50
         } = input;
