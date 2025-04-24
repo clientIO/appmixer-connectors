@@ -1,5 +1,6 @@
 'use strict';
 
+const { WebClient } = require('@slack/web-api');
 const { createHmac } = require('node:crypto');
 
 module.exports = async context => {
@@ -96,6 +97,53 @@ module.exports = async context => {
             }
         }
     });
+
+    const isAuthHubPod = !!process.env.AUTH_HUB_URL && !process.env.AUTH_HUB_TOKEN;
+    if (isAuthHubPod) {
+        // Register API route for sending bot messages in AuthHub only.
+        context.http.router.register({
+            method: 'POST',
+            path: '/auth-hub/send-message',
+            options: {
+                handler: async (req, h) => {
+
+                    const { iconUrl, username, channelId, text } = req.payload;
+                    await context.log('debug', 'slack-plugin-route-auth-hub-send-message', { iconUrl, username, channelId, text });
+                    if (!channelId || !text) {
+                        context.log('error', 'slack-plugin-route-webhook-send-message-missing-params', req.payload);
+                        return h.response(undefined).code(400);
+                    }
+
+                    const message = await sendBotMessageFromAuthHub(context, { iconUrl, username, channelId, text });
+                    return h.response(message).code(200);
+                }
+            }
+        });
+
+        // Easily check the version of the plugin in AuthHub.
+        context.http.router.register({
+            method: 'GET',
+            path: '/auth-hub/version',
+            options: {
+                handler: () => ({ version: require('./bundle.json').version }),
+                auth: false
+            }
+        });
+    }
+
+    /** Supposed to be called from AuthHub only. */
+    async function sendBotMessageFromAuthHub(context, { iconUrl, username, channelId, text }) {
+
+        const web = new WebClient(context.config?.botToken);
+
+        const response = await web.chat.postMessage({
+            icon_url: iconUrl,
+            username,
+            channel: channelId,
+            text
+        });
+        return response.message;
+    }
 
     async function processMessages(context, req) {
 
