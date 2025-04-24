@@ -1,8 +1,8 @@
 {
-    "name": "appmixer.wiz.core.UploadSecurityScan",
+    "name": "appmixer.wiz.core.CreateEnrichmentDocument",
     "author": "Appmixer <info@appmixer.com>",
-    "label": "Create and Upload Security Scan",
-    "description": "Creates the Enrichment and Upload security scans to enrich the Wiz Security.",
+    "label": "Create Enrichment Document",
+    "description": "Prepare the enrichment JSON that will be uploaded to Wiz.",
     "private": false,
     "auth": {
         "service": "appmixer:wiz"
@@ -11,7 +11,7 @@
         "manager": "appmixer:wiz",
         "resources": "requests"
     },
-    "version": "1.0.9",
+    "version": "1.0.0",
     "properties": {
         "schema": {
             "type": "object",
@@ -25,6 +25,7 @@
                 "type": {
                     "type": "select",
                     "index": 0,
+                    "tooltip": "Select the type of scan to be uploaded.",
                     "options": [
                         { "label": "Runtime Events", "value": "events" },
                         { "label": "DAST & ASM Vulnerability Findings", "value": "vulnerabilityFindings" }
@@ -37,7 +38,7 @@
         {
             "name": "in",
             "source": {
-                "url": "/component/appmixer/wiz/core/UploadSecurityScan?outPort=out",
+                "url": "/component/appmixer/wiz/core/CreateEnrichmentDocument?outPort=out",
                 "data": {
                     "properties": {
                         "generateInspector": true,
@@ -48,8 +49,6 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "filename": { "type": "string" },
-                    "integrationId": { "type": "string" },
                     "dataSourceId": { "type": "string" },
                     "cloudPlatform": { "type": "string" },
                     "providerId": { "type": "string" },
@@ -62,17 +61,6 @@
             },
             "inspector": {
                 "inputs": {
-                    "filename": {
-                        "type": "text",
-                        "label": "File Name",
-                        "index": 0
-                    },
-                    "integrationId": {
-                        "type": "text",
-                        "label": "Integration ID",
-                        "tooltip": "The unique ID for each Wiz integration. Sent by Wiz during the integration initiation process.",
-                        "index": 1
-                    },
                     "dataSourceId": {
                         "type": "text",
                         "label": "Data Source ID",
@@ -134,7 +122,14 @@
     ],
     "outPorts": [
         {
-            "name": "out"
+            "name": "out",
+            "options": [
+                {
+                    "label": "Document",
+                    "value": "document"
+                }
+            ]
+
         }
     ],
     "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9Im5vbmUiIGNsYXNzPSJTdmdJY29uX19TdHlsZWRJY29uLXNjLXYxbnN1ei0wIGgtW2NhbGModmFyKC0tdG9wLW5hdmJhci1oZWlnaHQpLThweCldIGljb24tYWNjZW50IGRhcms6aWNvbi13aGl0ZSIgdmlld0JveD0iMTYgNCA2OCA1MCI+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMzkuNzE3IDI3LjExNmEuMDk3LjA5NyAwIDAgMCAuMTc5LS4wMDZsMi44NDItNy40MWEuOTIuOTIgMCAwIDEgLjg1MS0uNTlsMi42NTEtLjAxNGEuOTE2LjkxNiAwIDAgMSAuODY1IDEuMjM1TDQwLjY5MyAzNy42NGMtLjAxLjAyNy0uMjIuMjExLS4zNTQuMzE0LS4wNjYuMDUtLjE0NC4wNTYtLjIyNC4wMzNhLjkuOSAwIDAgMS0uNTgtLjUxNmwtMy40MjEtOC4yNDZhLjQ4NC40ODQgMCAwIDAtLjg3NS0uMDE4bC00LjI5IDguNThhLjA5Ny4wOTcgMCAwIDEtLjE3OC0uMDA4bC02LjcwOS0xNy40NDVhLjkxNy45MTcgMCAwIDEgLjg1NS0xLjI0NWgyLjg4Yy4zOCAwIC43Mi4yMzQuODU2LjU4OWwyLjg0MiA3LjQzMmMuMDMuMDguMTQyLjA4NC4xNzguMDA2bDMuNTgyLTcuNzk2YS40ODUuNDg1IDAgMCAxIC44OCAwek03Mi4zNDggMTIuMDc4Yy0uMDIyLS4xMDQtLjI0NS0uMTA0LS4yNjYgMC0uMTY3LjgxMi0uNTEzIDIuMDM2LTEuMTYzIDIuNjg2LS42NTEuNjUtMS44NzYuOTk3LTIuNjg3IDEuMTYzLS4xMDQuMDIyLS4xMDQuMjQ1IDAgLjI2Ni44MTEuMTY3IDIuMDM2LjUxMyAyLjY4NiAxLjE2My44NS44NSAxLjE0MyAyLjAxIDEuMjQ0IDIuNzA4LjAwNi4wNDQuMTQ1LjA1LjE1My4wMDcuMTUzLS43NS41LTIuMDIgMS4xOTYtMi43MTUuNjUtLjY1IDEuODc1LS45OTYgMi42ODYtMS4xNjMuMTA0LS4wMjEuMTA0LS4yNDQgMC0uMjY2LS44MTEtLjE2Ni0yLjAzNi0uNTEyLTIuNjg2LTEuMTYzLS42NS0uNjUtLjk5Ny0xLjg3NC0xLjE2My0yLjY4Nk00OC4xNjQgMjAuMTA4YzAtLjUwNy40MS0uOTE3LjkxNy0uOTE3aDIuNzdjLjUwNiAwIC45MTYuNDEuOTE2LjkxN3YxNi45NmMwIC41MDYtLjQxLjkxNi0uOTE3LjkxNmgtMi43N2EuOTE3LjkxNyAwIDAgMS0uOTE2LS45MTd6TTYwLjc2NCAyNC4wNDJhLjI0Mi4yNDIgMCAwIDAtLjIxNy0uMzVoLTUuNDczYS45MTcuOTE3IDAgMCAxLS45MTctLjkxN3YtMi42NjdjMC0uNTA3LjQxLS45MTcuOTE3LS45MTdoMTIuNjI4Yy4zOTIgMCAuOTE5LjMxOS43MzIuNjY0LS4wNi4xMS03LjI2NyAxMy41OTMtNy4yOTkgMTMuNjUybC0uMDAxLjAwM2EuMjQyLjI0MiAwIDAgMCAuMjE0LjM1Nmg2LjY3Yy41MDYgMCAuOTE2LjQxLjkxNi45MTZ2Mi4yODVjMCAuNTA3LS40MS45MTctLjkxNi45MTdINTQuNjI0Yy0uNDQyIDAtLjUzLS42NDItLjMzMi0xLjAzNnoiPjwvcGF0aD48L3N2Zz4="
