@@ -1,8 +1,6 @@
 'use strict';
 
-const { Transform } = require('stream');
 const { OpenAI }  = require('openai');
-const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 
 // See https://platform.openai.com/docs/api-reference/embeddings/create#embeddings-create-input.
 const MAX_INPUT_LENGTH = 8192 * 4; // max 8192 tokens, 1 token ~ 4 characters.
@@ -39,11 +37,11 @@ module.exports = {
 
         const partsStream = lib.splitStream(readStream, FILE_PART_SIZE);
         for await (const part of partsStream) {
-            let {embeddings, firstVector} = await this.generateEmbeddings(context, client, part.toString());
+            let { embeddings, firstVector } = await this.generateEmbeddings(context, client, part.toString());
 
-        if ((!firstVector || firstVector.length === 0) && embeddings.length > 0) {
-            firstVector = embeddings[0].vector;
-        }
+            if ((!firstVector || firstVector.length === 0) && embeddings.length > 0) {
+                firstVector = embeddings[0].vector;
+            }
             await outputFunction({ embeddings, firstVector });
         }
     },
