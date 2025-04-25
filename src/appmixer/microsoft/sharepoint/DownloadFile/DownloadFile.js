@@ -10,18 +10,37 @@ module.exports = {
             itemPath,
             customFileName,
             outputFileData,
-            outputFileDataEncoding
+            outputFileDataEncoding,
+            format
         } = context.messages.in.content;
 
         const { profileInfo } = context.auth;
+        context.log({ step: 'AUTH', auth: context.auth });
 
         const getFile = await commons.formatError(async () => {
+            if (format) {
+                const downloadUrl = itemId ?
+                    `/drives/${driveId}/items/${itemId}/content?format=${format}` :
+                    `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
+
+                const { data: stream } = await commons.msGraphRequest(context, {
+                    action: downloadUrl,
+                    responseType: 'stream'
+                });
+
+                const fileName = customFileName ? `${customFileName}.${format}` : `sharepoint-download-file.${format}`;
+                return await context.saveFileStream(fileName, stream);
+            }
             const endpoint = itemId ?
                 `/drives/${driveId}/items/${itemId}` :
                 `/drives/${driveId}/root:/${itemPath}`;
 
+            endpoint += '?select=id,@microsoft.graph.downloadUrl,webUrl,name,folder';
+
+
+            context.log({ step: 'endpoint called', endpoint });
             const { data } = await commons.msGraphRequest(context, {
-                action: endpoint + '?select=id,@microsoft.graph.downloadUrl,webUrl,name,folder'
+                action: endpoint
             });
 
             const downloadUrl = data['@microsoft.graph.downloadUrl'];
