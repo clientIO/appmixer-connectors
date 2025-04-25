@@ -1,8 +1,9 @@
 {
     "name": "appmixer.microsoft.sharepoint.NewFile",
+    "label": "New File",
     "author": "Harsha Surisetty <harsha@client.io>",
-    "description": "This trigger fires every time there's a new file uploaded to the selected Drive. Files uploaded to sub-folders of the Drive won't trigger.",
-    "version": "1.0.0",
+    "description": "This trigger fires every time there's a new file uploaded to the selected Drive.",
+    "version": "1.0.1",
     "private": false,
     "webhook": true,
     "tick": true,
@@ -18,8 +19,18 @@
                 },
                 "driveId": {
                     "type": "string"
+                },
+                "parentPath": {
+                    "type": "string"
+                },
+                "fileTypesRestriction": {
+                    "type": "array",
+                    "items": { "type": "string" }
                 }
-            }
+            },
+            "required": [
+                "siteId", "driveId"
+            ]
         },
         "inspector": {
             "inputs": {
@@ -49,6 +60,29 @@
                             "transform": "./ListDrives#drivesToSelectArray"
                         }
                     }
+                },
+                "parentPath": {
+                    "type": "text",
+                    "index": 3,
+                    "label": "Parent Path",
+                    "group": "parent",
+                    "tooltip": "Specify the path of the parent folder. Leave empty to use the selected Drive as the parent. Example: <code>path/to/parent/folder</code>."
+                },
+                "fileTypesRestriction": {
+                    "type": "multiselect",
+                    "options": [
+                        { "content": "Images (any format, image/*)", "value": "image/" },
+                        { "content": "Videos (any format, video/*)", "value": "video/" },
+                        { "content": "Audio files (any format, audio/*)", "value": "audio/" },
+                        { "content": "Documents and text files (any format text/*)", "value": "text/" },
+                        { "content": "PDF files (application/pdf)", "value": "application/pdf" },
+                        { "content": "Word files (.docx)", "value": "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+                        { "content": "Excel files (.xlsx)", "value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+                    ],
+                    "defaultValue": [],
+                    "index": 3,
+                    "label": "File Types",
+                    "tooltip": "Restrict the results to specific file types. If no file types are selected, ALL file types will be monitored including folders."
                 }
             }
         }
@@ -86,7 +120,7 @@
                     "schema": { "type": "string" }
                 },
                 {
-                    "label": "Item Id", "value": "id",
+                    "label": "Item ID", "value": "id",
                     "schema": { "type": "string" }
                 },
                 {
@@ -98,7 +132,7 @@
                                 "type": "object",
                                 "properties": {
                                     "email": { "type": "string", "title": "Last Modified By.User.Email" },
-                                    "id": { "type": "string", "title": "Last Modified By.User.Id" },
+                                    "id": { "type": "string", "title": "Last Modified By.User.ID" },
                                     "displayName": { "type": "string", "title": "Last Modified By.User.Display Name" }
                                 }, "title": "Last Modified By.User"
                             }
@@ -119,10 +153,10 @@
                         "type": "object",
                         "properties": {
                             "driveType": { "type": "string", "title": "Parent Reference.Drive Type" },
-                            "driveId": { "type": "string", "title": "Parent Reference.Drive Id" },
-                            "id": { "type": "string", "title": "Parent Reference.Id" },
+                            "driveId": { "type": "string", "title": "Parent Reference.Drive ID" },
+                            "id": { "type": "string", "title": "Parent Reference.ID" },
                             "path": { "type": "string", "title": "Parent Reference.Path" },
-                            "siteId": { "type": "string", "title": "Parent Reference.Site Id" }
+                            "siteId": { "type": "string", "title": "Parent Reference.Site ID" }
                         }
                     }
                 },
