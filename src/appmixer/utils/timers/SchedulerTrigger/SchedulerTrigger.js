@@ -1,5 +1,5 @@
 'use strict';
-const parser = require('cron-parser');
+// const parser = require('cron-parser');
 const moment = require('moment');
 
 const getExpression = properties => {
@@ -72,6 +72,70 @@ module.exports = {
         return this.scheduleJob(context, { previousDate: null, firstTime: true });
     },
 
+    getNextRun(context, { now }) {
+        const { scheduleType, customIntervalUnit, customIntervalValue, start, end, daysOfWeek, daysOfMonth, time } = context.properties;
+
+        const startDate = start ? moment(start) : now.clone();
+        let nextRun;
+
+        switch (scheduleType) {
+            case 'custom':
+                nextRun = startDate.clone().add(customIntervalValue, customIntervalUnit);
+                break;
+
+            case 'days':
+                const hour = parseInt(time.split(':')[0], 10);
+                const minute = parseInt(time.split(':')[1], 10);
+                console.log(hour, minute);
+                nextRun = startDate.clone().set({
+                    hour,
+                    minute,
+                    second: 0,
+                    millisecond: 0
+                });
+                console.log(nextRun.toISOString());
+                if (nextRun.isBefore(now)) {
+                    nextRun.add(1, 'day');
+                }
+                break;
+
+            case 'weeks':
+                const dayOfWeek = daysOfWeek.map(day => moment().day(day.toLowerCase()));
+                nextRun = dayOfWeek.find(day => day.isAfter(now)) || dayOfWeek[0].add(1, 'week');
+                nextRun.set({
+                    hour: parseInt(time.split(':')[0], 10),
+                    minute: parseInt(time.split(':')[1], 10),
+                    second: 0,
+                    millisecond: 0
+                });
+                break;
+
+            case 'months':
+                const dayOfMonth = daysOfMonth.includes('last day of the month')
+                    ? startDate.clone().endOf('month')
+                    : startDate.clone().set('date', Math.min(...daysOfMonth));
+                nextRun = dayOfMonth.set({
+                    hour: parseInt(time.split(':')[0], 10),
+                    minute: parseInt(time.split(':')[1], 10),
+                    second: 0,
+                    millisecond: 0
+                });
+                if (nextRun.isBefore(now)) {
+                    nextRun.add(1, 'month');
+                }
+                break;
+
+            default:
+                throw new Error(`Unsupported scheduleType: ${scheduleType}`);
+        }
+
+        if (end && nextRun.isAfter(moment(end))) {
+            return null; // Next run exceeds the end time
+        }
+
+        return nextRun;
+    },
+
     /**
      * Has to be an atomic operation.
      * @param context
@@ -79,7 +143,7 @@ module.exports = {
      * @param firstTime
      * @returns {Promise<*>}
      */
-    async scheduleJob(context, { previousDate = null, firstTime = false }) {
+    async scheduleJob(context, { now, previousDate = null, firstTime = false }) {
 
         let lock;
         const { timezone } = context.properties;

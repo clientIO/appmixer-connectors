@@ -153,7 +153,8 @@ function createMockContext(options) {
         },
         job: {
             lock: sinon.stub().returns({ unlock: sinon.stub() })
-        }
+        },
+        properties:{}
     };
 
     if (options) {
