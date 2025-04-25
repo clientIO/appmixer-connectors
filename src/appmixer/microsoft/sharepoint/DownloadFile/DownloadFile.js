@@ -8,7 +8,9 @@ module.exports = {
             driveId,
             itemId,
             itemPath,
-            customFileName
+            customFileName,
+            outputFileData,
+            outputFileDataEncoding
         } = context.messages.in.content;
 
         const { profileInfo } = context.auth;
@@ -40,6 +42,10 @@ module.exports = {
             return await context.saveFileStream(fileName, stream);
 
         }, `Failed to get the file "${itemId || itemPath}" from your SharePoint account (${profileInfo.userPrincipalName}).`);
+
+        if (outputFileData) {
+            getFile.content = (await context.loadFile(getFile.fileId)).toString(outputFileDataEncoding || 'utf8');
+        }
 
         return context.sendJson(getFile, 'out');
     }

@@ -26,16 +26,11 @@ const registerWebhook = async (context) => {
         expirationDateTime: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString(),
         clientState: context.componentId
     };
-
     return commons.formatError(() => {
         return commons.post('/subscriptions', context.auth.accessToken, body);
     });
 };
 
-/**
- * Component which triggers whenever a new file is created.
- * @extends {Component}
- */
 module.exports = {
 
     async start(context) {
@@ -44,6 +39,7 @@ module.exports = {
         const { driveId, parentPath } = context.properties;
         const path = parentPath ? `:/${parentPath}:` : '';
         const latest = await getLatestChanges(`/drives/${driveId}/root${path}/delta?token=latest`, accessToken);
+        context.log({ step: 'deletedLatest', latest });
         const state = {
             deltaLink: latest['@odata.deltaLink'],
             lastUpdated: new Date().toISOString()
@@ -62,6 +58,7 @@ module.exports = {
      * @return {*}
      */
     async receive(context) {
+
         if (context.messages.webhook) {
             const { query, data } = context.messages.webhook.content;
 
@@ -87,32 +84,18 @@ module.exports = {
 
                     const state = await context.loadState();
                     const deltaLink = state.deltaLink;
-                    const lastUpdated = state.lastUpdated;
 
                     if (clientStatesValid && deltaLink) {
                         const latest = await getLatestChanges(deltaLink, accessToken);
                         state.deltaLink = latest['@odata.deltaLink'];
 
                         const promises = [];
-                        const { fileTypesRestriction } = context.properties;
 
                         latest.value.forEach((file) => {
                             const isFile = Object.keys(file).includes('file');
-                            const createdDateTime = file.createdDateTime;
-
-                            if (
-                                isFile && createdDateTime &&
-                                new Date(lastUpdated) <= new Date(createdDateTime)
-                            ) {
-                                if (fileTypesRestriction?.length > 0) {
-                                    fileTypesRestriction.forEach((typeRestriction) => {
-                                        if (file.file.mimeType.startsWith(typeRestriction)) {
-                                            promises.push(context.sendJson(file, 'file'));
-                                        }
-                                    });
-                                } else {
-                                    promises.push(context.sendJson(file, 'file'));
-                                }
+                            const isDeleted = Object.keys(file).includes('deleted');
+                            if (isFile && isDeleted) {
+                                promises.push(context.sendJson(file, 'file'));
                             }
                         });
                         state.lastUpdated = new Date().toISOString();
