@@ -18,7 +18,7 @@ module.exports = {
         requestProfileInfo(context) {
             const apiKey = context.apiKey;
             return {
-                key: apiKey.substr(0, 8) + '...' + apiKey.substr(apiKey.length - 8)
+                key: apiKey.substr(0, 13) + '...' + apiKey.substr(apiKey.length - 9)
             };
         },
 
