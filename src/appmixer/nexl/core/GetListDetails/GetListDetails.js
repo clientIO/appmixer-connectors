@@ -2,14 +2,7 @@
 
 module.exports = {
 
-    async start(context) {
+    async start() {
 
-        let properties = context.properties;
-        let auth = context.auth;
-        let state = context.state;
-        // modify state
-        state.started = new Date();
-        // save state
-        context.state = state;
     }
 };
