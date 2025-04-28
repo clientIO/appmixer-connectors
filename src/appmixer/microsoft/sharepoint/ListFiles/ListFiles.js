@@ -3,7 +3,7 @@ const oneDriveAPI = require('onedrive-api');
 const querystring = require('querystring');
 
 const commons = require('../../microsoft-commons');
-const PAGE_SIZE = 100; // Number of items to retrieve per page
+const PAGE_SIZE = 10000; // Number of items to retrieve per page
 
 module.exports = {
 
@@ -15,16 +15,37 @@ module.exports = {
 
         const {
             outputType,
-            recursive
+            recursive,
+            fileTypesRestriction
         } = context.messages.in.content;
 
         const files = recursive ? await listFolderRecursive(context) : await listFolder(context);
 
-        return await commons.sendArrayOutput({
-            context,
-            outputType,
-            records: files
-        });
+        if (Array.isArray(files) && files.length > 0) {
+            if (fileTypesRestriction?.length > 0) {
+                const allowedFiles = files.filter(file =>
+                    fileTypesRestriction.some(typeRestriction =>
+                        file.file?.mimeType.startsWith(typeRestriction)
+                    )
+                );
+                if (allowedFiles.length === 0) {
+                    return context.sendJson({}, 'notFound');
+                }
+                return await commons.sendArrayOutput({
+                    context,
+                    outputType,
+                    records: allowedFiles
+                });
+            } else {
+                return await commons.sendArrayOutput({
+                    context,
+                    outputType,
+                    records: files
+                });
+            }
+        } else {
+            return context.sendJson({}, 'notFound');
+        }
     }
 };
 
@@ -133,11 +154,13 @@ const listFolder = async (context) => {
 
 const getOutputPortOptions = (context, outputType) => {
 
-    if (outputType === 'object') {
+    if (outputType === 'object' || outputType === 'first') {
         return context.sendJson(
             [
-                { label: 'Folder ID', value: 'id' },
-                { label: 'Name', value: 'name' },
+                { label: 'Current Item Index', value: 'index', schema: { type: 'integer' } },
+                { label: 'Items Count', value: 'count', schema: { type: 'integer' } },
+                { label: 'Item ID', value: 'id' },
+                { label: 'Item Name', value: 'name' },
                 { label: 'Created Date Time', value: 'createdDateTime' },
                 { label: 'C Tag', value: 'cTag' },
                 { label: 'E Tag', value: 'eTag' },
@@ -160,16 +183,17 @@ const getOutputPortOptions = (context, outputType) => {
     } else if (outputType === 'array') {
         return context.sendJson(
             [
+                { label: 'Items Count', value: 'count', schema: { type: 'integer' } },
                 {
-                    label: 'Files',
+                    label: 'Items',
                     value: 'result',
                     schema: {
                         type: 'array',
                         items: {
                             type: 'object',
                             properties: {
-                                id: { type: 'string', title: 'Id' },
-                                name: { type: 'string', title: 'Name' },
+                                id: { type: 'string', title: 'Item ID' },
+                                name: { type: 'string', title: 'Item Name' },
                                 createdDateTime: { type: 'string', title: 'Created Date Time' },
                                 cTag: { type: 'string', title: 'C Tag' },
                                 eTag: { type: 'string', title: 'E Tag' },
@@ -216,6 +240,6 @@ const getOutputPortOptions = (context, outputType) => {
         );
     } else {
         // outputType === 'file'
-        return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
+        return context.sendJson([{ label: 'File ID', value: 'fileId' }, { label: 'Items Count', value: 'count', schema: { type: 'integer' } }], 'out');
     }
 };
