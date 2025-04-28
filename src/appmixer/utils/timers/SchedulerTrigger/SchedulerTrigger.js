@@ -50,11 +50,11 @@ module.exports = {
         } = context.properties;
 
         if (start && moment(start).isBefore(moment(now))) {
-            throw new context.CancelError(`Start date (${start}) cannot be in the past.`);
+            throw new Error(`Start date (${start}) cannot be in the past.`);
         }
 
         if (start && end && moment(start).isAfter(moment(end))) {
-            throw new context.CancelError(`Start date (${start}) cannot be after end (${end}).`);
+            throw new Error(`Start date (${start}) cannot be after end (${end}).`);
         }
 
         const startDate = moment(start || now).tz(timezone);
