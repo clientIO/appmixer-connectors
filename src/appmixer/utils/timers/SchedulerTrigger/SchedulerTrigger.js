@@ -58,6 +58,9 @@ module.exports = {
         }
 
         const startDate = moment(start || now).tz(timezone);
+        const hour = parseInt(time.split(':')[0], 10);
+        const minute = parseInt(time.split(':')[1], 10);
+
         let nextRun;
 
         switch (scheduleType) {
@@ -71,14 +74,9 @@ module.exports = {
                 break;
 
             case 'days':
-                const hour = parseInt(time.split(':')[0], 10);
-                const minute = parseInt(time.split(':')[1], 10);
 
                 nextRun = startDate.clone().set({
-                    hour,
-                    minute,
-                    second: 0,
-                    millisecond: 0
+                    hour, minute, second: 0, millisecond: 0
                 });
 
                 if (nextRun.isBefore(now)) {
@@ -91,10 +89,7 @@ module.exports = {
                 const dayOfWeek = daysOfWeek.map(day => moment().tz(timezone).day(day.toLowerCase()));
                 nextRun = dayOfWeek.find(day => day.isAfter(now)) || dayOfWeek[0].add(1, 'week');
                 nextRun.set({
-                    hour: parseInt(time.split(':')[0], 10),
-                    minute: parseInt(time.split(':')[1], 10),
-                    second: 0,
-                    millisecond: 0
+                    hour, minute, second: 0, millisecond: 0
                 });
                 break;
 
@@ -104,10 +99,7 @@ module.exports = {
                     : startDate.clone().set('date', Math.min(...daysOfMonth));
 
                 nextRun = dayOfMonth.set({
-                    hour: parseInt(time.split(':')[0], 10),
-                    minute: parseInt(time.split(':')[1], 10),
-                    second: 0,
-                    millisecond: 0
+                    hour, minute, second: 0, millisecond: 0
                 });
                 if (nextRun.isBefore(now)) {
                     nextRun.add(1, 'month');
