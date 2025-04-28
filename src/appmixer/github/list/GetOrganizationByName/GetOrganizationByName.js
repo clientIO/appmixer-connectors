@@ -8,9 +8,8 @@ const lib = require('../../lib');
 module.exports = {
 
     async receive(context) {
-
         const { organization } = context.properties;
-        const pullRequest = await lib.apiRequest(context, `orgs/${organization}`);
-        return context.sendJson(pullRequest.data, 'out');
+        const response = await lib.apiRequest(context, `orgs/${organization}`);
+        return context.sendJson(response.data, 'out');
     }
 };

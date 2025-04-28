@@ -2,7 +2,7 @@
 const lib = require('../../lib');
 
 /**
- * Component for fetching an organization by name
+ * Component for fetching a user by login (username).
  * @extends {Component}
  */
 module.exports = {

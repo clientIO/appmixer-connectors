@@ -92,7 +92,7 @@ module.exports = {
         } else { // file
             return context.sendJson([
                 { label: 'File ID', value: 'fileId' },
-                { label: 'PRs Count', value: 'count', schema: { type: 'integer' } }
+                { label: 'Repos Count', value: 'count', schema: { type: 'integer' } }
             ], 'out');
         }
     },

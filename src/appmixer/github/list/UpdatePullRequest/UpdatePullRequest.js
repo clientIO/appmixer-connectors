@@ -15,7 +15,7 @@ module.exports = {
         if (base) requestData.base = base;
         if (state) requestData.state = state;
         const { data } = await lib.apiRequest(context, `repos/${context.properties.repositoryId}/pulls/${pullRequest}`, {
-            method: 'POST',
+            method: 'PATCH',
             body: requestData
         });
 

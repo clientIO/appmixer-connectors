@@ -61,7 +61,7 @@ module.exports = {
 
             const csvString = csvRows.join('\n');
             const buffer = Buffer.from(csvString, 'utf8');
-            const filename = `github-listPullRequests-${context.componentId}.csv`;
+            const filename = `github-findPullRequests-${context.componentId}.csv`;
             const savedFile = await context.saveFileStream(filename, buffer);
             await context.sendJson({ fileId: savedFile.fileId, count: items.length }, 'pullRequests');
         }

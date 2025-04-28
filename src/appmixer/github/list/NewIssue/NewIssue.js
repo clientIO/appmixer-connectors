@@ -12,7 +12,7 @@ const Promise = require('bluebird');
  * @param {Object} issue
  */
 function processIssues(knownIssues, actualIssues, newIssues, issue) {
-    if (knownIssues && !issue['pull_request'] && !knownIssues.has(issue['id'])) {
+    if (knownIssues && !knownIssues.has(issue['id'])) {
         newIssues.add(issue);
     }
     actualIssues.add(issue['id']);

@@ -19,7 +19,6 @@ module.exports = {
             body: review
         });
 
-
         return context.sendJson(data, 'out');
     }
 };

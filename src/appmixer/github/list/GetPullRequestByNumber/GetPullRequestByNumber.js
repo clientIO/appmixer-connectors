@@ -8,9 +8,8 @@ const lib = require('../../lib');
 module.exports = {
 
     async receive(context) {
-
         const { repositoryId, number } = context.properties;
-        const pullRequest = await lib.apiRequest(context, `repos/${repositoryId}/pulls/${number}`);
-        return context.sendJson(pullRequest.data, 'pullRequest');
+        const data = await lib.apiRequest(context, `repos/${repositoryId}/pulls/${number}`);
+        return context.sendJson(data.data, 'pullRequest');
     }
 };
