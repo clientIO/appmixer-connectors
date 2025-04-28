@@ -8,18 +8,17 @@ const lib = require('../../lib');
 module.exports = {
 
     async receive(context) {
-        context.log({ repositoryId, pullRequest, commitId, body, event });
         const { repositoryId, pullRequest, commitId = '', body = '', event = 'PENDING' } = context.messages.in.content;
-        let review = {
-            commit_id: commitId,
-            body: body,
-            event: event
-        };
-        const { data } = await lib.apiRequest(context, `repos/${repositoryId}/${pullRequest}/reviews`, {
+
+        let review = {};
+        if (commitId) review.commit_id = commitId;
+        if (body) review.body = body;
+        if (event) review.event = event;
+        const { data } = await lib.apiRequest(context, `repos/${repositoryId}/pulls/${pullRequest}/reviews`, {
             method: 'POST',
             body: review
         });
-        context.log({ data });
+
 
         return context.sendJson(data, 'out');
     }
