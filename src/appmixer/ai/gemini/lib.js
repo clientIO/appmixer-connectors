@@ -6,8 +6,6 @@ const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 const MAX_INPUT_LENGTH = 8192 * 4; // max 8192 tokens, 1 token ~ 4 characters.
 const MAX_BATCH_SIZE = 2048;
 
-const FILE_PART_SIZE = 1024 * 1024; // 1MB
-
 module.exports = {
 
     extractBaseModelId: function(modelName) {
