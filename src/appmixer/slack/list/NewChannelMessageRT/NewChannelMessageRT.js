@@ -6,11 +6,11 @@ module.exports = {
 
         const componentName = context.flowDescriptor[context.componentId].label || 'New Channel Message';
 
-        if (!context.config?.authToken) {
+        if (!context.config?.authToken && !context.config?.usesAuthHub) {
             throw new Error(`Missing Slack configuration for component: ${componentName}. Please configure the "authToken" with a valid Slack App token.`);
         }
 
-        if (!context.config.signingSecret) {
+        if (!context.config?.signingSecret && !context.config?.usesAuthHub) {
             throw new Error(`Missing Slack configuration for component: ${componentName}. Please configure the "signingSecret" with a valid Slack App signing secret.`);
         }
 

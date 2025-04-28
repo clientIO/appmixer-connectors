@@ -1,0 +1,90 @@
+{
+    "name": "appmixer.ai.gemini.GenerateEmbeddingsFromFile",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Generate embeddings for a text file. The text is split into parts, each part is split into chunks and embedding is returned for each chunk. The component emits embeddings array for each file part (1MB). <br/>The returned embeddings is an array of the form: <code>[{ \"index\": 0, \"text\": \"chunk1\", \"vector\": [1.1, 1.2, 1.3] }]</code>.<br/>TIP: use the <b>JSONata modifier</b> to convert the embeddings array into custom formats.",
+    "auth": {
+        "service": "appmixer:ai:gemini"
+    },
+    "inPorts": [{
+        "name": "in",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "fileId": { "type": "string" },
+                "model": { "type": "string" },
+                "chunkSize": { "type": "integer" },
+                "chunkOverlap": { "type": "integer" },
+                "embeddingTemplate": { "type": "string" }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "fileId": {
+                    "label": "File ID",
+                    "type": "filepicker",
+                    "index": 1,
+                    "tooltip": "The text file to generate embeddings for. Use plain text or CSV files only."
+                },
+                "model": {
+                    "type": "text",
+                    "index": 2,
+                    "label": "Model",
+                    "tooltip": "ID of the model to use.",
+                    "defaultValue": "text-embedding-004",
+                    "source": {
+                        "url": "/component/appmixer/ai/gemini/ListModels?outPort=out",
+                        "data": {
+                            "transform": "./ListModels#toSelectOptions"
+                        }
+                    }
+                },
+                "chunkSize": {
+                    "type": "number",
+                    "label": "Chunk Size",
+                    "defaultValue": 500,
+                    "tooltip": "Maximum size of each chunk for text splitting. The default is 500.",
+                    "index": 3
+                },
+                "chunkOverlap": {
+                    "type": "number",
+                    "label": "Chunk Overlap",
+                    "defaultValue": 50,
+                    "tooltip": "Overlap between chunks for text splitting to maintain context. The default is 50.",
+                    "index": 4
+                }
+            }
+        }
+    }],
+    "outPorts": [{
+        "name": "out",
+        "options": [{
+            "label": "Embeddings",
+            "value": "embeddings",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "index": { "type": "string" },
+                        "vector": { "type": "array", "items": { "type": "number" } },
+                        "text": { "type": "string" }
+                    }
+                },
+                "examples": [
+                    [{ "index": 0, "text": "chunk1", "vector": [1.1, 1.2, 1.3] }, { "index": 1, "text": "chunk2", "vector": [2.1, 2.2, 2.3] }]
+                ]
+            }
+        }, {
+            "label": "First Vector",
+            "value": "firstVector",
+            "schema": {
+                "type": "array",
+                "items": { "type": "number" },
+                "examples": [
+                    [-0.0120379254, -0.0376950279, -0.0133513855, -0.0365983546, -0.0247007012, 0.0158507861, -0.0143460445, 0.00486809108]
+                ]
+            }
+        }]
+    }],
+    "icon": "data:image/svg+xml;base64,PHN2ZyBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTE2IDguMDE2QTguNTIyIDguNTIyIDAgMDA4LjAxNiAxNmgtLjAzMkE4LjUyMSA4LjUyMSAwIDAwMCA4LjAxNnYtLjAzMkE4LjUyMSA4LjUyMSAwIDAwNy45ODQgMGguMDMyQTguNTIyIDguNTIyIDAgMDAxNiA3Ljk4NHYuMDMyeiIgZmlsbD0idXJsKCNwcmVmaXhfX3BhaW50MF9yYWRpYWxfOTgwXzIwMTQ3KSIvPjxkZWZzPjxyYWRpYWxHcmFkaWVudCBpZD0icHJlZml4X19wYWludDBfcmFkaWFsXzk4MF8yMDE0NyIgY3g9IjAiIGN5PSIwIiByPSIxIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgxNi4xMzI2IDUuNDU1MyAtNDMuNzAwNDUgMTI5LjIzMjIgMS41ODggNi41MDMpIj48c3RvcCBvZmZzZXQ9Ii4wNjciIHN0b3AtY29sb3I9IiM5MTY4QzAiLz48c3RvcCBvZmZzZXQ9Ii4zNDMiIHN0b3AtY29sb3I9IiM1Njg0RDEiLz48c3RvcCBvZmZzZXQ9Ii42NzIiIHN0b3AtY29sb3I9IiMxQkExRTMiLz48L3JhZGlhbEdyYWRpZW50PjwvZGVmcz48L3N2Zz4="
+}

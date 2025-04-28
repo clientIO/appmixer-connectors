@@ -1,9 +1,9 @@
 {
-    "name": "appmixer.microsoft.sharepoint.ListFiles",
-    "label": "List Files",
-    "author": "Harsha Surisetty <harsha@client.io>",
-    "description": "List files in Microsoft sharepoint.",
-    "version": "1.0.1",
+    "name": "appmixer.microsoft.sharepoint.FindFilesOrFolders",
+    "label": "Find Files or Folders",
+    "author": "Zbynek Pelunek <zbynek.pelunek@client.io>",
+    "description": "Find files or folders in Microsoft SharePoint using query.",
+    "version": "1.0.0",
     "private": false,
     "auth": {
         "service": "appmixer:microsoft",
@@ -18,37 +18,15 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "driveId": {
-                        "type": "string"
-                    },
-                    "siteId": {
-                        "type": "string"
-                    },
-                    "parentId": {
-                        "type": "string"
-                    },
-                    "parentPath": {
-                        "type": "string"
-                    },
-                    "outputType": {
-                        "type": "string"
-                    },
-                    "select": {
-                        "type": "string"
-                    },
-                    "orderby": {
-                        "type": "string"
-                    },
-                    "filter": {
-                        "type": "string"
-                    },
-                    "recursive": {
-                        "type": "boolean"
-                    },
+                    "driveId": { "type": "string" },
+                    "siteId": { "type": "string" },
+                    "parentPath": { "type": "string" },
+                    "outputType": { "type": "string" },
                     "fileTypesRestriction": {
                         "type": "array",
                         "items": { "type": "string" }
-                    }
+                    },
+                    "q": {"type": "string"}
                 },
                 "required": [
                     "driveId"
@@ -56,11 +34,16 @@
             },
             "inspector": {
                 "inputs": {
+                    "q": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Query",
+                        "tooltip": "The query text used to search for items. Values may be matched across several fields including filename, metadata, and file content."
+                    },
                     "siteId": {
                         "type": "text",
                         "label": " Site ID",
-                        "group": "drive",
-                        "index": 1,
+                        "index": 2,
                         "tooltip": "Provide a site ID.",
                         "source": {
                             "url": "/component/appmixer/microsoft/sharepoint/ListSites?outPort=out",
@@ -71,9 +54,8 @@
                     },
                     "driveId": {
                         "type": "text",
-                        "index": 2,
+                        "index": 3,
                         "label": "Drive ID",
-                        "group": "drive",
                         "tooltip": "ID of the drive where the file is located.",
                         "source": {
                             "url": "/component/appmixer/microsoft/sharepoint/ListDrives?outPort=out",
@@ -85,27 +67,11 @@
                             }
                         }
                     },
-                    "parentId": {
-                        "type": "text",
-                        "index": 3,
-                        "label": "Parent ID",
-                        "group": "parent",
-                        "tooltip": "Specify the ID of the parent folder. Leave empty to use 'root' as the parent."
-                    },
                     "parentPath": {
                         "type": "text",
-                        "when": { "eq": { "./recursive": false }},
                         "index": 4,
                         "label": "Parent Path",
-                        "group": "parent",
-                        "tooltip": "Specify the path of the parent folder<b>(Ignored if 'Parent ID' is set)</b>. Leave empty to use 'root' as the parent. Example: <code>path/to/parent/folder</code>."
-                    },
-                    "recursive": {
-                        "type": "toggle",
-                        "label": "Recursive",
-                        "index": 5,
-                        "defaultValue": false,
-                        "tooltip": "Check this box to list files recursively."
+                        "tooltip": "Specify the path of the parent folder. Leave empty to use selected Drive as the parent. Example: <code>path/to/parent/folder</code>."
                     },
                     "outputType": {
                         "type": "select",
@@ -132,29 +98,6 @@
                             }
                         ]
                     },
-                    "select": {
-                        "type": "text",
-                        "label": "Select",
-                        "group": "filters",
-                        "tooltip": "Comma-separated list of properties to include in the response.",
-                        "index": 8
-                    },
-                    "orderby": {
-                        "when": { "eq": { "./recursive": false }},
-                        "type": "text",
-                        "label": "Order By",
-                        "group": "filters",
-                        "tooltip": "Comma-separated list of properties used to sort the order of items in the response collection.",
-                        "index": 9
-                    },
-                    "filter": {
-                        "when": { "eq": { "./recursive": false }},
-                        "type": "text",
-                        "label": "Filter",
-                        "group": "filters",
-                        "tooltip": "Filter string to filter the response based on a set of criteria.",
-                        "index": 10
-                    },
                     "fileTypesRestriction": {
                         "type": "multiselect",
                         "options": [
@@ -168,22 +111,8 @@
                         ],
                         "defaultValue": [],
                         "index": 11,
-                        "label": "File Types",
-                        "tooltip": "Restrict the results to specific file types. If no file types are selected, ALL file types will be monitored including folders."
-                    }
-                },
-                "groups": {
-                    "drive": {
-                      "label": "Drive",
-                      "index": 1
-                    },
-                    "parent": {
-                      "label": "Parent",
-                      "index": 2
-                    },
-                    "filters": {
-                        "label": "Filters",
-                        "index": 3
+                        "label": "Item Type",
+                        "tooltip": "Restrict the results to specific item types. If no types are selected, ALL item types will be returned including folders."
                     }
                 }
             }
