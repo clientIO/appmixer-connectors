@@ -1,6 +1,6 @@
 'use strict';
 // const parser = require('cron-parser');
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 const getExpression = properties => {
 
@@ -13,43 +13,6 @@ const isValidTimezone = (timezone) => {
     return !!moment.tz.zone(timezone);
 };
 
-const generateInspector = (context) => {
-
-    const { scheduleType, time, start, end } = context.properties;
-
-    const nextDate = `<br/>Next run:  <b>${new Date().toISOString()}</b>`;
-    context.log({ step: 'inspector', properties: context.properties, nextDate });
-
-    const inputs = {
-        scheduleType: {
-            group: 'schedule',
-            type: 'select',
-            index: 0,
-            label: 'Repeat',
-            tooltip: `Choose how often to repeat the task. ${nextDate}`,
-            options: [
-                {
-                    label: 'Daily',
-                    value: 'days'
-                },
-                {
-                    label: 'Days of Week',
-                    value: 'weeks'
-                },
-                {
-                    label: 'Days of Month',
-                    value: 'months'
-                },
-                {
-                    label: 'Custom Interval',
-                    value: 'custom'
-                }
-            ]
-        }
-    };
-    return context.sendJson({ inputs }, 'out');
-};
-
 /**
  * @extend {Component}
  */
@@ -58,7 +21,7 @@ module.exports = {
     async receive(context) {
 
         if (context.properties.generateInspector) {
-            return generateInspector(context);
+            return this.generateInspector(context);
         }
 
         if (context.messages.timeout) {
@@ -73,34 +36,59 @@ module.exports = {
     },
 
     getNextRun(context, { now }) {
-        const { scheduleType, customIntervalUnit, customIntervalValue, start, end, daysOfWeek, daysOfMonth, time } = context.properties;
 
-        const startDate = start ? moment(start) : now.clone();
+        const {
+            scheduleType = 'custom',
+            customIntervalUnit,
+            customIntervalValue,
+            start,
+            end,
+            daysOfWeek,
+            daysOfMonth,
+            time = '00:00',
+            timezone = 'GMT'
+        } = context.properties;
+
+        if (start && moment(start).isBefore(moment(now))) {
+            throw new context.CancelError(`Start date (${start}) cannot be in the past.`);
+        }
+
+        if (start && end && moment(start).isAfter(moment(end))) {
+            throw new context.CancelError(`Start date (${start}) cannot be after end (${end}).`);
+        }
+
+        const startDate = moment(start || now).tz(timezone);
         let nextRun;
 
         switch (scheduleType) {
             case 'custom':
-                nextRun = startDate.clone().add(customIntervalValue, customIntervalUnit);
+
+                if (start) {
+                    nextRun = moment(start).tz(timezone);
+                } else {
+                    nextRun = startDate.clone().add(customIntervalValue, customIntervalUnit);
+                }
                 break;
 
             case 'days':
                 const hour = parseInt(time.split(':')[0], 10);
                 const minute = parseInt(time.split(':')[1], 10);
-                console.log(hour, minute);
+
                 nextRun = startDate.clone().set({
                     hour,
                     minute,
                     second: 0,
                     millisecond: 0
                 });
-                console.log(nextRun.toISOString());
+
                 if (nextRun.isBefore(now)) {
                     nextRun.add(1, 'day');
                 }
+
                 break;
 
             case 'weeks':
-                const dayOfWeek = daysOfWeek.map(day => moment().day(day.toLowerCase()));
+                const dayOfWeek = daysOfWeek.map(day => moment().tz(timezone).day(day.toLowerCase()));
                 nextRun = dayOfWeek.find(day => day.isAfter(now)) || dayOfWeek[0].add(1, 'week');
                 nextRun.set({
                     hour: parseInt(time.split(':')[0], 10),
@@ -114,6 +102,7 @@ module.exports = {
                 const dayOfMonth = daysOfMonth.includes('last day of the month')
                     ? startDate.clone().endOf('month')
                     : startDate.clone().set('date', Math.min(...daysOfMonth));
+
                 nextRun = dayOfMonth.set({
                     hour: parseInt(time.split(':')[0], 10),
                     minute: parseInt(time.split(':')[1], 10),
@@ -128,6 +117,16 @@ module.exports = {
             default:
                 throw new Error(`Unsupported scheduleType: ${scheduleType}`);
         }
+
+        context.log({
+            step: 'debug',
+            startDate,
+            startDateISO: startDate.toISOString(),
+            properties: context.properties,
+            nextRun,
+            nextRunISO: nextRun.toISOString(),
+            nextRunLocalTime: nextRun.format()
+        });
 
         if (end && nextRun.isAfter(moment(end))) {
             return null; // Next run exceeds the end time
@@ -154,16 +153,9 @@ module.exports = {
         try {
             lock = await context.lock(context.componentId);
 
-            const expression = getExpression(context.properties);
-            const options = timezone ? { tz: timezone } : {};
-            const interval = parser.parseExpression(expression, options);
-            if (!interval.hasNext()) {
-                throw new context.CancelError('Next scheduled date doesn\'t exist');
-            }
-
-            const now = moment().toISOString();
-            const nextDate = interval.next().toISOString();
-            previousDate = previousDate ? moment(previousDate).toISOString() : null;
+            // const now = moment().toISOString();
+            // const nextDate = interval.next().toISOString();
+            // previousDate = previousDate ? moment(previousDate).toISOString() : null;
 
             const { state, timeoutId } = await context.loadState();
 
@@ -207,5 +199,45 @@ module.exports = {
                 await lock.unlock();
             }
         }
+    },
+    generateInspector(context) {
+
+        const { scheduleType = 'custom', time, start, end } = context.properties;
+
+        // const nextDate = `<br/>Next run:  <b>${new Date().toISOString()}</b>`;
+
+        const nextRun = this.getNextRun(context, { now: moment().toISOString() });
+        context.log({ step: 'inspector', properties: context.properties, nextRun });
+
+        const inputs = {
+            scheduleType: {
+                group: 'schedule',
+                type: 'select',
+                index: 0,
+                label: 'Repeat',
+                // tooltip: `Choose how often to repeat the task. ${nextDate}`,
+                tooltip: 'Choose how often to repeat the task.',
+                options: [
+                    {
+                        label: 'Daily',
+                        value: 'days'
+                    },
+                    {
+                        label: 'Days of Week',
+                        value: 'weeks'
+                    },
+                    {
+                        label: 'Days of Month',
+                        value: 'months'
+                    },
+                    {
+                        label: 'Custom Interval',
+                        value: 'custom'
+                    }
+                ]
+            }
+        };
+        return context.sendJson({ inputs }, 'out');
     }
+
 };
