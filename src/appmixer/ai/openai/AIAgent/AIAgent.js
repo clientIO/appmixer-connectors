@@ -1,20 +1,23 @@
 'use strict';
 
 const OpenAI = require('openai');
+const shortuuid = require('short-uuid');
+const uuid = require('uuid');
 
 const COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT = 60 * 1000;  // 60 seconds
 const COLLECT_TOOL_OUTPUTS_POLL_INTERVAL = 1 * 1000;  // 1 second
-const MAX_RUN_DURATION = 5 * 60 * 1000;  // 5 minutes
+const MAX_ATTEMPTS = 20;
 
 module.exports = {
 
     start: async function(context) {
 
-        const assistant = await this.createAssistant(context);
-        return context.stateSet('assistant', assistant);
+        const tools = await this.getAllToolsDefinition(context);
+        await context.log({ step: 'tools', tools });
+        return context.stateSet('tools', tools);
     },
 
-    createAssistant: async function(context) {
+    getAllToolsDefinition: async function(context) {
 
         const flowDescriptor = context.flowDescriptor;
         const agentComponentId = context.componentId;
@@ -48,20 +51,99 @@ module.exports = {
         }
 
         const toolsDefinition = this.getToolsDefinition(tools);
+        const mcpToolsDefinition = await this.getMCPToolsDefinition(context);
+        return toolsDefinition.concat(mcpToolsDefinition);
+    },
 
-        const instructions = context.properties.instructions || null;
-        await context.log({ step: 'create-assistant', tools: toolsDefinition, instructions });
+    mcpListTools: function(context, componentId) {
 
-        const apiKey = context.auth.apiKey;
-        const client = new OpenAI({ apiKey });
-        const assistant = await client.beta.assistants.create({
-            model: context.properties.model || 'gpt-4o',
-            instructions,
-            tools: toolsDefinition
+        return context.callAppmixer({
+            endPoint: `/flows/${context.flowId}/components/${componentId}?action=listTools`,
+            method: 'POST',
+            body: {}
+        });
+    },
+
+    mcpCallTool: function(context, componentId, toolName, args) {
+
+        return context.callAppmixer({
+            endPoint: `/flows/${context.flowId}/components/${componentId}?action=callTool`,
+            method: 'POST',
+            body: {
+                name: toolName,
+                arguments: args
+            }
+        });
+    },
+
+    isMCPserver: function(context, componentId) {
+        // Check if the component is an MCP server.
+        const component = context.flowDescriptor[componentId];
+        if (!component) {
+            return false;
+        }
+        const category = component.type.split('.').slice(0, 2).join('.');
+        const type = component.type.split('.').at(-1);
+        if (category === 'appmixer.mcpservers' && type === 'MCPServer') {
+            return true;
+        }
+        return false;
+    },
+
+    getMCPToolsDefinition: async function(context) {
+
+        // https://platform.openai.com/docs/assistants/tools/function-calling
+        const toolsDefinition = [];
+
+        const flowDescriptor = context.flowDescriptor;
+        const agentComponentId = context.componentId;
+        const mcpPort = 'mcp';
+        const components = {};
+        // Find all components connected to my 'mcp' output port.
+        Object.keys(flowDescriptor).forEach((componentId) => {
+            const component = flowDescriptor[componentId];
+            const sources = component.source;
+            Object.keys(sources || {}).forEach((inPort) => {
+                const source = sources[inPort];
+                if (source[agentComponentId] && source[agentComponentId].includes(mcpPort)) {
+                    components[componentId] = component;
+                    if (component.type.split('.').slice(0, 2).join('.') !== 'appmixer.mcpservers') {
+                        error = `Component ${componentId} is not an 'MCP Server' but ${component.type}.
+                            Every mcp component connected to the '${mcpPort}' port of the AI Agent
+                            must be an MCP server.`;
+                    }
+                }
+            });
         });
 
-        await context.log({ step: 'created-assistant', assistant });
-        return assistant;
+        for (const componentId in components) {
+            // For each 'MCP Server' component, call the component to retrieve available tools.
+            const component = components[componentId];
+            const tools = await this.mcpListTools(context, componentId);
+            await context.log({ step: 'mcp-server-list-tools', componentId, component, tools });
+
+            for (const tool of tools) {
+                // Note we convert the UUID component ID to a shorter version
+                // to avoid exceeding the 64 characters limit of the function name.
+                const name = [shortuuid().fromUUID(componentId), tool.name].join('_');
+                const toolDefinition = {
+                    type: 'function',
+                    function: {
+                        name,
+                        description: tool.description
+                    }
+                };
+                if (tool.inputSchema) {
+                    toolDefinition.function.parameters = tool.inputSchema;
+                }
+                if (toolDefinition.function.parameters && toolDefinition.function.parameters.type === 'object' && !toolDefinition.function.parameters.properties) {
+                    toolDefinition.function.parameters.properties = {};
+                }
+                toolsDefinition.push(toolDefinition);
+            }
+        }
+
+        return toolsDefinition;
     },
 
     getToolsDefinition: function(tools) {
@@ -101,47 +183,81 @@ module.exports = {
         return toolsDefinition;
     },
 
-    handleRunStatus: async function(context, client, thread, run) {
+    agent: async function(context, client, instructions, model, prompt, tools, history) {
 
-        if (Date.now() - (run.created_at * 1000) > MAX_RUN_DURATION) {
-            await context.log({ step: 'run-timeout', run });
-            await client.beta.threads.runs.cancel(thread.id, run.id);
-            throw new context.CancelError('The run took too long to complete.');
-        }
+        const messages = history || [{
+            // Note that we're not using the 'system' role here since it's not
+            // supported by all models. For example, o1 models.
+            role: 'user',
+            content: instructions
+        }];
 
-        await context.log({ step: 'run-status', run });
-        // Check if the run is completed
-        if (run.status === 'completed') {
-            let messages = await client.beta.threads.messages.list(thread.id);
-            await context.log({ step: 'completed-run', run, messages });
-            await context.sendJson({
-                answer: messages.data[0].content[0].text.value,
-                prompt: context.messages.in.content.prompt
-            }, 'out');
-        } else if (run.status === 'requires_action') {
-            await this.handleRequiresAction(context, client, thread, run);
-        } else {
-            // incomplete, cancelled, failed, expired
-            await context.log({ step: 'unexpected-run-state', run });
+        messages.push({
+            role: 'user',
+            content: prompt
+        });
+
+        for (let i = 0; i < context.config.AI_AGENT_MAX_ATTEMPTS || MAX_ATTEMPTS; i++) {
+
+            const response = await client.chat.completions.create({
+                model,
+                messages,
+                tools
+            });
+
+            const { finish_reason, message } = response.choices[0];
+            messages.push(message);
+
+            if (finish_reason === 'tool_calls' && message.tool_calls) {
+
+                const outputs = await this.callTools(context, message.tool_calls);
+                (outputs || []).forEach((output) => {
+                    messages.push({
+                        role: 'tool',
+                        tool_call_id: output.tool_call_id,
+                        content: output.output
+                    });
+                });
+
+            } else if (finish_reason === 'stop') {
+                messages.push(message);
+                return { messages, answer: message.content };
+            }
         }
+        return { messages, answer: 'The maximum number of iterations has been met without a suitable answer. Please try again with a more specific input.' };
     },
 
-    handleRequiresAction: async function(context, client, thread, run) {
+    callTools: async function(context, modelToolCalls) {
 
-        await context.log({ step: 'requires-action', run });
+        if (!modelToolCalls || !modelToolCalls.length) {
+            return [];
+        }
 
-        // Check if there are tools that require outputs.
-        if (
-            run.required_action &&
-            run.required_action.submit_tool_outputs &&
-            run.required_action.submit_tool_outputs.tool_calls
-        ) {
-            const toolCalls = [];
-            for (const toolCall of run.required_action.submit_tool_outputs.tool_calls) {
-                const componentId = toolCall.function.name;
-                const args = JSON.parse(toolCall.function.arguments);
+        const outputs = [];
+
+        const toolCalls = [];
+        for (const toolCall of modelToolCalls) {
+            let componentId = toolCall.function.name.split('_')[0];
+            if (!uuid.validate(componentId)) {
+                // Short version of the UUID.
+                // Get back the original compoennt UUID back from the short version.
+                componentId = shortuuid().toUUID(componentId);
+            }
+            const args = JSON.parse(toolCall.function.arguments);
+            if (this.isMCPserver(context, componentId)) {
+                // MCP Server.
+                // Get output directly.
+                let output = await this.mcpCallTool(
+                    context, componentId, toolCall.function.name.split('_').slice(1).join('_'), args);
+                output = typeof output === 'string' ? output : JSON.stringify(output, null, 2);
+                outputs.push({ tool_call_id: toolCall.id, output });
+            } else {
+                // Regular Appmixer tool chain.
                 toolCalls.push({ componentId, args, id: toolCall.id });
             }
+        }
+
+        if (toolCalls.length > 0) {
 
             // Send to all tools. Each ai.ToolStart ignores tool calls that are not intended for it.
             await context.sendJson({ toolCalls, prompt: context.messages.in.content.prompt }, 'tools');
@@ -150,14 +266,15 @@ module.exports = {
             // under the ID of the tool call. This is done in the ToolStartOutput component.
             // Collect outputs of all the required tool calls.
             await context.log({ step: 'collect-tools-output', threadId: thread.id, runId: run.id });
-            const outputs = [];
+
             const pollStart = Date.now();
             const runExpiresAt = run.expires_at;
             while (
                 (outputs.length < toolCalls.length) &&
                 (runExpiresAt ?
                     Date.now() / 1000 < runExpiresAt :
-                    Date.now() - pollStart < COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT)
+                    Date.now() - pollStart < COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT
+                )
             ) {
                 for (const toolCall of toolCalls) {
                     const result = await context.flow.stateGet(toolCall.id);
@@ -170,67 +287,73 @@ module.exports = {
                 await new Promise((resolve) => setTimeout(resolve, COLLECT_TOOL_OUTPUTS_POLL_INTERVAL));
             }
             await context.log({ step: 'collected-tools-output', threadId: thread.id, runId: run.id, outputs });
-
-            // Submit tool outputs to the assistant.
-            if (outputs && outputs.length) {
-                await context.log({ step: 'tool-outputs', tools: toolCalls, outputs });
-                run = await client.beta.threads.runs.submitToolOutputsAndPoll(
-                    thread.id,
-                    run.id,
-                    { tool_outputs: outputs }
-                );
-                // Check status after submitting tool outputs.
-                await this.handleRunStatus(context, client, thread, run);
-
-            } else {
-                await context.log({ step: 'no-tool-outputs', tools: toolCalls });
-            }
         }
+
+        return outputs;
+    },
+
+    summarizeHistory: async function(context, client, model, history) {
+
+        const response = await client.chat.completions.create({
+            model,
+            messages: [{
+                role: 'user',
+                content: 'Summarize the following conversation:\n' + JSON.stringify(history, null, 2)
+            }],
+            max_tokens: context.config.AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS || 1000
+        });
+
+        const { message } = response.choices[0];
+        return message.content;
     },
 
     receive: async function(context) {
 
         const { prompt } = context.messages.in.content;
         let threadId = context.messages.in.content.threadId || context.messages.in.correlationId;
+        const model = context.properties.model;
         const apiKey = context.auth.apiKey;
         const client = new OpenAI({ apiKey });
-        const assistant = await context.stateGet('assistant');
+        const tools = await context.stateGet('tools');
 
         // Check if a thread with a given ID exists.
-        let thread;
+        let history;
         if (threadId) {
-            thread = await context.stateGet(threadId);
+            history = await context.stateGet('thread_' + threadId);
         }
-        if (!thread) {
-            await context.log({ step: 'create-thread', assistantId: assistant.id, internalThreadId: threadId });
-            thread = await client.beta.threads.create();
-            await context.stateSet(threadId, thread);
-        } else {
-            await context.log({ step: 'use-thread', assistantId: assistant.id, thread });
+        const response = await this.agent(
+            context,
+            client,
+            context.properties.instructions || 'You\'re a helpful assistant.',
+            model,
+            prompt,
+            tools,
+            history
+        );
+        await context.log({ step: 'agent-response', response });
+
+        let newHistory = response.messages;
+        const newHistoryText = JSON.stringify(newHistory);
+        if (newHistoryText.length > context.config.AI_AGENT_MAX_HISTORY_SIZE || 10000) {
+            // Limit the history size.
+
+            const summary = await this.summarizeHistory(context, client, model, newHistory);
+            newHistory = [{
+                role: 'user',
+                content: summary
+            }];
+            await context.log({
+                step: 'summarized-history',
+                threadId,
+                oldHistoryTextLength: newHistoryText.length,
+                newHistoryTextLength: summary.length
+            });
         }
+        await context.stateSet('thread_' + threadId, newHistory);
 
-        await context.log({ step: 'create-thread-message', assistantId: assistant.id, threadId: thread.id });
-        await client.beta.threads.messages.create(thread.id, {
-            role: 'user',
-            content: prompt
-        });
-
-        await context.log({ step: 'create-thread-run', assistantId: assistant.id, threadId: thread.id });
-        let run = await client.beta.threads.runs.create(thread.id, {
-            assistant_id: assistant.id
-        });
-        await context.log({ step: 'created-thread-run', assistantId: assistant.id, threadId: thread.id, run });
-
-        // Poll the run status until it reaches a terminal state.
-        run = await client.beta.threads.runs.poll(thread.id, run.id);
-        await this.handleRunStatus(context, client, thread, run);
-    },
-
-    stop: async function(context) {
-
-        const apiKey = context.auth.apiKey;
-        const client = new OpenAI({ apiKey });
-        const assistant = await context.stateGet('assistant');
-        await client.beta.assistants.del(assistant.id);
+        return context.sendJson({
+            answer: response.answer,
+            prompt
+        }, 'out');
     }
 };
