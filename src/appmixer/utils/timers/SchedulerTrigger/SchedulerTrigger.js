@@ -35,7 +35,14 @@ module.exports = {
         return this.scheduleJob(context, { previousDate: null, firstTime: true });
     },
 
-    getNextRun(context, { now }) {
+    /**
+     *
+     * @param context
+     * @param now ISO date string
+     * @param previousDate ISO date string
+     * @returns {moment.Moment|null}
+     */
+    getNextRun(context, { now, previousDate }) {
 
         const {
             scheduleType = 'custom',
@@ -57,7 +64,9 @@ module.exports = {
             throw new Error(`Start date (${start}) cannot be after end (${end}).`);
         }
 
-        const startDate = moment(start || now).tz(timezone);
+        const startNormalized = start ? moment.tz(start, 'YYYY-MM-DD HH:mm', timezone) : null;
+        const previousDateNormalized = previousDate ? moment(previousDate).tz(timezone) : null;
+        const refDate = moment(previousDate || startNormalized || now).tz(timezone);
         const hour = parseInt(time.split(':')[0], 10);
         const minute = parseInt(time.split(':')[1], 10);
 
@@ -66,28 +75,21 @@ module.exports = {
         switch (scheduleType) {
             case 'custom':
 
-
                 if (start) {
-
                     nextRun = moment.tz(start, 'YYYY-MM-DD HH:mm', timezone);
-                console.log('---', start, timezone );
-                console.log('---', nextRun.toISOString() );
-                console.log('---', nextRun );
                 } else {
-                    nextRun = startDate.clone().add(customIntervalValue, customIntervalUnit);
+                    nextRun = refDate.clone().add(customIntervalValue, customIntervalUnit);
                 }
                 break;
 
             case 'days':
+                const baseDate = previousDateNormalized || startNormalized || moment(now).tz(timezone);
+                nextRun = baseDate.clone()
+                    .set({ hour, minute, second: 0, millisecond: 0 });
 
-                nextRun = startDate.clone().set({
-                    hour, minute, second: 0, millisecond: 0
-                });
-
-                if (nextRun.isBefore(now)) {
+                if (nextRun.isSameOrBefore(baseDate)) {
                     nextRun.add(1, 'day');
                 }
-
                 break;
 
             case 'weeks':
@@ -99,9 +101,7 @@ module.exports = {
                 break;
 
             case 'months':
-                const dayOfMonth = daysOfMonth.includes('last day of the month')
-                    ? startDate.clone().endOf('month')
-                    : startDate.clone().set('date', Math.min(...daysOfMonth));
+                const dayOfMonth = daysOfMonth.includes('last day of the month') ? refDate.clone().endOf('month') : refDate.clone().set('date', Math.min(...daysOfMonth));
 
                 nextRun = dayOfMonth.set({
                     hour, minute, second: 0, millisecond: 0
@@ -117,11 +117,9 @@ module.exports = {
 
         context.log({
             step: 'debug',
-            startDate,
-            startDateISO: startDate.toISOString(),
-            properties: context.properties,
-            nextRun,
-            nextRunISO: nextRun.toISOString(),
+            previousDate,
+            refDate: refDate.toISOString(),
+            startNormalized: startNormalized?.toISOString(),
             nextRunLocalTime: nextRun.format()
         });
 
@@ -196,8 +194,7 @@ module.exports = {
                 await lock.unlock();
             }
         }
-    },
-    generateInspector(context) {
+    }, generateInspector(context) {
 
         const { scheduleType = 'custom', time, start, end } = context.properties;
 
@@ -211,27 +208,17 @@ module.exports = {
                 group: 'schedule',
                 type: 'select',
                 index: 0,
-                label: 'Repeat',
-                // tooltip: `Choose how often to repeat the task. ${nextDate}`,
+                label: 'Repeat', // tooltip: `Choose how often to repeat the task. ${nextDate}`,
                 tooltip: 'Choose how often to repeat the task.',
-                options: [
-                    {
-                        label: 'Daily',
-                        value: 'days'
-                    },
-                    {
-                        label: 'Days of Week',
-                        value: 'weeks'
-                    },
-                    {
-                        label: 'Days of Month',
-                        value: 'months'
-                    },
-                    {
-                        label: 'Custom Interval',
-                        value: 'custom'
-                    }
-                ]
+                options: [{
+                    label: 'Daily', value: 'days'
+                }, {
+                    label: 'Days of Week', value: 'weeks'
+                }, {
+                    label: 'Days of Month', value: 'months'
+                }, {
+                    label: 'Custom Interval', value: 'custom'
+                }]
             }
         };
         return context.sendJson({ inputs }, 'out');
