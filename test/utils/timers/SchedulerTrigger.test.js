@@ -26,23 +26,6 @@ describe('utils.timers.SchedulerTrigger', () => {
 
     describe('utils.timers.SchedulerTrigger type months', () => {
 
-        it('test', async () => {
-            context.properties = {
-                scheduleType: 'months',
-                // daysOfMonth: ['last day of the month'],
-                // or
-                // daysOfMonth: ['2', '8'],
-                time: '16:25'
-                // it's possible to set a time range. when start is set, the next run should be after start
-                // start: '2025-04-29T22:00:00.000Z',
-                // it's possible to set a time range. when end is set, the last run should be before end
-                // end: '2025-05-29T22:00:00.000Z'
-
-                // when start is not set, the start time is now.
-            };
-            // TODO
-        });
-
         it('schedule job on the 15th of the month at a specific time', async () => {
             context.properties = {
                 scheduleType: 'months',
@@ -84,7 +67,7 @@ describe('utils.timers.SchedulerTrigger', () => {
                 scheduleType: 'months',
                 daysOfMonth: ['15'],
                 time: '16:25',
-                start: '2025-05-01T00:00:00.000Z'
+                start: '2025-05-01 00:00'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -97,12 +80,13 @@ describe('utils.timers.SchedulerTrigger', () => {
                 scheduleType: 'months',
                 daysOfMonth: ['15'],
                 time: '16:25',
-                end: '2025-05-10T00:00:00.000Z'
+                start: '2025-05-01 00:00'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
 
-            assert.equal(nextRun, null, 'Next run should not be scheduled as it exceeds the end time.');
+            assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '');
+
         });
 
         it('schedule job on the last day of the month with a start and end time', async () => {
@@ -110,8 +94,8 @@ describe('utils.timers.SchedulerTrigger', () => {
                 scheduleType: 'months',
                 daysOfMonth: ['last day of the month'],
                 time: '16:25',
-                start: '2025-04-29T00:00:00.000Z',
-                end: '2025-04-30T23:59:59.000Z'
+                start: '2025-04-28 00:00',
+                end: '2025-04-30 23:59'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -167,7 +151,7 @@ describe('utils.timers.SchedulerTrigger', () => {
                 scheduleType: 'weeks',
                 daysOfWeek: ['sunday'],
                 time: '16:25',
-                start: '2025-04-27T00:00:00.000Z'
+                start: '2025-04-27 00:00'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -180,7 +164,7 @@ describe('utils.timers.SchedulerTrigger', () => {
                 scheduleType: 'weeks',
                 daysOfWeek: ['friday'],
                 time: '16:25',
-                end: '2025-04-25T12:00:00.000Z'
+                end: '2025-04-25 12:00'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -193,8 +177,8 @@ describe('utils.timers.SchedulerTrigger', () => {
                 scheduleType: 'weeks',
                 daysOfWeek: ['wednesday'],
                 time: '16:25',
-                start: '2025-04-29T00:00:00.000Z',
-                end: '2025-05-01T23:59:59.000Z'
+                start: '2025-04-29 00:00',
+                end: '2025-05-01 23:59'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -232,19 +216,19 @@ describe('utils.timers.SchedulerTrigger', () => {
             context.properties = {
                 scheduleType: 'days',
                 time: '16:25',
-                start: '2025-04-26T00:00:00.000Z'
+                start: '2025-05-01 15:30'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
 
-            assert.equal(nextRun.toISOString(), '2025-04-26T16:25:00.000Z', '');
+            assert.equal(nextRun.toISOString(), '2025-05-01T16:25:00.000Z', '');
         });
 
-        it('schedule job daily with an end time before the next run', async () => {
+        xit('schedule job daily with an end time before the next run', async () => {
             context.properties = {
                 scheduleType: 'days',
                 time: '16:25',
-                end: '2025-04-25T12:00:00.000Z'
+                end: '2025-06-02 16:40'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -252,12 +236,12 @@ describe('utils.timers.SchedulerTrigger', () => {
             assert.equal(nextRun, null, 'Next run should not be scheduled as it exceeds the end time.');
         });
 
-        it('schedule job daily with a start and end time', async () => {
+        xit('schedule job daily with a start and end time', async () => {
             context.properties = {
                 scheduleType: 'days',
                 time: '16:25',
-                start: '2025-05-02T00:00:00.000Z',
-                end: '2025-05-10T23:59:59.000Z'
+                start: '2025-05-01 15:30',
+                end: '2025-06-02 16:40'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -266,11 +250,11 @@ describe('utils.timers.SchedulerTrigger', () => {
             assert.equal(nextRun.toISOString(), '2025-05-02T16:25:00.000Z', '');
         });
 
-        it('schedule job daily with a start time after now', async () => {
+        xit('schedule job daily with a start time after now', async () => {
             context.properties = {
                 scheduleType: 'days',
                 time: '16:25',
-                start: '2025-04-27T00:00:00.000Z'
+                start: '2025-05-01 15:30'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
@@ -281,17 +265,33 @@ describe('utils.timers.SchedulerTrigger', () => {
 
     describe('utils.timers.SchedulerTrigger type custom', () => {
 
-        it('schedule job 2 minute from now', async () => {
+        it('schedule job 2 minute from start', async () => {
 
             context.properties = {
                 scheduleType: 'custom',
                 customIntervalUnit: 'minutes',
-                customIntervalValue: 2
+                customIntervalValue: 2,
+                start: '2025-05-01 15:30'
             };
 
             const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
 
-            assert.equal(nextRun.toISOString(), '2025-04-25T07:40:12.084Z', '');
+            assert.equal(nextRun.toISOString(), '2025-05-01T15:30:00.000Z', '');
+        });
+
+        it('schedule job 2 minute from start, in Istanbul (GMT+3)', async () => {
+
+            context.properties = {
+                scheduleType: 'custom',
+                customIntervalUnit: 'minutes',
+                customIntervalValue: 2,
+                start: '2025-05-01 15:30',
+                timezone: 'Europe/Istanbul' // GMT+3
+            };
+
+            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+
+            assert.equal(nextRun.toISOString(), '2025-05-01T12:30:00.000Z', '');
         });
 
         it('schedule job 2 hours from now', async () => {

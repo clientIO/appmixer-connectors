@@ -66,8 +66,13 @@ module.exports = {
         switch (scheduleType) {
             case 'custom':
 
+
                 if (start) {
-                    nextRun = moment(start).tz(timezone);
+
+                    nextRun = moment.tz(start, 'YYYY-MM-DD HH:mm', timezone);
+                console.log('---', start, timezone );
+                console.log('---', nextRun.toISOString() );
+                console.log('---', nextRun );
                 } else {
                     nextRun = startDate.clone().add(customIntervalValue, customIntervalUnit);
                 }
