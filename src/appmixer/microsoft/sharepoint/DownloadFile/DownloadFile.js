@@ -11,7 +11,8 @@ module.exports = {
             customFileName,
             outputFileData,
             outputFileDataEncoding,
-            format
+            format,
+            convertPdfFile
         } = context.messages.in.content;
 
         const { profileInfo } = context.auth;
@@ -64,6 +65,28 @@ module.exports = {
 
         if (outputFileData) {
             getFile.content = (await context.loadFile(getFile.fileId)).toString(outputFileDataEncoding || 'utf8');
+            if (convertPdfFile === 'txt') {
+                // const fileinfo = await context.getFileInfo(getFile.fileId);
+                // context.log({ step: 'fileInfo', fileinfo });
+                const pdfjsLib = await import('pdfjs-dist');
+
+                const fileData = await context.loadFile(getFile.fileId);
+                context.log({ step: 'fileDataType', type: typeof (fileData) });
+
+                const pdf = await pdfjsLib.getDocument({ data: fileData }).promise;
+
+                context.log({ step: 'pdf data', pdf });
+
+                let fullText = '';
+                // for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                //     const page = await pdf.getPage(pageNum);
+                //     const content = await page.getTextContent();
+                //     const strings = content.items.map(item => item.str);
+                //     fullText += strings.join(' ') + '\n\n';
+                // }
+
+                getFile.content = fullText;
+            }
         }
 
         return context.sendJson(getFile, 'out');
