@@ -282,16 +282,12 @@ module.exports = {
             // Output of each tool is expected to be stored in the service state
             // under the ID of the tool call. This is done in the ToolStartOutput component.
             // Collect outputs of all the required tool calls.
-            await context.log({ step: 'collect-tools-output', threadId: thread.id, runId: run.id });
+            await context.log({ step: 'collect-tools-output', toolCalls });
 
             const pollStart = Date.now();
-            const runExpiresAt = run.expires_at;
             while (
                 (outputs.length < toolCalls.length) &&
-                (runExpiresAt ?
-                    Date.now() / 1000 < runExpiresAt :
-                    Date.now() - pollStart < COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT
-                )
+                (Date.now() - pollStart < COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT)
             ) {
                 for (const toolCall of toolCalls) {
                     const result = await context.flow.stateGet(toolCall.id);
@@ -303,7 +299,7 @@ module.exports = {
                 // Sleep.
                 await new Promise((resolve) => setTimeout(resolve, COLLECT_TOOL_OUTPUTS_POLL_INTERVAL));
             }
-            await context.log({ step: 'collected-tools-output', threadId: thread.id, runId: run.id, outputs });
+            await context.log({ step: 'collected-tools-output', outputs });
         }
 
         return outputs;
