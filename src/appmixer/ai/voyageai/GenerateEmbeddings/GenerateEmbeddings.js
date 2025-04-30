@@ -37,7 +37,7 @@ module.exports = {
             );
 
             // Voyage returns: { data: [ { embedding: [...], index: 0 }, ... ] }
-            data.data.forEach((item, index) => {
+            data?.data?.forEach((item, index) => {
                 if (!firstVector) {
                     firstVector = item.embedding;
                 }
