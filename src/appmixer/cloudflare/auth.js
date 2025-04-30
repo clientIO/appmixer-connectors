@@ -14,12 +14,12 @@ module.exports = {
             email: {
                 type: 'text',
                 name: 'Email',
-                tooltip: 'Enter your "Email".'
+                tooltip: 'Enter your "Email". Required only for Global API Key authentication.'
             },
             apiKey: {
                 type: 'text',
-                name: 'Global API Key',
-                tooltip: 'Enter your "Global API Key".'
+                name: 'Global API Key or API Token',
+                tooltip: 'Enter your Global API Key or API Token.'
             }
         },
 
