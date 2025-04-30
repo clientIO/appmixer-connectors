@@ -23,10 +23,10 @@ module.exports = {
         return context.sendJson(properties, 'out');
     },
 
-    /** Returns properties that not hardcoded into the component. Both custom and HubSpot properties. */
+    /** Returns properties that are not hardcoded into the component. Both custom and HubSpot properties. */
     additionalFieldsToSelectArray(contactsProperties) {
+
         return contactsProperties
-            .filter((property) => property.formField)
             .filter((property) => !WATCHED_PROPERTIES_CONTACT.includes(property.name))
             .map((property) => {
                 return { label: property.label, value: property.name };

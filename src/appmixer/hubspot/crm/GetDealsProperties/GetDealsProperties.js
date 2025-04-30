@@ -1,4 +1,5 @@
 'use strict';
+
 const Hubspot = require('../../Hubspot');
 const { getObjectProperties, WATCHED_PROPERTIES_DEAL } = require('../../commons');
 
@@ -65,11 +66,10 @@ module.exports = {
         return inspector;
     },
 
-    /** Returns properties that not hardcoded into the component. Both custom and HubSpot properties. */
+    /** Returns properties that are not hardcoded into the component. Both custom and HubSpot properties. */
     additionalFieldsToSelectArray(dealsProperties) {
 
         return dealsProperties
-            .filter((property) => property.formField)
             .filter((property) => !WATCHED_PROPERTIES_DEAL.includes(property.name))
             .map((property) => {
                 return { label: property.label, value: property.name };
