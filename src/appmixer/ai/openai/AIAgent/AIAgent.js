@@ -233,11 +233,17 @@ module.exports = {
             return [];
         }
 
+        if (modelToolCalls.length > 1) {
+            await context.sendJson({ status: `Calling ${modelToolCalls.length} tools.` }, 'progress');
+        }
+
         const outputs = [];
 
         const toolCalls = [];
         for (const toolCall of modelToolCalls) {
             let componentId = toolCall.function.name.split('_')[0];
+            const toolName = toolCall.function.name.split('_').slice(1).join('_');
+            await context.sendJson({ status: `Calling tool ${toolName}.` }, 'progress');
             if (!uuid.validate(componentId)) {
                 // Short version of the UUID.
                 // Get back the original compoennt UUID back from the short version.
@@ -245,10 +251,21 @@ module.exports = {
             }
             const args = JSON.parse(toolCall.function.arguments);
             if (this.isMCPserver(context, componentId)) {
-                // MCP Server.
-                // Get output directly.
-                let output = await this.mcpCallTool(
-                    context, componentId, toolCall.function.name.split('_').slice(1).join('_'), args);
+                // MCP Server. Get output directly.
+                let output;
+                // Catch errors so that we don't trigger an Appmixer component retry.
+                // Simply return the error message instead.
+                try {
+                    output = await this.mcpCallTool(
+                        context,
+                        componentId,
+                        toolName,
+                        args
+                    );
+                } catch (err) {
+                    await context.log({ step: 'call-tool-error', componentId, tooName, toolCall, err });
+                    output = `Error calling tool ${toolName}: ${err.message}`;
+                }
                 output = typeof output === 'string' ? output : JSON.stringify(output, null, 2);
                 outputs.push({ tool_call_id: toolCall.id, output });
             } else {
