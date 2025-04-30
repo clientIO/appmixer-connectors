@@ -31,17 +31,10 @@ module.exports = {
         for (let i = 0; i < chunks.length; i += batchSize) {
             const batch = chunks.slice(i, i + batchSize);
 
-            const response = await context.httpRequest.post(VOYAGE_API_URL,
+            const { data } = await context.httpRequest.post(VOYAGE_API_URL,
                 { model, input: batch },
                 { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
             );
-
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(`Voyage AI API error: ${response.status} ${error}`);
-            }
-
-            const data = await response.json();
 
             // Voyage returns: { data: [ { embedding: [...], index: 0 }, ... ] }
             data.data.forEach((item, index) => {
