@@ -29,7 +29,7 @@ module.exports = {
             const text = part.toString();
             const chunks = await this.splitText(text, chunkSize, chunkOverlap);
             await context.log({ step: 'split-text', message: 'Text split into chunks.', chunksLength: chunks.length, textLength: text.length });
-            const batchSize = Math.min(Math.floor((MAX_INPUT_LENGTH / 2) / chunkSize), MAX_BATCH_SIZE);
+            const batchSize = Math.max(1, Math.min(Math.floor((MAX_INPUT_LENGTH / 2) / chunkSize), MAX_BATCH_SIZE));
             const embeddings = [];
             for (let i = 0; i < chunks.length; i += batchSize) {
                 const batch = chunks.slice(i, i + batchSize);

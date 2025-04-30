@@ -1,7 +1,6 @@
 'use strict';
 
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
-const fetch = require('node-fetch');
 
 // See https://docs.voyageai.com/reference/embeddings-api
 const VOYAGE_API_URL = 'https://api.voyageai.com/v1/embeddings';
@@ -25,24 +24,17 @@ module.exports = {
         const apiKey = context.auth.apiKey;
 
         // Process chunks in batches.
-        const batchSize = Math.min(Math.floor((MAX_INPUT_LENGTH / 2) / chunkSize), MAX_BATCH_SIZE);
+        const batchSize = Math.max(1, Math.min(Math.floor((MAX_INPUT_LENGTH / 2) / chunkSize), MAX_BATCH_SIZE));
         const embeddings = [];
         let firstVector = null;
 
         for (let i = 0; i < chunks.length; i += batchSize) {
             const batch = chunks.slice(i, i + batchSize);
 
-            const response = await fetch(VOYAGE_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model,
-                    input: batch
-                })
-            });
+            const response = await context.httpRequest.post(VOYAGE_API_URL,
+                { model, input: batch },
+                { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
+            );
 
             if (!response.ok) {
                 const error = await response.text();
