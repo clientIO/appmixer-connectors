@@ -38,7 +38,8 @@ module.exports = {
                     { model, input: batch },
                     { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
                 );
-                (response.data.data || []).forEach((item, index) => {
+                const responseData = response.data && response.data.data ? response.data.data : [];
+                responseData.forEach((item, index) => {
                     if (!firstVector) firstVector = item.embedding;
                     embeddings.push({ text: batch[index], vector: item.embedding, index: i + index });
                 });

@@ -14,7 +14,7 @@ module.exports = {
 
         const {
             text,
-            model = 'voyage-2',
+            model = 'voyage-3',
             chunkSize = 500,
             chunkOverlap = 50
         } = context.messages.in.content;
