@@ -142,7 +142,7 @@ module.exports = {
             data: { query, variables: { uid } }
         });
 
-        if (data.data.errors) {
+        if (data.errors) {
             throw new context.CancelError(data.errors);
         }
 
