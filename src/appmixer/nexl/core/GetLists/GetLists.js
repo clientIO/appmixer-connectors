@@ -1,11 +1,11 @@
 'use strict';
 const lib = require('../../lib');
 
-const query = `query {
+const query = `query Lists($page: Int, $perPage: Int) {
     lists(
       filter: { listStatus: ACTIVE },
-      page: 1,
-      perPage: 500
+      page: $page,
+      perPage: $perPage
     ) {
       entries {
         id
@@ -23,26 +23,39 @@ const query = `query {
         totalPages
       }
     }
-  }`;
+}`;
 
 module.exports = {
     async receive(context) {
-        const response = await lib.makeApiCall({
-            context,
-            method: 'POST',
-            data: { query }
-        });
+        const page = 1;
+        const perPage = 1;
+        const allResults = [];
+        let currentPage = page;
+        let totalPages;
 
-        if (response.data.errors) {
-            throw new context.CancelError(response.data.data.errors);
-        }
-        console.log(response.data.data);
-        const lists = response.data.data.lists.entries;
-        return context.sendJson(lists, 'out');
+        do {
+            const { data } = await lib.makeApiCall({
+                context,
+                method: 'POST',
+                data: { query, variables: { page: currentPage, perPage } }
+            });
+
+            if (data.errors) {
+                throw new context.CancelError(data.errors);
+            }
+
+            const result = data.data.lists.entries;
+            totalPages = data.data.lists.pageInfo.totalPages;
+
+            allResults.push(...result);
+            console.log(`Page ${currentPage} of ${totalPages} processed.`);
+            currentPage++;
+        } while (currentPage <= totalPages);
+
+        return context.sendJson(allResults, 'out');
     },
 
     listsToSelectArray(lists) {
-
         return lists.map(list => {
             return { label: `${list.name}`, value: `${list.id}` };
         });
