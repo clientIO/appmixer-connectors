@@ -88,16 +88,16 @@ module.exports = {
         const isFirstRun = !Array.isArray(knownContactsRaw);
         const knownContacts = isFirstRun ? new Set() : new Set(knownContactsRaw);
         const currentContacts = allResults.map(contact => contact.id);
-        
+
         const newContacts = allResults.filter(contact => !knownContacts.has(contact.id));
-        
+
         await context.saveState({ knownContacts: currentContacts });
-        
+
         if (!isFirstRun && newContacts.length > 0) {
             await Promise.all(newContacts.map(contact => {
                 return context.sendJson(contact, 'out');
             }));
         }
-        
+
     }
 };
