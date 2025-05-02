@@ -106,17 +106,22 @@ describe('utils.timers.SchedulerTrigger', () => {
 
     describe('utils.timers.SchedulerTrigger type weeks', () => {
 
-        it('schedule job on Monday at a specific time', async () => {
-            context.properties = {
-                scheduleType: 'weeks',
-                daysOfWeek: ['monday'],
-                time: '16:25'
-            };
+        describe('GMT', () => {
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            it('schedule job on Monday at a specific time', async () => {
+                context.properties = { scheduleType: 'weeks', time: '16:25', daysOfWeek: ['monday'] };
 
-            console.log(nextRun.toISOString());
-            assert.equal(nextRun.toISOString(), '2025-04-28T16:25:00.000Z', 'Monday, 28th April, 16:25');
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-28T16:25:00.000Z', '1st run - Monday, 28th April, 16:25');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-26T16:25:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-27T16:25:00.000Z', '3rd run');
+
+            });
+
         });
 
         it('schedule job on multiple days of the week at a specific time', async () => {
@@ -174,106 +179,102 @@ describe('utils.timers.SchedulerTrigger', () => {
 
     describe('utils.timers.SchedulerTrigger type days', () => {
 
-        it('schedule job daily at a specific time - starts today ', async () => {
+        describe('GMT', () => {
 
-            context.properties = { scheduleType: 'days', time: '16:25' };
+            it('schedule job daily at a specific time - starts today ', async () => {
 
-            let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-            assert.equal(nextRun.toISOString(), '2025-04-25T16:25:00.000Z', '1st run ');
+                context.properties = { scheduleType: 'days', time: '16:25' };
 
-            nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
-            assert.equal(nextRun.toISOString(), '2025-04-26T16:25:00.000Z', '2nd run');
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-25T16:25:00.000Z', '1st run ');
 
-            nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
-            assert.equal(nextRun.toISOString(), '2025-04-27T16:25:00.000Z', '3rd run');
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-26T16:25:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-27T16:25:00.000Z', '3rd run');
+            });
+
+            it('schedule job daily at a specific time - starts next day ', async () => {
+
+                context.properties = { scheduleType: 'days', time: '00:25' };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-26T00:25:00.000Z', '1st run ');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-27T00:25:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-28T00:25:00.000Z', '3rd run');
+            });
+            it('schedule job daily with a start time in the future', async () => {
+                context.properties = {
+                    scheduleType: 'days',
+                    time: '16:25',
+                    start: '2025-05-01 15:30'
+                };
+
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+
+                assert.equal(nextRun.toISOString(), '2025-05-01T16:25:00.000Z', '');
+            });
+
+            it('schedule job daily with an end time before the next run', async () => {
+                context.properties = {
+                    scheduleType: 'days',
+                    time: '16:25',
+                    end: '2025-04-26 16:40'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-25T16:25:00.000Z', '1st run ');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-26T16:25:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun, null, '3rd run');
+            });
+
+            it('schedule job daily with a start and end time', async () => {
+                context.properties = {
+                    scheduleType: 'days',
+                    time: '16:25',
+                    start: '2025-05-01 15:30',
+                    end: '2025-06-02 16:40'
+                };
+
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+
+                assert.equal(nextRun.toISOString(), '2025-05-01T16:25:00.000Z', '');
+            });
         });
 
-        it('schedule job daily at a specific time - starts tomorrow ', async () => {
+        describe('Istanbul (GMT+3)', () => {
 
-            context.properties = { scheduleType: 'days', time: '00:25' };
+            it('schedule job daily at a specific time + timezone', async () => {
+                context.properties = { scheduleType: 'days', time: '16:25', timezone: 'Europe/Istanbul' };
 
-            let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-            assert.equal(nextRun.toISOString(), '2025-04-26T00:25:00.000Z', '1st run ');
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-25T13:25:00.000Z', '');
+            });
 
-            nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
-            assert.equal(nextRun.toISOString(), '2025-04-27T00:25:00.000Z', '2nd run');
+            it('schedule job daily with a start time from start', async () => {
+                context.properties = {
+                    scheduleType: 'days', time: '16:25', timezone: 'Europe/Istanbul',
+                    start: '2025-05-01 15:30'
+                };
 
-            nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
-            assert.equal(nextRun.toISOString(), '2025-04-28T00:25:00.000Z', '3rd run');
-        });
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-01T13:25:00.000Z', '1st run ');
 
-        it('schedule job daily at a specific time - today', async () => {
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-02T13:25:00.000Z', '2nd run');
 
-            context.properties = { scheduleType: 'days', time: '16:25' };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-            assert.equal(nextRun.toISOString(), '2025-04-25T16:25:00.000Z', '');
-        });
-
-        it('schedule job daily at a specific time - next day', async () => {
-
-            context.properties = { scheduleType: 'days', time: '4:15' };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-            assert.equal(nextRun.toISOString(), '2025-04-26T04:15:00.000Z', '');
-        });
-
-        it('schedule job daily at a specific time + timezone', async () => {
-            context.properties = { scheduleType: 'days', time: '16:25', timezone: 'Europe/Istanbul' };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-            assert.equal(nextRun.toISOString(), '2025-04-25T13:25:00.000Z', '');
-        });
-
-        it('schedule job daily with a start time in the future', async () => {
-            context.properties = {
-                scheduleType: 'days',
-                time: '16:25',
-                start: '2025-05-01 15:30'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-05-01T16:25:00.000Z', '');
-        });
-
-        xit('schedule job daily with an end time before the next run', async () => {
-            context.properties = {
-                scheduleType: 'days',
-                time: '16:25',
-                end: '2025-06-02 16:40'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun, null, 'Next run should not be scheduled as it exceeds the end time.');
-        });
-
-        it('schedule job daily with a start and end time', async () => {
-            context.properties = {
-                scheduleType: 'days',
-                time: '16:25',
-                start: '2025-05-01 15:30',
-                end: '2025-06-02 16:40'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            console.log(nextRun);
-            assert.equal(nextRun.toISOString(), '2025-05-02T16:25:00.000Z', '');
-        });
-
-        it('schedule job daily with a start time from start, in Istanbul (GMT+3)', async () => {
-            context.properties = {
-                scheduleType: 'days',
-                time: '16:25',
-                start: '2025-05-01 15:30',
-                timezone: 'Europe/Istanbul' // GMT+3
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-05-01T13:25:00.000Z', '');
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-03T13:25:00.000Z', '3rd run');
+            });
         });
     });
 

@@ -65,6 +65,7 @@ module.exports = {
         }
 
         const startNormalized = start ? moment.tz(start, 'YYYY-MM-DD HH:mm', timezone) : null;
+        const endNormalized = end ? moment.tz(end, 'YYYY-MM-DD HH:mm', timezone) : null;
         const previousDateNormalized = previousDate ? moment(previousDate).tz(timezone) : null;
         const refDate = moment(previousDate || startNormalized || now).tz(timezone);
         const hour = parseInt(time.split(':')[0], 10);
@@ -123,7 +124,7 @@ module.exports = {
             nextRunLocalTime: nextRun.format()
         });
 
-        if (end && nextRun.isAfter(moment(end))) {
+        if (endNormalized && nextRun.isAfter(endNormalized)) {
             return null; // Next run exceeds the end time
         }
 
