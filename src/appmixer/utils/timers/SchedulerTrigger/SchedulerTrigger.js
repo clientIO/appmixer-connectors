@@ -67,24 +67,21 @@ module.exports = {
         const startNormalized = start ? moment.tz(start, 'YYYY-MM-DD HH:mm', timezone) : null;
         const endNormalized = end ? moment.tz(end, 'YYYY-MM-DD HH:mm', timezone) : null;
         const previousDateNormalized = previousDate ? moment(previousDate).tz(timezone) : null;
-        const refDate = moment(previousDate || startNormalized || now).tz(timezone);
         const hour = parseInt(time.split(':')[0], 10);
         const minute = parseInt(time.split(':')[1], 10);
+        const baseDate = previousDateNormalized || startNormalized || moment(now).tz(timezone);
 
         let nextRun;
 
         switch (scheduleType) {
             case 'custom':
-
-                if (start) {
-                    nextRun = moment.tz(start, 'YYYY-MM-DD HH:mm', timezone);
+                if (startNormalized && !previousDateNormalized) {
+                    nextRun = startNormalized.clone();
                 } else {
-                    nextRun = refDate.clone().add(customIntervalValue, customIntervalUnit);
+                    nextRun = baseDate.clone().add(customIntervalValue, customIntervalUnit);
                 }
                 break;
-
             case 'days':
-                const baseDate = previousDateNormalized || startNormalized || moment(now).tz(timezone);
                 nextRun = baseDate.clone()
                     .set({ hour, minute, second: 0, millisecond: 0 });
 
@@ -92,33 +89,26 @@ module.exports = {
                     nextRun.add(1, 'day');
                 }
                 break;
-
             case 'weeks':
-                const baseWeekDate = previousDateNormalized || startNormalized || moment(now).tz(timezone);
-                const daysOfWeekMoments = daysOfWeek.map(day => baseWeekDate.clone().set({
+                const daysOfWeekMoments = daysOfWeek.map(day => baseDate.clone().set({
                     hour, minute, second: 0, millisecond: 0
                 }).day(day.toLowerCase()));
 
-                console.log(baseWeekDate, daysOfWeekMoments);
-                nextRun = daysOfWeekMoments.find(day => day.isAfter(baseWeekDate)) || daysOfWeekMoments[0].add(1, 'week');
-                nextRun.set({
-                    hour, minute, second: 0, millisecond: 0
-                });
+                nextRun = daysOfWeekMoments.find(day => day.isAfter(baseDate)) || daysOfWeekMoments[0].add(1, 'week');
                 break;
-
             case 'months':
-                const dayOfMonth = daysOfMonth.includes('last day of the month') ?
-                    refDate.clone().endOf('month') :
-                    refDate.clone().set('date', Math.min(...daysOfMonth));
+                const isLastDay = daysOfMonth.includes('last day of the month');
+                nextRun = baseDate.clone().set('date', isLastDay ?
+                    baseDate.daysInMonth() :
+                    Math.min(...daysOfMonth)).set({ hour, minute, second: 0, millisecond: 0 });
 
-                nextRun = dayOfMonth.set({
-                    hour, minute, second: 0, millisecond: 0
-                });
-                if (nextRun.isBefore(now)) {
+                if (nextRun.isSameOrBefore(baseDate)) {
                     nextRun.add(1, 'month');
+                    if (isLastDay) {
+                        nextRun.set('date', nextRun.daysInMonth());
+                    }
                 }
                 break;
-
             default:
                 throw new Error(`Unsupported scheduleType: ${scheduleType}`);
         }
@@ -126,8 +116,7 @@ module.exports = {
         context.log({
             step: 'debug',
             previousDate,
-            refDate: refDate.toISOString(),
-            startNormalized: startNormalized?.toISOString(),
+            baseDate: baseDate.toISOString(),
             nextRunLocalTime: nextRun.format()
         });
 

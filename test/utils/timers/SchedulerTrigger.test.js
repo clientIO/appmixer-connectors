@@ -26,81 +26,87 @@ describe('utils.timers.SchedulerTrigger', () => {
 
     describe('utils.timers.SchedulerTrigger type months', () => {
 
-        it('schedule job on the 15th of the month at a specific time', async () => {
-            context.properties = {
-                scheduleType: 'months',
-                daysOfMonth: ['15'],
-                time: '16:25'
-            };
+        describe('GMT', () => {
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            it('schedule job on the 15th of the month at a specific time', async () => {
+                context.properties = {
+                    scheduleType: 'months', time: '16:25',
+                    daysOfMonth: ['15']
+                };
 
-            assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '');
-        });
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '1st run');
 
-        it('schedule job on the last day of the month at a specific time', async () => {
-            context.properties = {
-                scheduleType: 'months',
-                daysOfMonth: ['last day of the month'],
-                time: '16:25'
-            };
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-06-15T16:25:00.000Z', '2nd run');
+            });
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            it('schedule job on the last day of the month at a specific time', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    time: '16:25',
+                    daysOfMonth: ['last day of the month']
+                };
 
-            assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '');
-        });
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '');
 
-        it('schedule job on multiple days of the month at a specific time', async () => {
-            context.properties = {
-                scheduleType: 'months',
-                daysOfMonth: ['2', '8'],
-                time: '16:25'
-            };
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-31T16:25:00.000Z', '2nd run');
+            });
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            it('schedule job on multiple days of the month at a specific time', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['2', '8'],
+                    time: '16:25'
+                };
 
-            assert.equal(nextRun.toISOString(), '2025-05-02T16:25:00.000Z', '');
-        });
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
 
-        it('schedule job on the 15th of the month with a start time in the future', async () => {
-            context.properties = {
-                scheduleType: 'months',
-                daysOfMonth: ['15'],
-                time: '16:25',
-                start: '2025-05-01 00:00'
-            };
+                assert.equal(nextRun.toISOString(), '2025-05-02T16:25:00.000Z', '');
+            });
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            it('schedule job on the 15th of the month with a start time in the future', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['15'],
+                    time: '16:25',
+                    start: '2025-05-01 00:00'
+                };
 
-            assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '');
-        });
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
 
-        it('schedule job on the 15th of the month with an end time before the next run', async () => {
-            context.properties = {
-                scheduleType: 'months',
-                daysOfMonth: ['15'],
-                time: '16:25',
-                start: '2025-05-01 00:00'
-            };
+                assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '');
+            });
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            it('schedule job on the 15th of the month with an end time before the next run', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['15'],
+                    time: '16:25',
+                    start: '2025-05-01 00:00'
+                };
 
-            assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '');
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
 
-        });
+                assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '');
 
-        it('schedule job on the last day of the month with a start and end time', async () => {
-            context.properties = {
-                scheduleType: 'months',
-                daysOfMonth: ['last day of the month'],
-                time: '16:25',
-                start: '2025-04-28 00:00',
-                end: '2025-04-30 23:59'
-            };
+            });
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            it('schedule job on the last day of the month with a start and end time', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['last day of the month'],
+                    time: '16:25',
+                    start: '2025-04-28 00:00',
+                    end: '2025-04-30 23:59'
+                };
 
-            assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '');
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+
+                assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '');
+            });
         });
     });
 
@@ -286,110 +292,111 @@ describe('utils.timers.SchedulerTrigger', () => {
 
     describe('utils.timers.SchedulerTrigger type custom', () => {
 
-        it('schedule job 2 minute from start', async () => {
+        describe('GMT', () => {
 
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'minutes',
-                customIntervalValue: 2,
-                start: '2025-05-01 15:30'
-            };
+            it('schedule job 2 minute from start', async () => {
+                context.properties = {
+                    scheduleType: 'custom', customIntervalUnit: 'minutes', customIntervalValue: 2,
+                    start: '2025-05-01 15:30'
+                };
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-01T15:30:00.000Z', '1st run');
 
-            assert.equal(nextRun.toISOString(), '2025-05-01T15:30:00.000Z', '');
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-01T15:32:00.000Z', '2nd run');
+            });
+
+            it('schedule job 2 hours from now', async () => {
+                context.properties = {
+                    scheduleType: 'custom', customIntervalUnit: 'hours', customIntervalValue: 2
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-25T09:38:12.084Z', '1s run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-25T11:38:12.084Z', '2nd run');
+
+            });
+            it('schedule job 3 days from now', async () => {
+                context.properties = {
+                    scheduleType: 'custom',
+                    customIntervalUnit: 'days',
+                    customIntervalValue: 3
+                };
+
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+
+                assert.equal(nextRun.toISOString(), '2025-04-28T07:38:12.084Z', '');
+            });
+
+            it('schedule job 1 week from now', async () => {
+                context.properties = {
+                    scheduleType: 'custom',
+                    customIntervalUnit: 'weeks',
+                    customIntervalValue: 1
+                };
+
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+
+                assert.equal(nextRun.toISOString(), '2025-05-02T07:38:12.084Z', '');
+            });
+
+            it('schedule job 1 day from a specific start time, before end time', async () => {
+                context.properties = {
+                    scheduleType: 'custom',
+                    customIntervalUnit: 'days',
+                    customIntervalValue: 1,
+                    start: '2025-04-25T08:00:00.000Z',
+                    end: '2025-04-26T09:00:00.000Z'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-25T08:00:00.000Z', '1st run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-26T08:00:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun, null, '3rd run');
+            });
         });
 
-        it('schedule job 2 minute from start, in Istanbul (GMT+3)', async () => {
+        describe('Istanbul (GMT+3)', () => {
 
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'minutes',
-                customIntervalValue: 2,
-                start: '2025-05-01 15:30',
-                timezone: 'Europe/Istanbul' // GMT+3
-            };
+            it('schedule job 2 minute from start, in Istanbul (GMT+3)', async () => {
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                context.properties = {
+                    scheduleType: 'custom',
+                    customIntervalUnit: 'minutes',
+                    customIntervalValue: 2,
+                    start: '2025-05-01 15:30',
+                    timezone: 'Europe/Istanbul' // GMT+3
+                };
 
-            assert.equal(nextRun.toISOString(), '2025-05-01T12:30:00.000Z', '');
-        });
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-01T12:30:00.000Z', '');
 
-        it('schedule job 2 hours from now', async () => {
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'hours',
-                customIntervalValue: 2
-            };
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-01T12:32:00.000Z', '2nd run');
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+            });
 
-            assert.equal(nextRun.toISOString(), '2025-04-25T09:38:12.084Z', '');
-        });
+            it('schedule job 2 hours from start, in Istanbul time (GMT+3)', async () => {
+                context.properties = {
+                    scheduleType: 'custom',
+                    customIntervalUnit: 'hours',
+                    customIntervalValue: 2,
+                    start: '2025-05-01 15:30',
+                    timezone: 'Europe/Istanbul' // GMT+3
+                };
 
-        it('schedule job 2 hours from start, in Istanbul time (GMT+3)', async () => {
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'hours',
-                customIntervalValue: 2,
-                start: '2025-05-01 15:30',
-                timezone: 'Europe/Istanbul' // GMT+3
-            };
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
 
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-01T12:30:00.000Z', '');
+            });
 
-            assert.equal(nextRun.toISOString(), '2025-05-01T12:30:00.000Z', '');
-        });
-
-        it('schedule job 3 days from now', async () => {
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'days',
-                customIntervalValue: 3
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-04-28T07:38:12.084Z', '');
-        });
-
-        it('schedule job 1 week from now', async () => {
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'weeks',
-                customIntervalValue: 1
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-05-02T07:38:12.084Z', '');
-        });
-
-        it('schedule job 2 minutes from a specific start time', async () => {
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'minutes',
-                customIntervalValue: 2,
-                start: '2025-04-25T08:00:00.000Z'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-04-25T08:00:00.000Z', '');
-        });
-
-        it('schedule job 1 day from a specific start time, before end time', async () => {
-            context.properties = {
-                scheduleType: 'custom',
-                customIntervalUnit: 'days',
-                customIntervalValue: 1,
-                start: '2025-04-25T08:00:00.000Z',
-                end: '2025-04-28T08:00:00.000Z'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-04-25T08:00:00.000Z', 'now:' + NOW);
         });
     });
 });
