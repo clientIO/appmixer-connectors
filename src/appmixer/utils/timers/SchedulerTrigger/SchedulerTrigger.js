@@ -145,10 +145,6 @@ module.exports = {
         try {
             lock = await context.lock(context.componentId);
 
-            // const now = moment().toISOString();
-            // const nextDate = interval.next().toISOString();
-            // previousDate = previousDate ? moment(previousDate).toISOString() : null;
-
             const { state, timeoutId } = await context.loadState();
 
             if (timeoutId && context.messages.timeout.timeoutId !== timeoutId) {
@@ -191,14 +187,16 @@ module.exports = {
                 await lock.unlock();
             }
         }
-    }, generateInspector(context) {
+    },
+
+    generateInspector(context) {
 
         const { scheduleType = 'custom', time, start, end } = context.properties;
 
-        // const nextDate = `<br/>Next run:  <b>${new Date().toISOString()}</b>`;
+        const now = moment().toISOString();
+        const nextRun = this.getNextRun(context, { now });
 
-        const nextRun = this.getNextRun(context, { now: moment().toISOString() });
-        context.log({ step: 'inspector', properties: context.properties, nextRun });
+        context.log({ step: 'inspector', properties: context.properties, nextRun, now });
 
         const inputs = {
             scheduleType: {
