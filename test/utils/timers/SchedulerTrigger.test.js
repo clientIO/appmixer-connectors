@@ -115,66 +115,72 @@ describe('utils.timers.SchedulerTrigger', () => {
                 assert.equal(nextRun.toISOString(), '2025-04-28T16:25:00.000Z', '1st run - Monday, 28th April, 16:25');
 
                 nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
-                assert.equal(nextRun.toISOString(), '2025-04-26T16:25:00.000Z', '2nd run');
+                assert.equal(nextRun.toISOString(), '2025-05-05T16:25:00.000Z', '2nd run');
 
                 nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
-                assert.equal(nextRun.toISOString(), '2025-04-27T16:25:00.000Z', '3rd run');
-
+                assert.equal(nextRun.toISOString(), '2025-05-12T16:25:00.000Z', '3rd run');
             });
 
+            it('schedule job on Sunday with a start time in the future', async () => {
+                context.properties = {
+                    scheduleType: 'weeks', time: '16:25', daysOfWeek: ['sunday'],
+                    start: '2025-04-28 00:00'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-04T16:25:00.000Z', '');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-11T16:25:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-18T16:25:00.000Z', '3rd run');
+            });
+
+            it('schedule job on multiple days of the week at a specific time', async () => {
+                context.properties = {
+                    scheduleType: 'weeks', time: '16:25', daysOfWeek: ['monday', 'wednesday']
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-28T16:25:00.000Z', '');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '2nd run');
+            });
+
+            it('schedule job on Friday with an end time before the 2nd run', async () => {
+                context.properties = {
+                    scheduleType: 'weeks', time: '16:25', daysOfWeek: ['friday', 'sunday'],
+                    end: '2025-04-25 16:30'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-25T16:25:00.000Z', '');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun, null, '2nd run');
+            });
+
+            it('schedule job on Wednesday with a start and end time', async () => {
+                context.properties = {
+                    scheduleType: 'weeks',
+                    daysOfWeek: ['wednesday'],
+                    time: '16:25',
+                    start: '2025-04-29 00:00',
+                    end: '2025-05-01 23:59'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun, null, '2nd run');
+            });
         });
 
-        it('schedule job on multiple days of the week at a specific time', async () => {
-            context.properties = {
-                scheduleType: 'weeks',
-                daysOfWeek: ['monday', 'wednesday'],
-                time: '16:25'
-            };
-
-            let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-            assert.equal(nextRun.toISOString(), '2025-04-28T16:25:00.000Z', '');
-
-        });
-
-        it('schedule job on Sunday with a start time in the future', async () => {
-            context.properties = {
-                scheduleType: 'weeks',
-                daysOfWeek: ['sunday'],
-                time: '16:25',
-                start: '2025-04-28 00:00'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-04-27T16:25:00.000Z', '');
-        });
-
-        it('schedule job on Friday with an end time before the next run', async () => {
-            context.properties = {
-                scheduleType: 'weeks',
-                daysOfWeek: ['friday'],
-                time: '16:25',
-                end: '2025-04-25 12:00'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun, null, 'Next run should not be scheduled as it exceeds the end time.');
-        });
-
-        it('schedule job on Wednesday with a start and end time', async () => {
-            context.properties = {
-                scheduleType: 'weeks',
-                daysOfWeek: ['wednesday'],
-                time: '16:25',
-                start: '2025-04-29 00:00',
-                end: '2025-05-01 23:59'
-            };
-
-            const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
-
-            assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '');
-        });
     });
 
     describe('utils.timers.SchedulerTrigger type days', () => {

@@ -94,15 +94,22 @@ module.exports = {
                 break;
 
             case 'weeks':
-                const dayOfWeek = daysOfWeek.map(day => moment().tz(timezone).day(day.toLowerCase()));
-                nextRun = dayOfWeek.find(day => day.isAfter(now)) || dayOfWeek[0].add(1, 'week');
+                const baseWeekDate = previousDateNormalized || startNormalized || moment(now).tz(timezone);
+                const daysOfWeekMoments = daysOfWeek.map(day => baseWeekDate.clone().set({
+                    hour, minute, second: 0, millisecond: 0
+                }).day(day.toLowerCase()));
+
+                console.log(baseWeekDate, daysOfWeekMoments);
+                nextRun = daysOfWeekMoments.find(day => day.isAfter(baseWeekDate)) || daysOfWeekMoments[0].add(1, 'week');
                 nextRun.set({
                     hour, minute, second: 0, millisecond: 0
                 });
                 break;
 
             case 'months':
-                const dayOfMonth = daysOfMonth.includes('last day of the month') ? refDate.clone().endOf('month') : refDate.clone().set('date', Math.min(...daysOfMonth));
+                const dayOfMonth = daysOfMonth.includes('last day of the month') ?
+                    refDate.clone().endOf('month') :
+                    refDate.clone().set('date', Math.min(...daysOfMonth));
 
                 nextRun = dayOfMonth.set({
                     hour, minute, second: 0, millisecond: 0
