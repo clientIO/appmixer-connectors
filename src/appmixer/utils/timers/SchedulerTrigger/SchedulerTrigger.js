@@ -2,12 +2,6 @@
 // const parser = require('cron-parser');
 const moment = require('moment-timezone');
 
-const getExpression = properties => {
-
-    const { minute, hour, dayMonth, dayWeek } = properties;
-    return `${minute} ${hour} ${dayMonth} * ${dayWeek}`;
-};
-
 const isValidTimezone = (timezone) => {
 
     return !!moment.tz.zone(timezone);
@@ -26,13 +20,15 @@ module.exports = {
 
         if (context.messages.timeout) {
             const previousDate = context.messages.timeout.content.previousDate;
-            return this.scheduleJob(context, { previousDate, firstTime: false });
+            const now = moment().toISOString();
+            return this.scheduleJob(context, { now, previousDate, firstTime: false });
         }
     },
 
     async start(context) {
 
-        return this.scheduleJob(context, { previousDate: null, firstTime: true });
+        const now = moment().toISOString();
+        return this.scheduleJob(context, { now, previousDate: null, firstTime: true });
     },
 
     /**
@@ -40,9 +36,10 @@ module.exports = {
      * @param context
      * @param now ISO date string
      * @param previousDate ISO date string
+     * @param firstTime
      * @returns {moment.Moment|null}
      */
-    getNextRun(context, { now, previousDate }) {
+    getNextRun(context, { now, previousDate, firstTime = false }) {
 
         const {
             scheduleType = 'custom',
@@ -56,27 +53,29 @@ module.exports = {
             timezone = 'GMT'
         } = context.properties;
 
-        if (start && moment(start).isBefore(moment(now))) {
-            throw new Error(`Start date (${start}) cannot be in the past.`);
+        const startLocal = start ? moment.tz(start, 'YYYY-MM-DD HH:mm', timezone) : null;
+        const endLocal = end ? moment.tz(end, 'YYYY-MM-DD HH:mm', timezone) : null;
+        const nowLocal = moment(now).tz(timezone);
+
+        if (firstTime && startLocal && startLocal.isBefore(nowLocal)) {
+            throw new Error(`Start date (${startLocal}) cannot be in the past (now: ${nowLocal}).`);
         }
 
-        if (start && end && moment(start).isAfter(moment(end))) {
-            throw new Error(`Start date (${start}) cannot be after end (${end}).`);
+        if (firstTime && startLocal && endLocal && startLocal.isAfter(endLocal)) {
+            throw new Error(`Start date (${startLocal}) cannot be after end: ${endLocal}, now: ${nowLocal}).`);
         }
 
-        const startNormalized = start ? moment.tz(start, 'YYYY-MM-DD HH:mm', timezone) : null;
-        const endNormalized = end ? moment.tz(end, 'YYYY-MM-DD HH:mm', timezone) : null;
-        const previousDateNormalized = previousDate ? moment(previousDate).tz(timezone) : null;
+        const previousDateLocal = previousDate ? moment(previousDate).tz(timezone) : null;
         const hour = parseInt(time.split(':')[0], 10);
         const minute = parseInt(time.split(':')[1], 10);
-        const baseDate = previousDateNormalized || startNormalized || moment(now).tz(timezone);
+        const baseDate = previousDateLocal || startLocal || nowLocal;
 
         let nextRun;
 
         switch (scheduleType) {
             case 'custom':
-                if (startNormalized && !previousDateNormalized) {
-                    nextRun = startNormalized.clone();
+                if (startLocal && !previousDateLocal) {
+                    nextRun = startLocal.clone();
                 } else {
                     nextRun = baseDate.clone().add(customIntervalValue, customIntervalUnit);
                 }
@@ -98,9 +97,12 @@ module.exports = {
                 break;
             case 'months':
                 const isLastDay = daysOfMonth.includes('last day of the month');
-                nextRun = baseDate.clone().set('date', isLastDay ?
-                    baseDate.daysInMonth() :
-                    Math.min(...daysOfMonth)).set({ hour, minute, second: 0, millisecond: 0 });
+                nextRun = baseDate.clone().set('date', isLastDay ? baseDate.daysInMonth() : Math.min(...daysOfMonth)).set({
+                    hour,
+                    minute,
+                    second: 0,
+                    millisecond: 0
+                });
 
                 if (nextRun.isSameOrBefore(baseDate)) {
                     nextRun.add(1, 'month');
@@ -116,11 +118,17 @@ module.exports = {
         context.log({
             step: 'debug',
             previousDate,
+            now: now,
+            nowLocal: nowLocal.format(),
+            startLocal: start,
+            startGMT: startLocal ? startLocal.toISOString() : null,
             baseDate: baseDate.toISOString(),
-            nextRunLocalTime: nextRun.format()
+            baseDateLocal: baseDate.format(),
+            nextRunLocalTime: nextRun.format(),
+            properties: context.properties
         });
 
-        if (endNormalized && nextRun.isAfter(endNormalized)) {
+        if (endLocal && nextRun.isAfter(endLocal)) {
             return null; // Next run exceeds the end time
         }
 
@@ -130,6 +138,7 @@ module.exports = {
     /**
      * Has to be an atomic operation.
      * @param context
+     * @param now
      * @param previousDate
      * @param firstTime
      * @returns {Promise<*>}
@@ -137,7 +146,7 @@ module.exports = {
     async scheduleJob(context, { now, previousDate = null, firstTime = false }) {
 
         let lock;
-        const { timezone } = context.properties;
+        const { timezone = 'GMT' } = context.properties;
         if (timezone && !isValidTimezone(timezone)) {
             throw new context.CancelError('Invalid timezone');
         }
@@ -146,6 +155,8 @@ module.exports = {
             lock = await context.lock(context.componentId);
 
             const { state, timeoutId } = await context.loadState();
+
+            const nextDate = this.getNextRun(context, { now, previousDate, firstTime });
 
             if (timeoutId && context.messages.timeout.timeoutId !== timeoutId) {
                 // handling the case, when timeout has been set, but system crashed, and the timeoutId
@@ -164,23 +175,39 @@ module.exports = {
                 case 'sendingJson':
                     // if previous timeout crashed while sending json to the output port, we don't know if the
                     // json was sent, or not, better to send it twice, than none
-                    if (!firstTime || context.properties.immediate) {
+                    if (nextDate && (!firstTime || context.properties.immediate)) {
                         // if the system crashed not, the timeout will be re-delivered into `receive()` method,
                         // the state will be `sendingJson` and now, we need to send json to output port
-                        await context.sendJson({ previousDate, now, nextDate }, 'out');
+                        await context.sendJson({
+                            previousDate,
+                            nextDateGMT: nextDate.toISOString(),
+                            nextDateLocal: nextDate.format(),
+                            timezone
+                        }, 'out');
                     }
+                    // state has changed to 'JsonSent', if it crashes at this point, the timeout will be retried,
+                    // but the JSON won't be sent again to the output port, instead we will create the followup
+                    // timeout
                     await context.stateSet('state', 'JsonSent');
-                // state has changed to 'JsonSent', if it crashes at this point, the timeout will be retried,
-                // but the JSON won't be sent again to the output port, instead we will create the followup
-                // timeout
 
                 case 'JsonSent':
-                    const diff = moment(nextDate).diff(now);
-                    const newTimeoutId = await context.setTimeout({ previousDate: now, firstTime: false }, diff);
-                    // the system can crash at this point, timeout is set, but that information won't be stored
-                    // in the 'state' and the system will trigger the 'receive()' with the original timeout again,
-                    // such case is handled in the "case 'timeoutSet':", see above
-                    await context.saveState({ state: 'timeoutSet', timeoutId: newTimeoutId });
+                    if (nextDate) {
+                        const diff = moment(nextDate).diff(previousDate || now);
+
+                        context.log({
+                            step: 'DIFF', nextDate: nextDate.toISOString(), diff, previousDate: previousDate || now
+                        });
+
+                        const newTimeoutId = await context.setTimeout({
+                            previousDate: nextDate.toISOString(), firstTime: false
+                        }, diff);
+                        // the system can crash at this point, timeout is set, but that information won't be stored
+                        // in the 'state' and the system will trigger the 'receive()' with the original timeout again,
+                        // such case is handled in the "case 'timeoutSet':", see above
+                        await context.saveState({ state: 'timeoutSet', timeoutId: newTimeoutId });
+                    } else {
+                        context.log({ step: 'end', nextDate, end: context.properties.end });
+                    }
             }
         } finally {
             if (lock) {
@@ -191,20 +218,22 @@ module.exports = {
 
     generateInspector(context) {
 
-        const { scheduleType = 'custom', time, start, end } = context.properties;
+        const { end } = context.properties;
 
         const now = moment().toISOString();
-        const nextRun = this.getNextRun(context, { now });
+        const nextRun = this.getNextRun(context, { now, firstTime: true });
 
         context.log({ step: 'inspector', properties: context.properties, nextRun, now });
 
+        if (nextRun === null && end) {
+            throw new Error('No run detected. Please update the end date/time or revise the schedule settings.');
+        }
+
         const inputs = {
             scheduleType: {
-                group: 'schedule',
-                type: 'select',
-                index: 0,
-                label: 'Repeat', // tooltip: `Choose how often to repeat the task. ${nextDate}`,
+                group: 'schedule', type: 'select', index: 0, label: 'Repeat', // tooltip: `Choose how often to repeat the task. ${nextDate}`,
                 tooltip: 'Choose how often to repeat the task.',
+                defaultValue: 'custom',
                 options: [{
                     label: 'Daily', value: 'days'
                 }, {

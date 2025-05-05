@@ -1,6 +1,6 @@
 {
     "name": "appmixer.utils.timers.SchedulerTrigger",
-    "author": "Appmixer <infio@appmixer.com>",
+    "author": "Appmixer <info@appmixer.com>",
     "description": "This trigger schedules jobs to run periodically at fixed times.",
     "label": "Scheduler",
     "version": "1.1.0",
@@ -23,8 +23,37 @@
             }
         },
         "schema": {
-            "properties": { },
-            "required": []
+            "properties": {
+                "scheduleType": { "type": "string" },
+                "daysOfWeek": { "type": "string" },
+                "daysOfMonth": { "type": "string" },
+                "customIntervalUnit": { "type": "string" },
+                "customIntervalValue": { "type": "integer" },
+                "time": { "type": "string" },
+                "immediate": { "type": "boolean" },
+                "start": { "type": "string" },
+                "end": { "type": "string" },
+                "timezone": { "type": "string" }
+            },
+            "required": ["scheduleType"],
+            "dependencies": {
+                "scheduleType": {
+                    "oneOf": [
+                        {
+                            "properties": {
+                                "scheduleType": { "enum": ["custom"] }
+                            },
+                            "required": ["customIntervalUnit", "customIntervalValue"]
+                        },
+                        {
+                            "properties": {
+                                "scheduleType": { "enum": ["months"] }
+                            },
+                            "required": ["daysOfMonth"]
+                        }
+                    ]
+                }
+            }
         },
         "inspector": {
             "groups": {
@@ -162,6 +191,9 @@
                     "type": "date-time",
                     "label": "Start",
                     "tooltip": "Set a specific date and time to start the schedule.",
+                    "config": {
+                        "format": "YYYY-MM-DD HH:mm z"
+                    },
                     "group": "advanced",
                     "index": 11
                 },
@@ -169,6 +201,9 @@
                     "type": "date-time",
                     "label": "End",
                     "tooltip": "Set a specific date and time to stop the schedule.",
+                    "config": {
+                        "format": "YYYY-MM-DD HH:mm z"
+                    },
                     "group": "advanced",
                     "index": 12
                 },
@@ -200,21 +235,24 @@
                         "type": "string",
                         "format": "date-time"
                     },
-                    "now": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
                     "nextDate": {
                         "type": "string",
                         "format": "date-time"
                     }
-                },
-                "required": ["lastTick", "elapsed", "now"]
+                }
             },
             "options": [
                 {
-                    "label": "Now",
-                    "value": "now"
+                    "label": "Next Date GMT",
+                    "value": "nextDateGMT"
+                },
+                {
+                    "label": "Next Date Localized",
+                    "value": "nextDateLocal"
+                },
+                {
+                    "label": "Timezone",
+                    "value": "timezone"
                 },
                 {
                     "label": "Previous Date",
