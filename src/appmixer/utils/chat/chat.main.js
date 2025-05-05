@@ -102,7 +102,7 @@ async function main() {
 async function pollForMessages() {
     while (true) {
         await loadMessages(chat.getConfig().activeChat);
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
 }
 
