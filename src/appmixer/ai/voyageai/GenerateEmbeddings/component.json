@@ -1,0 +1,85 @@
+{
+    "name": "appmixer.ai.voyageai.GenerateEmbeddings",
+    "author": "Appmixer <info@appmixer.com>",
+    "label": "Generate Embeddings",
+    "description": "Generate embeddings for text data. The text is split into chunks and embedding is returned for each chunk. <br/>The returned embeddings is an array of the form: <code>[{ \"index\": 0, \"text\": \"chunk1\", \"vector\": [1.1, 1.2, 1.3] }]</code>.<br/>TIP: use the <b>JSONata modifier</b> to convert the embeddings array into custom formats. For convenience, the component also returns the first vector in the embeddings array which is useful when querying vector databases to find relevant chunks.",
+    "auth": {
+        "service": "appmixer:ai:voyageai"
+    },
+    "inPorts": [{
+        "name": "in",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string", "maxLength": 512000 },
+                "model": { "type": "string" },
+                "chunkSize": { "type": "integer" },
+                "chunkOverlap": { "type": "integer" }
+            },
+            "required": ["text"]
+        },
+        "inspector": {
+            "inputs": {
+                "text": {
+                    "type": "textarea",
+                    "label": "Text",
+                    "tooltip": "Enter the text to generate embeddings for. The text will be split into chunks and embeddings will be generated for each chunk. The maximum length is 512,000 characters. If you need more than 512,000 characters, use the 'Generate Embeddings From File' component.",
+                    "index": 1
+                },
+                "model": {
+                    "type": "text",
+                    "index": 2,
+                    "label": "Model",
+                    "tooltip": "ID of the model to use.",
+                    "defaultValue": "voyage-3"
+                },
+                "chunkSize": {
+                    "type": "number",
+                    "label": "Chunk Size",
+                    "defaultValue": 500,
+                    "tooltip": "Maximum size of each chunk for text splitting. The default is 500.",
+                    "index": 3
+                },
+                "chunkOverlap": {
+                    "type": "number",
+                    "label": "Chunk Overlap",
+                    "defaultValue": 50,
+                    "tooltip": "Overlap between chunks for text splitting to maintain context. The default is 50.",
+                    "index": 4
+                }
+            }
+        }
+    }],
+    "outPorts": [{
+        "name": "out",
+        "options": [{
+            "label": "Embeddings",
+            "value": "embeddings",
+            "schema": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "index": { "type": "integer" },
+                        "vector": { "type": "array", "items": { "type": "number" } },
+                        "text": { "type": "string" }
+                    }
+                },
+                "examples": [
+                    [{ "index": 0, "text": "chunk1", "vector": [1.1, 1.2, 1.3] }, { "index": 1, "text": "chunk2", "vector": [2.1, 2.2, 2.3] }]
+                ]
+            }
+        }, {
+            "label": "First Vector",
+            "value": "firstVector",
+            "schema": {
+                "type": "array",
+                "items": { "type": "number" },
+                "examples": [
+                    [-0.0120379254, -0.0376950279, -0.0133513855, -0.0365983546, -0.0247007012, 0.0158507861, -0.0143460445, 0.00486809108]
+                ]
+            }
+        }]
+    }],
+    "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABsAAAAcCAMAAACnDzTfAAAAe1BMVEX///+1wsNRbXFTcHKhsbP+//6HnJ5NaW2yv8Hp7e4rT1MAERlnfYD2+fnw8/M3VVghRksAGCA/WFvO19gALjOTp6khS0+Uo6VtgoQFPkMAGyJUam3b4eLG0NEqSU19kpUGMziAlZdedHZ0io0cP0MSRUoUNzwDOkAAIicmm9pmAAAAnklEQVR4AdXLtQGDAAAAwcfdHaL4/gvGPdBGrj/+iiBKMleKquncGaZlO1y4nm/wQA7CiAshTnjkpnGmcOLkhcETtawWnCxXa54t/I18bmoR8czZBrUBsAgbhxdRsVkCyMWSV24T2C4YWu7yRmg3EQidwDvDLhtcuzaYIPeDEXUyUxZVoG61BZOy2Pczpi280VswYxtsmbOwF8xy+KY9uwcIkAVT5OUAAAAASUVORK5CYII="
+}

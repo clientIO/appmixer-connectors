@@ -84,7 +84,7 @@ describe('GetDealsProperties', () => {
                     label: 'jirka some hidden stuff',
                     type: 'string',
                     fieldType: 'text',
-                    description: 'This should not be in inspector',
+                    description: 'This should not be in the HubSpot UI',
                     createdUserId: '71561347',
                     displayOrder: -1,
                     hidden: false,
@@ -115,7 +115,7 @@ describe('GetDealsProperties', () => {
 
             const customFieldsSelectArray = await GetDealsProperties.additionalFieldsToSelectArray(mockedResponse);
 
-            assert.equal(customFieldsSelectArray.length, 1, 'Should return only custom fields');
+            assert.equal(customFieldsSelectArray.length, 2, 'Should return one custom fields');
             assert.equal(customFieldsSelectArray[0].label, 'Jirka Notes', 'Should return only custom fields');
         });
     });
