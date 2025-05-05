@@ -19,7 +19,7 @@ module.exports = {
         } = context.messages.in.content;
 
         const chunks = await this.splitText(text, chunkSize, chunkOverlap);
-        await context.log({ step: 'split-text', message: 'Text succesfully split into chunks.', chunksLength: chunks.length });
+        await context.log({ step: 'split-text', message: 'Text successfully split into chunks.', chunksLength: chunks.length });
 
         const apiKey = context.auth.apiKey;
         const client = new OpenAI({ apiKey });
