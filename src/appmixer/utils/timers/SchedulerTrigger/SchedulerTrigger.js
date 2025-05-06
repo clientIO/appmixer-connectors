@@ -209,8 +209,8 @@ module.exports = {
 
         context.log({
             step: 'preview',
-            nextDateGMT: nextDate.toISOString(),
-            nextDateLocal: nextDate.format(),
+            nextDateGMT: nextDate ? nextDate.toISOString() : null,
+            nextDateLocal: nextDate ? nextDate.format() : null,
             timezone: timezone || 'GMT'
         });
 
