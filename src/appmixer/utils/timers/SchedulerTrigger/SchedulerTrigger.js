@@ -222,7 +222,7 @@ module.exports = {
             scheduleType: {
                 label: 'Repeat',
                 // TODO: replace with dynamic tooltip (https://github.com/clientIO/appmixer-fe/issues/4687).
-                // tooltip: `Choose how often to repeat the task. ${nextDate}`,
+                // tooltip: `Choose how often to repeat the task. ${nextDate.format('HH:mm DD:MM:YYYY')}`,
                 tooltip: 'Choose how often to repeat the task.'
             }
         };
