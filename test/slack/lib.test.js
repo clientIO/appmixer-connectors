@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const fs = require('fs');
 const { cwd } = require('process');
 const assert = require('assert');
@@ -134,6 +135,36 @@ describe('lib.js', () => {
                 Error,
                 'Bot token is required for sending messages as bot. Please provide it in the connector configuration.'
             );
+        });
+
+        it('should send message with thread_ts and reply_broadcast', async () => {
+            context.config.botToken = 'testBotToken';
+            const thread_ts = '1234567890.123456';
+            const reply_broadcast = true;
+            const result = await sendMessage(context, channelId, message, true, thread_ts, reply_broadcast);
+            assert.equal(mockWebClient.chat.postMessage.callCount, 1);
+            assert.deepEqual(result, { text: 'testMessage' });
+            assert.deepEqual(mockWebClient.chat.postMessage.getCall(0).args[0], {
+                icon_url: 'https://example.com/icon.png',
+                username: 'MySlackBot',
+                channel: channelId,
+                text: message,
+                thread_ts,
+                reply_broadcast
+            });
+        });
+
+        it('should send message without thread_ts and reply_broadcast', async () => {
+            context.config.botToken = 'testBotToken';
+            const result = await sendMessage(context, channelId, message, true);
+            assert.equal(mockWebClient.chat.postMessage.callCount, 1);
+            assert.deepEqual(result, { text: 'testMessage' });
+            assert.deepEqual(mockWebClient.chat.postMessage.getCall(0).args[0], {
+                icon_url: 'https://example.com/icon.png',
+                username: 'MySlackBot',
+                channel: channelId,
+                text: message
+            });
         });
     });
 });

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 'use strict';
 const lib = require('../../lib');
 
@@ -9,9 +10,9 @@ module.exports = {
 
     async receive(context) {
 
-        const { channelId, text, asBot } = context.messages.message.content;
+        const { channelId, text, asBot, thread_ts, reply_broadcast } = context.messages.message.content;
 
-        const message = await lib.sendMessage(context, channelId, text, asBot);
+        const message = await lib.sendMessage(context, channelId, text, asBot, thread_ts, reply_broadcast);
         return context.sendJson(message, 'newMessage');
     }
 };
