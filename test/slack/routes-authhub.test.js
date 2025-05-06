@@ -22,7 +22,7 @@ require.cache[require.resolve('@slack/web-api')].exports = {
 
 const routes = require('../../src/appmixer/slack/routes.js');
 
-describe.only('POST /send-message handler', () => {
+describe('POST /send-message handler', () => {
 
     let context = testUtils.createMockContext();
     // Stub the h.response object.
