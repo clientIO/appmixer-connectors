@@ -66,8 +66,8 @@ module.exports = {
         }
 
         const previousDateLocal = previousDate ? moment(previousDate).tz(timezone) : null;
-        const hour = parseInt(time.split(':')[0], 10);
-        const minute = parseInt(time.split(':')[1], 10);
+        const hour = parseInt(time.split(':')[0], 10) || 0;
+        const minute = parseInt(time.split(':')[1], 10) || 0;
         const baseDate = previousDateLocal || startLocal || nowLocal;
 
         let nextRun;
@@ -118,7 +118,7 @@ module.exports = {
         context.log({
             step: 'debug',
             previousDate,
-            now: now,
+            now,
             nowLocal: nowLocal.format(),
             startLocal: start,
             startGMT: startLocal ? startLocal.toISOString() : null,
@@ -194,10 +194,6 @@ module.exports = {
                     if (nextDate) {
                         const diff = moment(nextDate).diff(previousDate || now);
 
-                        context.log({
-                            step: 'DIFF', nextDate: nextDate.toISOString(), diff, previousDate: previousDate || now
-                        });
-
                         const newTimeoutId = await context.setTimeout({
                             previousDate: nextDate.toISOString(), firstTime: false
                         }, diff);
@@ -218,33 +214,31 @@ module.exports = {
 
     generateInspector(context) {
 
-        const { end } = context.properties;
+        const { end, timezone } = context.properties;
 
         const now = moment().toISOString();
-        const nextRun = this.getNextRun(context, { now, firstTime: true });
+        const nextDate = this.getNextRun(context, { now, firstTime: true });
 
-        context.log({ step: 'inspector', properties: context.properties, nextRun, now });
+        context.log({
+            step: 'preview',
+            nextDateGMT: nextDate.toISOString(),
+            nextDateLocal: nextDate.format(),
+            timezone: timezone || 'GMT'
+        });
 
-        if (nextRun === null && end) {
+        if (nextDate === null && end) {
             throw new Error('No run detected. Please update the end date/time or revise the schedule settings.');
         }
 
         const inputs = {
             scheduleType: {
-                group: 'schedule', type: 'select', index: 0, label: 'Repeat', // tooltip: `Choose how often to repeat the task. ${nextDate}`,
-                tooltip: 'Choose how often to repeat the task.',
-                defaultValue: 'custom',
-                options: [{
-                    label: 'Daily', value: 'days'
-                }, {
-                    label: 'Days of Week', value: 'weeks'
-                }, {
-                    label: 'Days of Month', value: 'months'
-                }, {
-                    label: 'Custom Interval', value: 'custom'
-                }]
+                label: 'Repeat',
+                // TODO: replace with dynamic tooltip (https://github.com/clientIO/appmixer-fe/issues/4687).
+                // tooltip: `Choose how often to repeat the task. ${nextDate}`,
+                tooltip: 'Choose how often to repeat the task.'
             }
         };
+
         return context.sendJson({ inputs }, 'out');
     }
 

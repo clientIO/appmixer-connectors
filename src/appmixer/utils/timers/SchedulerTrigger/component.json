@@ -1,7 +1,7 @@
 {
     "name": "appmixer.utils.timers.SchedulerTrigger",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "This trigger schedules jobs to run periodically at fixed times.",
+    "description": "Schedule jobs to run periodically based on various time intervals, such as daily, weekly, monthly, or custom intervals. It supports advanced configurations like start and end times, time zones, and immediate triggering.",
     "label": "Scheduler",
     "version": "1.1.0",
     "properties": {
@@ -25,8 +25,8 @@
         "schema": {
             "properties": {
                 "scheduleType": { "type": "string" },
-                "daysOfWeek": { "type": "string" },
-                "daysOfMonth": { "type": "string" },
+                "daysOfWeek": { "type": "array"  },
+                "daysOfMonth": { "type": "array" },
                 "customIntervalUnit": { "type": "string" },
                 "customIntervalValue": { "type": "integer" },
                 "time": { "type": "string" },
@@ -36,24 +36,17 @@
                 "timezone": { "type": "string" }
             },
             "required": ["scheduleType"],
-            "dependencies": {
-                "scheduleType": {
-                    "oneOf": [
-                        {
-                            "properties": {
-                                "scheduleType": { "enum": ["custom"] }
-                            },
-                            "required": ["customIntervalUnit", "customIntervalValue"]
-                        },
-                        {
-                            "properties": {
-                                "scheduleType": { "enum": ["months"] }
-                            },
-                            "required": ["daysOfMonth"]
-                        }
-                    ]
+            "anyOf": [
+                {
+                    "required": ["customIntervalUnit", "customIntervalValue"]
+                },
+                {
+                    "required": ["daysOfWeek"]
+                },
+                {
+                    "required": ["daysOfMonth"]
                 }
-            }
+            ]
         },
         "inspector": {
             "groups": {
@@ -63,6 +56,23 @@
                 }
             },
             "inputs": {
+                "scheduleType": {
+                    "group": "schedule",
+                    "type": "select",
+                    "index": 0,
+                    "label": "Repeat",
+                    "tooltip": "Choose how often to repeat the task.",
+                    "defaultValue": "custom",
+                    "options": [{
+                        "label": "Daily", "value": "days"
+                    }, {
+                        "label": "Days of Week", "value": "weeks"
+                    }, {
+                        "label": "Days of Month", "value": "months"
+                    }, {
+                        "label": "Custom Interval", "value": "custom"
+                    }]
+                },
                 "daysOfWeek": {
                     "type": "multiselect",
                     "label": "Days of Week",
@@ -173,7 +183,7 @@
                 "time": {
                     "type": "text",
                     "label": "Time",
-                    "tooltip": "Time of day in HH:mm format (e.g., 14:30).",
+                    "tooltip": "Time of day in HH:mm format (e.g., 14:30). When not set, the job will run at the start of the day (00:00).",
                     "when": {
                         "nin": { "./scheduleType": ["custom"] }
                     },
