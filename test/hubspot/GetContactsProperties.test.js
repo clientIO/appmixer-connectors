@@ -88,7 +88,7 @@ describe('GetContactsProperties', () => {
                     label: 'jirka some hidden stuff',
                     type: 'string',
                     fieldType: 'text',
-                    description: 'This should not be in inspector',
+                    description: 'This is not visible in the HubSpot UI',
                     createdUserId: '71561347',
                     displayOrder: -1,
                     hidden: false,
@@ -120,7 +120,7 @@ describe('GetContactsProperties', () => {
             // eslint-disable-next-line max-len
             const additionalFieldsSelectArray = await GetContactsProperties.additionalFieldsToSelectArray(mockedResponse);
 
-            assert.equal(additionalFieldsSelectArray.length, 3, 'Should return custom and HubSpot fields');
+            assert.equal(additionalFieldsSelectArray.length, 4, 'Should return custom and HubSpot fields');
             assert.equal(additionalFieldsSelectArray[0].label, 'Jirka Notes', 'Should return only custom fields');
         });
     });
