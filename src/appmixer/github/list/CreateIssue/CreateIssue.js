@@ -12,11 +12,6 @@ module.exports = {
         let repositoryId = context.properties.repositoryId;
         let issue = context.messages.issue.content;
 
-        if (issue.labelId) {
-            issue.labels = [issue.labelId];
-            delete issue.labelId;
-        }
-
         const { data } = await lib.apiRequest(context, `repos/${repositoryId}/issues`, {
             method: 'POST',
             body: issue

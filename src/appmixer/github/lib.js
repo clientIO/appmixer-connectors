@@ -18,7 +18,10 @@ module.exports = {
                 'Authorization': `Bearer ${context.accessToken || context.auth?.accessToken}`
             },
             data: body,
-            params
+            params: {
+                ...params,
+                per_page: 100
+            }
         };
 
         return await context.httpRequest(options);

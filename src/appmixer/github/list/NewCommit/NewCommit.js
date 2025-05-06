@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
 const Promise = require('bluebird');
 
 /**
@@ -10,30 +10,21 @@ module.exports = {
 
     async tick(context) {
 
-        let { repositoryId, branchId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
+        const { repositoryId, branchId } = context.properties;
 
-        const res = await commons.getAll(
-            github,
-            'repos',
-            'listCommits',
-            commons.buildUserRepoRequest(repositoryId, { 'sha': branchId })
-        );
-
-        let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-        let actual = new Set();
-        let diff = new Set();
-
-        if (Array.isArray(res)) {
-            res.forEach(commons.processItems.bind(null, known, actual, diff, 'sha'));
+        const params = {};
+        if (branchId) {
+            params.sha = branchId;
         }
 
-        if (diff.size) {
-            await Promise.map(diff, commit => {
-                return context.sendJson(commit, 'commit');
-            });
+        const res = await lib.apiRequest(context, `repos/${repositoryId}/commits`, { params });
+
+        const known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
+
+        const { diff, actual } = lib.getNewItems(known, res.data, 'sha');
+        if (diff.length) {
+            await Promise.map(diff, commit => context.sendJson(commit, 'commit'));
         }
-        await context.saveState({ known: Array.from(actual) });
+        await context.saveState({ known: actual });
     }
 };
-
