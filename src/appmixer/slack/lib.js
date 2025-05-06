@@ -14,9 +14,11 @@ module.exports = {
      * @param {string} channelId
      * @param {string} message
      * @param {boolean} asBot
+     * @param {string} thread_ts
+     * @param {boolean} reply_broadcast
      * @return {Promise<*>}
      */
-    async sendMessage(context, channelId, message, asBot = false) {
+    async sendMessage(context, channelId, message, asBot = false, thread_ts, reply_broadcast) {
 
         let token = context.auth.accessToken;
 
@@ -49,7 +51,9 @@ module.exports = {
                     iconUrl,
                     username,
                     channelId,
-                    text: entities.decode(message)
+                    text: entities.decode(message),
+                    ...(thread_ts ? { thread_ts } : {}),
+                    ...(typeof reply_broadcast === 'boolean' ? { reply_broadcast } : {})
                 }
             });
 
@@ -64,7 +68,9 @@ module.exports = {
             icon_url: iconUrl,
             username,
             channel: channelId,
-            text: entities.decode(message)
+            text: entities.decode(message),
+            ...(thread_ts ? { thread_ts } : {}),
+            ...(typeof reply_broadcast === 'boolean' ? { reply_broadcast } : {})
         });
 
         return response.message;

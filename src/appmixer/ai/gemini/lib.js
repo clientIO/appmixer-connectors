@@ -95,7 +95,7 @@ module.exports = {
         } = input;
 
         const chunks = await this.splitText(text, chunkSize, chunkOverlap);
-        await context.log({ step: 'split-text', message: 'Text succesfully split into chunks.', chunksLength: chunks.length });
+        await context.log({ step: 'split-text', message: 'Text successfully split into chunks.', chunksLength: chunks.length });
 
         // Process chunks in batches.
         // the batch size is calculated based on the chunk size and the maximum input length in

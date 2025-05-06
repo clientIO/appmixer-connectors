@@ -45,7 +45,7 @@ module.exports = {
         const chunks = await this.splitText(text, chunkSize, chunkOverlap);
         await context.log({
             step: 'split-text',
-            message: 'Text succesfully split into chunks.',
+            message: 'Text successfully split into chunks.',
             chunksLength: chunks.length,
             textLength: text.length
         });
