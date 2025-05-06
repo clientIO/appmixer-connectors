@@ -93,6 +93,7 @@ module.exports = {
                     hour, minute, second: 0, millisecond: 0
                 }).day(day.toLowerCase()));
 
+                daysOfWeekMoments.sort((a, b) => a.diff(baseDate) - b.diff(baseDate));
                 nextRun = daysOfWeekMoments.find(day => day.isAfter(baseDate)) || daysOfWeekMoments[0].add(1, 'week');
                 break;
             case 'months':
@@ -114,19 +115,6 @@ module.exports = {
             default:
                 throw new Error(`Unsupported scheduleType: ${scheduleType}`);
         }
-
-        context.log({
-            step: 'debug',
-            previousDate,
-            now,
-            nowLocal: nowLocal.format(),
-            startLocal: start,
-            startGMT: startLocal ? startLocal.toISOString() : null,
-            baseDate: baseDate.toISOString(),
-            baseDateLocal: baseDate.format(),
-            nextRunLocalTime: nextRun.format(),
-            properties: context.properties
-        });
 
         if (endLocal && nextRun.isAfter(endLocal)) {
             return null; // Next run exceeds the end time

@@ -114,6 +114,19 @@ describe('utils.timers.SchedulerTrigger', () => {
 
         describe('GMT', () => {
 
+            it('schedule 1st job on Sunday - weekdays are not properly sorted. It should trigger at closest day.', async () => {
+                context.properties = { scheduleType: 'weeks', daysOfWeek: ['monday', 'sunday'] };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-27T00:00:00.000Z', '1st run - sunday');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-04-28T00:00:00.000Z', '2nd run - monday');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-04T00:00:00.000Z', '3rd run - next sunday');
+            });
+
             it('schedule job on Monday at a specific time', async () => {
                 context.properties = { scheduleType: 'weeks', time: '16:25', daysOfWeek: ['monday'] };
 
