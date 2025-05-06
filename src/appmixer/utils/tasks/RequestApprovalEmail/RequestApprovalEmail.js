@@ -1,6 +1,8 @@
 'use strict';
 
 const mailchimp = require('@mailchimp/mailchimp_transactional');
+const config = require('../config');
+const marked = require('marked');
 const { URL } = require('url');
 const { URLSearchParams } = require('url');
 
@@ -21,7 +23,7 @@ const prepareMessage = (context, emailForApproval, data, variables) => {
             <h2 style="width: 100%; margin: 45px 0 15px; text-align: left; color: #050505;font-size: 14px;opacity: 0.9;"> {{task_title}}</h2> 
             <div style="width: 100%;border-radius: 3px;border:1px solid #ECECEC;background: #FCFBFB; padding: 15px 14px 26px;
                             box-sizing: border-box;text-align: left;"> 
-                <p style="width: 100%;color: #050505;font-size: 13px;text-align: left;">{{task_description}}</p> 
+                <p style="width: 100%;color: #050505;font-size: 13px;text-align: left;">{{{task_description}}}</p> 
             </div> 
             <div style="margin: 10px 0;"> 
                 <img alt="clock" style="width: 16px; height: 16px; vertical-align: sub;" 
@@ -64,7 +66,7 @@ const prepareMessage = (context, emailForApproval, data, variables) => {
                     <p style="font-size: 13px;width: 100%; margin: 24px 0; text-align: left; color: #050505;">New request for approval sent to <b>{{approval_email}}</b></p> 
                     <h2 style="width: 100%; margin: 45px 0 15px; text-align: left; color: #050505;font-size: 14px;opacity: 0.9;"> {{task_title}}</h2> 
                     <div style="width: 100%;border-radius: 3px;border:1px solid #ECECEC;background: #FCFBFB; padding: 15px 14px 26px;box-sizing: border-box;text-align: left;"> 
-                    <p style="width: 100%;color: #050505;font-size: 13px;text-align: left;">{{task_description}}</p> 
+                    <p style="width: 100%;color: #050505;font-size: 13px;text-align: left;">{{{task_description}}}</p> 
                 </div> 
                 <div style="margin: 10px 0;"> 
                     <img alt="clock" style="width: 16px; height: 16px; vertical-align: sub;" 
@@ -136,9 +138,11 @@ async function sendNotifications(context, taskData) {
     const requesterDashboardUrl = new URL(dashboardUrl);
     requesterDashboardUrl.search = new URLSearchParams([['secret', taskData.requesterSecret], ['role', 'requester']]);
 
+    const taskDescriptionHtml = marked.parse(taskData.description);
+
     const templateData = {
         task_title: taskData.title,
-        task_description: taskData.description,
+        task_description: taskDescriptionHtml,
         requester_email: taskData.requester,
         approval_email: taskData.approver,
         task_decision_by: taskData.decisionBy ? new Date(taskData.decisionBy).toUTCString() : '',
@@ -207,7 +211,7 @@ module.exports = {
 
         // Ensure proper configuration first.
         if (!config.peopleTasksDashboard) {
-            throw new context.http.HttpError.badRequest('People Task dashboard URL is not configured. Please see the documentation for Tasks connector.');
+            throw new context.CancelError('People Task dashboard URL is not configured. Please see the documentation for Tasks connector.');
         }
 
         if (context.messages.webhook) {
