@@ -3,6 +3,8 @@
 const mailchimp = require('@mailchimp/mailchimp_transactional');
 const config = require('../config');
 const marked = require('marked');
+const createDOMPurify = require('dompurify');
+const { JSDOM } = require('jsdom');
 const { URL } = require('url');
 const { URLSearchParams } = require('url');
 
@@ -113,6 +115,18 @@ const prepareMessage = (context, emailForApproval, data, variables) => {
     };
 };
 
+function parseMD(context, mdContent = '') {
+    let html;
+    try {
+        const window = new JSDOM('').window;
+        const DOMPurify = createDOMPurify(window);
+        html = DOMPurify.sanitize(marked.parse(mdContent));
+    } catch (error) {
+        context.log({ step: 'Error parsing Markdown in description', error: error });
+        throw new context.CancelError('Error parsing Markdown in description');
+    }
+    return html;
+}
 
 async function sendNotifications(context, taskData) {
 
@@ -138,11 +152,9 @@ async function sendNotifications(context, taskData) {
     const requesterDashboardUrl = new URL(dashboardUrl);
     requesterDashboardUrl.search = new URLSearchParams([['secret', taskData.requesterSecret], ['role', 'requester']]);
 
-    const taskDescriptionHtml = marked.parse(taskData.description);
-
     const templateData = {
         task_title: taskData.title,
-        task_description: taskDescriptionHtml,
+        task_description: parseMD(context, taskData.description),
         requester_email: taskData.requester,
         approval_email: taskData.approver,
         task_decision_by: taskData.decisionBy ? new Date(taskData.decisionBy).toUTCString() : '',
@@ -210,7 +222,7 @@ module.exports = {
     async receive(context) {
 
         // Ensure proper configuration first.
-        if (!config.peopleTasksDashboard) {
+        if (!config(context).peopleTasksDashboard) {
             throw new context.CancelError('People Task dashboard URL is not configured. Please see the documentation for Tasks connector.');
         }
 
