@@ -102,7 +102,25 @@ async function main() {
 async function pollForMessages() {
     while (true) {
         await loadMessages(chat.getConfig().activeChat);
+        await loadProgress(chat.getConfig().activeChat);
         await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+
+async function loadProgress(threadId) {
+
+    if (!threadId) return;
+
+    const params = new URLSearchParams({ action: 'load-progress', thread_id: threadId });
+    const response = await fetch(ENDPOINT + '?' + params, {
+        method: 'GET',
+        headers: {
+            ...authHeader
+        }
+    });
+    if (response.ok) {
+        const messages = await response.json();
+        setProgressMessage(messages.map(msg => msg.content).join(' '));
     }
 }
 
@@ -138,6 +156,7 @@ async function loadMessages(threadId) {
         if (!response.ok && response.status === 404) {
             // Thread was removed in the mean time. No need to keep polling it.
             chat.removeChat(threadId);
+            setWaiting(false);
             return;
         }
 
@@ -148,21 +167,25 @@ async function loadMessages(threadId) {
                 message.author = thread.agentId;
             }
         });
-
-        if (lastMessageId &&
-            thread.messages.length &&
-            thread.messages[thread.messages.length - 1].id !== lastMessageId) {
-            setWaiting(false);
-        }
         if (lastMessageId) {
             // Since we only loaded messages since lastMessageId, we need to merge with those
             // already in the chat.
             thread.messages = threadMessages.concat(thread.messages);
         }
+        if (thread.messages.length > 0 && thread.messages[thread.messages.length - 1].role === 'agent') {
+            setWaiting(false);
+        }
         chat.parse(threadId, thread.messages);
     } catch (err) {
         console.error(err);
         // TODO: UI to show errors.
+    }
+}
+
+function setProgressMessage(message) {
+    const el = chat.container.querySelector('.panel .textarea');
+    if (el) {
+        el.setAttribute('data-progress', message);
     }
 }
 

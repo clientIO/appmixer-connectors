@@ -8,6 +8,7 @@ module.exports = async context => {
     try {
         await require('./ChatMessageModel')(context).createIndex({ chatId: 1, userId: 1 });
         await require('./ChatSessionModel')(context).createIndex({ id: 1 });
+        await require('./ProgressModel')(context).createIndex({ expireAt: 1 }, { expireAfterSeconds: 0 });
     } finally {
         lock.unlock();
     }

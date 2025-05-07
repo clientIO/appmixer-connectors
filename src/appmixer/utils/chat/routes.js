@@ -29,6 +29,7 @@ module.exports = (context) => {
     const ChatSession = require('./ChatSessionModel')(context);
     const ChatAgent = require('./ChatAgentModel')(context);
     const ChatThread = require('./ChatThreadModel')(context);
+    const Progress = require('./ProgressModel')(context);
 
     // ASSETS
 
@@ -147,11 +148,77 @@ module.exports = (context) => {
                 const { threadId } = req.params;
                 const user = await context.http.auth.getUser(req);
                 const userId = user.getId();
-                await ChatMessage.delete({ threadId, userId });
+                await ChatMessage.deleteMany({ threadId, userId });
                 return {};
             }
         }
     });
+
+    // PROGRESS
+
+    context.http.router.register({
+        method: 'POST',
+        path: '/progress/{threadId}',
+        options: {
+            auth: {
+                strategies: ['jwt-strategy', 'public']
+            },
+            handler: async (req) => {
+                const { threadId } = req.params;
+                const { expireAfterSeconds } = req.query;
+                const user = await context.http.auth.getUser(req);
+                const userId = user.getId();
+                // { id, content, role, flowId, componentId }
+                const message = req.payload;
+                message.id = uuid.v6(); // UUID v6 is time ordered.
+                message.threadId = threadId;
+                const now = new Date;
+                message.createdAt = now;
+                const expireAt = now;
+                const seconds = expireAfterSeconds ? parseInt(expireAfterSeconds, 10) : 5;
+                expireAt.setSeconds(now.getSeconds() + seconds);
+                message.expireAt = expireAt;
+                message.userId = userId;
+                return new Progress().populate(message).save();
+            }
+        }
+    });
+
+    context.http.router.register({
+        method: 'GET',
+        path: '/progress/{threadId}',
+        options: {
+            auth: {
+                strategies: ['jwt-strategy', 'public']
+            },
+            handler: async (req) => {
+                const { threadId } = req.params;
+                const user = await context.http.auth.getUser(req);
+                const userId = user.getId();
+                const query = { threadId, userId };
+                const messages = await Progress.find(query);
+                return messages;
+            }
+        }
+    });
+
+    context.http.router.register({
+        method: 'DELETE',
+        path: '/progress/{threadId}',
+        options: {
+            auth: {
+                strategies: ['jwt-strategy', 'public']
+            },
+            handler: async (req) => {
+                const { threadId } = req.params;
+                const user = await context.http.auth.getUser(req);
+                const userId = user.getId();
+                await Progress.deleteMany({ threadId, userId });
+                return {};
+            }
+        }
+    });
+
 
     // SESSIONS
 
