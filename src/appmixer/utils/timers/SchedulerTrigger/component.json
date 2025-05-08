@@ -1,0 +1,275 @@
+{
+    "name": "appmixer.utils.timers.SchedulerTrigger",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Schedule jobs to run periodically based on various time intervals, such as daily, weekly, monthly, or custom intervals. It supports advanced configurations like start and end times, time zones, and immediate triggering.",
+    "label": "Scheduler",
+    "version": "1.1.0",
+    "properties": {
+        "source": {
+            "url": "/component/appmixer/utils/timers/SchedulerTrigger?outPort=out",
+            "data": {
+                "properties": {
+                    "generateInspector": true,
+                    "scheduleType": "properties/scheduleType",
+                    "daysOfWeek": "properties/daysOfWeek",
+                    "daysOfMonth": "properties/daysOfMonth",
+                    "customIntervalUnit": "properties/customIntervalUnit",
+                    "customIntervalValue": "properties/customIntervalValue",
+                    "time": "properties/time",
+                    "start": "properties/start",
+                    "end": "properties/end",
+                    "timezone": "properties/timezone"
+                }
+            }
+        },
+        "schema": {
+            "properties": {
+                "scheduleType": { "type": "string" },
+                "daysOfWeek": { "type": "array"  },
+                "daysOfMonth": { "type": "array" },
+                "customIntervalUnit": { "type": "string" },
+                "customIntervalValue": { "type": "integer" },
+                "time": { "type": "string" },
+                "immediate": { "type": "boolean" },
+                "start": { "type": "string" },
+                "end": { "type": "string" },
+                "timezone": { "type": "string" }
+            },
+            "required": ["scheduleType"],
+            "anyOf": [
+                {
+                    "required": ["customIntervalUnit", "customIntervalValue"]
+                },
+                {
+                    "required": ["daysOfWeek"]
+                },
+                {
+                    "required": ["daysOfMonth"]
+                }
+            ]
+        },
+        "inspector": {
+            "groups": {
+                "advanced": {
+                    "label": "Advanced",
+                    "closed": true
+                }
+            },
+            "inputs": {
+                "scheduleType": {
+                    "group": "schedule",
+                    "type": "select",
+                    "index": 0,
+                    "label": "Repeat",
+                    "tooltip": "Choose how often to repeat the task.",
+                    "defaultValue": "custom",
+                    "options": [{
+                        "label": "Daily", "value": "days"
+                    }, {
+                        "label": "Days of Week", "value": "weeks"
+                    }, {
+                        "label": "Days of Month", "value": "months"
+                    }, {
+                        "label": "Custom Interval", "value": "custom"
+                    }]
+                },
+                "daysOfWeek": {
+                    "type": "multiselect",
+                    "label": "Days of Week",
+                    "tooltip": "Choose the days of the week when this job should run.",
+                    "options": [
+                        {
+                            "label": "Monday",
+                            "value": "monday"
+                        },
+                        {
+                            "label": "Tuesday",
+                            "value": "tuesday"
+                        },
+                        {
+                            "label": "Wednesday",
+                            "value": "wednesday"
+                        },
+                        {
+                            "label": "Thursday",
+                            "value": "thursday"
+                        },
+                        {
+                            "label": "Friday",
+                            "value": "friday"
+                        },
+                        {
+                            "label": "Saturday",
+                            "value": "saturday"
+                        },
+                        {
+                            "label": "Sunday",
+                            "value": "sunday"
+                        }
+                    ],
+                    "when": {
+                        "eq": {
+                            "./scheduleType": "weeks"
+                        }
+                    },
+                    "index": 1
+                },
+                "daysOfMonth": {
+                    "type": "multiselect",
+                    "label": "Days of Month",
+                    "tooltip": "Choose specific days of the month for scheduling.",
+                    "options": [
+                        "last day of the month",
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                        "13",
+                        "14",
+                        "15",
+                        "16",
+                        "17",
+                        "18",
+                        "19",
+                        "20",
+                        "21",
+                        "22",
+                        "23",
+                        "24",
+                        "25",
+                        "26",
+                        "27",
+                        "28"
+                    ],
+                    "when": {
+                        "eq": { "./scheduleType": "months" }
+                    },
+                    "index": 1
+                },
+                "customIntervalUnit": {
+                    "type": "select",
+                    "label": "Interval Unit",
+                    "tooltip": "Select the time unit for the interval (e.g., minutes, hours, days, weeks).",
+                    "options": [
+                        { "label": "Minutes", "value": "minutes" },
+                        { "label": "Hours", "value": "hours" },
+                        { "label": "Days", "value": "days" },
+                        { "label": "Weeks", "value": "weeks" }
+                    ],
+                    "when": {
+                        "eq": {
+                            "./scheduleType": "custom"
+                        }
+                    },
+                    "index": 1
+                },
+                "customIntervalValue": {
+                    "type": "number",
+                    "label": "Interval Value",
+                    "tooltip": "Set how many units between each run. Works with the selected Interval Unit.",
+                    "when": {
+                        "eq": { "./scheduleType": "custom" }
+                    },
+                    "index": 2
+                },
+                "time": {
+                    "type": "text",
+                    "label": "Time",
+                    "tooltip": "Time of day in HH:mm format (e.g., 14:30). When not set, the job will run at the start of the day (00:00).",
+                    "when": {
+                        "nin": { "./scheduleType": ["custom"] }
+                    },
+                    "index": 2
+                },
+                "immediate": {
+                    "type": "toggle",
+                    "index": 10,
+                    "label": "Trigger immediately",
+                    "tooltip": "Trigger once immediately when the flow starts, before the schedule begins.",
+                    "group": "advanced",
+                    "defaultValue": false
+                },
+                "start": {
+                    "type": "date-time",
+                    "label": "Start",
+                    "tooltip": "Set a specific date and time to start the schedule.",
+                    "config": {
+                        "format": "YYYY-MM-DD HH:mm z"
+                    },
+                    "group": "advanced",
+                    "index": 11
+                },
+                "end": {
+                    "type": "date-time",
+                    "label": "End",
+                    "tooltip": "Set a specific date and time to stop the schedule.",
+                    "config": {
+                        "format": "YYYY-MM-DD HH:mm z"
+                    },
+                    "group": "advanced",
+                    "index": 12
+                },
+                "timezone": {
+                    "type": "text",
+                    "index": 13,
+                    "label": "Timezone",
+                    "tooltip": "Specify the timezone for scheduling (e.g., 'Europe/Prague') by default it is GMT.",
+                    "group": "advanced",
+                    "source": {
+                        "url": "/component/appmixer/utils/timers/ListTimeZones?outPort=out",
+                        "data": {
+                            "properties": {
+                                "sendWholeArray": true
+                            },
+                            "transform": "./ListTimeZones#timezonesToSelectArray"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "properties": {
+                    "previousDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "nextDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "options": [
+                {
+                    "label": "Next Date GMT",
+                    "value": "nextDateGMT"
+                },
+                {
+                    "label": "Next Date Localized",
+                    "value": "nextDateLocal"
+                },
+                {
+                    "label": "Timezone",
+                    "value": "timezone"
+                },
+                {
+                    "label": "Previous Date",
+                    "value": "previousDate"
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij4KICA8ZyBpZD0iR3JvdXBfNTQzIiBkYXRhLW5hbWU9Ikdyb3VwIDU0MyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTIyIC00NDYuNSkiPgogICAgPHJlY3QgaWQ9IlJlY3RhbmdsZV8zMzM3IiBkYXRhLW5hbWU9IlJlY3RhbmdsZSAzMzM3IiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyIDQ0Ni41KSIgZmlsbD0ibm9uZSIvPgogICAgPGcgaWQ9ImFwcC51dGlscy50aW1lcnMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI0IDQ0OSkiPgogICAgICA8cGF0aCBpZD0iYWxhcm0tY2xvY2siIGQ9Ik0xMSwxMGgyYTEsMSwwLDAsMSwwLDJIMTBhMSwxLDAsMCwxLTEtMVY2YTEsMSwwLDAsMSwyLDBabTcuNjMtMS41NjJhOSw5LDAsMSwxLTE3LjI2LDBBNSw1LDAsMSwxLDkuMDM4LDIuMDUxYTkuMSw5LjEsMCwwLDEsMS45MjQsMEE1LDUsMCwxLDEsMTguNjMsOC40MzhabS0uOTM4LTIuMTEzYTMsMywwLDAsMC00LjQ4LTMuNzM1LDkuMDMsOS4wMywwLDAsMSw0LjQ4LDMuNzM1Wk02Ljc4NywyLjU5YTMsMywwLDAsMC00LjQ4LDMuNzM1QTkuMDMsOS4wMywwLDAsMSw2Ljc4NywyLjU5Wk0xMCwxOGE3LDcsMCwxLDAtNy03LDcsNywwLDAsMCw3LDdaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjAwMSAwLjAwMSkiLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPgo="
+}
