@@ -33,16 +33,35 @@ module.exports = {
         }
     },
     async fetchData(context, endpoint, params = {}) {
+        let retryCount = 0;
+        let response;
         const REQUEST_URL = `${context.auth.protocol}://api.currencylayer.com/${endpoint}`;
         const urlParams = new URLSearchParams({
             access_key: context.auth.apiKey,
             ...params
         }).toString();
-        const response = await context.httpRequest({
-            method: 'GET',
-            url: `${REQUEST_URL}?${urlParams}`,
-            json: true
-        });
+        // Retry up to 3 times
+        while (retryCount < 3) {
+            response = await context.httpRequest({
+                method: 'GET',
+                url: `${REQUEST_URL}?${urlParams}`,
+                json: true
+            });
+            // If the API call is successful, break out of the loop
+            if (response.data.success) {
+                break;
+            }
+            // If the error code is 106, wait for 5 seconds before retrying
+            if (response.data.error?.code === 106) {
+                retryCount++;
+                if (retryCount < 3) {
+                    await new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds delay
+                }
+            } else {
+                // If the error is not 106, stop retrying and throw an error
+                throw new context.CancelError(`API returned error: ${response.data.error?.code || 'unknown error'}`);
+            }
+        }
         return response.data;
     }
 };
