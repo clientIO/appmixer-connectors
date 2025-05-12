@@ -2,11 +2,9 @@
 
 const mailchimp = require('@mailchimp/mailchimp_transactional');
 const config = require('../config');
-const marked = require('marked');
-const createDOMPurify = require('dompurify');
-const { JSDOM } = require('jsdom');
 const { URL } = require('url');
 const { URLSearchParams } = require('url');
+const { parseMD } = require('../lib');
 
 const prepareMessage = (context, emailForApproval, data, variables) => {
 
@@ -115,18 +113,6 @@ const prepareMessage = (context, emailForApproval, data, variables) => {
     };
 };
 
-function parseMD(context, mdContent = '') {
-    let html;
-    try {
-        const window = new JSDOM('').window;
-        const DOMPurify = createDOMPurify(window);
-        html = DOMPurify.sanitize(marked.parse(mdContent));
-    } catch (error) {
-        context.log({ step: 'Error parsing Markdown in description', error: error });
-        throw new context.CancelError('Error parsing Markdown in description');
-    }
-    return html;
-}
 
 async function sendNotifications(context, taskData) {
 

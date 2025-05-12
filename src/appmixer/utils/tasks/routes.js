@@ -1,5 +1,6 @@
 'use strict';
 const check = require('check-types');
+const { parseMD } = require('./lib');
 
 /**
  * @param {Object} context
@@ -74,9 +75,10 @@ module.exports = (context, options) => {
                     await utils.prepareTasksQuery(user, req.query);
                 const tasks = await Task.find(selector, { limit, skip: offset, sort, projection });
 
-                return tasks.map(task =>
-                    task.addIsApprover(user, req.query.secret).toJson()
-                );
+                return tasks.map(task => {
+                    task.description = parseMD(context, task.description);
+                    return task.addIsApprover(user, req.query.secret).toJson();
+                });
             },
             auth: {
                 strategies: ['jwt-strategy', 'public']
