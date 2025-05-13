@@ -1,5 +1,43 @@
+const contentTypeUtil = require('content-type');
 const request = require('../http-commons');
 const FormData = require('form-data');
+
+/**
+ * Converts header property 'content-type' value to more readable json.
+ * @param  {string} value
+ * @return {{ type: string, parameters: Object }}
+ */
+function parseContentType(value) {
+
+    try {
+        return contentTypeUtil.parse(value);
+    } catch (error) {
+        return { type: undefined };
+    }
+}
+
+/**
+ * Callback which processes http response in such way, the result should be sent through our messanging system.
+ * @param  {Object} response
+ * @return {Object}
+ */
+function processResponse(response) {
+
+    const data = {
+        headers: response.headers
+    };
+
+    data.statusCode = response.status;
+    data.request = {
+        uri: response.config.url,
+        method: response.config.method,
+        headers: response.config.headers
+    };
+    data.headers['content-type'] = parseContentType(response.headers['content-type']);
+    data.body = response.data;
+
+    return data;
+}
 
 /**
  * This component is used to send HTTP request
@@ -57,7 +95,8 @@ const sendBinaryData = async (context, url, headers, binaryFileId) => {
             }
         });
 
-        return await context.sendJson(response.data, 'response');
+        const processedResponse = await processResponse(response);
+        return await context.sendJson(processedResponse, 'response');
     } catch (error) {
         throw new Error(`Failed to send binary data: ${error.message}`);
     }
@@ -100,6 +139,7 @@ const sendFormData = async (context, url, headers) => {
         headers: { ...formData.getHeaders(), ...headers }
     });
 
-    return await context.sendJson(response.data, 'response');
+    const processedResponse = await processResponse(response);
+    return await context.sendJson(processedResponse, 'response');
 };
 
