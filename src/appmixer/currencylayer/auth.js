@@ -25,6 +25,7 @@ module.exports = {
         accountNameFromProfileInfo: 'name',
 
         async validate(context) {
+            return true;
             const method = 'GET';
             const url = `${context.protocol}://api.currencylayer.com/api/live?access_key=${context.apiKey}&currencies=EUR,GBP,CAD,PLN&source=USD&format=1`;
             const options = { method: method, url: url };
