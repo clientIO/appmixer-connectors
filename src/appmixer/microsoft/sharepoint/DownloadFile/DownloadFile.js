@@ -1,4 +1,7 @@
 const commons = require('../../microsoft-commons');
+const { pdfToText } = require('../lib');
+
+const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
 
 module.exports = {
 
@@ -11,35 +14,62 @@ module.exports = {
             customFileName,
             outputFileData,
             outputFileDataEncoding,
-            format,
-            convertPdfFile
+            format
         } = context.messages.in.content;
 
         const { profileInfo } = context.auth;
-        context.log({ step: 'AUTH', auth: context.auth });
 
         const getFile = await commons.formatError(async () => {
             if (format) {
-                const downloadUrl = itemId ?
-                    `/drives/${driveId}/items/${itemId}/content?format=${format}` :
-                    `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
+                let downloadUrl;
 
-                const { data: stream } = await commons.msGraphRequest(context, {
+                switch (format) {
+                    case 'txt':
+                    case 'pdf': {
+                        downloadUrl = itemId ?
+                            `/drives/${driveId}/items/${itemId}/content?format=pdf` :
+                            `/drives/${driveId}/root:/${itemPath}:/content?format=pdf`;
+                        break;
+                    }
+                    case 'html': {
+                        downloadUrl = itemId ?
+                            `/drives/${driveId}/items/${itemId}/content?format=${format}` :
+                            `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
+                        break;
+                    }
+                    default: {
+                        downloadUrl = itemId ?
+                            `/drives/${driveId}/items/${itemId}/content?format=${format}` :
+                            `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
+                    }
+                }
+
+                const { data } = await commons.msGraphRequest(context, {
                     action: downloadUrl,
                     responseType: 'stream'
                 });
 
+                if (data.headers['content-length'] > MAX_FILE_SIZE) {
+                    throw new context.CancelError(`File is too large. Max file size is ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
+                }
+
                 const fileName = customFileName ? `${customFileName}.${format}` : `sharepoint-download-file.${format}`;
-                return await context.saveFileStream(fileName, stream);
+
+                const { stream } = data;
+
+                let fullText = '';
+                if (format === 'txt') {
+                    fullText = await pdfToText(stream);
+                }
+
+                return await context.saveFileStream(fileName, fullText ?? stream);
             }
-            const endpoint = itemId ?
+            let endpoint = itemId ?
                 `/drives/${driveId}/items/${itemId}` :
                 `/drives/${driveId}/root:/${itemPath}`;
 
             endpoint += '?select=id,@microsoft.graph.downloadUrl,webUrl,name,folder';
 
-
-            context.log({ step: 'endpoint called', endpoint });
             const { data } = await commons.msGraphRequest(context, {
                 action: endpoint
             });
@@ -64,29 +94,10 @@ module.exports = {
         }, `Failed to get the file "${itemId || itemPath}" from your SharePoint account (${profileInfo.userPrincipalName}).`);
 
         if (outputFileData) {
-            getFile.content = (await context.loadFile(getFile.fileId)).toString(outputFileDataEncoding || 'utf8');
-            if (convertPdfFile === 'txt') {
-                // const fileinfo = await context.getFileInfo(getFile.fileId);
-                // context.log({ step: 'fileInfo', fileinfo });
-                const pdfjsLib = await import('pdfjs-dist');
-
-                const fileData = await context.loadFile(getFile.fileId);
-                context.log({ step: 'fileDataType', type: typeof (fileData) });
-
-                const pdf = await pdfjsLib.getDocument({ data: fileData }).promise;
-
-                context.log({ step: 'pdf data', pdf });
-
-                let fullText = '';
-                // for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                //     const page = await pdf.getPage(pageNum);
-                //     const content = await page.getTextContent();
-                //     const strings = content.items.map(item => item.str);
-                //     fullText += strings.join(' ') + '\n\n';
-                // }
-
-                getFile.content = fullText;
+            if (getFile.length > MAX_FILE_SIZE) {
+                throw new context.CancelError(`File is too large. Max file size is ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
             }
+            getFile.content = (await context.loadFile(getFile.fileId)).toString(outputFileDataEncoding || 'utf8');
         }
 
         return context.sendJson(getFile, 'out');
