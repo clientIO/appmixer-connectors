@@ -1,3 +1,4 @@
+const contentTypeUtil = require('content-type');
 const request = require('../http-commons');
 const FormData = require('form-data');
 
