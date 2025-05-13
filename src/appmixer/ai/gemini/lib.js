@@ -6,8 +6,6 @@ const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 const MAX_INPUT_LENGTH = 8192 * 4; // max 8192 tokens, 1 token ~ 4 characters.
 const MAX_BATCH_SIZE = 2048;
 
-const FILE_PART_SIZE = 1024 * 1024; // 1MB
-
 module.exports = {
 
     extractBaseModelId: function(modelName) {
@@ -97,7 +95,7 @@ module.exports = {
         } = input;
 
         const chunks = await this.splitText(text, chunkSize, chunkOverlap);
-        await context.log({ step: 'split-text', message: 'Text succesfully split into chunks.', chunksLength: chunks.length });
+        await context.log({ step: 'split-text', message: 'Text successfully split into chunks.', chunksLength: chunks.length });
 
         // Process chunks in batches.
         // the batch size is calculated based on the chunk size and the maximum input length in

@@ -8,7 +8,12 @@ module.exports = {
 
         const { text, jsonSchema: jsonSchemaString, model } = context.messages.in.content;
 
-        const jsonSchema = JSON.parse(jsonSchemaString);
+        let jsonSchema;
+        try {
+            jsonSchema = JSON.parse(jsonSchemaString);
+        } catch (error) {
+            throw new context.CancelError(`Invalid JSON schema: ${error.message}`);
+        }
 
         if (context.properties.generateOutputPortOptions) {
             return this.getOutputPortOptions(context, jsonSchema);

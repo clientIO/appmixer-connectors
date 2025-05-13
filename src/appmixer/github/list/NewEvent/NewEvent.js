@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
 const Promise = require('bluebird');
 
 /**
@@ -11,25 +11,19 @@ module.exports = {
     async tick(context) {
 
         let { repositoryId } = context.properties;
-        let github = commons.getGithubAPI(context.auth.accessToken);
 
-        const res = await commons.getAll(
-            github, 'activity', 'listRepoEvents', commons.buildUserRepoRequest(repositoryId)
-        );
+        const res = await lib.apiRequest(context, `repos/${repositoryId}/events`);
+
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-        let actual = new Set();
-        let diff = new Set();
 
-        if (Array.isArray(res)) {
-            res.forEach(commons.processItems.bind(null, known, actual, diff, 'id'));
-        }
+        const { diff, actual } = lib.getNewItems(known, res.data, 'id');
 
-        if (diff.size) {
+        if (diff.length) {
             await Promise.map(diff, event => {
                 return context.sendJson(event, 'event');
             });
         }
-        await context.saveState({ known: Array.from(actual) });
+        await context.saveState({ known: actual });
     }
 };
 

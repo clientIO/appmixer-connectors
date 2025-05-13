@@ -1,8 +1,6 @@
 'use strict';
 
-const { Transform } = require('stream');
 const { OpenAI }  = require('openai');
-const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
 
 // See https://platform.openai.com/docs/api-reference/embeddings/create#embeddings-create-input.
 const MAX_INPUT_LENGTH = 8192 * 4; // max 8192 tokens, 1 token ~ 4 characters.
@@ -39,11 +37,11 @@ module.exports = {
 
         const partsStream = lib.splitStream(readStream, FILE_PART_SIZE);
         for await (const part of partsStream) {
-            let {embeddings, firstVector} = await this.generateEmbeddings(context, client, part.toString());
+            let { embeddings, firstVector } = await this.generateEmbeddings(context, client, part.toString());
 
-        if ((!firstVector || firstVector.length === 0) && embeddings.length > 0) {
-            firstVector = embeddings[0].vector;
-        }
+            if ((!firstVector || firstVector.length === 0) && embeddings.length > 0) {
+                firstVector = embeddings[0].vector;
+            }
             await outputFunction({ embeddings, firstVector });
         }
     },
@@ -68,7 +66,7 @@ module.exports = {
         } = context.messages.in.content;
 
         const chunks = await lib.splitText(text, chunkSize, chunkOverlap);
-        await context.log({ step: 'split-text', message: 'Text succesfully split into chunks.', chunksLength: chunks.length });
+        await context.log({ step: 'split-text', message: 'Text successfully split into chunks.', chunksLength: chunks.length });
 
         // Process chunks in batches.
         // the batch size is calculated based on the chunk size and the maximum input length in

@@ -1,0 +1,289 @@
+{
+    "name": "appmixer.github.list.SubmitReview",
+    "author": "Appmixer <info@appmixer.com>",
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo=",
+    "description": "Submits a PullRequest review.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "user",
+            "public_repo",
+            "repo",
+            "notifications",
+            "gist"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "repositoryId": { "type": "string" },
+                    "pullRequest": { "type": "string" },
+                    "commitId": { "type": "string" },
+                    "body": { "type": "string" },
+                    "event": { "type": "string" }
+                },
+                "required": [
+                    "repositoryId", "pullRequest"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "repositoryId": {
+                        "type": "select",
+                        "group": "transformation",
+                        "label": "Repository",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/github/list/ListRepos?outPort=repositories",
+                            "data": {
+                                "transform": "./transformers#reposToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a repository."
+                    },
+                    "pullRequest": {
+                        "type": "select",
+                        "group": "transformation",
+                        "label": "Pull Request",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/github/list/ListPRs?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "repositoryId": "inputs/in/repositoryId"
+                                },
+                                "transform": "./transformers#prToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a Pull Request to update."
+                    },
+                    "commitId": {
+                        "type": "text",
+                        "group": "transformation",
+                        "tooltip": "The SHA of the commit that needs a review",
+                        "label": "Commit SHA",
+                        "index": 2
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "group": "transformation",
+                        "tooltip": "The body text of the pull request review.",
+                        "label": "Comment",
+                        "index": 3
+                    },
+                    "event": {
+                        "type": "select",
+                        "group": "transformation",
+                        "label": "Event",
+                        "index": 4,
+                        "options": [
+                            { "label": "Comment", "value": "COMMENT" },
+                            { "label": "Approve", "value": "APPROVE" },
+                            { "label": "Request Changes", "value": "REQUEST_CHANGES" }
+                        ],
+                        "tooltip": "The review action you want to perform."
+                    }
+                },
+                "groups": {
+                    "transformation": {
+                        "label": "Transformation",
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [{
+        "name": "out",
+        "options": [
+            {
+                "label": "Id",
+                "value": "id",
+                "schema": {
+                    "type": "number"
+                }
+            },
+            {
+                "label": "Node Id",
+                "value": "node_id",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "label": "User",
+                "value": "user",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "login": {
+                            "type": "string",
+                            "title": "User.Login"
+                        },
+                        "id": {
+                            "type": "number",
+                            "title": "User.Id"
+                        },
+                        "node_id": {
+                            "type": "string",
+                            "title": "User.Node Id"
+                        },
+                        "avatar_url": {
+                            "type": "string",
+                            "title": "User.Avatar Url"
+                        },
+                        "gravatar_id": {
+                            "type": "string",
+                            "title": "User.Gravatar Id"
+                        },
+                        "url": {
+                            "type": "string",
+                            "title": "User.Url"
+                        },
+                        "html_url": {
+                            "type": "string",
+                            "title": "User.Html Url"
+                        },
+                        "followers_url": {
+                            "type": "string",
+                            "title": "User.Followers Url"
+                        },
+                        "following_url": {
+                            "type": "string",
+                            "title": "User.Following Url"
+                        },
+                        "gists_url": {
+                            "type": "string",
+                            "title": "User.Gists Url"
+                        },
+                        "starred_url": {
+                            "type": "string",
+                            "title": "User.Starred Url"
+                        },
+                        "subscriptions_url": {
+                            "type": "string",
+                            "title": "User.Subscriptions Url"
+                        },
+                        "organizations_url": {
+                            "type": "string",
+                            "title": "User.Organizations Url"
+                        },
+                        "repos_url": {
+                            "type": "string",
+                            "title": "User.Repos Url"
+                        },
+                        "events_url": {
+                            "type": "string",
+                            "title": "User.Events Url"
+                        },
+                        "received_events_url": {
+                            "type": "string",
+                            "title": "User.Received Events Url"
+                        },
+                        "type": {
+                            "type": "string",
+                            "title": "User.Type"
+                        },
+                        "user_view_type": {
+                            "type": "string",
+                            "title": "User.User View Type"
+                        },
+                        "site_admin": {
+                            "type": "boolean",
+                            "title": "User.Site Admin"
+                        }
+                    }
+                }
+            },
+            {
+                "label": "Body",
+                "value": "body",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "label": "State",
+                "value": "state",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "label": "Html Url",
+                "value": "html_url",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "label": "Pull Request Url",
+                "value": "pull_request_url",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "label": "Author Association",
+                "value": "author_association",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "label": "Links",
+                "value": "_links",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "html": {
+                            "type": "object",
+                            "properties": {
+                                "href": {
+                                    "type": "string",
+                                    "title": "Links.Html.Href"
+                                }
+                            },
+                            "title": "Links.Html"
+                        },
+                        "pull_request": {
+                            "type": "object",
+                            "properties": {
+                                "href": {
+                                    "type": "string",
+                                    "title": "Links.Pull Request.Href"
+                                }
+                            },
+                            "title": "Links.Pull Request"
+                        }
+                    }
+                }
+            },
+            {
+                "label": "Submitted At",
+                "value": "submitted_at",
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "label": "Commit Id",
+                "value": "commit_id",
+                "schema": {
+                    "type": "string"
+                }
+            }
+        ]
+    }]
+}
