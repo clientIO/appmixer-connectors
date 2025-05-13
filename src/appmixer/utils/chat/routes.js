@@ -174,10 +174,9 @@ module.exports = (context) => {
                 message.threadId = threadId;
                 const now = new Date;
                 message.createdAt = now;
-                const expireAt = now;
+                message.expireAt = new Date(message.createdAt);
                 const seconds = expireAfterSeconds ? parseInt(expireAfterSeconds, 10) : 5;
-                expireAt.setSeconds(now.getSeconds() + seconds);
-                message.expireAt = expireAt;
+                message.expireAt.setSeconds(message.createdAt.getSeconds() + seconds);
                 message.userId = userId;
                 return new Progress().populate(message).save();
             }
