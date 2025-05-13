@@ -1,5 +1,4 @@
 const assert = require('assert');
-const sinon = require('sinon');
 const fs = require('fs');
 const path = require('path');
 const { pdfToText } = require('../../../src/appmixer/microsoft/sharepoint/lib');
