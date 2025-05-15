@@ -98,9 +98,9 @@ const downloadFileAndConvert = async (context, format) => {
 
                 if (!downloadUrl) {
                     if (meta?.folder) {
-                        throw new context.CancelError('Cannot download a folder.', data);
+                        throw new context.CancelError('Cannot download a folder.', meta);
                     }
-                    throw new context.CancelError('The file does not have a download URL.', data);
+                    throw new context.CancelError('The file does not have a download URL.', meta);
                 }
                 break;
             } else {
