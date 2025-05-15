@@ -1,5 +1,4 @@
 'use strict';
-const TENANT = 'common';
 
 module.exports = {
 
@@ -11,11 +10,40 @@ module.exports = {
 
         scopeDelimiter: ' ',
 
-        authUrl: `https://login.microsoftonline.com/${TENANT}/oauth2/v2.0/authorize`,
+        pre: {
+            tenant: {
+                type: 'text',
+                name: 'Tenant',
+                tooltip: 'Specify the Tenant. Valid values are common, organizations, consumers, and tenant identifiers.'
+            }
+        },
 
-        requestAccessToken: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+        authUrl: context => {
+            const microsoftTenantId = context.tenant ||
+                context.config.tenant ||
+                process.env.TENANT ||
+                'common';
 
-        refreshAccessToken: 'https://login.microsoftonline.com/common/oauth2/v2.0/token',
+            return `https://login.microsoftonline.com/${microsoftTenantId}/oauth2/v2.0/authorize`;
+        },
+
+        requestAccessToken: context => {
+            const microsoftTenantId = context.tenant ||
+                context.config.tenant ||
+                process.env.TENANT ||
+                'common';
+
+            return `https://login.microsoftonline.com/${microsoftTenantId}/oauth2/v2.0/token`;
+        },
+
+        refreshAccessToken: context => {
+            const microsoftTenantId = context.tenant ||
+                context.config.tenant ||
+                process.env.TENANT ||
+                'common';
+
+            return `https://login.microsoftonline.com/${microsoftTenantId}/oauth2/v2.0/token`;
+        },
 
         accountNameFromProfileInfo: (context) => {
             const { profileInfo } = context;
