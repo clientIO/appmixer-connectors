@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { pdfToText } = require('../../../src/appmixer/microsoft/sharepoint/lib');
 
-describe.only('Downloads a file', function() {
-    it.only('converts .pdf to .txt using pdfjs-dist library', async function() {
+describe('Downloads a file', function() {
+    it('converts .pdf to .txt using pdfjs-dist library', async function() {
         const samplePdf = path.join(__dirname, 'files', 'sample.pdf');
         const fakeStream = fs.createReadStream(samplePdf);
 
