@@ -26,7 +26,7 @@ module.exports = {
             context.sendJson({ notFound }, 'notFound');
         } else {
             // If both results and notFound are empty, send keys to 'notFound'
-            return context.sendJson({ keys: keys.AND }, 'notFound');
+            context.sendJson({ keys: keys.AND }, 'notFound');
         }
 
         return context.response();
