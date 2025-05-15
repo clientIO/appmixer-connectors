@@ -8,10 +8,8 @@ module.exports = {
     async receive(context) {
 
         const {
-            driveId,
             itemId,
             itemPath,
-            customFileName,
             outputFileData,
             outputFileDataEncoding,
             format
@@ -19,79 +17,7 @@ module.exports = {
 
         const { profileInfo } = context.auth;
 
-        const getFile = await commons.formatError(async () => {
-            if (format) {
-                let downloadUrl;
-
-                switch (format) {
-                    case 'txt':
-                    case 'pdf': {
-                        downloadUrl = itemId ?
-                            `/drives/${driveId}/items/${itemId}/content?format=pdf` :
-                            `/drives/${driveId}/root:/${itemPath}:/content?format=pdf`;
-                        break;
-                    }
-                    case 'html': {
-                        downloadUrl = itemId ?
-                            `/drives/${driveId}/items/${itemId}/content?format=${format}` :
-                            `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
-                        break;
-                    }
-                    default: {
-                        downloadUrl = itemId ?
-                            `/drives/${driveId}/items/${itemId}/content?format=${format}` :
-                            `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
-                    }
-                }
-
-                const { data } = await commons.msGraphRequest(context, {
-                    action: downloadUrl,
-                    responseType: 'stream'
-                });
-
-                if (data.headers['content-length'] > MAX_FILE_SIZE) {
-                    throw new context.CancelError(`File is too large. Max file size is ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
-                }
-
-                const fileName = customFileName ? `${customFileName}.${format}` : `sharepoint-download-file.${format}`;
-
-                const { stream } = data;
-
-                let fullText = '';
-                if (format === 'txt') {
-                    fullText = await pdfToText(stream);
-                }
-
-                return await context.saveFileStream(fileName, fullText ?? stream);
-            }
-            let endpoint = itemId ?
-                `/drives/${driveId}/items/${itemId}` :
-                `/drives/${driveId}/root:/${itemPath}`;
-
-            endpoint += '?select=id,@microsoft.graph.downloadUrl,webUrl,name,folder';
-
-            const { data } = await commons.msGraphRequest(context, {
-                action: endpoint
-            });
-
-            const downloadUrl = data['@microsoft.graph.downloadUrl'];
-
-            if (!downloadUrl) {
-                if (data?.folder) {
-                    throw new context.CancelError('Cannot download a folder.', data);
-                }
-                throw new context.CancelError('The file does not have a download URL.', data);
-            }
-
-            const { data: stream } = await commons.msGraphRequest(context, {
-                action: downloadUrl,
-                responseType: 'stream'
-            });
-
-            const fileName = customFileName || `sharepoint-download-file-${data.id}`;
-            return await context.saveFileStream(fileName, stream);
-
-        }, `Failed to get the file "${itemId || itemPath}" from your SharePoint account (${profileInfo.userPrincipalName}).`);
+        const getFile = await commons.formatError(format ? await downloadFileAndConvert(context, format) : await downloadFile(context), `Failed to get the file "${itemId || itemPath}" from your SharePoint account (${profileInfo.userPrincipalName}).`);
 
         if (outputFileData) {
             if (getFile.length > MAX_FILE_SIZE) {
@@ -102,4 +28,110 @@ module.exports = {
 
         return context.sendJson(getFile, 'out');
     }
+};
+
+const downloadFile = async (context) => {
+    const {
+        driveId,
+        itemId,
+        itemPath,
+        customFileName
+    } = context.messages.in.content;
+
+    let endpoint = itemId ?
+        `/drives/${driveId}/items/${itemId}` :
+        `/drives/${driveId}/root:/${itemPath}`;
+
+    endpoint += '?select=id,@microsoft.graph.downloadUrl,webUrl,name,folder';
+
+    const { data } = await commons.msGraphRequest(context, {
+        action: endpoint
+    });
+
+    const downloadUrl = data['@microsoft.graph.downloadUrl'];
+
+    if (!downloadUrl) {
+        if (data?.folder) {
+            throw new context.CancelError('Cannot download a folder.', data);
+        }
+        throw new context.CancelError('The file does not have a download URL.', data);
+    }
+
+    const { data: stream } = await commons.msGraphRequest(context, {
+        action: downloadUrl,
+        responseType: 'stream'
+    });
+
+    const fileName = customFileName || `sharepoint-download-file-${data.id}`;
+    return await context.saveFileStream(fileName, stream);
+};
+
+const downloadFileAndConvert = async (context, format) => {
+    const {
+        driveId,
+        itemId,
+        itemPath,
+        customFileName
+    } = context.messages.in.content;
+
+    let downloadUrl;
+
+    switch (format) {
+        case 'txt':
+            const metaEndpoint = itemId
+                ? `/drives/${driveId}/items/${itemId}`
+                : `/drives/${driveId}/root:/${itemPath}`;
+
+            const { data: meta } = await commons.msGraphRequest(context, {
+                action: metaEndpoint
+            });
+
+            // If the file is already PDF and we try to format it to PDF, it returns error 406
+            if (meta.file.mimeType === 'application/pdf') {
+                downloadUrl = meta['@microsoft.graph.downloadUrl'];
+                break;
+            } else {
+                downloadUrl = itemId ?
+                    `/drives/${driveId}/items/${itemId}/content?format=pdf` :
+                    `/drives/${driveId}/root:/${itemPath}:/content?format=pdf`;
+                break;
+            }
+
+        case 'pdf': {
+            downloadUrl = itemId ?
+                `/drives/${driveId}/items/${itemId}/content?format=pdf` :
+                `/drives/${driveId}/root:/${itemPath}:/content?format=pdf`;
+            break;
+        }
+        case 'html': {
+            downloadUrl = itemId ?
+                `/drives/${driveId}/items/${itemId}/content?format=${format}` :
+                `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
+            break;
+        }
+        default: {
+            downloadUrl = itemId ?
+                `/drives/${driveId}/items/${itemId}/content?format=${format}` :
+                `/drives/${driveId}/root:/${itemPath}:/content?format=${format}`;
+        }
+    }
+
+    const { data } = await commons.msGraphRequest(context, {
+        action: downloadUrl,
+        responseType: 'stream'
+    });
+
+    const fileName = customFileName ? `${customFileName}.${format}` : `sharepoint-download-file.${format}`;
+
+    const { stream } = data;
+
+    let fullText = '';
+    if (format === 'txt') {
+        if (data.headers['content-length'] > MAX_FILE_SIZE) {
+            throw new context.CancelError(`File is too large. Max file size is ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
+        }
+        fullText = await pdfToText(stream);
+    }
+
+    return await context.saveFileStream(fileName, fullText ?? stream);
 };
