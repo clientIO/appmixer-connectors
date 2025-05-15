@@ -1,6 +1,6 @@
 {
-    "name": "appmixer.utils.storage.Set",
-    "description": "Set value to Storage.",
+    "name": "appmixer.utils.storage.SetMany",
+    "description": "Set multiple key-value pairs to Storage.",
     "inPorts": [
         {
             "name": "in",
@@ -10,10 +10,9 @@
                     "storeId": {
                         "type": "string"
                     },
-                    "key": { "type": "string" },
-                    "value": {}
+                    "keyValuePairs": {}
                 },
-                "required": [ "storeId", "key", "value" ]
+                "required": [ "storeId", "keyValuePairs"]
             },
             "inspector": {
                 "inputs": {
@@ -23,6 +22,7 @@
                         "label": "Storage",
                         "index": 1,
                         "source": {
+    
                             "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
                             "data": {
                                 "transform": "./ListStores#toSelectArray"
@@ -30,23 +30,27 @@
                         },
                         "tooltip": "Select storage."
                     },
-                    "key": {
-                        "type": "text",
+                    "keyValuePairs": {
+                        "type": "expression",
                         "group": "transformation",
-                        "label": "Key",
+                        "label": "Key-Value Pairs",
+                        "levels": ["AND"],
                         "index": 2,
-                        "attrs": {
-                            "label": {
-                                "data-tooltip": "Key which will be used to store the value."
+                        "fields": {
+                            "key": {
+                                "type": "text",
+                                "label": "Key",
+                                "required": true,
+                                "index": 1
+                            },
+                            "value": {
+                                "type": "text",
+                                "label": "Value",
+                                "required": true,
+                                "index": 2
                             }
-                        }
-                    },
-                    "value": {
-                        "type": "text",
-                        "group": "transformation",
-                        "label": "Value",
-                        "index": 3,
-                        "tooltip": "Value to store."
+                        },
+                        "tooltip": "Define dynamic key-value pairs."
                     }
                 },
                 "groups": {
@@ -62,11 +66,7 @@
         {
             "name": "out",
             "options": [
-                { "label": "Key", "value": "key" },
-                { "label": "Old value", "value": "oldValue" },
-                { "label": "New value", "value": "newValue" },
-                { "label": "Created at", "value": "createdAt" },
-                { "label": "Updated at", "value": "updatedAt" }
+                { "label": "Results", "value": "results" }
             ]
         }
     ],
