@@ -17,20 +17,18 @@ module.exports = {
                 results.push(value);
             }
         }
+
         // Send results to 'out' if any results are found
         if (results.length > 0) {
             context.sendJson({ results }, 'out');
-        }
-
-        // Send notFound to 'notFound' if any are found
-        if (notFound.length > 0) {
+        } else if (notFound.length > 0) {
+            // Send notFound to 'notFound' if any keys are not found
             context.sendJson({ notFound }, 'notFound');
-        }
-
-        // If both results and notFound are empty, send keys to 'notFound'
-        else {
+        } else {
+            // If both results and notFound are empty, send keys to 'notFound'
             return context.sendJson({ keys: keys.AND }, 'notFound');
         }
+
         return context.response();
     }
 };
