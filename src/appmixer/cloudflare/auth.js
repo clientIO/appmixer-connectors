@@ -18,8 +18,8 @@ module.exports = {
             },
             apiKey: {
                 type: 'text',
-                name: 'Global API Key (deprecated) or API Token',
-                tooltip: 'Enter your Global API Key or API Token.'
+                name: 'API Token or Global API Key (deprecated)',
+                tooltip: 'Enter your API Token or Global API Key (deprecated).'
             }
         },
 
