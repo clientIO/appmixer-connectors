@@ -1,5 +1,6 @@
 'use strict';
 const pathModule = require('path');
+
 module.exports = {
     async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
         if (outputType === 'object') {
@@ -32,17 +33,32 @@ module.exports = {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }
     },
+
     async fetchData(context, endpoint, params = {}) {
         const REQUEST_URL = `${context.auth.protocol}://api.currencylayer.com/${endpoint}`;
         const urlParams = new URLSearchParams({
             access_key: context.auth.apiKey,
             ...params
         }).toString();
+
         const response = await context.httpRequest({
             method: 'GET',
             url: `${REQUEST_URL}?${urlParams}`,
             json: true
         });
-        return response.data;
+
+        // If the API call is successful, return response data
+        if (response.data.success) {
+            return response.data;
+        }
+
+        // If the error code is 106, wait for 5 seconds before retrying
+        if (response.data.error?.code === 106) {
+            await new Promise(resolve => setTimeout(resolve, 5000)); // 5 seconds delay
+            throw new Error('API returned error: 106 - Rate limit exceeded. Retrying...');
+        } else {
+            // If the error is not 106, stop retrying and throw an error
+            throw new Error(`API returned error: ${response.data.error?.code || 'unknown error'}`);
+        }
     }
 };
