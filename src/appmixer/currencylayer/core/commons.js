@@ -58,7 +58,7 @@ module.exports = {
             throw new Error('API returned error: 106 - Rate limit exceeded. Retrying...');
         } else {
             // If the error is not 106, stop retrying and throw an error
-            throw new context.CancelError(`API returned error: ${response.data.error?.code || 'unknown error'}`);
+            throw new Error(`API returned error: ${response.data.error?.code || 'unknown error'}`);
         }
     }
 };
