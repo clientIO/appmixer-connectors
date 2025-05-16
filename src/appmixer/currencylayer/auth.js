@@ -26,7 +26,7 @@ module.exports = {
                 method: 'GET',
                 url: `${context.protocol}://api.currencylayer.com/api/live?access_key=${context.apiKey}&currencies=EUR,GBP,CAD,PLN&source=USD&format=1`
             });
-            console.log(response);
+
             if (response.data.success) {
                 return response.data.success;
             } else {
