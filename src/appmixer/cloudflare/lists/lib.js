@@ -5,14 +5,21 @@ const callEndpoint = async function(context, {
     params
 }) {
 
+    const isApiTokenType = !context.auth.email;
+
+    const headers = isApiTokenType ?
+        { 'Authorization': `Bearer ${context.auth.apiKey}` } :
+        {
+            'X-Auth-Email': context.auth.email,
+            'X-Auth-Key': context.auth.apiKey
+        };
+
+    headers['Content-Type'] = 'application/json';
+
     return context.httpRequest({
         method,
         url: `https://api.cloudflare.com/client/v4${action}`,
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Auth-Email': context.auth.email,
-            'X-Auth-Key': context.auth.apiKey
-        },
+        headers,
         data,
         params
     });
