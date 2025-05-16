@@ -14,29 +14,26 @@ module.exports = {
             email: {
                 type: 'text',
                 name: 'Email',
-                tooltip: 'Enter your "Email".'
+                tooltip: 'Enter your "Email". Required only for Global API Key authentication.'
             },
             apiKey: {
                 type: 'text',
-                name: 'Global API Key',
-                tooltip: 'Enter your "Global API Key".'
+                name: 'API Token or Global API Key (deprecated)',
+                tooltip: 'Enter your API Token or Global API Key (deprecated).'
             }
         },
 
         requestProfileInfo: async function(context) {
 
-            const { email } = context;
-
-            if (email) {
-                return { account: email };
-            }
+            const { email, apiKey } = context;
+            return { account: email || apiKey.substring(0, 5) + '...' + apiKey.slice(-3) };
         },
 
         validate: async function(context) {
 
             const { email, apiKey } = context;
             const client = new CloudflareAPI({ email, apiKey });
-            const { data } = await client.verifyGlobalApiKey(context);
+            const { data } = await client.verify(context);
             return data.success || false;
         }
     }

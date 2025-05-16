@@ -1,21 +1,25 @@
 module.exports = class CloudflareAPI {
 
-    constructor({ email, apiKey, zoneId, token }) {
+    constructor({ email, apiKey, zoneId }) {
         this.email = email;
         this.zoneId = zoneId;
-        this.email = email;
         this.apiKey = apiKey;
-        this.token = token;
+    }
+
+    isApiTokenType() {
+        return !this.email;
     }
 
     getHeaders() {
-        if (this.token) {
+
+        if (this.isApiTokenType()) {
             return {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.token}`
+                'Authorization': `Bearer ${this.apiKey}`
             };
         }
 
+        // Global API Key
         return {
             'Content-Type': 'application/json',
             'X-Auth-Email': this.email,
@@ -23,7 +27,21 @@ module.exports = class CloudflareAPI {
         };
     }
 
-    async verifyGlobalApiKey(context) {
+    verify(context) {
+
+        if (this.isApiTokenType()) {
+            const headers = this.getHeaders();
+            return context.httpRequest({
+                method: 'GET',
+                url: 'https://api.cloudflare.com/client/v4/user/tokens/verify',
+                headers
+            });
+        }
+
+        return this.verifyGlobalApiKey(context);
+    }
+
+    verifyGlobalApiKey(context) {
 
         const headers = this.getHeaders();
 
