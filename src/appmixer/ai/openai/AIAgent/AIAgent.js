@@ -12,9 +12,15 @@ module.exports = {
 
     start: async function(context) {
 
+        await this.collectTools(context);
+    },
+
+    collectTools: async function(context) {
+
         const tools = await this.getAllToolsDefinition(context);
         await context.log({ step: 'tools', tools });
-        return context.stateSet('tools', tools);
+        await context.stateSet('tools', tools);
+        return tools;
     },
 
     getAllToolsDefinition: async function(context) {
@@ -183,50 +189,6 @@ module.exports = {
         return toolsDefinition;
     },
 
-    agent: async function(context, client, instructions, model, prompt, tools, history) {
-
-        const messages = history || [{
-            // Note that we're not using the 'system' role here since it's not
-            // supported by all models. For example, o1 models.
-            role: 'user',
-            content: instructions
-        }];
-
-        messages.push({
-            role: 'user',
-            content: prompt
-        });
-
-        for (let i = 0; i < context.config.AI_AGENT_MAX_ATTEMPTS || MAX_ATTEMPTS; i++) {
-
-            const response = await client.chat.completions.create({
-                model,
-                messages,
-                tools
-            });
-
-            const { finish_reason, message } = response.choices[0];
-            messages.push(message);
-
-            if (finish_reason === 'tool_calls' && message.tool_calls) {
-
-                const outputs = await this.callTools(context, message.tool_calls);
-                (outputs || []).forEach((output) => {
-                    messages.push({
-                        role: 'tool',
-                        tool_call_id: output.tool_call_id,
-                        content: output.output
-                    });
-                });
-
-            } else if (finish_reason === 'stop') {
-                messages.push(message);
-                return { messages, answer: message.content };
-            }
-        }
-        return { messages, answer: 'The maximum number of iterations has been met without a suitable answer. Please try again with a more specific input.' };
-    },
-
     callTools: async function(context, modelToolCalls) {
 
         if (!modelToolCalls || !modelToolCalls.length) {
@@ -263,7 +225,7 @@ module.exports = {
                         args
                     );
                 } catch (err) {
-                    await context.log({ step: 'call-tool-error', componentId, tooName, toolCall, err });
+                    await context.log({ step: 'call-tool-error', componentId, toolName, toolCall, err });
                     output = `Error calling tool ${toolName}: ${err.message}`;
                 }
                 output = typeof output === 'string' ? output : JSON.stringify(output, null, 2);
@@ -305,9 +267,94 @@ module.exports = {
         return outputs;
     },
 
+    agent: async function(context, client, instructions, model, prompt, tools, history) {
+
+        const messages = history || [{
+            // Note that we're not using the 'system' role here since it's not
+            // supported by all models. For example, o1 models.
+            role: 'user',
+            content: instructions
+        }];
+
+        messages.push({
+            role: 'user',
+            content: prompt
+        });
+
+        for (let i = 0; i < context.config.AI_AGENT_MAX_ATTEMPTS || MAX_ATTEMPTS; i++) {
+
+            const completion = {
+                model,
+                messages,
+                tools
+            };
+            await context.log({ step: 'agent-completion', completion });
+            const choice = await this.createCompletion(context, client, completion);
+            const { finish_reason: finishReason, message } = choice;
+            messages.push(message);
+
+            if (finishReason === 'tool_calls' && message.tool_calls) {
+
+                const outputs = await this.callTools(context, message.tool_calls);
+                (outputs || []).forEach((output) => {
+                    messages.push({
+                        role: 'tool',
+                        tool_call_id: output.tool_call_id,
+                        content: output.output
+                    });
+                });
+
+            } else if (finishReason === 'stop') {
+                return { messages, answer: message.content, turns: i + 1 };
+            }
+        }
+        return { messages, answer: 'The maximum number of iterations has been met without a suitable answer. Please try again with a more specific input.' };
+    },
+
+    createCompletion: async function(context, client, completion) {
+
+        const response = await client.chat.completions.create(completion);
+        const choice = response.choices[0];
+        const usage = response.usage;
+
+        if (usage) {
+            // Remember aggregated usage for the current flow.
+            await this.updateUsage(context, usage);
+        }
+
+        return choice;
+    },
+
+    updateUsage: async function(context, usage) {
+
+        /* eslint-disable max-len */
+        const totalUsage = await context.stateGet('usage') || {};
+        const newUsage = {
+            prompt_tokens: (totalUsage.prompt_tokens || 0) + (usage.prompt_tokens || 0),
+            completion_tokens: (totalUsage.completion_tokens || 0) + (usage.completion_tokens || 0),
+            total_tokens: (totalUsage.total_tokens || 0) + (usage.total_tokens || 0)
+        };
+        if (usage.prompt_tokens_details) {
+            newUsage.prompt_tokens_details = {
+                cached_tokens: (totalUsage?.prompt_tokens_details?.cached_tokens || 0) + (usage.prompt_tokens_details.cached_tokens || 0),
+                audio_tokens: (totalUsage?.prompt_tokens_details?.audio_tokens || 0) + (usage.prompt_tokens_details.audio_tokens || 0)
+            };
+        }
+        if (usage.completion_tokens_details) {
+            newUsage.completion_tokens_details = {
+                reasoning_tokens: (totalUsage?.completion_tokens_details?.reasoning_tokens || 0) + (usage.completion_tokens_details.reasoning_tokens || 0),
+                audio_tokens: (totalUsage?.completion_tokens_details?.audio_tokens || 0) + (usage.completion_tokens_details.audio_tokens || 0),
+                accepted_prediction_tokens: (totalUsage?.completion_tokens_details?.accepted_prediction_tokens || 0) + (usage.completion_tokens_details.accepted_prediction_tokens || 0),
+                rejected_prediction_tokens: (totalUsage?.completion_tokens_details?.rejected_prediction_tokens || 0) + (usage.completion_tokens_details.rejected_prediction_tokens || 0)
+            };
+        }
+        /* eslint-enable max-len */
+        return context.stateSet('usage', newUsage);
+    },
+
     summarizeHistory: async function(context, client, model, history) {
 
-        const response = await client.chat.completions.create({
+        const choice = await this.createCompletion(context, client, {
             model,
             messages: [{
                 role: 'user',
@@ -316,24 +363,52 @@ module.exports = {
             max_tokens: context.config.AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS || 1000
         });
 
-        const { message } = response.choices[0];
+        const { message } = choice;
         return message.content;
     },
 
     receive: async function(context) {
 
-        const { prompt } = context.messages.in.content;
-        let threadId = context.messages.in.content.threadId || context.messages.in.correlationId;
+        const receiveStart = new Date;
+        const { prompt, storeId, threadId } = context.messages.in.content;
+        if (!threadId) {
+            threadId = context.messages.in.correlationId;
+        }
         const model = context.properties.model;
         const apiKey = context.auth.apiKey;
-        const client = new OpenAI({ apiKey });
-        const tools = await context.stateGet('tools');
+        const opt = { apiKey };
+        if (context.config.llmBaseUrl) {
+            // Allow for re-using the OpenAI connector with different OpenAI compatible LLMs.
+            // For example, for OpenRouter, set 'https://openrouter.ai/api/v1'.
+            opt.baseUrl = context.config.llmBaseUrl;
+        }
+        if (context.config.llmDefaultHeaders) {
+            // For example, for OpenRouter, set:
+            // {
+            //    'HTTP-Referer': '<YOUR_SITE_URL>', // Optional. Site URL for rankings on openrouter.ai.
+            //    'X-Title': '<YOUR_SITE_NAME>', // Optional. Site title for rankings on openrouter.ai.
+            // }
+            try {
+                opt.defaultHeaders = JSON.parse(context.config.llmDefaultHeaders);
+            } catch (err) {
+                return context.CancelError('Invalid JSON in config.llmDefaultHeaders: ' + err.message);
+            }
+        }
+        const client = new OpenAI(opt);
+        let tools = await context.stateGet('tools');
+        if (!tools) {
+            // If agent is started with OnStart component, the start method might not
+            // have been executed yet. So we need to collect tools on-demand here.
+            tools = await this.collectTools(context);
+        }
 
         // Check if a thread with a given ID exists.
         let history;
         if (threadId) {
-            history = await context.stateGet('thread_' + threadId);
+            history = await this.loadSummary(context, storeId, threadId);
         }
+        const historyLength = history.length;
+        const agentTimeStart = new Date;
         const response = await this.agent(
             context,
             client,
@@ -343,13 +418,14 @@ module.exports = {
             tools,
             history
         );
-        await context.log({ step: 'agent-response', response });
+        await context.log({ step: 'agent-response', response, time: (new Date) - agentTimeStart });
 
+        const newMessages = response.messages.slice(historyLength);
+        await this.saveMessages(context, storeId, threadId, newMessages);
         let newHistory = response.messages;
         const newHistoryText = JSON.stringify(newHistory);
-        if (newHistoryText.length > context.config.AI_AGENT_MAX_HISTORY_SIZE || 10000) {
-            // Limit the history size.
-
+        if (newHistoryText.length > (context.config.AI_AGENT_MAX_HISTORY_SIZE || 512000)) {
+            // Limit the history size to around 512kB by default.
             const summary = await this.summarizeHistory(context, client, model, newHistory);
             newHistory = [{
                 role: 'user',
@@ -362,11 +438,41 @@ module.exports = {
                 newHistoryTextLength: summary.length
             });
         }
-        await context.stateSet('thread_' + threadId, newHistory);
+        await this.saveSummary(context, storeId, threadId, newHistory);
 
         return context.sendJson({
             answer: response.answer,
-            prompt
+            prompt,
+            usage: await context.stateGet('usage'),
+            time: (new Date) - receiveStart
         }, 'out');
+    },
+
+    loadSummary: async function(context, storeId, threadId) {
+
+        const key = `thread_summary_${threadId}`;
+        const messagesString = storeId
+            ? (await context.store.get(storeId, key)).value
+            : await context.stateGet(key);
+        const messages = messagesString ? JSON.parse(messagesString) : [];
+        return messages;
+    },
+
+    saveSummary: function(context, storeId, threadId, summary) {
+
+        const key = `thread_summary_${threadId}`;
+        const value = JSON.stringify(summary);
+        return storeId
+            ? context.store.set(storeId, key, value)
+            : context.stateSet(key, value);
+    },
+
+    saveMessages: function(context, storeId, threadId, messages) {
+
+        const key = `thread_memory_${threadId}_${(new Date).getTime()}`;
+        const value = JSON.stringify(messages);
+        return storeId
+            ? context.store.set(storeId, key, value)
+            : context.stateSet(key, value);
     }
 };

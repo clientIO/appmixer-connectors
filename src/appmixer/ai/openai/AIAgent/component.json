@@ -43,7 +43,8 @@
             "type": "object",
             "properties": {
                 "prompt": { "type": "string" },
-                "threadId": { "type": "string" }
+                "threadId": { "type": "string" },
+                "storeId": { "type": "string" }
             },
             "required": ["prompt"]
         },
@@ -59,6 +60,18 @@
                     "type": "text",
                     "index": 2,
                     "tooltip": "By setting a thread ID you can keep the context of the conversation."
+                },
+                "storeId": {
+                    "label": "Memory Data Store",
+                    "type": "select",
+                    "index": 3,
+                    "source": {
+                        "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                        "data": {
+                            "transform": "./ListStores#toSelectArray"
+                        }
+                    },
+                    "tooltip": "Select a data store that will be used to store the conversation context. This is useful if you want to keep the context of the conversation across different executions."
                 }
             }
         }
@@ -73,6 +86,37 @@
             "label": "Prompt",
             "value": "prompt",
             "schema": { "type": "string" }
+        }, {
+            "label": "Time (ms)",
+            "value": "time",
+            "schema": { "type": "integer" }
+        }, {
+            "label": "Usage",
+            "value": "usage",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "prompt_tokens": { "type": "integer" },
+                    "completion_tokens": { "type": "integer" },
+                    "total_tokens": { "type": "integer" },
+                    "prompt_tokens_details": {
+                        "type": "object",
+                        "properties": {
+                            "cached_tokens": { "type": "integer" },
+                            "audio_tokens": { "type": "integer" }
+                        }
+                    },
+                    "completion_tokens_details": {
+                        "type": "object",
+                        "properties": {
+                            "reasoning_tokens": { "type": "integer" },
+                            "audio_tokens": { "type": "integer" },
+                            "accepted_prediction_tokens": { "type": "integer" },
+                            "rejected_prediction_tokens": { "type": "integer" }
+                        }
+                    }
+                }
+            }
         }]
     }, {
         "name": "progress",
