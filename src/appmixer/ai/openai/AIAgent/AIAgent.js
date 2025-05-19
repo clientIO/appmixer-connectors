@@ -370,7 +370,8 @@ module.exports = {
     receive: async function(context) {
 
         const receiveStart = new Date;
-        const { prompt, storeId, threadId } = context.messages.in.content;
+        const { prompt, storeId } = context.messages.in.content;
+        let threadId = context.messages.in.content.threadId;
         if (!threadId) {
             threadId = context.messages.in.correlationId;
         }
