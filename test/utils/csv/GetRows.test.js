@@ -23,7 +23,6 @@ describe('GetRows', async () => {
 
     it('should get a row from a CSV file', async function() {
 
-        this.timeout(10000);
         const content = {
             allAtOnce: true,
             parseNumbers: false,
@@ -60,6 +59,7 @@ describe('GetRows', async () => {
 
     it('no Maximum call stack exceeded', async function() {
 
+        this.timeout(5000);
         /** File with short rows and small cells. 8000 rows. */
         const pathToCSV = path.join(__dirname, 'ID,Email,Email,Email,Email,Email,Email-8000.csv');
         context.getFileReadStream = () => fs.createReadStream(pathToCSV, {
