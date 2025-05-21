@@ -1,7 +1,7 @@
 'use strict';
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
-const { PassThrough, pipeline } = require('stream');
+const { PassThrough, pipeline, Transform } = require('stream');
 const { parse } = require('csv-parse/sync'); // Use the synchronous version of csv-parse
 const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
