@@ -1,7 +1,7 @@
 'use strict';
 const AutoDetectDecoderStream = require('autodetect-decoder-stream');
 const CsvReadableStream = require('csv-reader');
-const { PassThrough, pipeline } = require('stream');
+const { PassThrough, pipeline, Transform } = require('stream');
 const { parse } = require('csv-parse/sync'); // Use the synchronous version of csv-parse
 const { passesFilter, indexExpressionToArray, passesIndexFilter } = require('./helpers');
 
@@ -480,8 +480,37 @@ module.exports = class CSVProcessor {
      */
     async loadFile() {
 
+        // GridFSBucketReadStream
         const readStream = await this.context.getFileReadStream(this.fileId);
 
+        /** How to split the default GridFSBucketReadStream chunk size of 255 KB into smaller chunks.
+         *  This is to avoid the "Maximum call stack size exceeded" error when reading large CSV files.
+         */
+        const SAFE_CSV_STREAM_CHUNK_SIZE = 1024;
+
+        // Transform stream to emit data in chunks of SAFE_CSV_STREAM_CHUNK_SIZE
+        class ChunkedStream extends Transform {
+            constructor(chunkSize = SAFE_CSV_STREAM_CHUNK_SIZE) {
+                super();
+                this.chunkSize = chunkSize;
+                this.buffer = Buffer.alloc(0);
+            }
+            _transform(chunk, encoding, callback) {
+                this.buffer = Buffer.concat([this.buffer, Buffer.from(chunk)]);
+                while (this.buffer.length >= this.chunkSize) {
+                    this.push(this.buffer.slice(0, this.chunkSize));
+                    this.buffer = this.buffer.slice(this.chunkSize);
+                }
+                callback();
+            }
+            _flush(callback) {
+                if (this.buffer.length > 0) {
+                    this.push(this.buffer);
+                }
+                callback();
+            }
+        }
+        const chunkedStream = new ChunkedStream(SAFE_CSV_STREAM_CHUNK_SIZE);
         const autoDetectDecoderStream = new AutoDetectDecoderStream();
         const csvReadableStream = new CsvReadableStream({
             delimiter: this.delimiter,
@@ -491,9 +520,10 @@ module.exports = class CSVProcessor {
         });
 
         return pipeline(
-            readStream,
-            autoDetectDecoderStream,
-            csvReadableStream,
+            readStream, // Read stream from GridFS
+            chunkedStream, // Chunked stream to split data into smaller chunks
+            autoDetectDecoderStream, // Auto-detect encoding
+            csvReadableStream, // CSV reader stream
             (err) => {
             }
         );
