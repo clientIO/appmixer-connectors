@@ -109,7 +109,10 @@ module.exports = {
 
     getStatus: async function(context, id, attempts = 0) {
 
-        context.log({ stage: 'retrieving-upload-status', systemActivityId: id, attempts });
+        const maxAttempts = parseInt(context.config.statusNumberOfAttempts , 10) || 20;
+        const pollingInterval = parseInt(context.config.statusPollingInterval, 10) || 3000;
+
+        context.log({ stage: 'retrieving-upload-status', systemActivityId: id, attempts, maxAttempts, pollingInterval });
         const { data } = await this.makeApiCall({
             context,
             method: 'POST',
@@ -123,8 +126,8 @@ module.exports = {
 
         if (data.errors || data?.data?.systemActivity?.status === 'IN_PROGRESS') {
             attempts++;
-            if (attempts <= 10) {
-                await new Promise(r => setTimeout(r, 1000));
+            if (attempts <= maxAttempts) {
+                await new Promise(r => setTimeout(r, pollingInterval));
                 return await this.getStatus(context, id, attempts);
             } else {
                 throw new context.CancelError(`Exceeded max attempts systemActivity: ${id}`);
