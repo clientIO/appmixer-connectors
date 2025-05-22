@@ -105,6 +105,10 @@ module.exports = {
                     description: parameter.description
                 };
             });
+            const description = component.config.properties?.description;
+            if (!description) {
+                throw new Error(`Component ${componentId} does not have a description.`);
+            }
             const functionDeclaration = {
                 name: 'function_' + componentId,
                 description: component.config.properties.description,
