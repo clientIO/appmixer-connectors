@@ -1,14 +1,13 @@
 'use strict';
 
+const lib = require('../lib');
+
 module.exports = {
 
     receive: async function(context) {
 
         const { prompt, model } = context.messages.in.content;
-        const apiKey = context.auth.apiKey;
-
-        const url = 'https://api.openai.com/v1/chat/completions';
-        const { data } = await context.httpRequest.post(url, {
+        const { data } = await lib.request(context, 'post', '/chat/completions', {
             model: model || 'gpt-4o',
             messages: [
                 {
@@ -22,15 +21,9 @@ module.exports = {
                     name: 'user'
                 }
             ]
-        }, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
         });
 
         let answer = '';
-
         if (data && data.choices) {
             answer = data.choices[0].message.content;
         }

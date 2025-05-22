@@ -1,6 +1,6 @@
 'use strict';
 
-const OpenAI = require('openai');
+const lib = require('../lib');
 const shortuuid = require('short-uuid');
 const uuid = require('uuid');
 
@@ -358,7 +358,10 @@ module.exports = {
             model,
             messages: [{
                 role: 'user',
-                content: 'Summarize the following conversation:\n' + JSON.stringify(history, null, 2)
+                content: [
+                    context.config.AI_AGENT_SUMMARY_PROMPT || 'Summarize the following conversation:',
+                    JSON.stringify(history, null, 2)
+                ].join('\n')
             }],
             max_tokens: context.config.AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS || 1000
         });
@@ -370,32 +373,9 @@ module.exports = {
     receive: async function(context) {
 
         const receiveStart = new Date;
-        const { prompt, storeId } = context.messages.in.content;
-        let threadId = context.messages.in.content.threadId;
-        if (!threadId) {
-            threadId = context.messages.in.correlationId;
-        }
+        const { prompt, storeId, threadId } = context.messages.in.content;
         const model = context.properties.model;
-        const apiKey = context.auth.apiKey;
-        const opt = { apiKey };
-        if (context.config.llmBaseUrl) {
-            // Allow for re-using the OpenAI connector with different OpenAI compatible LLMs.
-            // For example, for OpenRouter, set 'https://openrouter.ai/api/v1'.
-            opt.baseUrl = context.config.llmBaseUrl;
-        }
-        if (context.config.llmDefaultHeaders) {
-            // For example, for OpenRouter, set:
-            // {
-            //    'HTTP-Referer': '<YOUR_SITE_URL>', // Optional. Site URL for rankings on openrouter.ai.
-            //    'X-Title': '<YOUR_SITE_NAME>', // Optional. Site title for rankings on openrouter.ai.
-            // }
-            try {
-                opt.defaultHeaders = JSON.parse(context.config.llmDefaultHeaders);
-            } catch (err) {
-                return context.CancelError('Invalid JSON in config.llmDefaultHeaders: ' + err.message);
-            }
-        }
-        const client = new OpenAI(opt);
+        const client = lib.sdk(context);
         let tools = await context.stateGet('tools');
         if (!tools) {
             // If agent is started with OnStart component, the start method might not
@@ -404,7 +384,7 @@ module.exports = {
         }
 
         // Check if a thread with a given ID exists.
-        let history;
+        let history = [];
         if (threadId) {
             history = await this.loadSummary(context, storeId, threadId);
         }
@@ -422,10 +402,12 @@ module.exports = {
         await context.log({ step: 'agent-response', response, time: (new Date) - agentTimeStart });
 
         const newMessages = response.messages.slice(historyLength);
-        await this.saveMessages(context, storeId, threadId, newMessages);
+        if (threadId) {
+            await this.saveMessages(context, storeId, threadId, newMessages);
+        }
         let newHistory = response.messages;
         const newHistoryText = JSON.stringify(newHistory);
-        if (newHistoryText.length > (context.config.AI_AGENT_MAX_HISTORY_SIZE || 512000)) {
+        if (threadId && (newHistoryText.length > (context.config.AI_AGENT_MAX_HISTORY_SIZE || 512000))) {
             // Limit the history size to around 512kB by default.
             const summary = await this.summarizeHistory(context, client, model, newHistory);
             newHistory = [{
@@ -439,7 +421,9 @@ module.exports = {
                 newHistoryTextLength: summary.length
             });
         }
-        await this.saveSummary(context, storeId, threadId, newHistory);
+        if (threadId) {
+            await this.saveSummary(context, storeId, threadId, newHistory);
+        }
 
         return context.sendJson({
             answer: response.answer,

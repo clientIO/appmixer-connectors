@@ -1,23 +1,17 @@
 'use strict';
 
+const lib = require('../lib');
+
 module.exports = {
 
     receive: async function(context) {
 
         const { prompt, size, model } = context.messages.in.content;
-        const apiKey = context.auth.apiKey;
-
-        const url = 'https://api.openai.com/v1/images/generations';
-        const { data } = await context.httpRequest.post(url, {
+        const { data } = await lib.request(context, 'post', '/images/generations', {
             model: model || 'dall-e-3',
             prompt,
             size,
             n: 1
-        }, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
         });
 
         let imageUrl;
