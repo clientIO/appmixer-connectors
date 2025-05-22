@@ -25,7 +25,7 @@
         "schema": {
             "properties": {
                 "scheduleType": { "type": "string" },
-                "daysOfWeek": { "type": "array"  },
+                "daysOfWeek": { "type": "array" },
                 "daysOfMonth": { "type": "array" },
                 "customIntervalUnit": { "type": "string" },
                 "customIntervalValue": { "type": "integer" },
@@ -36,15 +36,22 @@
                 "timezone": { "type": "string" }
             },
             "required": ["scheduleType"],
-            "anyOf": [
+            "allOf": [
                 {
-                    "required": ["customIntervalUnit", "customIntervalValue"]
-                },
-                {
-                    "required": ["daysOfWeek"]
-                },
-                {
-                    "required": ["daysOfMonth"]
+                    "if": { "properties": { "scheduleType": { "const": "days" } } },
+                    "then": { "required": ["scheduleType"] },
+                    "else": {
+                        "if": { "properties": { "scheduleType": { "const": "custom" } } },
+                        "then": { "required": ["scheduleType", "customIntervalUnit", "customIntervalValue"] },
+                        "else": {
+                            "if": { "properties": { "scheduleType": { "const": "weeks" } } },
+                            "then": { "required": ["scheduleType", "daysOfWeek"] },
+                            "else": {
+                                "if": { "properties": { "scheduleType": { "const": "months" } } },
+                                "then": { "required": ["scheduleType", "daysOfMonth"] }
+                            }
+                        }
+                    }
                 }
             ]
         },
@@ -178,6 +185,7 @@
                     "when": {
                         "eq": { "./scheduleType": "custom" }
                     },
+                    "min": 1,
                     "index": 2
                 },
                 "time": {
