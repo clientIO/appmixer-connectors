@@ -32,13 +32,8 @@ module.exports = {
         const apiKey = context.apiKey || context.auth.apiKey;
         const opt = {
             apiKey,
-            baseUrl: 'https://openrouter.ai/api/v1'
+            baseURL: context.config.llmBaseUrl || 'https://openrouter.ai/api/v1'
         };
-        if (context.config.llmBaseUrl) {
-            // Allow for re-using the OpenAI connector with different OpenAI compatible LLMs.
-            // For example, for OpenRouter, set 'https://openrouter.ai/api/v1'.
-            opt.baseUrl = context.config.llmBaseUrl;
-        }
         if (context.config.llmDefaultHeaders) {
             // For example, for OpenRouter, set:
             // {
