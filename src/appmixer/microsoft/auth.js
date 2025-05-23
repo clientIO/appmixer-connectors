@@ -37,7 +37,7 @@ module.exports = {
 
             return `https://login.microsoftonline.com/${microsoftTenantId}/oauth2/v2.0/authorize`
                 + `?client_id=${encodeURIComponent(context.clientId)}`
-                + `&response_type=code`
+                + '&response_type=code'
                 + `&redirect_uri=${context.callbackUrl}`
                 + `&state=${context.ticket}`
                 + `&scope=${context.scope.join(module.exports.definition.scopeDelimiter)}`;
