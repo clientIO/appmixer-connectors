@@ -176,10 +176,12 @@ module.exports = {
                     description: parameter.description
                 };
             });
+            let toolName = (component.label || component.type.split('.').pop());
+            toolName = toolName.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 64 - componentId.length - 1);
             const toolDefinition = {
                 type: 'function',
                 function: {
-                    name: componentId + '_' + (component.label || component.type.split('.').pop()),
+                    name: componentId + '_' + toolName,
                     description: component.config.properties.description
                 }
             };
