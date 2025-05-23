@@ -4,9 +4,11 @@ const lib = require('../lib');
 const shortuuid = require('short-uuid');
 const uuid = require('uuid');
 
-const COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT = 60 * 1000;  // 60 seconds
-const COLLECT_TOOL_OUTPUTS_POLL_INTERVAL = 1 * 1000;  // 1 second
-const MAX_ATTEMPTS = 20;
+const TOOLS_OUTPUT_POLL_TIMEOUT = 2 * 60 * 1000;  // 120 seconds
+const TOOLS_OUTPUT_POLL_INTERVAL = 300;  // 300ms
+const AI_AGENT_MAX_ATTEMPTS = 20; // Max number of agent turns before we stop.
+const AI_AGENT_MAX_HISTORY_SIZE = 512000;
+const AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS = 32000;
 
 module.exports = {
 
@@ -247,9 +249,11 @@ module.exports = {
             await context.log({ step: 'collect-tools-output', toolCalls });
 
             const pollStart = Date.now();
+            const pollTimeout = context.config.TOOLS_OUTPUT_POLL_TIMEOUT || TOOLS_OUTPUT_POLL_TIMEOUT;
+            const pollInterval = context.config.TOOLS_OUTPUT_POLL_INTERVAL || TOOLS_OUTPUT_POLL_INTERVAL;
             while (
                 (outputs.length < toolCalls.length) &&
-                (Date.now() - pollStart < COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT)
+                (Date.now() - pollStart < pollTimeout)
             ) {
                 for (const toolCall of toolCalls) {
                     const result = await context.flow.stateGet(toolCall.id);
@@ -259,7 +263,7 @@ module.exports = {
                     }
                 }
                 // Sleep.
-                await new Promise((resolve) => setTimeout(resolve, COLLECT_TOOL_OUTPUTS_POLL_INTERVAL));
+                await new Promise((resolve) => setTimeout(resolve, pollInterval));
             }
             await context.log({ step: 'collected-tools-output', outputs });
         }
@@ -281,7 +285,7 @@ module.exports = {
             content: prompt
         });
 
-        for (let i = 0; i < context.config.AI_AGENT_MAX_ATTEMPTS || MAX_ATTEMPTS; i++) {
+        for (let i = 0; i < context.config.AI_AGENT_MAX_ATTEMPTS || AI_AGENT_MAX_ATTEMPTS; i++) {
 
             const completion = {
                 model,
@@ -363,7 +367,7 @@ module.exports = {
                     JSON.stringify(history, null, 2)
                 ].join('\n')
             }],
-            max_tokens: context.config.AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS || 1000
+            max_tokens: context.config.AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS || AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS
         });
 
         const { message } = choice;
@@ -407,7 +411,8 @@ module.exports = {
         }
         let newHistory = response.messages;
         const newHistoryText = JSON.stringify(newHistory);
-        if (threadId && (newHistoryText.length > (context.config.AI_AGENT_MAX_HISTORY_SIZE || 512000))) {
+        const maxHistorySize = context.config.AI_AGENT_MAX_HISTORY_SIZE || AI_AGENT_MAX_HISTORY_SIZE;
+        if (threadId && (newHistoryText.length > maxHistorySize)) {
             // Limit the history size to around 512kB by default.
             const summary = await this.summarizeHistory(context, client, model, newHistory);
             newHistory = [{
