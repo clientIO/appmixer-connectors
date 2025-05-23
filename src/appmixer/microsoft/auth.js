@@ -21,7 +21,7 @@ module.exports = {
         pre: function(context) {
             if (hasTenant(context)) {
                 return {
-                    microsoftTentant: {
+                    microsoftTenant: {
                         type: 'text',
                         name: 'Tenant',
                         tooltip: 'Specify the Tenant. Valid values are common, organizations, consumers, and tenant identifiers.'
@@ -33,7 +33,7 @@ module.exports = {
         },
 
         authUrl: context => {
-            const microsoftTenantId = hasTenant(context) ? '{{microsoftTentant}}' : 'common';
+            const microsoftTenantId = hasTenant(context) ? '{{microsoftTenant}}' : 'common';
 
             return `https://login.microsoftonline.com/${microsoftTenantId}/oauth2/v2.0/authorize`
                 + `?client_id=${encodeURIComponent(context.clientId)}`
@@ -44,7 +44,7 @@ module.exports = {
         },
 
         requestAccessToken: async (context) => {
-            const microsoftTenantId = hasTenant(context) ? context.microsoftTentant : 'common';
+            const microsoftTenantId = hasTenant(context) ? context.microsoftTenant : 'common';
 
             const { authorizationCode } = context;
             const url = `https://login.microsoftonline.com/${microsoftTenantId}/oauth2/v2.0/token`;
@@ -77,7 +77,7 @@ module.exports = {
         },
 
         refreshAccessToken: async (context) => {
-            const microsoftTenantId = hasTenant(context) ? context.microsoftTentant : 'common';
+            const microsoftTenantId = hasTenant(context) ? context.microsoftTenant : 'common';
 
             const url = `https://login.microsoftonline.com/${microsoftTenantId}/oauth2/v2.0/token`;
             const clientId = encodeURIComponent(context.clientId);
