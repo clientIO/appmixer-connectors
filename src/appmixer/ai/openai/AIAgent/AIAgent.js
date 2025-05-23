@@ -179,7 +179,7 @@ module.exports = {
             const toolDefinition = {
                 type: 'function',
                 function: {
-                    name: componentId,
+                    name: componentId + '_' + (component.label || component.type.split('.').pop()),
                     description: component.config.properties.description
                 }
             };
