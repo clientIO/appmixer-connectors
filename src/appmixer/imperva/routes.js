@@ -201,6 +201,10 @@ module.exports = (context, options) => {
             }
         });
 
+        if (!data?.rule_id) {
+            throw new Error('Imperva API did not return a rule ID when creating a new rule. Response: ' + JSON.stringify(data));
+        }
+
         processed.push(...ips.map(ip => ({ ruleId: data.rule_id, ip })));
 
         const rule = { ...data, siteId, batch: order };

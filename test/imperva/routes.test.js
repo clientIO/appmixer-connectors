@@ -653,4 +653,100 @@ describe('POST /rules-block-ips handler', () => {
             assert.equal(result.maxRules, 500);
         });
     });
+
+    it('21 new IPs, no previous records, 2nd API call returns custom object', async () => {
+
+        // Stub `insertMany` method of MongoDB collection.
+        context.db.collection().insertMany.resolves({ insertedCount: 20 });
+        // Stub the 1st and 2nd DB calls to find existing records is done automatically.
+
+        const IPS = Array.from({ length: 21 }, (_, i) => `1.1.1.${i + 1}`);
+        const IMPERVA_RULES_RESPONSE = {
+            name: 'Custom IP Block Rule 1734039281345 ',
+            action: 'RULE_ACTION_BLOCK'
+        };
+        // Stub the 1st API call to Imperva to create 20 rules.
+        context.httpRequest.onCall(1).resolves({
+            data: {
+                ...IMPERVA_RULES_RESPONSE,
+                rule_id: 43642,
+                name: IMPERVA_RULES_RESPONSE.name + '1',
+                filter: IPS.slice(0, 20).map(ip => `ClientIP == ${ip}`).join(' & ')
+            }
+        });
+        // Stub the 2nd API call to Imperva to return the custom object.
+        context.httpRequest.onCall(2).resolves({
+            // Simulating a custom response from Imperva API that does not match the expected structure.
+            data: {
+                res: 0,
+                res_message: 'OK',
+                debug_info: [
+                    {
+                        additionalProp1: {},
+                        additionalProp2: {},
+                        additionalProp3: {}
+                    }
+                ]
+            }
+        });
+
+        // The payload contains 21 new IPs.
+        const req = {
+            payload: {
+                siteId: SITE_ID,
+                ips: IPS,
+                removeAfter: AFTER_10_MINUTES,
+                auth: AUTH
+            }
+        };
+
+        // Call the handler with the payload.
+        const result = await handler(req);
+        // Should handle the custom response gracefully, likely as an error (depends on implementation)
+        // Here we check that the processed IPs are only the first 20, and error is present
+        assert(result.error, 'should return an error');
+        assert.deepEqual(result.processed, IPS.slice(0, 20).map(ip => ({ ruleId: 43642, ip })));
+        // Assert only 20 IPs were processed, as the last one was not inserted due to the custom response.
+        assert.equal(result.processed.length, 20, 'should process only 20 IPs');
+
+        // Assertions
+        // Expecting 2 call to find current rules stored in MongoDB.
+        assert.equal(context.db.collection().find.callCount, 2, 'find should be called twice');
+        // Expecting 1 call to insert new records in MongoDB with only 20 IPs. Missing the last one.
+        assert.equal(context.db.collection().insertMany.callCount, 1, 'insertMany should be called once');
+        const insertManyArgsExpected = IPS
+            .slice(0, 20)
+            .map((ip, i) => ({
+                siteId: SITE_ID,
+                ip,
+                ruleId: 43642,
+                removeAfter: AFTER_10_MINUTES,
+                auth: AUTH
+            }));
+        const insertManyArgs = context.db.collection().insertMany.getCall(0).args[0];
+        assert.deepEqual(
+            insertManyArgs,
+            insertManyArgsExpected,
+            'should insert the correct records in MongoDB'
+        );
+        // Expecting 2 calls to create new rules in Imperva.
+        assert.equal(context.httpRequest.callCount, 3, 'POST httpRequest should be called twice');
+        // First call
+        const httpRequestArgs1 = context.httpRequest.getCall(1).args[0];
+        assert.match(httpRequestArgs1.url, /v2\/sites\/\d+\/rules$/);
+        assert.equal(httpRequestArgs1.method, 'POST');
+        assert.equal(httpRequestArgs1.headers['x-API-Key'], AUTH.key);
+        assert.match(httpRequestArgs1.data.name, /Custom IP Block Rule \d+ 1/);
+        assert.equal(httpRequestArgs1.data.action, 'RULE_ACTION_BLOCK');
+        assert.match(httpRequestArgs1.data.filter, /ClientIP == 1\.1\.1\.1/);
+        assert.match(httpRequestArgs1.data.filter, /ClientIP == 1\.1\.1\.20/);
+        // Second call
+        const httpRequestArgs2 = context.httpRequest.getCall(2).args[0];
+        assert.match(httpRequestArgs2.url, /v2\/sites\/\d+\/rules$/);
+        assert.equal(httpRequestArgs2.method, 'POST');
+        assert.equal(httpRequestArgs2.headers['x-API-Key'], AUTH.key);
+        assert.match(httpRequestArgs2.data.name, /Custom IP Block Rule \d+ 2/);
+        assert.equal(httpRequestArgs2.data.action, 'RULE_ACTION_BLOCK');
+        assert.equal(httpRequestArgs2.data.filter, 'ClientIP == 1.1.1.21');
+    });
 });
