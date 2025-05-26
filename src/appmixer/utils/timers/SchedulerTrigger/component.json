@@ -35,23 +35,22 @@
                 "end": { "type": "string" },
                 "timezone": { "type": "string" }
             },
-            "required": ["scheduleType"],
             "allOf": [
                 {
                     "if": { "properties": { "scheduleType": { "const": "days" } } },
-                    "then": { "required": ["scheduleType"] },
-                    "else": {
-                        "if": { "properties": { "scheduleType": { "const": "custom" } } },
-                        "then": { "required": ["scheduleType", "customIntervalUnit", "customIntervalValue"] },
-                        "else": {
-                            "if": { "properties": { "scheduleType": { "const": "weeks" } } },
-                            "then": { "required": ["scheduleType", "daysOfWeek"] },
-                            "else": {
-                                "if": { "properties": { "scheduleType": { "const": "months" } } },
-                                "then": { "required": ["scheduleType", "daysOfMonth"] }
-                            }
-                        }
-                    }
+                    "then": { "required": ["scheduleType"] }
+                },
+                {
+                    "if": { "properties": { "scheduleType": { "const": "custom" } } },
+                    "then": { "required": ["scheduleType", "customIntervalUnit", "customIntervalValue"] }
+                },
+                {
+                    "if": { "properties": { "scheduleType": { "const": "weeks" } } },
+                    "then": { "required": ["scheduleType", "daysOfWeek"] }
+                },
+                {
+                    "if": { "properties": { "scheduleType": { "const": "months" } } },
+                    "then": { "required": ["scheduleType", "daysOfMonth"] }
                 }
             ]
         },
@@ -70,15 +69,17 @@
                     "label": "Repeat",
                     "tooltip": "Choose how often to repeat the task.",
                     "defaultValue": "custom",
-                    "options": [{
-                        "label": "Daily", "value": "days"
-                    }, {
-                        "label": "Days of Week", "value": "weeks"
-                    }, {
-                        "label": "Days of Month", "value": "months"
-                    }, {
-                        "label": "Custom Interval", "value": "custom"
-                    }]
+                    "options": [
+                        {
+                            "label": "Daily", "value": "days"
+                        }, {
+                            "label": "Days of Week", "value": "weeks"
+                        }, {
+                            "label": "Days of Month", "value": "months"
+                        }, {
+                            "label": "Custom Interval", "value": "custom"
+                        }
+                    ]
                 },
                 "daysOfWeek": {
                     "type": "multiselect",
@@ -247,18 +248,6 @@
     "outPorts": [
         {
             "name": "out",
-            "schema": {
-                "properties": {
-                    "previousDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "nextDate": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                }
-            },
             "options": [
                 {
                     "label": "Next Date GMT",
