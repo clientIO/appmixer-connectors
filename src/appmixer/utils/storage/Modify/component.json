@@ -1,18 +1,18 @@
 {
-    "name": "appmixer.utils.storage.Remove",
-    "description": "Remove value from Storage.",
+    "name": "appmixer.utils.storage.Modify",
+    "description": "Modify a value in Storage using an operator.",
     "inPorts": [
         {
             "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
-                    "storeId": {
-                        "type": "string"
-                    },
-                    "key": { "type": "string" }
+                    "storeId": { "type": "string" },
+                    "key": { "type": "string" },
+                    "operator": { "type": "string" },
+                    "value": {}
                 },
-                "required": [ "storeId","key" ]
+                "required": ["storeId", "key", "operator", "value"]
             },
             "inspector": {
                 "inputs": {
@@ -22,7 +22,6 @@
                         "label": "Storage",
                         "index": 1,
                         "source": {
-    
                             "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
                             "data": {
                                 "transform": "./ListStores#toSelectArray"
@@ -35,12 +34,39 @@
                         "group": "transformation",
                         "label": "Key",
                         "index": 2,
-                        "tooltip": "Key which will be used to remove the value."
+                        "attrs": {
+                            "label": {
+                                "data-tooltip": "Key whose value will be modified."
+                            }
+                        }
+                    },
+                    "operator": {
+                        "type": "select",
+                        "group": "transformation",
+                        "label": "Operator",
+                        "index": 3,
+                        "options": [
+                            { "label": "Add", "value": "Add" },
+                            { "label": "Subtract", "value": "Subtract" },
+                            { "label": "Multiply", "value": "Multiply" },
+                            { "label": "Divide", "value": "Divide" },
+                            { "label": "Append", "value": "Append" },
+                            { "label": "Set", "value": "Set" }
+                        ],
+                        "tooltip": "Operation to apply."
+                    },
+                    "value": {
+                        "type": "text",
+                        "group": "transformation",
+                        "label": "Value",
+                        "index": 4,
+                        "tooltip": "Value to use in operation."
                     }
                 },
                 "groups": {
                     "transformation": {
-                        "label": "Transformation"
+                        "label": "Transformation",
+                        "index": 1
                     }
                 }
             }
@@ -48,10 +74,13 @@
     ],
     "outPorts": [
         {
-            "name": "removed",
+            "name": "out",
             "options": [
                 { "label": "Key", "value": "key" },
-                { "label": "Old value", "value": "oldValue" }
+                { "label": "Old value", "value": "oldValue" },
+                { "label": "New value", "value": "newValue" },
+                { "label": "Created at", "value": "createdAt" },
+                { "label": "Updated at", "value": "updatedAt" }
             ]
         }
     ],

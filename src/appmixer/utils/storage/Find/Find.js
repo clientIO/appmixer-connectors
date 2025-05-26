@@ -4,8 +4,7 @@ module.exports = {
 
     async receive(context) {
 
-        const { pattern } = context.messages.in.content;
-        const { storeId } = context.properties;
+        const { pattern, storeId } = context.messages.in.content;
         const items = await context.store.find(storeId, pattern);
         if (items.length > 0) {
             return context.sendJson({ items }, 'out');
