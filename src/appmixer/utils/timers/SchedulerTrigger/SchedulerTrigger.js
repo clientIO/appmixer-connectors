@@ -202,7 +202,7 @@ module.exports = {
 
     generateInspector(context) {
 
-        const { end, timezone } = context.properties;
+        const { end, timezone = 'GMT' } = context.properties;
 
         const now = moment().toISOString();
         const nextDate = this.getNextRun(context, { now, firstTime: true });
@@ -211,7 +211,7 @@ module.exports = {
             step: 'preview',
             nextDateGMT: nextDate ? nextDate.toISOString() : null,
             nextDateLocal: nextDate ? moment(nextDate).tz(timezone).format('YYYY-MM-DDTHH:mm:ss.SSS') : null,
-            timezone: timezone || 'GMT'
+            timezone
         });
 
         if (nextDate === null && end) {
