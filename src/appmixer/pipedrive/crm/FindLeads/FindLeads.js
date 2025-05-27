@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * ListLeads action.
+ * Find Leads action.
  * @extends {Component}
  */
 module.exports = {

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * CreatePerson action.
+ * UpdateLead action.
  * @extends {Component}
  */
 module.exports = {
