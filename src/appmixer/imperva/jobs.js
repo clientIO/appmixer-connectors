@@ -122,7 +122,7 @@ module.exports = async (context) => {
                                 };
                                 return context.httpRequest(params);
                             } else {
-                                const filter = rule.ipsToKeepBlocking.map(ip => `ClientIP == ${ip}`).join(' & ');
+                                const filter = rule.ipsToKeepBlocking.map(ip => `ClientIP == ${ip}`).join(' | ');
                                 const params = {
                                     headers: getAuthHeader(rule.auth),
                                     url: `${baseUrl}/v2/sites/${siteId}/rules/${rule.ruleId}`,

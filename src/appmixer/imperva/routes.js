@@ -188,7 +188,7 @@ module.exports = (context, options) => {
 
     async function createRule(auth, siteId, ips, ruleName, order, processed = []) {
 
-        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' & ');
+        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' | ');
 
         const { data } = await context.httpRequest({
             headers: getAuthHeader(auth),
@@ -214,7 +214,7 @@ module.exports = (context, options) => {
 
     async function updateRule(auth, siteId, ruleId, ruleName, ips, processed = [], allNewIPs) {
 
-        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' & ');
+        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' | ');
 
         const { data } = await context.httpRequest({
             headers: getAuthHeader(auth),
