@@ -10,7 +10,7 @@ module.exports = {
             method: 'GET',
             url: 'https://api.pipedrive.com/v1/leads',
             headers: {
-            'x-api-token': context.auth.apiKey
+                'x-api-token': context.auth.apiKey
             }
         };
 

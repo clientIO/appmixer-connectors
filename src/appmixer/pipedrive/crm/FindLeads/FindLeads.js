@@ -28,7 +28,7 @@ module.exports = {
             ...(fields && { fields }),
             ...(organizationId && { organization_id: organizationId })
         };
-        context.log({ step: 'params', params: params});
+
         const result = await context.httpRequest({
             method: 'GET',
             url: 'https://api.pipedrive.com/v1/leads/search',

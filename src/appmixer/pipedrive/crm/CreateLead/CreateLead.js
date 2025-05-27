@@ -13,12 +13,12 @@ module.exports = {
             method: 'POST',
             url: 'https://api.pipedrive.com/v1/leads',
             headers: {
-            'x-api-token': context.auth.apiKey
+                'x-api-token': context.auth.apiKey
             },
             data: {
-            title,
-            organization_id: organizationId,
-            value
+                title,
+                organization_id: organizationId,
+                value
             }
         };
 
