@@ -1,36 +1,37 @@
 'use strict';
 
 module.exports = {
-
     type: 'apiKey',
-
     definition: {
-
-        tokenType: 'authentication-token',
-
         auth: {
-            apiUserId: {
+            apiKey: {
                 type: 'text',
-                name: 'User ID',
-                tooltip: 'Log into your Apify account and find <i>User ID</i> in Settings > Integrations page.'
-            },
-            apiToken: {
-                type: 'text',
-                name: 'API Token',
-                tooltip: 'Found directly next to your User ID.'
+                name: 'API Key',
+                tooltip: 'Enter your API Key.'
             }
         },
 
-        accountNameFromProfileInfo: 'data.email',
-
-        requestProfileInfo: {
-            'method': 'GET',
-            'uri': 'https://api.apify.com/v2/users/{{apiUserId}}?token={{apiToken}}'
+        requestProfileInfo(context) {
+            const apiKey = context.apiKey;
+            return {
+                key: apiKey.substr(0, 3) + '...' + apiKey.substr(4)
+            };
         },
+        accountNameFromProfileInfo: 'key',
 
-        validate: {
-            'method': 'GET',
-            'uri': 'https://api.apify.com/v2/users/{{apiUserId}}?token={{apiToken}}'
+        validate: async (context) => {
+            // Example validation: make a GET request to a generic endpoint
+            const response = await context.httpRequest({
+                method: 'GET',
+                url: 'https://api.example.com/v1/profile',
+                headers: {
+                    'Authorization': `Bearer ${context.apiKey}`
+                }
+            });
+            if (!response.data || !response.data.id) {
+                throw new Error('Authentication failed: Invalid API Key');
+            }
+            return true;
         }
     }
 };
