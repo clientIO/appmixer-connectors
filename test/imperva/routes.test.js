@@ -738,7 +738,7 @@ describe('POST /rules-block-ips handler', () => {
         assert.equal(httpRequestArgs1.headers['x-API-Key'], AUTH.key);
         assert.match(httpRequestArgs1.data.name, /Custom IP Block Rule \d+ 1/);
         assert.equal(httpRequestArgs1.data.action, 'RULE_ACTION_BLOCK');
-        assert.match(httpRequestArgs1.data.filter, /ClientIP == 1\.1\.1\.1/);
+        assert.match(httpRequestArgs1.data.filter, /ClientIP == 1\.1\.1\.1 \| ClientIP == 1.1\.1\.2/);
         assert.match(httpRequestArgs1.data.filter, /ClientIP == 1\.1\.1\.20/);
         // Second call
         const httpRequestArgs2 = context.httpRequest.getCall(2).args[0];
