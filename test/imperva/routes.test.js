@@ -117,14 +117,14 @@ describe('POST /rules-block-ips handler', () => {
                 ...IMPERVA_RULES_RESPONSE,
                 rule_id: 13642,
                 name: IMPERVA_RULES_RESPONSE.name + '1',
-                filter: IPS.slice(0, 20).map(ip => `ClientIP == ${ip}`).join(' & ')
+                filter: IPS.slice(0, 20).map(ip => `ClientIP == ${ip}`).join(' | ')
             } });
             // Stub the 2nd API call to Imperva to create 1 rule.
             context.httpRequest.onCall(2).resolves({ data: {
                 ...IMPERVA_RULES_RESPONSE,
                 rule_id: 13643,
                 name: IMPERVA_RULES_RESPONSE.name + '2',
-                filter: IPS.slice(20).map(ip => `ClientIP == ${ip}`).join(' & ')
+                filter: IPS.slice(20).map(ip => `ClientIP == ${ip}`).join(' | ')
             } });
 
             // The payload contains 21 new IPs.
@@ -671,7 +671,7 @@ describe('POST /rules-block-ips handler', () => {
                 ...IMPERVA_RULES_RESPONSE,
                 rule_id: 43642,
                 name: IMPERVA_RULES_RESPONSE.name + '1',
-                filter: IPS.slice(0, 20).map(ip => `ClientIP == ${ip}`).join(' & ')
+                filter: IPS.slice(0, 20).map(ip => `ClientIP == ${ip}`).join(' | ')
             }
         });
         // Stub the 2nd API call to Imperva to return the custom object.
