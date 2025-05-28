@@ -9,7 +9,10 @@ module.exports = {
     async receive(context) {
 
         let { fileId, filename } = context.messages.in.content;
+        /** Number of rows inserted into the output file. Can be different from the number of rows in the input file. */
         let rowCount = 0;
+
+        context.log({ step: 'CSV processing started', fileId, filename });
 
         const csvStream = await getCSVStream(context, fileId);
 
@@ -21,10 +24,10 @@ module.exports = {
                 transform: (row, encoding, callback) => {
 
                     // --- Your own processing logic here ---
-                    // Row header
+                    // Row header, change to D, StaticValue
                     if (rowCount === 0) {
                         rowCount++;
-                        return callback(null, row.join(',') + '\n');
+                        return callback(null, 'D,StaticValue\n'); // Write header row
                     }
                     // Appended `staticValue` as a 2nd column to each row
                     const staticValue = 'foo';
@@ -41,19 +44,19 @@ module.exports = {
                     }
 
                     // --- End of your own processing logic ---
-                    callback(null, outPut); // Pass the processed row to the next stream
+                    callback(null, outPut); // Pass the processed row(s) to the next stream
                 }
             }),
             (err) => {
-                if (err) {
-                    throw err; // Propagate the error
-                }
-                context.log({ step: 'CSV processing completed', rowCount });
+                if (err) throw err; // Propagate the error
+                context.log({ step: 'CSV processing completed', rowCount, filename });
             }
         );
 
+        // Save the processed CSV stream to a file in Appmixer's GridFS
         const savedFile = await context.saveFileStream(filename, writableStream);
 
+        // Output the result so that connected components can use it.
         return context.sendJson({ fileId: savedFile.fileId, filename, rowCount }, 'out');
     }
 };
@@ -73,6 +76,7 @@ async function getCSVStream(context, fileId) {
      */
     const SAFE_CSV_STREAM_CHUNK_SIZE = 1024;
 
+    // TODO: Let the user configure the CSV stream options.
     const csvStreamOptions = {
         delimiter: ',',
         parseNumbers: true,
@@ -107,8 +111,8 @@ async function getCSVStream(context, fileId) {
     const csvReadableStream = new CsvReadableStream(csvStreamOptions);
 
     return pipeline(
-        readStream, // Read stream from GridFS
-        chunkedStream, // Chunked stream to split data into smaller chunks
+        readStream, // Read stream from Appmixer's GridFS
+        chunkedStream, // Chunked stream to split data into smaller chunks managable by `CsvReadableStream`
         autoDetectDecoderStream, // Auto-detect encoding
         csvReadableStream, // CSV reader stream
         (err) => {

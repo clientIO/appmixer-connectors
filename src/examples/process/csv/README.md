@@ -24,3 +24,4 @@ Example run 2) on Appmixer engine pod:
 Not included in the example:
 - no timeouts are set, so the process will run until completion
 - no retry logic is implemented, so if the process fails, it will not retry
+- customizable options for the `csv-reader` stream are not included, but can be added as needed. See for example the `appmixer.utils.csv.AddRows` or `appmixer.utils.csv.GetRows` components for more details.
