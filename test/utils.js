@@ -123,6 +123,8 @@ function createMockContext(options) {
         addListener: sinon.stub(),
         onListenerAdded: sinon.stub(),
         getFileReadStream: sinon.stub().throws(new Error('Not implemented')),
+        getFileInfo: sinon.stub().throws(new Error('Not implemented')),
+        saveFileStream: sinon.stub().throws(new Error('Not implemented')),
         replaceFileStream: sinon.stub().throws(new Error('Not implemented')),
         db: {
             Model: class {
