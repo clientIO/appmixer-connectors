@@ -5,8 +5,6 @@ const sinon = require('sinon');
 const testUtils = require('../../../utils.js');
 const { receive } = require('../../../../src/examples/process/csv/ProcessLargeCSV1/ProcessLargeCSV1.js');
 
-const pathToCSV = path.join(__dirname, 'ID,Email,Name-3.csv');
-
 describe('ProcessLargeCSV1', async () => {
 
     let context = testUtils.createMockContext();
@@ -16,7 +14,6 @@ describe('ProcessLargeCSV1', async () => {
         // Reset the context.
         context = {
             ...testUtils.createMockContext(),
-            getFileReadStream: sinon.stub().returns(() => fs.createReadStream(pathToCSV)),
             getFileInfo: sinon.stub().returns({
                 fileId: '83d460fa-93d2-4392-8819-edb1e4865ffc',
                 filename: 'large_csv_12000.csv',
@@ -29,8 +26,9 @@ describe('ProcessLargeCSV1', async () => {
 
     it('processes 12k line file', async function() {
 
+        const FILENAME = 'large_csv_12000';
         const NEW_FILE_ID = 'new-file-id';
-        const NEW_FILEPATH = '../../../../src/examples/process/csv/large_csv_12000-processed.csv';
+        const NEW_FILEPATH = `../../../../src/examples/process/csv/${FILENAME}-processed.csv`;
         // Mock saving the file.
         context.saveFileStream = sinon.stub().callsFake((filename, csvStream) => {
             // Write the stream to a file for testing purposes
@@ -73,7 +71,7 @@ describe('ProcessLargeCSV1', async () => {
         });
 
         /** File with short rows and small cells. 12k rows. */
-        const pathToCSV = path.join(__dirname, '../../../../src/examples/process/csv/large_csv_12000.csv');
+        const pathToCSV = path.join(__dirname, `../../../../src/examples/process/csv/${FILENAME}.csv`);
         context.getFileReadStream = () => fs.createReadStream(pathToCSV, {
             encoding: null,
             // Set to 255 KB to simulate the default value of `chunkSizeBytes` in `GridFSBucketReadStream`.
@@ -81,7 +79,8 @@ describe('ProcessLargeCSV1', async () => {
         });
 
         // 12k rows usually takes about 100ms.
-        this.timeout(5000);
+        // 1.5 million rows takes about 4 seconds on MacBook Pro M1.
+        this.timeout(10000);
 
         const content = {
             fileId: '83d460fa-93d2-4392-8819-edb1e4865ffc',
