@@ -47,7 +47,7 @@ const createAggregator = function(fetchFunction) {
  */
 const personsAggregator = createAggregator(args => {
 
-    const credentials = `${args.authOptions.login}:${args.authOptions.password}`;
+    const credentials = `${args.authOptions.login}:${args.authOptions.apiKey}`;
     let authData = new Buffer(credentials).toString('base64');
     let qs = {
         offset: args.offset,
@@ -94,7 +94,7 @@ module.exports = {
      */
     raynetAPI(authOptions, endpoint, method, instanceName, data, id) {
 
-        const credentials = `${authOptions.login}:${authOptions.password}`;
+        const credentials = `${authOptions.login}:${authOptions.apiKey}`;
         let authData = new Buffer(credentials).toString('base64');
 
         let options = {
