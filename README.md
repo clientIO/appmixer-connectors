@@ -3,6 +3,9 @@
 # appmixer-connectors
 Appmixer Connectors
 
+## Examples
+Examples can be found in the `src/examples` directory. They are not exhaustive, but they should give you an idea of how to use the connectors. Examples do not belong to our connector Marketplace, but they are useful for testing and development purposes.
+
 ## Test
 In the `test` directory, you can find the test files for the connectors. They are not exhaustive as there is another set of tests that are not public.
 
