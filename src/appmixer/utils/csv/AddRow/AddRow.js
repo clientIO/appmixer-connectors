@@ -24,7 +24,9 @@ module.exports = {
             parseBooleans
         });
 
-        const rows = withHeaders ? [convertRowWithColumnsToObject(rowWithColumns)] : [row.split(delimiter)];
+        const rows = withHeaders
+            ? [convertRowWithColumnsToObject(rowWithColumns)]
+            : [Array.isArray(row) ? row : row.split(delimiter)];
         const savedFile = await processor.addRows({ rows });
         return context.sendJson({ fileId: savedFile.fileId }, 'fileId');
     }
