@@ -12,7 +12,7 @@ module.exports = {
         return context.sendJson(data.data, 'out');
     },
 
-    projectsToSelectArray({ projects }) {
+    projectsToSelectArray(projects) {
         if (!Array.isArray(projects)) return [];
         return projects.map(project => ({
             label: project.name || 'Unnamed Project',
