@@ -7,13 +7,13 @@ module.exports = {
         // https://supabase.com/docs/reference/api/projects-pause
         const data = await context.httpRequest({
             method: 'POST',
-            url: `https://api.supabase.io/v1/projects/${projectId}/pause`,
+            url: `https://api.supabase.com/v1/projects/${projectId}/pause`,
             headers: {
                 'Authorization': `Bearer ${context.auth.apiKey}`
             }
         });
         if (data.status !== 200) {
-            throw new Error(`Failed to restore project: ${data.data.message}`);
+            throw new Error(`Failed to pause project: ${data.data.message}`);
         } else {
             return context.sendJson({ projectID: projectId }, 'out');
         }

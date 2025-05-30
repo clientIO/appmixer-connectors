@@ -7,7 +7,7 @@ module.exports = {
         // https://supabase.com/docs/reference/api/projects-restore
         const data = await context.httpRequest({
             method: 'POST',
-            url: `https://api.supabase.io/v1/projects/${projectId}/restore`,
+            url: `https://api.supabase.com/v1/projects/${projectId}/restore`,
             headers: {
                 'Authorization': `Bearer ${context.auth.apiKey}`
             }
