@@ -6,6 +6,7 @@
  */
 module.exports = {
     async receive(context) {
+
         let { title, ownerId = '', organizationId, amount, currency, visibleTo = '' } = context.messages.lead.content;
 
         const value = { amount, currency };

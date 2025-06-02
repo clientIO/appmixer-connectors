@@ -16,7 +16,6 @@ module.exports = {
 
         const result = await context.httpRequest(options);
 
-
         if (!result?.data?.success) {
             throw new context.CancelError(result?.data?.error || 'Unknown API error');
         }

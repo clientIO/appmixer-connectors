@@ -6,6 +6,7 @@
  */
 module.exports = {
     async receive(context) {
+
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
 
         // Destructure with default values to avoid undefined
