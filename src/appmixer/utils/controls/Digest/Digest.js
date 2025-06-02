@@ -27,16 +27,16 @@ module.exports = {
         try {
             lock = await context.lock(context.componentId);
 
-            const entries = await context.stateGet('entries') || [];
-
             if (context.messages.webhook) {
                 // Manually drained by webhook.
+                const entries = await context.stateGet('entries') || [];
                 await this.sendEntries(context, entries, outputType);
                 await context.stateUnset('entries');
                 return context.response();
             }
 
             if (context.messages.timeout) {
+                const entries = await context.stateGet('entries') || [];
                 if (!threshold || (threshold && entries.length >= threshold)) {
                     if (entries.length > 0) {
                         await this.sendEntries(context, entries, outputType);
@@ -47,16 +47,19 @@ module.exports = {
                 return this.scheduleDrain(context, { previousDate });
             }
 
+            // Add the new entry without fetching the full array
             const { entry } = context.messages.in.content;
-            entries.push(entry);
-            await context.stateSet('entries', entries);
+            await context.stateAddToSet('entries', entry);
 
+            // Check if threshold reached by fetching current count only
             if (threshold) {
+                const entries = await context.stateGet('entries') || [];
                 if (entries.length >= threshold) {
                     await this.sendEntries(context, entries, outputType);
                     await context.stateUnset('entries');
                 }
             }
+
         } finally {
             if (lock) {
                 lock.unlock();
