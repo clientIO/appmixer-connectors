@@ -44,6 +44,6 @@ module.exports = {
             throw new context.CancelError(result?.data?.error || 'Unknown API error');
         }
 
-        return context.sendJson(result.data.data, 'lead');
+        return context.sendJson(result.data.data, 'out');
     }
 };
