@@ -1,8 +1,13 @@
+const lib = require('../lib.generated');
+const schema = { 'resourceName': { 'type': 'string', 'title': 'Resource Name' }, 'name': { 'type': 'string', 'title': 'Name' } };
 
-const lib = require('../../../googleContacts/lib.generated');
 module.exports = {
     async receive(context) {
-        const { pageToken } = context.messages.in.content;
+        const { outputType } = context.messages.in.content;
+
+        if (context.properties.generateOutputPortOptions) {
+            return lib.getOutputPortOptions(context, outputType, schema, { label: 'contactGroups', value: 'contactGroups' });
+        }
 
         // https://developers.google.com/people/api/rest/v1/contactGroups/list
         const { data } = await context.httpRequest({
@@ -13,6 +18,6 @@ module.exports = {
             }
         });
 
-        return context.sendJson(data, 'out');
+        return lib.sendArrayOutput({ context, records, outputType, arrayPropertyValue: 'contactGroups' });
     }
 };

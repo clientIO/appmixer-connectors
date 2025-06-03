@@ -9,10 +9,10 @@ module.exports = {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'results', value: 'results' });
         }
 
-        // https://developers.google.com/people/api/rest/v1/people/searchContacts
+        // https://developers.google.com/people/api/rest/v1/people/searchDirectoryPeople
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://people.googleapis.com/v1/people:searchContacts',
+            url: 'https://people.googleapis.com/v1/people:searchDirectoryPeople',
             headers: {
                 'Authorization': `Bearer ${context.auth.apiToken}`
             }

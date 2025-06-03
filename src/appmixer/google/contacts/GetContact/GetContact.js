@@ -1,8 +1,6 @@
-
-const lib = require('../../../googleContacts/lib.generated');
 module.exports = {
     async receive(context) {
-        const { resourceName, personFields } = context.messages.in.content;
+        const { resourceName, personFields, requestMask_includeField } = context.messages.in.content;
 
         // https://developers.google.com/people/api/rest/v1/people/get
         const { data } = await context.httpRequest({

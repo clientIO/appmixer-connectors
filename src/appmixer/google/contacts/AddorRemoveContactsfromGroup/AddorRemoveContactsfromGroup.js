@@ -1,5 +1,4 @@
 
-const lib = require('../../../googleContacts/lib.generated');
 module.exports = {
     async receive(context) {
         const { contactGroupId, resourceNamesToAdd, resourceNamesToRemove } = context.messages.in.content;
