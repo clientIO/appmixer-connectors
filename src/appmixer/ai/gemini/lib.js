@@ -227,6 +227,10 @@ module.exports = {
                 properties: {}
             };
             parameters.forEach((parameter) => {
+                // Skip empty objects
+                if (Object.keys(parameter).length === 0) {
+                    return;
+                }
                 functionParameters.properties[parameter.name] = {
                     type: parameter.type,
                     description: parameter.description
