@@ -29,16 +29,21 @@ module.exports = {
 
             if (context.messages.webhook) {
                 // Manually drained by webhook.
-                const entries = await context.stateGet('entries') || [];
+                const wrappedEntries = await context.stateGet('entries') || [];
+
+                context.log({ step: 'wrappedEntries', wrappedEntries: wrappedEntries });
+
+                const entries = wrappedEntries.map(e => e.data);
                 await this.sendEntries(context, entries, outputType);
                 await context.stateUnset('entries');
                 return context.response();
             }
 
             if (context.messages.timeout) {
-                const entries = await context.stateGet('entries') || [];
-                if (!threshold || (threshold && entries.length >= threshold)) {
-                    if (entries.length > 0) {
+                const wrappedEntries = await context.stateGet('entries') || [];
+                if (!threshold || (threshold && wrappedEntries.length >= threshold)) {
+                    if (wrappedEntries.length > 0) {
+                        const entries = wrappedEntries.map(e => e.data);
                         await this.sendEntries(context, entries, outputType);
                         await context.stateUnset('entries');
                     }
@@ -47,14 +52,19 @@ module.exports = {
                 return this.scheduleDrain(context, { previousDate });
             }
 
-            // Add the new entry without fetching the full array
+            // Wrap entry with a unique ID and add to set
             const { entry } = context.messages.in.content;
-            await context.stateAddToSet('entries', entry);
+            const wrappedEntry = {
+                id: `${Date.now()}-${Math.random()}`,
+                data: entry
+            };
+            await context.stateAddToSet('entries', wrappedEntry);
 
-            // Check if threshold reached by fetching current count only
+            // Check if threshold reached
             if (threshold) {
-                const entries = await context.stateGet('entries') || [];
-                if (entries.length >= threshold) {
+                const wrappedEntries = await context.stateGet('entries') || [];
+                if (wrappedEntries.length >= threshold) {
+                    const entries = wrappedEntries.map(e => e.data);
                     await this.sendEntries(context, entries, outputType);
                     await context.stateUnset('entries');
                 }
@@ -122,7 +132,7 @@ module.exports = {
         const options = timezone ? { tz: timezone } : {};
         const interval = parser.parseExpression(expression, options);
         if (!interval.hasNext()) {
-            throw new context.CancelError('Next scheduled date doesn\'t exist');
+            throw new context.CancelError('Next scheduled date doesn’t exist');
         }
 
         const now = moment().toISOString();
