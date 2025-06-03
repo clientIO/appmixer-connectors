@@ -7,7 +7,7 @@ module.exports = {
             method: 'PUT',
             url: `https://www.googleapis.com/blogger/v3/blogs/${blogId}/posts/${postId}`,
             headers: {
-                Authorization: `Bearer ${context.accessToken}`
+                Authorization: `Bearer ${context.auth.accessToken}`
             },
             data: { title, content }
         });

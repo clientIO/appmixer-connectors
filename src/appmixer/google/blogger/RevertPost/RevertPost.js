@@ -7,7 +7,7 @@ module.exports = {
             method: 'POST',
             url: `https://www.googleapis.com/blogger/v3/blogs/${blogId}/posts/${postId}/revert`,
             headers: {
-                Authorization: `Bearer ${context.accessToken}`
+                Authorization: `Bearer ${context.auth.accessToken}`
             }
         });
 
