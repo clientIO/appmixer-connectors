@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const uuid = require('uuid');
+const { PassThrough } = require('stream');
 
 const chatLibJs = fs.readFileSync(__dirname + '/chat.lib.js', 'utf8');
 const chatMainJs = fs.readFileSync(__dirname + '/chat.main.js', 'utf8');
@@ -23,13 +24,38 @@ const chatWidgetJs = fs.readFileSync(__dirname + '/chat.widget.js', 'utf8');
 const chatLibCss = fs.readFileSync(__dirname + '/chat.lib.css', 'utf8');
 const chatMainCss = fs.readFileSync(__dirname + '/chat.main.css', 'utf8');
 
+// In-memory map of connected clients per threadId.
+const chatClients = new Map();
+
+async function publish(channel, event) {
+
+    const redisPub = process.PLUGIN_UTILS_CHAT_REDIS_PUB_CLIENT;
+    if (redisPub) {
+        return redisPub.publish(channel, JSON.stringify(event));
+    }
+}
+
 module.exports = (context) => {
 
     const ChatMessage = require('./ChatMessageModel')(context);
     const ChatSession = require('./ChatSessionModel')(context);
     const ChatAgent = require('./ChatAgentModel')(context);
     const ChatThread = require('./ChatThreadModel')(context);
-    const Progress = require('./ProgressModel')(context);
+
+    // assert(Redis clients have been connected in plugin.js).
+    process.PLUGIN_UTILS_CHAT_REDIS_SUB_CLIENT.psubscribe('utils:chat:events:*');
+    process.PLUGIN_UTILS_CHAT_REDIS_SUB_CLIENT.on('pmessage', (pattern, channel, payload) => {
+        const [, , ,threadId] = channel.split(':'); // e.g., 'utils:chat:events:123'
+        const data = JSON.parse(payload);
+
+        if (chatClients.has(threadId)) {
+            for (const stream of chatClients.get(threadId)) {
+                if (!stream.writableEnded) {
+                    stream.write(`data: ${JSON.stringify(data)}\n\n`);
+                }
+            }
+        }
+    });
 
     // ASSETS
 
@@ -107,6 +133,10 @@ module.exports = (context) => {
                 message.threadId = threadId;
                 message.createdAt = new Date;
                 message.userId = userId;
+                await publish(`utils:chat:events:${threadId}`, {
+                    type: 'message',
+                    data: message
+                });
                 return new ChatMessage().populate(message).save();
             }
         }
@@ -154,70 +184,56 @@ module.exports = (context) => {
         }
     });
 
-    // PROGRESS
-
-    context.http.router.register({
-        method: 'POST',
-        path: '/progress/{threadId}',
-        options: {
-            auth: {
-                strategies: ['jwt-strategy', 'public']
-            },
-            handler: async (req) => {
-                const { threadId } = req.params;
-                const { expireAfterSeconds } = req.query;
-                const user = await context.http.auth.getUser(req);
-                const userId = user.getId();
-                // { id, content, role, flowId, componentId }
-                const message = req.payload;
-                message.id = uuid.v6(); // UUID v6 is time ordered.
-                message.threadId = threadId;
-                const now = new Date;
-                message.createdAt = now;
-                message.expireAt = new Date(message.createdAt);
-                const seconds = expireAfterSeconds ? parseInt(expireAfterSeconds, 10) : 5;
-                message.expireAt.setSeconds(message.createdAt.getSeconds() + seconds);
-                message.userId = userId;
-                return new Progress().populate(message).save();
-            }
-        }
-    });
+    // SSE
 
     context.http.router.register({
         method: 'GET',
-        path: '/progress/{threadId}',
+        path: '/events/{threadId}',
         options: {
             auth: {
                 strategies: ['jwt-strategy', 'public']
             },
-            handler: async (req) => {
-                const { threadId } = req.params;
-                const user = await context.http.auth.getUser(req);
-                const userId = user.getId();
-                const query = { threadId, userId };
-                const messages = await Progress.find(query);
-                return messages;
-            }
-        }
-    });
-
-    context.http.router.register({
-        method: 'DELETE',
-        path: '/progress/{threadId}',
-        options: {
-            auth: {
-                strategies: ['jwt-strategy', 'public']
+            cors: {
+                origin: ['*']
             },
-            handler: async (req) => {
-                const { threadId } = req.params;
-                const user = await context.http.auth.getUser(req);
-                const userId = user.getId();
-                await Progress.deleteMany({ threadId, userId });
-                return {};
+            handler: (request, h) => {
+                const { threadId } = request.params;
+
+                const stream = new PassThrough();
+                const response = h.response(stream);
+                response.type('text/event-stream');
+                response.header('Cache-Control', 'no-cache');
+                response.header('Connection', 'keep-alive');
+                // Force raw, uncompressed output.
+                // This is necessary to avoid the ERR_INCOMPLETE_CHUNKED_ENCODING error.
+                // It essentially disables response compression which interfers with
+                // streaming behaviour.
+                response.header('Content-Encoding', 'identity');
+
+                // Track connection.
+                if (!chatClients.has(threadId)) chatClients.set(threadId, new Set());
+                chatClients.get(threadId).add(stream);
+
+                // Necessary to keep the connection alive. Otherwise it closes after
+                // a timeout interval set on the load balancer/proxy (typically 1 minute).
+                const heartbeat = setInterval(() => {
+                    if (!stream.writableEnded) {
+                        stream.write(': ping\n\n');
+                    }
+                }, context.config.SSE_HEARTBEAT_INTERVAL || 15000);
+
+                // Cleanup on disconnect.
+                request.raw.req.on('close', () => {
+                    clearInterval(heartbeat);
+                    chatClients.get(threadId).delete(stream);
+                    if (chatClients.get(threadId).size === 0) chatClients.delete(threadId);
+                    stream.end();
+                });
+
+                return response;
             }
         }
     });
-
 
     // SESSIONS
 

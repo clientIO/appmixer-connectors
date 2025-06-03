@@ -3,6 +3,47 @@ const { ChatBot } = chatbot;
 let chat;
 let sessionId;
 let authHeader = {};
+let eventStream;
+
+function connectEventStream(threadId) {
+
+    if (eventStream) {
+        eventStream.close();
+    }
+    eventStream = new EventSource(`${BASE_URL}/plugins/appmixer/utils/chat/events/${threadId}`);
+
+    eventStream.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'message') {
+            const msg = data.data || {};
+            if (msg.role === 'agent') {
+                chat.addMessage({
+                    id: threadId,
+                    message: {
+                        id: msg.id,
+                        role: msg.role,
+                        content: msg.content
+                    }
+                });
+                setWaiting(false);
+                setProgressMessage('');
+            }
+        } else if (data.type === 'progress') {
+            const msg = data.data || {};
+            setProgressMessage(msg.content);
+        }
+    };
+
+    eventStream.onerror = (err) => {
+        console.error('SSE error in message stream:', err);
+        eventStream.close();
+    };
+
+    eventStream.onopen = () => {
+        console.log('SSE stream connected for thread: ' + threadId);
+    };
+}
+
 
 function getSessionId() {
 
@@ -80,7 +121,7 @@ async function main() {
 
     let activeChat = null;
     if (session.threads && session.threads.length > 0) {
-        session.threads[session.threads.length - 1].id;
+        activeChat = session.threads[session.threads.length - 1].id;
     }
 
     chat = new ChatBot('#chat-container', {
@@ -95,33 +136,11 @@ async function main() {
     chat.api.on('add-message', ({ id, message }) => addMessage(id, message));
     chat.api.on('request-messages', ({ id }) => loadMessages(id));
     chat.api.on('delete-chat', ({ id }) => deleteThread(id));
+    chat.api.on('select-chat', ({ id }) => loadMessages(id));
 
-    pollForMessages();
-}
-
-async function pollForMessages() {
-    while (true) {
-        await loadMessages(chat.getConfig().activeChat);
-        await loadProgress(chat.getConfig().activeChat);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-}
-
-async function loadProgress(threadId) {
-
-    if (!threadId) return;
-
-    const params = new URLSearchParams({ action: 'load-progress', thread_id: threadId });
-    const response = await fetch(ENDPOINT + '?' + params, {
-        method: 'GET',
-        headers: {
-            ...authHeader
-        }
-    });
-    if (response.ok) {
-        const messages = await response.json();
-        setProgressMessage(messages.map(msg => msg.content).join(' '));
-    }
+    //pollForMessages();
+    connectEventStream(chat.getConfig().activeChat);
+    await loadMessages(chat.getConfig().activeChat);
 }
 
 async function loadMessages(threadId) {
@@ -129,24 +148,7 @@ async function loadMessages(threadId) {
     if (!threadId) return;
 
     try {
-        const activeChat = chat.getConfig().activeChat;
-        let lastMessageId = null;
-        let threadMessages = chat.getConfig().messages || [];
-        if (threadId === activeChat) {
-            // Loading new messages to the active chat. Load only those that we are missing.
-            const lastMessage = threadMessages[threadMessages.length - 1];
-            if (lastMessage) {
-                lastMessageId = lastMessage.id;
-            }
-        } else {
-            // Switching threads, always set waiting to false.
-            setWaiting(false);
-        }
-
         const params = new URLSearchParams({ action: 'load-thread', thread_id: threadId });
-        if (lastMessageId) {
-            params.append('since_id', lastMessageId);
-        }
         const response = await fetch(ENDPOINT + '?' + params, {
             method: 'GET',
             headers: {
@@ -156,9 +158,10 @@ async function loadMessages(threadId) {
         if (!response.ok && response.status === 404) {
             // Thread was removed in the mean time. No need to keep polling it.
             chat.removeChat(threadId);
-            setWaiting(false);
             return;
         }
+
+        connectEventStream(threadId);
 
         const thread = await response.json();
         thread.messages = thread.messages || [];
@@ -167,15 +170,8 @@ async function loadMessages(threadId) {
                 message.author = thread.agentId;
             }
         });
-        if (lastMessageId) {
-            // Since we only loaded messages since lastMessageId, we need to merge with those
-            // already in the chat.
-            thread.messages = threadMessages.concat(thread.messages);
-        }
-        if (thread.messages.length > 0 && thread.messages[thread.messages.length - 1].role === 'agent') {
-            setWaiting(false);
-        }
         chat.parse(threadId, thread.messages);
+
     } catch (err) {
         console.error(err);
         // TODO: UI to show errors.
@@ -246,6 +242,7 @@ async function addMessage(threadId, message) {
                 created: new Date(thread.createdAt)
             }
         });
+        connectEventStream(threadId);
     }
 
     // Send message to the server.

@@ -195,15 +195,6 @@ module.exports = {
                     thread.messages = messages;
                     return context.response(thread, 200, { 'Content-Type': 'application/json' });
                 }
-                case 'load-progress': {
-                    // Load progress status in a thread.
-                    const threadId = req.query.thread_id;
-                    const messages = await context.callAppmixer({
-                        endPoint: '/plugins/appmixer/utils/chat/progress/' + threadId,
-                        method: 'GET'
-                    });
-                    return context.response(messages, 200, { 'Content-Type': 'application/json' });
-                }
                 case 'send-message': {
                     // Send a message to a thread.
                     const messageData = req.data;
@@ -225,12 +216,6 @@ module.exports = {
                         out.jwtPayload = jwtPayload;
                         out.jwtToken = jwtToken;
                     }
-                    // Remove progress status messages for this thread since they are not needed anymore
-                    // after the user posted a new message, they are obsolete anyway.
-                    await context.callAppmixer({
-                        endPoint: '/plugins/appmixer/utils/chat/progress/' + messageData.threadId,
-                        method: 'DELETE'
-                    });
                     await context.sendJson(out, 'out');
                     return context.response(message, 200, { 'Content-Type': 'application/json' });
                 }
