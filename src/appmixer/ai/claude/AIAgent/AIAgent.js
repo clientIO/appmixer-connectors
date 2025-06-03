@@ -12,7 +12,7 @@ module.exports = {
         try {
             const tools = lib.getConnectedToolStartComponents(context.componentId, context.flowDescriptor);
             const functionDeclarations = lib.getFunctionDeclarations(tools);
-            context.log({ step: 'start 1', functionDeclarations, tools });
+
             return context.stateSet('functionDeclarations', functionDeclarations);
         } catch (error) {
             throw new context.CancelError(error);
