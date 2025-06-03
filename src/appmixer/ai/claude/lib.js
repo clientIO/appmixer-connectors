@@ -100,6 +100,10 @@ module.exports = {
                 if (!/^[a-zA-Z0-9_-]{1,64}$/.test(parameter.name)) {
                     throw new Error(`Parameter name '${parameter.name}' in component ${componentId} does not match the required pattern.`);
                 }
+                // Skip empty objects
+                if (Object.keys(parameter).length === 0) {
+                    return;
+                }
                 functionParameters.properties[parameter.name] = {
                     type: parameter.type,
                     description: parameter.description
