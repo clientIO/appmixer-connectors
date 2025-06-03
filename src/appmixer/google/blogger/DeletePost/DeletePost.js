@@ -6,7 +6,7 @@ module.exports = {
             method: 'DELETE',
             url: `https://www.googleapis.com/blogger/v3/blogs/${blogId}/posts/${postId}`,
             headers: {
-                Authorization: `Bearer ${context.accessToken}`
+                Authorization: `Bearer ${context.auth.accessToken}`
             }
         });
 

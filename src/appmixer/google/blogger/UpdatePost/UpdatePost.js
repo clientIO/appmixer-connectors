@@ -12,6 +12,8 @@ module.exports = {
             data: { title, content }
         });
 
+
+        console.log(JSON.stringify(data, null, 2)); // Debugging line to log the response data
         return context.sendJson(data, 'out');
     }
 };
