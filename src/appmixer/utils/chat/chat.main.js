@@ -109,6 +109,9 @@ async function main() {
             ...authHeader
         }
     });
+    if (!response.ok) {
+        return alert('Chat is not available.');
+    }
     const session = await response.json();
     sessionId = session.id;
     setSessionId(sessionId);
