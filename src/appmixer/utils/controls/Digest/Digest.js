@@ -34,9 +34,6 @@ module.exports = {
             if (context.messages.webhook) {
                 // Manually drained by webhook.
                 const wrappedEntries = await context.stateGet('entries') || [];
-
-                context.log({ step: 'wrappedEntries', wrappedEntries: wrappedEntries });
-
                 const entries = wrappedEntries.map(e => e.data);
                 await this.sendEntries(context, entries, outputType);
                 await context.stateUnset('entries');
