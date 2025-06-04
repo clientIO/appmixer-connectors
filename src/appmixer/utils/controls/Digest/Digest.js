@@ -1,5 +1,5 @@
 'use strict';
-
+const uuid = require('uuid').v4;
 const parser = require('cron-parser');
 const moment = require('moment');
 
@@ -29,7 +29,7 @@ module.exports = {
                 ttl: 60000,           // 60 seconds
                 retryDelay: 300,      // 300ms between retries
                 maxRetryCount: 100     // retry up to 100 times
-                });
+            });
 
             if (context.messages.webhook) {
                 // Manually drained by webhook.
@@ -59,7 +59,7 @@ module.exports = {
             // Wrap entry with a unique ID and add to set
             const { entry } = context.messages.in.content;
             const wrappedEntry = {
-                id: `${Date.now()}-${Math.random()}`,
+                id: uuid(),
                 data: entry
             };
             await context.stateAddToSet('entries', wrappedEntry);
