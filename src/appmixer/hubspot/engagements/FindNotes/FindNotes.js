@@ -1,12 +1,12 @@
 const lib = require('../../lib.generated');
-const Hubspot = require('../../Hubspot');
 const schema = {
     'id': { 'type': 'string', 'title': 'Id' },
     'properties': {
         'type': 'object',
         'properties': {
-            'hs_note_body': { 'type': 'string', 'title': 'Properties.Hs Note Body' },
-            'hs_createdate': { 'type': 'string', 'title': 'Properties.Hs Createdate' }
+            'hs_createdate': { 'type': 'string', 'title': 'Properties.Hs Create Date' },
+            'hs_lastmodifieddate': { 'type': 'string', 'title': 'Properties.Hs Last Modified Date' },
+            'hs_object_id': { 'type': 'string', 'title': 'Properties.Hs Object Id' }
         },
         'title': 'Properties'
     },
@@ -41,5 +41,4 @@ module.exports = {
 
         return lib.sendArrayOutput({ context, records: data.results, outputType, arrayPropertyValue: 'results' });
     }
-
 };
