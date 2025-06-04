@@ -1,5 +1,5 @@
 'use strict';
-
+const uuid = require('uuid').v4;
 const parser = require('cron-parser');
 const moment = require('moment');
 
@@ -25,20 +25,26 @@ module.exports = {
 
         let lock;
         try {
-            lock = await context.lock(context.componentId);
-
-            const entries = await context.stateGet('entries') || [];
+            lock = await context.lock(context.componentId, {
+                ttl: 60000,           // 60 seconds
+                retryDelay: 300,      // 300ms between retries
+                maxRetryCount: 100     // retry up to 100 times
+            });
 
             if (context.messages.webhook) {
                 // Manually drained by webhook.
+                const wrappedEntries = await context.stateGet('entries') || [];
+                const entries = wrappedEntries.map(e => e.data);
                 await this.sendEntries(context, entries, outputType);
                 await context.stateUnset('entries');
                 return context.response();
             }
 
             if (context.messages.timeout) {
-                if (!threshold || (threshold && entries.length >= threshold)) {
-                    if (entries.length > 0) {
+                const wrappedEntries = await context.stateGet('entries') || [];
+                if (!threshold || (threshold && wrappedEntries.length >= threshold)) {
+                    if (wrappedEntries.length > 0) {
+                        const entries = wrappedEntries.map(e => e.data);
                         await this.sendEntries(context, entries, outputType);
                         await context.stateUnset('entries');
                     }
@@ -47,16 +53,24 @@ module.exports = {
                 return this.scheduleDrain(context, { previousDate });
             }
 
+            // Wrap entry with a unique ID and add to set
             const { entry } = context.messages.in.content;
-            entries.push(entry);
-            await context.stateSet('entries', entries);
+            const wrappedEntry = {
+                id: uuid(),
+                data: entry
+            };
+            await context.stateAddToSet('entries', wrappedEntry);
 
+            // Check if threshold reached
             if (threshold) {
-                if (entries.length >= threshold) {
+                const wrappedEntries = await context.stateGet('entries') || [];
+                if (wrappedEntries.length >= threshold) {
+                    const entries = wrappedEntries.map(e => e.data);
                     await this.sendEntries(context, entries, outputType);
                     await context.stateUnset('entries');
                 }
             }
+
         } finally {
             if (lock) {
                 lock.unlock();
@@ -119,7 +133,7 @@ module.exports = {
         const options = timezone ? { tz: timezone } : {};
         const interval = parser.parseExpression(expression, options);
         if (!interval.hasNext()) {
-            throw new context.CancelError('Next scheduled date doesn\'t exist');
+            throw new context.CancelError('Next scheduled date doesn’t exist');
         }
 
         const now = moment().toISOString();
