@@ -39,8 +39,6 @@ module.exports = {
             payload
         );
 
-        console.log(data);
-
         return lib.sendArrayOutput({ context, records: data.results, outputType, arrayPropertyValue: 'results' });
     }
 
