@@ -1,3 +1,5 @@
+const Hubspot = require('../../Hubspot');
+
 const lib = require('../../lib.generated');
 const schema = {
     'id': { 'type': 'string', 'title': 'Id' },
@@ -38,6 +40,10 @@ module.exports = {
             '/crm/v3/objects/notes/search',
             payload
         );
+
+        if (data.results.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
 
         return lib.sendArrayOutput({ context, records: data.results, outputType, arrayPropertyValue: 'results' });
     }
