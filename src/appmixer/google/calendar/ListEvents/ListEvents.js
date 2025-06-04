@@ -13,6 +13,11 @@ const calendar = GoogleApi.calendar('v3');
 module.exports = {
 
     receive(context) {
+        const { calendarId } = context.properties;
+
+        if (!calendarId) {
+            return context.sendJson({}, 'out');
+        }
 
         const listEvents = Promise.promisify(calendar.events.list, { context: calendar.events });
 
