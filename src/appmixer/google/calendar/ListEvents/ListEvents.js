@@ -25,7 +25,7 @@ module.exports = {
             auth: commons.getOauth2Client(context.auth),
             userId: 'me',
             quotaUser: context.auth.userId,
-            calendarId: encodeURIComponent(context.properties.calendarId)
+            calendarId: encodeURIComponent(calendarId)
         }).then(data => {
             return context.sendJson(data, 'out');
         });
