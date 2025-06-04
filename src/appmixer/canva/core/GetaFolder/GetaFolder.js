@@ -2,12 +2,12 @@
 const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
-        const { folderId, name } = context.messages.in.content;
+        const { folder_id } = context.messages.in.content;
 
-        // https://www.canva.dev/docs/connect/api-reference/folders/update-folder
+        // https://www.canva.dev/docs/connect/#get-a-folder
         const { data } = await context.httpRequest({
-            method: 'PATCH',
-            url: 'https://api.canva.com/v1/folders/{folderId}',
+            method: 'GET',
+            url: 'https://api.canva.com/v1/folders/{folder_id}',
             headers: {
                 'Authorization': `Bearer ${context.auth.apiToken}`
             }

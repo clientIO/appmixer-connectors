@@ -2,9 +2,9 @@
 const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
-        const { name, parentFolderId } = context.messages.in.content;
+        const { name, parent_folder_id } = context.messages.in.content;
 
-        // https://www.canva.dev/docs/connect/api-reference/folders/create-folder
+        // https://www.canva.dev/docs/connect/#create-a-folder
         const { data } = await context.httpRequest({
             method: 'POST',
             url: 'https://api.canva.com/v1/folders',

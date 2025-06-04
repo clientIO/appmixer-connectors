@@ -2,12 +2,12 @@
 const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
-        const { itemId, destinationFolderId } = context.messages.in.content;
+        const { item_id, source_folder_id, destination_folder_id } = context.messages.in.content;
 
-        // https://www.canva.dev/docs/connect/api-reference/folders/move-folder-item
+        // https://www.canva.dev/docs/connect/#move-a-folder-item
         const { data } = await context.httpRequest({
             method: 'POST',
-            url: 'https://api.canva.com/v1/folders/move',
+            url: 'https://api.canva.com/v1/folder-items/move',
             headers: {
                 'Authorization': `Bearer ${context.auth.apiToken}`
             }
