@@ -6,8 +6,6 @@ module.exports = {
 
         const {
             noteId,
-            hsTimestamp,
-            hsNoteTitle,
             hsNoteBody
         } = context.messages.in.content;
 
@@ -16,16 +14,15 @@ module.exports = {
 
         const payload = {
             properties: {
-                hs_timestamp: hsTimestamp,
-                hs_note_title: hsNoteTitle,
+                hs_timestamp: new Date().toISOString(),
                 hs_note_body: hsNoteBody
             }
         };
 
-        context.log({ stage: 'Engagements - UpdateNote payload', payload });
+        context.log({ stage: 'Engagements - CreateNote payload', payload });
 
         const { data } = await hs.call(
-            'patch',
+            'post',
             `crm/v3/objects/notes/${noteId}`,
             payload
         );

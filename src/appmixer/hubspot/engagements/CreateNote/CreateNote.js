@@ -5,6 +5,7 @@ module.exports = {
     async receive(context) {
 
         const {
+            associationTypeId,
             objectId,
             hsNoteBody
         } = context.messages.in.content;
@@ -15,7 +16,6 @@ module.exports = {
         const payload = {
             properties: {
                 hs_timestamp: new Date().toISOString(),
-                // hubspot_owner_id: ,
                 hs_note_body: hsNoteBody
             },
             associations: [
@@ -24,12 +24,8 @@ module.exports = {
                     types: [
                         {
                             associationCategory: 'HUBSPOT_DEFINED',
-
-                            // contact
-                            // associationTypeId: 202  // https://developers.hubspot.com/docs/api/crm/associations#association-type-id-values
-
-                            // deal
-                            associationTypeId: 214  // https://developers.hubspot.com/docs/api/crm/associations#association-type-id-values
+                            // https://developers.hubspot.com/docs/api/crm/associations#association-type-id-values
+                            associationTypeId
                         }
                     ]
                 }
@@ -44,7 +40,6 @@ module.exports = {
             payload
         );
 
-        console.log(JSON.stringify(data, null, 2));
         return context.sendJson(data, 'out');
     }
 };
