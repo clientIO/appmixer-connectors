@@ -25,7 +25,11 @@ module.exports = {
 
         let lock;
         try {
-            lock = await context.lock(context.componentId);
+            lock = await context.lock(context.componentId, {
+                ttl: 60000,           // 60 seconds
+                retryDelay: 300,      // 300ms between retries
+                maxRetryCount: 100     // retry up to 100 times
+                });
 
             if (context.messages.webhook) {
                 // Manually drained by webhook.
