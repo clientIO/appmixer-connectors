@@ -19,7 +19,7 @@ module.exports = {
             }
         };
 
-        context.log({ stage: 'Engagements - CreateNote payload', payload });
+        context.log({ stage: 'Engagements - UpdateNote payload', payload });
 
         const { data } = await hs.call(
             'patch',
