@@ -32,7 +32,20 @@ module.exports = {
             });
 
             const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-            return s3.listBuckets().promise();
+            try {
+                await s3.listBuckets().promise();
+            } catch (err) {
+                // If the error is:
+                //  User is not authorized to perform: s3:ListAllMyBuckets because no identity-based policy allows the s3:ListAllMyBuckets action
+                // we can continue, as the user may not have permissions to list buckets.
+                // This permission is not required for most operations.
+                if (err.code === 'AccessDenied' && err.message.includes('s3:ListAllMyBuckets')) {
+                    return;
+                }
+
+                // Otherwise, throw the error.
+                throw err;
+            }
         }
     }
 };

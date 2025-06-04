@@ -168,8 +168,8 @@ module.exports = {
                         // the state will be `sendingJson` and now, we need to send json to output port
                         await context.sendJson({
                             previousDate,
-                            nextDateGMT: nextDate.toISOString(),
-                            nextDateLocal: nextDate.format(),
+                            nextDateGMT: nextDate ? nextDate.toISOString() : null,
+                            nextDateLocal: nextDate ? moment(nextDate).tz(timezone).format('YYYY-MM-DDTHH:mm:ss.SSS') : null,
                             timezone
                         }, 'out');
                     }
@@ -202,7 +202,7 @@ module.exports = {
 
     generateInspector(context) {
 
-        const { end, timezone } = context.properties;
+        const { end, timezone = 'GMT' } = context.properties;
 
         const now = moment().toISOString();
         const nextDate = this.getNextRun(context, { now, firstTime: true });
@@ -210,8 +210,8 @@ module.exports = {
         context.log({
             step: 'preview',
             nextDateGMT: nextDate ? nextDate.toISOString() : null,
-            nextDateLocal: nextDate ? nextDate.format() : null,
-            timezone: timezone || 'GMT'
+            nextDateLocal: nextDate ? moment(nextDate).tz(timezone).format('YYYY-MM-DDTHH:mm:ss.SSS') : null,
+            timezone
         });
 
         if (nextDate === null && end) {

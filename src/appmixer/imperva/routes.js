@@ -188,7 +188,7 @@ module.exports = (context, options) => {
 
     async function createRule(auth, siteId, ips, ruleName, order, processed = []) {
 
-        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' & ');
+        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' | ');
 
         const { data } = await context.httpRequest({
             headers: getAuthHeader(auth),
@@ -201,6 +201,10 @@ module.exports = (context, options) => {
             }
         });
 
+        if (!data?.rule_id) {
+            throw new Error('Imperva API did not return a rule ID when creating a new rule. Response: ' + JSON.stringify(data));
+        }
+
         processed.push(...ips.map(ip => ({ ruleId: data.rule_id, ip })));
 
         const rule = { ...data, siteId, batch: order };
@@ -210,7 +214,7 @@ module.exports = (context, options) => {
 
     async function updateRule(auth, siteId, ruleId, ruleName, ips, processed = [], allNewIPs) {
 
-        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' & ');
+        const filter = ips.map(ip => `ClientIP == ${ip}`).join(' | ');
 
         const { data } = await context.httpRequest({
             headers: getAuthHeader(auth),

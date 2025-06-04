@@ -96,19 +96,28 @@ module.exports = {
                 properties: {}
             };
             parameters.forEach((parameter) => {
+                // Each parameter name must match /^[a-zA-Z0-9_-]{1,64}$/, see https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/implement-tool-use#example-of-a-good-tool-description
+                if (!/^[a-zA-Z0-9_-]{1,64}$/.test(parameter.name)) {
+                    throw new Error(`Parameter name '${parameter.name}' in component ${componentId} does not match the required pattern.`);
+                }
+                // Skip empty objects
+                if (Object.keys(parameter).length === 0) {
+                    return;
+                }
                 functionParameters.properties[parameter.name] = {
                     type: parameter.type,
                     description: parameter.description
                 };
             });
+            const description = component.config.properties?.description;
+            if (!description) {
+                throw new Error(`Component ${componentId} does not have a description.`);
+            }
             const functionDeclaration = {
                 name: 'function_' + componentId,
                 description: component.config.properties.description,
                 input_schema: functionParameters
             };
-            if (parameters.length) {
-                functionDeclaration.parameters = functionParameters;
-            }
             functionDeclarations.push(functionDeclaration);
         });
         return functionDeclarations;

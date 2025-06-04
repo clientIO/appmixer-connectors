@@ -12,16 +12,24 @@ module.exports = {
         const { sendWholeArray } = context.properties;
 
         const { s3 } = commons.init(context);
-        const { Buckets } = await s3.listBuckets().promise();
+        try {
+            const { Buckets } = await s3.listBuckets().promise();
 
-        if (sendWholeArray) {
-            return context.sendJson(Buckets, 'bucket');
-        } else {
-            const promises = [];
-            Buckets.forEach(bucket => {
-                promises.push(context.sendJson(bucket, 'bucket'));
-            });
-            return Promise.all(promises);
+            if (sendWholeArray) {
+                return context.sendJson(Buckets, 'bucket');
+            } else {
+                const promises = [];
+                Buckets.forEach(bucket => {
+                    promises.push(context.sendJson(bucket, 'bucket'));
+                });
+                return Promise.all(promises);
+            }
+        } catch (err) {
+            if (sendWholeArray) {
+                // When used as a source, return an empty array on error or insufficient permissions.
+                return context.sendJson([], 'bucket');
+            }
+            throw err;
         }
     },
 
