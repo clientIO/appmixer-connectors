@@ -1,14 +1,13 @@
 
 module.exports = {
     async receive(context) {
-        const { resourceName } = context.messages.in.content;
+        const { groupId } = context.messages.in.content;
 
-        // https://developers.google.com/people/api/rest/v1/contactGroups/delete
         const { data } = await context.httpRequest({
             method: 'DELETE',
-            url: 'https://people.googleapis.com/v1/{resourceName}',
+            url: `https://people.googleapis.com/v1/contactGroups/${groupId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.accessToken}`
             }
         });
 

@@ -9,15 +9,16 @@ module.exports = {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'contactGroups', value: 'contactGroups' });
         }
 
-        // https://developers.google.com/people/api/rest/v1/contactGroups/list
         const { data } = await context.httpRequest({
             method: 'GET',
             url: 'https://people.googleapis.com/v1/contactGroups',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.accessToken}`
             }
         });
 
-        return lib.sendArrayOutput({ context, records, outputType, arrayPropertyValue: 'contactGroups' });
+        context.log({ step: 'response', data });
+
+        return lib.sendArrayOutput({ context, records: data.contactGroups, outputType, arrayPropertyValue: 'contactGroups' });
     }
 };

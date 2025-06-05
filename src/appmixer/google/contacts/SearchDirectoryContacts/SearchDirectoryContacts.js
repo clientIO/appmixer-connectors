@@ -3,21 +3,25 @@ const schema = { 'person': { 'type': 'object', 'properties': { 'resourceName': {
 
 module.exports = {
     async receive(context) {
-        const { query, readMask, outputType } = context.messages.in.content;
+        const { query, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'results', value: 'results' });
         }
 
-        // https://developers.google.com/people/api/rest/v1/people/searchDirectoryPeople
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://people.googleapis.com/v1/people:searchDirectoryPeople',
+            url: 'https://people.googleapis.com/v1/people:listDirectoryPeople',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.accessToken}`
+            },
+            params: {
+                query,
+                readMask: 'addresses,ageRanges,biographies,birthdays,calendarUrls,clientData,coverPhotos,emailAddresses,events,externalIds,genders,imClients,interests,locales,locations,memberships,metadata,miscKeywords,names,nicknames,occupations,organizations,phoneNumbers,photos,relations,sipAddresses,skills,urls,userDefined,fileAses',
+                sources: 'DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE'
             }
         });
 
-        return lib.sendArrayOutput({ context, records, outputType, arrayPropertyValue: 'results' });
+        return lib.sendArrayOutput({ context, records: data.connections, outputType, arrayPropertyValue: 'results' });
     }
 };

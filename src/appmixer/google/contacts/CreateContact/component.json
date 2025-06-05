@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "private": false,
     "auth": {
-        "service": "appmixer:google:contacts"
+        "service": "appmixer:google:contacts",
+        "scope": [
+            "https://www.googleapis.com/auth/contacts"
+        ]
     },
     "inPorts": [
         {
@@ -13,29 +16,104 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "person": {
-                        "type": "object",
-                        "description": "Person object containing contact details to create"
+                    "firstName": {
+                        "type": "string"
                     },
-                    "readMask": {
-                        "type": "string",
-                        "description": "Optional. Comma-separated list of fields to return in the response."
+                    "familyName": {
+                        "type": "string"
+                    },
+                    "emails": {
+                        "type": "object"
+                    },
+                    "phones": {
+                        "type": "object"
+                    },
+                    "notes": {
+                        "type": "string"
                     }
-                }
+                },
+                "required": [
+                    "firstName"
+                ]
             },
             "inspector": {
                 "inputs": {
-                    "person": {
+                    "firstName": {
                         "type": "text",
-                        "tooltip": "Person object containing contact details to create",
-                        "label": "Person",
+                        "label": "First Name",
                         "index": 0
                     },
-                    "readMask": {
+                    "familyName": {
                         "type": "text",
-                        "tooltip": "Optional. Comma-separated list of fields to return in the response.",
-                        "label": "ReadMask",
+                        "label": "Family Name",
                         "index": 1
+                    },
+                    "emails": {
+                        "index": 2,
+                        "type": "expression",
+                        "label": "Emails",
+                        "levels": ["ADD"],
+                        "fields": {
+                            "value": {
+                                "type": "text",
+                                "label": "Email",
+                                "index": 1
+                            },
+                            "displayName": {
+                                "type": "text",
+                                "label": "Display Name",
+                                "index": 2
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "options": [
+                                    { "clearItem": true, "label": "<empty>"},
+                                    { "value": "home", "label": "Home" },
+                                    { "value": "work", "label": "Work" },
+                                    { "value": "other", "label": "Other" }
+                                ],
+                                "index": 3
+                            }
+                        }
+                    },
+                    "phones": {
+                        "index": 3,
+                        "type": "expression",
+                        "label": "Phone Numbers",
+                        "levels": ["ADD"],
+                        "fields": {
+                            "value": {
+                                "type": "text",
+                                "label": "Phone Number",
+                                "index": 1
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "options": [
+                                    { "clearItem": true, "label": "<empty>"},
+                                    { "value": "home", "label": "Home" },
+                                    { "value": "work", "label": "Work" },
+                                    { "value": "mobile", "label": "Mobile" },
+                                    { "value": "homefax", "label": "Home Fax" },
+                                    { "value": "workfax", "label": "Work Fax" },
+                                    { "value": "otherFax", "label": "Other Fax" },
+                                    { "value": "pager", "label": "Pager" },
+                                    { "value": "workMobile", "label": "Work Mobile" },
+                                    { "value": "workPager", "label": "Work Pager" },
+                                    { "value": "main", "label": "Main" },
+                                    { "value": "googleVoice", "label": "Google Voice" },
+                                    { "value": "other", "label": "Other" }
+                                ],
+                                "index": 3
+                            }
+                        }
+                    },
+                    "notes": {
+                        "type": "text",
+                        "label": "Notes",
+                        "index": 4
                     }
                 }
             }
@@ -45,36 +123,19 @@
         {
             "name": "out",
             "options": [
-                {
-                    "label": "Resource Name",
-                    "value": "resourceName",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Etag",
-                    "value": "etag",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Names",
-                    "value": "names",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "displayName": {
-                                    "type": "string",
-                                    "title": "Names.Display Name"
-                                }
-                            }
-                        }
-                    }
-                }
+                {"label": "Contact ID", "value": "id", "schema": {"type": "string"}},
+                {"label": "ETag", "value": "etag", "schema": {"type": "string"}},
+                {"label": "UpdateTime", "value": "updateTime", "schema": {"type": "string"}},
+                {"label": "DisplayName", "value": "displayName", "schema": {"type": "string"}},
+                {"label": "GivenName", "value": "givenName", "schema": {"type": "string"}},
+                {"label": "DisplayNameLastFirst", "value": "displayNameLastFirst", "schema": {"type": "string"}},
+                {"label": "UnstructuredName", "value": "unstructuredName", "schema": {"type": "string"}},
+                {"label": "PhotoUrl", "value": "photoUrl", "schema": {"type": "string"}},
+                {"label": "Memberships", "value": "memberships", "schema": {"type": "array"}},
+                {"label": "Memberships.Metadata.Source.Type", "value": "memberships.metadata.source.type", "schema": {"type": "string"}},
+                {"label": "Memberships.Metadata.Source.Id", "value": "memberships.metadata.source.id", "schema": {"type": "string"}},
+                {"label": "Memberships.ContactGroupMembership.ContactGroupId", "value": "memberships.contactGroupMembership.contactGroupId", "schema": {"type": "string"}},
+                {"label": "Memberships.ContactGroupMembership.ContactGroupResourceName", "value": "memberships.contactGroupMembership.contactGroupResourceName", "schema": {"type": "string"}}
             ]
         }
     ],

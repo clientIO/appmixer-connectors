@@ -1,16 +1,24 @@
 module.exports = {
     async receive(context) {
-        const { resourceName, maxMembers } = context.messages.in.content;
+        const { groupId } = context.messages.in.content;
 
-        // https://developers.google.com/people/api/rest/v1/contactGroups/get
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://people.googleapis.com/v1/{resourceName}',
+            url: `https://people.googleapis.com/v1/contactGroups/${groupId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.accessToken}`
             }
         });
 
-        return context.sendJson(data, 'out');
+        const betterResponse = {
+            id: data.resourceName.split('/')[1],
+            etag: data.etag,
+            updateTime: data.metadata.updateTime,
+            groupType: data.groupType,
+            name: data.name,
+            formattedName: data.formattedName
+        };
+
+        return context.sendJson(betterResponse, 'out');
     }
 };

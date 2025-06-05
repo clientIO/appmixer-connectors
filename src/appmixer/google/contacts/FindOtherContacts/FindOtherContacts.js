@@ -3,21 +3,20 @@ const schema = { 'resourceName': { 'type': 'string', 'title': 'Resource Name' },
 
 module.exports = {
     async receive(context) {
-        const { readMask, outputType } = context.messages.in.content;
+        const { outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'otherContacts', value: 'otherContacts' });
         }
 
-        // https://developers.google.com/people/api/rest/v1/otherContacts/list
         const { data } = await context.httpRequest({
             method: 'GET',
             url: 'https://people.googleapis.com/v1/otherContacts',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.accessToken}`
             }
         });
 
-        return lib.sendArrayOutput({ context, records, outputType, arrayPropertyValue: 'otherContacts' });
+        return lib.sendArrayOutput({ context, records: data.connections, outputType, arrayPropertyValue: 'otherContacts' });
     }
 };

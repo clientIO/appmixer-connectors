@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "private": false,
     "auth": {
-        "service": "appmixer:google:contacts"
+        "service": "appmixer:google:contacts",
+        "scope": [
+            "https://www.googleapis.com/auth/contacts"
+        ]
     },
     "inPorts": [
         {
@@ -13,39 +16,112 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "resourceName": {
-                        "type": "string",
-                        "description": "The resource name of the contact to update, e.g. 'people/c1234567890'"
+                    "contactId": {
+                        "type": "string"
                     },
-                    "updatePersonFields": {
-                        "type": "string",
-                        "description": "Comma-separated list of fields to update, e.g. 'names,emailAddresses'"
+                    "firstName": {
+                        "type": "string"
                     },
-                    "person": {
-                        "type": "object",
-                        "description": "Person object containing updated contact details"
+                    "familyName": {
+                        "type": "string"
+                    },
+                    "emails": {
+                        "type": "object"
+                    },
+                    "phones": {
+                        "type": "object"
+                    },
+                    "notes": {
+                        "type": "string"
                     }
-                }
+                },
+                "required": [
+                    "contactId"
+                ]
             },
             "inspector": {
                 "inputs": {
-                    "resourceName": {
+                    "contactId": {
                         "type": "text",
-                        "tooltip": "The resource name of the contact to update, e.g. 'people/c1234567890'",
-                        "label": "ResourceName",
+                        "label": "Contact ID",
                         "index": 0
                     },
-                    "updatePersonFields": {
+                    "firstName": {
                         "type": "text",
-                        "tooltip": "Comma-separated list of fields to update, e.g. 'names,emailAddresses'",
-                        "label": "UpdatePersonFields",
+                        "label": "First Name",
                         "index": 1
                     },
-                    "person": {
+                    "familyName": {
                         "type": "text",
-                        "tooltip": "Person object containing updated contact details",
-                        "label": "Person",
+                        "label": "Family Name",
                         "index": 2
+                    },
+                    "emails": {
+                        "index": 3,
+                        "type": "expression",
+                        "label": "Emails",
+                        "levels": ["ADD"],
+                        "fields": {
+                            "value": {
+                                "type": "text",
+                                "label": "Email",
+                                "index": 1
+                            },
+                            "displayName": {
+                                "type": "text",
+                                "label": "Display Name",
+                                "index": 2
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "options": [
+                                    { "clearItem": true, "label": "<empty>"},
+                                    { "value": "home", "label": "Home" },
+                                    { "value": "work", "label": "Work" },
+                                    { "value": "other", "label": "Other" }
+                                ],
+                                "index": 3
+                            }
+                        }
+                    },
+                    "phones": {
+                        "index": 4,
+                        "type": "expression",
+                        "label": "Phone Numbers",
+                        "levels": ["ADD"],
+                        "fields": {
+                            "value": {
+                                "type": "text",
+                                "label": "Phone Number",
+                                "index": 1
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "options": [
+                                    { "clearItem": true, "label": "<empty>"},
+                                    { "value": "home", "label": "Home" },
+                                    { "value": "work", "label": "Work" },
+                                    { "value": "mobile", "label": "Mobile" },
+                                    { "value": "homefax", "label": "Home Fax" },
+                                    { "value": "workfax", "label": "Work Fax" },
+                                    { "value": "otherFax", "label": "Other Fax" },
+                                    { "value": "pager", "label": "Pager" },
+                                    { "value": "workMobile", "label": "Work Mobile" },
+                                    { "value": "workPager", "label": "Work Pager" },
+                                    { "value": "main", "label": "Main" },
+                                    { "value": "googleVoice", "label": "Google Voice" },
+                                    { "value": "other", "label": "Other" }
+                                ],
+                                "index": 3
+                            }
+                        }
+                    },
+                    "notes": {
+                        "type": "text",
+                        "label": "Notes",
+                        "index": 5
                     }
                 }
             }
@@ -54,37 +130,20 @@
     "outPorts": [
         {
             "name": "out",
-            "options": [
-                {
-                    "label": "Resource Name",
-                    "value": "resourceName",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Etag",
-                    "value": "etag",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Names",
-                    "value": "names",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "displayName": {
-                                    "type": "string",
-                                    "title": "Names.Display Name"
-                                }
-                            }
-                        }
-                    }
-                }
+             "options": [
+                {"label": "Contact ID", "value": "id", "schema": {"type": "string"}},
+                {"label": "ETag", "value": "etag", "schema": {"type": "string"}},
+                {"label": "UpdateTime", "value": "updateTime", "schema": {"type": "string"}},
+                {"label": "DisplayName", "value": "displayName", "schema": {"type": "string"}},
+                {"label": "GivenName", "value": "givenName", "schema": {"type": "string"}},
+                {"label": "DisplayNameLastFirst", "value": "displayNameLastFirst", "schema": {"type": "string"}},
+                {"label": "UnstructuredName", "value": "unstructuredName", "schema": {"type": "string"}},
+                {"label": "PhotoUrl", "value": "photoUrl", "schema": {"type": "string"}},
+                {"label": "Memberships", "value": "memberships", "schema": {"type": "array"}},
+                {"label": "Memberships.Metadata.Source.Type", "value": "memberships.metadata.source.type", "schema": {"type": "string"}},
+                {"label": "Memberships.Metadata.Source.Id", "value": "memberships.metadata.source.id", "schema": {"type": "string"}},
+                {"label": "Memberships.ContactGroupMembership.ContactGroupId", "value": "memberships.contactGroupMembership.contactGroupId", "schema": {"type": "string"}},
+                {"label": "Memberships.ContactGroupMembership.ContactGroupResourceName", "value": "memberships.contactGroupMembership.contactGroupResourceName", "schema": {"type": "string"}}
             ]
         }
     ],
