@@ -3,9 +3,9 @@ const fs = require('fs');
 const assert = require('assert');
 const sinon = require('sinon');
 const testUtils = require('../../../utils.js');
-const { receive } = require('../../../../src/examples/process/csv/ProcessLargeCSV2/ProcessLargeCSV2.js');
+const { receive } = require('../../../../src/examples/process/csv/CSVETL/CSVETL.js');
 
-describe('ProcessLargeCSV2', async () => {
+describe('CSVETL', async () => {
 
     let context = testUtils.createMockContext();
 
