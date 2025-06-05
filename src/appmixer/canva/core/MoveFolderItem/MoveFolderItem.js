@@ -1,7 +1,8 @@
+'use strict';
 
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
+
         const { itemId, toFolderId } = context.messages.in.content;
 
         // https://www.canva.dev/docs/connect/api-reference/folders/move-folder-item/#http-method-and-url-path
