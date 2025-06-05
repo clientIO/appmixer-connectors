@@ -9,6 +9,26 @@ describe('CSVETL', async () => {
 
     let context = testUtils.createMockContext();
 
+    before(async () => {
+
+        // Ensure the test file exists. Also needed for `ProcessLargeCSV1.test.js`.
+        const testFilePath = path.join(__dirname, '../../../../src/examples/process/csv/large_csv_12000.csv');
+        if (!fs.existsSync(testFilePath)) {
+            // run the script to generate the test file
+            const generateFileScript = path.join(__dirname, '../../../../src/examples/process/csv/_create_large_csv.sh');
+            const { execSync } = require('child_process');
+            try {
+                // cd to the directory where the script is located
+                process.chdir(path.dirname(generateFileScript));
+                execSync(`bash ${generateFileScript}`, { stdio: 'inherit' });
+                console.log('Test file generated successfully:', testFilePath);
+            } catch (error) {
+                console.error('Error generating test file:', error);
+                throw new Error('Test file generation failed');
+            }
+        }
+    });
+
     beforeEach(async () => {
 
         // Reset the context.
