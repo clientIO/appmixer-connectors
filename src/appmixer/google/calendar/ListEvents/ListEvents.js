@@ -13,6 +13,11 @@ const calendar = GoogleApi.calendar('v3');
 module.exports = {
 
     receive(context) {
+        const { calendarId } = context.properties;
+
+        if (!calendarId) {
+            return context.sendJson({}, 'out');
+        }
 
         const listEvents = Promise.promisify(calendar.events.list, { context: calendar.events });
 
@@ -20,7 +25,7 @@ module.exports = {
             auth: commons.getOauth2Client(context.auth),
             userId: 'me',
             quotaUser: context.auth.userId,
-            calendarId: encodeURIComponent(context.properties.calendarId)
+            calendarId: encodeURIComponent(calendarId)
         }).then(data => {
             return context.sendJson(data, 'out');
         });
