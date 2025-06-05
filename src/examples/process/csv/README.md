@@ -1,47 +1,51 @@
 # About
+
 Connectors and components in this directory are used to process large CSV files.
 
 ## ProcessLargeCSV1
+
 This example demonstrates how to process a large CSV file using the `ProcessLargeCSV1` component. It reads the CSV file in chunks, processes each chunk, and outputs the results.
 
 Features:
-- safely processes large CSV files chunking the original Appmixer stream into smaller chunks
-- the final read stream is `csv-reader` which reads the CSV file and emits each row as a JSON object
-- custom logic is implemented and hardcoded in the component to transform data into the desired format
-- the file is then written to a new CSV file using Appmixer streams again
+- Safely processes large CSV files by chunking the original Appmixer stream into smaller pieces.
+- The final read stream is a `csv-reader` which reads the CSV file and emits each row as a JSON object.
+- Custom logic is implemented and hardcoded in the component to transform data into the desired format.
+- The file is then written to a new CSV file using Appmixer streams.
 
 Example run 1) on Appmixer engine pod:
-- 100000 rows in the original CSV file
-- ~150000 rows in the final CSV file
-- up to 1 second processing time
+- 100,000 rows in the original CSV file.
+- ~150,000 rows in the final CSV file.
+- Up to 1 second processing time.
 
 Example run 2) on Appmixer engine pod:
-- 1505101 rows in the original CSV file, 90MB in size
-- 1884146 rows in the final CSV file
-- 2025-06-04T20:09:44.793Z started processing
-- 2025-06-04T20:10:21.556Z finished processing
+- 1,505,101 rows in the original CSV file, 90MB in size.
+- 1,884,146 rows in the final CSV file.
+- 2025-06-04T20:09:44.793Z started processing.
+- 2025-06-04T20:10:21.556Z finished processing.
 
 Not included in the example:
-- no timeouts are set, so the process will run until completion
-- no retry logic is implemented, so if the process fails, it will not retry
-- customizable options for the `csv-reader` stream are not included, but can be added as needed. See for example the `appmixer.utils.csv.AddRows` or `appmixer.utils.csv.GetRows` components for more details.
+- No timeouts are set, so the process will run until completion.
+- No retry logic is implemented; if the process fails, it will not retry.
+- Customizable options for the `csv-reader` stream are not included, but can be added as needed. See, for example, the `appmixer.utils.csv.AddRows` or `appmixer.utils.csv.GetRows` components for more details.
 
 ## CSV ETL
+
 This example demonstrates how to process a large CSV file using the `CSV ETL` component. It reads the CSV file row by row, transforms the data using a `dtl-js` transform object, and outputs the results. See https://getdtl.org/.
 
-This is very similar to `ProcessLargeCSV1`, but uses `dtl-js` to transform the data instead of hardcoded logic in the component. This allows for more flexibility and reusability of the transformation logic. No custom logic is implemented in the component javascript code.
+This is very similar to `ProcessLargeCSV1`, but uses `dtl-js` to transform the data instead of hardcoded logic in the component JavaScript code. This allows for more flexibility and reusability of the transformation logic. No custom logic is implemented in the component JavaScript code.
 
 Example run 2) on Appmixer engine pod:
-- 1505101 rows in the original CSV file, 90MB in size
-- 1884146 rows in the final CSV file
-- 2025-06-04T20:09:44.937Z started processing
-- 2025-06-04T20:10:27.208Z finished processing (slightly longer than `ProcessLargeCSV1` due to the transformation logic)
+- 1,505,101 rows in the original CSV file, 90MB in size.
+- 1,884,146 rows in the final CSV file.
+- 2025-06-04T20:09:44.937Z started processing.
+- 2025-06-04T20:10:27.208Z finished processing (slightly longer than `ProcessLargeCSV1` due to the transformation logic).
 
 Known issues:
-- in order to add newline characters to the CSV file, you can't use "\n" in the `dtl-js` transform object, but rather use the `\n` character directly (press Enter in the `tranformation` field in the UI). By default the component adds a newline character to the end of each row, so you don't need to add it manually.
-- currently the component uses only the default transform `out` and only supports a string as its value.
+- In order to add newline characters to the CSV file, you can't use "\n" in the `dtl-js` transform object; instead, use the actual newline character (press Enter in the `transformation` field in the UI). By default, the component adds a newline character to the end of each row, so you don't need to add it manually.
+- Currently, the component uses only the default transform `out` and only supports a string as its value.
 
 ### Transformation example
+
 CSV file:
 ```
 s1,Movie,The Grand Seduction,Don McKellar,"Brendan Gleeson, Taylor Kitsch, Gordon Pinsent",Canada,"March 30, 2021",2014,,113 min
