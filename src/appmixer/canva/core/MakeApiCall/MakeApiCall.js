@@ -8,7 +8,7 @@ module.exports = {
             method: method,
             url: url,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiKey}`,
+                'Authorization': `Bearer ${context.auth.accessToken}`,
                 'Content-Type': 'application/json'
             }
         };

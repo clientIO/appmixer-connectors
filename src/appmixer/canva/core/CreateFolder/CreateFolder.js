@@ -17,6 +17,6 @@ module.exports = {
             }
         });
 
-        return context.sendJson(response.data, 'out');
+        return context.sendJson(response.data.folder, 'out');
     }
 };
