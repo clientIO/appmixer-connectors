@@ -28,7 +28,7 @@ module.exports = {
                     // console.log('Processing row:', row);
                     // Apply DTL transformation
 
-                    let result = dtl.apply(row, transformation);
+                    let result = dtl.apply(row, transformation) + '\n'; // Ensure each row ends with a newline character
                     // console.log('DTL result:', result);
 
                     // --- End of your own processing logic ---
