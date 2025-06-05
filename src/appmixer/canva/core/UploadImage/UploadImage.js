@@ -2,6 +2,7 @@
 
 module.exports = {
     async receive(context) {
+
         const { imageName, image } = context.messages.in.content;
         const fileStream = await context.getFileReadStream(image);
         const fileStats = await context.getFileInfo(image);

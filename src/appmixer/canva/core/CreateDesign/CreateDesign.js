@@ -2,6 +2,7 @@
 
 module.exports = {
     async receive(context) {
+
         const { type, name, width, height, title } = context.messages.in.content;
 
         // https://www.canva.dev/docs/connect//create-design

@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.canva.core.CreateDesign",
+    "name": "appmixer.canva.core.MakeApiCall",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Creates a new design.",
+    "description": "Performs an arbitrary authorized API Call to Canva API.",
     "version": "1.0.0",
     "private": false,
     "auth": {
@@ -13,117 +13,70 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "type": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "method": {
                         "type": "string",
                         "enum": [
-                            "preset",
-                            "custom"
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
                         ],
-                        "description": "Type of the design, either preset or custom"
+                        "default": "GET"
                     },
-                    "name": {
-                        "type": "string",
-                        "enum": [
-                            "doc",
-                            "whiteboard",
-                            "presentation"
-                        ],
-                        "description": "Name of the preset design",
-                        "default": "doc"
-                    },
-                    "width": {
-                        "type": "integer",
-                        "minimum": 40,
-                        "maximum": 8000,
-                        "description": "Width in pixels for custom design"
-                    },
-                    "height": {
-                        "type": "integer",
-                        "minimum": 40,
-                        "maximum": 8000,
-                        "description": "Height in pixels for custom design"
-                    },
-                    "title": {
-                        "type": "string",
-                        "description": "Title of the design. Max length is 255 characters",
-                        "minLength": 1,
-                        "maxLength": 255
+                    "body": {
+                        "type": "string"
                     }
                 },
                 "required": [
-                    "type"
+                    "url",
+                    "method"
                 ]
             },
             "inspector": {
                 "inputs": {
-                    "type": {
-                        "group": "design_type",
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint URL",
+                        "tooltip": "Enter the API endpoint URL including the base URL. For example, `https://api.canva.com/rest/v1/asset-uploads/{job-id}`."
+                    },
+                    "method": {
                         "type": "select",
-                        "tooltip": "Type of the design, either preset or custom",
-                        "label": "Type Of Design",
-                        "index": 0,
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "tooltip": "Select the HTTP method for the API call.",
                         "options": [
                             {
-                                "label": "Preset",
-                                "value": "preset"
+                                "label": "GET",
+                                "value": "GET"
                             },
                             {
-                                "label": "Custom",
-                                "value": "custom"
+                                "label": "POST",
+                                "value": "POST"
+                            },
+                            {
+                                "label": "PUT",
+                                "value": "PUT"
+                            },
+                            {
+                                "label": "PATCH",
+                                "value": "PATCH"
+                            },
+                            {
+                                "label": "DELETE",
+                                "value": "DELETE"
                             }
                         ]
                     },
-                    "name": {
-                        "group": "design_type",
-                        "when": { "eq": { "type": "preset" } }, 
-                        "type": "select",
-                        "tooltip": "Name of the preset design type",
-                        "label": "Name",
-                        "index": 1,
-                        "options": [
-                            {
-                                "label": "Doc",
-                                "value": "doc"
-                            },
-                            {
-                                "label": "Whiteboard",
-                                "value": "whiteboard"
-                            },
-                            {
-                                "label": "Presentation",
-                                "value": "presentation"
-                            }
-                        ],
-                        "defaultValue": "doc"
-
-                    },
-                    "width": {
-                        "group": "design_type",
-                        "when": { "eq": { "type": "custom" } }, 
-                        "type": "number",
-                        "tooltip": "Width in pixels for custom design. A number between 40 and 8000",
-                        "label": "Width",
-                        "index": 2
-                    },
-                    "height": {
-                        "group": "design_type",
-                        "when": { "eq": { "type": "custom" } },
-                        "type": "number",
-                        "tooltip": "Height in pixels for custom design. A number between 40 and 8000",
-                        "label": "Height",
-                        "index": 3
-                    },
-                    "title": {
-                        "type": "text",
-                        "tooltip": "Title of the design",
-                        "label": "Title",
-                        "index": 5
-                    }
-                },
-                "groups": {
-                    "design_type": {
-                        "label": "Design Type",
-                        "index": 1
+                    "body": {
+                        "type": "textarea",
+                        "index": 3,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body for the API call."
                     }
                 }
             }
@@ -134,24 +87,19 @@
             "name": "out",
             "options": [
                 {
-                    "label": "Id",
-                    "value": "id",
-                    "schema": {
-                        "type": "string"
-                    }
+                    "label": "Status Code",
+                    "value": "status"
                 },
                 {
-                    "label": "Title",
-                    "value": "title",
-                    "schema": {
-                        "type": "string"
-                    }
+                    "label": "Response Headers",
+                    "value": "headers"
                 },
                 {
-                    "label": "Created At",
-                    "value": "created_at",
+                    "label": "Response Body",
+                    "value": "body",
                     "schema": {
-                        "type": "string"
+                        "type": "object",
+                        "properties": {}
                     }
                 }
             ]
