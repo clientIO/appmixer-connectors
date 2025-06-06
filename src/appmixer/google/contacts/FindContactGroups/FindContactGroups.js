@@ -17,8 +17,6 @@ module.exports = {
             }
         });
 
-        context.log({ step: 'response', data });
-
         const records = data.contactGroups.map((contactGroup) => {
             return {
                 id: contactGroup.resourceName.split('/')[1],

@@ -5,8 +5,6 @@ const DEFAULT_PREFIX = 'wiz-objects-export';
 module.exports = {
 
     async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
-
-        context.log({ step: 'sendArrayOutput-records', records, outputPortName, outputType });
         if (outputType === 'first') {
             // One by one.
             await context.sendJson(records[0], outputPortName);

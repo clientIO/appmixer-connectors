@@ -14,8 +14,6 @@ module.exports = {
             }
         });
 
-        context.log({ step: 'currentData', currentData });
-
         const emailAddresses = emails?.ADD.map(email => ({
             value: email.value,
             displayName: email.displayName ?? undefined,
@@ -48,8 +46,6 @@ module.exports = {
                 memberships: currentData.memberships
             }
         });
-
-        context.log({ step: 'updatedData', currentData });
 
         const betterResponse = {
             id: data.resourceName.split('/')[1],
