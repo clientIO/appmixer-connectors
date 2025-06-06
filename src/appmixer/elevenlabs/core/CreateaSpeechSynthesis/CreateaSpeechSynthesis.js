@@ -3,7 +3,21 @@
 module.exports = {
     async receive(context) {
 
-        const { voice_id, text } = context.messages.in.content;
+        const {
+            voice_id,
+            text,
+            model_id,
+            language_code,
+            seed,
+            voice_settings,
+            pronunciation_dictionary_locators,
+            previous_text,
+            next_text,
+            previous_request_ids,
+            next_request_ids,
+            apply_language_text_normalization,
+            apply_text_normalization
+        } = context.messages.in.content;
 
         // https://elevenlabs.io/docs/api-reference/text-to-speech/convert
         const { data } = await context.httpRequest({
@@ -13,7 +27,18 @@ module.exports = {
                 'xi-api-key': context.auth.apiKey
             },
             data: {
-                text
+                text,
+                model_id,
+                language_code,
+                seed,
+                voice_settings,
+                pronunciation_dictionary_locators,
+                previous_text,
+                next_text,
+                previous_request_ids,
+                next_request_ids,
+                apply_language_text_normalization,
+                apply_text_normalization
             },
             responseType: 'arraybuffer' // Ensure binary data is returned as Buffer
         });
