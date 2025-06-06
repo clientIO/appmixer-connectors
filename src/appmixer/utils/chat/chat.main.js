@@ -31,12 +31,17 @@ function connectEventStream(threadId) {
         } else if (data.type === 'progress') {
             const msg = data.data || {};
             setProgressMessage(msg.content);
+        } else if (data.type === 'delta') {
+            const msg = data.data || {};
+            chat.appendMessage({ id: msg.id, content: msg.content });
         }
     };
 
     eventStream.onerror = (err) => {
         console.error('SSE error in message stream:', err);
-        eventStream.close();
+        // Browser may close the connection, so we need to reconnect.
+        // This can happen e.g. if the browser tag goes to sleep (laptop sleeps / suspends).
+        setTimeout(() => connectEventStream(threadId), 3000);
     };
 
     eventStream.onopen = () => {

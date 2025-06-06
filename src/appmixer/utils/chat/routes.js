@@ -29,7 +29,7 @@ const chatClients = new Map();
 
 async function publish(channel, event) {
 
-    const redisPub = process.PLUGIN_UTILS_CHAT_REDIS_PUB_CLIENT;
+    const redisPub = process.CONNECTOR_STREAM_PUB_CLIENT;
     if (redisPub) {
         return redisPub.publish(channel, JSON.stringify(event));
     }
@@ -43,9 +43,10 @@ module.exports = (context) => {
     const ChatThread = require('./ChatThreadModel')(context);
 
     // assert(Redis clients have been connected in plugin.js).
-    process.PLUGIN_UTILS_CHAT_REDIS_SUB_CLIENT.psubscribe('utils:chat:events:*');
-    process.PLUGIN_UTILS_CHAT_REDIS_SUB_CLIENT.on('pmessage', (pattern, channel, payload) => {
-        const [, , ,threadId] = channel.split(':'); // e.g., 'utils:chat:events:123'
+    process.CONNECTOR_STREAM_SUB_CLIENT.psubscribe('stream:agent:events:*');
+    process.CONNECTOR_STREAM_SUB_CLIENT.psubscribe('stream:chat:events:*');
+    process.CONNECTOR_STREAM_SUB_CLIENT.on('pmessage', (pattern, channel, payload) => {
+        const [, , ,threadId] = channel.split(':'); // e.g., 'stream:chat:events:123'
         const data = JSON.parse(payload);
 
         if (chatClients.has(threadId)) {
@@ -133,7 +134,7 @@ module.exports = (context) => {
                 message.threadId = threadId;
                 message.createdAt = new Date;
                 message.userId = userId;
-                await publish(`utils:chat:events:${threadId}`, {
+                await publish(`stream:chat:events:${threadId}`, {
                     type: 'message',
                     data: message
                 });
