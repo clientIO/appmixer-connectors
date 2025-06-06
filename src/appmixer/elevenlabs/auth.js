@@ -23,12 +23,12 @@ module.exports = {
             // ElevenLabs API: https://api.elevenlabs.io/v1/user
             const response = await context.httpRequest({
                 method: 'GET',
-                url: 'https://api.elevenlabs.io/v1/models',
+                url: 'https://api.elevenlabs.io/v1/user',
                 headers: {
                     'xi-api-key': context.apiKey
                 }
             });
-            if (!Array.isArray(response?.data)) {
+            if (response?.user_id) {
                 throw new Error('Authentication failed: Invalid API Key or unexpected response.');
             }
             return true;
