@@ -353,14 +353,22 @@ module.exports = {
 
     createStreamCompletion: async function(context, client, completion) {
 
-        const stream = await client.chat.completions.create({ ...completion, stream: true });
+        const stream = await client.chat.completions.create({
+            ...completion,
+            stream: true,
+            stream_options: {
+                include_usage: true
+            }
+        });
 
         const finalToolCalls = [];
         let finalContent = '';
         let finishReason = null;
 
         for await (const chunk of stream) {
-            const choice = chunk.choices[0];
+            // With include_usage: true, the last chunk contains usage field
+            // while the choices array is empty.
+            const choice = chunk.choices.length ? chunk.choices[0] : {};
             if (choice.finish_reason) {
                 finishReason = choice.finish_reason;
             }
