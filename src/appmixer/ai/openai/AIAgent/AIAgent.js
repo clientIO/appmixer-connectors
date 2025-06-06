@@ -388,7 +388,8 @@ module.exports = {
                 await this.publishChatDeltaEvent(context, chunk.id, delta.content);
             }
             if (chunk.usage) {
-                // This would be better to do only once, not with each chunk.
+                // Note that only the last chunk has usage info so this does NOT
+                // run with each chunk.
                 await this.updateUsage(context, chunk.usage);
             }
         }
