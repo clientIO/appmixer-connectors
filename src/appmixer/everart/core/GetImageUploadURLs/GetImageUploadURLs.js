@@ -1,24 +1,27 @@
 
 const lib = require('../../lib.generated');
+const schema = {"upload_token":{"type":"string","title":"Upload Token"},"upload_url":{"type":"string","title":"Upload Url"},"file_url":{"type":"string","title":"File Url"},"id":{"type":"string","title":"Id"}}
+
 module.exports = {
-    async receive(context) {
-        const { images, filename, content_type, id } = context.messages.in.content;
+    async receive(context) {        
 
-        // Prepare array of upload items
-        const items = Array.isArray(images) && images.length
-            ? images
-            : [{ filename, content_type, id }];
+        const { images|filename, images|content_type, images|id, outputType } = context.messages.in.content;
 
-        // https://www.everart.ai/api/docs#tag/Assets/operation/getImageUploads
+if (context.properties.generateOutputPortOptions) {
+        return lib.getOutputPortOptions(context, outputType, schema, { label: 'image_uploads', value: 'image_uploads' });
+    }
+
+
+        // https://www.everart.ai/api/docs
         const { data } = await context.httpRequest({
             method: 'POST',
             url: 'https://api.everart.ai/v1/images/uploads',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiKey}`
-            },
-            json: { images: items }
+                'Authorization': `Bearer ${context.auth.apiToken}`
+            }
         });
+    
 
-        return context.sendJson(data, 'out');
+return lib.sendArrayOutput({ context, records, outputType, arrayPropertyValue: 'image_uploads' })
     }
 };
