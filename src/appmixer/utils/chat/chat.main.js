@@ -5,6 +5,8 @@ let sessionId;
 let authHeader = {};
 let eventStream;
 
+const stopDeltas = {};
+
 function connectEventStream(threadId) {
 
     if (eventStream) {
@@ -25,6 +27,11 @@ function connectEventStream(threadId) {
                         content: msg.content
                     }
                 });
+                // Filter out all delta messages for this correlation ID since we have the full message now.
+                stopDeltas[msg.correlationId] = true;
+                chat.parse(threadId, chat.getConfig().messages.filter(m => {
+                    return m.id.split(':')[1] !== msg.correlationId;
+                }));
                 setWaiting(false);
                 setProgressMessage('');
             }
@@ -33,7 +40,10 @@ function connectEventStream(threadId) {
             setProgressMessage(msg.content);
         } else if (data.type === 'delta') {
             const msg = data.data || {};
-            chat.appendMessage({ id: msg.id, content: msg.content });
+            // Component ID and correlation ID identify the agent and run uniquely.
+            if (!stopDeltas[msg.correlationId]) {
+                chat.appendMessage({ id: msg.componentId + ':' + msg.correlationId, content: msg.content });
+            }
         }
     };
 

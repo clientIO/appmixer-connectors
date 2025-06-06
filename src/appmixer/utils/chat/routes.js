@@ -210,6 +210,7 @@ module.exports = (context) => {
                 // It essentially disables response compression which interfers with
                 // streaming behaviour.
                 response.header('Content-Encoding', 'identity');
+                stream.write(': init\n\n'); // Send SSE comment to kickstart stream.
 
                 // Track connection.
                 if (!chatClients.has(threadId)) chatClients.set(threadId, new Set());
