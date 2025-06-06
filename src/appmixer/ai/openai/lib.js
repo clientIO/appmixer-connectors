@@ -49,5 +49,13 @@ module.exports = {
             }
         }
         return new OpenAI(opt);
+    },
+
+    publish: function(channel, event) {
+
+        const redisPub = process.CONNECTOR_STREAM_PUB_CLIENT;
+        if (redisPub) {
+            return redisPub.publish(channel, JSON.stringify(event));
+        }
     }
 };

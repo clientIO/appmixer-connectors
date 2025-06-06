@@ -193,6 +193,37 @@ module.exports = {
         return toolsDefinition;
     },
 
+    publishChatProgressEvent: function(context, step, content) {
+
+        return lib.publish(`stream:agent:events:${context.messages.in.content.threadId}`, {
+            type: 'progress',
+            data: {
+                id: uuid.v6(), // UUID v6 is time ordered
+                step,
+                content,
+                role: 'agent',
+                correlationId: context.messages.in.correlationId,
+                componentId: context.componentId,
+                flowId: context.flowId
+            }
+        });
+    },
+
+    publishChatDeltaEvent: function(context, completionId, content) {
+
+        return lib.publish(`stream:agent:events:${context.messages.in.content.threadId}`, {
+            type: 'delta',
+            data: {
+                id: uuid.v6(), // UUID v6 is time ordered
+                content,
+                role: 'agent',
+                correlationId: context.messages.in.correlationId,
+                componentId: context.componentId,
+                flowId: context.flowId
+            }
+        });
+    },
+
     callTools: async function(context, modelToolCalls) {
 
         if (!modelToolCalls || !modelToolCalls.length) {
@@ -200,7 +231,7 @@ module.exports = {
         }
 
         if (modelToolCalls.length > 1) {
-            await context.sendJson({ status: `Calling ${modelToolCalls.length} tools.` }, 'progress');
+            await this.publishChatProgressEvent(context, 'tool-calls', `Calling ${modelToolCalls.length} tools.`);
         }
 
         const outputs = [];
@@ -209,7 +240,7 @@ module.exports = {
         for (const toolCall of modelToolCalls) {
             let componentId = toolCall.function.name.split('_')[0];
             const toolName = toolCall.function.name.split('_').slice(1).join('_');
-            await context.sendJson({ status: `Calling tool ${toolName}.` }, 'progress');
+            await this.publishChatProgressEvent(context, 'tool-call', `Calling tool ${toolName}.`);
             if (!uuid.validate(componentId)) {
                 // Short version of the UUID.
                 // Get back the original compoennt UUID back from the short version.
@@ -295,7 +326,10 @@ module.exports = {
                 tools
             };
             await context.log({ step: 'agent-completion', completion });
-            const choice = await this.createCompletion(context, client, completion);
+            await this.publishChatProgressEvent(context, 'inference', `Crunching data (${i + 1})...`);
+            const choice = context.properties.stream
+                ? await this.createStreamCompletion(context, client, completion)
+                : await this.createCompletion(context, client, completion);
             const { finish_reason: finishReason, message } = choice;
             messages.push(message);
 
@@ -315,6 +349,56 @@ module.exports = {
             }
         }
         return { messages, answer: 'The maximum number of iterations has been met without a suitable answer. Please try again with a more specific input.' };
+    },
+
+    createStreamCompletion: async function(context, client, completion) {
+
+        const stream = await client.chat.completions.create({ ...completion, stream: true });
+
+        const finalToolCalls = [];
+        let finalContent = '';
+        let finishReason = null;
+
+        for await (const chunk of stream) {
+            const choice = chunk.choices[0];
+            if (choice.finish_reason) {
+                finishReason = choice.finish_reason;
+            }
+            const delta = choice?.delta || {};
+            if (delta.tool_calls) {
+                for (const toolCall of delta.tool_calls) {
+                    const { index } = toolCall;
+
+                    if (!finalToolCalls[index]) {
+                        finalToolCalls[index] = toolCall;
+                    }
+
+                    finalToolCalls[index].function.arguments += toolCall.function.arguments;
+                }
+            } else if (delta.content) {
+                finalContent += delta.content;
+                await this.publishChatDeltaEvent(context, chunk.id, delta.content);
+            }
+            if (chunk.usage) {
+                // This would be better to do only once, not with each chunk.
+                await this.updateUsage(context, chunk.usage);
+            }
+        }
+
+        const choice = {
+            finish_reason: finishReason,
+            message: {
+                role: 'assistant',
+                content: finalContent
+            }
+        };
+
+        // Add only when tool calls required. Empty array is not allowed by OpenAI API.
+        if (finalToolCalls.length) {
+            choice.message.tool_calls = finalToolCalls;
+        }
+
+        return choice;
     },
 
     createCompletion: async function(context, client, completion) {
@@ -378,6 +462,7 @@ module.exports = {
 
     receive: async function(context) {
 
+        await this.publishChatProgressEvent(context, 'start', 'Thinking...');
         const receiveStart = new Date;
         const { prompt, storeId, threadId } = context.messages.in.content;
         const model = context.properties.model;
