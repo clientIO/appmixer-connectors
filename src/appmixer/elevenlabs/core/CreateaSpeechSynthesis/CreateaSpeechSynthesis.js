@@ -1,18 +1,27 @@
+/* eslint-disable camelcase */
 
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
+
         const { voice_id, text } = context.messages.in.content;
 
         // https://elevenlabs.io/docs/api-reference/text-to-speech/convert
         const { data } = await context.httpRequest({
             method: 'POST',
-            url: 'https://api.elevenlabs.io/v1/text-to-speech/convert',
+            url: `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
-            }
+                'xi-api-key': context.auth.apiKey
+            },
+            data: {
+                text
+            },
+            responseType: 'arraybuffer' // Ensure binary data is returned as Buffer
         });
 
-        return context.sendJson(data, 'out');
+        // For example: 1701980838697_elevenlabs_createSpeechSynthesis
+        const filename = `${Date.now()}_${context.componentType.split('.')[1]}_${context.componentType.split('.')[3]}`;
+        const file = await context.saveFileStream(filename, data); // data is a binary buffer
+
+        return context.sendJson(file, 'out');
     }
 };
