@@ -1,0 +1,10 @@
+Login
+TEST_SERVER_URL=http://localhost:2200 appmixer test auth login ./everart/auth.js
+
+appmixer test component ./src/appmixer/everart/core/FindModels -i '{"in":{"search":"lades"}}'
+
+appmixer test component ./src/appmixer/everart/core/FindModels -i '{"in":{"search":"lades", "status": "READY"}}'
+
+appmixer test component ./src/appmixer/everart/core/GetModel -i '{"in":{"id":"281368180046323712"}}'
+
+appmixer test component ./src/appmixer/everart/core/CreateModel -i '{"in":{"name":"test","subject":"test sube ","image_urls":{}}}'
