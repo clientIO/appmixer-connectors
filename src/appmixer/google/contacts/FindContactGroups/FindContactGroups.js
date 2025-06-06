@@ -1,12 +1,12 @@
 const lib = require('../lib.generated');
-const schema = { 'resourceName': { 'type': 'string', 'title': 'Resource Name' }, 'name': { 'type': 'string', 'title': 'Name' } };
+const { contactGroupSchema } = require('./../schemas');
 
 module.exports = {
     async receive(context) {
         const { outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'contactGroups', value: 'contactGroups' });
+            return lib.getOutputPortOptions(context, outputType, contactGroupSchema, { label: 'Contact Groups', value: 'result' });
         }
 
         const { data } = await context.httpRequest({
@@ -19,6 +19,17 @@ module.exports = {
 
         context.log({ step: 'response', data });
 
-        return lib.sendArrayOutput({ context, records: data.contactGroups, outputType, arrayPropertyValue: 'contactGroups' });
+        const records = data.contactGroups.map((contactGroup) => {
+            return {
+                id: contactGroup.resourceName.split('/')[1],
+                etag: contactGroup.etag ?? undefined,
+                updateTime: contactGroup.metadata?.updateTime,
+                groupType: contactGroup.groupType,
+                name: contactGroup.name,
+                formattedName: contactGroup.formattedName
+            };
+        });
+
+        return lib.sendArrayOutput({ context, records, outputType });
     }
 };

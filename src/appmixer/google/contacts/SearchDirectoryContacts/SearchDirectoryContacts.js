@@ -1,12 +1,12 @@
 const lib = require('../lib.generated');
-const schema = { 'person': { 'type': 'object', 'properties': { 'resourceName': { 'type': 'string', 'title': 'Person.Resource Name' }, 'names': { 'type': 'array', 'items': { 'type': 'object', 'properties': { 'displayName': { 'type': 'string', 'title': 'Person.Names.Display Name' } } }, 'title': 'Person.Names' } }, 'title': 'Person' } };
+const { personSchema } = require('./../schemas');
 
 module.exports = {
     async receive(context) {
         const { query, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'results', value: 'results' });
+            return lib.getOutputPortOptions(context, outputType, personSchema, { label: 'results', value: 'result' });
         }
 
         const { data } = await context.httpRequest({
@@ -22,6 +22,20 @@ module.exports = {
             }
         });
 
-        return lib.sendArrayOutput({ context, records: data.connections, outputType, arrayPropertyValue: 'results' });
+        const records = data.people.map((contact) => {
+            return {
+                id: contact.resourceName.split('/')[1],
+                etag: contact.etag,
+                updateTime: contact.metadata.sources[0].updateTime,
+                displayName: contact.names[0].displayName,
+                givenName: contact.names[0].givenName,
+                displayNameLastFirst: contact.names[0].displayNameLastFirst,
+                unstructuredName: contact.names[0].unstructuredName,
+                photoUrl: contact.photos[0].url,
+                memberships: contact.memberships
+            };
+        });
+
+        return lib.sendArrayOutput({ context, records, outputType });
     }
 };

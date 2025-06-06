@@ -4,7 +4,9 @@ const DEFAULT_PREFIX = 'wiz-objects-export';
 
 module.exports = {
 
-    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [], arrayPropertyValue = 'result' }) {
+    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
+
+        context.log({ step: 'sendArrayOutput-records', records, outputPortName, outputType });
         if (outputType === 'first') {
             // One by one.
             await context.sendJson(records[0], outputPortName);
@@ -13,9 +15,8 @@ module.exports = {
             await context.sendArray(records, outputPortName);
         } else if (outputType === 'array') {
             // All at once.
-            // const res = {};
-            // res[arrayPropertyValue] = records;
-            await context.sendJson(records, outputPortName);
+
+            await context.sendJson({ result: records, count: records.length }, outputPortName);
         } else if (outputType === 'file') {
 
             // Into CSV file.

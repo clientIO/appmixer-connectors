@@ -10,19 +10,23 @@ module.exports = {
             }
         });
 
+        context.log({ step: 'currentData', currentData });
+
         const { data } = await context.httpRequest({
             method: 'PUT',
             url: `https://people.googleapis.com/v1/contactGroups/${groupId}`,
             headers: {
                 'Authorization': `Bearer ${context.auth.accessToken}`
             },
-            body: {
+            data: {
                 contactGroup: {
                     etag: currentData.etag,
                     name
                 }
             }
         });
+
+        context.log({ step: 'updatedData', data });
 
         const betterResponse = {
             id: data.resourceName.split('/')[1],
