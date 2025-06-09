@@ -11,6 +11,7 @@ const schema = {
 
 module.exports = {
     async receive(context) {
+
         const {
             id,
             prompt,
@@ -34,10 +35,22 @@ module.exports = {
             headers: {
                 'Authorization': `Bearer ${context.auth.apiKey}`
             },
-            json: { prompt, image, type, image_count, height, width, webhook_url }
+            data: {
+                prompt,
+                image,
+                type,
+                image_count,
+                height,
+                width,
+                webhook_url
+            }
         });
-        const records = data.generations;
 
-        return lib.sendArrayOutput({ context, records, outputType, arrayPropertyValue: 'generations' });
+        return lib.sendArrayOutput({
+            context,
+            records: data.generations,
+            outputType,
+            arrayPropertyValue: 'generations'
+        });
     }
 };
