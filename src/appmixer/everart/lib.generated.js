@@ -73,8 +73,6 @@ module.exports = {
                     schema: { type: 'integer' }
                 }]);
 
-
-            console.log(options);
             return context.sendJson(options, 'out');
         }
 
