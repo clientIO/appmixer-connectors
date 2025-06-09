@@ -4,7 +4,13 @@ const DEFAULT_PREFIX = 'everart-objects-export';
 
 module.exports = {
 
-    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [], arrayPropertyValue = 'result' }) {
+    async sendArrayOutput({
+        context,
+        outputPortName = 'out',
+        outputType = 'array',
+        records = []
+    }) {
+
         if (outputType === 'first') {
             // One by one.
             await context.sendJson(
@@ -48,7 +54,7 @@ module.exports = {
 
         if (outputType === 'object' || outputType === 'first') {
             const options = Object.keys(itemSchema)
-                .map(field => {
+                .reduce((res, field) => {
                     const schema = itemSchema[field];
                     const label = schema.title;
                     delete schema.title;
@@ -56,7 +62,16 @@ module.exports = {
                     return {
                         label, value: field, schema
                     };
+                }, {
+                    label: 'Current Item Index',
+                    value: 'index',
+                    schema: { type: 'integer' }
+                }, {
+                    label: 'Items Count',
+                    value: 'count',
+                    schema: { type: 'integer' }
                 });
+
             return context.sendJson(options, 'out');
         }
 
@@ -68,6 +83,10 @@ module.exports = {
                     type: 'array',
                     items: { type: 'object', properties: itemSchema }
                 }
+            }, {
+                label: 'Items Count',
+                value: 'count',
+                schema: { type: 'integer' }
             }], 'out');
         }
 
