@@ -1,15 +1,10 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
-        const { id, name, thumbnail_upload_token } = context.messages.in.content;
+        const { id, name } = context.messages.in.content;
 
-        const body = {};
+        const payload = {};
         if (name !== undefined) {
-            body.name = name;
-        }
-        if (thumbnail_upload_token !== undefined) {
-            body.thumbnail_upload_token = thumbnail_upload_token;
+            payload.name = name;
         }
 
         // https://www.everart.ai/api/docs/#/Models/patch_models__id__patch
@@ -17,9 +12,9 @@ module.exports = {
             method: 'PATCH',
             url: `https://api.everart.ai/v1/models/${id}`,
             headers: {
-                'Authorization': `Bearer ${context.apiKey}`
+                'Authorization': `Bearer ${context.auths.apiKey}`
             },
-            json: body
+            data: payload
         });
 
         return context.sendJson(data, 'out');
