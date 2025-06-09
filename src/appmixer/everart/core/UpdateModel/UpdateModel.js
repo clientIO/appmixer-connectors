@@ -12,7 +12,7 @@ module.exports = {
             method: 'PATCH',
             url: `https://api.everart.ai/v1/models/${id}`,
             headers: {
-                'Authorization': `Bearer ${context.auths.apiKey}`
+                'Authorization': `Bearer ${context.auth.apiKey}`
             },
             data: payload
         });

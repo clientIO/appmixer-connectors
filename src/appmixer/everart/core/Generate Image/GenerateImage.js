@@ -1,10 +1,27 @@
-
 const lib = require('../../lib.generated');
-const schema = { 'id':{ 'type':'string','title':'Id' },'model_id':{ 'type':'string','title':'Model Id' },'status':{ 'type':'string','title':'Status' },'image_url':{ 'type':'string','title':'Image Url' },'type':{ 'type':'string','title':'Type' },'created_at':{ 'type':'string','title':'Created At' },'updated_at':{ 'type':'string','title':'Updated At' } };
+const schema = {
+    'id': { 'type': 'string', 'title': 'Id' },
+    'model_id': { 'type': 'string', 'title': 'Model Id' },
+    'status': { 'type': 'string', 'title': 'Status' },
+    'image_url': { 'type': 'string', 'title': 'Image Url' },
+    'type': { 'type': 'string', 'title': 'Type' },
+    'created_at': { 'type': 'string', 'title': 'Created At' },
+    'updated_at': { 'type': 'string', 'title': 'Updated At' }
+};
 
 module.exports = {
     async receive(context) {
-        const { id, prompt, image, type, image_count, height, width, webhook_url, outputType } = context.messages.in.content;
+        const {
+            id,
+            prompt,
+            image,
+            type,
+            image_count,
+            height,
+            width,
+            webhook_url,
+            outputType
+        } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'undefined', value: 'generations' });
