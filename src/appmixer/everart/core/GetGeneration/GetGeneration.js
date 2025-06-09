@@ -12,6 +12,8 @@ module.exports = {
             }
         });
 
+
+        console.log(data);
         return context.sendJson(data.generation, 'out');
     }
 };

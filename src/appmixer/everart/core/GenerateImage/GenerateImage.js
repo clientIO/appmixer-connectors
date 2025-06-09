@@ -24,6 +24,8 @@ module.exports = {
             outputType
         } = context.messages.in.content;
 
+
+        console.log("saldjalkjflkdjsalkfjjk");
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'undefined', value: 'generations' });
         }
