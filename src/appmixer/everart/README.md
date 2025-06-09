@@ -12,3 +12,5 @@ appmixer test component ./src/appmixer/everart/core/CreateModel -i '{"in":{"name
 appmixer test component ./src/appmixer/everart/core/GenerateImage -i '{"in":{"prompt":"value","id":"998732", "image":"value","type":"txt2img","outputType":"first"}}' -p '{"generateOutputPortOptions":true}'
 
 appmixer test component ./src/appmixer/everart/core/GetGeneration -i '{"in":{"id":"282806470771351552"}}'
+
+appmixer test component ./src/appmixer/everart/core/UpdateModel -i '{"in":{"id":"281368180046323712","name":"value"}}'

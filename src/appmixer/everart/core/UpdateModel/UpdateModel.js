@@ -17,6 +17,6 @@ module.exports = {
             data: payload
         });
 
-        return context.sendJson(data, 'out');
+        return context.sendJson(data.model, 'out');
     }
 };
