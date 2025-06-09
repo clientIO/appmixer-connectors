@@ -19,10 +19,10 @@ module.exports = {
                     name: 'Email',
                     tooltip: 'Your Raynet email.'
                 },
-                password: {
+                apiKey: {
                     type: 'password',
-                    name: 'Password',
-                    tooltip: 'Password to your account.'
+                    name: 'API Key',
+                    tooltip: 'API Key for your account (associated with your email).'
                 },
                 instanceName: {
                     type: 'text',
@@ -33,7 +33,7 @@ module.exports = {
 
             validate: context => {
 
-                let authData = new Buffer(`${context.login}:${context.password}`).toString('base64');
+                let authData = new Buffer(`${context.login}:${context.apiKey}`).toString('base64');
 
                 return request({
                     method: 'GET',
