@@ -17,10 +17,10 @@ module.exports = {
             prompt,
             image,
             type,
-            image_count,
+            image_count: imageCount = 1,
             height,
             width,
-            webhook_url,
+            webhook_url: webhookUrl,
             outputType
         } = context.messages.in.content;
 
@@ -39,18 +39,17 @@ module.exports = {
                 prompt,
                 image,
                 type,
-                image_count,
+                image_count: imageCount,
                 height,
                 width,
-                webhook_url
+                webhook_url: webhookUrl
             }
         });
 
         return lib.sendArrayOutput({
             context,
             records: data.generations,
-            outputType,
-            arrayPropertyValue: 'generations'
+            outputType
         });
     }
 };
