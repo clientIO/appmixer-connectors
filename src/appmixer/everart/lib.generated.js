@@ -5,11 +5,11 @@ const DEFAULT_PREFIX = 'everart-objects-export';
 module.exports = {
 
     async sendArrayOutput({
-                              context,
-                              outputPortName = 'out',
-                              outputType = 'array',
-                              records = []
-                          }) {
+        context,
+        outputPortName = 'out',
+        outputType = 'array',
+        records = []
+    }) {
 
         if (outputType === 'first') {
             // One by one.

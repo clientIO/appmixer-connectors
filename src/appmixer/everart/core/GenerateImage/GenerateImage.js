@@ -24,10 +24,8 @@ module.exports = {
             outputType
         } = context.messages.in.content;
 
-
-        console.log("saldjalkjflkdjsalkfjjk");
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'undefined', value: 'generations' });
+            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Generations', value: 'generations' });
         }
 
         // https://www.everart.ai/api/docs/#/Generations/post_models__id__generations_post
