@@ -22,8 +22,10 @@ module.exports = {
 
                 const params = new URLSearchParams();
                 params.append('token', context['SLACK_BOT_TOKEN']);
-                const { data } = await context.httpRequest.post('https://slack.com/api/auth.test', params);
-                return data.ok;
+                const { data = {} } = await context.httpRequest.post('https://slack.com/api/auth.test', params);
+                if (!data.ok) {
+                    throw new Error(data.error || 'Invalid credentials.');
+                }
             },
 
             accountNameFromProfileInfo: (context) => {
