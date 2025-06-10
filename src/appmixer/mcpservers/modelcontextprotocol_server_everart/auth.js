@@ -15,7 +15,9 @@ module.exports = {
             },
 
             validate: async (context) => {
-                return Boolean(context['EVERART_API_KEY']);
+                if (!context['EVERART_API_KEY']) {
+                    throw new Error('Invalid credentials.');
+                }
             },
 
             accountNameFromProfileInfo: (context) => {
