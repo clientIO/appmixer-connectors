@@ -15,12 +15,12 @@ module.exports = {
             },
 
             validate: async (context) => {
-                return true;
+                return Boolean(context['GITHUB_PERSONAL_ACCESS_TOKEN']);
             },
 
             accountNameFromProfileInfo: (context) => {
                 const name = context['GITHUB_PERSONAL_ACCESS_TOKEN'];
-                return name.substr(0, 3) + '...' + name.substr(-3);
+                return name.substring(0, 3) + '...' + name.slice(-3);
             }
         };
     }
