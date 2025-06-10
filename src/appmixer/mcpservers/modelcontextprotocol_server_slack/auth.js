@@ -19,12 +19,16 @@ module.exports = {
             },
 
             validate: async (context) => {
-                return true;
+
+                const params = new URLSearchParams();
+                params.append('token', context['SLACK_BOT_TOKEN']);
+                const { data } = await context.httpRequest.post('https://slack.com/api/auth.test', params);
+                return data.ok;
             },
 
             accountNameFromProfileInfo: (context) => {
                 const name = context['SLACK_BOT_TOKEN'];
-                return name.substr(0, 3) + '...' + name.substr(-3);
+                return name.substring(0, 3) + '...' + name.slice(-3);
             }
         };
     }
