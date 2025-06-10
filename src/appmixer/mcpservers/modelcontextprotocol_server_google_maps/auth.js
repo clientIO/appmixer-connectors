@@ -15,12 +15,12 @@ module.exports = {
             },
 
             validate: async (context) => {
-                return true;
+                return Boolean(context['GOOGLE_MAPS_API_KEY']);
             },
 
             accountNameFromProfileInfo: (context) => {
                 const name = context['GOOGLE_MAPS_API_KEY'];
-                return name.substr(0, 3) + '...' + name.substr(-3);
+                return name.substring(0, 3) + '...' + name.slice(-3);
             }
         };
     }
