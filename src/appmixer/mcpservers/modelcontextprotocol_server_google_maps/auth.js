@@ -15,7 +15,9 @@ module.exports = {
             },
 
             validate: async (context) => {
-                return Boolean(context['GOOGLE_MAPS_API_KEY']);
+                if (!context['GOOGLE_MAPS_API_KEY']) {
+                    throw new Error('Invalid credentials.');
+                }
             },
 
             accountNameFromProfileInfo: (context) => {
