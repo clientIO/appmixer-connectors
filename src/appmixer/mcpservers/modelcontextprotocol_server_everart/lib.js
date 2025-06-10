@@ -38,8 +38,8 @@ module.exports = {
             const childProcess = transport._process;
             /* eslint-enable no-underscore-dangle */
             const time = (new Date) - startTime;
-            const processUage = JSON.stringify(await pidusage(childProcess.pid));
-            await context.log({ step: 'connected-mcp-client', params, clientName, time, processUage });
+            const processUsage = JSON.stringify(await pidusage(childProcess.pid));
+            await context.log({ step: 'connected-mcp-client', params, clientName, time, processUsage });
             await context.log({ step: 'calling-mcp-client', method, args, clientName });
         }
 
