@@ -15,7 +15,9 @@ module.exports = {
             },
 
             validate: async (context) => {
-                return Boolean(context['GITHUB_PERSONAL_ACCESS_TOKEN']);
+                if (!context['GITHUB_PERSONAL_ACCESS_TOKEN']) {
+                    throw new Error('Invalid credentials.');
+                }
             },
 
             accountNameFromProfileInfo: (context) => {
