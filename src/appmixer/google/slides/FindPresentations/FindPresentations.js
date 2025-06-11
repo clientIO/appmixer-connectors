@@ -28,8 +28,6 @@ module.exports = {
             }
         });
 
-        context.log({ step: 'response', data });
-
         return lib.sendArrayOutput({ context, records: data.files, outputType });
     }
 };
