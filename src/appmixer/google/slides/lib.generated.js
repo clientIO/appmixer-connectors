@@ -15,7 +15,7 @@ module.exports = {
             // All at once.
             // const res = {};
             // res[arrayPropertyValue] = records;
-            await context.sendJson(records, outputPortName);
+            await context.sendJson({ result: records }, outputPortName);
         } else if (outputType === 'file') {
 
             // Into CSV file.

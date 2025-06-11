@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "private": false,
     "auth": {
-        "service": "appmixer:google:slides"
+        "service": "appmixer:google:slides",
+        "scope": [
+            "https://www.googleapis.com/auth/drive.readonly"
+        ]
     },
     "quota": {
         "manager": "appmixer:google:slides",
@@ -17,8 +20,11 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "query": {
-                        "type": "string"
+                    "folderLocation": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "object" }
+                        ]
                     },
                     "outputType": {
                         "type": "string"
@@ -27,11 +33,13 @@
             },
             "inspector": {
                 "inputs": {
-                    "query": {
-                        "type": "text",
-                        "tooltip": "A search query to filter presentations by name or description.",
-                        "label": "Query",
-                        "index": 0
+                    "folderLocation": {
+                        "type": "googlepicker",
+                        "index": 1,
+                        "label": "Folder",
+                        "placeholder": "Choose a folder...",
+                        "tooltip": "Search within a specific folder. If not specified, the search will be conducted across the entire drive.",
+                        "view": "FOLDERS"
                     },
                     "outputType": {
                         "type": "select",
@@ -66,7 +74,7 @@
         {
             "name": "out",
             "source": {
-                "url": "/component/appmixer/google-slides/core/FindPresentations?outPort=out",
+                "url": "/component/appmixer/google/slides/FindPresentations?outPort=out",
                 "data": {
                     "properties": {
                         "generateOutputPortOptions": true
