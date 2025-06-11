@@ -46,6 +46,11 @@ module.exports = {
             }
         });
 
+        if (!data || !Array.isArray(data.generations)) {
+            await context.log({ step: 'invalid-response', data });
+            throw new Error('Invalid response format from EverArt API');
+        }
+
         return lib.sendArrayOutput({
             context,
             records: data.generations,
