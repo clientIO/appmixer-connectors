@@ -7,11 +7,11 @@ module.exports = {
             subject
         };
 
-        if (imageUrls.AND.length > 0) {
-            payload.image_urls = imageUrls.AND.map(item => item['image_urls_item']);
-        } else {
-            return context.CancelError('"Image Urls" must be provided.');
+        if (!Array.isArray(imageUrls?.AND) || imageUrls.AND.length === 0) {
+            throw new context.CancelError('"Image Urls" must be provided.');
         }
+
+        payload.image_urls = imageUrls.AND.map(item => item['image_urls_item']);
 
         // https://www.everart.ai/api/docs/#/Models/post_models_post
         const { data } = await context.httpRequest({

@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports = {
     type: 'apiKey',
     definition: {
@@ -14,7 +12,7 @@ module.exports = {
         requestProfileInfo(context) {
             const apiKey = context.apiKey;
             return {
-                key: apiKey.substr(0, 3) + '...' + apiKey.substr(4)
+                key: apiKey.substring(0, 12) + '...' + apiKey.slice(-4)
             };
         },
 
