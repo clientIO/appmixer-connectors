@@ -31,7 +31,7 @@ module.exports = {
                     'response_type=code&prompt=consent';
             },
 
-            async requestProfileInfo(context) {
+            async requestProfi  leInfo(context) {
 
                 const { data } = await context.httpRequest({
                     method: 'GET',
