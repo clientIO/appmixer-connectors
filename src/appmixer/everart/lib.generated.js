@@ -12,6 +12,9 @@ module.exports = {
     }) {
 
         if (outputType === 'first') {
+            if (records.length === 0) {
+                throw new context.CancelError('No records available for first output type');
+            }
             // One by one.
             await context.sendJson(
                 { ...records[0], index: 0, count: records.length },
@@ -47,7 +50,7 @@ module.exports = {
     },
 
     getProperty(obj, path) {
-        return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        return path.split('.').reduce((acc, part) => acc?.[part], obj);
     },
 
     getOutputPortOptions(context, outputType, itemSchema, { label, value }) {
@@ -56,11 +59,10 @@ module.exports = {
             const options = Object.keys(itemSchema)
                 .reduce((res, field) => {
                     const schema = itemSchema[field];
-                    const label = schema.title;
-                    delete schema.title;
+                    const { title: label, ...schemaWithoutTitle } = schema;
 
                     res.push({
-                        label, value: field, schema
+                        label, value: field, schema: schemaWithoutTitle
                     });
                     return res;
                 }, [{
