@@ -1,3 +1,4 @@
+"use strict";
 
 module.exports = {
     type: "apiKey",
@@ -39,17 +40,14 @@ module.exports = {
                 "Content-Type": "application/json"
             };
 
-            try {
-                const response = await context.httpRequest({
+
+            await context.httpRequest({
                     method: "GET",
                     url,
                     headers
                 });
-                console.log("Authentication successful:", response.data);
-                return response.data;
-            } catch (error) {
-                throw new Error(`Authentication failed: ${error.message}`);
-            }
+                return true; // Authentication successful
+            
         }
     }
 }
