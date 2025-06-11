@@ -1,21 +1,30 @@
 const pathModule = require('path');
 
-const DEFAULT_PREFIX = 'wiz-objects-export';
+const DEFAULT_PREFIX = 'google-slides-objects-export';
 
 module.exports = {
 
-    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [], arrayPropertyValue = 'result' }) {
+    async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
         if (outputType === 'first') {
+            if (records.length === 0) {
+                throw new context.CancelError('No records available for first output type');
+            }
             // One by one.
-            await context.sendJson(records[0], outputPortName);
+            await context.sendJson(
+                { ...records[0], index: 0, count: records.length },
+                outputPortName
+            );
         } else if (outputType === 'object') {
             // One by one.
-            await context.sendArray(records, outputPortName);
+            for (let index = 0; index < records.length; index++) {
+                await context.sendJson(
+                    { ...records[index], index, count: records.length },
+                    outputPortName
+                );
+            }
         } else if (outputType === 'array') {
             // All at once.
-            // const res = {};
-            // res[arrayPropertyValue] = records;
-            await context.sendJson({ result: records }, outputPortName);
+            await context.sendJson({ result: records, count: records.length }, outputPortName);
         } else if (outputType === 'file') {
 
             // Into CSV file.
@@ -41,15 +50,24 @@ module.exports = {
 
         if (outputType === 'object' || outputType === 'first') {
             const options = Object.keys(itemSchema)
-                .map(field => {
+                .reduce((res, field) => {
                     const schema = itemSchema[field];
-                    const label = schema.title;
-                    delete schema.title;
+                    const { title: label, ...schemaWithoutTitle } = schema;
 
-                    return {
-                        label, value: field, schema
-                    };
-                });
+                    res.push({
+                        label, value: field, schema: schemaWithoutTitle
+                    });
+                    return res;
+                }, [{
+                    label: 'Current Item Index',
+                    value: 'index',
+                    schema: { type: 'integer' }
+                }, {
+                    label: 'Items Count',
+                    value: 'count',
+                    schema: { type: 'integer' }
+                }]);
+
             return context.sendJson(options, 'out');
         }
 

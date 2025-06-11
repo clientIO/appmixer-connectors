@@ -1,4 +1,3 @@
-
 const lib = require('../lib.generated');
 
 module.exports = {
