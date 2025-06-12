@@ -1,15 +1,16 @@
+'use strict';
 
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
-        const { board_id } = context.messages.in.content;
+
+        const { boardId } = context.messages.in.content;
 
         // https://developers.pinterest.com/docs/api/v5/boards/#get-board
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://api.pinterest.com/v5/boards/{board_id}',
+            url: `https://api.pinterest.com/v5/boards/${boardId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.accessToken}`
             }
         });
 
