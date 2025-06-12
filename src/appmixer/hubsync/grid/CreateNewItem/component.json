@@ -11,82 +11,115 @@
             "read:hubsync"
         ]
     },
-    "properties": {
-        "schema": {
-            "properties": {
-                "project": {
-                    "type": "string"
-                },
-                "issueType": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "project",
-                "issueType"
-            ]
-        },
-        "inspector": {
-            "inputs": {
-                "project": {
-                    "type": "text",
-                    "label": "Project ID",
-                    "index": 1,
-                    "source": {
-                        "url": "/component/appmixer/jira/issues/IssueMetadata?outPort=out",
-                        "data": {
-                            "transform": "./IssueMetadata#projectsToSelectArray"
-                        }
-                    },
-                    "tooltip": "Select a project."
-                },
-                "issueType": {
-                    "type": "select",
-                    "label": "Issue Type",
-                    "index": 1,
-                    "source": {
-                        "url": "/component/appmixer/jira/issues/IssueMetadata?outPort=out",
-                        "data": {
-                            "messages": {
-                                "in/project": "properties/project"
-                            },
-                            "transform": "./IssueMetadata#issueTypesToSelectArray"
-                        }
-                    },
-                    "tooltip": "Select an issue type."
-                }
-            }
-        }
-    },
     "inPorts": [
         {
             "name": "in",
             "schema": {
-                "type": "object"
-            },
-            "source": {
-                "url": "/component/appmixer/jira/issues/IssueMetadata?outPort=out",
-                "data": {
-                    "messages": {
-                        "in/project": "properties/project",
-                        "in/issueType": "properties/issueType"
+                "properties": {
+                    "workspaceId": {
+                        "type": "string"
                     },
-                    "transform": "./IssueMetadata#createMetaToInspector"
+                    "databaseId": {
+                        "type": "string"
+                    },
+                    "sheetId": {
+                        "type": "string"
+                    },
+                    "viewId": {
+                        "type": "string"
+                    },
+                    "fields": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "workspaceId",
+                    "databaseId",
+                    "sheetId",
+                    "viewId",
+                    "fields"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "workspaceId": {
+                        "type": "select",
+                        "label": "Workspace ID",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/hubsync/common/FetchWorkspaces?outPort=workspaces",
+                            "data": {
+                                "transform": "./FetchWorkspaces#workspacesToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a workspace."
+                    },
+                    "databaseId": {
+                        "type": "select",
+                        "label": "Database ID",
+                        "index": 2,
+                        "source": {
+                            "url": "/component/appmixer/hubsync/common/FetchDatabases?outPort=databases",
+                            "data": {
+                                "messages": {
+                                    "in/workspaceId": "properties/workspaceId"
+                                },
+                                "transform": "./FetchDatabases#databasesToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a database."
+                    },
+                    "sheetId": {
+                        "type": "select",
+                        "label": "Sheet ID",
+                        "index": 3,
+                        "source": {
+                            "url": "/component/appmixer/hubsync/common/FetchSheets?outPort=sheets",
+                            "data": {
+                                "messages": {
+                                    "in/workspaceId": "properties/workspaceId",
+                                    "in/databaseId": "properties/databaseId"
+                                },
+                                "transform": "./FetchSheets#sheetsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a sheet."
+                    },
+                    "viewId": {
+                        "type": "select",
+                        "label": "View ID",
+                        "index": 4,
+                        "source": {
+                            "url": "/component/appmixer/hubsync/common/FetchViews?outPort=views",
+                            "data": {
+                                "messages": {
+                                    "in/workspaceId": "properties/workspaceId",
+                                    "in/databaseId": "properties/databaseId",
+                                    "in/sheetId": "properties/sheetId"
+                                },
+                                "transform": "./FetchViews#viewsToSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a view."
+                    }
                 }
             }
         }
     ],
     "outPorts": [
         {
-            "name": "out",
+            "name": "newItem",
             "options": [
                 {
                     "label": "Id",
                     "value": "id"
                 },
                 {
-                    "label": "Key",
-                    "value": "key"
+                    "label": "Global ID",
+                    "value": "globalId"
                 }
             ]
         }

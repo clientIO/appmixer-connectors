@@ -41,8 +41,20 @@ Inputs:
 
 ### Create New Item
 
-TBD
+Creates a new item in a specified sheet within HubSync.
+
+Inputs: 
+- workspaceId: The ID of the workspace containing the database.
+- databaseId: The ID of the database containing the sheet.
+- sheetId: The ID of the sheet where the new item will be created.
+- viewId: The ID of the view where the item will be created.
+- fields: The fields of the new item to be created.
 
 ### Update Item
 
-TBD
+Updates an existing item in a specified sheet within HubSync.
+
+- workspaceId: The ID of the workspace containing the database.
+- databaseId: The ID of the database containing the sheet.
+- sheetId: The ID of the sheet where the item will be updated.
+- itemId: The ID of the item to be updated.
