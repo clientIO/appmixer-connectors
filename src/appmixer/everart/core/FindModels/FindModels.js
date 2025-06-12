@@ -1,6 +1,6 @@
 const lib = require('../../lib.generated');
 const schema = {
-    'id': { 'type': 'string', 'title': 'Id' },
+    'id': { 'type': 'string', 'title': 'Model Id' },
     'name': { 'type': 'string', 'title': 'Name' },
     'status': { 'type': 'string', 'title': 'Status' },
     'subject': { 'type': 'string', 'title': 'Subject' },
