@@ -16,6 +16,7 @@ module.exports = {
                 const key = componentId + ':' + context.messages.in.correlationId;
                 toolCallId = await context.flow.stateGet(key);
                 await context.flow.stateUnset(key);
+                break;
             }
         }
 

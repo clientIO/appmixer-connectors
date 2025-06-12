@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('./lib');
+
 module.exports = {
 
     type: 'apiKey',
@@ -17,13 +19,7 @@ module.exports = {
 
             validate: async (context) => {
 
-                const url = 'https://api.openai.com/v1/models';
-                return context.httpRequest.get(url, {
-                    headers: {
-                        'Authorization': `Bearer ${context.apiKey}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
+                return lib.request(context, 'get', '/models');
             },
 
             accountNameFromProfileInfo: (context) => {

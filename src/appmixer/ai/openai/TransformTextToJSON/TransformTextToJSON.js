@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('../lib');
+
 module.exports = {
 
     receive: async function(context) {
@@ -17,10 +19,7 @@ module.exports = {
             return this.getOutputPortOptions(context, jsonSchema);
         }
 
-        const apiKey = context.auth.apiKey;
-
-        const url = 'https://api.openai.com/v1/chat/completions';
-        const { data } = await context.httpRequest.post(url, {
+        const { data } = await lib.request(context, 'post', '/chat/completions', {
             model: model || 'gpt-4o',
             messages: [
                 {
@@ -40,11 +39,6 @@ module.exports = {
                     name: 'json_extraction',
                     schema: jsonSchema
                 }
-            }
-        }, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
             }
         });
 

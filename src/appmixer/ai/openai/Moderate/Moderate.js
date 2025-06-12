@@ -1,21 +1,15 @@
 'use strict';
 
+const lib = require('../lib');
+
 module.exports = {
 
     receive: async function(context) {
 
         const { input } = context.messages.in.content;
-        const apiKey = context.auth.apiKey;
-
-        const url = 'https://api.openai.com/v1/moderations';
-        const { data } = await context.httpRequest.post(url, {
+        const { data } = await lib.request(context, 'post', '/moderations', {
             model: context.config.ModerateModel || 'text-moderation-latest',
             input
-        }, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
         });
 
         if (data.results) {
