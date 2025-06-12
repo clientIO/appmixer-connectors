@@ -4,7 +4,7 @@ const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
 const { StdioClientTransport } = require('@modelcontextprotocol/sdk/client/stdio.js');
 const pidusage = require('pidusage');
 
-const SERVER_SCRIPT_PATH = __dirname + '/node_modules/@translated/lara-mcp/dist/index.js';
+const SERVER_SCRIPT_PATH = __dirname + '/node_modules/mcp-searxng/dist/index.js';
 const SERVER_SCRIPT_ARGS = '';
 
 module.exports = {
