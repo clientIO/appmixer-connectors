@@ -35,10 +35,7 @@ module.exports = {
                     }] : []
                 );
                 const text = result?.content?.[0]?.text;
-                output = typeof text === 'string'
-                    ? text
-                    : JSON.stringify(text, null, 2);
-
+                output = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
                 await context.response(output, 200, { 'Content-Type': 'text/plain' });
             } catch (err) {
                 output = 'Error calling tool: ' + err.message;
