@@ -52,8 +52,8 @@ module.exports = {
                 /* eslint-disable no-underscore-dangle */
                 const childProcess = transport._process;
                 /* eslint-enable no-underscore-dangle */
-                const processUage = JSON.stringify(await pidusage(childProcess.pid));
-                await context.log({ step: 'closing-mcp-client', clientName, processUage });
+                const processUsage = JSON.stringify(await pidusage(childProcess.pid));
+                await context.log({ step: 'closing-mcp-client', clientName, processUsage });
                 startTime = new Date;
             }
         } finally {
