@@ -24,7 +24,7 @@ module.exports = {
             }
         },
 
-        accountNameFromProfileInfo: "baseUrl",
+        accountNameFromProfileInfo: "tenant",
 
         validate: async context => {
             const { baseUrl, tenant, apiKey } = context;

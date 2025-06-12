@@ -17,7 +17,7 @@ module.exports = {
                 }
             });
             //console.log('Fetched workspaces:', response.data);
-            return context.sendJson(this.databasesToSelectArray(response.data.items), 'databases');
+            return context.sendJson(response.data.items, 'databases');
         } catch (error) {
             throw new Error(`Failed to fetch databases: ${error.message}`);
         }

@@ -18,8 +18,8 @@ module.exports = {
                     // You can add any additional parameters here if needed
                 }
             });
-            //console.log('Fetched workspaces:', response.data);
-            return context.sendJson(this.workspacesToSelectArray(response.data.items), 'workspaces');
+            //console.log('Fetched workspaces:', response.data.items);
+            return context.sendJson(response.data.items, 'workspaces');
         } catch (error) {
             throw new Error(`Failed to fetch workspaces: ${error.message}`);
         }
