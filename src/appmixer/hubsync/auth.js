@@ -42,11 +42,11 @@ module.exports = {
 
 
             await context.httpRequest({
-                    method: "GET",
-                    url,
-                    headers
-                });
-                return true; // Authentication successful
+                method: "GET",
+                url,
+                headers
+            });
+            return true; // Authentication successful
             
         }
     }
