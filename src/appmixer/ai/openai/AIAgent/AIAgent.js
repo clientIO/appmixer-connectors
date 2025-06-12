@@ -107,6 +107,7 @@ module.exports = {
         const agentComponentId = context.componentId;
         const mcpPort = 'mcp';
         const components = {};
+        let error;
         // Find all components connected to my 'mcp' output port.
         Object.keys(flowDescriptor).forEach((componentId) => {
             const component = flowDescriptor[componentId];
@@ -123,6 +124,11 @@ module.exports = {
                 }
             });
         });
+
+        // Teach the user via logs that they need to connect only MCP servers to the mcp port.
+        if (error) {
+            throw new context.CancelError(error);
+        }
 
         for (const componentId in components) {
             // For each 'MCP Server' component, call the component to retrieve available tools.
@@ -318,7 +324,7 @@ module.exports = {
             content: prompt
         });
 
-        for (let i = 0; i < context.config.AI_AGENT_MAX_ATTEMPTS || AI_AGENT_MAX_ATTEMPTS; i++) {
+        for (let i = 0; i < (context.config.AI_AGENT_MAX_ATTEMPTS || AI_AGENT_MAX_ATTEMPTS); i++) {
 
             const completion = {
                 model,
