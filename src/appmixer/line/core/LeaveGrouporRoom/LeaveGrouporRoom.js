@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { groupId, roomId } = context.messages.in.content;
@@ -7,9 +5,9 @@ module.exports = {
         // https://developers.line.biz/en/reference/messaging-api/#leave-group
         const { data } = await context.httpRequest({
             method: 'POST',
-            url: 'https://api.line.me/v2/bot/group/{groupId}/leave',
+            url: `https://api.line.me/v2/bot/${groupId ? 'group/' + groupId : 'room/' + roomId}/leave`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.channelAccessToken}`
             }
         });
 
