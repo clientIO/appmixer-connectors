@@ -33,29 +33,32 @@ module.exports = {
         const transport = new StdioClientTransport(params);
         await client.connect(transport);
 
-        if (context.config.DEBUG === 'true') {
-            /* eslint-disable no-underscore-dangle */
-            const childProcess = transport._process;
-            /* eslint-enable no-underscore-dangle */
-            const time = (new Date) - startTime;
-            const processUage = JSON.stringify(await pidusage(childProcess.pid));
-            await context.log({ step: 'connected-mcp-client', params, clientName, time, processUage });
-            await context.log({ step: 'calling-mcp-client', method, args, clientName });
+        let result;
+        try {
+            if (context.config.DEBUG === 'true') {
+                /* eslint-disable no-underscore-dangle */
+                const childProcess = transport._process;
+                /* eslint-enable no-underscore-dangle */
+                const time = (new Date) - startTime;
+                const processUsage = JSON.stringify(await pidusage(childProcess.pid));
+                await context.log({ step: 'connected-mcp-client', params, clientName, time, processUsage });
+                await context.log({ step: 'calling-mcp-client', method, args, clientName });
+            }
+
+            result = await client[method].apply(client, args);
+
+            if (context.config.DEBUG === 'true') {
+                await context.log({ step: 'called-mcp-client', result, clientName });
+                /* eslint-disable no-underscore-dangle */
+                const childProcess = transport._process;
+                /* eslint-enable no-underscore-dangle */
+                const processUsage = JSON.stringify(await pidusage(childProcess.pid));
+                await context.log({ step: 'closing-mcp-client', clientName, processUsage });
+                startTime = new Date;
+            }
+        } finally {
+            await client.close();
         }
-
-        const result = await client[method].apply(client, args);
-
-        if (context.config.DEBUG === 'true') {
-            await context.log({ step: 'called-mcp-client', result, clientName });
-            /* eslint-disable no-underscore-dangle */
-            const childProcess = transport._process;
-            /* eslint-enable no-underscore-dangle */
-            const processUsage = JSON.stringify(await pidusage(childProcess.pid));
-            await context.log({ step: 'closing-mcp-client', clientName, processUsage });
-            startTime = new Date;
-        }
-
-        await client.close();
 
         if (context.config.DEBUG === 'true') {
             await context.log({ step: 'closed-mcp-client', clientName, time: (new Date) - startTime });

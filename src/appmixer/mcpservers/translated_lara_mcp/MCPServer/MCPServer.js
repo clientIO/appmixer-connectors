@@ -34,10 +34,8 @@ module.exports = {
                         arguments: context.messages.webhook.content.data.arguments
                     }] : []
                 );
-                output = typeof result?.content[0].text === 'string'
-                    ? result?.content[0].text
-                    : JSON.stringify(result?.content[0].text, null, 2);
-
+                const text = result?.content?.[0]?.text;
+                output = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
                 await context.response(output, 200, { 'Content-Type': 'text/plain' });
             } catch (err) {
                 output = 'Error calling tool: ' + err.message;
