@@ -23,7 +23,8 @@ module.exports = {
                 if (!context['CIRCLECI_TOKEN']) {
                     throw new Error('Invalid credentials.');
                 }
-                const { data } = await context.httpRequest.get('https://circleci.com/api/v2/me', {
+                const baseUrl = context['CIRCLECI_BASE_URL'] || 'https://circleci.com';
+                const { data } = await context.httpRequest.get(`${baseUrl.replace(/\/+$/, '')}/api/v2/me`, {
                     headers: {
                         'Circle-Token': context['CIRCLECI_TOKEN']
                     }
