@@ -26,8 +26,15 @@ module.exports = {
             },
 
             validate: async (context) => {
-                if (!context['SEARXNG_URL']) {
+                const url = context['SEARXNG_URL'];
+                if (!url) {
                     throw new Error('SEARXNG_URL cannot be empty.');
+                }
+                try {
+                    // Throws if invalid, covers protocol / hostname sanity.
+                    new URL(url);
+                } catch {
+                    throw new Error('SEARXNG_URL must be a valid absolute URL.');
                 }
             },
 
