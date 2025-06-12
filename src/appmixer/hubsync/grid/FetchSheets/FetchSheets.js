@@ -17,7 +17,7 @@ module.exports = {
                 }
             });
             //console.log('Fetched workspaces:', response.data);
-            return context.sendJson(this.sheetsToSelectArray(response.data), 'sheets');
+            return context.sendJson(response.data, 'sheets');
         } catch (error) {
             throw new Error(`Failed to fetch sheets: ${error.message}`);
         }
