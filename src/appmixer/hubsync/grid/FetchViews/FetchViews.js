@@ -4,7 +4,7 @@ module.exports = {
         const {auth} = context;
         const {workspaceId, databaseId, sheetId, model} = context.messages.in.content;
 
-        const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/views`;
+        const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}`;
 
         try {
             const response = await context.httpRequest({
@@ -15,12 +15,9 @@ module.exports = {
                     "X-Tenant": auth.tenant,
                     "Content-Type": "application/json"
                 },
-                params: {
-                    model: model || 'WORKSPACE' // Use 'WORKSPACE' if model is not provided
-                }
+                
             });
-            console.log('Fetched views:', response.data);
-            return context.sendJson(this.viewsToSelectArray(response.data), 'views');
+            return context.sendJson(response.data.views, 'views');
         } catch (error) {
             throw new Error(`Failed to fetch views: ${error.message}`);
         }
