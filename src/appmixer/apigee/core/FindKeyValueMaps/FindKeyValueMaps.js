@@ -1,8 +1,7 @@
-
 'use strict';
 
 const lib = require('../../lib.generated');
-const schema = { 
+const schema = {
     'name': { 'type': 'string', 'title': 'Name' },
     'encrypted': { 'type': 'boolean', 'title': 'Encrypted' }
 };
@@ -13,7 +12,10 @@ module.exports = {
         const { org, env, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Key Value Maps', value: 'keyValueMaps' });
+            return lib.getOutputPortOptions(context, outputType, schema, {
+                label: 'Key Value Maps',
+                value: 'keyValueMaps'
+            });
         }
 
         // https://cloud.google.com/apigee/docs/reference/apis/apigee/rest/v1/organizations.environments.keyvaluemaps/list
@@ -21,7 +23,7 @@ module.exports = {
             method: 'GET',
             url: `https://apigee.googleapis.com/v1/organizations/${org}/environments/${env}/keyvaluemaps`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                Authorization: `Bearer ${context.auth.accessToken}`
             }
         });
 
@@ -33,9 +35,9 @@ module.exports = {
             };
         }) : [];
 
-        return lib.sendArrayOutput({ 
-            context, 
-            records, 
+        return lib.sendArrayOutput({
+            context,
+            records,
             outputType,
             outputPortName: 'out'
         });
