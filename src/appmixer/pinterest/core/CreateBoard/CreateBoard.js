@@ -2,6 +2,7 @@
 
 module.exports = {
     async receive(context) {
+
         const { name, description, privacy } = context.messages.in.content;
 
         // https://developers.pinterest.com/docs/api/v5/boards-create
