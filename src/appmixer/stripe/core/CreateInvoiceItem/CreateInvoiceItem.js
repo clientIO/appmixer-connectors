@@ -1,0 +1,18 @@
+
+const lib = require('../../lib.generated');
+module.exports = {
+    async receive(context) {
+        const { customer, invoice, amount, currency, description } = context.messages.in.content;
+
+        // https://stripe.com/docs/api/invoiceitems/create
+        const { data } = await context.httpRequest({
+            method: 'POST',
+            url: 'https://api.stripe.com/v1/invoiceitems',
+            headers: {
+                'Authorization': `Bearer ${context.auth.apiToken}`
+            }
+        });
+
+        return context.sendJson(data, 'out');
+    }
+};
