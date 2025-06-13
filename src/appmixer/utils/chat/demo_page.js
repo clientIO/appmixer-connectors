@@ -110,6 +110,7 @@ const chat = new ChatBot("#chat-container", {
 });
 
 loadData(activeChat);
+//loadData(activeChat);
 
 chat.api.on("request-messages", ({ id }) => loadData(id));
 chat.api.on("add-message", ({ id, message }) =>
@@ -131,13 +132,6 @@ document.addEventListener(
 	},
 	true // This ensures the event is captured during the capture phase
   );
-
-function setProgressMessage(message) {
-    const el = chat.container.querySelector('.panel .textarea');
-    if (el) {
-        el.setAttribute('data-progress', message);
-    }
-}
 
 function setWaiting(waiting) {
 
