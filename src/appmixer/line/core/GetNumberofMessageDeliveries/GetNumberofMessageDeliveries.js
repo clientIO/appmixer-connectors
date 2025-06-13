@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { date } = context.messages.in.content;
@@ -9,7 +7,10 @@ module.exports = {
             method: 'GET',
             url: 'https://api.line.me/v2/bot/insight/message/delivery',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.channelAccessToken}`
+            },
+            params: {
+                date
             }
         });
 
