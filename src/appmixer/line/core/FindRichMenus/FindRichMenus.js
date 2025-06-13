@@ -1,5 +1,5 @@
-
 const lib = require('../../lib.generated');
+
 module.exports = {
     async receive(context) {
 
@@ -16,9 +16,7 @@ module.exports = {
             }
         });
 
-        context.log({ step: 'data', data });
-
-        if (!data.richmenus.length) {
+        if (!Array.isArray(data.richmenus) || !data.richmenus.length) {
             return context.sendJson({}, 'notFound');
         }
 
