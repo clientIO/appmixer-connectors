@@ -1,0 +1,43 @@
+const apiCall = (context, { offset, limit, severity = [], status = [] }) => {
+
+    const severityParam = severity.length > 0 ? `&severity=${severity.join(',')}` : '';
+    const statusParam = status.length > 0 ? `&status=${status.join(',')}` : '';
+
+    const baseUrl = context.config.baseUrl || 'https://api.secured-api.com';
+
+    return context.httpRequest({
+        method: 'GET',
+        url: `${baseUrl}/v1/apigovern/posture/gaps?limit=${limit}&offset=${offset}&details=true${severityParam}${statusParam}`,
+        headers: {
+            'Authorization': `Bearer ${context.auth.apiKey}`
+        }
+    });
+};
+
+module.exports = {
+    async receive(context) {
+        const { limit: limitTotal, severity, status } = context.messages.in.content;
+
+        let records = [];
+        let totalRecordsCount = 0;
+        let itemsCount = 0;
+        let offset = 0;
+
+        do {
+            const { data } = await apiCall(context, { limit: 100, offset, severity, status });
+            const { endOffset, response: items } = data;
+            itemsCount = items.length;
+            offset = endOffset;
+            records = records.concat(items);
+            totalRecordsCount += itemsCount;
+            if (totalRecordsCount >= limitTotal) {
+                records = records.slice(0, limitTotal);
+                totalRecordsCount = limitTotal;
+                break;
+            }
+        } while (itemsCount > 0);
+
+        context.log({ step: 'results', totalRecordsCount });
+        return context.sendArray(records, 'out');
+    }
+};
