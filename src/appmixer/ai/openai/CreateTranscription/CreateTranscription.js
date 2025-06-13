@@ -1,13 +1,13 @@
 'use strict';
 
 const FormData = require('form-data');
+const lib = require('../lib');
 
 module.exports = {
 
     receive: async function(context) {
 
         const { fileId, responseFormat, model } = context.messages.in.content;
-        const apiKey = context.auth.apiKey;
 
         const readStream = await context.getFileReadStream(fileId);
         const fileInfo = await context.getFileInfo(fileId);
@@ -21,13 +21,7 @@ module.exports = {
         formData.append('model', model || 'whisper-1');
         formData.append('response_format', responseFormat || 'text');
 
-        const url = 'https://api.openai.com/v1/audio/transcriptions';
-        const { data } = await context.httpRequest.post(url, formData, {
-            headers: Object.assign({
-                'Authorization': `Bearer ${apiKey}`
-            }, formData.getHeaders())
-        });
-
+        const { data } = await lib.request(context, 'post', '/audio/transcriptions', formData, {}, formData.getHeaders());
         await context.log({ step: 'response', data: (data || '').substring(0, 100) });
         return context.sendJson({ text: data }, 'out');
     }

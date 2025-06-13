@@ -2,7 +2,7 @@
 
 const { Transform } = require('stream');
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
-const OpenAI = require('openai');
+const lib = require('../lib');
 
 // See https://platform.openai.com/docs/api-reference/embeddings/create#embeddings-create-input.
 const MAX_INPUT_LENGTH = 8192 * 4; // max 8192 tokens, 1 token ~ 4 characters.
@@ -17,8 +17,7 @@ module.exports = {
             fileId
         } = context.messages.in.content;
 
-        const apiKey = context.auth.apiKey;
-        const client = new OpenAI({ apiKey });
+        const client = lib.sdk(context);
 
         const readStream = await context.getFileReadStream(fileId);
         const fileInfo = await context.getFileInfo(fileId);

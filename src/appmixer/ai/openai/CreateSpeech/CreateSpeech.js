@@ -1,25 +1,21 @@
 'use strict';
 
+const lib = require('../lib');
+
 module.exports = {
 
     receive: async function(context) {
 
         const { input, voice, responseFormat, speed, model } = context.messages.in.content;
-        const apiKey = context.auth.apiKey;
 
-        const url = 'https://api.openai.com/v1/audio/speech';
-        const { data: readStream } = await context.httpRequest.post(url, {
+        const { data: readStream } = await lib.request(context, '/audio/speech', {
             model: model || 'tts-1',
             input,
             voice,
             response_format: responseFormat,
             speed
         }, {
-            responseType: 'stream',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
+            responseType: 'stream'
         });
 
         const filename = `generated-audio-${(new Date).toISOString()}.${responseFormat}`;
