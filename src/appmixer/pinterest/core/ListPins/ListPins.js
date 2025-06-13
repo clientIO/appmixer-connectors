@@ -18,7 +18,7 @@ module.exports = {
     pinsToSelectArray(pins) {
         if (!Array.isArray(pins)) return [];
         return pins.map(pin => ({
-            label: pin.name || 'Unnamed Pin',
+            label: pin.title || 'Unnamed Pin',
             value: pin.id || ''
         }));
     }
