@@ -2,12 +2,12 @@ const assert = require('assert');
 const dotenv = require('dotenv');
 const axios = require('axios');
 
-const component = require('../../src/appmixer/apigee/core/ListOrganizations/ListOrganizations');
+const component = require('../../src/appmixer/apigee/core/ListEnvironments/ListEnvironments');
 const { createMockContext } = require('../utils');
 
 dotenv.config({ path: __dirname + '../../.env' });
 
-describe('Apigee - listOrganizations', () => {
+describe('Apigee - listEnvironments', () => {
 
     let context;
 
@@ -27,14 +27,21 @@ describe('Apigee - listOrganizations', () => {
     it('should handle parameters.ADD with empty object', async () => {
 
         let result;
-        context.sendJson = (data, key) => {
+        context.sendJson = (data) => {
             result = data;
         };
+        context.messages = {
+            in: {
+                content: {
+                    org: 'new-edge-team',
+                    outputType: 'array'
+                }
+            }
+        };
+
         await component.receive(context);
 
-        console.log(result);
-        assert.ok(Array.isArray(result.organizations));
-        assert.ok(result.organizations[0].name !== undefined);
-        assert.ok(result.organizations[0].projectId !== undefined);
+        assert.ok(Array.isArray(result));
+        assert.ok(typeof result[0] === 'string'); // Assuming environments are returned as an array of strings
     });
 });
