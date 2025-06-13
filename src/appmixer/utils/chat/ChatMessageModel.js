@@ -21,6 +21,7 @@ module.exports = context => {
                 'role',  // 'user' or 'agent'
                 'threadId',
                 'userId',
+                'correlationId',
                 'componentId',
                 'flowId',
                 'createdAt'

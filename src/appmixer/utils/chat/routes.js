@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const uuid = require('uuid');
+const { PassThrough } = require('stream');
 
 const chatLibJs = fs.readFileSync(__dirname + '/chat.lib.js', 'utf8');
 const chatMainJs = fs.readFileSync(__dirname + '/chat.main.js', 'utf8');
@@ -23,12 +24,39 @@ const chatWidgetJs = fs.readFileSync(__dirname + '/chat.widget.js', 'utf8');
 const chatLibCss = fs.readFileSync(__dirname + '/chat.lib.css', 'utf8');
 const chatMainCss = fs.readFileSync(__dirname + '/chat.main.css', 'utf8');
 
+// In-memory map of connected clients per threadId.
+const chatClients = new Map();
+
+async function publish(channel, event) {
+
+    const redisPub = process.CONNECTOR_STREAM_PUB_CLIENT;
+    if (redisPub) {
+        return redisPub.publish(channel, JSON.stringify(event));
+    }
+}
+
 module.exports = (context) => {
 
     const ChatMessage = require('./ChatMessageModel')(context);
     const ChatSession = require('./ChatSessionModel')(context);
     const ChatAgent = require('./ChatAgentModel')(context);
     const ChatThread = require('./ChatThreadModel')(context);
+
+    // assert(Redis clients have been connected in plugin.js).
+    process.CONNECTOR_STREAM_SUB_CLIENT.psubscribe('stream:agent:events:*');
+    process.CONNECTOR_STREAM_SUB_CLIENT.psubscribe('stream:chat:events:*');
+    process.CONNECTOR_STREAM_SUB_CLIENT.on('pmessage', (pattern, channel, payload) => {
+        const [, , ,threadId] = channel.split(':'); // e.g., 'stream:chat:events:123'
+        const data = JSON.parse(payload);
+
+        if (chatClients.has(threadId)) {
+            for (const stream of chatClients.get(threadId)) {
+                if (!stream.writableEnded) {
+                    stream.write(`data: ${JSON.stringify(data)}\n\n`);
+                }
+            }
+        }
+    });
 
     // ASSETS
 
@@ -106,6 +134,10 @@ module.exports = (context) => {
                 message.threadId = threadId;
                 message.createdAt = new Date;
                 message.userId = userId;
+                await publish(`stream:chat:events:${threadId}`, {
+                    type: 'message',
+                    data: message
+                });
                 return new ChatMessage().populate(message).save();
             }
         }
@@ -147,8 +179,60 @@ module.exports = (context) => {
                 const { threadId } = req.params;
                 const user = await context.http.auth.getUser(req);
                 const userId = user.getId();
-                await ChatMessage.delete({ threadId, userId });
+                await ChatMessage.deleteMany({ threadId, userId });
                 return {};
+            }
+        }
+    });
+
+    // SSE
+
+    context.http.router.register({
+        method: 'GET',
+        path: '/events/{threadId}',
+        options: {
+            auth: {
+                strategies: ['jwt-strategy', 'public']
+            },
+            cors: {
+                origin: ['*']
+            },
+            handler: (request, h) => {
+                const { threadId } = request.params;
+
+                const stream = new PassThrough();
+                const response = h.response(stream);
+                response.type('text/event-stream');
+                response.header('Cache-Control', 'no-cache');
+                response.header('Connection', 'keep-alive');
+                // Force raw, uncompressed output.
+                // This is necessary to avoid the ERR_INCOMPLETE_CHUNKED_ENCODING error.
+                // It essentially disables response compression which interfers with
+                // streaming behaviour.
+                response.header('Content-Encoding', 'identity');
+                stream.write(': init\n\n'); // Send SSE comment to kickstart stream.
+
+                // Track connection.
+                if (!chatClients.has(threadId)) chatClients.set(threadId, new Set());
+                chatClients.get(threadId).add(stream);
+
+                // Necessary to keep the connection alive. Otherwise it closes after
+                // a timeout interval set on the load balancer/proxy (typically 1 minute).
+                const heartbeat = setInterval(() => {
+                    if (!stream.writableEnded) {
+                        stream.write(': ping\n\n');
+                    }
+                }, context.config.SSE_HEARTBEAT_INTERVAL || 15000);
+
+                // Cleanup on disconnect.
+                request.raw.req.on('close', () => {
+                    clearInterval(heartbeat);
+                    chatClients.get(threadId).delete(stream);
+                    if (chatClients.get(threadId).size === 0) chatClients.delete(threadId);
+                    stream.end();
+                });
+
+                return response;
             }
         }
     });
