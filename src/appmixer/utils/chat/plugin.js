@@ -1,7 +1,5 @@
 'use strict';
 
-const lib = require('./lib');
-
 module.exports = async context => {
 
     context.log('info', '[UTILS.CHAT] Initializing CHAT plugin.');
@@ -13,26 +11,6 @@ module.exports = async context => {
     } finally {
         lock.unlock();
     }
-
-    // Keep a connection to Redis for publish/subscribe that we use to deliver
-    // new chat messages to clients in real-time.
-    if (!process.CONNECTOR_STREAM_PUB_CLIENT) {
-        context.log('info', '[UTILS.CHAT] Connecting Redis Publisher client.');
-        process.CONNECTOR_STREAM_PUB_CLIENT = await lib.connectRedis();
-        context.log('info', '[UTILS.CHAT] Redis Publisher client connected.');
-    }
-    if (!process.CONNECTOR_STREAM_SUB_CLIENT) {
-        context.log('info', '[UTILS.CHAT] Connecting Redis Subscriber client.');
-        process.CONNECTOR_STREAM_SUB_CLIENT = await lib.connectRedis();
-        context.log('info', '[UTILS.CHAT] Redis Subscriber client connected.');
-    } else {
-        // Make sure listeners are removed so that the ones registered in routes.js
-        // will not introduce duplicate message handlers.
-        // TODO: only listenrs that are registered by this plugin should be removed.
-        process.CONNECTOR_STREAM_SUB_CLIENT.removeAllListeners();
-    }
-
     require('./routes')(context);
-
     context.log('info', '[UTILS.CHAT] CHAT plugin initialized.');
 };

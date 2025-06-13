@@ -3,62 +3,6 @@ const { ChatBot } = chatbot;
 let chat;
 let sessionId;
 let authHeader = {};
-let eventStream;
-
-const stopDeltas = {};
-
-function connectEventStream(threadId) {
-
-    if (eventStream) {
-        eventStream.close();
-    }
-    eventStream = new EventSource(`${BASE_URL}/plugins/appmixer/utils/chat/events/${threadId}`);
-
-    eventStream.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'message') {
-            const msg = data.data || {};
-            if (msg.role === 'agent') {
-                chat.addMessage({
-                    id: threadId,
-                    message: {
-                        id: msg.id,
-                        role: msg.role,
-                        content: msg.content
-                    }
-                });
-                // Filter out all delta messages for this correlation ID since we have the full message now.
-                stopDeltas[msg.correlationId] = true;
-                chat.parse(threadId, chat.getConfig().messages.filter(m => {
-                    return m.id.split(':')[1] !== msg.correlationId;
-                }));
-                setWaiting(false);
-                setProgressMessage('');
-            }
-        } else if (data.type === 'progress') {
-            const msg = data.data || {};
-            setProgressMessage(msg.content);
-        } else if (data.type === 'delta') {
-            const msg = data.data || {};
-            // Component ID and correlation ID identify the agent and run uniquely.
-            if (!stopDeltas[msg.correlationId]) {
-                chat.appendMessage({ id: msg.componentId + ':' + msg.correlationId, content: msg.content });
-            }
-        }
-    };
-
-    eventStream.onerror = (err) => {
-        console.error('SSE error in message stream:', err);
-        // Browser may close the connection, so we need to reconnect.
-        // This can happen e.g. if the browser tag goes to sleep (laptop sleeps / suspends).
-        setTimeout(() => connectEventStream(threadId), 3000);
-    };
-
-    eventStream.onopen = () => {
-        console.log('SSE stream connected for thread: ' + threadId);
-    };
-}
-
 
 function getSessionId() {
 
@@ -124,9 +68,6 @@ async function main() {
             ...authHeader
         }
     });
-    if (!response.ok) {
-        return alert('Chat is not available.');
-    }
     const session = await response.json();
     sessionId = session.id;
     setSessionId(sessionId);
@@ -139,7 +80,7 @@ async function main() {
 
     let activeChat = null;
     if (session.threads && session.threads.length > 0) {
-        activeChat = session.threads[session.threads.length - 1].id;
+        session.threads[session.threads.length - 1].id;
     }
 
     chat = new ChatBot('#chat-container', {
@@ -154,11 +95,15 @@ async function main() {
     chat.api.on('add-message', ({ id, message }) => addMessage(id, message));
     chat.api.on('request-messages', ({ id }) => loadMessages(id));
     chat.api.on('delete-chat', ({ id }) => deleteThread(id));
-    chat.api.on('select-chat', ({ id }) => loadMessages(id));
 
-    //pollForMessages();
-    connectEventStream(chat.getConfig().activeChat);
-    await loadMessages(chat.getConfig().activeChat);
+    pollForMessages();
+}
+
+async function pollForMessages() {
+    while (true) {
+        await loadMessages(chat.getConfig().activeChat);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
 }
 
 async function loadMessages(threadId) {
@@ -166,7 +111,24 @@ async function loadMessages(threadId) {
     if (!threadId) return;
 
     try {
+        const activeChat = chat.getConfig().activeChat;
+        let lastMessageId = null;
+        let threadMessages = chat.getConfig().messages || [];
+        if (threadId === activeChat) {
+            // Loading new messages to the active chat. Load only those that we are missing.
+            const lastMessage = threadMessages[threadMessages.length - 1];
+            if (lastMessage) {
+                lastMessageId = lastMessage.id;
+            }
+        } else {
+            // Switching threads, always set waiting to false.
+            setWaiting(false);
+        }
+
         const params = new URLSearchParams({ action: 'load-thread', thread_id: threadId });
+        if (lastMessageId) {
+            params.append('since_id', lastMessageId);
+        }
         const response = await fetch(ENDPOINT + '?' + params, {
             method: 'GET',
             headers: {
@@ -179,8 +141,6 @@ async function loadMessages(threadId) {
             return;
         }
 
-        connectEventStream(threadId);
-
         const thread = await response.json();
         thread.messages = thread.messages || [];
         thread.messages.forEach(message => {
@@ -188,18 +148,21 @@ async function loadMessages(threadId) {
                 message.author = thread.agentId;
             }
         });
-        chat.parse(threadId, thread.messages);
 
+        if (lastMessageId &&
+            thread.messages.length &&
+            thread.messages[thread.messages.length - 1].id !== lastMessageId) {
+            setWaiting(false);
+        }
+        if (lastMessageId) {
+            // Since we only loaded messages since lastMessageId, we need to merge with those
+            // already in the chat.
+            thread.messages = threadMessages.concat(thread.messages);
+        }
+        chat.parse(threadId, thread.messages);
     } catch (err) {
         console.error(err);
         // TODO: UI to show errors.
-    }
-}
-
-function setProgressMessage(message) {
-    const el = chat.container.querySelector('.panel .textarea');
-    if (el) {
-        el.setAttribute('data-progress', message);
     }
 }
 
@@ -260,7 +223,6 @@ async function addMessage(threadId, message) {
                 created: new Date(thread.createdAt)
             }
         });
-        connectEventStream(threadId);
     }
 
     // Send message to the server.

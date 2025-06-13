@@ -11,7 +11,6 @@ module.exports = {
             id: uuid.v4(),
             content,
             role: 'agent',
-            correlationId: context.messages.in.correlationId,
             componentId: context.componentId,
             flowId: context.flowId
 
