@@ -100,9 +100,6 @@ module.exports = {
  * @returns {string}
  */
 const toCsv = (array) => {
-    if (!Array.isArray(array) || array.length === 0) {
-        return '';
-    }
     const headers = Object.keys(array[0]);
 
     return [
@@ -113,15 +110,9 @@ const toCsv = (array) => {
                 if (typeof property === 'object') {
                     return JSON.stringify(property);
                 }
-                // escape commas, quotes, new‐lines
-                const str = String(property);
-                const needsQuoting = /[",\n]/.test(str);
-                return needsQuoting
-                    ? `"${str.replace(/"/g, '""')}"`
-                    : str;
+                return property;
             }).join(',');
         })
 
     ].join('\n');
-};
 };

@@ -12,7 +12,7 @@ module.exports = {
             }
         },
 
-        async requestProfileInfo(context) {
+        async getUserProfile(context) {
             const apiKey = context.apiKey;
 
             const response = await context.httpRequest({
@@ -23,7 +23,11 @@ module.exports = {
                 }
             });
 
-            const data = response.data;
+            return response.data;
+        },
+
+        async requestProfileInfo(context) {
+            const data = await this.getUserProfile(context);
 
             if (data && data.fullName) {
                 return { name: data.fullName };
@@ -37,17 +41,7 @@ module.exports = {
         accountNameFromProfileInfo: 'name',
 
         async validate(context) {
-            const apiKey = context.apiKey;
-
-            const response = await context.httpRequest({
-                method: 'GET',
-                url: 'https://api.tally.so/users/me',
-                headers: {
-                    Authorization: `Bearer ${apiKey}`
-                }
-            });
-
-            return response.data;
+            return await this.getUserProfile(context);
         }
     }
 };
