@@ -12,8 +12,8 @@ module.exports = {
             headers: {
                 'Authorization': `Bearer ${context.auth.apiKey}`
             }
-        }
-        console.log({call});
+        };
+
         const { data } = await context.httpRequest(call);
 
         return context.sendJson(data, 'out');
