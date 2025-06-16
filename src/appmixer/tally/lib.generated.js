@@ -11,18 +11,16 @@ module.exports = {
         records = []
     }) {
 
+        if (records.length === 0) {
+            throw new context.CancelError('No records provided for output.');
+        }
+
         if (outputType === 'first') {
-            if (records.length === 0) {
-                throw new context.CancelError('No records available for first output type');
-            }
-            // One by one.
             await context.sendJson(
                 { ...records[0], index: 0, count: records.length },
                 outputPortName
             );
         } else if (outputType === 'object') {
-            // One by one.
-            // One by one.
             for (let index = 0; index < records.length; index++) {
                 await context.sendJson(
                     { ...records[index], index, count: records.length },
@@ -30,13 +28,9 @@ module.exports = {
                 );
             }
         } else if (outputType === 'array') {
-            // All at once.
             await context.sendJson({ result: records, count: records.length }, outputPortName);
         } else if (outputType === 'file') {
-
-            // Into CSV file.
             const csvString = toCsv(records);
-
             let buffer = Buffer.from(csvString, 'utf8');
             const componentName = context.flowDescriptor[context.componentId].label || context.componentId;
             const fileName = `${context.config.outputFilePrefix || DEFAULT_PREFIX}-${componentName}.csv`;
@@ -54,7 +48,6 @@ module.exports = {
     },
 
     getOutputPortOptions(context, outputType, itemSchema, { label, value }) {
-
         if (outputType === 'object' || outputType === 'first') {
             const options = Object.keys(itemSchema)
                 .reduce((res, field) => {
@@ -104,7 +97,6 @@ const toCsv = (array) => {
 
     return [
         headers.join(','),
-
         ...array.map(items => {
             return Object.values(items).map(property => {
                 if (typeof property === 'object') {
@@ -113,6 +105,5 @@ const toCsv = (array) => {
                 return property;
             }).join(',');
         })
-
     ].join('\n');
 };
