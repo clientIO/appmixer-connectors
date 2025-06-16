@@ -79,7 +79,7 @@ Updates an existing item in a specified sheet within HubSync.
 ### Create New Item
 
 ```
-appmixer t c appmixer/hubsync/grid/CreateNewItem -p '{"workspaceId": "01722df1-cdbb-4deb-936f-10592ac1aa81", "databaseId": "4dd702fd-e2ba-4c63-a13e-58e0722fc941", "sheetId": "f34c9390-0121-48e0-b57c-fcd624d004af", "viewId": 1}' -i '{"in": {}}'
+appmixer t c appmixer/hubsync/grid/CreateNewItem -p '{"workspaceId": "01722df1-cdbb-4deb-936f-10592ac1aa81", "databaseId": "4dd702fd-e2ba-4c63-a13e-58e0722fc941", "sheetId": "f34c9390-0121-48e0-b57c-fcd624d004af", "viewId": 1}' -i '{"in": {"fields":"{\n        \"1\": \"TST-4\",\n        \"2\": \"2025-06-13\",\n        \"5\": \"some summary\",\n        \"6\": {\n            \"rich\": \"<p>test <strong>rich</strong> text.</p>\",\n            \"plain\": \"test  rich  text.\"\n        },\n        \"7\": {\n            \"key\": \"e2232a4f-7248-4eef-ba9c-364cc5b05a69\",\n            \"color\": \"#e6b3b3\",\n            \"value\": \"NEW\"\n        },\n        \"8\": \"TST-1\",\n        \"9\": \"2025-06-13\",\n        \"11\": \"v2\"\n    }"}}'
 ```
 
 ### Get Sheet Columns

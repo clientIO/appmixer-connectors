@@ -4,12 +4,16 @@ module.exports = {
     async receive(context) {
         const { auth } = context;
         const { workspaceId, databaseId, sheetId, viewId } = context.properties;
+        const { fields } = context.messages.in.content;
        
-        console.log(context.messages.in.content);
+        let fieldsObject = {};
+        try {
+            fieldsObject = JSON.parse(fields);
+        } catch (error) {
+            throw new context.CancelError('Invalid fields JSON');
+        }
 
         const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items`;
-        // TODO
-        const fields = {};
         try {
             const response = await context.httpRequest({
                 method: "POST",
@@ -21,7 +25,7 @@ module.exports = {
                 },
                 data: {
                     "viewId": viewId,
-                    "fields": fields
+                    "fields": fieldsObject
                 }
             });
             return context.sendJson(response.data, 'newItem');
