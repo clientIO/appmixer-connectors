@@ -1,9 +1,10 @@
 
+
 "use strict";
 module.exports = {
     async receive(context) {
         const {auth} = context;
-        const {workspaceId, databaseId, sheetId} = context.properties;
+        const {workspaceId, databaseId, sheetId, columnId} = context.properties;
 
         const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}`;
 
@@ -19,7 +20,14 @@ module.exports = {
                 
             });
 
-            return context.sendJson(response.data.columns, 'columns');
+            const column = response.data.columns.find(col => col.id === columnId);
+            if (!column) {
+                throw new context.CancelError(`Column with ID ${columnId} not found in sheet ${sheetId}`);
+            }
+
+            const choices = column.metadata.choices || [];
+
+            return context.sendJson(choices, 'choices');
         } catch (error) {
             throw new Error(`Failed to fetch sheet: ${error.message}`);
         }
@@ -47,12 +55,5 @@ module.exports = {
             });
         }
         return inspector;
-    },
-
-    columnsToSelectArray(columns) {
-        return columns.map(column => ({
-            label: column.title,
-            value: column.id
-        }));
     }
 };
