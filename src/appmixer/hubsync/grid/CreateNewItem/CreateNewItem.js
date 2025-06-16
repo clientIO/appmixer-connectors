@@ -3,10 +3,13 @@
 module.exports = {
     async receive(context) {
         const { auth } = context;
-        const { workspaceId, databaseId, sheetId, viewId, fields } = context.messages.in.content;
+        const { workspaceId, databaseId, sheetId, viewId } = context.properties;
+       
+        console.log(context.messages.in.content);
 
         const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items`;
-
+        // TODO
+        const fields = {};
         try {
             const response = await context.httpRequest({
                 method: "POST",

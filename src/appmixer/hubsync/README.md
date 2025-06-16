@@ -30,6 +30,21 @@ Inputs:
  - workspaceId: The ID of the workspace containing the database.
  - databaseId: The ID of the database to fetch sheets from.
 
+### Get Sheet (one)
+
+Retrieves a specific sheet from a database in HubSync.
+
+Inputs: 
+- workspaceId: The ID of the workspace containing the database.
+- databaseId: The ID of the database containing the sheet.
+- sheetId: The ID of the sheet to fetch.
+
+### Fetch Status Choices
+
+Retrieves a list of status choices as objects as the Create New Item status field requires an object with a specific structure.
+
+We will call Get Sheet (one) to get the sheet object which contains the choices for the status field.
+
 ### Fetch Views
 Retrieves a list of views available in a specific sheet within HubSync.
 
@@ -58,3 +73,17 @@ Updates an existing item in a specified sheet within HubSync.
 - databaseId: The ID of the database containing the sheet.
 - sheetId: The ID of the sheet where the item will be updated.
 - itemId: The ID of the item to be updated.
+
+## TESTS
+
+### Create New Item
+
+```
+appmixer t c appmixer/hubsync/grid/CreateNewItem -p '{"workspaceId": "01722df1-cdbb-4deb-936f-10592ac1aa81", "databaseId": "4dd702fd-e2ba-4c63-a13e-58e0722fc941", "sheetId": "f34c9390-0121-48e0-b57c-fcd624d004af", "viewId": 1}' -i '{"in": {}}'
+```
+
+### Get Sheet Columns
+
+```
+appmixer t c appmixer/hubsync/grid/GetSheetColumns -p '{"workspaceId": "01722df1-cdbb-4deb-936f-10592ac1aa81", "databaseId": "4dd702fd-e2ba-4c63-a13e-58e0722fc941", "sheetId": "f34c9390-0121-48e0-b57c-fcd624d004af"}'
+```
