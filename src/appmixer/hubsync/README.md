@@ -65,6 +65,12 @@ Inputs:
 - viewId: The ID of the view where the item will be created.
 - fields: The fields of the new item to be created.
 
+### Get Item
+
+Retrieves a specific item from a specified sheet within HubSync.
+
+TBD
+
 ### Update Item
 
 Updates an existing item in a specified sheet within HubSync.

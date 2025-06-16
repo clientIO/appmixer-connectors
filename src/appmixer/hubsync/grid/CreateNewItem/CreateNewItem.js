@@ -4,7 +4,7 @@ module.exports = {
     async receive(context) {
         const { auth } = context;
         const { workspaceId, databaseId, sheetId, viewId } = context.properties;
-        const { fields } = context.messages.in.content;
+        const { fields, externalId } = context.messages.in.content;
        
         let fieldsObject = {};
         try {
@@ -25,7 +25,8 @@ module.exports = {
                 },
                 data: {
                     "viewId": viewId,
-                    "fields": fieldsObject
+                    "fields": fieldsObject,
+                    "globalId": externalId,
                 }
             });
             return context.sendJson(response.data, 'newItem');

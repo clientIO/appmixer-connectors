@@ -3,7 +3,15 @@
 module.exports = {
     async receive(context) {
         const { auth } = context;
-        const { workspaceId, databaseId, sheetId, itemId, fields } = context.messages.in.content;
+        const { workspaceId, databaseId, sheetId, itemId } = context.properties;
+        const { fields } = context.messages.in.content;
+        
+        let fieldsObject = {};
+        try {
+            fieldsObject = JSON.parse(fields);
+        } catch (error) {
+            throw new context.CancelError('Invalid fields JSON');
+        }
 
         const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items/${itemId}`;
 

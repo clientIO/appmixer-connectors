@@ -7,88 +7,102 @@
     "auth": {
         "service": "appmixer:hubsync"
     },
+    "properties": {
+        "schema": {
+            "properties": {
+                "workspaceId": {
+                    "type": "string"
+                },
+                "databaseId": {
+                    "type": "string"
+                },
+                "sheetId": {
+                    "type": "string"
+                },
+                "itemId": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "workspaceId",
+                "databaseId",
+                "sheetId",
+                "itemId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "workspaceId": {
+                    "type": "select",
+                    "label": "Workspace ID",
+                    "index": 1,
+                    "source": {
+                        "url": "/component/appmixer/hubsync/common/FetchWorkspaces?outPort=workspaces",
+                        "data": {
+                            "transform": "./FetchWorkspaces#workspacesToSelectArray"
+                        }
+                    },
+                    "tooltip": "Select a workspace."
+                },
+                "databaseId": {
+                    "type": "select",
+                    "label": "Database ID",
+                    "index": 2,
+                    "source": {
+                        "url": "/component/appmixer/hubsync/grid/FetchDatabases?outPort=databases",
+                        "data": {
+                            "messages": {
+                                "in/workspaceId": "properties/workspaceId"
+                            },
+                            "transform": "./FetchDatabases#databasesToSelectArray"
+                        }
+                    },
+                    "tooltip": "Select a database."
+                },
+                "sheetId": {
+                    "type": "select",
+                    "label": "Sheet ID",
+                    "index": 3,
+                    "source": {
+                        "url": "/component/appmixer/hubsync/grid/FetchSheets?outPort=sheets",
+                        "data": {
+                            "messages": {
+                                "in/workspaceId": "properties/workspaceId",
+                                "in/databaseId": "properties/databaseId"
+                            },
+                            "transform": "./FetchSheets#sheetsToSelectArray"
+                        }
+                    },
+                    "tooltip": "Select a sheet."
+                },
+                "itemId": {
+                    "type": "text",
+                    "label": "Item ID",
+                    "index": 4,
+                    "tooltip": "Enter the ID of the item to update."
+                }
+            }
+        }
+    },
     "inPorts": [
         {
             "name": "in",
             "schema": {
+                "type": "object",
                 "properties": {
-                    "workspaceId": {
-                        "type": "string"
-                    },
-                    "databaseId": {
-                        "type": "string"
-                    },
-                    "sheetId": {
-                        "type": "string"
-                    },
-                    "itemId": {
-                        "type": "string"
-                    },
                     "fields": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
+                        "type": "string",
+                        "description": "Fields to update in the item. The keys are field IDs and the values are the new values for those fields."
                     }
-                },
-                "required": [
-                    "workspaceId",
-                    "databaseId",
-                    "sheetId",
-                    "itemId",
-                    "fields"
-                ]
+                }
             },
             "inspector": {
                 "inputs": {
-                    "workspaceId": {
-                        "type": "select",
-                        "label": "Workspace ID",
+                    "fields": {
+                        "type": "textarea",
+                        "label": "Fields",
                         "index": 1,
-                        "source": {
-                            "url": "/component/appmixer/hubsync/common/FetchWorkspaces?outPort=workspaces",
-                            "data": {
-                                "transform": "./FetchWorkspaces#workspacesToSelectArray"
-                            }
-                        },
-                        "tooltip": "Select a workspace."
-                    },
-                    "databaseId": {
-                        "type": "select",
-                        "label": "Database ID",
-                        "index": 2,
-                        "source": {
-                            "url": "/component/appmixer/hubsync/grid/FetchDatabases?outPort=databases",
-                            "data": {
-                                "messages": {
-                                    "in/workspaceId": "inputs/in/workspaceId"
-                                },
-                                "transform": "./FetchDatabases#databasesToSelectArray"
-                            }
-                        },
-                        "tooltip": "Select a database."
-                    },
-                    "sheetId": {
-                        "type": "select",
-                        "label": "Sheet ID",
-                        "index": 3,
-                        "source": {
-                            "url": "/component/appmixer/hubsync/grid/FetchSheets?outPort=sheets",
-                            "data": {
-                                "messages": {
-                                    "in/workspaceId": "inputs/in/workspaceId",
-                                    "in/databaseId": "inputs/in/databaseId"
-                                },
-                                "transform": "./FetchSheets#sheetsToSelectArray"
-                            }
-                        },
-                        "tooltip": "Select a sheet."
-                    },
-                    "itemId": {
-                        "type": "text",
-                        "label": "Item ID",
-                        "index": 4,
-                        "tooltip": "Enter the ID of the item to update."
+                        "tooltip": "JSON object mapping field names to their values."
                     }
                 }
             }
