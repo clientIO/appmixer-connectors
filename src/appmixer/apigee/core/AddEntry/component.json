@@ -11,18 +11,56 @@
         "manager": "appmixer:apigee",
         "resources": "requests"
     },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "org": {
+                    "type": "string"
+                },
+                "env": {
+                    "type": "string"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "org": {
+                    "type": "text",
+                    "label": "Organization",
+                    "tooltip": "The Apigee organization name.",
+                    "index": 0,
+                    "source": {
+                        "url": "/component/appmixer/apigee/core/ListOrganizations?outPort=out",
+                        "data": {
+                            "transform": "./ListOrganizations#toSelectOptions"
+                        }
+                    }
+                },
+                "env": {
+                    "type": "text",
+                    "tooltip": "The environment containing the key value map.",
+                    "label": "Env",
+                    "index": 1,
+                    "source": {
+                        "url": "/component/appmixer/apigee/core/ListEnvironments?outPort=out",
+                        "data": {
+                            "messages": {
+                                "org": "inputs/in/org"
+                            },
+                            "transform": "./ListEnvironments#toSelectOptions"
+                        }
+                    }
+                }
+            }
+        }
+    },
     "inPorts": [
         {
             "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
-                    "org": {
-                        "type": "string"
-                    },
-                    "env": {
-                        "type": "string"
-                    },
                     "mapName": {
                         "type": "string"
                     },
@@ -36,33 +74,6 @@
             },
             "inspector": {
                 "inputs": {
-                    "org": {
-                        "type": "text",
-                        "label": "Organization",
-                        "tooltip": "The Apigee organization name.",
-                        "index": 0,
-                        "source": {
-                            "url": "/component/appmixer/apigee/core/ListOrganizations?outPort=out",
-                            "data": {
-                                "transform": "./ListOrganizations#toSelectOptions"
-                            }
-                        }
-                    },
-                    "env": {
-                        "type": "text",
-                        "tooltip": "The environment containing the key value map.",
-                        "label": "Env",
-                        "index": 1,
-                        "source": {
-                            "url": "/component/appmixer/apigee/core/ListEnvironments?outPort=out",
-                            "data": {
-                                "messages": {
-                                    "org": "inputs/in/org"
-                                },
-                                "transform": "./ListEnvironments#toSelectOptions"
-                            }
-                        }
-                    },
                     "mapName": {
                         "type": "text",
                         "tooltip": "The name of the key value map containing the IP entries.",
@@ -71,14 +82,14 @@
                     },
                     "ip": {
                         "type": "text",
-                        "tooltip": "The IP address to block.",
-                        "label": "Ip",
+                        "tooltip": "Enter a single IPv4 or IPv6 address, or multiple IP addresses separated by commas. JSON format is also supported, for example: [\"1.1.1.1\", \"2.2.2.2\"].",
+                        "label": "IPs",
                         "index": 3
                     },
                     "ttl": {
                         "type": "number",
-                        "tooltip": "Time to live in seconds for the blocked IP entry.",
-                        "label": "Ttl",
+                        "label": "TTL",
+                        "tooltip": "Time to live in seconds. The IPs will be automatically removed after this duration. If not set, the IPs will remain permanent.",
                         "index": 4
                     }
                 }

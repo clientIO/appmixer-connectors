@@ -4,21 +4,18 @@ const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
 
-        const {
-            org,
-            env,
-            mapname,
-            entryName,
-            'value|ip': valueIp,
-            'value|ttl': valueTTL
-        } = context.messages.in.content;
+        const { mapName, entryName, ips, ttl } = context.messages.in.content;
+
+        const { org, env } = context.properties;
+
+        const ipsList = lib.parseIPs(ips);
 
         // https://cloud.google.com/apigee/docs/reference/apis/apigee/rest/v1/organizations.environments.keyvaluemaps.entries/create
         const { data } = await context.httpRequest({
             method: 'POST',
-            url: 'v1/organizations/{org}/environments/{env}/keyvaluemaps/{mapname}/entries',
+            url: `v1/organizations/${org}/environments/${env}/keyvaluemaps/${mapName}/entries`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.accessToken}`
             }
         });
 
