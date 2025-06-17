@@ -12,6 +12,10 @@ module.exports = {
         } catch (error) {
             throw new context.CancelError('Invalid fields JSON');
         }
+        // Add globalId to fieldsObject if externalId is provided
+        if (externalId) {
+            fieldsObject.globalId = externalId;
+        }
 
         const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items`;
         try {
@@ -26,7 +30,6 @@ module.exports = {
                 data: {
                     "viewId": viewId,
                     "fields": fieldsObject,
-                    "globalId": externalId,
                 }
             });
             return context.sendJson(response.data, 'newItem');
