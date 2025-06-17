@@ -24,5 +24,11 @@ module.exports = {
             organizations: records,
             count: records.length
         }, 'out');
+    },
+
+    toSelectOptions(out) {
+        return out.organizations.map(item => {
+            return { label: `${item.name} (${item.projectId})`, value: item.projectId };
+        });
     }
 };
