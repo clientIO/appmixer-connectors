@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { listId } = context.messages.in.content;
@@ -7,9 +5,9 @@ module.exports = {
         // https://developers.brevo.com/docs/getting-started#delete-list
         const { data } = await context.httpRequest({
             method: 'DELETE',
-            url: 'https://api.brevo.com/v3/contacts/lists/{listId}',
+            url: `https://api.brevo.com/v3/contacts/lists/${listId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
             }
         });
 

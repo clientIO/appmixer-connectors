@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { to, email, name, subject, htmlContent, sender, cc, bcc, replyTo, attachmentUrls } = context.messages.in.content;

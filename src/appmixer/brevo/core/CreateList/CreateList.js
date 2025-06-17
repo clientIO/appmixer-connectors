@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { name, folderId } = context.messages.in.content;
@@ -9,7 +7,10 @@ module.exports = {
             method: 'POST',
             url: 'https://api.brevo.com/v3/contacts/lists',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
+            },
+            data: {
+                name, folderId
             }
         });
 

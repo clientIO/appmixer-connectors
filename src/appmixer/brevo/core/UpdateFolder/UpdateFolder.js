@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { folderId, name } = context.messages.in.content;
@@ -7,9 +5,12 @@ module.exports = {
         // https://developers.brevo.com/docs/getting-started#update-folder
         const { data } = await context.httpRequest({
             method: 'PUT',
-            url: 'https://api.brevo.com/v3/contacts/folders/{folderId}',
+            url: `https://api.brevo.com/v3/contacts/folders/${folderId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
+            },
+            data: {
+                name
             }
         });
 

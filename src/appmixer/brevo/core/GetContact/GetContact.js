@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { contactId } = context.messages.in.content;
@@ -7,9 +5,9 @@ module.exports = {
         // https://developers.brevo.com/docs/getting-started#get-contact
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://api.brevo.com/v3/contacts/{contactId}',
+            url: `https://api.brevo.com/v3/contacts/${contactId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
             }
         });
 

@@ -1,13 +1,13 @@
 
 const lib = require('../../lib.generated');
-const schema = { 'id':{ 'type':'number','title':'Id' },'name':{ 'type':'string','title':'Name' } };
+const schema = { 'id': { 'type': 'number', 'title': 'Id' }, 'name': { 'type': 'string', 'title': 'Name' } };
 
 module.exports = {
     async receive(context) {
         const { outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Folders', value: 'folders' });
+            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Folders', value: 'result' });
         }
 
         // https://developers.brevo.com/docs/getting-started#find-folders
@@ -15,10 +15,10 @@ module.exports = {
             method: 'GET',
             url: 'https://api.brevo.com/v3/contacts/folders',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
             }
         });
 
-        return lib.sendArrayOutput({ context, records, outputType, arrayPropertyValue: 'folders' });
+        return lib.sendArrayOutput({ context, records: data.folders, outputType });
     }
 };

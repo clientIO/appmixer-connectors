@@ -7,9 +7,12 @@ module.exports = {
         // https://developers.brevo.com/docs/getting-started#add-existing-contacts-to-a-list
         const { data } = await context.httpRequest({
             method: 'POST',
-            url: 'https://api.brevo.com/v3/contacts/lists/{listId}/contacts/add',
+            url: `https://api.brevo.com/v3/contacts/lists/${listId}/contacts/add`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
+            },
+            data: {
+                emails: contactEmails.split(',')
             }
         });
 

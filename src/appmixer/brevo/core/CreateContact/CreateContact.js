@@ -1,10 +1,9 @@
-
 module.exports = {
     async receive(context) {
-        const { email, attributes, emailBlacklisted, smsBlacklisted, listIds, updateEnabled } = context.messages.in.content;
+        const { email, emailBlacklisted, smsBlacklisted, listIds, updateEnabled } = context.messages.in.content;
 
         const body = {
-            email
+            email, emailBlacklisted, listIds, smsBlacklisted, updateEnabled
         };
 
         // https://developers.brevo.com/docs/getting-started#create-contact
