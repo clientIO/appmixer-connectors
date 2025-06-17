@@ -99,3 +99,9 @@ appmixer t c appmixer/hubsync/grid/GetSheetColumnChoices -p '{"workspaceId": "01
 ```
 appmixer t c appmixer/hubsync/grid/GetSheetColumns -p '{"workspaceId": "01722df1-cdbb-4deb-936f-10592ac1aa81", "databaseId": "4dd702fd-e2ba-4c63-a13e-58e0722fc941", "sheetId": "f34c9390-0121-48e0-b57c-fcd624d004af"}'
 ```
+
+### Get Item by ID
+
+```
+appmixer t c appmixer/hubsync/grid/GetItemById -p '{"workspaceId": "01722df1-cdbb-4deb-936f-10592ac1aa81", "databaseId": "4dd702fd-e2ba-4c63-a13e-58e0722fc941", "sheetId": "f34c9390-0121-48e0-b57c-fcd624d004af"}'
+```
