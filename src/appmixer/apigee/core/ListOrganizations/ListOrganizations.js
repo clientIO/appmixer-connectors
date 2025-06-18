@@ -28,7 +28,7 @@ module.exports = {
 
     toSelectOptions(out) {
         return out.organizations.map(item => {
-            return { label: `${item.name} (${item.projectId})`, value: item.projectId };
+            return { label: item.name, value: item.projectId };
         });
     }
 };

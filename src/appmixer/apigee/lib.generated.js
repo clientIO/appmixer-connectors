@@ -5,11 +5,11 @@ const DEFAULT_PREFIX = 'everart-objects-export';
 module.exports = {
 
     async sendArrayOutput({
-        context,
-        outputPortName = 'out',
-        outputType = 'array',
-        records = []
-    }) {
+                              context,
+                              outputPortName = 'out',
+                              outputType = 'array',
+                              records = []
+                          }) {
 
         if (outputType === 'first') {
             if (records.length === 0) {
@@ -92,7 +92,34 @@ module.exports = {
         if (outputType === 'file') {
             return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
         }
+    },
+    parseIPs: function(input) {
+
+        let ips = [];
+
+        if (typeof input === 'string') {
+            // Check if the string is a JSON array
+            try {
+                const parsed = JSON.parse(input);
+                if (Array.isArray(parsed)) {
+                    ips = parsed;
+                } else {
+                    ips = input.split(/\s+|,/)
+                        .filter(item => item)
+                        .map(ip => ip.trim());
+                }
+            } catch (e) {
+                ips = input.split(/\s+|,/)
+                    .filter(item => item)
+                    .map(ip => ip.trim());
+            }
+        } else if (Array.isArray(input)) {
+            ips = input;
+        }
+
+        return ips;
     }
+
 };
 
 /**
@@ -116,3 +143,4 @@ const toCsv = (array) => {
 
     ].join('\n');
 };
+
