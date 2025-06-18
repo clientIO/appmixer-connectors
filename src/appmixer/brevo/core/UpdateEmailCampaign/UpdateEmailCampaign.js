@@ -1,5 +1,3 @@
-
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
         const { campaignId, name, subject, sender, type, htmlContent, scheduledAt, recipients } = context.messages.in.content;

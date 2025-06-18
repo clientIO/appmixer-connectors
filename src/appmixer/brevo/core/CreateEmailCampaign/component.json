@@ -18,35 +18,34 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string",
-                        "description": "Name of the campaign"
+                        "type": "string"
                     },
                     "subject": {
-                        "type": "string",
-                        "description": "Subject of the email"
+                        "type": "string"
                     },
-                    "sender": {
-                        "type": "object",
-                        "description": "Sender details with name and email"
+                    "senderType": {
+                        "type": "string"
                     },
-                    "type": {
-                        "type": "string",
-                        "description": "Type of campaign"
+                    "senderListId": {
+                        "type": "string"
+                    },
+                    "senderEmail": {
+                        "type": "string"
+                    },
+                    "senderName": {
+                        "type": "string"
                     },
                     "htmlContent": {
-                        "type": "string",
-                        "description": "HTML content of the email"
-                    },
-                    "scheduledAt": {
-                        "type": "string",
-                        "format": "date-time",
-                        "description": "Scheduled date/time for sending"
-                    },
-                    "recipients": {
-                        "type": "object",
-                        "description": "Recipients details including list IDs"
+                        "type": "string"
                     }
-                }
+                },
+                "required": [
+                    "name", "senderType", "htmlContent", "subject"
+                ],
+                "oneOf": [
+                    { "required": ["senderListId"] },
+                    { "required": ["senderEmail"] }
+                ]
             },
             "inspector": {
                 "inputs": {
@@ -60,37 +59,40 @@
                         "type": "text",
                         "tooltip": "Subject of the email",
                         "label": "Subject",
-                        "index": 1
+                        "index": 6
                     },
-                    "sender": {
-                        "type": "text",
-                        "tooltip": "Sender details with name and email",
-                        "label": "Sender",
-                        "index": 2
+                    "senderType": {
+                        "type": "select",
+                        "label": "Sender Type",
+                        "index": 1,
+                        "options": [
+                            { "label": "Set Email", "value": "email" },
+                            { "label": "From List", "value": "list" }
+                        ]
                     },
-                    "type": {
+                    "senderListId": {
                         "type": "text",
-                        "tooltip": "Type of campaign",
-                        "label": "Type",
-                        "index": 3
+                        "label": "Sender List ID",
+                        "index": 2,
+                        "when": { "eq": { "senderType": "list" } }
+                    },
+                    "senderEmail": {
+                        "type": "text",
+                        "label": "Sender Email",
+                        "index": 3,
+                        "when": { "eq": { "senderType": "email" } }
+                    },
+                    "senderName": {
+                        "type": "text",
+                        "label": "Sender Name",
+                        "index": 4,
+                        "when": { "eq": { "senderType": "email" } }
                     },
                     "htmlContent": {
                         "type": "text",
                         "tooltip": "HTML content of the email",
                         "label": "HtmlContent",
-                        "index": 4
-                    },
-                    "scheduledAt": {
-                        "type": "text",
-                        "tooltip": "Scheduled date/time for sending",
-                        "label": "ScheduledAt",
                         "index": 5
-                    },
-                    "recipients": {
-                        "type": "text",
-                        "tooltip": "Recipients details including list IDs",
-                        "label": "Recipients",
-                        "index": 6
                     }
                 }
             }
@@ -101,17 +103,10 @@
             "name": "out",
             "options": [
                 {
-                    "label": "Id",
+                    "label": "Campaign ID",
                     "value": "id",
                     "schema": {
                         "type": "number"
-                    }
-                },
-                {
-                    "label": "Name",
-                    "value": "name",
-                    "schema": {
-                        "type": "string"
                     }
                 }
             ]
