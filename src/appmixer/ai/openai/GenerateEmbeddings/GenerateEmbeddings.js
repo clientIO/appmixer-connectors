@@ -1,7 +1,7 @@
 'use strict';
 
 const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
-const OpenAI = require('openai');
+const lib = require('../lib');
 
 // See https://platform.openai.com/docs/api-reference/embeddings/create#embeddings-create-input.
 const MAX_INPUT_LENGTH = 8192 * 4; // max 8192 tokens, 1 token ~ 4 characters.
@@ -21,8 +21,7 @@ module.exports = {
         const chunks = await this.splitText(text, chunkSize, chunkOverlap);
         await context.log({ step: 'split-text', message: 'Text successfully split into chunks.', chunksLength: chunks.length });
 
-        const apiKey = context.auth.apiKey;
-        const client = new OpenAI({ apiKey });
+        const client = lib.sdk(context);
 
         // Process chunks in batches.
         // the batch size is calculated based on the chunk size and the maximum input length in

@@ -1,17 +1,12 @@
 'use strict';
 
+const lib = require('../lib');
+
 module.exports = {
 
     receive: async function(context) {
 
-        const apiKey = context.auth.apiKey;
-        const url = 'https://api.openai.com/v1/models';
-        const { data } = await context.httpRequest.get(url, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        const { data } = await lib.request(context, 'get', '/models');
         return context.sendJson({ models: data.data }, 'out');
     },
 

@@ -1,6 +1,6 @@
 test@client.io
 
-TEST_SERVER_URL=http://localhost:2200 appmixer test auth login src/appmixer/google/auth.js -c 1038500334679-25o83vj5269qkj67frpgtgs0ndbaq2la.apps.googleusercontent.com -s CJrM6NIQ87qfIrhbYK3tq7Eh -o "https://www.googleapis.com/auth/blogger"
+TEST_SERVER_URL=http://localhost:2200 appmixer test auth login src/appmixer/google/auth.js -c 1038500334679-25o83vj5269qkj67frpgtgs0ndbaq2la.apps.googleusercontent.com -s <CLIENT_SECRET CJr....>  -o "https://www.googleapis.com/auth/blogger"
 
 appmixer test component ./src/appmixer/google/blogger/FindBlogs -i '{"in":{"userId":"self","role":"ADMIN","outputType":"object"}}'
 
