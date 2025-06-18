@@ -1,6 +1,6 @@
 const pathModule = require('path');
 
-const DEFAULT_PREFIX = 'everart-objects-export';
+const DEFAULT_PREFIX = 'apigee-objects-export';
 
 module.exports = {
 
@@ -52,7 +52,6 @@ module.exports = {
     getProperty(obj, path) {
         return path.split('.').reduce((acc, part) => acc?.[part], obj);
     },
-
     getOutputPortOptions(context, outputType, itemSchema, { label, value }) {
 
         if (outputType === 'object' || outputType === 'first') {
