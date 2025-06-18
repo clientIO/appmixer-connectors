@@ -24,7 +24,6 @@ module.exports = {
                 } else {
                     throw e;
                 }
-
             }
         }
 
