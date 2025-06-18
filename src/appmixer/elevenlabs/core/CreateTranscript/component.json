@@ -1,0 +1,229 @@
+{
+    "name": "appmixer.elevenlabs.core.CreateTranscript",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Transcribe audio or video files into text. Supports synchronous transcription and can optionally utilize webhooks for asynchronous processing.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:elevenlabs"
+    },
+    "quota": {
+        "manager": "appmixer:elevenlabs",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "model_id": {
+                        "type": "string"
+                    },
+                    "file": {
+                        "type": "string"
+                    },
+                    "language_code": {
+                        "type": "string"
+                    },
+                    "tag_audio_events": {
+                        "type": "boolean"
+                    },
+                    "num_speakers": {
+                        "type": "integer"
+                    },
+                    "timestamps_granularity": {
+                        "type": "string"
+                    },
+                    "diarize": {
+                        "type": "boolean"
+                    },
+                    "additional_formats|file_format": {
+                        "type": "string"
+                    },
+                    "additional_formats|file_extension": {
+                        "type": "string"
+                    },
+                    "additional_formats|content_type": {
+                        "type": "string"
+                    },
+                    "additional_formats|is_base64_encoded": {
+                        "type": "boolean"
+                    },
+                    "additional_formats|content": {
+                        "type": "string"
+                    },
+                    "cloud_storage_url": {
+                        "type": "string"
+                    },
+                    "webhook": {
+                        "type": "boolean"
+                    },
+                    "temperature": {
+                        "type": "number"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "model_id": {
+                        "type": "text",
+                        "tooltip": "Required. The ID of the transcription model to use (e.g. 'scribe_v1' or 'scribe_v1_experimental').",
+                        "label": "Model Id",
+                        "index": 0
+                    },
+                    "file": {
+                        "type": "text",
+                        "tooltip": "Optional. The file to be transcribed. This should be provided as multipart/form-data. File size must be less than 1GB.",
+                        "label": "File",
+                        "index": 1
+                    },
+                    "language_code": {
+                        "type": "text",
+                        "tooltip": "Optional. ISO-639-1 or ISO-639-3 language code for the audio. If omitted, the language is auto-detected.",
+                        "label": "Language Code",
+                        "index": 2
+                    },
+                    "tag_audio_events": {
+                        "type": "toggle",
+                        "tooltip": "Optional. Set to true to annotate non-word sounds such as laughter and footsteps. Defaults to true.",
+                        "label": "Tag Audio Events",
+                        "index": 3
+                    },
+                    "num_speakers": {
+                        "type": "number",
+                        "tooltip": "Optional. Expected number of speakers (between 1 and 32).",
+                        "label": "Num Speakers",
+                        "index": 4
+                    },
+                    "timestamps_granularity": {
+                        "type": "text",
+                        "tooltip": "Optional. Granularity for timestamps in the transcription. Allowed values: none, word, character. Defaults to 'word'.",
+                        "label": "Timestamps Granularity",
+                        "index": 5
+                    },
+                    "diarize": {
+                        "type": "toggle",
+                        "tooltip": "Optional. Enable speaker diarization if true. Defaults to false.",
+                        "label": "Diarize",
+                        "index": 6
+                    },
+                    "additional_formats|file_format": {
+                        "type": "text",
+                        "tooltip": "Requested format of the additional transcript (e.g. 'pcm_s16le_16' or 'other').",
+                        "label": "Additional Formats|file Format",
+                        "index": 7
+                    },
+                    "additional_formats|file_extension": {
+                        "type": "text",
+                        "tooltip": "The file extension for the additional format.",
+                        "label": "Additional Formats|file Extension",
+                        "index": 8
+                    },
+                    "additional_formats|content_type": {
+                        "type": "text",
+                        "tooltip": "The MIME type of the additional format.",
+                        "label": "Additional Formats|content Type",
+                        "index": 9
+                    },
+                    "additional_formats|is_base64_encoded": {
+                        "type": "toggle",
+                        "tooltip": "Indicates whether the content is base64 encoded.",
+                        "label": "Additional Formats|is Base64 Encoded",
+                        "index": 10
+                    },
+                    "additional_formats|content": {
+                        "type": "text",
+                        "tooltip": "The content of the additional format.",
+                        "label": "Additional Formats|content",
+                        "index": 11
+                    },
+                    "cloud_storage_url": {
+                        "type": "text",
+                        "tooltip": "Optional. A publicly accessible URL (AWS S3, Cloudflare R2, or Google Cloud Storage) to the file. File size must be less than 2GB.",
+                        "label": "Cloud Storage Url",
+                        "index": 12
+                    },
+                    "webhook": {
+                        "type": "toggle",
+                        "tooltip": "Optional. When set to true, the transcription result will be sent to a pre-configured webhook and the request returns early.",
+                        "label": "Webhook",
+                        "index": 13
+                    },
+                    "temperature": {
+                        "type": "number",
+                        "tooltip": "Optional. A value between 0 and 2 controlling the randomness of the transcription output. Higher values yield more diverse outputs.",
+                        "label": "Temperature",
+                        "index": 14
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Language Code",
+                    "value": "language_code",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Language Probability",
+                    "value": "language_probability",
+                    "schema": {
+                        "type": "number"
+                    }
+                },
+                {
+                    "label": "Text",
+                    "value": "text",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "label": "Words",
+                    "value": "words",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "text": {
+                                    "type": "string",
+                                    "title": "Words.Text"
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "title": "Words.Type"
+                                },
+                                "logprob": {
+                                    "type": "number",
+                                    "title": "Words.Logprob"
+                                },
+                                "start": {
+                                    "type": "number",
+                                    "title": "Words.Start"
+                                },
+                                "end": {
+                                    "type": "number",
+                                    "title": "Words.End"
+                                },
+                                "speaker_id": {
+                                    "type": "string",
+                                    "title": "Words.Speaker Id"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bW",
+    "genv2": true
+}
