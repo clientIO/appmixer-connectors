@@ -1,32 +1,27 @@
 /* eslint-disable camelcase */
+'use strict';
 
 module.exports = {
     async receive(context) {
 
-        const {
-            voice_id,
-            text,
-            model_id,
-            language_code,
-            seed
-        } = context.messages.in.content;
+        const { text, duration_seconds, prompt_influence, output_format } = context.messages.in.content;
 
-        // https://elevenlabs.io/docs/api-reference/text-to-speech/convert
+        // https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert
         let data;
         try {
             const response = await context.httpRequest({
                 method: 'POST',
-                url: `https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`,
+                url: 'https://api.elevenlabs.io/v1/sound-generation',
                 headers: {
                     'xi-api-key': context.auth.apiKey
                 },
                 data: {
                     text,
-                    model_id,
-                    language_code,
-                    seed
+                    duration_seconds,
+                    prompt_influence,
+                    output_format
                 },
-                responseType: 'arraybuffer' // Ensure binary data is returned as Buffer
+                responseType: 'arraybuffer'
             });
             data = response.data;
         } catch (err) {
@@ -40,12 +35,11 @@ module.exports = {
             } else if (err && err.message) {
                 message = err.message;
             }
-            throw new Error(`Failed to synthesize speech: ${message}`);
+            throw new Error(`Failed to generate sound effect: ${message}`);
         }
 
-        // For example: 1701980838697_elevenlabs_createSpeechSynthesis
-        const filename = `${Date.now()}_${context.componentType.split('.')[1]}_${context.componentType.split('.')[3]}`;
-        const file = await context.saveFileStream(filename, data); // data is a binary buffer
+        const filename = `${Date.now()}_elevenlabs_soundeffect`;
+        const file = await context.saveFileStream(filename, data);
 
         return context.sendJson(file, 'out');
     }
