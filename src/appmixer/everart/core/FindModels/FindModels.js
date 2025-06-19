@@ -15,7 +15,7 @@ module.exports = {
         const { search, status, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Models', value: 'models' });
+            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Models', value: 'result' });
         }
 
         const queryParams = {};
@@ -40,6 +40,6 @@ module.exports = {
             return context.sendJson({}, 'notFound');
         }
 
-        return lib.sendArrayOutput({ context, records: data.models, outputType, arrayPropertyValue: 'models' });
+        return lib.sendArrayOutput({ context, records: data.models, outputType });
     }
 };
