@@ -2,6 +2,7 @@ const lib = require('../../lib.generated');
 
 module.exports = {
     async receive(context) {
+        const { outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'Models', value: 'result' });
