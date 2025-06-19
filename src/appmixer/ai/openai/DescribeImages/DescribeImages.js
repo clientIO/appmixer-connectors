@@ -1,13 +1,13 @@
 'use strict';
 
 const path = require('path');
+const lib = require('../lib');
 
 module.exports = {
 
     receive: async function(context) {
 
         const { prompt, images, model } = context.messages.in.content;
-        const apiKey = context.auth.apiKey;
         const imageFileIds = (images.ADD || []).map(image => (image.fileId || null)).filter(fileId => fileId !== null);
 
         const imageContent = await Promise.all(imageFileIds.map(async (fileId) => {
@@ -40,7 +40,6 @@ module.exports = {
             };
         }));
 
-        const url = 'https://api.openai.com/v1/chat/completions';
         const payload = {
             model: model || 'gpt-4o',
             messages: [
@@ -53,13 +52,7 @@ module.exports = {
                 }
             ]
         };
-        const { data } = await context.httpRequest.post(url, payload, {
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
+        const { data } = await lib.request(context, 'post', '/chat/completions', payload);
         let answer = '';
 
         if (data && data.choices) {
