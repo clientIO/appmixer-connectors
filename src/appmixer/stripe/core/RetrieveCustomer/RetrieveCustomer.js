@@ -1,18 +1,18 @@
 
 'use strict';
 
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
 
-        const { customer_id } = context.messages.in.content;
+        const { customerId } = context.messages.in.content;
 
         // https://stripe.com/docs/api/customers/retrieve
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://api.stripe.com/v1/customers/{customer_id}',
+            url: `https://api.stripe.com/v1/customers/${customerId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'Authorization': `Bearer ${context.auth.apiKey}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
             }
         });
 

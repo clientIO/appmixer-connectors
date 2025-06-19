@@ -65,7 +65,7 @@ module.exports = {
             method: 'POST',
             url: `https://api.stripe.com/v1/customers/${customerId}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`,
+                'Authorization': `Bearer ${context.auth.apiKey}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             data: {

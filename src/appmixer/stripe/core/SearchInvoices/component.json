@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.stripe.core.RetrievePaymentIntent",
+    "name": "appmixer.stripe.core.SearchInvoices",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Retrieves the details of a previously created Payment Intent.",
+    "description": "Searches for invoices using a query string. Use this to find invoices matching specific search criteria.",
     "version": "1.0.0",
     "private": false,
     "auth": {
@@ -17,21 +17,49 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "paymentIntentId": {
+                    "query": {
+                        "type": "string"
+                    },
+                    "outputType": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "paymentIntentId"
+                    "query"
                 ]
             },
             "inspector": {
                 "inputs": {
-                    "paymentIntentId": {
+                    "query": {
                         "type": "text",
-                        "tooltip": "The identifier of the Payment Intent to retrieve.",
-                        "label": "Payment Intent Id",
+                        "tooltip": "The search query string to filter invoices.",
+                        "label": "Query",
                         "index": 0
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 2,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
                     }
                 }
             }
@@ -40,325 +68,17 @@
     "outPorts": [
         {
             "name": "out",
-            "options": [
-                {
-                    "label": "Id",
-                    "value": "id",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Object",
-                    "value": "object",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Amount",
-                    "value": "amount",
-                    "schema": {
-                        "type": "number"
-                    }
-                },
-                {
-                    "label": "Amount Capturable",
-                    "value": "amount_capturable",
-                    "schema": {
-                        "type": "number"
-                    }
-                },
-                {
-                    "label": "Amount Details",
-                    "value": "amount_details",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "tip": {
-                                "type": "object",
-                                "properties": {},
-                                "title": "Amount Details.Tip"
-                            }
-                        }
-                    }
-                },
-                {
-                    "label": "Amount Received",
-                    "value": "amount_received",
-                    "schema": {
-                        "type": "number"
-                    }
-                },
-                {
-                    "label": "Application",
-                    "value": "application",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Application Fee Amount",
-                    "value": "application_fee_amount",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Automatic Payment Methods",
-                    "value": "automatic_payment_methods",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "enabled": {
-                                "type": "boolean",
-                                "title": "Automatic Payment Methods.Enabled"
-                            }
-                        }
-                    }
-                },
-                {
-                    "label": "Canceled At",
-                    "value": "canceled_at",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Cancellation Reason",
-                    "value": "cancellation_reason",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Capture Method",
-                    "value": "capture_method",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Client Secret",
-                    "value": "client_secret",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Confirmation Method",
-                    "value": "confirmation_method",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Created",
-                    "value": "created",
-                    "schema": {
-                        "type": "number"
-                    }
-                },
-                {
-                    "label": "Currency",
-                    "value": "currency",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Customer",
-                    "value": "customer",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Description",
-                    "value": "description",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Last Payment Error",
-                    "value": "last_payment_error",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Latest Charge",
-                    "value": "latest_charge",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Livemode",
-                    "value": "livemode",
-                    "schema": {
-                        "type": "boolean"
-                    }
-                },
-                {
-                    "label": "Metadata",
-                    "value": "metadata",
-                    "schema": {
-                        "type": "object",
-                        "properties": {}
-                    }
-                },
-                {
-                    "label": "Next Action",
-                    "value": "next_action",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "On Behalf Of",
-                    "value": "on_behalf_of",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Payment Method",
-                    "value": "payment_method",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Payment Method Options",
-                    "value": "payment_method_options",
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "card": {
-                                "type": "object",
-                                "properties": {
-                                    "installments": {
-                                        "type": "null",
-                                        "title": "Payment Method Options.Card.Installments"
-                                    },
-                                    "mandate_options": {
-                                        "type": "null",
-                                        "title": "Payment Method Options.Card.Mandate Options"
-                                    },
-                                    "network": {
-                                        "type": "null",
-                                        "title": "Payment Method Options.Card.Network"
-                                    },
-                                    "request_three_d_secure": {
-                                        "type": "string",
-                                        "title": "Payment Method Options.Card.Request Three D Secure"
-                                    }
-                                },
-                                "title": "Payment Method Options.Card"
-                            },
-                            "link": {
-                                "type": "object",
-                                "properties": {
-                                    "persistent_token": {
-                                        "type": "null",
-                                        "title": "Payment Method Options.Link.Persistent Token"
-                                    }
-                                },
-                                "title": "Payment Method Options.Link"
-                            }
-                        }
-                    }
-                },
-                {
-                    "label": "Payment Method Types",
-                    "value": "payment_method_types",
-                    "schema": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
-                {
-                    "label": "Processing",
-                    "value": "processing",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Receipt Email",
-                    "value": "receipt_email",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Review",
-                    "value": "review",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Setup Future Usage",
-                    "value": "setup_future_usage",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Shipping",
-                    "value": "shipping",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Source",
-                    "value": "source",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Statement Descriptor",
-                    "value": "statement_descriptor",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Statement Descriptor Suffix",
-                    "value": "statement_descriptor_suffix",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Status",
-                    "value": "status",
-                    "schema": {
-                        "type": "string"
-                    }
-                },
-                {
-                    "label": "Transfer Data",
-                    "value": "transfer_data",
-                    "schema": {
-                        "type": "null"
-                    }
-                },
-                {
-                    "label": "Transfer Group",
-                    "value": "transfer_group",
-                    "schema": {
-                        "type": "null"
+            "source": {
+                "url": "/component/appmixer/stripe/core/SearchInvoices?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
                     }
                 }
-            ]
+            }
         }
     ],
     "icon": "data:image/jpeg;base64,/9j/2wCEAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAf/AABEIAQABAAMBIgACEQEDEQH/xAGiAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgsQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+gEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoLEQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2gAMAwEAAhEDEQA/APn+iiiv+og/NwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKQkAgev445xz/wDqpN3IADc8ZA7nhRjrljkDjtzgc0m0nZtJvZNq+9tvXT1Cz/C/yV7/AJMUkAZNM3+pH4Ann9OMcZOOfatrw74d8SeMdf03wn4O8OeIPF3ivWpP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FFFABRRRQAU0rnufX+E8joeQSSOoznkA9QDTqKGk9Hr/AFb8hptbNr0dv63f3kflL51vcLlbm0dZLS6RmjubaSNg8ctvcxmOe3lRhvEkMkblwsjs0kcbJ9yfB/8A4KS/tr/BKK10/wAN/HHXPFnh62SCFPC/xctofihpItrZUjit4NT8QuPGdkiRjy447DxZbK+5nlSZl3V8P01lDEZCnGfvDOM+nbtz7V8lxVwJwdxvgVl/FnDOR8Q4WKapU83yzCY94fmnGU5YaeIpyqYab5Veph505qyabas9qFerRmnTq1Kd73cJuP2Xo7O1ns09HfU/oP8Ahv8A8F9/GNnBFB8X/wBnLQNbcBRJrXwq8eXWhOSCFZovCnjXTdTtSgXLMf8AhNEZSQgtxwT9p+Ev+C5P7GuuxRDxHp/xq8AXBVRMdc+Gx8R2cb7C0hjufAWteJ55ohgBJZbC1Zj8whKHdX8jJiyDghCf4kUZ6Yzzxkjj0pVjZc8lv98k46gccjO3rxgHpwK/mLiL6DPgNnU6s8vybO+GqlR6vI8+xnsYt816kMNnEczw9JptJQoKNJKMW6TbnzejHO8dTcU3RrRS0unfdv3naF33s3ftff8Ata0//grV/wAE/wDUreKcftIeH9KkcKTbeIvB/wARvD9wgIBPmx6j4RTawyVIDABwQT0zqyf8FU/2AkRmH7U3w3PdVWLxRI+PeOPw20hwOchPbHc/xKK0qg4kZc54UkA+3UD/ADnvTt8uP9dKcdi7Y/Ldx+dfn1T9nZ4ZKadHjTjynTvrTqVsgxMreVX/AFfo2101puys9zf/AFgxKX8HDN210mvls1p3uf2b+Iv+Cw/7AOgw+Za/G298VSkMUtvB3wx+JutySsD9xblvClpYRkY5ee6hhAYbpVyDXyb8Rv8Agvf8FNLieH4VfA/4rePrsLPGLrxjfeFvhpockgVjDLFJDeeM9fntJAAxYaJbSgDb5ZYjP8vDbmIJdmPcsxOR0/McYJyePyZt6n5ic5wW4IxggYPfpkgV9Jkf0BPBbK6iq5nX4y4itJShhsfneFw2HnazcaryjLMnrxg7acuMpyV3ad+W2M88xk17rpUnppCjz73vaUp+d9layP1K+OX/AAWF/bL+MMN3pfhnXPDvwE8M3SyQtZ/CuyuJPF0ts0peMXPxE8RSXus29yq7IZLnwzpfhSVlj+RY9xz+X15e32r39/rOq6jqWr6xq9y15q2s6xf3Wq6xq12zM8l1qmq6lLc6hqFw8hLGa8uJpV+7GyISlVtmX3YAPcl3Y88Hg4GMZIyDg+vWnjIHPJ/z9P1r+pOBfC7gLw6wjwfBvCOS8P05xca1bBYNRxuJScXGOMx2Iq4zHY96N+1xONq2+FRStbz8Tiq2Jk3UqTkmrcspNx3vpFtpdPuE285ye3c9sfzxz60oGO5P1OaWiv0JJK9kld3dur7+uhzXsmujtf5bfcFFFFMAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooA//Z"

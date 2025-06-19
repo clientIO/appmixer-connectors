@@ -1,19 +1,21 @@
 
 'use strict';
 
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
 
-        const { customerId } = context.messages.in.content;
+        const { customEndpoint, method, parameters } = context.messages.in.content;
 
-        // https://stripe.com/docs/api/customers/delete
+        // https://stripe.com/docs/api
         const { data } = await context.httpRequest({
-            method: 'DELETE',
-            url: `https://api.stripe.com/v1/customers/${customerId}`,
+            method: method,
+            url: `https://api.stripe.com/v1/${customEndpoint}`,
             headers: {
                 'Authorization': `Bearer ${context.auth.apiKey}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: {
+                ...parameters
             }
         });
 

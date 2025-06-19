@@ -8,18 +8,19 @@ module.exports = {
         const { charge, amount, reason } = context.messages.in.content;
 
         // https://stripe.com/docs/api/refunds/create
+        const formData = {};
+        if (charge) formData.charge = charge;
+        if (amount !== undefined && amount !== '') formData.amount = amount;
+        if (reason) formData.reason = reason;
+
         const { data } = await context.httpRequest({
             method: 'POST',
             url: 'https://api.stripe.com/v1/refunds',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`,
+                'Authorization': `Bearer ${context.auth.apiKey}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            data: {
-                charge: charge,
-                amount: amount,
-                reason: reason
-            }
+            data: formData
         });
 
         return context.sendJson(data, 'out');

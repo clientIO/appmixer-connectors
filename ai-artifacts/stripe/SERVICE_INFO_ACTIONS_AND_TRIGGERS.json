@@ -21,7 +21,7 @@
                 "properties": {
                     "amount": {
                         "type": "number",
-                        "description": "Amount intended to be collected by this Payment Intent, measured in the smallest currency unit."
+                        "description": "Amount to be collected, in the smallest currency unit."
                     },
                     "currency": {
                         "type": "string",
@@ -29,11 +29,11 @@
                     },
                     "payment_method": {
                         "type": "string",
-                        "description": "The payment method ID to attach to this Payment Intent (optional)."
+                        "description": "Optional payment method ID to attach to the Payment Intent."
                     },
                     "description": {
                         "type": "string",
-                        "description": "An arbitrary string to attach to the Payment Intent for additional information (optional)."
+                        "description": "Optional description to attach to the Payment Intent."
                     }
                 },
                 "required": [
@@ -85,7 +85,7 @@
         },
         {
             "title": "Capture Payment Intent",
-            "description": "Captures an existing, uncaptured Payment Intent to complete a payment which was previously authorized.",
+            "description": "Captures an existing uncaptured Payment Intent to complete a previously authorized payment.",
             "type": "action",
             "documentation": "https://stripe.com/docs/api/payment_intents/capture",
             "endpointUrl": "https://api.stripe.com/v1/payment_intents/{payment_intent_id}/capture",
@@ -106,7 +106,7 @@
                     },
                     "amount_to_capture": {
                         "type": "number",
-                        "description": "The amount to capture, if different from the original amount (optional)."
+                        "description": "Optional amount to capture if different from the original amount."
                     }
                 },
                 "required": [
@@ -155,7 +155,7 @@
         },
         {
             "title": "Cancel Payment Intent",
-            "description": "Cancels a Payment Intent by its ID. For payment intents that require capture, the remaining capturable amount will be automatically refunded.",
+            "description": "Cancels a Payment Intent by its ID. For intents that require capture, the remaining capturable amount is automatically refunded.",
             "type": "action",
             "documentation": "https://stripe.com/docs/api/payment_intents/cancel",
             "endpointUrl": "https://api.stripe.com/v1/payment_intents/{payment_intent_id}/cancel",
@@ -208,11 +208,11 @@
                     },
                     "description": {
                         "type": "string",
-                        "description": "An arbitrary string that you can attach to a customer for additional information (optional)."
+                        "description": "Optional description to attach to the customer."
                     },
                     "payment_method": {
                         "type": "string",
-                        "description": "A payment method ID to attach to the customer (optional)."
+                        "description": "Optional payment method ID to attach to the Customer."
                     }
                 },
                 "required": [
@@ -259,7 +259,7 @@
         },
         {
             "title": "Update Customer",
-            "description": "Updates specified properties of an existing customer.",
+            "description": "Updates the specified customer by setting the values of the parameters passed.",
             "type": "action",
             "documentation": "https://stripe.com/docs/api/customers/update",
             "endpointUrl": "https://api.stripe.com/v1/customers/{customer_id}",
@@ -268,7 +268,7 @@
             "sampleResponse": {
                 "id": "cus_1Example",
                 "object": "customer",
-                "email": "newemail@example.com"
+                "email": "updated@example.com"
             },
             "inputSchema": {
                 "type": "object",
@@ -280,11 +280,11 @@
                     },
                     "email": {
                         "type": "string",
-                        "description": "New email address for the customer (optional)."
+                        "description": "Optional new email address for the customer."
                     },
                     "description": {
                         "type": "string",
-                        "description": "New description for the customer (optional)."
+                        "description": "Optional new description for the customer."
                     }
                 },
                 "required": [
@@ -299,7 +299,7 @@
         },
         {
             "title": "Delete Customer",
-            "description": "Permanently deletes a customer. This operation is irreversible.",
+            "description": "Permanently deletes a customer. This process cannot be undone.",
             "type": "action",
             "documentation": "https://stripe.com/docs/api/customers/delete",
             "endpointUrl": "https://api.stripe.com/v1/customers/{customer_id}",
@@ -353,11 +353,11 @@
                     },
                     "amount": {
                         "type": "number",
-                        "description": "The amount to refund, if partial refund is desired (optional)."
+                        "description": "Optional amount to refund for a partial refund."
                     },
                     "reason": {
                         "type": "string",
-                        "description": "Reason for the refund (optional)."
+                        "description": "Optional reason for the refund."
                     }
                 },
                 "required": [
@@ -427,11 +427,11 @@
                     },
                     "collection_method": {
                         "type": "string",
-                        "description": "Either 'charge_automatically' or 'send_invoice' (optional)."
+                        "description": "Optional collection method; either 'charge_automatically' or 'send_invoice'."
                     },
                     "description": {
                         "type": "string",
-                        "description": "An optional description for the invoice."
+                        "description": "Optional description for the invoice."
                     }
                 },
                 "required": [
@@ -511,7 +511,7 @@
         },
         {
             "title": "Retrieve Balance",
-            "description": "Retrieves the current account balance, including pending and available amounts.",
+            "description": "Retrieves the current account balance, including pending and available funds.",
             "type": "action",
             "documentation": "https://stripe.com/docs/api/balance/retrieve",
             "endpointUrl": "https://api.stripe.com/v1/balance",
@@ -576,6 +576,120 @@
                 "arrayPropertyLabel": "",
                 "arrayPropertyValue": ""
             }
+        },
+        {
+            "title": "Find Refunds",
+            "description": "Retrieves a collection of refunds. You can optionally filter the results (pagination parameters are ignored).",
+            "type": "action",
+            "documentation": "https://stripe.com/docs/api/refunds/list",
+            "endpointUrl": "https://api.stripe.com/v1/refunds",
+            "apiBaseUrl": "https://api.stripe.com",
+            "method": "GET",
+            "sampleResponse": {
+                "object": "list",
+                "data": [
+                    {
+                        "id": "re_1Example",
+                        "object": "refund",
+                        "amount": 1000,
+                        "status": "succeeded"
+                    }
+                ]
+            },
+            "inputSchema": {
+                "type": "object",
+                "description": "Input parameters for retrieving refunds. Note: Pagination parameters like page, offset, or limit are ignored.",
+                "properties": {
+                    "charge": {
+                        "type": "string",
+                        "description": "Optional charge ID to filter refunds for a specific charge."
+                    }
+                }
+            },
+            "outputType": {
+                "outputType": "array",
+                "arrayPropertyLabel": "data",
+                "arrayPropertyValue": "data"
+            }
+        },
+        {
+            "title": "Search Customers",
+            "description": "Searches for customers using a query string. Use this to find customers matching specific search criteria.",
+            "type": "action",
+            "documentation": "https://stripe.com/docs/api/customers/search",
+            "endpointUrl": "https://api.stripe.com/v1/customers/search",
+            "apiBaseUrl": "https://api.stripe.com",
+            "method": "POST",
+            "sampleResponse": {
+                "object": "search_result",
+                "data": [
+                    {
+                        "id": "cus_1Example",
+                        "object": "customer",
+                        "email": "customer@example.com"
+                    }
+                ]
+            },
+            "inputSchema": {
+                "type": "object",
+                "description": "Input parameters for searching customers. Pagination parameters are ignored.",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The search query string to filter customers."
+                    }
+                },
+                "required": [
+                    "query"
+                ]
+            },
+            "outputType": {
+                "outputType": "array",
+                "arrayPropertyLabel": "data",
+                "arrayPropertyValue": "data"
+            }
+        },
+        {
+            "title": "Find Payment Methods",
+            "description": "Retrieves a list of payment methods for a given customer and type. Pagination parameters are ignored.",
+            "type": "action",
+            "documentation": "https://stripe.com/docs/api/payment_methods/list",
+            "endpointUrl": "https://api.stripe.com/v1/payment_methods",
+            "apiBaseUrl": "https://api.stripe.com",
+            "method": "GET",
+            "sampleResponse": {
+                "object": "list",
+                "data": [
+                    {
+                        "id": "pm_1Example",
+                        "object": "payment_method",
+                        "type": "card"
+                    }
+                ]
+            },
+            "inputSchema": {
+                "type": "object",
+                "description": "Input parameters for retrieving payment methods. Provide the customer identifier and the payment method type.",
+                "properties": {
+                    "customer": {
+                        "type": "string",
+                        "description": "The identifier of the customer for whom to retrieve payment methods."
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "The type of payment method (e.g., 'card')."
+                    }
+                },
+                "required": [
+                    "customer",
+                    "type"
+                ]
+            },
+            "outputType": {
+                "outputType": "array",
+                "arrayPropertyLabel": "data",
+                "arrayPropertyValue": "data"
+            }
         }
     ],
     "authentication": {
@@ -588,7 +702,7 @@
         "name": "appmixer.stripe",
         "label": "Stripe",
         "category": "applications",
-        "description": "Stripe API integration for managing payments, customers, refunds, invoices, and balance operations.",
+        "description": "Stripe API integration for managing payments, customers, refunds, invoices, balance operations, and more.",
         "version": "1.0.0",
         "icon": "https://stripe.com/img/v3/home/twitter.png"
     }
