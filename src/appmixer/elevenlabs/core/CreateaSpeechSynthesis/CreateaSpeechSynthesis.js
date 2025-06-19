@@ -8,10 +8,7 @@ module.exports = {
             text,
             model_id,
             language_code,
-            seed,
-            voice_settings,
-            apply_language_text_normalization,
-            apply_text_normalization
+            seed
         } = context.messages.in.content;
 
         // https://elevenlabs.io/docs/api-reference/text-to-speech/convert
@@ -25,10 +22,7 @@ module.exports = {
                 text,
                 model_id,
                 language_code,
-                seed,
-                voice_settings,
-                apply_language_text_normalization,
-                apply_text_normalization
+                seed
             },
             responseType: 'arraybuffer' // Ensure binary data is returned as Buffer
         });
