@@ -10,8 +10,6 @@ module.exports = {
             language_code,
             seed,
             voice_settings,
-            previous_text,
-            next_text,
             apply_language_text_normalization,
             apply_text_normalization
         } = context.messages.in.content;
@@ -29,8 +27,6 @@ module.exports = {
                 language_code,
                 seed,
                 voice_settings,
-                previous_text,
-                next_text,
                 apply_language_text_normalization,
                 apply_text_normalization
             },
