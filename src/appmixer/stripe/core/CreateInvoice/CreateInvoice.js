@@ -10,7 +10,7 @@ module.exports = {
         if (customer !== undefined && customer !== '') invoiceData.customer = customer;
         if (collectionMethod !== undefined && collectionMethod !== '') invoiceData.collection_method = collectionMethod;
         if (description !== undefined && description !== '') invoiceData.description = description;
-        if (autoAdvance !== undefined && autoAdvance !== '') invoiceData.auto_advance = autoAdvance;
+        if (autoAdvance !== undefined && autoAdvance !== '') invoiceData.auto_advance = Boolean(autoAdvance);
 
         const { data } = await context.httpRequest({
             method: 'POST',
