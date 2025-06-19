@@ -15,8 +15,8 @@ module.exports = {
             method: 'POST',
             url: `https://api.stripe.com/v1/payment_intents/${id}/confirm`,
             headers: {
-            'Authorization': `Bearer ${context.auth.apiKey}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
+                'Authorization': `Bearer ${context.auth.apiKey}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
             data: requestData
         });
