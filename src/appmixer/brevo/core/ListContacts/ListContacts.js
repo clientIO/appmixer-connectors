@@ -1,17 +1,15 @@
-
 const lib = require('../../lib.generated');
-const schema = { 'id': { 'type': 'number', 'title': 'Contact ID' }, 'emailBlacklisted': { 'type': 'boolean', 'title': 'Email Blacklisted' }, 'smsBlacklisted': { 'type': 'boolean', 'title': 'Sms Blacklisted' }, 'createdAt': { 'type': 'string', 'title': 'Created At' }, 'modifiedAt': { 'type': 'string', 'title': 'Modified At' }, 'email': { 'type': 'string', 'title': 'Email' }, 'listIds': { 'type': 'array', 'items': { 'type': 'number' }, 'title': 'List Ids' }, 'listUnsubscribed': { 'type': 'boolean', 'title': 'List Unsubscribed' }, 'attributes': { 'type': 'object', 'properties': {}, 'title': 'Attributes' } };
 
 module.exports = {
     async receive(context) {
-        const { modifiedSince, createdSince, sort, segmentId, listIds, filter, outputType } = context.messages.in.content;
+        const { outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'Contacts', value: 'result' });
         }
 
         const queryParams = {
-            limit: 1000, modifiedSince, createdSince, sort, segmentId, listIds, filter
+            limit: 1000
         };
 
         let allContacts = [];
@@ -40,4 +38,16 @@ module.exports = {
 
         return lib.sendArrayOutput({ context, records: allContacts, outputType });
     }
+};
+
+const schema = {
+    'id': { 'type': 'number', 'title': 'Contact ID' },
+    'emailBlacklisted': { 'type': 'boolean', 'title': 'Email Blacklisted' },
+    'smsBlacklisted': { 'type': 'boolean', 'title': 'Sms Blacklisted' },
+    'createdAt': { 'type': 'string', 'title': 'Created At' },
+    'modifiedAt': { 'type': 'string', 'title': 'Modified At' },
+    'email': { 'type': 'string', 'title': 'Email' },
+    'listIds': { 'type': 'array', 'items': { 'type': 'number' }, 'title': 'List IDs' },
+    'listUnsubscribed': { 'type': 'boolean', 'title': 'List Unsubscribed' },
+    'attributes': { 'type': 'object', 'properties': {}, 'title': 'Attributes' }
 };

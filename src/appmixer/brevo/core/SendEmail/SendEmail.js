@@ -1,13 +1,50 @@
 module.exports = {
     async receive(context) {
-        const { to, email, name, subject, htmlContent, sender, cc, bcc, replyTo, attachmentUrls } = context.messages.in.content;
+        const { to, subject, htmlContent, textContent, senderEmail, senderName, replyToEmail, replyToName, cc, bcc } = context.messages.in.content;
+
+        const toArr = to.ADD.map((recipient) => {
+            return {
+                name: recipient.name,
+                email: recipient.email
+            };
+        });
+
+        const ccArr = cc.ADD.map((recipient) => {
+            return {
+                name: recipient.name,
+                email: recipient.email
+            };
+        });
+
+        const bccArr = bcc.ADD.map((recipient) => {
+            return {
+                name: recipient.name,
+                email: recipient.email
+            };
+        });
 
         // https://developers.brevo.com/docs/getting-started#send-email
         const { data } = await context.httpRequest({
             method: 'POST',
             url: 'https://api.brevo.com/v3/smtp/email',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
+            },
+            data: {
+                to: toArr,
+                cc: ccArr,
+                bcc: bccArr,
+                htmlContent,
+                replyTo: {
+                    name: replyToName,
+                    email: replyToEmail
+                },
+                sender: {
+                    name: senderName,
+                    email: senderEmail
+                },
+                subject,
+                textContent
             }
         });
 

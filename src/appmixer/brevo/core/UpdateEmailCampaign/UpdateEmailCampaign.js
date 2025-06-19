@@ -7,7 +7,7 @@ module.exports = {
             method: 'PUT',
             url: 'https://api.brevo.com/v3/emailCampaigns/{campaignId}',
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
+                'api-key': `${context.auth.apiKey}`
             }
         });
 
