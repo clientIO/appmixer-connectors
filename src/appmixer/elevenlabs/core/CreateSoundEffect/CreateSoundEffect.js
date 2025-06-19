@@ -25,6 +25,7 @@ module.exports = {
             });
             data = response.data;
         } catch (err) {
+            // As the error data is binary here, we need to convert it to a string
             let message = 'Unknown error';
             if (err?.response?.data) {
                 try {
@@ -32,7 +33,7 @@ module.exports = {
                 } catch (decodeErr) {
                     message = 'Failed to decode error response.';
                 }
-            } else if (err && err.message) {
+            } else if (err?.message) {
                 message = err.message;
             }
             throw new Error(`Failed to generate sound effect: ${message}`);
