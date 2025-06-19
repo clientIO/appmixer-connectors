@@ -16,7 +16,7 @@ module.exports = {
             formData.info.documentTitle = documentTitle;
         }
 
-        const response = await context.httpRequest({
+        const { data } = await context.httpRequest({
             method: 'POST',
             url: 'https://forms.googleapis.com/v1/forms',
             headers: {
@@ -24,13 +24,8 @@ module.exports = {
                 'Content-Type': 'application/json'
             },
             data: formData,
-            json: true
         });
 
-        // Add the full form object to the output
-        response.form = response;
-
-        console.log(response.data);
-        return context.sendJson(response, 'out');
+        return context.sendJson(data, 'out');
     }
 };

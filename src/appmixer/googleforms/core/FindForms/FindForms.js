@@ -107,7 +107,7 @@ const schema = {
 module.exports = {
 
     async receive(context) {
-        const orderBy = 'modifiedTime desc'
+        const orderBy = 'modifiedTime desc';
         const {
             searchQuery,
             outputType
@@ -118,7 +118,7 @@ module.exports = {
         }
 
         // Validate page size
-        const validPageSize = Math.min(Math.max(1, pageSize), 1000);
+        // const validPageSize = Math.min(Math.max(1, pageSize), 1000);
 
         // Build query for Google Drive API to find Google Forms
         let query = 'mimeType=\'application/vnd.google-apps.form\'';
@@ -131,16 +131,12 @@ module.exports = {
         // Build request parameters
         const params = {
             q: query,
-            pageSize: validPageSize,
+            // pageSize: validPageSize,
             orderBy: orderBy,
             fields: 'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,webViewLink,iconLink,thumbnailLink,owners,lastModifyingUser,shared,ownedByMe,capabilities)',
             supportsAllDrives: true,
             includeItemsFromAllDrives: true
         };
-
-        if (pageToken) {
-            params.pageToken = pageToken;
-        }
 
         const { data } = await context.httpRequest({
             method: 'GET',
