@@ -6,7 +6,7 @@ const schema = {
     'id': { 'type': 'string', 'title': 'Id' },
     'object': { 'type': 'string', 'title': 'Object' },
     'amount': { 'type': 'number', 'title': 'Amount' },
-    'curency': { 'type': 'string', 'title': 'Currency' },
+    'currency': { 'type': 'string', 'title': 'Currency' },
     'amount_captured': { 'type': 'number', 'title': 'Amount Captured' },
     'customer': { 'type': 'string', 'title': 'Customer' }
 };
@@ -20,7 +20,7 @@ module.exports = {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'data', value: 'data' });
         }
 
-        // https://stripe.com/docs/api/refunds/list
+        // https://stripe.com/docs/api/charges/list
         const params = {};
         if (customerId) params.customer = customerId;
         if (paymentIntent) params.payment_intent = paymentIntent;
@@ -28,7 +28,7 @@ module.exports = {
 
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://api.stripe.com/v1/refunds',
+            url: 'https://api.stripe.com/v1/charges',
             headers: {
                 'Authorization': `Bearer ${context.auth.apiKey}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
