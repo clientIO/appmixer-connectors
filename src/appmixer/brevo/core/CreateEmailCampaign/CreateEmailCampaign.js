@@ -1,6 +1,13 @@
 module.exports = {
     async receive(context) {
-        const { name, subject, senderType, senderListId, senderEmail, senderName, htmlContent } = context.messages.in.content;
+        const {
+            name,
+            subject,
+            senderType,
+            senderListId,
+            senderEmail,
+            senderName,
+            htmlContent } = context.messages.in.content;
 
         // https://developers.brevo.com/docs/getting-started#create-email-campaign
         const { data } = await context.httpRequest({

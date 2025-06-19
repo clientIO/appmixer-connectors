@@ -16,7 +16,7 @@ module.exports = {
                     subject,
                     to: to?.split(','),
                     bcc: bcc?.split(','),
-                    cc: cc?.split(','),
+                    cc: cc?.split(',')
                 }
             }
         });

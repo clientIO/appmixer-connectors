@@ -1,6 +1,16 @@
 module.exports = {
     async receive(context) {
-        const { to, subject, htmlContent, textContent, senderEmail, senderName, replyToEmail, replyToName, cc, bcc } = context.messages.in.content;
+        const {
+            to,
+            subject,
+            htmlContent,
+            textContent,
+            senderEmail,
+            senderName,
+            replyToEmail,
+            replyToName,
+            cc,
+            bcc } = context.messages.in.content;
 
         const toArr = to.ADD.map((recipient) => {
             return {
