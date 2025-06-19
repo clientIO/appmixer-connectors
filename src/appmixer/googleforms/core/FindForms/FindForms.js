@@ -107,10 +107,8 @@ const schema = {
 module.exports = {
 
     async receive(context) {
+        const orderBy = 'modifiedTime desc'
         const {
-            pageSize = 100,
-            pageToken,
-            orderBy = 'modifiedTime desc',
             searchQuery,
             outputType
         } = context.messages.in.content;
@@ -157,6 +155,6 @@ module.exports = {
         const forms = data.files || [];
         // const hasMorePages = !!response.nextPageToken;
 
-        return lib.sendArrayOutput({ context, records: forms, outputType, });
+        return lib.sendArrayOutput({ context, records: forms, outputType });
     }
 };
