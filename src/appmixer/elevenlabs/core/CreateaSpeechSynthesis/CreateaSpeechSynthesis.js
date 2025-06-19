@@ -10,11 +10,8 @@ module.exports = {
             language_code,
             seed,
             voice_settings,
-            pronunciation_dictionary_locators,
             previous_text,
             next_text,
-            previous_request_ids,
-            next_request_ids,
             apply_language_text_normalization,
             apply_text_normalization
         } = context.messages.in.content;
@@ -32,11 +29,8 @@ module.exports = {
                 language_code,
                 seed,
                 voice_settings,
-                pronunciation_dictionary_locators,
                 previous_text,
                 next_text,
-                previous_request_ids,
-                next_request_ids,
                 apply_language_text_normalization,
                 apply_text_normalization
             },
