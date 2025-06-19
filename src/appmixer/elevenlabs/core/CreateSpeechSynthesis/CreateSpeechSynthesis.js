@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+'use strict';
 
 module.exports = {
     async receive(context) {
@@ -31,7 +32,7 @@ module.exports = {
             data = response.data;
         } catch (err) {
             let message = 'Unknown error';
-            if (err && err.response && err.response.data) {
+            if (err?.response?.data) {
                 try {
                     message = Buffer.from(err.response.data).toString('utf8');
                 } catch (decodeErr) {
