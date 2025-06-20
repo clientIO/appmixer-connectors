@@ -38,7 +38,7 @@ module.exports = {
             return { name: 'Unknown Stripe User' };
         },
 
-        accountNameFromProfileInfo: 'email',
+        accountNameFromProfileInfo: 'name',
 
         async validate(context) {
             return await this.getUserProfile(context);
