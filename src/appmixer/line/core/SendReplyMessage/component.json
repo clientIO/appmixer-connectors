@@ -1,0 +1,102 @@
+{
+    "name": "appmixer.line.core.SendReplyMessage",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Sends a reply message in response to an event from a user, group, or room.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:line"
+    },
+    "quota": {
+        "manager": "appmixer:line",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "replyToken": {
+                        "type": "string"
+                    },
+                    "messages": {
+                        "type": "object"
+                    },
+                    "notificationDisabled": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "messages", "replyToken"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "replyToken": {
+                        "type": "text",
+                        "label": "Reply Token",
+                        "index": 0,
+                        "tooltip": "Reply token received via webhook. Reply tokens must be used within one minute after receiving the webhook. Use beyond one minute isn't guaranteed to work."
+                    },
+                    "messages": {
+                        "type": "expression",
+                        "label": "Messages",
+                        "index": 1,
+                        "levels": ["ADD"],
+                        "fields": {
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "options": [
+                                    {
+                                        "value": "text",
+                                        "label": "Text"
+                                    },
+                                    {
+                                        "value": "sticker",
+                                        "label": "Sticker"
+                                    }
+                                ]
+                            },
+                            "text": {
+                                "type": "text",
+                                "label": "Text",
+                                "when": { "eq": { "./type": "text" } },
+                                "required": true
+                            },
+                            "packageId": {
+                                "type": "text",
+                                "label": "Package ID",
+                                "when": { "eq": { "./type": "sticker" } },
+                                "required": true,
+                                "tooltip": "Package ID for a set of stickers. For information on package IDs, see the <a href=\"https://developers.line.biz/en/docs/messaging-api/sticker-list/\" target=\"_blank\">Sticker list</a>."
+                            },
+                            "stickerId": {
+                                "type": "text",
+                                "label": "Sticker ID",
+                                "when": { "eq": { "./type": "sticker" } },
+                                "required": true,
+                                "tooltip": "Sticker ID. For a list of sticker IDs for stickers that can be sent with the Messaging API, see the <a href=\"https://developers.line.biz/en/docs/messaging-api/sticker-list/\" target=\"_blank\">Sticker list</a>."
+                            }
+                        }
+                    },
+                    "notificationDisabled": {
+                        "type": "toggle",
+                        "index": 2,
+                        "label": "Notification Disabled"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+
+            ]
+        }
+    ],
+    "icon": "data:image/png;base64,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"
+}
