@@ -2,8 +2,8 @@ module.exports = {
     async receive(context) {
         const { folderId, name } = context.messages.in.content;
 
-        // https://developers.brevo.com/docs/getting-started#update-folder
-        const { data } = await context.httpRequest({
+        // https://developers.brevo.com/reference/updatefolder-1
+        await context.httpRequest({
             method: 'PUT',
             url: `https://api.brevo.com/v3/contacts/folders/${folderId}`,
             headers: {
@@ -14,6 +14,6 @@ module.exports = {
             }
         });
 
-        return context.sendJson(data, 'out');
+        return context.sendJson({ id: folderId }, 'out');
     }
 };

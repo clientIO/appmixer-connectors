@@ -9,14 +9,14 @@ module.exports = {
         }
 
         const queryParams = {
-            limit: 1000
+            limit: 500
         };
 
         let allLists = [];
         let offset = 0;
         let count = 0;
         do {
-            // https://developers.brevo.com/docs/getting-started#find-contacts-in-list
+            // https://developers.brevo.com/reference/getcontactsfromlist
             const { data } = await context.httpRequest({
                 method: 'GET',
                 url: `https://api.brevo.com/v3/contacts/lists/${listId}/contacts`,
@@ -41,20 +41,13 @@ module.exports = {
 };
 
 const schema = {
-    id: { type: 'integer', title: 'Contact ID' },
-    emailBlacklisted: { type: 'boolean', title: 'Email Blacklisted' },
-    smsBlacklisted: { type: 'boolean', title: 'SMS Blacklisted' },
-    createdAt: { type: 'string', title: 'Created At' },
-    modifiedAt: { type: 'string', title: 'Modified At' },
-    email: { type: 'string', title: 'Email' },
-    listIds: {
-        type: 'array',
-        title: 'List IDs',
-        items: { type: 'integer', title: 'List ID' }
-    },
-    attributes: {
-        type: 'object',
-        title: 'Attributes',
-        properties: {}
-    }
+    'id': { 'type': 'number', 'title': 'Contact ID' },
+    'emailBlacklisted': { 'type': 'boolean', 'title': 'Email Blacklisted' },
+    'smsBlacklisted': { 'type': 'boolean', 'title': 'SMS Blacklisted' },
+    'createdAt': { 'type': 'string', 'title': 'Created At' },
+    'modifiedAt': { 'type': 'string', 'title': 'Modified At' },
+    'email': { 'type': 'string', 'title': 'Email' },
+    'listIds': { 'type': 'array', 'items': { 'type': 'number' }, 'title': 'List IDs' },
+    'listUnsubscribed': { 'type': 'boolean', 'title': 'List Unsubscribed' },
+    'attributes': { 'type': 'object', 'properties': {}, 'title': 'Attributes' }
 };

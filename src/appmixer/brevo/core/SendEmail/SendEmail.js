@@ -33,7 +33,7 @@ module.exports = {
             };
         });
 
-        // https://developers.brevo.com/docs/getting-started#send-email
+        // https://developers.brevo.com/reference/sendtransacemail
         const { data } = await context.httpRequest({
             method: 'POST',
             url: 'https://api.brevo.com/v3/smtp/email',

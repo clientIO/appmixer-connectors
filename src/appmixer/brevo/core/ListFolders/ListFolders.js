@@ -1,4 +1,3 @@
-
 const lib = require('../../lib.generated');
 
 module.exports = {
@@ -10,14 +9,14 @@ module.exports = {
         }
 
         const queryParams = {
-            limit: 1000
+            limit: 50
         };
 
         let allFolders = [];
         let offset = 0;
         let count = 0;
         do {
-            // https://developers.brevo.com/docs/getting-started#find-folders
+            // https://developers.brevo.com/reference/getfolders-1
             const { data } = await context.httpRequest({
                 method: 'GET',
                 url: 'https://api.brevo.com/v3/contacts/folders',
@@ -38,6 +37,13 @@ module.exports = {
         } while (count > allFolders.length);
 
         return lib.sendArrayOutput({ context, records: allFolders, outputType });
+    },
+
+    toSelectArray({ result }) {
+
+        return result.map(folder => {
+            return { label: folder.name, value: folder.id };
+        });
     }
 };
 

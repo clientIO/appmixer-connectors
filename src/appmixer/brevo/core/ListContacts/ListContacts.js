@@ -43,7 +43,7 @@ module.exports = {
 const schema = {
     'id': { 'type': 'number', 'title': 'Contact ID' },
     'emailBlacklisted': { 'type': 'boolean', 'title': 'Email Blacklisted' },
-    'smsBlacklisted': { 'type': 'boolean', 'title': 'Sms Blacklisted' },
+    'smsBlacklisted': { 'type': 'boolean', 'title': 'SMS Blacklisted' },
     'createdAt': { 'type': 'string', 'title': 'Created At' },
     'modifiedAt': { 'type': 'string', 'title': 'Modified At' },
     'email': { 'type': 'string', 'title': 'Email' },

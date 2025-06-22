@@ -2,8 +2,8 @@ module.exports = {
     async receive(context) {
         const { listId, name, folderId } = context.messages.in.content;
 
-        // https://developers.brevo.com/docs/getting-started#update-list
-        const { data } = await context.httpRequest({
+        // https://developers.brevo.com/reference/updatelist
+        await context.httpRequest({
             method: 'PUT',
             url: `https://api.brevo.com/v3/contacts/lists/${listId}`,
             headers: {
@@ -12,6 +12,6 @@ module.exports = {
             data: name ? { name } : { folderId }
         });
 
-        return context.sendJson(data, 'out');
+        return context.sendJson({ id: listId }, 'out');
     }
 };

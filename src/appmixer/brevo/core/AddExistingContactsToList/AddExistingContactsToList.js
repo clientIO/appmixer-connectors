@@ -2,7 +2,7 @@ module.exports = {
     async receive(context) {
         const { listId, contactEmails } = context.messages.in.content;
 
-        // https://developers.brevo.com/docs/getting-started#add-existing-contacts-to-a-list
+        // https://developers.brevo.com/reference/addcontacttolist-1
         const { data } = await context.httpRequest({
             method: 'POST',
             url: `https://api.brevo.com/v3/contacts/lists/${listId}/contacts/add`,

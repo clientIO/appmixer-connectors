@@ -5,13 +5,13 @@ module.exports = {
             name,
             subject,
             senderType,
-            senderListId,
+            senderId,
             senderEmail,
             senderName,
             htmlContent } = context.messages.in.content;
 
-        // https://developers.brevo.com/docs/getting-started#update-email-campaign
-        const { data } = await context.httpRequest({
+        // https://developers.brevo.com/reference/updateemailcampaign
+        await context.httpRequest({
             method: 'PUT',
             url: `https://api.brevo.com/v3/emailCampaigns/${campaignId}`,
             headers: {
@@ -21,12 +21,12 @@ module.exports = {
                 name, htmlContent, subject, sender: {
                     type: senderType,
                     name: senderName || undefined,
-                    id: +senderListId || undefined,
+                    id: +senderId || undefined,
                     email: senderEmail || undefined
                 }
             }
         });
 
-        return context.sendJson(data, 'out');
+        return context.sendJson({ id: campaignId }, 'out');
     }
 };

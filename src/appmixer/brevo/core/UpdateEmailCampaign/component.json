@@ -29,7 +29,7 @@
                     "senderType": {
                         "type": "string"
                     },
-                    "senderListId": {
+                    "senderId": {
                         "type": "string"
                     },
                     "senderEmail": {
@@ -41,7 +41,14 @@
                     "htmlContent": {
                         "type": "string"
                     }
-                }
+                },
+                "required": [
+                    "campaignId", "senderType"
+                ],
+                "oneOf": [
+                    { "required": ["senderId"] },
+                    { "required": ["senderEmail"] }
+                ]
             },
             "inspector": {
                 "inputs": {
@@ -49,7 +56,16 @@
                         "type": "text",
                         "tooltip": "ID of the campaign to update",
                         "label": "Campaign ID",
-                        "index": 0
+                        "index": 0,
+                        "source": {
+                            "url": "/component/appmixer/brevo/core/ListEmailCampaigns?outPort=out",
+                            "data": {
+                                "message": {
+                                    "in/outputType": "array"
+                                },
+                                "transform": "./ListEmailCampaigns#toSelectArray"
+                            }
+                        }
                     },
                     "name": {
                         "type": "text",
@@ -68,13 +84,13 @@
                         "label": "Sender Type",
                         "index": 1,
                         "options": [
-                            { "label": "Set Email", "value": "email" },
-                            { "label": "From List", "value": "list" }
+                            { "label": "Email", "value": "email" },
+                            { "label": "ID", "value": "list" }
                         ]
                     },
-                    "senderListId": {
+                    "senderId": {
                         "type": "text",
-                        "label": "Sender List ID",
+                        "label": "Sender ID",
                         "index": 2,
                         "when": { "eq": { "senderType": "list" } }
                     },

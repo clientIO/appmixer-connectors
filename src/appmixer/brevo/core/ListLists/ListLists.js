@@ -9,14 +9,14 @@ module.exports = {
         }
 
         const queryParams = {
-            limit: 1000
+            limit: 50
         };
 
         let allLists = [];
         let offset = 0;
         let count = 0;
         do {
-            // https://developers.brevo.com/docs/getting-started#find-lists
+            // https://developers.brevo.com/reference/getlists-1
             const { data } = await context.httpRequest({
                 method: 'GET',
                 url: 'https://api.brevo.com/v3/contacts/lists',
@@ -37,6 +37,13 @@ module.exports = {
         } while (count > allLists.length);
 
         return lib.sendArrayOutput({ context, records: allLists, outputType });
+    },
+
+    toSelectArray({ result }) {
+
+        return result.map(list => {
+            return { label: list.name, value: list.id };
+        });
     }
 };
 

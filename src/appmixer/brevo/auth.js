@@ -12,12 +12,22 @@ module.exports = {
         },
 
         async requestProfileInfo(context) {
-            const apiKey = context.apiKey;
-            return {
-                key: apiKey.substr(0, 3) + '...' + apiKey.substr(4)
-            };
+            const { data } = await context.httpRequest({
+                method: 'GET',
+                url: 'https://api.brevo.com/v3/account',
+                headers: {
+                    'api-key': context.apiKey,
+                    'accept': 'application/json'
+                }
+            });
+            if (data && data.email) {
+                return data;
+            } else {
+                throw new Error('Could not retrieve Brevo account info.');
+            }
         },
-        accountNameFromProfileInfo: 'key',
+
+        accountNameFromProfileInfo: 'email',
 
         validate: async (context) => {
             // Brevo API: https://api.brevo.com/v3/account

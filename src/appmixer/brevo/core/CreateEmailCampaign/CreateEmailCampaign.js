@@ -4,12 +4,12 @@ module.exports = {
             name,
             subject,
             senderType,
-            senderListId,
+            senderId,
             senderEmail,
             senderName,
             htmlContent } = context.messages.in.content;
 
-        // https://developers.brevo.com/docs/getting-started#create-email-campaign
+        // https://developers.brevo.com/reference/createemailcampaign-1
         const { data } = await context.httpRequest({
             method: 'POST',
             url: 'https://api.brevo.com/v3/emailCampaigns',
@@ -20,7 +20,7 @@ module.exports = {
                 name, htmlContent, subject, sender: {
                     type: senderType,
                     name: senderName || undefined,
-                    id: +senderListId || undefined,
+                    id: +senderId || undefined,
                     email: senderEmail || undefined
                 }
             }

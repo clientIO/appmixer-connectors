@@ -9,14 +9,14 @@ module.exports = {
         }
 
         const queryParams = {
-            limit: 1000
+            limit: 50
         };
 
         let allLists = [];
         let offset = 0;
         let count = 0;
         do {
-            // https://developers.brevo.com/docs/getting-started#find-lists-in-folder
+            // https://developers.brevo.com/reference/getfolderlists-1
             const { data } = await context.httpRequest({
                 method: 'GET',
                 url: `https://api.brevo.com/v3/contacts/folders/${folderId}/lists`,

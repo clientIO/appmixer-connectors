@@ -9,14 +9,14 @@ module.exports = {
         }
 
         const queryParams = {
-            limit: 1000
+            limit: 100
         };
 
         let allCampaigns = [];
         let offset = 0;
         let count = 0;
         do {
-            // https://developers.brevo.com/docs/getting-started#find-email-campaigns
+            // https://developers.brevo.com/reference/getemailcampaigns-1
             const { data } = await context.httpRequest({
                 method: 'GET',
                 url: 'https://api.brevo.com/v3/emailCampaigns',
@@ -37,6 +37,13 @@ module.exports = {
         } while (count > allCampaigns.length);
 
         return lib.sendArrayOutput({ context, records: allCampaigns, outputType });
+    },
+
+    toSelectArray({ result }) {
+
+        return result.map(campaign => {
+            return { label: campaign.name, value: campaign.id };
+        });
     }
 };
 
