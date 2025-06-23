@@ -72,7 +72,7 @@ module.exports = {
         });
 
         if (!data) {
-            throw new context.CancelError(`Error calling MCP tool '${toolName}' on component '${componentId}': ${data.error}`);
+            throw new context.CancelError(`Error listing MCP tools on component '${componentId}': No data returned`);
         }
 
         return data;
@@ -90,7 +90,7 @@ module.exports = {
         });
 
         if (!data) {
-            throw new context.CancelError(`Error calling MCP tool '${toolName}' on component '${componentId}': ${data.error}`);
+            throw new context.CancelError(`Error calling MCP tool '${toolName}' on component '${componentId}': No data returned`);
         }
 
         return data;
