@@ -10,19 +10,21 @@ module.exports = {
         }
         
         try {
-            const response = await context.httpRequest({
+            const { data } = await context.httpRequest({
                 method: 'GET',
                 url: `https://forms.googleapis.com/v1/forms/${formId}`,
                 headers: {
                     'Authorization': `Bearer ${context.auth.accessToken}`
-                },
-                json: true
+                }
             });
             
             // Add the full form object to the output
-            response.form = response;
+            const result = {
+                ...data,
+                form: data
+            };
             
-            return context.sendJson(response, 'out');
+            return context.sendJson(result, 'out');
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 throw new context.CancelError('Form not found');

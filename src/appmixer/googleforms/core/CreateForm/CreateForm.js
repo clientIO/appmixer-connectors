@@ -4,6 +4,10 @@ module.exports = {
 
     async receive(context) {
         const { title, documentTitle } = context.messages.in.content;
+        
+        if (!title) {
+            throw new context.CancelError('Title is required');
+        }
 
         const formData = {
             info: {

@@ -1,42 +1,112 @@
-const assert = require('assert');
-const testUtils = require('../utils.js');
-const createFormComponent = require('../../src/appmixer/googleforms/core/CreateForm/CreateForm');
-const dotenv = require('dotenv');
 const path = require('path');
-const axios = require('axios');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-dotenv.config({ path: path.join(__dirname, '../.env') });
-
-describe('Google Forms', () => {
-
+describe('CreateForm Component', function() {
     let context;
-    beforeEach(() => {
-        context = testUtils.createMockContext();
-        context.auth.accessToken = process.env.GOOGLE_FORMS_ACCESS_TOKEN;
-        context.httpRequest = axios;
-    });
-
-    it('Create Form - basic form creation', async () => {
-
-        let out;
-        context.sendJson = (data) => (out = data);
-        context.messages = {
-            in: {
-                content: {
-                    title: 'Test Form ' + Date.now(),
-                    documentTitle: 'Test Document ' + Date.now()
+    let CreateForm;
+    
+    this.timeout(30000);
+    
+    before(function() {
+        // Load the component
+        CreateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/CreateForm/CreateForm.js'));
+        
+        // Mock context
+        context = {
+            auth: {
+                accessToken: process.env.GOOGLE_FORMS_ACCESS_TOKEN
+            },
+            messages: {
+                in: {
+                    content: {}
+                }
+            },
+            sendJson: function(data, port) {
+                return { data, port };
+            },
+            httpRequest: require('./httpRequest.js'),
+            CancelError: class extends Error {
+                constructor(message) {
+                    super(message);
+                    this.name = 'CancelError';
                 }
             }
         };
-
-        await createFormComponent.receive(context);
-
-        // Verify basic properties exist
-        assert.ok(out, 'Output should exist');
-        assert.ok(out.formId, 'Output should have formId');
-
-        // Verify the title matches what we sent
-        assert.strictEqual(out.info.title, context.messages.in.content.title, 'Form title should match input title');
+        
+        if (!context.auth.accessToken) {
+            throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
+        }
+    });
+    
+    it('should create a form with title only', async function() {
+        context.messages.in.content = {
+            title: 'Test Form - ' + Date.now()
+        };
+        
+        const result = await CreateForm.receive(context);
+        
+        if (!result || typeof result !== 'object') {
+            throw new Error('Expected result to be an object');
+        }
+        if (!result.data || typeof result.data !== 'object') {
+            throw new Error('Expected result.data to be an object');
+        }
+        if (!result.data.formId || typeof result.data.formId !== 'string') {
+            throw new Error('Expected result.data.formId to be a string');
+        }
+        if (!result.data.info || typeof result.data.info !== 'object') {
+            throw new Error('Expected result.data.info to be an object');
+        }
+        if (result.data.info.title !== context.messages.in.content.title) {
+            throw new Error('Expected title to match input');
+        }
+        if (!result.data.responderUri || typeof result.data.responderUri !== 'string') {
+            throw new Error('Expected result.data.responderUri to be a string');
+        }
+        if (result.port !== 'out') {
+            throw new Error('Expected port to be "out"');
+        }
+    });
+    
+    it('should create a form with title and document title', async function() {
+        const timestamp = Date.now();
+        context.messages.in.content = {
+            title: 'Test Form - ' + timestamp,
+            documentTitle: 'Test Document - ' + timestamp
+        };
+        
+        const result = await CreateForm.receive(context);
+        
+        if (!result || typeof result !== 'object') {
+            throw new Error('Expected result to be an object');
+        }
+        if (!result.data || typeof result.data !== 'object') {
+            throw new Error('Expected result.data to be an object');
+        }
+        if (!result.data.formId || typeof result.data.formId !== 'string') {
+            throw new Error('Expected result.data.formId to be a string');
+        }
+        if (result.data.info.title !== context.messages.in.content.title) {
+            throw new Error('Expected title to match input');
+        }
+        if (result.data.info.documentTitle !== context.messages.in.content.documentTitle) {
+            throw new Error('Expected documentTitle to match input');
+        }
+    });
+    
+    it('should throw error when title is missing', async function() {
+        context.messages.in.content = {};
+        
+        try {
+            await CreateForm.receive(context);
+            throw new Error('Should have thrown an error');
+        } catch (error) {
+            if (error.name !== 'CancelError') {
+                throw new Error('Expected CancelError');
+            }
+            if (!error.message.toLowerCase().includes('title')) {
+                throw new Error('Expected error message to include "title"');
+            }
+        }
     });
 });
-

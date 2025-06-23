@@ -21,8 +21,7 @@ module.exports = {
                 },
                 data: {
                     trashed: true
-                },
-                json: true
+                }
             });
             
             return context.sendJson({

@@ -1,15 +1,15 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-describe('FindForms Component', function() {
+describe('ListForms Component', function() {
     let context;
-    let FindForms;
+    let ListForms;
     
     this.timeout(30000);
     
     before(function() {
         // Load the component
-        FindForms = require(path.join(__dirname, '../../src/appmixer/googleforms/core/FindForms/FindForms.js'));
+        ListForms = require(path.join(__dirname, '../../src/appmixer/googleforms/core/ListForms/ListForms.js'));
         
         // Mock context
         context = {
@@ -41,12 +41,12 @@ describe('FindForms Component', function() {
         }
     });
     
-    it('should find forms without search query', async function() {
+    it('should list forms with array output type', async function() {
         context.messages.in.content = {
             outputType: 'array'
         };
         
-        await FindForms.receive(context);
+        await ListForms.receive(context);
         
         if (!context.sendJsonData || typeof context.sendJsonData !== 'object') {
             throw new Error('Expected sendJson to be called');
@@ -72,6 +72,9 @@ describe('FindForms Component', function() {
             if (!form.name) {
                 throw new Error('Expected form to have name property');
             }
+            if (!form.mimeType) {
+                throw new Error('Expected form to have mimeType property');
+            }
             if (form.mimeType !== 'application/vnd.google-apps.form') {
                 throw new Error('Expected mimeType to be application/vnd.google-apps.form');
             }
@@ -84,10 +87,13 @@ describe('FindForms Component', function() {
         // Reset sendJsonData for this test
         context.sendJsonData = null;
         
-        await FindForms.receive(context);
+        await ListForms.receive(context);
         
         if (!context.sendJsonData || typeof context.sendJsonData !== 'object') {
             throw new Error('Expected sendJson to be called');
+        }
+        if (!context.sendJsonData.data || typeof context.sendJsonData.data !== 'object') {
+            throw new Error('Expected sendJsonData.data to be an object');
         }
         if (!Array.isArray(context.sendJsonData.data.result)) {
             throw new Error('Expected sendJsonData.data.result to be an array');

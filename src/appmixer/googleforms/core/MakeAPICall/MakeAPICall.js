@@ -45,7 +45,6 @@ module.exports = {
         if (['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()) && body) {
             try {
                 requestConfig.data = typeof body === 'string' ? JSON.parse(body) : body;
-                requestConfig.json = true;
                 if (!requestConfig.headers['Content-Type']) {
                     requestConfig.headers['Content-Type'] = 'application/json';
                 }

@@ -113,9 +113,7 @@ module.exports = {
             outputType
         } = context.messages.in.content;
 
-        if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Forms', value: 'forms' });
-        }
+        // No need for generateOutputPortOptions logic since we use static options
 
         // Validate page size
         // const validPageSize = Math.min(Math.max(1, pageSize), 1000);

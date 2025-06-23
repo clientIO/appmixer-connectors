@@ -13,45 +13,39 @@ module.exports = {
         const requests = [];
         const updatedFields = [];
         
+        // Build the info object to update
+        const infoToUpdate = {};
+        const maskFields = [];
+        
         if (title) {
-            requests.push({
-                updateFormInfo: {
-                    info: {
-                        title: title
-                    },
-                    updateMask: 'title'
-                }
-            });
+            infoToUpdate.title = title;
+            maskFields.push('title');
             updatedFields.push('title');
         }
         
         if (description) {
-            requests.push({
-                updateFormInfo: {
-                    info: {
-                        description: description
-                    },
-                    updateMask: 'description'
-                }
-            });
+            infoToUpdate.description = description;
+            maskFields.push('description');
             updatedFields.push('description');
         }
         
         if (documentTitle) {
-            requests.push({
-                updateFormInfo: {
-                    info: {
-                        documentTitle: documentTitle
-                    },
-                    updateMask: 'documentTitle'
-                }
-            });
+            infoToUpdate.documentTitle = documentTitle;
+            maskFields.push('documentTitle');
             updatedFields.push('documentTitle');
         }
         
-        if (requests.length === 0) {
+        if (maskFields.length === 0) {
             throw new context.CancelError('At least one field to update must be provided');
         }
+        
+        // Create a single updateFormInfo request with all fields
+        requests.push({
+            updateFormInfo: {
+                info: infoToUpdate,
+                updateMask: maskFields.join(',')
+            }
+        });
         
         try {
             await context.httpRequest({
@@ -63,8 +57,7 @@ module.exports = {
                 },
                 data: {
                     requests: requests
-                },
-                json: true
+                }
             });
             
             return context.sendJson({
