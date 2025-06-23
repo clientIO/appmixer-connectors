@@ -1,38 +1,32 @@
 "use strict";
 
+const HubSyncClient = require('../../HubSyncClient');
+const utils = require('../../utils');
+
 module.exports = {
     async receive(context) {
         const { auth } = context;
         const { workspaceId, databaseId, sheetId, viewId } = context.properties;
         const { fields, externalId } = context.messages.in.content;
-       
-        let fieldsObject = {};
-        try {
-            fieldsObject = JSON.parse(fields);
-        } catch (error) {
-            throw new context.CancelError('Invalid fields JSON');
+        
+        // Validate required properties
+        if (!workspaceId || !databaseId || !sheetId || !viewId) {
+            throw new context.CancelError('Workspace ID, Database ID, Sheet ID and View ID are required');
         }
+        
+        // Parse fields JSON
+        let fieldsObject = utils.parseFields(fields, context);
+        
         // Add globalId to fieldsObject if externalId is provided
         if (externalId) {
             fieldsObject.globalId = externalId;
         }
 
-        const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items`;
+        const client = new HubSyncClient(auth, context);
+        
         try {
-            const response = await context.httpRequest({
-                method: "POST",
-                url,
-                headers: {
-                    "X-Api-Key": auth.apiKey,
-                    "X-Tenant": auth.tenant,
-                    "Content-Type": "application/json"
-                },
-                data: {
-                    "viewId": viewId,
-                    "fields": fieldsObject,
-                }
-            });
-            return context.sendJson(response.data, 'newItem');
+            const newItem = await client.createItem(workspaceId, databaseId, sheetId, viewId, fieldsObject);
+            return context.sendJson(newItem, 'newItem');
         } catch (error) {
             throw new Error(`Failed to create new item: ${error.message}`);
         }

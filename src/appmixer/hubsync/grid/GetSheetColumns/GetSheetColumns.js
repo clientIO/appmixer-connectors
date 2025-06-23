@@ -1,58 +1,34 @@
 
 "use strict";
+
+const HubSyncClient = require('../../HubSyncClient');
+const utils = require('../../utils');
+
 module.exports = {
     async receive(context) {
-        const {auth} = context;
-        const {workspaceId, databaseId, sheetId} = context.properties;
+        const { auth } = context;
+        const { workspaceId, databaseId, sheetId } = context.properties;
+        
+        // Validate required properties
+        if (!workspaceId || !databaseId || !sheetId) {
+            throw new context.CancelError('Workspace ID, Database ID, and Sheet ID are required');
+        }
 
-        const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}`;
-
+        const client = new HubSyncClient(auth, context);
+        
         try {
-            const response = await context.httpRequest({
-                method: "GET",
-                url,
-                headers: {
-                    "X-Api-Key": auth.apiKey,
-                    "X-Tenant": auth.tenant,
-                    "Content-Type": "application/json"
-                },
-                
-            });
-
-            return context.sendJson(response.data.columns, 'columns');
+            const sheet = await client.getSheet(workspaceId, databaseId, sheetId);
+            return context.sendJson(sheet.columns, 'columns');
         } catch (error) {
-            throw new Error(`Failed to fetch sheet: ${error.message}`);
+            throw new Error(`Failed to fetch sheet columns: ${error.message}`);
         }
     },
 
-    columnsToInspector(columns){
-        let inspector = {
-            inputs: {},
-            groups: {
-                columns: {
-                    label: "Columns",
-                    index: 1
-                }
-            }
-        };
-        if (Array.isArray(columns) && columns.length > 0) {
-
-            columns.forEach((column, index) => {
-                inspector.inputs[column.id] = {
-                    label: column.title,
-                    type: "text",
-                    group: "columns",
-                    index: index + 1
-                };
-            });
-        }
-        return inspector;
+    columnsToInspector(columns) {
+        return utils.columnsToInspector(columns);
     },
 
     columnsToSelectArray(columns) {
-        return columns.map(column => ({
-            label: column.title,
-            value: column.id
-        }));
+        return utils.toSelectArray(columns);
     }
 };

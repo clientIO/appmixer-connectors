@@ -1,35 +1,28 @@
 "use strict";
+
+const HubSyncClient = require('../../HubSyncClient');
+const utils = require('../../utils');
+
 module.exports = {
     async receive(context) {
-        const {auth} = context;
-        const {workspaceId} = context.messages.in.content;
-
-        const url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases`;
-
+        const { auth } = context;
+        const { workspaceId } = context.messages.in.content;
+        
+        if (!workspaceId) {
+            throw new context.CancelError('Workspace ID is required');
+        }
+        
+        const client = new HubSyncClient(auth, context);
+        
         try {
-            const response = await context.httpRequest({
-                method: "GET",
-                url,
-                headers: {
-                    "X-Api-Key": auth.apiKey,
-                    "X-Tenant": auth.tenant,
-                    "Content-Type": "application/json"
-                }
-            });
-            //console.log('Fetched workspaces:', response.data);
-            return context.sendJson(response.data.items, 'databases');
+            const databases = await client.getDatabases(workspaceId);
+            return context.sendJson(databases, 'databases');
         } catch (error) {
             throw new Error(`Failed to fetch databases: ${error.message}`);
         }
     },
 
     databasesToSelectArray(databases) {
-        if (databases && Array.isArray(databases)) {
-            return databases.map(database => ({
-                label: database.title,
-                value: database.id
-            }));
-        }
-        return [];
+        return utils.toSelectArray(databases);
     }
 };

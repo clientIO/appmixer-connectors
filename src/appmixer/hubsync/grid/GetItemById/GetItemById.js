@@ -1,32 +1,47 @@
 "use strict";
 
+const HubSyncClient = require('../../HubSyncClient');
+
 module.exports = {
     async receive(context) {
         const { auth } = context;
         const { workspaceId, databaseId, sheetId } = context.properties;
         const { itemId, itemGlobalId } = context.messages.in.content;
-
-        let url = `${auth.baseUrl}/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items/`;
-
-        if (itemId) {
-            url += `${itemId}`;
-        } else if (itemGlobalId) {
-            url += `globals/${itemGlobalId}`;
-        } else {
-            throw new context.CancelError('Either itemId or itemGlobalId must be provided (not both).');
+        
+        // Validate required properties
+        if (!workspaceId || !databaseId || !sheetId) {
+            throw new context.CancelError('Workspace ID, Database ID, and Sheet ID are required');
         }
-
+        
+        if (!itemId && !itemGlobalId) {
+            throw new context.CancelError('Either itemId or itemGlobalId must be provided');
+        }
+        
+        if (itemId && itemGlobalId) {
+            throw new context.CancelError('Please provide either itemId or itemGlobalId, not both');
+        }
+        
+        const client = new HubSyncClient(auth, context);
+        
         try {
-            const response = await context.httpRequest({
-                method: "GET",
-                url,
-                headers: {
-                    "X-Api-Key": auth.apiKey,
-                    "X-Tenant": auth.tenant,
-                    "Content-Type": "application/json"
-                }
-            });
-            return context.sendJson(response.data, 'item');
+            let response;
+            if (itemId) {
+                response = await client.request(
+                    'GET',
+                    `/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items/${itemId}`,
+                    null,
+                    'Failed to get item by ID'
+                );
+            } else {
+                response = await client.request(
+                    'GET',
+                    `/api/datagrid/workspaces/${workspaceId}/databases/${databaseId}/sheets/${sheetId}/items/globals/${itemGlobalId}`,
+                    null,
+                    'Failed to get item by global ID'
+                );
+            }
+            
+            return context.sendJson(response, 'item');
         } catch (error) {
             throw new Error(`Failed to get item: ${error.message}`);
         }
