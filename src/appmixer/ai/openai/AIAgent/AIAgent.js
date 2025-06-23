@@ -71,10 +71,6 @@ module.exports = {
             data: {}
         });
 
-        if (!data) {
-            throw new context.CancelError(`Error listing MCP tools on component '${componentId}': No data returned`);
-        }
-
         return data;
     },
 
@@ -88,10 +84,6 @@ module.exports = {
                 arguments: args
             }
         });
-
-        if (!data) {
-            throw new context.CancelError(`Error calling MCP tool '${toolName}' on component '${componentId}': No data returned`);
-        }
 
         return data;
     },
