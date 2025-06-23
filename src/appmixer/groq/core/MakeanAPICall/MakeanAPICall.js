@@ -9,11 +9,13 @@ module.exports = {
 
         // https://console.groq.com/docs/api-reference#api-call
         const { data } = await context.httpRequest({
-            method: 'POST',
-            url: 'https://api.groq.com/v1/api/call',
+            method: method,
+            url: `https://api.groq.com/v1/${url}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
-            }
+                'Authorization': `Bearer ${context.auth.apiToken}`,
+                ...headers, // Spread any additional headers provided in the input
+            },
+            data: body || null, // Use body if provided, otherwise null
         });
 
         return context.sendJson(data, 'out');

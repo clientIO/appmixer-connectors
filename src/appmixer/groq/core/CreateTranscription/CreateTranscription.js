@@ -1,21 +1,44 @@
-
 'use strict';
 
-const lib = require('../../lib.generated');
+const FormData = require('form-data');
+
 module.exports = {
     async receive(context) {
+        const {
+            model,
+            file,
+            language,
+            prompt,
+            response_format,
+            temperature
+        } = context.messages.in.content;
 
-        const { audioUrl, language } = context.messages.in.content;
+        const fileStream = await context.getFileReadStream(file);
+        const fileInfo = await context.getFileInfo(file);
 
-        // https://console.groq.com/docs/api-reference#transcription
-        const { data } = await context.httpRequest({
-            method: 'POST',
-            url: 'https://api.groq.com/v1/audio/transcription',
-            headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`
-            }
+        const form = new FormData();
+        form.append('model', model);
+        form.append('file', fileStream, {
+            filename: fileInfo.filename,
+            contentType: fileInfo.contentType,
+            knownLength: fileInfo.length
         });
 
-        return context.sendJson(data, 'out');
+        if (language) form.append('language', language);
+        if (prompt) form.append('prompt', prompt);
+        if (response_format) form.append('response_format', response_format);
+        if (temperature !== undefined) form.append('temperature', temperature.toString());
+
+        const response = await context.httpRequest({
+            method: 'POST',
+            url: 'https://api.groq.com/openai/v1/audio/transcriptions',
+            headers: {
+                ...form.getHeaders(),
+                Authorization: `Bearer ${context.auth.apiToken}`
+            },
+            data: form
+        });
+
+        return context.sendJson(response.data, 'out');
     }
 };
