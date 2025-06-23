@@ -116,7 +116,7 @@ const toCsv = (array) => {
                 if (typeof property === 'object') {
                     return JSON.stringify(property);
                 }
-                return property != null ? property : '';;
+                return property != null ? property : '';
             }).join(',');
         })
 

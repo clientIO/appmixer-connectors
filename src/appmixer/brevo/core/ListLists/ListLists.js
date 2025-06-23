@@ -1,6 +1,6 @@
-const lib = require('../../lib.generated');
-
 'use-strict';
+
+const lib = require('../../lib.generated');
 
 module.exports = {
     async receive(context) {
@@ -30,6 +30,9 @@ module.exports = {
 
             if (offset === 0) {
                 count = data.count;
+                if (!count) {
+                    return context.sendJson({}, 'notFound');
+                }
             }
 
             allLists = allLists.concat(data.lists);
