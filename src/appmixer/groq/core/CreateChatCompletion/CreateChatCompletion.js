@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-    receive: async function (context) {
+    receive: async function(context) {
         const {
             conversationId,
             instructions,

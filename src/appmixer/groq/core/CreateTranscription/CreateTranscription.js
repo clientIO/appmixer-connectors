@@ -9,7 +9,7 @@ module.exports = {
             file,
             language,
             prompt,
-            response_format,
+            responseFormat,
             temperature
         } = context.messages.in.content;
 
@@ -26,7 +26,7 @@ module.exports = {
 
         if (language) form.append('language', language);
         if (prompt) form.append('prompt', prompt);
-        if (response_format) form.append('response_format', response_format);
+        if (responseFormat) form.append('response_format', responseFormat);
         if (temperature !== undefined) form.append('temperature', temperature.toString());
 
         const response = await context.httpRequest({

@@ -1,7 +1,5 @@
-
 'use strict';
 
-const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
 
@@ -13,9 +11,9 @@ module.exports = {
             url: `https://api.groq.com/v1/${url}`,
             headers: {
                 'Authorization': `Bearer ${context.auth.apiToken}`,
-                ...headers, // Spread any additional headers provided in the input
+                ...headers // Spread any additional headers provided in the input
             },
-            data: body || null, // Use body if provided, otherwise null
+            data: body || null // Use body if provided, otherwise null
         });
 
         return context.sendJson(data, 'out');
