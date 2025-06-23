@@ -1,3 +1,5 @@
+'use-strict';
+
 module.exports = {
     async receive(context) {
         const { campaignId, subject, to, contentType, body, bcc, cc } = context.messages.in.content;

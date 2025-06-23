@@ -1,5 +1,7 @@
 const lib = require('../../lib.generated');
 
+'use-strict';
+
 module.exports = {
     async receive(context) {
         const { listId, outputType } = context.messages.in.content;
@@ -32,7 +34,7 @@ module.exports = {
 
             allLists = allLists.concat(data.contacts);
 
-            offset += allLists.length;
+            offset += data.contacts.length;
 
         } while (count > allLists.length);
 

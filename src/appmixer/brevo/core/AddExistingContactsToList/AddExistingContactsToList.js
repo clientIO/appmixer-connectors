@@ -1,3 +1,7 @@
+'use-strict';
+
+'use-strict';
+
 module.exports = {
     async receive(context) {
         const { listId, contactEmails } = context.messages.in.content;
@@ -14,6 +18,8 @@ module.exports = {
             }
         });
 
-        return context.sendJson(data, 'out');
+        console.log('data', data);
+
+        return context.sendJson(data.contacts, 'out');
     }
 };

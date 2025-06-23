@@ -1,3 +1,5 @@
+'use-strict';
+
 module.exports = {
     async receive(context) {
         const { listId, name, folderId } = context.messages.in.content;

@@ -1,5 +1,7 @@
 const lib = require('../../lib.generated');
 
+'use-strict';
+
 module.exports = {
     async receive(context) {
         const { outputType } = context.messages.in.content;
@@ -32,7 +34,7 @@ module.exports = {
 
             allFolders = allFolders.concat(data.folders);
 
-            offset += allFolders.length;
+            offset += data.folders.length;
 
         } while (count > allFolders.length);
 

@@ -1,3 +1,5 @@
+'use-strict';
+
 module.exports = {
     async receive(context) {
         const { contactId, email, emailBlacklisted, smsBlacklisted, listIds } = context.messages.in.content;

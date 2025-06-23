@@ -99,7 +99,14 @@ module.exports = {
  * @returns {string}
  */
 const toCsv = (array) => {
+    if (!array || array.length === 0) {
+        return '';
+    }
+
     const headers = Object.keys(array[0]);
+    if (headers.length === 0) {
+        return '';
+    }
 
     return [
         headers.join(','),
@@ -109,7 +116,7 @@ const toCsv = (array) => {
                 if (typeof property === 'object') {
                     return JSON.stringify(property);
                 }
-                return property;
+                return property != null ? property : '';;
             }).join(',');
         })
 

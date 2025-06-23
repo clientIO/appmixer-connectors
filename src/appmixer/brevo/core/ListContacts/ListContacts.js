@@ -1,5 +1,7 @@
 const lib = require('../../lib.generated');
 
+'use-strict';
+
 module.exports = {
     async receive(context) {
         const { outputType } = context.messages.in.content;
@@ -32,7 +34,7 @@ module.exports = {
 
             allContacts = allContacts.concat(data.contacts);
 
-            offset += allContacts.length;
+            offset += data.contacts.length;
 
         } while (count > allContacts.length);
 
