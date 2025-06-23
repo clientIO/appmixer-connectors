@@ -10,7 +10,7 @@ module.exports = {
             method: method,
             url: `https://api.groq.com/v1/${url}`,
             headers: {
-                'Authorization': `Bearer ${context.auth.apiToken}`,
+                'Authorization': `Bearer ${context.auth.apiKey}`,
                 ...headers // Spread any additional headers provided in the input
             },
             data: body || null // Use body if provided, otherwise null

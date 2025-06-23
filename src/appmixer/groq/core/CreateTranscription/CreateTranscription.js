@@ -34,7 +34,7 @@ module.exports = {
             url: 'https://api.groq.com/openai/v1/audio/transcriptions',
             headers: {
                 ...form.getHeaders(),
-                Authorization: `Bearer ${context.auth.apiToken}`
+                Authorization: `Bearer ${context.auth.apiKey}`
             },
             data: form
         });
