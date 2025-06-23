@@ -63,25 +63,37 @@ module.exports = {
         return toolsDefinition.concat(mcpToolsDefinition);
     },
 
-    mcpListTools: function(context, componentId) {
+    mcpListTools: async function(context, componentId) {
 
-        return context.callAppmixer({
-            endPoint: `/flows/${context.flowId}/components/${componentId}?action=listTools`,
+        const { data } = await context.httpRequest({
+            url: `${process.env.APPMIXER_API_URL}/flows/${context.flowId}/components/${componentId}?action=listTools`,
             method: 'POST',
-            body: {}
+            data: {}
         });
+
+        if (!data) {
+            throw new context.CancelError(`Error calling MCP tool '${toolName}' on component '${componentId}': ${data.error}`);
+        }
+
+        return data;
     },
 
-    mcpCallTool: function(context, componentId, toolName, args) {
+    mcpCallTool: async function(context, componentId, toolName, args) {
 
-        return context.callAppmixer({
-            endPoint: `/flows/${context.flowId}/components/${componentId}?action=callTool`,
+        const { data } = await context.httpRequest({
+            url: `${process.env.APPMIXER_API_URL}/flows/${context.flowId}/components/${componentId}?action=callTool`,
             method: 'POST',
-            body: {
+            data: {
                 name: toolName,
                 arguments: args
             }
         });
+
+        if (!data) {
+            throw new context.CancelError(`Error calling MCP tool '${toolName}' on component '${componentId}': ${data.error}`);
+        }
+
+        return data;
     },
 
     isMCPserver: function(context, componentId) {
