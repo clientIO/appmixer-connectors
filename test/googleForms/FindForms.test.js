@@ -10,7 +10,7 @@ describe('FindForms Component', function() {
 
     before(function() {
         // Load the component
-        FindForms = require(path.join(__dirname, '../../src/appmixer/googleforms/core/FindForms/FindForms.js'));
+        FindForms = require(path.join(__dirname, '../../src/appmixer/googleForms/core/FindForms/FindForms.js'));
 
         // Mock context
         context = {

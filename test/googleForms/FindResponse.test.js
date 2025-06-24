@@ -4,13 +4,13 @@ const assert = require('assert');
 
 describe('GetResponse Component', function() {
     let context;
-    let ListResponses;
+    let component;
 
     this.timeout(30000);
 
     before(async function() {
         // Load the component
-        ListResponses = require(path.join(__dirname, '../../src/appmixer/googleforms/core/ListResponses/ListResponses.js'));
+        component = require(path.join(__dirname, '../../src/appmixer/googleForms/core/FindResponses/FindResponses.js'));
 
         // Mock context
         context = {
@@ -43,7 +43,7 @@ describe('GetResponse Component', function() {
             formId: '1mYtGExmv-ztm-CVhK5x3f1eDDPDK2iXda7wD5LYgP9s'
         };
 
-        await ListResponses.receive(context);
+        await component.receive(context);
         // assert.fail('Should have thrown an error');
         // assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
         // assert(error.message.includes('Form ID is required'), 'Expected error message to include "Form ID is required"');

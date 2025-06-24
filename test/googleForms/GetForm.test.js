@@ -11,7 +11,7 @@ describe('GetForm Component', function() {
 
     before(async function() {
         // Load the component
-        GetForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/GetForm/GetForm.js'));
+        GetForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/GetForm/GetForm.js'));
 
         // Mock context
         context = {

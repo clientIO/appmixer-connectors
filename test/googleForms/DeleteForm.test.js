@@ -12,8 +12,8 @@ describe('DeleteForm Component', function() {
 
     before(async function() {
         // Load the components
-        DeleteForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/DeleteForm/DeleteForm.js'));
-        CreateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/CreateForm/CreateForm.js'));
+        DeleteForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/DeleteForm/DeleteForm.js'));
+        CreateForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/CreateForm/CreateForm.js'));
 
         // Mock context
         context = {

@@ -12,8 +12,8 @@ describe('UpdateForm Component', function() {
 
     before(async function() {
         // Load the components
-        UpdateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/UpdateForm/UpdateForm.js'));
-        CreateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/CreateForm/CreateForm.js'));
+        UpdateForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/UpdateForm/UpdateForm.js'));
+        CreateForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/CreateForm/CreateForm.js'));
 
         // Mock context
         context = {

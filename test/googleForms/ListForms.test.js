@@ -10,7 +10,7 @@ describe('ListForms Component', function() {
 
     before(function() {
         // Load the component
-        ListForms = require(path.join(__dirname, '../../src/appmixer/googleforms/core/ListForms/ListForms.js'));
+        ListForms = require(path.join(__dirname, '../../src/appmixer/googleForms/core/ListForms/ListForms.js'));
 
         // Mock context
         context = {

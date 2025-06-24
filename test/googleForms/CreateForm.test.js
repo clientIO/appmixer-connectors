@@ -10,7 +10,7 @@ describe('CreateForm Component', function() {
 
     before(function() {
         // Load the component
-        CreateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/CreateForm/CreateForm.js'));
+        CreateForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/CreateForm/CreateForm.js'));
 
         // Mock context
         context = {

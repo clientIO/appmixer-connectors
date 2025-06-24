@@ -130,7 +130,7 @@ module.exports = {
         const params = {
             q: query,
             // pageSize: validPageSize,
-            orderBy: orderBy,
+            orderBy,
             fields: 'nextPageToken,files(id,name,mimeType,createdTime,modifiedTime,webViewLink,iconLink,thumbnailLink,owners,lastModifyingUser,shared,ownedByMe,capabilities)',
             supportsAllDrives: true,
             includeItemsFromAllDrives: true

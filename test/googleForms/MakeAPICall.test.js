@@ -11,7 +11,7 @@ describe('MakeAPICall Component', function() {
 
     before(async function() {
         // Load the component
-        MakeAPICall = require(path.join(__dirname, '../../src/appmixer/googleforms/core/MakeAPICall/MakeAPICall.js'));
+        MakeAPICall = require(path.join(__dirname, '../../src/appmixer/googleForms/core/MakeAPICall/MakeAPICall.js'));
 
         // Mock context
         context = {

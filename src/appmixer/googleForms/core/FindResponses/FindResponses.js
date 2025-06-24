@@ -3,7 +3,7 @@
 module.exports = {
 
     async receive(context) {
-        const { formId, responseId } = context.messages.in.content;
+        const { formId, filter } = context.messages.in.content;
 
         try {
             const { data } = await context.httpRequest({
