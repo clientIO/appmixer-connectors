@@ -3,7 +3,7 @@
 module.exports = {
 
     async receive(context) {
-        const { formId, title, description, documentTitle } = context.messages.in.content;
+        const { formId, title, description } = context.messages.in.content;
 
         // Build the requests array for batch update
         const requests = [];
@@ -25,15 +25,11 @@ module.exports = {
             updatedFields.push('description');
         }
 
-        if (documentTitle) {
-            infoToUpdate.documentTitle = documentTitle;
-            maskFields.push('documentTitle');
-            updatedFields.push('documentTitle');
-        }
-
-        if (maskFields.length === 0) {
-            throw new context.CancelError('At least one field to update must be provided');
-        }
+        // if (documentTitle) {
+        //     infoToUpdate.documentTitle = documentTitle;
+        //     maskFields.push('documentTitle');
+        //     updatedFields.push('documentTitle');
+        // }
 
         // Create a single updateFormInfo request with all fields
         requests.push({
@@ -56,12 +52,7 @@ module.exports = {
                 }
             });
 
-            return context.sendJson({
-                success: true,
-                formId: formId,
-                message: 'Form successfully updated',
-                updatedFields: updatedFields
-            }, 'out');
+            return context.sendJson({ updatedFields }, 'out');
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 throw new context.CancelError('Form not found');

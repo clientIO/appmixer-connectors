@@ -92,7 +92,7 @@ const schema = {
             'canUntrash': { 'type': 'boolean', 'title': 'Capabilities.Can Untrash' }
         }, 'title': 'Capabilities'
     },
-    'id': { 'type': 'string', 'title': 'Id' },
+    'id': { 'type': 'string', 'title': 'Form Id' },
     'name': { 'type': 'string', 'title': 'Name' },
     'mimeType': { 'type': 'string', 'title': 'Mime Type' },
     'webViewLink': { 'type': 'string', 'title': 'Web View Link' },
