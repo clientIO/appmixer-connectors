@@ -17,6 +17,7 @@ describe('GetResponse Component', function() {
             auth: {
                 accessToken: process.env.GOOGLE_FORMS_ACCESS_TOKEN
             },
+            properties: {},
             messages: {
                 in: {
                     content: {}
@@ -40,7 +41,8 @@ describe('GetResponse Component', function() {
         if (!context.auth.accessToken) this.skip();
 
         context.messages.in.content = {
-            formId: '1mYtGExmv-ztm-CVhK5x3f1eDDPDK2iXda7wD5LYgP9s'
+            formId: '1mYtGExmv-ztm-CVhK5x3f1eDDPDK2iXda7wD5LYgP9s',
+            outputType: 'object'
         };
 
         await component.receive(context);
