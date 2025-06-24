@@ -4,13 +4,13 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 describe('CreateForm Component', function() {
     let context;
     let CreateForm;
-    
+
     this.timeout(30000);
-    
+
     before(function() {
         // Load the component
         CreateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/CreateForm/CreateForm.js'));
-        
+
         // Mock context
         context = {
             auth: {
@@ -32,19 +32,20 @@ describe('CreateForm Component', function() {
                 }
             }
         };
-        
+
         if (!context.auth.accessToken) {
             throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
         }
     });
-    
+
     it('should create a form with title only', async function() {
         context.messages.in.content = {
             title: 'Test Form - ' + Date.now()
         };
-        
+
         const result = await CreateForm.receive(context);
-        
+
+        console.log(result);
         if (!result || typeof result !== 'object') {
             throw new Error('Expected result to be an object');
         }
@@ -67,16 +68,16 @@ describe('CreateForm Component', function() {
             throw new Error('Expected port to be "out"');
         }
     });
-    
+
     it('should create a form with title and document title', async function() {
         const timestamp = Date.now();
         context.messages.in.content = {
             title: 'Test Form - ' + timestamp,
             documentTitle: 'Test Document - ' + timestamp
         };
-        
+
         const result = await CreateForm.receive(context);
-        
+
         if (!result || typeof result !== 'object') {
             throw new Error('Expected result to be an object');
         }
@@ -93,10 +94,10 @@ describe('CreateForm Component', function() {
             throw new Error('Expected documentTitle to match input');
         }
     });
-    
+
     it('should throw error when title is missing', async function() {
         context.messages.in.content = {};
-        
+
         try {
             await CreateForm.receive(context);
             throw new Error('Should have thrown an error');

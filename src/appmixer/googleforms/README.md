@@ -1,1 +1,3 @@
 TEST_SERVER_URL=http://localhost:2200 appmixer test auth login src/appmixer/googleforms/auth.js -c 1038500334679-25o83vj5269qkj67frpgtgs0ndbaq2la.apps.googleusercontent.com -s CJrM6NIQ87qfIrhbYK3tq7Eh -o "https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/forms.body.readonly,https://www.googleapis.com/auth/forms.body,https://www.googleapis.com/auth/drive.file"
+
+$ appmixer test auth refresh src/appmixer/googleforms/auth.js 

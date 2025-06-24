@@ -5,13 +5,13 @@ describe('GetForm Component', function() {
     let context;
     let GetForm;
     let testFormId;
-    
+
     this.timeout(30000);
-    
+
     before(async function() {
         // Load the component
         GetForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/GetForm/GetForm.js'));
-        
+
         // Mock context
         context = {
             auth: {
@@ -33,11 +33,11 @@ describe('GetForm Component', function() {
                 }
             }
         };
-        
+
         if (!context.auth.accessToken) {
             throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
         }
-        
+
         // Get a test form ID by listing forms
         try {
             const response = await context.httpRequest({
@@ -47,12 +47,12 @@ describe('GetForm Component', function() {
                     'Authorization': `Bearer ${context.auth.accessToken}`
                 },
                 params: {
-                    q: "mimeType='application/vnd.google-apps.form'",
+                    q: 'mimeType=\'application/vnd.google-apps.form\'',
                     fields: 'files(id)',
                     pageSize: 1
                 }
             });
-            
+
             if (response.data && response.data.files && response.data.files.length > 0) {
                 testFormId = response.data.files[0].id;
             }
@@ -60,18 +60,19 @@ describe('GetForm Component', function() {
             console.warn('Could not get test form ID:', error.message);
         }
     });
-    
+
     it('should get form by ID', async function() {
-        if (!testFormId) {
-            this.skip('No test form ID available');
-        }
-        
+        // if (!testFormId) {
+        //     this.skip('No test form ID available');
+        // }
+
         context.messages.in.content = {
-            formId: testFormId
+            formId: '1Lqh0XbVTiVFKBlzwFSN3a_Csd3WNyIxv3TaNAdcnvSE'
         };
-        
+
         const result = await GetForm.receive(context);
-        
+
+        console.log(result.data);
         if (!result || typeof result !== 'object') {
             throw new Error('Expected result to be an object');
         }
@@ -93,7 +94,7 @@ describe('GetForm Component', function() {
         if (result.port !== 'out') {
             throw new Error('Expected port to be "out"');
         }
-        
+
         // Check that form property is added
         if (!result.data.form || typeof result.data.form !== 'object') {
             throw new Error('Expected result.data.form to be an object');
@@ -102,10 +103,10 @@ describe('GetForm Component', function() {
             throw new Error('Expected form.formId to match input');
         }
     });
-    
+
     it('should throw error when formId is missing', async function() {
         context.messages.in.content = {};
-        
+
         try {
             await GetForm.receive(context);
             throw new Error('Should have thrown an error');

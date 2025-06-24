@@ -4,7 +4,7 @@ module.exports = {
 
     async receive(context) {
         const { title, documentTitle } = context.messages.in.content;
-        
+
         if (!title) {
             throw new context.CancelError('Title is required');
         }
@@ -27,7 +27,7 @@ module.exports = {
                 'Authorization': `Bearer ${context.auth.accessToken}`,
                 'Content-Type': 'application/json'
             },
-            data: formData,
+            data: formData
         });
 
         return context.sendJson(data, 'out');
