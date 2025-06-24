@@ -148,6 +148,10 @@ module.exports = {
         // Calculate total forms and whether there are more pages
         const forms = data.files || [];
 
+        if (forms.length === 0) {
+            return context.sendJson({}, 'notFound');
+        }
+
         return lib.sendArrayOutput({ context, records: forms, outputType });
     }
 };
