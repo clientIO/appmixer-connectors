@@ -4,13 +4,13 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 describe('FindForms Component', function() {
     let context;
     let FindForms;
-    
+
     this.timeout(30000);
-    
+
     before(function() {
         // Load the component
         FindForms = require(path.join(__dirname, '../../src/appmixer/googleforms/core/FindForms/FindForms.js'));
-        
+
         // Mock context
         context = {
             auth: {
@@ -35,19 +35,19 @@ describe('FindForms Component', function() {
                 }
             }
         };
-        
+
         if (!context.auth.accessToken) {
             throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
         }
     });
-    
+
     it('should find forms without search query', async function() {
         context.messages.in.content = {
             outputType: 'array'
         };
-        
+
         await FindForms.receive(context);
-        
+
         if (!context.sendJsonData || typeof context.sendJsonData !== 'object') {
             throw new Error('Expected sendJson to be called');
         }
@@ -63,7 +63,7 @@ describe('FindForms Component', function() {
         if (context.sendJsonData.port !== 'out') {
             throw new Error('Expected port to be "out"');
         }
-        
+
         if (context.sendJsonData.data.result.length > 0) {
             const form = context.sendJsonData.data.result[0];
             if (!form.id) {
@@ -77,15 +77,15 @@ describe('FindForms Component', function() {
             }
         }
     });
-    
+
     it('should default to array output type when not specified', async function() {
         context.messages.in.content = {};
-        
+
         // Reset sendJsonData for this test
         context.sendJsonData = null;
-        
+
         await FindForms.receive(context);
-        
+
         if (!context.sendJsonData || typeof context.sendJsonData !== 'object') {
             throw new Error('Expected sendJson to be called');
         }
