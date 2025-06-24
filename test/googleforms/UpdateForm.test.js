@@ -1,19 +1,20 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const assert = require('assert');
 
 describe('UpdateForm Component', function() {
     let context;
     let UpdateForm;
     let CreateForm;
     let testFormId;
-    
+
     this.timeout(60000);
-    
+
     before(async function() {
         // Load the components
         UpdateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/UpdateForm/UpdateForm.js'));
         CreateForm = require(path.join(__dirname, '../../src/appmixer/googleforms/core/CreateForm/CreateForm.js'));
-        
+
         // Mock context
         context = {
             auth: {
@@ -35,96 +36,68 @@ describe('UpdateForm Component', function() {
                 }
             }
         };
-        
-        if (!context.auth.accessToken) {
-            throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
-        }
-        
+
+        assert(context.auth.accessToken, 'GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
+
         // Create a test form for updating
         try {
             context.messages.in.content = {
                 title: 'Test Form for Update - ' + Date.now()
             };
-            
+
             const createResult = await CreateForm.receive(context);
             testFormId = createResult.data.formId;
         } catch (error) {
             console.warn('Could not create test form:', error.message);
         }
     });
-    
+
     it('should update form title', async function() {
-        if (!testFormId) {
-            this.skip('No test form ID available');
-        }
-        
+        assert(testFormId, 'No test form ID available');
+
         const newTitle = 'Updated Test Form - ' + Date.now();
         context.messages.in.content = {
             formId: testFormId,
             title: newTitle
         };
-        
+
         const result = await UpdateForm.receive(context);
-        
-        if (!result || typeof result !== 'object') {
-            throw new Error('Expected result to be an object');
-        }
-        if (!result.data || typeof result.data !== 'object') {
-            throw new Error('Expected result.data to be an object');
-        }
-        if (result.data.success !== true) {
-            throw new Error('Expected result.data.success to be true');
-        }
-        if (result.data.formId !== testFormId) {
-            throw new Error('Expected formId to match input');
-        }
-        if (!result.data.message.includes('successfully updated')) {
-            throw new Error('Expected success message');
-        }
-        if (!Array.isArray(result.data.updatedFields)) {
-            throw new Error('Expected updatedFields to be an array');
-        }
-        if (!result.data.updatedFields.includes('title')) {
-            throw new Error('Expected updatedFields to include "title"');
-        }
-        if (result.port !== 'out') {
-            throw new Error('Expected port to be "out"');
-        }
+
+        assert(result && typeof result === 'object', 'Expected result to be an object');
+        assert(result.data && typeof result.data === 'object', 'Expected result.data to be an object');
+        assert.strictEqual(result.data.success, true, 'Expected result.data.success to be true');
+        assert.strictEqual(result.data.formId, testFormId, 'Expected formId to match input');
+        assert(result.data.message.includes('successfully updated'), 'Expected success message');
+        assert(Array.isArray(result.data.updatedFields), 'Expected updatedFields to be an array');
+        assert(result.data.updatedFields.includes('title'), 'Expected updatedFields to include "title"');
+        assert.strictEqual(result.port, 'out', 'Expected port to be "out"');
     });
-    
+
     it('should throw error when formId is missing', async function() {
         context.messages.in.content = {
             title: 'Some title'
         };
-        
+
         try {
             await UpdateForm.receive(context);
-            throw new Error('Should have thrown an error');
+            assert.fail('Should have thrown an error');
         } catch (error) {
-            if (error.name !== 'CancelError') {
-                throw new Error('Expected CancelError');
-            }
-            if (!error.message.includes('Form ID is required')) {
-                throw new Error('Expected error message to include "Form ID is required"');
-            }
+            assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
+            assert(error.message.includes('Form ID is required'), 'Expected error message to include "Form ID is required"');
         }
     });
-    
+
     it('should throw error when no fields to update', async function() {
         context.messages.in.content = {
             formId: testFormId || 'test-id'
         };
-        
+
         try {
             await UpdateForm.receive(context);
-            throw new Error('Should have thrown an error');
+            assert.fail('Should have thrown an error');
         } catch (error) {
-            if (error.name !== 'CancelError') {
-                throw new Error('Expected CancelError');
-            }
-            if (!error.message.includes('At least one field to update must be provided')) {
-                throw new Error('Expected error about missing fields');
-            }
+            assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
+            assert(error.message.includes('At least one field to update must be provided'), 'Expected error about missing fields');
         }
     });
 });

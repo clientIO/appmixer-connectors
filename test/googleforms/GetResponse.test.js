@@ -1,5 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const assert = require('assert');
 
 describe('GetResponse Component', function() {
     let context;
@@ -33,9 +34,7 @@ describe('GetResponse Component', function() {
             }
         };
         
-        if (!context.auth.accessToken) {
-            throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
-        }
+        assert(context.auth.accessToken, 'GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
     });
     
     it('should throw error when formId is missing', async function() {
@@ -45,14 +44,10 @@ describe('GetResponse Component', function() {
         
         try {
             await GetResponse.receive(context);
-            throw new Error('Should have thrown an error');
+            assert.fail('Should have thrown an error');
         } catch (error) {
-            if (error.name !== 'CancelError') {
-                throw new Error('Expected CancelError');
-            }
-            if (!error.message.includes('Form ID is required')) {
-                throw new Error('Expected error message to include "Form ID is required"');
-            }
+            assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
+            assert(error.message.includes('Form ID is required'), 'Expected error message to include "Form ID is required"');
         }
     });
     
@@ -63,14 +58,10 @@ describe('GetResponse Component', function() {
         
         try {
             await GetResponse.receive(context);
-            throw new Error('Should have thrown an error');
+            assert.fail('Should have thrown an error');
         } catch (error) {
-            if (error.name !== 'CancelError') {
-                throw new Error('Expected CancelError');
-            }
-            if (!error.message.includes('Response ID is required')) {
-                throw new Error('Expected error message to include "Response ID is required"');
-            }
+            assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
+            assert(error.message.includes('Response ID is required'), 'Expected error message to include "Response ID is required"');
         }
     });
 });

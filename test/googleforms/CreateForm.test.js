@@ -1,5 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const assert = require('assert');
 
 describe('CreateForm Component', function() {
     let context;
@@ -33,9 +34,7 @@ describe('CreateForm Component', function() {
             }
         };
 
-        if (!context.auth.accessToken) {
-            throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
-        }
+        assert(context.auth.accessToken, 'GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
     });
 
     it('should create a form with title only', async function() {
@@ -48,27 +47,13 @@ describe('CreateForm Component', function() {
 
             console.log('CreateForm result:', JSON.stringify(result, null, 2));
 
-            if (!result || typeof result !== 'object') {
-                throw new Error('Expected result to be an object');
-            }
-            if (!result.data || typeof result.data !== 'object') {
-                throw new Error('Expected result.data to be an object');
-            }
-            if (!result.data.formId || typeof result.data.formId !== 'string') {
-                throw new Error('Expected result.data.formId to be a string');
-            }
-            if (!result.data.info || typeof result.data.info !== 'object') {
-                throw new Error('Expected result.data.info to be an object');
-            }
-            if (result.data.info.title !== context.messages.in.content.title) {
-                throw new Error(`Expected title to match input. Got: ${result.data.info.title}, Expected: ${context.messages.in.content.title}`);
-            }
-            if (!result.data.responderUri || typeof result.data.responderUri !== 'string') {
-                throw new Error('Expected result.data.responderUri to be a string');
-            }
-            if (result.port !== 'out') {
-                throw new Error('Expected port to be "out"');
-            }
+            assert(result && typeof result === 'object', 'Expected result to be an object');
+            assert(result.data && typeof result.data === 'object', 'Expected result.data to be an object');
+            assert(result.data.formId && typeof result.data.formId === 'string', 'Expected result.data.formId to be a string');
+            assert(result.data.info && typeof result.data.info === 'object', 'Expected result.data.info to be an object');
+            assert.strictEqual(result.data.info.title, context.messages.in.content.title, `Expected title to match input. Got: ${result.data.info.title}, Expected: ${context.messages.in.content.title}`);
+            assert(result.data.responderUri && typeof result.data.responderUri === 'string', 'Expected result.data.responderUri to be a string');
+            assert.strictEqual(result.port, 'out', 'Expected port to be "out"');
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 console.log('Authentication failed - access token may be expired');
@@ -91,21 +76,11 @@ describe('CreateForm Component', function() {
 
             console.log('CreateForm with documentTitle result:', JSON.stringify(result, null, 2));
 
-            if (!result || typeof result !== 'object') {
-                throw new Error('Expected result to be an object');
-            }
-            if (!result.data || typeof result.data !== 'object') {
-                throw new Error('Expected result.data to be an object');
-            }
-            if (!result.data.formId || typeof result.data.formId !== 'string') {
-                throw new Error('Expected result.data.formId to be a string');
-            }
-            if (result.data.info.title !== context.messages.in.content.title) {
-                throw new Error(`Expected title to match input. Got: ${result.data.info.title}, Expected: ${context.messages.in.content.title}`);
-            }
-            if (result.data.info.documentTitle !== context.messages.in.content.documentTitle) {
-                throw new Error(`Expected documentTitle to match input. Got: ${result.data.info.documentTitle}, Expected: ${context.messages.in.content.documentTitle}`);
-            }
+            assert(result && typeof result === 'object', 'Expected result to be an object');
+            assert(result.data && typeof result.data === 'object', 'Expected result.data to be an object');
+            assert(result.data.formId && typeof result.data.formId === 'string', 'Expected result.data.formId to be a string');
+            assert.strictEqual(result.data.info.title, context.messages.in.content.title, `Expected title to match input. Got: ${result.data.info.title}, Expected: ${context.messages.in.content.title}`);
+            assert.strictEqual(result.data.info.documentTitle, context.messages.in.content.documentTitle, `Expected documentTitle to match input. Got: ${result.data.info.documentTitle}, Expected: ${context.messages.in.content.documentTitle}`);
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 console.log('Authentication failed - access token may be expired');
@@ -121,14 +96,10 @@ describe('CreateForm Component', function() {
 
         try {
             await CreateForm.receive(context);
-            throw new Error('Should have thrown an error');
+            assert.fail('Should have thrown an error');
         } catch (error) {
-            if (error.name !== 'CancelError') {
-                throw new Error(`Expected CancelError, got: ${error.name}`);
-            }
-            if (!error.message.toLowerCase().includes('title')) {
-                throw new Error(`Expected error message to include "title", got: ${error.message}`);
-            }
+            assert.strictEqual(error.name, 'CancelError', `Expected CancelError, got: ${error.name}`);
+            assert(error.message.toLowerCase().includes('title'), `Expected error message to include "title", got: ${error.message}`);
         }
     });
 
@@ -139,14 +110,10 @@ describe('CreateForm Component', function() {
 
         try {
             await CreateForm.receive(context);
-            throw new Error('Should have thrown an error');
+            assert.fail('Should have thrown an error');
         } catch (error) {
-            if (error.name !== 'CancelError') {
-                throw new Error(`Expected CancelError, got: ${error.name}`);
-            }
-            if (!error.message.toLowerCase().includes('title')) {
-                throw new Error(`Expected error message to include "title", got: ${error.message}`);
-            }
+            assert.strictEqual(error.name, 'CancelError', `Expected CancelError, got: ${error.name}`);
+            assert(error.message.toLowerCase().includes('title'), `Expected error message to include "title", got: ${error.message}`);
         }
     });
 });

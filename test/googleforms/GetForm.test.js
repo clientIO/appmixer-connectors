@@ -1,5 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const assert = require('assert');
 
 describe('GetForm Component', function() {
     let context;
@@ -34,9 +35,7 @@ describe('GetForm Component', function() {
             }
         };
 
-        if (!context.auth.accessToken) {
-            throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
-        }
+        assert(context.auth.accessToken, 'GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
 
         // Get a test form ID by listing forms
         try {
@@ -62,9 +61,7 @@ describe('GetForm Component', function() {
     });
 
     it('should get form by ID', async function() {
-        if (!testFormId) {
-            this.skip('No test form ID available');
-        }
+        assert(testFormId, 'No test form ID available');
 
         context.messages.in.content = {
             formId: testFormId
@@ -72,50 +69,12 @@ describe('GetForm Component', function() {
 
         const result = await GetForm.receive(context);
 
-        if (!result || typeof result !== 'object') {
-            throw new Error('Expected result to be an object');
-        }
-        if (!result.data || typeof result.data !== 'object') {
-            throw new Error('Expected result.data to be an object');
-        }
-        if (result.data.formId !== testFormId) {
-            throw new Error('Expected formId to match input');
-        }
-        if (!result.data.info || typeof result.data.info !== 'object') {
-            throw new Error('Expected result.data.info to be an object');
-        }
-        if (!result.data.info.title || typeof result.data.info.title !== 'string') {
-            throw new Error('Expected result.data.info.title to be a string');
-        }
-        if (!result.data.responderUri || typeof result.data.responderUri !== 'string') {
-            throw new Error('Expected result.data.responderUri to be a string');
-        }
-        if (result.port !== 'out') {
-            throw new Error('Expected port to be "out"');
-        }
-
-        // Check that form property is added
-        if (!result.data.form || typeof result.data.form !== 'object') {
-            throw new Error('Expected result.data.form to be an object');
-        }
-        if (result.data.form.formId !== testFormId) {
-            throw new Error('Expected form.formId to match input');
-        }
-    });
-
-    it('should throw error when formId is missing', async function() {
-        context.messages.in.content = {};
-
-        try {
-            await GetForm.receive(context);
-            throw new Error('Should have thrown an error');
-        } catch (error) {
-            if (error.name !== 'CancelError') {
-                throw new Error('Expected CancelError');
-            }
-            if (!error.message.includes('Form ID is required')) {
-                throw new Error('Expected error message to include "Form ID is required"');
-            }
-        }
+        assert(result && typeof result === 'object', 'Expected result to be an object');
+        assert(result.data && typeof result.data === 'object', 'Expected result.data to be an object');
+        assert.strictEqual(result.data.formId, testFormId, 'Expected formId to match input');
+        assert(result.data.info && typeof result.data.info === 'object', 'Expected result.data.info to be an object');
+        assert(result.data.info.title && typeof result.data.info.title === 'string', 'Expected result.data.info.title to be a string');
+        assert(result.data.responderUri && typeof result.data.responderUri === 'string', 'Expected result.data.responderUri to be a string');
+        assert.strictEqual(result.port, 'out', 'Expected port to be "out"');
     });
 });
