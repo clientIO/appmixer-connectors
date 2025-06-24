@@ -45,7 +45,6 @@ describe('FindResponses Component', function() {
     });
 
     it('should find responses without filter', async function() {
-        if (!context.auth.accessToken) this.skip();
 
         let data;
         context.sendJson = function(output, port) {
@@ -83,7 +82,6 @@ describe('FindResponses Component', function() {
     });
 
     it('should find responses with timestamp filter', async function() {
-        if (!context.auth.accessToken) this.skip();
 
         let data;
         context.sendJson = function(output, port) {
@@ -126,7 +124,6 @@ describe('FindResponses Component', function() {
     });
 
     it('should handle object output type', async function() {
-        if (!context.auth.accessToken) this.skip();
 
         const sendJsonCalls = [];
         context.sendJson = function(data, port) {
@@ -166,7 +163,6 @@ describe('FindResponses Component', function() {
     });
 
     it('should handle first output type', async function() {
-        if (!context.auth.accessToken) this.skip();
 
         let data;
         context.sendJson = function(output, port) {
@@ -208,7 +204,6 @@ describe('FindResponses Component', function() {
     });
 
     it('should handle invalid filter format gracefully', async function() {
-        if (!context.auth.accessToken) this.skip();
 
         context.messages.in.content = {
             formId: testFormId, filter: 'invalid filter format', outputType: 'array'

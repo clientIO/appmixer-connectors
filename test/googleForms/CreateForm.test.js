@@ -9,6 +9,12 @@ describe('CreateForm Component', function() {
     this.timeout(30000);
 
     before(function() {
+        // Skip all tests if access token is not set
+        if (!process.env.GOOGLE_FORMS_ACCESS_TOKEN) {
+            console.log('Skipping FindResponses tests - GOOGLE_FORMS_ACCESS_TOKEN not set');
+            this.skip();
+        }
+
         // Load the component
         CreateForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/CreateForm/CreateForm.js'));
 
@@ -36,8 +42,6 @@ describe('CreateForm Component', function() {
     });
 
     it('should create a form with title only', async function() {
-        // Skip test if access token is not set - important for CI/CD environments
-        if (!context.auth.accessToken) this.skip();
 
         context.messages.in.content = {
             title: 'Test Form - ' + Date.now()
@@ -66,7 +70,6 @@ describe('CreateForm Component', function() {
     });
 
     it('should create a form with title and document title', async function() {
-        if (!context.auth.accessToken) this.skip(); // Skip test if access token is not set
 
         const timestamp = Date.now();
         context.messages.in.content = {

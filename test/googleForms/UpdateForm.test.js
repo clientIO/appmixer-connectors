@@ -11,6 +11,12 @@ describe('UpdateForm Component', function() {
     this.timeout(60000);
 
     before(async function() {
+        // Skip all tests if access token is not set
+        if (!process.env.GOOGLE_FORMS_ACCESS_TOKEN) {
+            console.log('Skipping FindResponses tests - GOOGLE_FORMS_ACCESS_TOKEN not set');
+            this.skip();
+        }
+
         // Load the components
         UpdateForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/UpdateForm/UpdateForm.js'));
         CreateForm = require(path.join(__dirname, '../../src/appmixer/googleForms/core/CreateForm/CreateForm.js'));
@@ -74,8 +80,6 @@ describe('UpdateForm Component', function() {
     });
 
     it('should throw error when formId is missing', async function() {
-        // Skip test if access token is not set - important for CI/CD environments
-        if (!context.auth.accessToken) this.skip();
 
         context.messages.in.content = {
             title: 'Some title'

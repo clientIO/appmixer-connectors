@@ -9,6 +9,11 @@ describe('ListForms Component', function() {
     this.timeout(30000);
 
     before(function() {
+        // Skip all tests if access token is not set
+        if (!process.env.GOOGLE_FORMS_ACCESS_TOKEN) {
+            console.log('Skipping FindResponses tests - GOOGLE_FORMS_ACCESS_TOKEN not set');
+            this.skip();
+        }
         // Load the component
         ListForms = require(path.join(__dirname, '../../src/appmixer/googleForms/core/ListForms/ListForms.js'));
 
@@ -39,8 +44,6 @@ describe('ListForms Component', function() {
     });
 
     it('should list forms with array output type', async function() {
-        // Skip test if access token is not set - important for CI/CD environments
-        if (!context.auth.accessToken) this.skip();
 
         context.messages.in.content = {
             outputType: 'array'
@@ -64,8 +67,6 @@ describe('ListForms Component', function() {
     });
 
     it('should default to array output type when not specified', async function() {
-        // Skip test if access token is not set - important for CI/CD environments
-        if (!context.auth.accessToken) this.skip();
 
         context.messages.in.content = {};
 

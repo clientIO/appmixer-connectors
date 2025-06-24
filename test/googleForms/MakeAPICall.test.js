@@ -10,6 +10,11 @@ describe('MakeAPICall Component', function() {
     this.timeout(30000);
 
     before(async function() {
+        // Skip all tests if access token is not set
+        if (!process.env.GOOGLE_FORMS_ACCESS_TOKEN) {
+            console.log('Skipping FindResponses tests - GOOGLE_FORMS_ACCESS_TOKEN not set');
+            this.skip();
+        }
         // Load the component
         MakeAPICall = require(path.join(__dirname, '../../src/appmixer/googleForms/core/MakeAPICall/MakeAPICall.js'));
 
@@ -61,8 +66,6 @@ describe('MakeAPICall Component', function() {
     });
 
     it('should make GET API call', async function() {
-        // Skip test if access token is not set - important for CI/CD environments
-        if (!context.auth.accessToken) this.skip();
 
         assert(testFormId, 'No test form ID available');
 
@@ -84,8 +87,6 @@ describe('MakeAPICall Component', function() {
     });
 
     it('should make POST API call to create form', async function() {
-        // Skip test if access token is not set - important for CI/CD environments
-        if (!context.auth.accessToken) this.skip();
 
         const formTitle = 'API Test Form - ' + Date.now();
 

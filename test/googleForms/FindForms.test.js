@@ -9,6 +9,11 @@ describe('FindForms Component', function() {
     this.timeout(30000);
 
     before(function() {
+        // Skip all tests if access token is not set
+        if (!process.env.GOOGLE_FORMS_ACCESS_TOKEN) {
+            console.log('Skipping FindResponses tests - GOOGLE_FORMS_ACCESS_TOKEN not set');
+            this.skip();
+        }
         // Load the component
         FindForms = require(path.join(__dirname, '../../src/appmixer/googleForms/core/FindForms/FindForms.js'));
 
@@ -198,8 +203,6 @@ describe('FindForms Component', function() {
     });
 
     it('should handle first output type', async function() {
-        // Skip test if access token is not set - important for CI/CD environments
-        if (!context.auth.accessToken) this.skip();
 
         let data;
         context.sendJson = function(output, port) {
