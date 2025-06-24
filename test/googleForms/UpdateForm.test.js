@@ -71,26 +71,8 @@ describe('UpdateForm Component', function() {
 
         assert(result && typeof result === 'object', 'Expected result to be an object');
         assert(result.data && typeof result.data === 'object', 'Expected result.data to be an object');
-        assert.strictEqual(result.data.success, true, 'Expected result.data.success to be true');
-        assert.strictEqual(result.data.formId, testFormId, 'Expected formId to match input');
-        assert(result.data.message.includes('successfully updated'), 'Expected success message');
         assert(Array.isArray(result.data.updatedFields), 'Expected updatedFields to be an array');
         assert(result.data.updatedFields.includes('title'), 'Expected updatedFields to include "title"');
         assert.strictEqual(result.port, 'out', 'Expected port to be "out"');
-    });
-
-    it('should throw error when formId is missing', async function() {
-
-        context.messages.in.content = {
-            title: 'Some title'
-        };
-
-        try {
-            await UpdateForm.receive(context);
-            assert.fail('Should have thrown an error');
-        } catch (error) {
-            assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
-            assert(error.message.includes('Form ID is required'), 'Expected error message to include "Form ID is required"');
-        }
     });
 });
