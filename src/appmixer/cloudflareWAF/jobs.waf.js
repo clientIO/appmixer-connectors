@@ -66,19 +66,20 @@ const updateRules = async function(context, rulesToUpdate) {
         return client.updateBlockRule(context, rulesetId, rule);
     });
 
-    (await Promise.allSettled(updatePromises)).forEach(async (result, i) => {
+    (await Promise.allSettled(updatePromises)).forEach((result, i) => {
+        (async () => {
+            const item = rulesToUpdate[i];
+            const dbItems = item?.ips?.map(i => i.id) || [];
 
-        const item = rulesToUpdate[i];
-        const dbItems = item?.ips?.map(i => i.id) || [];
-
-        if (result.status === 'fulfilled') {
-            dbItemsToDelete = dbItemsToDelete.concat(dbItems);
-        } else {
-            context.log('info', {
-                step: '[Cloudflare WAF] Unable to delete IPs from rule.',
-                data: sanitizeItems([item])
-            });
-        }
+            if (result.status === 'fulfilled') {
+                dbItemsToDelete = dbItemsToDelete.concat(dbItems);
+            } else {
+                context.log('info', {
+                    step: '[Cloudflare WAF] Unable to delete IPs from rule.',
+                    data: sanitizeItems([item])
+                });
+            }
+        })();
     });
 
     return dbItemsToDelete;

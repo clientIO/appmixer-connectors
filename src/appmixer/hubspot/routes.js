@@ -7,51 +7,52 @@ module.exports = async (context) => {
 
     // Called by Appmixer when a listener is added to the plugin (eg. UpdatedContact component is started) to subscribe to HubSpot events.
     // This will create a subscription in HubSpot for the given subscriptionType if it does not exist.
-    context.onListenerAdded(async (listener) => {
+    context.onListenerAdded((listener) => {
+        (async () => {
+            /** Is this AuthHub or Engine pod? */
+            const isAuthHubPod = !!process.env.AUTH_HUB_URL && !process.env.AUTH_HUB_TOKEN;
+            if (isAuthHubPod) {
+                // This is AuthHub, we don't need to create subscriptions here.
+                return;
+            }
 
-        /** Is this AuthHub or Engine pod? */
-        const isAuthHubPod = !!process.env.AUTH_HUB_URL && !process.env.AUTH_HUB_TOKEN;
-        if (isAuthHubPod) {
-            // This is AuthHub, we don't need to create subscriptions here.
-            return;
-        }
-
-        const { eventName, params } = listener;
-
-        try {
-            const lock = await context.lock(eventName);
+            const { eventName, params } = listener;
 
             try {
-                const subscriptionType = eventName.split(':')[0];
-                const subscriptions = getSubscriptionsByType(subscriptionType, context);
-                const results = await getHubSpotSubscriptions(context, params);
-                const currentSubs = results.map(s => s.eventType);
+                const lock = await context.lock(eventName);
 
-                let subscriptionsToCreate = [];
-                subscriptions.forEach(s => {
-                    if (!currentSubs.includes(s.subscriptionDetails.subscriptionType)) {
-                        subscriptionsToCreate.push(s);
+                try {
+                    const subscriptionType = eventName.split(':')[0];
+                    const subscriptions = getSubscriptionsByType(subscriptionType, context);
+                    const results = await getHubSpotSubscriptions(context, params);
+                    const currentSubs = results.map(s => s.eventType);
+
+                    let subscriptionsToCreate = [];
+                    subscriptions.forEach(s => {
+                        if (!currentSubs.includes(s.subscriptionDetails.subscriptionType)) {
+                            subscriptionsToCreate.push(s);
+                        }
+                    });
+
+                    if (!subscriptionsToCreate.length) {
+                        return {};
                     }
-                });
 
-                if (!subscriptionsToCreate.length) {
-                    return {};
+                    const { data } = await createHubSpotSubscriptions(context, params, subscriptionsToCreate);
+                    return data;
+
+                } catch (err) {
+                    context.log('error', 'hubspot-plugin-listener-added-error', { listener, error: err.message });
+                    throw err;
+                } finally {
+                    await lock.unlock();
                 }
-
-                const { data } = await createHubSpotSubscriptions(context, params, subscriptionsToCreate);
-                return data;
-
             } catch (err) {
-                context.log('error', 'hubspot-plugin-listener-added-error', { listener, error: err.message });
-                throw err;
-            } finally {
-                await lock.unlock();
+                if (err.message !== 'locked') {
+                    throw err;
+                }
             }
-        } catch (err) {
-            if (err.message !== 'locked') {
-                throw err;
-            }
-        }
+        })();
     });
 
     // Called by HubSpot when an event occurs. Can be in AuthHub or in standalone Appmixer instance.
