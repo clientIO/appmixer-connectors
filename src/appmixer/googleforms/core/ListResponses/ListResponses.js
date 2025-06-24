@@ -8,19 +8,16 @@ module.exports = {
         try {
             const { data } = await context.httpRequest({
                 method: 'GET',
-                url: `https://forms.googleapis.com/v1/forms/${formId}/responses/${responseId}`,
+                url: `https://forms.googleapis.com/v1/forms/${formId}/responses`,
                 headers: {
                     'Authorization': `Bearer ${context.auth.accessToken}`
                 }
             });
 
             // Add the full response object to the output
-            const result = {
-                ...data,
-                response: data
-            };
+            console.log(JSON.stringify(data, null, 2));
 
-            return context.sendJson(result, 'out');
+            return context.sendJson(data, 'out');
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 throw new context.CancelError('Response not found');
