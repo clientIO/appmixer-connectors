@@ -596,15 +596,21 @@ schema
 - Add one empty line after function definition.
 - Use 4 spaces for indentation.
 
+**behavior file**
+
+JavaScript file that contains the logic of the component. It can be used to handle input and output data, call external APIs, and perform other actions. The behavior file is where the main functionality of the component is implemented.
+
+**receive**
+function is called when the component receives data from the input port.
+
+- do not check for the required properties, required properties are checked in the input schema in the component.json file.
+
 TODO:
 - purge, add descriptions to schema https://github.com/clientIO/appmixer-core/blob/3747601f0bc455f38bd252fff58f41cf92de5f63/gridvalidator/schemas/component-schema.json#L19
 - input file (type: filepicker)
 - select input with different source component
 - outputType
 
-**behavior file**
-
-JavaScript file that contains the logic of the component. It can be used to handle input and output data, call external APIs, and perform other actions. The behavior file is where the main functionality of the component is implemented.
 
 TODO:
 - input
