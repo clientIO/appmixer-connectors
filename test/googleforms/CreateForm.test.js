@@ -43,29 +43,39 @@ describe('CreateForm Component', function() {
             title: 'Test Form - ' + Date.now()
         };
 
-        const result = await CreateForm.receive(context);
+        try {
+            const result = await CreateForm.receive(context);
 
-        console.log(result);
-        if (!result || typeof result !== 'object') {
-            throw new Error('Expected result to be an object');
-        }
-        if (!result.data || typeof result.data !== 'object') {
-            throw new Error('Expected result.data to be an object');
-        }
-        if (!result.data.formId || typeof result.data.formId !== 'string') {
-            throw new Error('Expected result.data.formId to be a string');
-        }
-        if (!result.data.info || typeof result.data.info !== 'object') {
-            throw new Error('Expected result.data.info to be an object');
-        }
-        if (result.data.info.title !== context.messages.in.content.title) {
-            throw new Error('Expected title to match input');
-        }
-        if (!result.data.responderUri || typeof result.data.responderUri !== 'string') {
-            throw new Error('Expected result.data.responderUri to be a string');
-        }
-        if (result.port !== 'out') {
-            throw new Error('Expected port to be "out"');
+            console.log('CreateForm result:', JSON.stringify(result, null, 2));
+
+            if (!result || typeof result !== 'object') {
+                throw new Error('Expected result to be an object');
+            }
+            if (!result.data || typeof result.data !== 'object') {
+                throw new Error('Expected result.data to be an object');
+            }
+            if (!result.data.formId || typeof result.data.formId !== 'string') {
+                throw new Error('Expected result.data.formId to be a string');
+            }
+            if (!result.data.info || typeof result.data.info !== 'object') {
+                throw new Error('Expected result.data.info to be an object');
+            }
+            if (result.data.info.title !== context.messages.in.content.title) {
+                throw new Error(`Expected title to match input. Got: ${result.data.info.title}, Expected: ${context.messages.in.content.title}`);
+            }
+            if (!result.data.responderUri || typeof result.data.responderUri !== 'string') {
+                throw new Error('Expected result.data.responderUri to be a string');
+            }
+            if (result.port !== 'out') {
+                throw new Error('Expected port to be "out"');
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                console.log('Authentication failed - access token may be expired');
+                console.log('Error details:', error.response.data);
+                throw new Error('Authentication failed: Access token is invalid or expired. Please refresh the GOOGLE_FORMS_ACCESS_TOKEN in .env file');
+            }
+            throw error;
         }
     });
 
@@ -76,22 +86,33 @@ describe('CreateForm Component', function() {
             documentTitle: 'Test Document - ' + timestamp
         };
 
-        const result = await CreateForm.receive(context);
+        try {
+            const result = await CreateForm.receive(context);
 
-        if (!result || typeof result !== 'object') {
-            throw new Error('Expected result to be an object');
-        }
-        if (!result.data || typeof result.data !== 'object') {
-            throw new Error('Expected result.data to be an object');
-        }
-        if (!result.data.formId || typeof result.data.formId !== 'string') {
-            throw new Error('Expected result.data.formId to be a string');
-        }
-        if (result.data.info.title !== context.messages.in.content.title) {
-            throw new Error('Expected title to match input');
-        }
-        if (result.data.info.documentTitle !== context.messages.in.content.documentTitle) {
-            throw new Error('Expected documentTitle to match input');
+            console.log('CreateForm with documentTitle result:', JSON.stringify(result, null, 2));
+
+            if (!result || typeof result !== 'object') {
+                throw new Error('Expected result to be an object');
+            }
+            if (!result.data || typeof result.data !== 'object') {
+                throw new Error('Expected result.data to be an object');
+            }
+            if (!result.data.formId || typeof result.data.formId !== 'string') {
+                throw new Error('Expected result.data.formId to be a string');
+            }
+            if (result.data.info.title !== context.messages.in.content.title) {
+                throw new Error(`Expected title to match input. Got: ${result.data.info.title}, Expected: ${context.messages.in.content.title}`);
+            }
+            if (result.data.info.documentTitle !== context.messages.in.content.documentTitle) {
+                throw new Error(`Expected documentTitle to match input. Got: ${result.data.info.documentTitle}, Expected: ${context.messages.in.content.documentTitle}`);
+            }
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                console.log('Authentication failed - access token may be expired');
+                console.log('Error details:', error.response.data);
+                throw new Error('Authentication failed: Access token is invalid or expired. Please refresh the GOOGLE_FORMS_ACCESS_TOKEN in .env file');
+            }
+            throw error;
         }
     });
 
@@ -103,10 +124,28 @@ describe('CreateForm Component', function() {
             throw new Error('Should have thrown an error');
         } catch (error) {
             if (error.name !== 'CancelError') {
-                throw new Error('Expected CancelError');
+                throw new Error(`Expected CancelError, got: ${error.name}`);
             }
             if (!error.message.toLowerCase().includes('title')) {
-                throw new Error('Expected error message to include "title"');
+                throw new Error(`Expected error message to include "title", got: ${error.message}`);
+            }
+        }
+    });
+
+    it('should throw error when title is empty string', async function() {
+        context.messages.in.content = {
+            title: ''
+        };
+
+        try {
+            await CreateForm.receive(context);
+            throw new Error('Should have thrown an error');
+        } catch (error) {
+            if (error.name !== 'CancelError') {
+                throw new Error(`Expected CancelError, got: ${error.name}`);
+            }
+            if (!error.message.toLowerCase().includes('title')) {
+                throw new Error(`Expected error message to include "title", got: ${error.message}`);
             }
         }
     });

@@ -114,6 +114,9 @@ module.exports = {
         } = context.messages.in.content;
 
         // No need for generateOutputPortOptions logic since we use static options
+        if (context.properties.generateOutputPortOptions) {
+            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Forms', value: 'forms' });
+        }
 
         // Build query for Google Drive API to find Google Forms
         let query = 'mimeType=\'application/vnd.google-apps.form\'';
