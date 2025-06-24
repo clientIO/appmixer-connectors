@@ -14,13 +14,7 @@ module.exports = {
                 }
             });
 
-            // Add the full form object to the output
-            const result = {
-                ...data,
-                form: data
-            };
-
-            return context.sendJson(result, 'out');
+            return context.sendJson(data, 'out');
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 throw new context.CancelError('Form not found');

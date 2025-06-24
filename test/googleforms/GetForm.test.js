@@ -62,17 +62,16 @@ describe('GetForm Component', function() {
     });
 
     it('should get form by ID', async function() {
-        // if (!testFormId) {
-        //     this.skip('No test form ID available');
-        // }
+        if (!testFormId) {
+            this.skip('No test form ID available');
+        }
 
         context.messages.in.content = {
-            formId: '1Lqh0XbVTiVFKBlzwFSN3a_Csd3WNyIxv3TaNAdcnvSE'
+            formId: testFormId
         };
 
         const result = await GetForm.receive(context);
 
-        console.log(result.data);
         if (!result || typeof result !== 'object') {
             throw new Error('Expected result to be an object');
         }

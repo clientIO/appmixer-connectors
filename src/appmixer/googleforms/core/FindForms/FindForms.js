@@ -115,9 +115,6 @@ module.exports = {
 
         // No need for generateOutputPortOptions logic since we use static options
 
-        // Validate page size
-        // const validPageSize = Math.min(Math.max(1, pageSize), 1000);
-
         // Build query for Google Drive API to find Google Forms
         let query = 'mimeType=\'application/vnd.google-apps.form\'';
 
@@ -147,7 +144,6 @@ module.exports = {
 
         // Calculate total forms and whether there are more pages
         const forms = data.files || [];
-        // const hasMorePages = !!response.nextPageToken;
 
         return lib.sendArrayOutput({ context, records: forms, outputType });
     }
