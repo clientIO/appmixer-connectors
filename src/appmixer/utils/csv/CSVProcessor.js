@@ -351,7 +351,7 @@ module.exports = class CSVProcessor {
                 }
             }).on('error', (err) => {
                 writeStream.destroy(err);
-            }).on('end', async () => {
+            }).on('end', () => {
                 writeStream.end();
             });
 
@@ -393,13 +393,15 @@ module.exports = class CSVProcessor {
             let i = 0;
 
             // Extend the lock every 59 seconds up to 22 minutes
-            lockExtendInterval = setInterval(async () => {
-                i++;
-                if (i > max) {
-                    destroy();
-                    throw new Error('Lock extend failed. Max attempts reached.');
-                }
-                await lock.extend(lockExtendTime);
+            lockExtendInterval = setInterval(() => {
+                (async () => {
+                    i++;
+                    if (i > max) {
+                        destroy();
+                        throw new Error('Lock extend failed. Max attempts reached.');
+                    }
+                    await lock.extend(lockExtendTime);
+                })();
             }, config.lockExtendInterval || 59000);
 
             // We're not interested in the data, we just need to read the first row to get the headers and the last line.

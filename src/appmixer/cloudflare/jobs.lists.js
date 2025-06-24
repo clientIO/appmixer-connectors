@@ -23,18 +23,20 @@ const deleteExpiredIpsFromList = async function(context) {
 
     const itemsToDelete = { ids: [], lists: [] };
 
-    (await Promise.allSettled(promises)).forEach(async (result, i) => {
-        if (result.status === 'fulfilled') {
-            itemsToDelete.ids = itemsToDelete.ids.concat(groups[i].ips);
-            itemsToDelete.lists.push(groups[i]?.auth?.list);
-        } else {
-            const operations = groups[i].ips.map(item => ({
-                updateOne: {
-                    filter: { id: item.id }, update: { $set: { mtime: new Date } }
-                }
-            }));
-            await (context.db.collection(getModel(context).collection)).bulkWrite(operations);
-        }
+    (await Promise.allSettled(promises)).forEach((result, i) => {
+        (async () => {
+            if (result.status === 'fulfilled') {
+                itemsToDelete.ids = itemsToDelete.ids.concat(groups[i].ips);
+                itemsToDelete.lists.push(groups[i]?.auth?.list);
+            } else {
+                const operations = groups[i].ips.map(item => ({
+                    updateOne: {
+                        filter: { id: item.id }, update: { $set: { mtime: new Date } }
+                    }
+                }));
+                await (context.db.collection(getModel(context).collection)).bulkWrite(operations);
+            }
+        })();
     });
 
     if (itemsToDelete.ids.length) {

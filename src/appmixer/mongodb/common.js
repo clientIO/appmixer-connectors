@@ -227,17 +227,19 @@ module.exports = {
             const checkStartTime = new Date();
 
             await new Promise((resolve, reject) => {
-                const intervalId = setInterval(async () => {
-                    connectionId = await context.stateGet('connectionId');
+                const intervalId = setInterval(() => {
+                    (async () => {
+                        connectionId = await context.stateGet('connectionId');
 
-                    if (connectionId) {
-                        clearInterval(intervalId);
-                        await context.log({ step: 'connected', message: 'Connection to MongoDB established.' });
-                        resolve();
-                    } else if (new Date() - checkStartTime > maxWaitTime) {
-                        clearInterval(intervalId);
-                        reject(new Error('Connection to MongoDB not established within the timeout period.'));
-                    }
+                        if (connectionId) {
+                            clearInterval(intervalId);
+                            await context.log({ step: 'connected', message: 'Connection to MongoDB established.' });
+                            resolve();
+                        } else if (new Date() - checkStartTime > maxWaitTime) {
+                            clearInterval(intervalId);
+                            reject(new Error('Connection to MongoDB not established within the timeout period.'));
+                        }
+                    })();
                 }, 500);
             });
         }

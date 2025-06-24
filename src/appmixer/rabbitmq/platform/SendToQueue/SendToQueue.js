@@ -83,16 +83,18 @@ module.exports = {
             const checkStartTime = new Date;
             const maxWaitTime = 10000;  // 10 seconds
             await new Promise((resolve, reject) => {
-                const intervalId = setInterval(async () => {
-                    channelId = await context.stateGet('channelId');
-                    if (channelId) {
-                        clearInterval(intervalId);
-                        await context.log({ step: 'connected', message: 'Connection to RabbitMQ established.' });
-                        resolve();
-                    } else if (new Date - checkStartTime > maxWaitTime) {
-                        clearInterval(intervalId);
-                        reject(new Error('Connection not established.'));
-                    }
+                const intervalId = setInterval(() => {
+                    (async () => {
+                        channelId = await context.stateGet('channelId');
+                        if (channelId) {
+                            clearInterval(intervalId);
+                            await context.log({ step: 'connected', message: 'Connection to RabbitMQ established.' });
+                            resolve();
+                        } else if (new Date - checkStartTime > maxWaitTime) {
+                            clearInterval(intervalId);
+                            reject(new Error('Connection not established.'));
+                        }
+                    })();
                 }, 500);
             });
         }

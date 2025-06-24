@@ -35,17 +35,19 @@ const removeConnection = async (context, connection, reason) => {
         await context.log('info', '[RABBITMQ] Warning: closing connection failed. (' + connection.id + '). Reason + ' + err + '.');
     }
     // Close all channels associated with this connection.
-    Object.keys(connection.channels).forEach(async (channelId) => {
-        const channel = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
-        if (channel) {
-            try {
-                await channel.close();
-            } catch (err) {
-                await context.log('info', '[RABBITMQ] Warning: closing channel failed. (' + channelId + '). Reason + ' + err + '.');
+    Object.keys(connection.channels).forEach((channelId) => {
+        (async () => {
+            const channel = RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
+            if (channel) {
+                try {
+                    await channel.close();
+                } catch (err) {
+                    await context.log('info', '[RABBITMQ] Warning: closing channel failed. (' + channelId + '). Reason + ' + err + '.');
+                }
+                delete RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
             }
-            delete RABBITMQ_CONNECTOR_OPEN_CHANNELS[channelId];
-        }
-        delete connection.channels[channelId];
+            delete connection.channels[channelId];
+        })();
     });
     delete RABBITMQ_CONNECTOR_OPEN_CONNECTIONS[connection.id];
 };
@@ -145,31 +147,24 @@ const addConsumer = async (context, queue, options, flowId, componentId, auth, c
 
     const consumer = await createChannel(context, channelId, auth);
 
-    await consumer.consume(queue, async (message) => {
+    await consumer.consume(queue, (message) => {
 
-        // If the message is null, it means the consumer was cancelled.
-        if (!message) return;
+        (async () => {
+            // If the message is null, it means the consumer was cancelled.
+            if (!message) return;
 
-        // First, make sure the consumer is still needed. The flow might have stopped
-        // which disconnected the consumer from open connections but only on one node in the cluster.
-        const channel = await context.service.stateGet(channelId);
-        if (!channel) return;
+            // First, make sure the consumer is still needed. The flow might have stopped
+            // which disconnected the consumer from open connections but only on one node in the cluster.
+            const channel = await context.service.stateGet(channelId);
+            if (!channel) return;
 
-        await context.triggerComponent(
-            flowId,
-            componentId,
-            {
-                content: message.content && message.content.toString(),
-                fields: message.fields,
-                properties: message.properties
-            },
-            { enqueueOnly: 'true' }
-        );
-
-        if (options && options.noAck !== true) {
-            consumer.ack(message);
-        }
-
+            await context.triggerComponent(
+                flowId,
+                componentId,
+                message.content,
+                { channelId, queue }
+            );
+        })();
     }, options || {});;
 
     return channelId;
