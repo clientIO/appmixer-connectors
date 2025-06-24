@@ -198,6 +198,9 @@ describe('FindForms Component', function() {
     });
 
     it('should handle first output type', async function() {
+        // Skip test if access token is not set - important for CI/CD environments
+        if (!context.auth.accessToken) this.skip();
+
         let data;
         context.sendJson = function(output, port) {
             data = output;

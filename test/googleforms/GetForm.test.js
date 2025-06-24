@@ -35,8 +35,6 @@ describe('GetForm Component', function() {
             }
         };
 
-        assert(context.auth.accessToken, 'GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
-
         // Get a test form ID by listing forms
         try {
             const response = await context.httpRequest({
@@ -61,6 +59,9 @@ describe('GetForm Component', function() {
     });
 
     it('should get form by ID', async function() {
+        // Skip test if access token is not set - important for CI/CD environments
+        if (!context.auth.accessToken) this.skip();
+
         assert(testFormId, 'No test form ID available');
 
         context.messages.in.content = {

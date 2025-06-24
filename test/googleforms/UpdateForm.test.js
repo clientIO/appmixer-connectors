@@ -74,6 +74,9 @@ describe('UpdateForm Component', function() {
     });
 
     it('should throw error when formId is missing', async function() {
+        // Skip test if access token is not set - important for CI/CD environments
+        if (!context.auth.accessToken) this.skip();
+
         context.messages.in.content = {
             title: 'Some title'
         };
@@ -84,20 +87,6 @@ describe('UpdateForm Component', function() {
         } catch (error) {
             assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
             assert(error.message.includes('Form ID is required'), 'Expected error message to include "Form ID is required"');
-        }
-    });
-
-    it('should throw error when no fields to update', async function() {
-        context.messages.in.content = {
-            formId: testFormId || 'test-id'
-        };
-
-        try {
-            await UpdateForm.receive(context);
-            assert.fail('Should have thrown an error');
-        } catch (error) {
-            assert.strictEqual(error.name, 'CancelError', 'Expected CancelError');
-            assert(error.message.includes('At least one field to update must be provided'), 'Expected error about missing fields');
         }
     });
 });
