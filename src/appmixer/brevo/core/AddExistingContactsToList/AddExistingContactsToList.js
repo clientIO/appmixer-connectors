@@ -1,6 +1,4 @@
-'use-strict';
-
-'use-strict';
+'use strict';
 
 module.exports = {
     async receive(context) {
@@ -17,8 +15,6 @@ module.exports = {
                 emails: contactEmails.split(',')
             }
         });
-
-        console.log('data', data);
 
         return context.sendJson(data.contacts, 'out');
     }
