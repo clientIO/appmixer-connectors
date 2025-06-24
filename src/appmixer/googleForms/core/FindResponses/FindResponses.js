@@ -11,9 +11,17 @@ module.exports = {
         }
 
         try {
+            // Build URL with optional filter parameter
+            const url = new URL(`https://forms.googleapis.com/v1/forms/${formId}/responses`);
+            
+            // Add filter parameter if provided
+            if (filter && filter.trim()) {
+                url.searchParams.append('filter', filter.trim());
+            }
+
             const { data } = await context.httpRequest({
                 method: 'GET',
-                url: `https://forms.googleapis.com/v1/forms/${formId}/responses`,
+                url: url.toString(),
                 headers: {
                     'Authorization': `Bearer ${context.auth.accessToken}`
                 }
