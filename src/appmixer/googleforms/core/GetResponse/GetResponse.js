@@ -5,14 +5,6 @@ module.exports = {
     async receive(context) {
         const { formId, responseId } = context.messages.in.content;
 
-        if (!formId) {
-            throw new context.CancelError('Form ID is required');
-        }
-
-        if (!responseId) {
-            throw new context.CancelError('Response ID is required');
-        }
-
         try {
             const { data } = await context.httpRequest({
                 method: 'GET',
@@ -33,7 +25,7 @@ module.exports = {
             if (error.response && error.response.status === 404) {
                 throw new context.CancelError('Response not found');
             }
-            throw new context.CancelError(error.message || 'Failed to retrieve response');
+            throw error;
         }
     }
 };

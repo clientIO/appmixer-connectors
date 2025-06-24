@@ -4,41 +4,37 @@ module.exports = {
 
     async receive(context) {
         const { formId, title, description, documentTitle } = context.messages.in.content;
-        
-        if (!formId) {
-            throw new context.CancelError('Form ID is required');
-        }
-        
+
         // Build the requests array for batch update
         const requests = [];
         const updatedFields = [];
-        
+
         // Build the info object to update
         const infoToUpdate = {};
         const maskFields = [];
-        
+
         if (title) {
             infoToUpdate.title = title;
             maskFields.push('title');
             updatedFields.push('title');
         }
-        
+
         if (description) {
             infoToUpdate.description = description;
             maskFields.push('description');
             updatedFields.push('description');
         }
-        
+
         if (documentTitle) {
             infoToUpdate.documentTitle = documentTitle;
             maskFields.push('documentTitle');
             updatedFields.push('documentTitle');
         }
-        
+
         if (maskFields.length === 0) {
             throw new context.CancelError('At least one field to update must be provided');
         }
-        
+
         // Create a single updateFormInfo request with all fields
         requests.push({
             updateFormInfo: {
@@ -46,7 +42,7 @@ module.exports = {
                 updateMask: maskFields.join(',')
             }
         });
-        
+
         try {
             await context.httpRequest({
                 method: 'POST',
@@ -59,7 +55,7 @@ module.exports = {
                     requests: requests
                 }
             });
-            
+
             return context.sendJson({
                 success: true,
                 formId: formId,
@@ -70,7 +66,7 @@ module.exports = {
             if (error.response && error.response.status === 404) {
                 throw new context.CancelError('Form not found');
             }
-            throw new context.CancelError(error.message || 'Failed to update form');
+            throw error;
         }
     }
 };
