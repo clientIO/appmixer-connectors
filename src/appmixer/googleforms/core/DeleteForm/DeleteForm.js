@@ -6,6 +6,10 @@ module.exports = {
 
         const { formId } = context.messages.in.content;
 
+        if (!formId || formId.trim() === '') {
+            throw new context.CancelError('Form ID is required');
+        }
+
         try {
             // Google Forms API doesn't have a direct delete endpoint
             // We need to use Google Drive API to move the form to trash
@@ -21,7 +25,11 @@ module.exports = {
                 }
             });
 
-            return context.sendJson({}, 'out');
+            return context.sendJson({
+                success: true,
+                formId: formId,
+                message: `Form with ID ${formId} has been successfully moved to trash`
+            }, 'out');
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 throw new context.CancelError('Form not found');
