@@ -32,9 +32,7 @@ describe('FindForms Component', function() {
             }
         };
 
-        if (!context.auth.accessToken) {
-            throw new Error('GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
-        }
+        assert(context.auth.accessToken, 'GOOGLE_FORMS_ACCESS_TOKEN environment variable is required for tests');
     });
 
     it('should find forms without search query', async function() {
@@ -52,39 +50,23 @@ describe('FindForms Component', function() {
 
             console.log('FindForms result:', JSON.stringify(data, null, 2));
 
-            if (!data || typeof data !== 'object') {
-                throw new Error('Expected sendJsonData.data to be an object');
-            }
-            if (!Array.isArray(data.result)) {
-                throw new Error('Expected sendJsonData.data.result to be an array');
-            }
-            if (typeof data.count !== 'number') {
-                throw new Error('Expected sendJsonData.data.count to be a number');
-            }
+            assert(data && typeof data === 'object', 'Expected sendJsonData.data to be an object');
+            assert(Array.isArray(data.result), 'Expected sendJsonData.data.result to be an array');
+            assert(typeof data.count === 'number', 'Expected sendJsonData.data.count to be a number');
 
             // Verify the count matches array length
-            if (data.count !== data.result.length) {
-                throw new Error(`Expected count (${data.count}) to match result array length (${data.result.length})`);
-            }
+            assert.strictEqual(data.count, data.result.length, `Expected count (${data.count}) to match result array length (${data.result.length})`);
 
             if (data.result.length > 0) {
                 const form = data.result[0];
-                if (!form.id) {
-                    throw new Error('Expected form to have id property');
-                }
-                if (!form.name) {
-                    throw new Error('Expected form to have name property');
-                }
-                if (form.mimeType !== 'application/vnd.google-apps.form') {
-                    throw new Error(`Expected mimeType to be 'application/vnd.google-apps.form', got: ${form.mimeType}`);
-                }
+                assert(form.id, 'Expected form to have id property');
+                assert(form.name, 'Expected form to have name property');
+                assert.strictEqual(form.mimeType, 'application/vnd.google-apps.form', `Expected mimeType to be 'application/vnd.google-apps.form', got: ${form.mimeType}`);
 
                 // Verify required fields are present
                 const requiredFields = ['id', 'name', 'mimeType'];
                 for (const field of requiredFields) {
-                    if (!(field in form)) {
-                        throw new Error(`Expected form to have ${field} property`);
-                    }
+                    assert(field in form, `Expected form to have ${field} property`);
                 }
             }
         } catch (error) {
@@ -110,20 +92,12 @@ describe('FindForms Component', function() {
 
             console.log('FindForms default output type result:', JSON.stringify(context.sendJsonData, null, 2));
 
-            if (!data || typeof data !== 'object') {
-                throw new Error('Expected sendJsonData.data to be an object');
-            }
-            if (!Array.isArray(data.result)) {
-                throw new Error('Expected sendJsonData.data.result to be an array');
-            }
-            if (typeof data.count !== 'number') {
-                throw new Error('Expected sendJsonData.data.count to be a number');
-            }
+            assert(data && typeof data === 'object', 'Expected sendJsonData.data to be an object');
+            assert(Array.isArray(data.result), 'Expected sendJsonData.data.result to be an array');
+            assert(typeof data.count === 'number', 'Expected sendJsonData.data.count to be a number');
 
             // Verify the count matches array length
-            if (data.count !== data.result.length) {
-                throw new Error(`Expected count (${data.count}) to match result array length (${data.result.length})`);
-            }
+            assert.strictEqual(data.count, data.result.length, `Expected count (${data.count}) to match result array length (${data.result.length})`);
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 console.log('Authentication failed - access token may be expired');
@@ -153,20 +127,12 @@ describe('FindForms Component', function() {
 
             console.log('FindForms with search query result:', JSON.stringify(context.sendJsonData, null, 2));
 
-            if (!data || typeof data !== 'object') {
-                throw new Error('Expected sendJsonData.data to be an object');
-            }
-            if (!Array.isArray(data.result)) {
-                throw new Error('Expected sendJsonData.data.result to be an array');
-            }
-            if (typeof data.count !== 'number') {
-                throw new Error('Expected sendJsonData.data.count to be a number');
-            }
+            assert(data && typeof data === 'object', 'Expected sendJsonData.data to be an object');
+            assert(Array.isArray(data.result), 'Expected sendJsonData.data.result to be an array');
+            assert(typeof data.count === 'number', 'Expected sendJsonData.data.count to be a number');
 
             // Verify the count matches array length
-            if (data.count !== data.result.length) {
-                throw new Error(`Expected count (${data.count}) to match result array length (${data.result.length})`);
-            }
+            assert.strictEqual(data.count, data.result.length, `Expected count (${data.count}) to match result array length (${data.result.length})`);
 
             // If results found, verify they match the search query
             if (data.result.length > 0) {
@@ -206,31 +172,19 @@ describe('FindForms Component', function() {
                 console.log('First call data keys:', Object.keys(sendJsonCalls[0].data));
             }
 
-            if (sendJsonCalls.length === 0) {
-                throw new Error('Expected sendJson to be called at least once');
-            }
+            assert(sendJsonCalls.length > 0, 'Expected sendJson to be called at least once');
 
             // For object output type, each form should be sent individually
             // Let's just check the first few calls to avoid overwhelming output
             const callsToCheck = Math.min(sendJsonCalls.length, 5);
             for (let i = 0; i < callsToCheck; i++) {
                 const call = sendJsonCalls[i];
-                if (!call.data || typeof call.data !== 'object') {
-                    throw new Error(`Expected call ${i} data to be an object`);
-                }
-                if (typeof call.data.index !== 'number') {
-                    throw new Error(`Expected call ${i} data to have index property (number)`);
-                }
-                if (typeof call.data.count !== 'number') {
-                    throw new Error(`Expected call ${i} data to have count property (number)`);
-                }
-                if (call.port !== 'out') {
-                    throw new Error(`Expected call ${i} port to be "out"`);
-                }
+                assert(call.data && typeof call.data === 'object', `Expected call ${i} data to be an object`);
+                assert(typeof call.data.index === 'number', `Expected call ${i} data to have index property (number)`);
+                assert(typeof call.data.count === 'number', `Expected call ${i} data to have count property (number)`);
+                assert.strictEqual(call.port, 'out', `Expected call ${i} port to be "out"`);
                 // Check that the form data is present (should have form properties)
-                if (!call.data.id || !call.data.name || !call.data.mimeType) {
-                    throw new Error(`Expected call ${i} data to have form properties (id, name, mimeType)`);
-                }
+                assert(call.data.id && call.data.name && call.data.mimeType, `Expected call ${i} data to have form properties (id, name, mimeType)`);
             }
             console.log(`All ${callsToCheck} checked calls have correct structure.`);
         } catch (error) {
@@ -258,18 +212,10 @@ describe('FindForms Component', function() {
 
             console.log('FindForms first output type result:', JSON.stringify(context.sendJsonData, null, 2));
 
-            if (!data || typeof data !== 'object') {
-                throw new Error('Expected sendJsonData.data to be an object');
-            }
-            if (typeof data.index !== 'number') {
-                throw new Error('Expected sendJsonData.data.index to be a number');
-            }
-            if (typeof data.count !== 'number') {
-                throw new Error('Expected sendJsonData.data.count to be a number');
-            }
-            if (data.index !== 0) {
-                throw new Error('Expected first item to have index 0');
-            }
+            assert(data && typeof data === 'object', 'Expected sendJsonData.data to be an object');
+            assert(typeof data.index === 'number', 'Expected sendJsonData.data.index to be a number');
+            assert(typeof data.count === 'number', 'Expected sendJsonData.data.count to be a number');
+            assert.strictEqual(data.index, 0, 'Expected first item to have index 0');
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 console.log('Authentication failed - access token may be expired');
