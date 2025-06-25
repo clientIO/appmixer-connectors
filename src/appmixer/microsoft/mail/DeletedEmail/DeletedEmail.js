@@ -99,12 +99,8 @@ module.exports = {
                             // Message is already deleted, can't fetch it
                             await context.sendJson({ id: resourceData.id }, 'out');
                         } else {
-                            try {
-                                const messageResponse = await makeRequest(context, { path: `/me/messages/${resourceData.id}`, method: 'GET' });
-                                await context.sendJson(messageResponse.data, 'out');
-                            } catch (err) {
-                                throw new Error(err);
-                            }
+                            const messageResponse = await makeRequest(context, { path: `/me/messages/${resourceData.id}`, method: 'GET' });
+                            await context.sendJson(messageResponse.data, 'out');
                         }
                     }
                 }
