@@ -1,7 +1,5 @@
 'use strict';
 
-const lib = require('../../lib.generated');
-
 module.exports = {
     async receive(context) {
 
@@ -49,8 +47,28 @@ module.exports = {
             responseType: 'text'
         });
 
+        // Generate filename based on document title and format
+        let fileName = `document.${format}`;
+        try {
+            // Try to get document title for better filename
+            const docResponse = await context.httpRequest({
+                method: 'GET',
+                url: `https://www.googleapis.com/drive/v3/files/${documentId}`,
+                params: { fields: 'name' },
+                headers: {
+                    'Authorization': `Bearer ${context.auth.accessToken}`
+                }
+            });
+            if (docResponse.data.name) {
+                fileName = `${docResponse.data.name.replace(/[^a-zA-Z0-9\s-_]/g, '')}.${format}`;
+            }
+        } catch (error) {
+            // Use default filename if title fetch fails
+        }
+
         return context.sendJson({
-            content: data,
+            fileData: data,
+            fileName: fileName,
             format: format,
             mimeType: mimeType
         }, 'out');

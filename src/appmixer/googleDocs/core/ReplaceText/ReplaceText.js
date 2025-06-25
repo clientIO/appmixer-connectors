@@ -1,7 +1,5 @@
 'use strict';
 
-const lib = require('../../lib.generated');
-
 module.exports = {
     async receive(context) {
 
@@ -28,6 +26,17 @@ module.exports = {
             data: { requests }
         });
 
-        return context.sendJson(data, 'out');
+        // Extract replacement count from the response
+        let replacements = 0;
+        if (data.replies && data.replies[0] && data.replies[0].replaceAllText) {
+            replacements = data.replies[0].replaceAllText.occurrencesChanged || 0;
+        }
+
+        return context.sendJson({
+            documentId,
+            replacements,
+            oldText,
+            newText
+        }, 'out');
     }
 };

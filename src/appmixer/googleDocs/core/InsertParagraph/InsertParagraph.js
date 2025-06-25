@@ -1,12 +1,10 @@
 'use strict';
 
-const lib = require('../../lib.generated');
-
 module.exports = {
     async receive(context) {
 
         const { documentId, text, paragraphText, index, insertionIndex } = context.messages.in.content;
-        
+
         // Support both text/paragraphText and index/insertionIndex for compatibility
         const textToInsert = text || paragraphText;
         const indexToUse = index !== undefined ? index : insertionIndex;
@@ -17,7 +15,7 @@ module.exports = {
             location = { index: Math.max(1, indexToUse) };
         } else {
             // Use end of segment to append text
-            location = { endOfSegmentLocation: { segmentId: "" } };
+            location = { endOfSegmentLocation: { segmentId: '' } };
         }
 
         const requests = [{

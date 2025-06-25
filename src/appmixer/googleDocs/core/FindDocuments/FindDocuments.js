@@ -1,7 +1,7 @@
 'use strict';
 
 const lib = require('../../lib.generated');
-const schema = { 
+const schema = {
     'id': { 'type': 'string', 'title': 'Id' },
     'name': { 'type': 'string', 'title': 'Name' },
     'mimeType': { 'type': 'string', 'title': 'MIME Type' },
@@ -20,9 +20,9 @@ module.exports = {
         }
 
         // Build query parameter for Google Drive API to filter for Google Docs
-        let q = "mimeType='application/vnd.google-apps.document'";
+        let q = 'mimeType=\'application/vnd.google-apps.document\'';
         if (query) {
-            q += ` and name contains '${query.replace(/'/g, "\\'")}'`;
+            q += ` and name contains '${query.replace(/'/g, '\\\'')}'`;
         }
 
         // https://developers.google.com/drive/api/v3/reference/files/list
@@ -40,6 +40,6 @@ module.exports = {
         });
 
         const records = data.files || [];
-        return lib.sendArrayOutput({ context, records, outputType });
+        return lib.sendArrayOutput({ context, records, outputType, outputPortName: 'out' });
     }
 };

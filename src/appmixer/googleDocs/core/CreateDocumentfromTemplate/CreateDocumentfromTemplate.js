@@ -1,6 +1,5 @@
 'use strict';
 
-const lib = require('../../lib.generated');
 
 module.exports = {
     async receive(context) {
@@ -26,7 +25,7 @@ module.exports = {
         // If replacements are provided, apply them
         if (replacements && typeof replacements === 'object') {
             const requests = [];
-            
+
             for (const [oldText, newText] of Object.entries(replacements)) {
                 requests.push({
                     replaceAllText: {
