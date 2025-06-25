@@ -63,25 +63,29 @@ module.exports = {
         return toolsDefinition.concat(mcpToolsDefinition);
     },
 
-    mcpListTools: function(context, componentId) {
+    mcpListTools: async function(context, componentId) {
 
-        return context.callAppmixer({
-            endPoint: `/flows/${context.flowId}/components/${componentId}?action=listTools`,
+        const { data } = await context.httpRequest({
+            url: `${process.env.APPMIXER_API_URL}/flows/${context.flowId}/components/${componentId}?action=listTools`,
             method: 'POST',
-            body: {}
+            data: {}
         });
+
+        return data;
     },
 
-    mcpCallTool: function(context, componentId, toolName, args) {
+    mcpCallTool: async function(context, componentId, toolName, args) {
 
-        return context.callAppmixer({
-            endPoint: `/flows/${context.flowId}/components/${componentId}?action=callTool`,
+        const { data } = await context.httpRequest({
+            url: `${process.env.APPMIXER_API_URL}/flows/${context.flowId}/components/${componentId}?action=callTool`,
             method: 'POST',
-            body: {
+            data: {
                 name: toolName,
                 arguments: args
             }
         });
+
+        return data;
     },
 
     isMCPserver: function(context, componentId) {
