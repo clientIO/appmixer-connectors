@@ -1,0 +1,1 @@
+TEST_SERVER_URL=http://localhost:2200 appmixer test auth login src/appmixer/googleDocs/auth.js -c 1038500334679-25o83vj5269qkj67frpgtgs0ndbaq2la.apps.googleusercontent.com -s CJrM6NIQ87qfIrhbYK3tq... -o "https://www.googleapis.com/auth/documents,https://www.googleapis.com/auth/drive,https://www.googleapis.com/auth/drive.readonly"
