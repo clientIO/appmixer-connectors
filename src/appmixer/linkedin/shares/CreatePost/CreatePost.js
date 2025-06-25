@@ -53,7 +53,8 @@ module.exports = {
             headers: {
                 'X-Restli-Protocol-Version': '2.0.0',
                 'Authorization': `Bearer ${context.auth.accessToken}`,
-                'LinkedIn-Version': VERSION_HEADER
+                'LinkedIn-Version': VERSION_HEADER,
+                'Content-Type': 'application/json'
             },
             data: buildPost(context)
         });
