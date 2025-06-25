@@ -11,13 +11,7 @@ module.exports = {
             clientId: initData.clientId,
             clientSecret: initData.clientSecret,
 
-            scope: [
-                'https://www.googleapis.com/auth/documents',
-                'https://www.googleapis.com/auth/drive.file',
-                'https://www.googleapis.com/auth/drive',
-                'profile',
-                'email'
-            ],
+            scope: ['profile', 'email'],
 
             accountNameFromProfileInfo: function(context) {
                 return context.profileInfo.email;
