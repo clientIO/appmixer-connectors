@@ -4,15 +4,15 @@ module.exports = {
 
     async receive(context) {
         const { method, url, headers, body, queryParams } = context.messages.in.content;
-        
+
         if (!method) {
             throw new context.CancelError('HTTP method is required');
         }
-        
+
         if (!url) {
             throw new context.CancelError('API endpoint URL is required');
         }
-        
+
         // Prepare request configuration
         const requestConfig = {
             method: method.toUpperCase(),
@@ -21,7 +21,7 @@ module.exports = {
                 'Authorization': `Bearer ${context.auth.accessToken}`
             }
         };
-        
+
         // Parse and add additional headers if provided
         if (headers) {
             try {
@@ -31,7 +31,7 @@ module.exports = {
                 throw new context.CancelError('Invalid headers format. Please provide valid JSON.');
             }
         }
-        
+
         // Parse and add query parameters if provided
         if (queryParams) {
             try {
@@ -40,7 +40,7 @@ module.exports = {
                 throw new context.CancelError('Invalid query parameters format. Please provide valid JSON.');
             }
         }
-        
+
         // Parse and add body for appropriate methods
         if (['POST', 'PUT', 'PATCH'].includes(method.toUpperCase()) && body) {
             try {
@@ -52,10 +52,10 @@ module.exports = {
                 throw new context.CancelError('Invalid body format. Please provide valid JSON.');
             }
         }
-        
+
         try {
             const response = await context.httpRequest(requestConfig);
-            
+
             // Extract response details
             const result = {
                 statusCode: response.status || 200,
@@ -67,7 +67,7 @@ module.exports = {
                     body: response.data || response
                 }
             };
-            
+
             return context.sendJson(result, 'out');
         } catch (error) {
             if (error.response) {

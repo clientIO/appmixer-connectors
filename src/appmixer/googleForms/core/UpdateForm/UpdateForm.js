@@ -25,12 +25,6 @@ module.exports = {
             updatedFields.push('description');
         }
 
-        // if (documentTitle) {
-        //     infoToUpdate.documentTitle = documentTitle;
-        //     maskFields.push('documentTitle');
-        //     updatedFields.push('documentTitle');
-        // }
-
         // Create a single updateFormInfo request with all fields
         requests.push({
             updateFormInfo: {
