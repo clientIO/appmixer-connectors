@@ -107,9 +107,17 @@ module.exports = (context) => {
             handler: async (request, h) => {
 
                 const token = request.query.token;
-                const jwtSecret = await context.db.coreCollection('config').findOne({ type: 'JWTSecret' });
-                const decodedToken = jwt.verify(token, jwtSecret.value);
-                const userId = decodedToken.sub;
+                if (!token) {
+                    return h.response('Missing token').code(401);
+                }
+                let userId;
+                try {
+                    const jwtSecret = await context.db.coreCollection('config').findOne({ type: 'JWTSecret' });
+                    const decodedToken = jwt.verify(token, jwtSecret.value);
+                    userId = decodedToken.sub;
+                } catch (err) {
+                    return h.response('Invalid or expired token').code(401);
+                }
 
                 await context.log('info', `[AI.MCPTOOLS] SSE connection request for user ${userId}. headers: ${JSON.stringify(request.headers)}`);
 

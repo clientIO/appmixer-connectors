@@ -1,4 +1,7 @@
+'use strict';
+
 const Redis = require('ioredis');
+const fs = require('fs');
 
 module.exports = {
 

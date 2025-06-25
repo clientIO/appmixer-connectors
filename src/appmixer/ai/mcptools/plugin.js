@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('./lib');
+
 module.exports = async context => {
 
     context.log('info', '[AI.MCPTOOLS] Initializing plugin.');
