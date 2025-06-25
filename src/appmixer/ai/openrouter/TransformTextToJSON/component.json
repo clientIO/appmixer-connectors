@@ -1,0 +1,65 @@
+{
+    "name": "appmixer.ai.openrouter.TransformTextToJSON",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Extract structured JSON data from text using AI.",
+    "auth": {
+        "service": "appmixer:ai:openrouter"
+    },
+    "inPorts": [{
+        "name": "in",
+        "schema": {
+            "type": "object",
+            "properties": {
+                "text": { "type": "string" },
+                "jsonSchema": { "type": "string" },
+                "model": { "type": "string" }
+            },
+            "required": ["text", "jsonSchema"]
+        },
+        "inspector": {
+            "inputs": {
+                "text": {
+                    "label": "Text",
+                    "type": "textarea",
+                    "index": 1,
+                    "tooltip": "The text from which to extract structured JSON data. Example: <code>John is 25 years old.</code>."
+                },
+                "jsonSchema": {
+                    "label": "Output JSON Schema",
+                    "type": "textarea",
+                    "index": 2,
+                    "tooltip": "The schema that defines the structure of the output JSON. Use <a target=\"blank\" href=\"https://json-schema.org/\">JSON Schema format</a>. Example: <code>{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}, \"age\":{\"type\":\"number\"}}}</code>. It must be a valid JSON schema and must be of \"type\": \"object\". If you want to produce an array, you can nest the array under an object property of type array. Example: <code>{\"type\":\"object\",\"properties\":{\"contacts\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"number\"}}}}}}</code>."
+                },
+                "model": {
+                    "type": "text",
+                    "index": 3,
+                    "label": "Model",
+                    "tooltip": "ID of the model to use.",
+                    "defaultValue": "gpt-4o",
+                    "source": {
+                        "url": "/component/appmixer/ai/openrouter/ListModels?outPort=out",
+                        "data": {
+                            "transform": "./ListModels#toSelectOptions"
+                        }
+                    }
+                }
+            }
+        }
+    }],
+    "outPorts": [{
+        "name": "out",
+        "source": {
+            "url": "/component/appmixer/ai/openrouter/TransformTextToJSON?outPort=out",
+            "data": {
+                "properties": {
+                    "generateOutputPortOptions": true
+                },
+                "messages": {
+                    "in/text": "dummy",
+                    "in/jsonSchema": "inputs/in/jsonSchema"
+                }
+            }
+        }
+    }],
+    "icon": "data:image/png;base64,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"
+}
