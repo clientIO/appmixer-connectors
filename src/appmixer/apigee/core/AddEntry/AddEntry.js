@@ -1,6 +1,7 @@
 'use strict';
 
 const lib = require('../../lib.generated');
+const { assignWith } = require('lodash/object');
 module.exports = {
     async receive(context) {
 
@@ -14,22 +15,10 @@ module.exports = {
         // const newEntries = ipsList.map(ip => ({ ip, comment, expiration }));
         // console.log(newEntries);
 
-        try {
-            const { data: blockedIps } = await getEntry(context, 'blocked-ips');
+        const entry = await getOrCreateEntry(context, 'blocked-ips');
 
-            const blockedIpsList = JSON.parse(blockedIps.value || '{}');
-
-            console.log(JSON.parse(blockedIps.value));
-
-            // await updateEntry(context, ip, value);
-        } catch (e) {
-            console.log('AAA');
-            // if (e.response.status === 404) {
-            //     await createEntry(context, ip, value);
-            // } else {
-            //     throw e;
-            // }
-        }
+        console.log('-------------')
+        console.log(entry)
 
         return context.sendJson({}, 'out');
     }
@@ -50,18 +39,28 @@ const updateEntry = (context, name, value) => {
     });
 };
 
-const getEntry = (context, name) => {
+const getOrCreateEntry = async (context, name) => {
 
     const { mapName } = context.messages.in.content;
     const { org, env } = context.properties;
     // https://cloud.google.com/apigee/docs/reference/apis/apigee/rest/v1/organizations.environments.keyvaluemaps.entries/create
-    return context.httpRequest({
-        method: 'GET',
-        url: `https://apigee.googleapis.com/v1/organizations/${org}/environments/${env}/keyvaluemaps/${mapName}/entries/${name}`,
-        headers: {
-            'Authorization': `Bearer ${context.auth.accessToken}`
+    try {
+        const { data } = await context.httpRequest({
+            method: 'GET',
+            url: `https://apigee.googleapis.com/v1/organizations/${org}/environments/${env}/keyvaluemaps/${mapName}/entries/${name}`,
+            headers: {
+                'Authorization': `Bearer ${context.auth.accessToken}`
+            }
+        });
+
+        return JSON.parse(data.value || '{}');
+    } catch (error) {
+        if (error.response && error.response.status === 404) {
+            await createEntry(context, name, '{}');
+            return {};
         }
-    });
+        throw new context.CancelError(`Cannot use the entry ${name}.`);
+    }
 };
 
 const createEntry = (context, name, value) => {
