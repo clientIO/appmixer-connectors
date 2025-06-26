@@ -1,6 +1,6 @@
 const pathModule = require('path');
 
-const DEFAULT_PREFIX = 'everart-objects-export';
+const DEFAULT_PREFIX = 'googleForms-objects-export';
 
 module.exports = {
 

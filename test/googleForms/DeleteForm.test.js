@@ -11,9 +11,9 @@ describe('DeleteForm Component', function() {
     this.timeout(60000);
 
     before(async function() {
-        // Skip all tests if access token is not set
+        // Skip all tests if the access token is not set
         if (!process.env.GOOGLE_FORMS_ACCESS_TOKEN) {
-            console.log('Skipping FindResponses tests - GOOGLE_FORMS_ACCESS_TOKEN not set');
+            console.log('Skipping tests - GOOGLE_FORMS_ACCESS_TOKEN not set');
             this.skip();
         }
 
