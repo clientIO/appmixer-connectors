@@ -3,7 +3,7 @@
 Appmixer is a workflow engine together with a web user interface that allows end-users to create business processes in an easy-to-use drag&drop UI without writing a single line of code.
 
 # Architecture
-- Use `src/appmixer` for source code of components.
+- Use `src/appmixer` for source code of connectors.
 - Folder `src/examples` is only for examples and not real-world components.
 - Use `test/` for tests.
 - Use `test/utils.js` for Appmixer stub.
@@ -355,7 +355,7 @@ schema
     "properties": {
         "name": {
             "type": "string", "pattern": "^[\\w]+\\.[\\w]+\\.[\\w]+\\.[\\w]+$",
-            "description": "Component name in the format 'vendor.connectorName.core.componentName'"
+            "description": "Component name in the format 'vendor.connectorName.module.componentName'. Use 'core' as default module name"
         },
         "label": {
             "type": "string",
