@@ -93,16 +93,18 @@ module.exports = {
                 const value = data.value || [];
                 for (const notification of value) {
                     if (notification.clientState === clientState) {
-                        const messageId = notification.resourceData.id;
-                        try {
-                            const messageResponse = await makeRequest(context, { path: `/me/messages/${messageId}`, method: 'GET' });
+                        const { changeType, resourceData } = notification;
+
+                        if (changeType === 'deleted') {
+                            // Message is already deleted, can't fetch it
+                            await context.sendJson({ id: resourceData.id }, 'out');
+                        } else {
+                            const messageResponse = await makeRequest(context, { path: `/me/messages/${resourceData.id}`, method: 'GET' });
                             await context.sendJson(messageResponse.data, 'out');
-                        } catch (err) {
-                            // await context.log({ error: 'Failed to fetch message.', response: err.response?.data });
-                            throw new Error(err);
                         }
                     }
                 }
+
                 return context.response('', 200);
             }
         }
