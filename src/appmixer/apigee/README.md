@@ -1,4 +1,4 @@
-TEST_SERVER_URL=http://localhost:2200 appmixer test auth login src/appmixer/apigee/auth.js -c 1038500334679-25o83vj5269qkj67frpgtgs0ndbaq2la.apps.googleusercontent.com -s CJrM6NIQ... -o "https://www.googleapis.com/auth/cloud-platform"
+TEST_SERVER_URL=http://localhost:2200 appmixer test auth login src/appmixer/apigee/auth.js -c 1038500334679-25o83vj5269qkj67frpgtgs0ndbaq2la.apps.googleusercontent.com -s CJrM6NIQ87qfIrhbYK3tq7Eh -o "https://www.googleapis.com/auth/cloud-platform"
 
 appmixer test auth refresh src/appmixer/apigee/auth.js
 
@@ -6,8 +6,7 @@ appmixer test component src/appmixer/apigee/core/ListOrganizations
 
 appmixer test component src/appmixer/apigee/core/ListEnvironments -p '{"org":"new-edge-team"}'
 
-appmixer test component src/appmixer/apigee/core/ListKeyValueMaps -p '{"org":"new-edge-team", "env":"
-intermediate-dev-env"}'
+appmixer test component src/appmixer/apigee/core/ListKeyValueMaps -p '{"org":"new-edge-team", "env":"intermediate-dev-env"}'
 
 appmixer test component src/appmixer/apigee/core/ListEntries -p '{"org":"new-edge-team", "env":"intermediate-dev-env"}' -i '{"in":{"mapName":"appmixer-blocked-ips"}}'
 

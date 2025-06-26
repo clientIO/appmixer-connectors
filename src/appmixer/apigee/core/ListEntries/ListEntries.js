@@ -15,6 +15,9 @@ module.exports = {
             }
         });
 
-        return context.sendJson(data, 'out');
+
+        const items = data.keyValueEntries;
+
+        return context.sendJson(items, 'out');
     }
 };

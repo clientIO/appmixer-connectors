@@ -15,5 +15,11 @@ module.exports = {
         });
 
         return context.sendJson(data, 'out');
+    },
+
+    toSelectOptions(out = []) {
+        return out.map(item => {
+            return { label: item, value: item };
+        });
     }
 };

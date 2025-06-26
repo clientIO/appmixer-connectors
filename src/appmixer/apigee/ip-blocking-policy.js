@@ -1,14 +1,29 @@
-let clientIP = context.getVariable('request.header.X-Forwarded-For') ||
-    context.getVariable('request.ip');
+var clientIP = context.getVariable('request.header.X-Forwarded-For') || context.getVariable('request.ip');
 
 if (clientIP && clientIP.indexOf(',') > -1) {
     clientIP = clientIP.split(',')[0].trim();
 }
 
-// Get blocked IPs from KVM
-const blockedIPsEntry = context.getVariable('kvm.blocked_ips_kvm.ip_blacklist');
-let blockedIPs = [];
+print("Proxy value: " + context.getVariable("keyValueEntries"));
+print("Proxy value: " + context.getVariable("1.1.1.1"));
+print("Proxy value: " + context.getVariable("blocked-ips"));
 
+
+// Get blocked IPs from KVM
+var blockedIPsEntry = context.getVariable('private.appmixer-blocked-ips');
+var blockedIPs = [];
+
+var kvmName = 'appmixer-blocked-ips';
+// print("Proxy value: " + context.getVariable("enviroment." + kvmName + ".keyValueEntries"));
+print("Proxy value: " + context.getVariable(kvmName + ".1.1.1.1"));
+print("Proxy value: " + context.getVariable(kvmName + ".blocked-ips"));
+// print("xx: " + context.getVariable("organization." + kvmName + ".keyValueEntries"));
+// print("xx: " + context.getVariable("private." + kvmName + ".keyValueEntries"));
+// print("xx: " + context.getVariable(kvmName + ".keyValueEntries"));
+// print("xx: " + context.getVariable(kvmName + ".1.1.1.2"));
+
+
+print('kv: ' + blockedIPsEntry);
 try {
     blockedIPs = JSON.parse(blockedIPsEntry || '[]');
     print('blocked IPs: ' + JSON.stringify(blockedIPs));
@@ -18,8 +33,8 @@ try {
 }
 
 // Separate individual IPs from CIDR ranges
-const individualIPs = [];
-const  cidrRanges = [];
+var individualIPs = [];
+var cidrRanges = [];
 
 blockedIPs.forEach(function(entry) {
     if (entry.indexOf('/') > -1) {
@@ -30,7 +45,7 @@ blockedIPs.forEach(function(entry) {
 });
 
 // // Check if IP is blocked
-const isBlocked = individualIPs.indexOf(clientIP) > -1;
+var isBlocked = individualIPs.indexOf(clientIP) > -1;
 //
 // // Check CIDR ranges if not already blocked
 // if (!isBlocked && cidrRanges.length > 0) {
