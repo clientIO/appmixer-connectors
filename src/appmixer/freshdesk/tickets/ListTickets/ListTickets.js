@@ -83,6 +83,7 @@ module.exports = {
             requestObject.params.query = query;
         } else {
             requestObject.params.per_page = perPage;
+            requestObject.params.updated_since = moment().subtract(30, 'years').format('YYYY-MM-DD');
             url = `https://${auth.domain}.freshdesk.com/api/v2/tickets`;
         }
 
