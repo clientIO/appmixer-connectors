@@ -18,12 +18,12 @@ twilio/
 ├── package.json
 ├── service.json
 └── core
-├── ListFromNumbers
-│   ├── ListFromNumbers.js  // behavior file, javascript file that contains the logic of the component
-│   └── component.json
-└── SendSMS
-├── SendSMS.js // behavior file, javascript file that contains the logic of the component
-└── component.json
+  ├── ListFromNumbers
+  │   ├── ListFromNumbers.js  // behavior file, javascript file that contains the logic of the component
+  │   └── component.json
+  └── SendSMS
+    ├── SendSMS.js // behavior file, javascript file that contains the logic of the component
+    └── component.json
 
 documentation: https://docs.appmixer.com/building-connectors/example-component#component-behaviour-sms-sendsms-sendsms.js
 
