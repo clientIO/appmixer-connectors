@@ -15,7 +15,7 @@ Key features include:
 
 - **Type**: ApiKey
 - **Credentials**:
-  - **Base URL**: The base URL for the API requests (e.g., `https://api.hubsync.com` or your custom domain)
+  - **Base URL**: The base URL for the API requests (e.g., `https://external-api.uat.hubsync.com/`)
   - **Tenant ID**: The ID of your organization/tenant to authenticate against (sent as `X-Tenant` header)
   - **API Key**: Your personal or system API key for authenticating requests (sent as `X-Api-Key` header)
 
@@ -367,17 +367,6 @@ appmixer t c appmixer/hubsync/grid/UpdateItem -p '{"workspaceId": "01722df1-cdbb
 appmixer t c appmixer/hubsync/grid/DeleteItem -p '{"workspaceId": "01722df1-cdbb-4deb-936f-10592ac1aa81", "databaseId": "4dd702fd-e2ba-4c63-a13e-58e0722fc941", "sheetId": "f34c9390-0121-48e0-b57c-fcd624d004af"}' -i '{"in": {"itemId": "34"}}'
 ```
 
-## Rate Limits and Performance Considerations
-
-HubSync API has the following limitations to be aware of when implementing integrations:
-- Maximum request rate: 120 requests per minute per API key
-- Maximum payload size: 10MB
-- Maximum items per request: 1000
-
-For optimal performance:
-- Batch operations when possible
-- Cache frequently accessed resources like workspace and database lists
-- Use specific queries rather than retrieving all data and filtering client-side
 
 ## Example Integration: JIRA to HubSync Synchronization
 
