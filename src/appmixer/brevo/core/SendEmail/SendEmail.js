@@ -21,14 +21,14 @@ module.exports = {
             };
         });
 
-        const ccArr = cc.ADD.map((recipient) => {
+        const ccArr = cc?.ADD.map((recipient) => {
             return {
                 name: recipient.name,
                 email: recipient.email
             };
         });
 
-        const bccArr = bcc.ADD.map((recipient) => {
+        const bccArr = bcc?.ADD.map((recipient) => {
             return {
                 name: recipient.name,
                 email: recipient.email

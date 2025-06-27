@@ -4,14 +4,14 @@ const lib = require('../../lib.generated');
 
 module.exports = {
     async receive(context) {
-        const { listId, outputType } = context.messages.in.content;
+        const { listId, outputType, sort } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'Contacts', value: 'result' });
         }
 
         const queryParams = {
-            limit: 500
+            limit: 500, sort
         };
 
         let allLists = [];

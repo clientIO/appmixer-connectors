@@ -5,7 +5,6 @@ module.exports = {
         const {
             name,
             subject,
-            senderType,
             senderId,
             senderEmail,
             senderName,
@@ -20,7 +19,6 @@ module.exports = {
             },
             data: {
                 name, htmlContent, subject, sender: {
-                    type: senderType,
                     name: senderName || undefined,
                     id: +senderId || undefined,
                     email: senderEmail || undefined
