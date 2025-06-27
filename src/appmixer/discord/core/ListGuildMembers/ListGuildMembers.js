@@ -11,10 +11,10 @@ module.exports = {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'Members', value: 'result' });
         }
 
-        // https://discord.com/developers/docs/resources/guild#search-guild-members
+        // https://discord.com/developers/docs/resources/guild#list-guild-members
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: `https://discord.com/api/v10/guilds/${context.auth.profileInfo.guildId}/members/search`,
+            url: `https://discord.com/api/v10/guilds/${context.auth.profileInfo.guildId}/members`,
             headers: {
                 'Authorization': `Bot ${context.auth.botToken}`
             }

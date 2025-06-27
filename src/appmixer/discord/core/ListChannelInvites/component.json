@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.discord.core.SearchGuildMembers",
+    "name": "appmixer.discord.core.ListChannelInvites",
     "author": "Appmixer <info@appmixer.com>",
-    "description": "Searches for Guild Members.",
+    "description": "Retrieves a list of invites for a channel.",
     "version": "1.0.0",
     "private": false,
     "auth": {
@@ -17,22 +17,27 @@
             "schema": {
                 "type": "object",
                 "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "Query string to match username(s) and nickname(s)"
+                    "channelId": {
+                        "type": "string"
                     }
-                },
-                "required": [
-                    "query"
-                ]
+                }
             },
             "inspector": {
                 "inputs": {
-                    "query": {
+                    "channelId": {
                         "type": "text",
-                        "tooltip": "Enter a username or a nickname. The guild members whose username or nickname starts with a provided string will be returned.",
-                        "label": "Query",
-                        "index": 1
+                        "tooltip": "ID of the channel",
+                        "label": "Channel ID",
+                        "index": 0,
+                        "source": {
+                            "url": "/component/appmixer/discord/core/ListChannels?outPort=out",
+                            "data": {
+                                "message": {
+                                    "in/outputType": "array"
+                                },
+                                "transform": "./ListChannels#toSelectArray"
+                            }
+                        }
                     }
                 }
             }
@@ -42,7 +47,7 @@
         {
             "name": "out",
             "source": {
-                "url": "/component/appmixer/discord/core/SearchGuildMembers?outPort=out",
+                "url": "/component/appmixer/discord/core/ListChannelInvites?outPort=out",
                 "data": {
                     "properties": {
                         "generateOutputPortOptions": true

@@ -1,45 +1,106 @@
 'use strict';
 
 module.exports = {
-    type: 'apiKey',
-    definition: {
-        auth: {
-            botToken: {
-                type: 'password',
-                name: 'Bot Token',
-                tooltip: 'Go to the Discord Developer Portal, select your application, and copy the Bot Token from the Bot section.'
-            }
-        },
 
-        async requestProfileInfo(context) {
-            const botToken = context.botToken;
-            // Discord API endpoint to get current bot user
-            const url = 'https://discord.com/api/v10/users/@me';
-            const headers = {
-                'Authorization': `Bot ${botToken}`,
-                'Content-Type': 'application/json'
-            };
-            const response = await context.httpRequest({ url, method: 'GET', headers });
-            if (response.data && response.data.username && response.data.id) {
-                return { key: `${response.data.username}#${response.data.discriminator}` };
-            } else {
-                throw new Error('Could not fetch Discord bot profile info.');
-            }
-        },
+    type: 'oauth2',
 
-        accountNameFromProfileInfo: 'key',
+    definition: () => {
 
-        validate: async (context) => {
-            const url = 'https://discord.com/api/v10/users/@me';
-            const headers = {
-                'Authorization': `Bot ${context.botToken}`,
-                'Content-Type': 'application/json'
-            };
-            const response = await context.httpRequest({ url, method: 'GET', headers });
-            if (!response.data || !response.data.id) {
-                throw new Error('Invalid Discord Bot Token.');
-            }
-            return true;
-        }
+        let guildId;
+
+        return {
+
+            scope: ['bot'],
+
+            scopeDelimiter: '+',
+
+            authUrl: (context) => {
+
+                return 'https://discord.com/oauth2/authorize?' +
+                    `client_id=${encodeURIComponent(context.clientId)}&` +
+                    `scope=${encodeURIComponent(context.scope)}&` +
+                    'permissions=805315601&' +
+                    `redirect_uri=${encodeURIComponent(context.callbackUrl)}&` +
+                    'response_type=code&' +
+                    `state=${encodeURIComponent(context.ticket)}`;
+            },
+
+            requestAccessToken: async (context) => {
+                const body = {
+                    'grant_type': 'authorization_code',
+                    'code': context.authorizationCode,
+                    'redirect_uri': context.callbackUrl,
+                    'client_id': context.clientId,
+                    'client_secret': context.clientSecret
+                };
+
+                const { data } = await context.httpRequest({
+                    method: 'POST',
+                    url: 'https://discord.com/api/oauth2/token',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data: body
+                });
+
+                guildId = data.guild.id;
+
+                const expDate = new Date();
+                expDate.setTime(expDate.getTime() + (data.expires_in * 1000));
+
+                return {
+                    accessToken: data.access_token,
+                    refreshToken: data.refresh_token,
+                    accessTokenExpDate: expDate
+                };
+            },
+
+            requestProfileInfo: async (context) => {
+                const { data } = await context.httpRequest({
+                    method: 'GET',
+                    url: 'https://discord.com/api/oauth2/applications/@me',
+                    headers: {
+                        Authorization: `Bot ${context.botToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                return {
+                    ...data,
+                    guildId
+                };
+            },
+
+            accountNameFromProfileInfo: 'application.name',
+
+            validateAccessToken: 'https://discord.com/api/oauth2/@me',
+
+            refreshAccessToken: async (context) => {
+                const body = {
+                    'grant_type': 'refresh_token',
+                    'refresh_token': context.refreshToken,
+                    'client_id': context.clientId,
+                    'client_secret': context.clientSecret
+                };
+
+                const { data } = await context.httpRequest({
+                    method: 'POST',
+                    url: 'https://discord.com/api/oauth2/token',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    data: body
+                });
+
+                const expDate = new Date();
+                expDate.setTime(expDate.getTime() + (data.expires_in * 1000));
+
+                return {
+                    accessToken: data.access_token,
+                    refreshToken: data.refresh_token,
+                    accessTokenExpDate: expDate
+                };
+            },
+        };
     }
 };
