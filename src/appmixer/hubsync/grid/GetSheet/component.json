@@ -1,0 +1,88 @@
+{
+    "name": "appmixer.hubsync.grid.GetSheet",
+    "description": "Fetches a specific sheet from HubSync database.",
+    "author": "Petr Olivka <petr@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:hubsync"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "workspaceId": {
+                        "type": "string",
+                        "description": "The ID of the workspace from which to fetch databases."
+                    },
+                    "databaseId": {
+                        "type": "string",
+                        "description": "The ID of the database from which to fetch sheets."
+                    },
+                    "sheetId": {
+                        "type": "string",
+                        "description": "The ID of the sheet to fetch."
+                    }
+                },
+                "required": [
+                    "workspaceId",
+                    "databaseId",
+                    "sheetId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "workspaceId": {
+                        "type": "select",
+                        "label": "Workspace ID",
+                        "index": 1,
+                        "tooltip": "Enter the ID of the workspace from which to fetch databases.",
+                        "source": {
+                            "url": "/component/appmixer/hubsync.common.FetchWorkspaces?outPort=workspaces",
+                            "data": {
+                                "transform": "./FetchWorkspaces#workspacesToSelectArray"
+                            }
+                        }
+                    },
+                    "databaseId": {
+                        "type": "select",
+                        "label": "Database ID",
+                        "index": 2,
+                        "tooltip": "Select the database from which to fetch sheets.",
+                        "source": {
+                            "url": "/component/appmixer/hubsync.grid.FetchDatabases?outPort=databases",
+                            "data": {
+                                "messages": {
+                                    "in/workspaceId": "inputs/in/workspaceId"
+                                },
+                                "transform": "./FetchDatabases#databasesToSelectArray"
+                            }
+                        }
+                    },
+                    "sheetId": {
+                        "type": "select",
+                        "label": "Sheet ID",
+                        "index": 3,
+                        "tooltip": "Select the sheet to fetch.",
+                        "source": {
+                            "url": "/component/appmixer/hubsync.grid.FetchSheets?outPort=sheets",
+                            "data": {
+                                "messages": {
+                                    "in/workspaceId": "inputs/in/workspaceId",
+                                    "in/databaseId": "inputs/in/databaseId"
+                                },
+                                "transform": "./FetchSheets#sheetsToSelectArray"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        "sheet"
+    ],
+    "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABkAAAAyCAMAAACeXICkAAAACXBIWXMAAD2EAAA9hAHVrK90AAABC1BMVEUAAAAAZP8AZv8AZf8AZf8AY/8AZf8AZf8AZf8AZP8AZv8AZv8AZP8AZP8AZf8AZv8AZP8AZf8AZv8AZ/8AZ/8AZf8AZP8AZP8AZv8AYv8AZv8AZP8AAP8AZf8AZf8AZf8AZf8AZv8AZf8AZP8AZP8AZf8AZv8AZv8AZf8AY/8AZP8AY/8AZf8AZf8AY/8AZv8Aav8AZf8AZ/8AZv8AZf8AZf8AZP8AYv8AY/8AZP8AZP8AZf8AZf8AVf8AZv8AaP8AZf8AZP8AZv8AZv8AZf8AZv8AZP8AZP8AZf8AZv8AZv8AZf8Aaf8AZf8AZf8AYv8AZf8AgP8AZf8AZf8AZP8AcP8AZP8AZv8AZv/+5AedAAAAWXRSTlMAM57kjiRg/f/sFG54Yfkj/mVnYWZiZmNkGlApAUyB/rUF0opr+oqyv2SWMfTzElUd9UOHSZx/OUOyPa++BuIW60KjGX7OghzmHiiwJ7HlJyYCrlN1EOetaZ/EqhcAAAD/SURBVHicxdTZUsIwFAbgKGqPyiIoomwFKagoKCoom+DKjrvw/k9iLCdtGpuBGQRy9SdfMjmZZELI37a07FhZtRknawoArG9IAGBTBuAUwYXg9khgyysD36SwzWBHAD+D3TmAeI7AOFD+EfZoZz8YCjOI8BBVAWJxlAMOEnrUUJImpEaTDlGOdDg2AdIoJ6cAKrcCMsY9Z8/85xzkLoTaLzmIX+ULIQbXDG4oFGlQSygpDsp6rKA4DaiOAG5RavVfuDMB7tlGD49Pzw0Omi1rhSa0BejMALpTQw+h/7IAKDJ4tcLbuwTIhwxIWgbkUwbky0Hh2wboE9AGQ5vPjPwABhAxB3JzCzQAAAAASUVORK5CYII="
+}
