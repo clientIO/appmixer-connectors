@@ -24,13 +24,13 @@ module.exports = {
         accountNameFromProfileInfo: 'data.email',
 
         requestProfileInfo: {
-            'method': 'GET',
-            'uri': 'https://api.apify.com/v2/users/{{apiUserId}}?token={{apiToken}}'
+            method: 'GET',
+            url: 'https://api.apify.com/v2/users/{{apiUserId}}?token={{apiToken}}'
         },
 
         validate: {
-            'method': 'GET',
-            'uri': 'https://api.apify.com/v2/users/{{apiUserId}}?token={{apiToken}}'
+            method: 'GET',
+            url: 'https://api.apify.com/v2/users/{{apiUserId}}?token={{apiToken}}'
         }
     }
 };
