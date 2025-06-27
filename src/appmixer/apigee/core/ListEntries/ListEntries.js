@@ -18,6 +18,9 @@ module.exports = {
 
         const items = data.keyValueEntries;
 
-        return context.sendJson(items, 'out');
+        console.log('------------');
+        console.log(items);
+
+        // return context.sendJson(items, 'out');
     }
 };

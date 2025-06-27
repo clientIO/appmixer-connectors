@@ -1,30 +1,34 @@
 'use strict';
 
 const lib = require('../../lib.generated');
-const { assignWith } = require('lodash/object');
+
 module.exports = {
     async receive(context) {
 
-        const { ips, ttl, comment } = context.messages.in.content;
+        const { ips, ttl, comment = '' } = context.messages.in.content;
 
         const ipsList = lib.parseIPs(ips);
 
-        const expiration = ttl ? new Date(Date.now() + ttl * 1000).toISOString() : null;
-        console.log(ipsList);
+        const expiration = ttl ? new Date(Date.now() + ttl * 1000).valueOf() : null;
 
-        // const newEntries = ipsList.map(ip => ({ ip, comment, expiration }));
-        // console.log(newEntries);
+        const BLOCKED_IPS = 'blocked-ips';
 
-        const entry = await getOrCreateEntry(context, 'blocked-ips');
+        const list = await getOrCreateList(context, BLOCKED_IPS);
 
-        console.log('-------------')
-        console.log(entry)
+        ipsList.forEach(ip => {
+            list['test'] = {
+                ip,
+                // comment,
+                expiration
+            };
+        });
 
+        await setList(context, BLOCKED_IPS, JSON.stringify({ ip: "1.1.1.1", expiration }));
         return context.sendJson({}, 'out');
     }
 };
 
-const updateEntry = (context, name, value) => {
+const setList = (context, name, value) => {
 
     const { mapName } = context.messages.in.content;
     const { org, env } = context.properties;
@@ -39,7 +43,7 @@ const updateEntry = (context, name, value) => {
     });
 };
 
-const getOrCreateEntry = async (context, name) => {
+const getOrCreateList = async (context, name) => {
 
     const { mapName } = context.messages.in.content;
     const { org, env } = context.properties;
@@ -55,7 +59,9 @@ const getOrCreateEntry = async (context, name) => {
 
         return JSON.parse(data.value || '{}');
     } catch (error) {
+
         if (error.response && error.response.status === 404) {
+            // TODO check the kvm exists
             await createEntry(context, name, '{}');
             return {};
         }
