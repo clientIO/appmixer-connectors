@@ -44,6 +44,40 @@ describe('FindResponses Component', function() {
         testFormId = '1mYtGExmv-ztm-CVhK5x3f1eDDPDK2iXda7wD5LYgP9s';
     });
 
+    describe('Check the output port options for FindResponses', async function() {
+
+        it('outputType: object', async function() {
+            let data;
+            context.sendJson = function(output, port) {
+                data = output;
+                return { data: output, port };
+            };
+
+            context.properties.generateOutputPortOptions = true;
+            context.messages.in.content = { outputType: 'first' };
+
+            await component.receive(context);
+
+            console.log(data);
+        });
+
+        it('outputType: array', async function() {
+            let data;
+            context.sendJson = function(output, port) {
+                data = output;
+                return { data: output, port };
+            };
+
+            context.properties.generateOutputPortOptions = true;
+            context.messages.in.content = { outputType: 'array' }; // outputType: 'array' or 'first'
+
+            await component.receive(context);
+
+            console.log(data);
+        });
+
+    });
+
     it('should find responses without filter', async function() {
 
         let data;
@@ -101,7 +135,7 @@ describe('FindResponses Component', function() {
         try {
             await component.receive(context);
 
-            console.log('FindResponses with filter result:', JSON.stringify(data, null, 2));
+            console.log('FindResponses with filter result:\n\n', JSON.stringify(data, null, 2));
 
             // The result could be empty if no recent responses exist, which is fine
             assert(data && typeof data === 'object', 'Expected result to be an object');
