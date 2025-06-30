@@ -2,7 +2,7 @@
 
 module.exports = {
     async receive(context) {
-        const { channelId, name, type, position, parent_id, nsfw, rate_limit_per_user } = context.messages.in.content;
+        const { channelId, name, type, position, parentId, nsfw, rateLimitPerUser } = context.messages.in.content;
 
         // https://discord.com/developers/docs/resources/channel#modify-channel
         const { data } = await context.httpRequest({
@@ -12,7 +12,7 @@ module.exports = {
                 'Authorization': `Bot ${context.auth.botToken}`
             },
             data: {
-                name, type, rate_limit_per_user, position, parent_id, nsfw
+                name, type, rate_limit_per_user: rateLimitPerUser, position, parent_id: parentId, nsfw
             }
         });
 

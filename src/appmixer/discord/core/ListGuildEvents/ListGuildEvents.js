@@ -5,7 +5,7 @@ const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
 
-        const { with_user_count, outputType } = context.messages.in.content;
+        const { withUserCount, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'Events', value: 'result' });
@@ -19,7 +19,7 @@ module.exports = {
                 'Authorization': `Bot ${context.auth.botToken}`
             },
             params: {
-                with_user_count
+                with_user_count: withUserCount
             }
         });
 

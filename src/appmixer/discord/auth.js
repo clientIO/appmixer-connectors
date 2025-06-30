@@ -98,7 +98,7 @@ module.exports = {
                     refreshToken: data.refresh_token,
                     accessTokenExpDate: expDate
                 };
-            },
+            }
         };
     }
 };

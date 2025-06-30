@@ -2,7 +2,7 @@
 
 module.exports = {
     async receive(context) {
-        const { channelId, max_age, max_uses, temporary, unique } = context.messages.in.content;
+        const { channelId, maxAge, maxUses, temporary, unique } = context.messages.in.content;
 
         // https://discord.com/developers/docs/resources/channel#create-channel-invite
         const { data } = await context.httpRequest({
@@ -12,8 +12,8 @@ module.exports = {
                 'Authorization': `Bot ${context.auth.botToken}`
             },
             data: {
-                max_age,
-                max_uses,
+                max_age: maxAge,
+                max_uses: maxUses,
                 temporary,
                 unique
             }
