@@ -1,7 +1,6 @@
 'use strict';
 
 const lib = require('../../lib.generated');
-const schema = { 'id': { 'type': 'string', 'title': 'Id' }, 'type': { 'type': 'number', 'title': 'Type' }, 'last_message_id': { 'type': 'null', 'title': 'Last Message Id' }, 'flags': { 'type': 'number', 'title': 'Flags' }, 'guild_id': { 'type': 'string', 'title': 'Guild Id' }, 'name': { 'type': 'string', 'title': 'Name' }, 'parent_id': { 'type': 'string', 'title': 'Parent Id' }, 'rate_limit_per_user': { 'type': 'number', 'title': 'Rate Limit Per User' }, 'bitrate': { 'type': 'number', 'title': 'Bitrate' }, 'user_limit': { 'type': 'number', 'title': 'User Limit' }, 'rtc_region': { 'type': 'null', 'title': 'Rtc Region' }, 'position': { 'type': 'number', 'title': 'Position' }, 'permission_overwrites': { 'type': 'array', 'items': {}, 'title': 'Permission Overwrites' }, 'nsfw': { 'type': 'boolean', 'title': 'Nsfw' }, 'icon_emoji': { 'type': 'object', 'properties': { 'id': { 'type': 'null', 'title': 'Icon Emoji.Id' }, 'name': { 'type': 'string', 'title': 'Icon Emoji.Name' } }, 'title': 'Icon Emoji' }, 'theme_color': { 'type': 'null', 'title': 'Theme Color' }, 'voice_background_display': { 'type': 'null', 'title': 'Voice Background Display' } };
 
 module.exports = {
     async receive(context) {
@@ -21,6 +20,53 @@ module.exports = {
             }
         });
 
+        if (!Array.isArray(data) || !data.length) {
+            return context.sendJson({}, 'notFound');
+        }
+
         return lib.sendArrayOutput({ context, records: data, outputType });
     }
+};
+
+const schema = {
+    'type': { 'type': 'number', 'title': 'Type' },
+    'code': { 'type': 'string', 'title': 'Code' },
+    'inviter': {
+        'type': 'object', 'properties': {
+            'id': { 'type': 'string', 'title': 'Inviter.ID' },
+            'username': { 'type': 'string', 'title': 'Inviter.Username' },
+            'discriminator': { 'type': 'string', 'title': 'Inviter.Discriminator' },
+            'public_flags': { 'type': 'number', 'title': 'Inviter.Public Flags' },
+            'flags': { 'type': 'number', 'title': 'Inviter.Flags' }
+        },
+        'title': 'Inviter'
+    },
+    'max_age': { 'type': 'number', 'title': 'Max Age' },
+    'created_at': { 'type': 'string', 'title': 'Created At' },
+    'expires_at': { 'type': 'string', 'title': 'Expires At' },
+    'guild': {
+        'type': 'object', 'properties': {
+            'id': { 'type': 'string', 'title': 'Guild.ID' },
+            'name': { 'type': 'string', 'title': 'Guild.Name' },
+            'features': { 'type': 'array', 'items': {}, 'title': 'Guild.Features' },
+            'verification_level': { 'type': 'number', 'title': 'Guild.Verification Level' },
+            'nsfw_level': { 'type': 'number', 'title': 'Guild.Nsfw Level' },
+            'nsfw': { 'type': 'boolean', 'title': 'Guild.Nsfw' },
+            'premium_subscription_count': { 'type': 'number', 'title': 'Guild.Premium Subscription Count' },
+            'premium_tier': { 'type': 'number', 'title': 'Guild.Premium Tier' }
+        },
+        'title': 'Guild'
+    },
+    'guild_id': { 'type': 'string', 'title': 'Guild ID' },
+    'channel': {
+        'type': 'object', 'properties': {
+            'id': { 'type': 'string', 'title': 'Channel.ID' },
+            'type': { 'type': 'number', 'title': 'Channel.Type' },
+            'name': { 'type': 'string', 'title': 'Channel.Name' }
+        },
+        'title': 'Channel'
+    },
+    'uses': { 'type': 'number', 'title': 'Uses' },
+    'max_uses': { 'type': 'number', 'title': 'Max Uses' },
+    'temporary': { 'type': 'boolean', 'title': 'Temporary' }
 };

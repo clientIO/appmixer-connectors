@@ -6,24 +6,52 @@ module.exports = {
     async receive(context) {
 
         const { outputType } = context.messages.in.content;
+        const { generateOutputPortOptions, isSource } = context.properties;
         const { auth } = context;
 
-        context.log({ step: 'auth', auth });
-
-        if (context.properties.generateOutputPortOptions) {
+        if (generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'Channels', value: 'result' });
         }
 
-        // https://discord.com/developers/docs/resources/guild#get-guild-channels
-        const { data } = await context.httpRequest({
-            method: 'GET',
-            url: `https://discord.com/api/v10/guilds/${auth.profileInfo.guildId}/channels`,
-            headers: {
-                'Authorization': `Bot ${auth.botToken}`
-            }
-        });
+        const cacheKey = 'discord_channels_' + auth.accessToken.slice(5, -5);
+        let lock;
+        try {
+            lock = await context.lock(auth.accessToken.slice(5, -5));
 
-        return lib.sendArrayOutput({ context, records: data, outputType });
+            if (isSource) {
+                const channelsCached = await context.staticCache.get(cacheKey);
+                if (channelsCached) {
+                    return context.sendJson({ result: channelsCached }, 'out');
+                }
+            }
+
+            // https://discord.com/developers/docs/resources/guild#get-guild-channels
+            const { data } = await context.httpRequest({
+                method: 'GET',
+                url: `https://discord.com/api/v10/guilds/${auth.profileInfo.guildId}/channels`,
+                headers: {
+                    'Authorization': `Bot ${auth.botToken}`
+                }
+            });
+
+            if (!Array.isArray(data) || !data.length) {
+                return context.sendJson({}, 'notFound');
+            }
+
+            if (isSource) {
+                await context.staticCache.set(
+                    cacheKey,
+                    data.map(channel => ({ id: channel.id, name: channel.name })),
+                    context.config.listChannelsCacheTTL || (20 * 1000)
+                );
+
+                return context.sendJson({ result: data }, 'out');
+            }
+
+            await lib.sendArrayOutput({ context, records: data, outputType });
+        } finally {
+            lock?.unlock();
+        }
     },
 
     toSelectArray({ result }) {

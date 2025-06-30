@@ -5,7 +5,7 @@ const lib = require('../../lib.generated');
 module.exports = {
     async receive(context) {
 
-        const { outputType } = context.messages.in.content;
+        const { query, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'Members', value: 'result' });
@@ -17,8 +17,15 @@ module.exports = {
             url: `https://discord.com/api/v10/guilds/${context.auth.profileInfo.guildId}/members/search`,
             headers: {
                 'Authorization': `Bot ${context.auth.botToken}`
+            },
+            params: {
+                limit: 1000, query
             }
         });
+
+        if (!Array.isArray(data) || !data.length) {
+            return context.sendJson({}, 'notFound');
+        }
 
         return lib.sendArrayOutput({ context, records: data, outputType });
     }

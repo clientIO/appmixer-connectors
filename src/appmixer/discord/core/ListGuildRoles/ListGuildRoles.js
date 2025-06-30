@@ -14,11 +14,15 @@ module.exports = {
         // https://discord.com/developers/docs/resources/guild#get-guild-roles
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://discord.com/api/v10/guilds/{context.auth.profileInfo.guildId}/roles',
+            url: `https://discord.com/api/v10/guilds/${context.auth.profileInfo.guildId}/roles`,
             headers: {
                 'Authorization': `Bot ${context.auth.botToken}`
             }
         });
+
+        if (!Array.isArray(data) || !data.length) {
+            return context.sendJson({}, 'notFound');
+        }
 
         return lib.sendArrayOutput({ context, records: data, outputType });
     },

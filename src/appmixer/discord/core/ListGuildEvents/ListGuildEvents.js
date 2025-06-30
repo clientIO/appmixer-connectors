@@ -23,6 +23,10 @@ module.exports = {
             }
         });
 
+        if (!Array.isArray(data) || !data.length) {
+            return context.sendJson({}, 'notFound');
+        }
+
         return lib.sendArrayOutput({ context, records: data, outputType });
     }
 };

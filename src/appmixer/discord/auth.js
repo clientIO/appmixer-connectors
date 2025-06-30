@@ -12,14 +12,12 @@ module.exports = {
 
             scope: ['bot'],
 
-            scopeDelimiter: '+',
-
             authUrl: (context) => {
 
                 return 'https://discord.com/oauth2/authorize?' +
                     `client_id=${encodeURIComponent(context.clientId)}&` +
-                    `scope=${encodeURIComponent(context.scope)}&` +
-                    'permissions=805315601&' +
+                    `scope=${context.scope.join('+')}&` +
+                    'permissions=26038250577&' +
                     `redirect_uri=${encodeURIComponent(context.callbackUrl)}&` +
                     'response_type=code&' +
                     `state=${encodeURIComponent(context.ticket)}`;
@@ -58,9 +56,9 @@ module.exports = {
             requestProfileInfo: async (context) => {
                 const { data } = await context.httpRequest({
                     method: 'GET',
-                    url: 'https://discord.com/api/oauth2/applications/@me',
+                    url: 'https://discord.com/api/oauth2/@me',
                     headers: {
-                        Authorization: `Bot ${context.botToken}`,
+                        Authorization: `Bearer ${context.accessToken}`,
                         'Content-Type': 'application/json'
                     }
                 });

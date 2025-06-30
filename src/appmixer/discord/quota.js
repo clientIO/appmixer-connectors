@@ -4,7 +4,7 @@ module.exports = {
 
     rules: [
         {
-            limit: 50,
+            limit: 5,
             window: 1000,
             queueing: 'fifo',
             resource: 'requests'

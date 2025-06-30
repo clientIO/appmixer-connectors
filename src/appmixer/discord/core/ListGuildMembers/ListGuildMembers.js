@@ -17,8 +17,15 @@ module.exports = {
             url: `https://discord.com/api/v10/guilds/${context.auth.profileInfo.guildId}/members`,
             headers: {
                 'Authorization': `Bot ${context.auth.botToken}`
+            },
+            params: {
+                limit: 1000
             }
         });
+
+        if (!Array.isArray(data) || !data.length) {
+            return context.sendJson({}, 'notFound');
+        }
 
         return lib.sendArrayOutput({ context, records: data, outputType });
     }

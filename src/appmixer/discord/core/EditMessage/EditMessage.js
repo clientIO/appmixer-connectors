@@ -10,6 +10,9 @@ module.exports = {
             url: `https://discord.com/api/v10/channels/${channelId ?? threadId}/messages/${messageId}`,
             headers: {
                 'Authorization': `Bot ${context.auth.botToken}`
+            },
+            data: {
+                content
             }
         });
 

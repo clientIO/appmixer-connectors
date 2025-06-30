@@ -16,9 +16,13 @@ module.exports = {
             method: 'GET',
             url: `https://discord.com/api/v10/channels/${channelId ?? threadId}/messages/${messageId}/reactions/${emojiId}`,
             headers: {
-                'Authorization': `Bot ${auth.botToken}`
+                'Authorization': `Bot ${context.auth.botToken}`
             }
         });
+
+        if (!Array.isArray(data) || !data.length) {
+            return context.sendJson({}, 'notFound');
+        }
 
         return lib.sendArrayOutput({ context, records: data, outputType });
     }

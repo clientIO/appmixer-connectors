@@ -2,17 +2,15 @@
 
 module.exports = {
     async receive(context) {
-        const { channelId, name, type, position, parent_id, nsfw, rate_limit_per_user } = context.messages.in.content;
 
-        // https://discord.com/developers/docs/resources/channel#modify-channel
+        const { channelId } = context.messages.in.content;
+
+        // https://discord.com/developers/docs/resources/channel#get-channel
         const { data } = await context.httpRequest({
-            method: 'PATCH',
+            method: 'GET',
             url: `https://discord.com/api/v10/channels/${channelId}`,
             headers: {
                 'Authorization': `Bot ${context.auth.botToken}`
-            },
-            data: {
-                name, type, rate_limit_per_user, position, parent_id, nsfw
             }
         });
 
