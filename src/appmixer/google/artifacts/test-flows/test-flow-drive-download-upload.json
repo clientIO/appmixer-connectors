@@ -1,0 +1,620 @@
+{
+    "name": "E2E Google Drive - download and upload",
+    "description": "Creates a text file on Drive, downloads it (asserting the round-tripped content), uploads the downloaded file back under a new name and deletes both files.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "a8299db9-a3f5-5655-9bc4-ffdbe3c5aa11": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "be9fcbb5-43fd-5415-8c32-e981ca114252": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a8299db9-a3f5-5655-9bc4-ffdbe3c5aa11": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a8299db9-a3f5-5655-9bc4-ffdbe3c5aa11": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "75a387f6-b9e6-583e-96b2-dfb86ce48688": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "fileName",
+                                                "text": "e2e-drive-download-{{{75a387f6-b9e6-583e-96b2-dfb86ce48688}}}.txt"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "downloadedFileName",
+                                                "text": "e2e-drive-downloaded-{{{75a387f6-b9e6-583e-96b2-dfb86ce48688}}}.txt"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "uploadedFileName",
+                                                "text": "e2e-drive-uploaded-{{{75a387f6-b9e6-583e-96b2-dfb86ce48688}}}.txt"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "fileContent",
+                                                "text": "Appmixer end-to-end test content that survives a Drive download and re-upload."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ae37ba00-e2f1-56a5-b964-9da2fabab7d2": {
+            "type": "appmixer.google.drive.CreateFileFromText",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "be9fcbb5-43fd-5415-8c32-e981ca114252": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "be9fcbb5-43fd-5415-8c32-e981ca114252": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileName": {
+                                        "a173ad18-c782-5caf-ac60-9bb033a73393": {
+                                            "variable": "$.be9fcbb5-43fd-5415-8c32-e981ca114252.out.fileName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "content": {
+                                        "8f7d78e1-317d-517c-9901-63a80b88f2a3": {
+                                            "variable": "$.be9fcbb5-43fd-5415-8c32-e981ca114252.out.fileContent",
+                                            "functions": []
+                                        }
+                                    },
+                                    "convertToDocument": {},
+                                    "replace": {}
+                                },
+                                "lambda": {
+                                    "fileName": "{{{a173ad18-c782-5caf-ac60-9bb033a73393}}}",
+                                    "content": "{{{8f7d78e1-317d-517c-9901-63a80b88f2a3}}}",
+                                    "convertToDocument": false,
+                                    "replace": false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "31d4b56b-fe64-5ae7-9690-89dbed49f191": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "ae37ba00-e2f1-56a5-b964-9da2fabab7d2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ae37ba00-e2f1-56a5-b964-9da2fabab7d2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "786d90ad-6a61-5ca3-b9f1-643d0ec21de7": {
+                                            "variable": "$.ae37ba00-e2f1-56a5-b964-9da2fabab7d2.out.googleDriveFileMetadata",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{786d90ad-6a61-5ca3-b9f1-643d0ec21de7}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ac38908c-694b-5eea-a621-0d4519ad9782": {
+            "type": "appmixer.google.drive.DownloadFile",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "ae37ba00-e2f1-56a5-b964-9da2fabab7d2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ae37ba00-e2f1-56a5-b964-9da2fabab7d2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "f69e70ad-04f5-5c79-bc00-5a6dd75b71eb": {
+                                            "variable": "$.ae37ba00-e2f1-56a5-b964-9da2fabab7d2.out.googleDriveFileMetadata",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "customFileName": {
+                                        "0c8534c3-b0e8-50dc-b898-7878e28a79a6": {
+                                            "variable": "$.be9fcbb5-43fd-5415-8c32-e981ca114252.out.downloadedFileName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputFileData": {},
+                                    "outputFileDataEncoding": {}
+                                },
+                                "lambda": {
+                                    "fileId": "{{{f69e70ad-04f5-5c79-bc00-5a6dd75b71eb}}}",
+                                    "customFileName": "{{{0c8534c3-b0e8-50dc-b898-7878e28a79a6}}}",
+                                    "outputFileData": true,
+                                    "outputFileDataEncoding": "utf8"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b768d713-f7b7-53c7-a612-bbda85ab5c93": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "ac38908c-694b-5eea-a621-0d4519ad9782": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ac38908c-694b-5eea-a621-0d4519ad9782": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6edd0df1-6302-5425-a6bb-cdec7292ef6a": {
+                                            "variable": "$.ac38908c-694b-5eea-a621-0d4519ad9782.out.content",
+                                            "functions": []
+                                        },
+                                        "45471764-8617-5d9d-9e60-3183ca68ff6a": {
+                                            "variable": "$.be9fcbb5-43fd-5415-8c32-e981ca114252.out.fileContent",
+                                            "functions": []
+                                        },
+                                        "62295e73-93b0-543f-8af6-7e30befb8d99": {
+                                            "variable": "$.ac38908c-694b-5eea-a621-0d4519ad9782.out.filename",
+                                            "functions": []
+                                        },
+                                        "8aa0214a-2cbb-5686-a4a7-7e0c513a00e6": {
+                                            "variable": "$.be9fcbb5-43fd-5415-8c32-e981ca114252.out.downloadedFileName",
+                                            "functions": []
+                                        },
+                                        "66647461-a2ba-5d84-a026-4c9f26aff08d": {
+                                            "variable": "$.ac38908c-694b-5eea-a621-0d4519ad9782.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6edd0df1-6302-5425-a6bb-cdec7292ef6a}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{45471764-8617-5d9d-9e60-3183ca68ff6a}}}"
+                                            },
+                                            {
+                                                "field": "{{{62295e73-93b0-543f-8af6-7e30befb8d99}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{8aa0214a-2cbb-5686-a4a7-7e0c513a00e6}}}"
+                                            },
+                                            {
+                                                "field": "{{{66647461-a2ba-5d84-a026-4c9f26aff08d}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b5a951d3-a85d-507b-9c0b-0690d23ffea4": {
+            "type": "appmixer.google.drive.UploadFile",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "ac38908c-694b-5eea-a621-0d4519ad9782": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ac38908c-694b-5eea-a621-0d4519ad9782": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "6f96d0d6-d9e1-5c54-be53-1351eeedb5f4": {
+                                            "variable": "$.ac38908c-694b-5eea-a621-0d4519ad9782.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileName": {
+                                        "e98c09b2-f4d5-5ee5-80d1-f152fd72ab5c": {
+                                            "variable": "$.be9fcbb5-43fd-5415-8c32-e981ca114252.out.uploadedFileName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "convertToDocument": {},
+                                    "replace": {}
+                                },
+                                "lambda": {
+                                    "fileId": "{{{6f96d0d6-d9e1-5c54-be53-1351eeedb5f4}}}",
+                                    "fileName": "{{{e98c09b2-f4d5-5ee5-80d1-f152fd72ab5c}}}",
+                                    "convertToDocument": false,
+                                    "replace": false
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "5ca2a379-6ffe-5db5-81f3-32891e0aac6e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b5a951d3-a85d-507b-9c0b-0690d23ffea4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b5a951d3-a85d-507b-9c0b-0690d23ffea4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a0fe7122-2ecd-5ef0-9390-b0ebd825bcd0": {
+                                            "variable": "$.b5a951d3-a85d-507b-9c0b-0690d23ffea4.out.googleDriveFileMetadata",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "a2ea6ea6-94c5-5389-9155-cb9f4b1c4896": {
+                                            "variable": "$.be9fcbb5-43fd-5415-8c32-e981ca114252.out.uploadedFileName",
+                                            "functions": []
+                                        },
+                                        "d3598d28-043b-5748-a7e1-0df895ec3e34": {
+                                            "variable": "$.b5a951d3-a85d-507b-9c0b-0690d23ffea4.out.googleDriveFileMetadata",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a0fe7122-2ecd-5ef0-9390-b0ebd825bcd0}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{a2ea6ea6-94c5-5389-9155-cb9f4b1c4896}}}"
+                                            },
+                                            {
+                                                "field": "{{{d3598d28-043b-5748-a7e1-0df895ec3e34}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "18ee4e3f-6b2a-5b25-8f2f-fc5cfa3e9a43": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "31d4b56b-fe64-5ae7-9690-89dbed49f191": [
+                        "out"
+                    ],
+                    "b768d713-f7b7-53c7-a612-bbda85ab5c93": [
+                        "out"
+                    ],
+                    "5ca2a379-6ffe-5db5-81f3-32891e0aac6e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            }
+        },
+        "d8276859-e32b-552d-8c79-28f8dfef1abb": {
+            "type": "appmixer.google.drive.DeleteFileOrFolder",
+            "x": 1520,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "DeleteFileOrFolder (cleanup uploaded file)",
+            "source": {
+                "in": {
+                    "18ee4e3f-6b2a-5b25-8f2f-fc5cfa3e9a43": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "18ee4e3f-6b2a-5b25-8f2f-fc5cfa3e9a43": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "cb616360-e162-5571-af3d-04d3e10d0a94": {
+                                            "variable": "$.b5a951d3-a85d-507b-9c0b-0690d23ffea4.out.googleDriveFileMetadata",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{cb616360-e162-5571-af3d-04d3e10d0a94}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "7e260f83-b66d-517d-86d0-040ed995aec7": {
+            "type": "appmixer.google.drive.DeleteFileOrFolder",
+            "x": 1728,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "DeleteFileOrFolder (cleanup original file)",
+            "source": {
+                "in": {
+                    "d8276859-e32b-552d-8c79-28f8dfef1abb": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d8276859-e32b-552d-8c79-28f8dfef1abb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "d93c8805-4607-5c0b-a144-8811842a42a7": {
+                                            "variable": "$.ae37ba00-e2f1-56a5-b964-9da2fabab7d2.out.googleDriveFileMetadata",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{d93c8805-4607-5c0b-a144-8811842a42a7}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ee54afa4-ebe2-5521-9b05-7a1aa6a2c9ec": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1936,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "7e260f83-b66d-517d-86d0-040ed995aec7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "7e260f83-b66d-517d-86d0-040ed995aec7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "7197c56e-177c-50d1-a7cb-f026cfa88003": {
+                                            "variable": "$.18ee4e3f-6b2a-5b25-8f2f-fc5cfa3e9a43.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Google Drive - download and upload",
+                                    "result": "{{{7197c56e-177c-50d1-a7cb-f026cfa88003}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
