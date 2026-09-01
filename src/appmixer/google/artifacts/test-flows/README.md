@@ -19,6 +19,20 @@ helper) and is deliberately not a flow node.
 
 ## Notes for whoever runs these
 
+- **Import with an `appmixer:google:drive` account, not an `appmixer:google` one.**
+  The drive components declare `auth.service: "appmixer:google:drive"`, but
+  `appmixer e2e import -c google` resolves the connector-level `appmixer:google`
+  service and binds an account from there. Nothing complains until the first
+  authenticated call: `FindFilesOrFolders`' dynamic output port fails its
+  variables fetch with `TokenError: Access token not found for component …`, so
+  the import rejects `$.<find>.out.googleDriveFileMetadata` as an invalid
+  variable. Pass the drive account explicitly:
+
+  ```bash
+  appmixer account ls --json          # pick the id whose service is appmixer:google:drive
+  appmixer e2e import -c google -a <accountId>
+  ```
+
 - **No tenant-bound values.** Every flow creates the files and folders it needs
   and deletes them again, so swapping the E2E account needs no edits. The
   triggers watch the whole drive (no `folder` property), for the same reason.
