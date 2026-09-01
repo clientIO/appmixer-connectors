@@ -2,6 +2,27 @@ const { google } = require('googleapis');
 const moment = require('moment');
 const uuid = require('uuid');
 
+// Maximum number of `drive.changes.list` pages processed by a single receive()/tick()
+// invocation. Without a cap, a large change backlog (stale startPageToken, rate limited
+// account, Google 5xx retries) keeps the component lock held for hours, which starves
+// tick()/start() with LockError storms and livelocks on message redelivery.
+const MAX_PAGES_PER_RUN = 20;
+
+// TTL the component lock is (re)armed with before every page and periodically while
+// emitting. It has to comfortably cover one `changes.list` call including gaxios retries,
+// otherwise the lock expires mid-run and registerWebhook() may clobber `startPageToken`.
+const LOCK_TTL = 60 * 1000;
+
+// Re-arm the lock every N emitted files so a large batch does not outlive the last extension.
+const LOCK_EXTEND_EVERY_FILES = 20;
+
+// Hard HTTP timeout for the Google Drive API so a hung call cannot outlive the lock.
+const HTTP_TIMEOUT = 30 * 1000;
+
+// Raised when the component lock could no longer be extended. Processing must stop rather
+// than continue unprotected - progress is durable, so the next tick() resumes where we left off.
+class LockLostError extends Error {}
+
 let defaultExportFormats = {
     'application/vnd.google-apps.site': {
         extension: 'zip',
@@ -46,6 +67,28 @@ const processedItemsBuffer = function(data = []) {
             return data.slice(-MAX_GROUP_COUNT);
         }
     };
+};
+
+// Re-arm the component lock. Throws LockLostError when the lock is already gone so that
+// callers abort instead of silently carrying on without mutual exclusion.
+const extendLock = async (lock) => {
+
+    try {
+        await lock.extend(LOCK_TTL);
+    } catch (err) {
+        throw new LockLostError(`Cannot extend the Google Drive component lock: ${err.message}`);
+    }
+};
+
+// Release the lock without ever masking the error that is already propagating.
+const safeUnlock = async (context, lock) => {
+
+    if (!lock) return;
+    try {
+        await lock.unlock();
+    } catch (err) {
+        await context.log({ step: 'unlock-failed', error: err.message });
+    }
 };
 
 const escapeSpecialCharacters = (string) => {
@@ -103,22 +146,46 @@ const findFiles = async (context, drive, query, orderBy = 'name asc', fields = '
     return items;
 };
 
-const registerWebhook = async (context, { includeRemoved } = {}) => {
+/**
+ * (Re)registers the Drive changes watch channel.
+ * @param {Object} context
+ * @param {boolean} [options.includeRemoved]
+ * @param {number} [options.maxRetryCount] How hard to try to acquire the component lock.
+ *   Pass 0 from tick() so a renewal simply skips a contended lock and retries on the next
+ *   tick instead of exhausting 31 attempts and throwing a LockError every single minute.
+ *   start() keeps the default retries because it has no next attempt.
+ * @return {Promise<void>}
+ */
+const registerWebhook = async (context, { includeRemoved, maxRetryCount } = {}) => {
+
+    const lockOptions = {};
+    if (typeof maxRetryCount === 'number') {
+        lockOptions.maxRetryCount = maxRetryCount;
+    }
 
     let lock = null;
     try {
-        lock = await context.lock(context.componentId);
-        await unregisterWebhook(context);
+        lock = await context.lock(context.componentId, lockOptions);
     } catch (err) {
-        if (!err.response || err.response.status !== 404) {
-            lock?.unlock();
-            throw err;
+        if (maxRetryCount === 0) {
+            // Somebody else (typically a receive() working through a change backlog) holds
+            // the lock. Skip this renewal, the next tick() will try again.
+            await context.log({ step: 'webhook-renewal-skipped', reason: err.message });
+            return;
         }
+        throw err;
     }
 
     try {
-        const auth = getOauth2Client(context.auth);
-        const drive = google.drive({ version: 'v3', auth });
+        try {
+            await unregisterWebhook(context);
+        } catch (err) {
+            if (!err.response || err.response.status !== 404) {
+                throw err;
+            }
+        }
+
+        const drive = getDriveClient(context.auth);
         let pageToken = await context.stateGet('startPageToken');
 
         if (!pageToken) {
@@ -147,7 +214,7 @@ const registerWebhook = async (context, { includeRemoved } = {}) => {
         await context.stateSet('webhookId', data.resourceId);
         await context.stateSet('expiration', expiration);
     } finally {
-        lock?.unlock();
+        await safeUnlock(context, lock);
     }
 };
 
@@ -155,8 +222,7 @@ const unregisterWebhook = async (context) => {
 
     const { webhookId, channelId } = await context.loadState();
     if (webhookId) {
-        const auth = getOauth2Client(context.auth);
-        const drive = google.drive({ version: 'v3', auth });
+        const drive = getDriveClient(context.auth);
 
         return drive.channels.stop({
             requestBody: {
@@ -198,22 +264,25 @@ const isSubfolderStructureChanged = (change, folderIds) => {
     return false;
 };
 
-const getChangedFiles = async (
+// Fetch and filter a SINGLE page of `drive.changes.list`. Paging is driven by the caller so
+// that progress can be persisted after every page and the work done under the component lock
+// stays bounded.
+const getChangedFilesPage = async (
     context,
-    lock,
     drive,
     filter,
     folderIds,
     fileTypesRestriction,
     includeRemoved,
-    pageToken, files = []) => {
+    pageToken) => {
 
-    const { data: { changes, newStartPageToken, nextPageToken } } = await drive.changes.list({
+    const { data: { changes = [], newStartPageToken, nextPageToken } } = await drive.changes.list({
         pageToken,
         fields: '*',
         includeRemoved: includeRemoved || false
     });
 
+    const files = [];
     let subfolderStructureChanged = false;
 
     if (isDebug(context)) {
@@ -260,21 +329,7 @@ const getChangedFiles = async (
         }
     });
 
-    if (nextPageToken) {
-        await lock.extend(20000);
-        return getChangedFiles(
-            context,
-            lock,
-            drive,
-            filter,
-            folderIds,
-            fileTypesRestriction,
-            includeRemoved,
-            nextPageToken,
-            files);
-    }
-
-    return { files, newStartPageToken, subfolderStructureChanged };
+    return { files, newStartPageToken, nextPageToken, subfolderStructureChanged };
 };
 
 const checkMonitoredFiles = async function(context, { filter, includeRemoved } = {}) {
@@ -293,7 +348,7 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
 
     let lock = null;
     try {
-        lock = await context.lock(context.componentId, { maxRetryCount: 0 });
+        lock = await context.lock(context.componentId, { maxRetryCount: 0, ttl: LOCK_TTL });
     } catch (err) {
         await context.stateSet('hasSkippedMessage', true);
         return;
@@ -301,8 +356,7 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
 
     try {
         const { startPageToken, processedFiles = [] } = await context.loadState();
-        const auth = getOauth2Client(context.auth);
-        const drive = google.drive({ version: 'v3', auth });
+        const drive = getDriveClient(context.auth);
 
         if (folderIds.length && recursive) {
             // Check if we have stored all the subfolder IDs.
@@ -324,45 +378,74 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
 
         await context.stateSet('hasSkippedMessage', false);
 
-        const {
-            files,
-            newStartPageToken,
-            subfolderStructureChanged
-        } = await getChangedFiles(
-            context,
-            lock,
-            drive,
-            filter,
-            folderIds,
-            normalizedFileTypesRestriction,
-            includeRemoved,
-            startPageToken);
-
-        if (subfolderStructureChanged) {
-            await context.stateUnset('cachedFolderIds');
-        }
-
         const processedFilesSet = processedItemsBuffer(processedFiles);
 
-        for (let file of files) {
-            if (!processedFilesSet.has(file.id)) {
-                processedFilesSet.add(newStartPageToken, file.id);
-                const out = {
-                    isFolder: file.mimeType === 'application/vnd.google-apps.folder',
-                    isFile: file.mimeType !== 'application/vnd.google-apps.folder',
-                    googleDriveFileMetadata: file
-                };
-                await context.sendJson(out, 'out');
+        let pageToken = startPageToken;
+        let pagesProcessed = 0;
+
+        while (pageToken) {
+
+            // Re-arm the lock before every page so that a slow (or gaxios-retried) API call
+            // cannot let the lock expire underneath us.
+            await extendLock(lock);
+
+            const page = await getChangedFilesPage(
+                context,
+                drive,
+                filter,
+                folderIds,
+                normalizedFileTypesRestriction,
+                includeRemoved,
+                pageToken);
+
+            if (page.subfolderStructureChanged) {
+                // Force the subfolder list to be rebuilt on the next run.
+                await context.stateUnset('cachedFolderIds');
+            }
+
+            // The processed-files buffer is grouped by the token the page ended on.
+            const group = page.newStartPageToken || page.nextPageToken;
+            let emitted = 0;
+            for (const file of page.files) {
+                if (processedFilesSet.has(file.id)) continue;
+                processedFilesSet.add(group, file.id);
+                await context.sendJson(toFileOutput(file), 'out');
                 await context.stateSet('processedFiles', processedFilesSet.export());
+                emitted += 1;
+                if (emitted % LOCK_EXTEND_EVERY_FILES === 0) {
+                    // Emitting a large batch must not outlive the last extension either.
+                    await extendLock(lock);
+                }
+            }
+
+            // Persist progress after EVERY page. A redelivered webhook message then resumes
+            // here instead of replaying the whole backlog from the original token, which is
+            // what turned a slow run into a livelock.
+            pageToken = page.nextPageToken;
+            const resumeToken = pageToken || page.newStartPageToken;
+            if (resumeToken) {
+                await context.stateSet('startPageToken', resumeToken);
+            }
+            pagesProcessed += 1;
+
+            if (pageToken && pagesProcessed >= MAX_PAGES_PER_RUN) {
+                // Bounded work per invocation: release the lock and let tick() carry on,
+                // instead of holding it for the (potentially unbounded) rest of the backlog.
+                await context.log({ step: 'changes-backlog-deferred', pagesProcessed });
+                await context.stateSet('hasSkippedMessage', true);
+                break;
             }
         }
 
-        await context.stateSet('startPageToken', newStartPageToken);
-
-    } finally {
-        if (lock) {
-            await lock.unlock();
+    } catch (err) {
+        if (!(err instanceof LockLostError)) {
+            throw err;
         }
+        // Progress is durable, so simply stop here and let the next tick() pick it up.
+        await context.log({ step: 'lock-lost', error: err.message });
+        await context.stateSet('hasSkippedMessage', true);
+    } finally {
+        await safeUnlock(context, lock);
     }
 };
 
@@ -393,8 +476,7 @@ const fetchLatestExampleFile = async (context, { orderBy, filter } = {}) => {
         folderId = folder.id;
     }
 
-    const auth = getOauth2Client(context.auth);
-    const drive = google.drive({ version: 'v3', auth });
+    const drive = getDriveClient(context.auth);
 
     // Exclude trashed files — the New/Updated triggers only emit non-trashed files.
     const queryParts = ['trashed = false'];
@@ -448,6 +530,13 @@ const getOauth2Client = (auth) => {
     return oauth2Client;
 };
 
+// Authenticated Drive client with a hard HTTP timeout so that a hung request cannot keep
+// running (and holding the component lock) indefinitely.
+const getDriveClient = (auth) => {
+
+    return google.drive({ version: 'v3', auth: getOauth2Client(auth), timeout: HTTP_TIMEOUT });
+};
+
 const getCredentials = (credentials) => {
     return {
         accessToken: credentials.accessToken,
@@ -484,6 +573,7 @@ module.exports = {
     unregisterWebhook,
     checkMonitoredFiles,
     getOauth2Client,
+    getDriveClient,
     getCredentials,
     isDebug,
     normalizeMultiselectInput,

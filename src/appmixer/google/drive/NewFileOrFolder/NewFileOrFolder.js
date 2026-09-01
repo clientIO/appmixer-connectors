@@ -62,7 +62,10 @@ module.exports = {
         if (expiration) {
             const renewDate = moment(expiration).subtract(5, 'hours');
             if (moment().isSameOrAfter(renewDate)) {
-                return lib.registerWebhook(context);
+                // maxRetryCount: 0 - if the component lock is currently held (e.g. by a
+                // receive() working through a change backlog), skip the renewal and retry
+                // on the next tick instead of storming the lock with 31 attempts.
+                return lib.registerWebhook(context, { maxRetryCount: 0 });
             }
         }
     },
