@@ -8,9 +8,11 @@ const uuid = require('uuid');
 // tick()/start() with LockError storms and livelocks on message redelivery.
 const MAX_PAGES_PER_RUN = 20;
 
-// TTL the component lock is (re)armed with before every page and periodically while
-// emitting. It has to comfortably cover one `changes.list` call including gaxios retries,
-// otherwise the lock expires mid-run and registerWebhook() may clobber `startPageToken`.
+// TTL the component lock is acquired and (re)armed with: before every page and periodically
+// while emitting in checkMonitoredFiles(), and for the whole of registerWebhook(). It has to
+// comfortably cover one Drive API call (HTTP_TIMEOUT, no gaxios retries in this googleapis
+// version); the engine default of 20 s does not, and an expired lock lets two runs write
+// `startPageToken` concurrently.
 const LOCK_TTL = 60 * 1000;
 
 // Re-arm the lock every N emitted files so a large batch does not outlive the last extension.
@@ -158,7 +160,9 @@ const findFiles = async (context, drive, query, orderBy = 'name asc', fields = '
  */
 const registerWebhook = async (context, { includeRemoved, maxRetryCount } = {}) => {
 
-    const lockOptions = {};
+    // registerWebhook() makes up to three Drive calls (channels.stop, getStartPageToken,
+    // changes.watch), so the engine default lock TTL (20 s) is not enough to cover it.
+    const lockOptions = { ttl: LOCK_TTL };
     if (typeof maxRetryCount === 'number') {
         lockOptions.maxRetryCount = maxRetryCount;
     }
@@ -186,7 +190,8 @@ const registerWebhook = async (context, { includeRemoved, maxRetryCount } = {}) 
         }
 
         const drive = getDriveClient(context.auth);
-        let pageToken = await context.stateGet('startPageToken');
+        const storedPageToken = await context.stateGet('startPageToken');
+        let pageToken = storedPageToken;
 
         if (!pageToken) {
             // when triggered for the first time, we have to get the startPageToken
@@ -209,7 +214,12 @@ const registerWebhook = async (context, { includeRemoved, maxRetryCount } = {}) 
             }
         });
 
-        await context.stateSet('startPageToken', pageToken);
+        if (!storedPageToken) {
+            // Persist only a freshly obtained token. Writing the stored one back is redundant and,
+            // should the lock have expired underneath us, would clobber the progress a concurrent
+            // checkMonitoredFiles() has persisted in the meantime.
+            await context.stateSet('startPageToken', pageToken);
+        }
         await context.stateSet('channelId', channelId);
         await context.stateSet('webhookId', data.resourceId);
         await context.stateSet('expiration', expiration);

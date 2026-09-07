@@ -160,7 +160,7 @@ describe('google.drive.lib registerWebhook lock contention', () => {
 
         await lib.registerWebhook(context, { maxRetryCount: 0 });
 
-        assert.deepStrictEqual(context.lock.firstCall.args[1], { maxRetryCount: 0 });
+        assert.deepStrictEqual(context.lock.firstCall.args[1], { maxRetryCount: 0, ttl: 60000 });
         assert.ok(context.log.calledWithMatch({ step: 'webhook-renewal-skipped' }));
         assert.strictEqual(context.stateSet.callCount, 0);
     });
@@ -170,6 +170,77 @@ describe('google.drive.lib registerWebhook lock contention', () => {
         await assert.rejects(
             () => lib.registerWebhook(context),
             /Exceeded 30 attempts to lock the resource/);
+    });
+
+});
+
+describe('google.drive.lib registerWebhook startPageToken handling', () => {
+
+    let sandbox;
+    let context;
+    let lock;
+    let getStartPageTokenStub;
+
+    const startPageTokenWrites = () => {
+        return context.stateSet.getCalls()
+            .filter(call => call.args[0] === 'startPageToken')
+            .map(call => call.args[1]);
+    };
+
+    beforeEach(() => {
+        sandbox = sinon.createSandbox();
+        lock = { extend: sandbox.stub().resolves(), unlock: sandbox.stub().resolves() };
+        getStartPageTokenStub = sandbox.stub().resolves({ data: { startPageToken: 'fresh' } });
+        sandbox.stub(google, 'drive').returns({
+            changes: {
+                getStartPageToken: getStartPageTokenStub,
+                watch: sandbox.stub().resolves({ data: { resourceId: 'res-1' } })
+            },
+            channels: { stop: sandbox.stub().resolves() }
+        });
+        context = {
+            auth: { accessToken: 'test-token', clientId: 'test-id', clientSecret: 'test-secret' },
+            componentId: 'test-component',
+            lock: sandbox.stub().resolves(lock),
+            loadState: sandbox.stub().resolves({}),
+            stateGet: sandbox.stub().resolves(),
+            stateSet: sandbox.stub().resolves(),
+            log: sandbox.stub().resolves(),
+            getWebhookUrl: () => 'https://example.test/webhook'
+        };
+    });
+
+    afterEach(() => {
+        sandbox.restore();
+    });
+
+    it('should hold the lock with the same TTL checkMonitoredFiles uses', async () => {
+
+        await lib.registerWebhook(context);
+
+        assert.deepStrictEqual(context.lock.firstCall.args[1], { ttl: 60000 });
+        assert.strictEqual(lock.unlock.callCount, 1);
+    });
+
+    it('should persist a freshly obtained startPageToken on first registration', async () => {
+
+        await lib.registerWebhook(context);
+
+        assert.strictEqual(getStartPageTokenStub.callCount, 1);
+        assert.deepStrictEqual(startPageTokenWrites(), ['fresh']);
+    });
+
+    it('should leave an existing startPageToken untouched on renewal', async () => {
+
+        context.stateGet.withArgs('startPageToken').resolves('p42');
+
+        await lib.registerWebhook(context);
+
+        // Renewal must not write the (possibly stale) token back over progress persisted by
+        // a concurrent checkMonitoredFiles() run.
+        assert.strictEqual(getStartPageTokenStub.callCount, 0);
+        assert.deepStrictEqual(startPageTokenWrites(), []);
+        assert.ok(context.stateSet.calledWith('webhookId', 'res-1'));
     });
 
 });
