@@ -1,6 +1,7 @@
 #!/bin/bash
 # E2E Test for MCPGateway component
-# Tests: gateway registration, tool listing, webhook tool calling
+# Tests: gateway registration, tool listing ('tool' port + Model Defined Parameter),
+#        webhook tool calling (static component call), error responses
 #
 # Prerequisites:
 #   - appmixer CLI authenticated (appmixer login)
@@ -128,7 +129,7 @@ fi
 # 5. Test: Tool definitions have correct structure
 # ═══════════════════════════════════════════
 TESTS=$((TESTS + 1))
-log "Test 3: Tool definitions have name, description, parameters"
+log "Test 3: Tool definitions have name, description; no internal _ metadata leaks"
 TOOL_VALID=$(echo "$OUR_GATEWAY" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
@@ -136,27 +137,70 @@ if not data:
     print('no_gateways')
     sys.exit()
 tools = data[0].get('tools', [])
-valid = True
+problems = []
 for tool in tools:
     func = tool.get('function', {})
+    if tool.get('type') != 'function':
+        problems.append('type!=function')
     if not func.get('name'):
-        valid = False
+        problems.append('missing name')
+    if len(func.get('name', '')) > 64:
+        problems.append('name > 64 chars')
     if not func.get('description'):
-        valid = False
-print('valid' if valid else 'invalid')
+        problems.append('missing description')
+    leaked = [k for k in func if k.startswith('_')]
+    if leaked:
+        problems.append('leaked internal keys: ' + ','.join(leaked))
+print('valid' if not problems else '; '.join(problems))
 " 2>/dev/null || echo "error")
 
 if [[ "$TOOL_VALID" == "valid" ]]; then
-    pass "All tools have valid structure (name, description)"
+    pass "All tools have valid public structure (type, name, description, no _ keys)"
 else
     fail "Tool structure invalid: $TOOL_VALID"
 fi
 
 # ═══════════════════════════════════════════
-# 6. Test: Webhook URL exists and is callable
+# 6. Test: Model Defined Parameter → tool parameter; static value → no parameters
 # ═══════════════════════════════════════════
 TESTS=$((TESTS + 1))
-log "Test 4: Gateway has webhook URL"
+log "Test 4: EchoTool exposes 'value' parameter (Model Defined Parameter), GreetTool has none (static)"
+PARAMS_CHECK=$(echo "$OUR_GATEWAY" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+if not data:
+    print('no_gateways')
+    sys.exit()
+tools = {t['function']['name']: t['function'] for t in data[0].get('tools', [])}
+echo = next((f for n, f in tools.items() if n.startswith('echo-tool_')), None)
+greet = next((f for n, f in tools.items() if n.startswith('greet-tool_')), None)
+problems = []
+if not echo:
+    problems.append('EchoTool missing')
+else:
+    props = echo.get('parameters', {}).get('properties', {})
+    if 'value' not in props:
+        problems.append('EchoTool has no value parameter: ' + json.dumps(echo.get('parameters')))
+    if 'value' not in echo.get('parameters', {}).get('required', []):
+        problems.append('EchoTool value not required')
+if not greet:
+    problems.append('GreetTool missing')
+elif 'parameters' in greet:
+    problems.append('GreetTool should have no parameters (static value): ' + json.dumps(greet['parameters']))
+print('valid' if not problems else '; '.join(problems))
+" 2>/dev/null || echo "error")
+
+if [[ "$PARAMS_CHECK" == "valid" ]]; then
+    pass "Parameter model correct (AI field → parameter, static field → none)"
+else
+    fail "Parameter model wrong: $PARAMS_CHECK"
+fi
+
+# ═══════════════════════════════════════════
+# 7. Test: Webhook URL exists and is callable
+# ═══════════════════════════════════════════
+TESTS=$((TESTS + 1))
+log "Test 5: Gateway has webhook URL"
 WEBHOOK_URL=$(echo "$OUR_GATEWAY" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
@@ -172,105 +216,100 @@ else
     fail "No webhook URL in gateway"
 fi
 
-# ═══════════════════════════════════════════
-# 7. Test: Call webhook with EchoTool
-# ═══════════════════════════════════════════
-if [[ -n "$WEBHOOK_URL" ]]; then
-    TESTS=$((TESTS + 1))
-    log "Test 5: Call EchoTool via webhook"
-
-    # Get the tool function name for EchoTool
-    ECHO_TOOL_NAME=$(echo "$OUR_GATEWAY" | python3 -c "
+tool_name_by_prefix() {
+    echo "$OUR_GATEWAY" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 if data:
-    tools = data[0].get('tools', [])
-    for tool in tools:
-        desc = tool.get('function', {}).get('description', '')
-        if 'echo' in desc.lower():
+    for tool in data[0].get('tools', []):
+        if tool['function']['name'].startswith('$1'):
             print(tool['function']['name'])
             break
-" 2>/dev/null || echo "")
+" 2>/dev/null || echo ""
+}
+
+call_tool() {
+    # $1 = tool name, $2 = arguments JSON (object)
+    # Same body shape as the Appmixer MCP Server (appmixer-mcp index.js): { function: { name, arguments } }.
+    # The engine delivers the body to the component as context.messages.webhook.content.data.
+    curl -s --max-time 60 -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"function\":{\"name\":\"$1\",\"arguments\":$2}}" \
+        "$WEBHOOK_URL" 2>/dev/null || echo "TIMEOUT_OR_ERROR"
+}
+
+if [[ -n "$WEBHOOK_URL" ]]; then
+    # ═══════════════════════════════════════════
+    # 8. Test: Call webhook with EchoTool (model-defined parameter)
+    # ═══════════════════════════════════════════
+    TESTS=$((TESTS + 1))
+    log "Test 6: Call EchoTool via webhook (static component call with model-defined 'value')"
+    ECHO_TOOL_NAME=$(tool_name_by_prefix 'echo-tool_')
 
     if [[ -n "$ECHO_TOOL_NAME" ]]; then
         log "  Calling tool: $ECHO_TOOL_NAME"
-        # Use --max-time to avoid hanging on poll-based webhook (ToolStart/ToolOutput requires flow running)
-        WEBHOOK_RESP=$(curl -s --max-time 15 -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"data\":{\"function\":{\"name\":\"$ECHO_TOOL_NAME\",\"arguments\":{\"message\":\"hello world\"}}}}" \
-            "$WEBHOOK_URL" 2>/dev/null || echo "TIMEOUT_OR_ERROR")
-
-        if echo "$WEBHOOK_RESP" | grep -q "echo: hello world"; then
-            pass "EchoTool returned: $WEBHOOK_RESP"
-        elif echo "$WEBHOOK_RESP" | grep -q "timed out"; then
-            # Tool timeout is expected — it means the webhook was received,
-            # MCPGateway dispatched to ToolStart, but ToolOutput didn't respond in time.
-            # This can happen if the flow execution pipeline is slow.
-            pass "EchoTool webhook accepted (tool timed out — dispatch worked but ToolOutput slow)"
-        elif echo "$WEBHOOK_RESP" | grep -qi "stopped\|not found"; then
-            # Flow stopped = MCPGateway.start() 401 bug (context.httpRequest lacks auth)
-            # The webhook endpoint exists but flow isn't running
-            log "  ⚠️  Flow stopped — known bug: context.httpRequest in start() lacks auth for internal API"
-            log "  Response: $WEBHOOK_RESP"
-            pass "EchoTool webhook reachable (flow stopped due to start() auth bug — see PR notes)"
-        elif [[ "$WEBHOOK_RESP" == "TIMEOUT_OR_ERROR" ]]; then
-            fail "Webhook call failed (connection timeout)"
+        WEBHOOK_RESP=$(call_tool "$ECHO_TOOL_NAME" '{"value":"hello world"}')
+        if echo "$WEBHOOK_RESP" | grep -q "hello world"; then
+            pass "EchoTool returned: ${WEBHOOK_RESP:0:120}"
         else
-            log "  Response: $WEBHOOK_RESP"
-            pass "EchoTool webhook processed (response: ${WEBHOOK_RESP:0:100})"
+            fail "EchoTool did not echo the model-defined value. Response: ${WEBHOOK_RESP:0:300}"
         fi
     else
         fail "Could not find EchoTool name in tools list"
     fi
 
     # ═══════════════════════════════════════════
-    # 8. Test: Call webhook with GreetTool
+    # 9. Test: Call webhook with GreetTool (static value, no parameters)
     # ═══════════════════════════════════════════
     TESTS=$((TESTS + 1))
-    log "Test 6: Call GreetTool via webhook"
-
-    GREET_TOOL_NAME=$(echo "$OUR_GATEWAY" | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-if data:
-    tools = data[0].get('tools', [])
-    for tool in tools:
-        desc = tool.get('function', {}).get('description', '')
-        if 'greet' in desc.lower():
-            print(tool['function']['name'])
-            break
-" 2>/dev/null || echo "")
+    log "Test 7: Call GreetTool via webhook (static user value, no arguments)"
+    GREET_TOOL_NAME=$(tool_name_by_prefix 'greet-tool_')
 
     if [[ -n "$GREET_TOOL_NAME" ]]; then
         log "  Calling tool: $GREET_TOOL_NAME"
-        WEBHOOK_RESP=$(curl -s --max-time 15 -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"data\":{\"function\":{\"name\":\"$GREET_TOOL_NAME\",\"arguments\":{\"name\":\"Appmixer\"}}}}" \
-            "$WEBHOOK_URL" 2>/dev/null || echo "TIMEOUT_OR_ERROR")
-
-        if echo "$WEBHOOK_RESP" | grep -q "Hello, Appmixer"; then
-            pass "GreetTool returned: $WEBHOOK_RESP"
-        elif echo "$WEBHOOK_RESP" | grep -q "timed out"; then
-            pass "GreetTool webhook accepted (tool timed out — dispatch worked but ToolOutput slow)"
-        elif echo "$WEBHOOK_RESP" | grep -qi "stopped\|not found"; then
-            log "  ⚠️  Flow stopped — known bug: context.httpRequest in start() lacks auth"
-            pass "GreetTool webhook reachable (flow stopped due to start() auth bug)"
-        elif [[ "$WEBHOOK_RESP" == "TIMEOUT_OR_ERROR" ]]; then
-            fail "Webhook call failed (connection timeout)"
+        WEBHOOK_RESP=$(call_tool "$GREET_TOOL_NAME" '{}')
+        if echo "$WEBHOOK_RESP" | grep -q "Hello, Appmixer!"; then
+            pass "GreetTool returned: ${WEBHOOK_RESP:0:120}"
         else
-            log "  Response: $WEBHOOK_RESP"
-            pass "GreetTool webhook processed (response: ${WEBHOOK_RESP:0:100})"
+            fail "GreetTool did not return the static value. Response: ${WEBHOOK_RESP:0:300}"
         fi
     else
         fail "Could not find GreetTool name in tools list"
     fi
+
+    # ═══════════════════════════════════════════
+    # 10. Test: Unknown tool → 404, malformed arguments → 400
+    # ═══════════════════════════════════════════
+    TESTS=$((TESTS + 1))
+    log "Test 8: Unknown tool name returns 404"
+    UNKNOWN_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 -X POST \
+        -H "Content-Type: application/json" \
+        -d '{"function":{"name":"no-such-tool_x","arguments":{}}}' \
+        "$WEBHOOK_URL" 2>/dev/null || echo "000")
+    if [[ "$UNKNOWN_CODE" == "404" ]]; then
+        pass "Unknown tool → 404"
+    else
+        fail "Unknown tool returned HTTP $UNKNOWN_CODE (expected 404)"
+    fi
+
+    TESTS=$((TESTS + 1))
+    log "Test 9: Malformed JSON arguments return 400"
+    MALFORMED_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"function\":{\"name\":\"${ECHO_TOOL_NAME:-x}\",\"arguments\":\"{not json\"}}" \
+        "$WEBHOOK_URL" 2>/dev/null || echo "000")
+    if [[ "$MALFORMED_CODE" == "400" ]]; then
+        pass "Malformed arguments → 400"
+    else
+        fail "Malformed arguments returned HTTP $MALFORMED_CODE (expected 400)"
+    fi
 fi
 
 # ═══════════════════════════════════════════
-# 9. Test: SSE endpoint is accessible
+# 11. Test: SSE endpoint is accessible
 # ═══════════════════════════════════════════
 TESTS=$((TESTS + 1))
-log "Test 7: SSE /events endpoint returns 401 without token"
+log "Test 10: SSE /events endpoint returns 401 without token"
 SSE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 \
     "$APPMIXER_URL/plugins/appmixer/ai/mcptools/events" 2>/dev/null)
 

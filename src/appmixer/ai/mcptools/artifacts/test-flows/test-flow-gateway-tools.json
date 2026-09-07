@@ -1,6 +1,6 @@
 {
     "name": "E2E MCPGateway - gateway-tools",
-    "description": "E2E test: MCPGateway registers with ToolStart tools, webhook tool call returns ToolOutput response. This flow requires external orchestration (script) to test webhook calling.",
+    "description": "E2E test: MCPGateway registers action components wired to its 'tool' port as MCP tools. EchoTool has its 'value' field marked with 'Model Defined Parameter' (becomes a tool parameter), GreetTool has a static value (tool without parameters). A webhook tool call runs the component statically and returns its output. This flow requires external orchestration (run-e2e-test.sh) to test webhook calling.",
     "customFields": {
         "category": "E2E_test_flow"
     },
@@ -13,57 +13,34 @@
             "source": {},
             "config": {}
         },
-        "tool-start-echo": {
-            "type": "appmixer.ai.agenttools.ToolStart",
+        "echo-tool": {
+            "type": "appmixer.utils.controls.MockValue",
             "label": "EchoTool",
             "x": 300,
             "y": 400,
             "source": {
                 "in": {
-                    "mcp-gateway": ["tools"]
-                }
-            },
-            "config": {
-                "properties": {
-                    "description": "A simple echo tool that returns whatever message it receives",
-                    "parameters": {
-                        "ADD": [
-                            {
-                                "name": "message",
-                                "description": "The message to echo back",
-                                "type": "string"
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "tool-output-echo": {
-            "type": "appmixer.ai.agenttools.ToolOutput",
-            "label": "EchoOutput",
-            "x": 500,
-            "y": 400,
-            "source": {
-                "in": {
-                    "tool-start-echo": ["out"]
+                    "mcp-gateway": [
+                        "tool"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "tool-start-echo": {
-                            "out": {
+                        "mcp-gateway": {
+                            "tool": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "output": {
-                                        "msg-var": {
-                                            "variable": "$.tool-start-echo.out.args.message",
+                                    "value": {
+                                        "message": {
+                                            "variable": "$.mcp-gateway.tool.modelDefinedParameter",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "output": "echo: {{{msg-var}}}"
+                                    "value": "{{{message}}}"
                                 }
                             }
                         }
@@ -71,57 +48,27 @@
                 }
             }
         },
-        "tool-start-greet": {
-            "type": "appmixer.ai.agenttools.ToolStart",
+        "greet-tool": {
+            "type": "appmixer.utils.controls.MockValue",
             "label": "GreetTool",
-            "x": 300,
-            "y": 600,
-            "source": {
-                "in": {
-                    "mcp-gateway": ["tools"]
-                }
-            },
-            "config": {
-                "properties": {
-                    "description": "Greets a person by name",
-                    "parameters": {
-                        "ADD": [
-                            {
-                                "name": "name",
-                                "description": "Name of the person to greet",
-                                "type": "string"
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "tool-output-greet": {
-            "type": "appmixer.ai.agenttools.ToolOutput",
-            "label": "GreetOutput",
             "x": 500,
-            "y": 600,
+            "y": 400,
             "source": {
                 "in": {
-                    "tool-start-greet": ["out"]
+                    "mcp-gateway": [
+                        "tool"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "tool-start-greet": {
-                            "out": {
+                        "mcp-gateway": {
+                            "tool": {
                                 "type": "json2new",
-                                "modifiers": {
-                                    "output": {
-                                        "name-var": {
-                                            "variable": "$.tool-start-greet.out.args.name",
-                                            "functions": []
-                                        }
-                                    }
-                                },
+                                "modifiers": {},
                                 "lambda": {
-                                    "output": "Hello, {{{name-var}}}!"
+                                    "value": "Hello, Appmixer!"
                                 }
                             }
                         }
