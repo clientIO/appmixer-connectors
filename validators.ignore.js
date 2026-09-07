@@ -141,9 +141,22 @@ module.exports = [
         reason: 'Engine-internal triggers with no external upstream to sample: utils/test/Tick is an E2E-flow harness piece and utils/storage/* fire on internal store changes.'
     },
 
+    {
+        validator: 'trigger-has-test-method',
+        messageIncludes: 'missing a test(context) method',
+        paths: ['ai/mcptools/MCPGateway/component.json'],
+        reason: 'MCPGateway is not a data trigger: its webhook answers tool calls from the MCP Server synchronously (the response IS the tool output) and there is no upstream record to sample for Flow Test Mode.'
+    },
+
     // connector-has-makeapicall: connectors that intentionally ship NO generic
     // MakeApiCall component because they expose no generic authorized REST
     // surface to call. Grouped by reason.
+    {
+        validator: 'connector-has-makeapicall',
+        messageIncludes: 'no MakeApiCall component',
+        paths: ['ai/mcptools/bundle.json'],
+        reason: 'Platform-internal module (MCP Gateway + plugin routes) with no external REST API behind it — there is nothing for a generic MakeApiCall to call.'
+    },
     {
         validator: 'connector-has-makeapicall',
         messageIncludes: 'no MakeApiCall component',
