@@ -45,6 +45,12 @@ helper) and is deliberately not a flow node.
   (`drive.files.delete`) drops the file object from the change feed. Trashing
   (`PATCH /files/<id> {"trashed": true}`) keeps it, so that is the provoke; the
   hard delete happens after `AfterAll` as cleanup.
+- **Cleanup in the trigger flows consumes the trigger's output**, not the
+  provoking action's. `AfterAll` forwards the scope of the message that
+  completed it, which is always the trigger lane (the event arrives seconds to
+  minutes after the provoke), so `$.<createFileFromText>.out…` is not resolvable
+  there. Reading `$.<trigger>.out.googleDriveFileMetadata.id` also doubles as a
+  proof that the trigger really fired.
 - **Run the trigger flows one at a time.** All three watch the entire drive, so
   files created by one flow show up in the others' change feeds.
 - `FindFilesOrFolders` uses `outputType: "firstItem"` and an exact-name query
