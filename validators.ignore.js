@@ -22,7 +22,7 @@ module.exports = [
         validator: 'delete-returns-empty',
         messageIncludes: 'must return an empty object',
         paths: ['google/drive/DeleteFileOrFolder/component.json'],
-        reason: 'Published for years with { fileId } on its out port and referenced by existing flows; switching to {} is a breaking change that would need a major bundle bump and a flow migration, which is intentionally deferred. The declared option is googleDriveFileId while the behaviour emits fileId — a pre-existing mismatch left as is for the same reason.'
+        reason: 'Published for years with { fileId } on its out port and referenced by existing flows; switching to {} is a breaking change that would need a major bundle bump and a flow migration, which is intentionally deferred.'
     },
     {
         validator: 'find-naming-by-shape',

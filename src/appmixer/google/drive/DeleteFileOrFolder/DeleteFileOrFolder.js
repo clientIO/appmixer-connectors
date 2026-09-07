@@ -16,7 +16,8 @@ module.exports = {
         const drive = google.drive({ version: 'v3', auth });
         await drive.files.delete({ fileId: normalizedFileId });
 
-        // Kept as it always was: every existing flow reading this port would break on `{}`.
-        return context.sendJson({ fileId: normalizedFileId }, 'out');
+        // `googleDriveFileId` is what the out port has always declared; `fileId` is what the component
+        // has always emitted. Both are sent so that neither existing flows nor the designer variable break.
+        return context.sendJson({ googleDriveFileId: normalizedFileId, fileId: normalizedFileId }, 'out');
     }
 };
