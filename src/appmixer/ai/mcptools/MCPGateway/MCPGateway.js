@@ -46,7 +46,7 @@ module.exports = {
             webhook: context.getWebhookUrl()
         });
         return context.callAppmixer({
-            endPoint: `/plugins/appmixer/ai/mcptools/gateways/${context.componentId}`,
+            endPoint: `/plugins/appmixer/ai/mcptools/gateways/${context.componentId}?flowId=${encodeURIComponent(context.flowId)}`,
             method: 'DELETE'
         });
     },

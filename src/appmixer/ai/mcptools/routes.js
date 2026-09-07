@@ -58,13 +58,32 @@ module.exports = (context) => {
                 const user = await context.http.auth.getUser(req);
                 const userId = user.getId();
                 const gatewayId = req.params.gatewayId;
+                const flowId = req.query.flowId;
+
+                // Remove the gateway from the user's registry. `gatewayId` is the
+                // component ID; pass `?flowId=` to scope the removal to one flow.
+                // This is also the way to clean up registrations of flows that were
+                // deleted without being stopped (MCPGateway.stop() never ran).
+                const key = `mcpgateways:user:${userId}`;
+                const gateways = await context.service.stateGet(key) || [];
+                const remaining = gateways.filter(gateway =>
+                    !(gateway.componentId === gatewayId && (!flowId || gateway.flowId === flowId)));
+                const removed = gateways.length - remaining.length;
+                if (removed) {
+                    if (remaining.length) {
+                        await context.service.stateSet(key, remaining);
+                    } else {
+                        await context.service.stateUnset(key);
+                    }
+                }
 
                 await context.pubSubPublish(`stream:mcp:events:${userId}`, {
                     type: 'gateway-delete',
                     id: gatewayId,
+                    flowId,
                     data: req.payload
                 });
-                return {};
+                return { removed };
             }
         }
     });
