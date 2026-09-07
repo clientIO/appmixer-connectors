@@ -11,6 +11,10 @@ module.exports = {
         const drive = google.drive({ version: 'v3', auth });
         let { fileId, name, description, starred } = context.messages.in.content;
 
+        if (!fileId) {
+            throw new context.CancelError('File ID is required!');
+        }
+
 
         const resource = {};
 
