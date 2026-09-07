@@ -15,6 +15,10 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.in.content.summary) {
+            throw new context.CancelError('Summary is required!');
+        }
+
         return insertCalendar({
             auth: commons.getOauth2Client(context.auth),
             userId: 'me',

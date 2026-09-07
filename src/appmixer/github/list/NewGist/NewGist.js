@@ -20,6 +20,16 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        // Gists are returned newest-first by default.
+        const gist = await lib.fetchLatest(context, 'gists');
+        if (!gist) {
+            throw new Error('No recent gists to use as test data.');
+        }
+        return context.sendJson(gist, 'gist');
     }
 };
 

@@ -51,6 +51,20 @@ module.exports = {
             await context.sendJson(event, 'out');
             return context.response({});
         }
+    },
+
+    // Flow Test Mode: emit one realistic item_archived webhook event without registering a
+    // webhook. The archive event fires when an existing item is archived, so the newest current
+    // item on the board is a faithful representative of what would be archived. Reuses the shared
+    // helpers and reshapes the item into the exact `event` body the webhook delivers (type
+    // archive_pulse) on 'out'.
+    async test(context) {
+
+        const item = await commons.fetchLatestItem(context);
+        if (!item) {
+            throw new Error('No items on the board to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookEvent(context, item, 'archive_pulse'), 'out');
     }
 };
 

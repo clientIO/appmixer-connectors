@@ -303,6 +303,28 @@ module.exports = {
         current_language
       }
     }`,
+    latestBoardItem: `
+    query latestBoardItem ($boardId: ID!) {
+        boards (ids: [$boardId]) {
+            items_page (limit: 1, query_params: { order_by: [{ column_id: "__creation_log__", direction: desc }] }) {
+                items {
+                    id
+                    name
+                    group {
+                        id
+                        title
+                        color
+                    }
+                    column_values {
+                        id
+                        text
+                        type
+                        value
+                    }
+                }
+            }
+        }
+    }`,
     getItem: `
     query getItem ($id: ID!) {
         items (ids: [$id]) {

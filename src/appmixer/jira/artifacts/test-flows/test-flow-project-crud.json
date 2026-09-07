@@ -1,551 +1,532 @@
 {
-    "name": "E2E Jira - project-crud",
-    "description": "End-to-end test for Jira connector - tests project CRUD operations (Create, Get, Update, List, Delete)",
     "flow": {
-        "on-start": {
-            "type": "appmixer.utils.controls.OnStart",
-            "x": 100,
-            "y": 300,
-            "source": {},
-            "version": "1.0.0",
-            "config": {}
-        },
-        "set-variables": {
-            "type": "appmixer.utils.controls.SetVariable",
-            "x": 250,
-            "y": 300,
-            "source": {
-                "in": {
-                    "on-start": [
-                        "out"
-                    ]
-                }
-            },
-            "version": "1.0.0",
+        "028857c1-c912-4ea5-897d-2f131f40cf9e": {
             "config": {
                 "transform": {
                     "in": {
-                        "on-start": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "variables": {}
-                                },
-                                "lambda": {
-                                    "variables": {
-                                        "ADD": [
-                                            {
-                                                "type": "text",
-                                                "name": "projectKey",
-                                                "text": "ETEST"
-                                            },
-                                            {
-                                                "type": "text",
-                                                "name": "projectName",
-                                                "text": "E2E Test Project"
-                                            },
-                                            {
-                                                "type": "text",
-                                                "name": "updatedProjectName",
-                                                "text": "E2E Test Project Updated"
-                                            },
-                                            {
-                                                "type": "text",
-                                                "name": "projectDescription",
-                                                "text": "This is a test project for E2E testing"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "create-project": {
-            "type": "appmixer.jira.projects.CreateProject",
-            "x": 400,
-            "y": 300,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "set-variables": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "properties": {
-                    "projectType": "software"
-                },
-                "transform": {
-                    "in": {
-                        "set-variables": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "key": {
-                                        "var-key": {
-                                            "variable": "$.set-variables.out.projectKey",
-                                            "functions": []
-                                        }
-                                    },
-                                    "name": {
-                                        "var-name": {
-                                            "variable": "$.set-variables.out.projectName",
-                                            "functions": []
-                                        }
-                                    },
-                                    "projectTemplateKey": {},
-                                    "leadAccountId": {},
-                                    "description": {
-                                        "var-desc": {
-                                            "variable": "$.set-variables.out.projectDescription",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "key": "{{{var-key}}}",
-                                    "name": "{{{var-name}}}",
-                                    "projectTemplateKey": "com.pyxis.greenhopper.jira:gh-simplified-agile-kanban",
-                                    "leadAccountId": "557058:12345678-1234-1234-1234-123456789012",
-                                    "description": "{{{var-desc}}}"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-create": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 550,
-            "y": 150,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "create-project": [
-                        "project"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "create-project": {
-                            "project": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "project-id": {
-                                            "variable": "$.create-project.project.id",
-                                            "functions": []
-                                        },
-                                        "project-key": {
-                                            "variable": "$.create-project.project.key",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{project-id}}}",
-                                                "assertion": "notEmpty"
-                                            },
-                                            {
-                                                "field": "{{{project-key}}}",
-                                                "assertion": "equal",
-                                                "expected": "ETEST"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "get-project": {
-            "type": "appmixer.jira.projects.GetProject",
-            "x": 550,
-            "y": 300,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "create-project": [
-                        "project"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "create-project": {
-                            "project": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "id": {
-                                        "var-id": {
-                                            "variable": "$.create-project.project.id",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "id": "{{{var-id}}}"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-get": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 700,
-            "y": 150,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "get-project": [
-                        "project"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "get-project": {
-                            "project": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "project-name": {
-                                            "variable": "$.get-project.project.name",
-                                            "functions": []
-                                        },
-                                        "expected-name": {
-                                            "variable": "$.set-variables.out.projectName",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{project-name}}}",
-                                                "assertion": "equal",
-                                                "expected": "{{{expected-name}}}"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "update-project": {
-            "type": "appmixer.jira.projects.UpdateProject",
-            "x": 700,
-            "y": 300,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "get-project": [
-                        "project"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "get-project": {
-                            "project": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "id": {
-                                        "var-id": {
-                                            "variable": "$.get-project.project.id",
-                                            "functions": []
-                                        }
-                                    },
-                                    "name": {
-                                        "var-updated-name": {
-                                            "variable": "$.set-variables.out.updatedProjectName",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "id": "{{{var-id}}}",
-                                    "name": "{{{var-updated-name}}}"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-update": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 850,
-            "y": 150,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "update-project": [
-                        "project"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "update-project": {
-                            "project": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "updated-name": {
-                                            "variable": "$.update-project.project.name",
-                                            "functions": []
-                                        },
-                                        "expected-updated": {
-                                            "variable": "$.set-variables.out.updatedProjectName",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{updated-name}}}",
-                                                "assertion": "equal",
-                                                "expected": "{{{expected-updated}}}"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "list-projects": {
-            "type": "appmixer.jira.projects.ListProjects",
-            "x": 850,
-            "y": 300,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "update-project": [
-                        "project"
-                    ]
-                }
-            },
-            "config": {}
-        },
-        "assert-list": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 1000,
-            "y": 150,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "list-projects": [
-                        "projects"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "list-projects": {
+                        "bf68e135-42fb-40b9-8f99-54f62fb1bf96": {
                             "projects": {
-                                "type": "json2new",
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{projects-list}}}"
+                                            }
+                                        ]
+                                    }
+                                },
                                 "modifiers": {
                                     "expression": {
                                         "projects-list": {
-                                            "variable": "$.list-projects.projects",
-                                            "functions": []
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "variable": "$.bf68e135-42fb-40b9-8f99-54f62fb1bf96.projects"
                                         }
                                     }
                                 },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{projects-list}}}",
-                                                "assertion": "notEmpty"
-                                            }
-                                        ]
-                                    }
-                                }
+                                "type": "json2new"
                             }
                         }
                     }
                 }
-            }
-        },
-        "delete-project": {
-            "type": "appmixer.jira.projects.DeleteProject",
-            "x": 1000,
-            "y": 300,
-            "version": "1.0.0",
+            },
             "source": {
                 "in": {
-                    "list-projects": [
+                    "bf68e135-42fb-40b9-8f99-54f62fb1bf96": [
                         "projects"
                     ]
                 }
             },
-            "config": {
-                "transform": {
-                    "in": {
-                        "list-projects": {
-                            "projects": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "id": {
-                                        "var-id": {
-                                            "variable": "$.create-project.project.id",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "id": "{{{var-id}}}"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-delete": {
             "type": "appmixer.utils.test.Assert",
-            "x": 1150,
-            "y": 150,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "delete-project": [
-                        "deleted"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "delete-project": {
-                            "deleted": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "deleted-id": {
-                                            "variable": "$.delete-project.deleted.id",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{deleted-id}}}",
-                                                "assertion": "notEmpty"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            "x": 1456,
+            "y": 288
         },
-        "after-all": {
-            "type": "appmixer.utils.test.AfterAll",
-            "x": 1300,
-            "y": 300,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "assert-create": [
-                        "out"
-                    ],
-                    "assert-get": [
-                        "out"
-                    ],
-                    "assert-update": [
-                        "out"
-                    ],
-                    "assert-list": [
-                        "out"
-                    ],
-                    "assert-delete": [
-                        "out"
-                    ]
-                }
-            },
+        "06d1ef76-b441-41c7-8ec2-a63daf9a6518": {
             "config": {
                 "properties": {
                     "timeout": 60
                 }
-            }
-        },
-        "process-results": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1450,
-            "y": 300,
-            "version": "1.0.0",
+            },
             "source": {
                 "in": {
-                    "after-all": [
+                    "028857c1-c912-4ea5-897d-2f131f40cf9e": [
+                        "out"
+                    ],
+                    "d6dc6566-aa3e-4b07-91d1-f29202edf4bf": [
+                        "out"
+                    ],
+                    "f1b26eda-25d7-458f-9dda-0b12fce82b3e": [
+                        "out"
+                    ],
+                    "f9ae0c8c-d3ad-4307-92ea-d4200f538c52": [
                         "out"
                     ]
                 }
             },
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1760,
+            "y": 560
+        },
+        "32f9dca3-80a2-4da0-b5fe-e89e799da560": {
             "config": {
-                "properties": {
-                    "successStoreId": "64f6f1f9193228000754082f",
-                    "failedStoreId": "64f6f1f0193228000754082e"
-                },
                 "transform": {
                     "in": {
-                        "after-all": {
+                        "c43ded12-9fb3-4207-9107-87eb6d018be3": {
                             "out": {
-                                "type": "json2new",
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "projectKey",
+                                                "text": "EVMR0SHTFX",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "name": "projectName",
+                                                "text": "E2E CRUD EVMR0SHTFX",
+                                                "toggle": false,
+                                                "type": "text"
+                                            },
+                                            {
+                                                "name": "updatedProjectName",
+                                                "text": "E2E CRUD EVMR0SHTFX U",
+                                                "toggle": false,
+                                                "type": "text"
+                                            },
+                                            {
+                                                "name": "projectDescription",
+                                                "text": "This is a test project for E2E testing",
+                                                "toggle": false,
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                },
                                 "modifiers": {
-                                    "recipients": {},
-                                    "testCase": {},
-                                    "result": {
-                                        "result-var": {
-                                            "variable": "$.after-all.out",
-                                            "functions": []
+                                    "variables": {
+                                        "4cb82834-f585-4670-b8a4-cfae013f0a9a": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        },
+                                        "a9b6cfd2-9c50-4cc3-86d6-7ccacfc82d26": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
                                         }
                                     }
                                 },
-                                "lambda": {
-                                    "recipients": "test@appmixer.com",
-                                    "testCase": "E2E Jira - project-crud",
-                                    "result": "{{{result-var}}}"
-                                }
+                                "type": "json2new"
                             }
                         }
                     }
                 }
-            }
+            },
+            "source": {
+                "in": {
+                    "c43ded12-9fb3-4207-9107-87eb6d018be3": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 304,
+            "y": 320
+        },
+        "625d3a3c-be26-4202-bb86-26f3b55dc014": {
+            "config": {
+                "properties": {
+                    "account": "698ef14bf513883a8203d020",
+                    "projectType": "software"
+                },
+                "transform": {
+                    "in": {
+                        "32f9dca3-80a2-4da0-b5fe-e89e799da560": {
+                            "out": {
+                                "lambda": {
+                                    "description": "{{{var-desc}}}",
+                                    "key": "{{{var-key}}}",
+                                    "name": "{{{var-name}}}",
+                                    "projectTemplateKey": "com.pyxis.greenhopper.jira:gh-simplified-agility-kanban"
+                                },
+                                "modifiers": {
+                                    "description": {
+                                        "var-desc": {
+                                            "functions": [],
+                                            "variable": "$.32f9dca3-80a2-4da0-b5fe-e89e799da560.out.projectDescription"
+                                        }
+                                    },
+                                    "key": {
+                                        "var-key": {
+                                            "functions": [],
+                                            "variable": "$.32f9dca3-80a2-4da0-b5fe-e89e799da560.out.projectKey"
+                                        }
+                                    },
+                                    "name": {
+                                        "var-name": {
+                                            "functions": [],
+                                            "variable": "$.32f9dca3-80a2-4da0-b5fe-e89e799da560.out.projectName"
+                                        }
+                                    },
+                                    "projectTemplateKey": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "32f9dca3-80a2-4da0-b5fe-e89e799da560": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.jira.projects.CreateProject",
+            "x": 528,
+            "y": 320
+        },
+        "8b60c994-738e-43af-98c3-09156671801b": {
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "06d1ef76-b441-41c7-8ec2-a63daf9a6518": {
+                            "out": {
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E Jira - project-crud"
+                                },
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.06d1ef76-b441-41c7-8ec2-a63daf9a6518.out"
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "06d1ef76-b441-41c7-8ec2-a63daf9a6518": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1984,
+            "y": 560
+        },
+        "aec23d74-c156-4eac-a160-ea195a9a947f": {
+            "config": {
+                "properties": {
+                    "account": "698ef14bf513883a8203d020"
+                },
+                "transform": {
+                    "in": {
+                        "625d3a3c-be26-4202-bb86-26f3b55dc014": {
+                            "project": {
+                                "lambda": {
+                                    "id": "{{{var-id}}}"
+                                },
+                                "modifiers": {
+                                    "id": {
+                                        "var-id": {
+                                            "functions": [],
+                                            "variable": "$.625d3a3c-be26-4202-bb86-26f3b55dc014.project.id"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "625d3a3c-be26-4202-bb86-26f3b55dc014": [
+                        "project"
+                    ]
+                }
+            },
+            "type": "appmixer.jira.projects.GetProject",
+            "x": 752,
+            "y": 240
+        },
+        "bf68e135-42fb-40b9-8f99-54f62fb1bf96": {
+            "config": {
+                "properties": {
+                    "account": "698ef14bf513883a8203d020"
+                }
+            },
+            "source": {
+                "in": {
+                    "d7e3c3c8-d368-4228-9cbc-621c038d9c4a": [
+                        "project"
+                    ]
+                }
+            },
+            "type": "appmixer.jira.projects.ListProjects",
+            "x": 1200,
+            "y": 240
+        },
+        "c43ded12-9fb3-4207-9107-87eb6d018be3": {
+            "config": {},
+            "source": {},
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 80,
+            "y": 320
+        },
+        "d6dc6566-aa3e-4b07-91d1-f29202edf4bf": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "625d3a3c-be26-4202-bb86-26f3b55dc014": {
+                            "project": {
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{project-id}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "ETEST",
+                                                "field": "{{{project-key}}}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "expression": {
+                                        "project-id": {
+                                            "functions": [],
+                                            "variable": "$.625d3a3c-be26-4202-bb86-26f3b55dc014.project.id"
+                                        },
+                                        "project-key": {
+                                            "functions": [],
+                                            "variable": "$.625d3a3c-be26-4202-bb86-26f3b55dc014.project.key"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "625d3a3c-be26-4202-bb86-26f3b55dc014": [
+                        "project"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.Assert",
+            "x": 928,
+            "y": 688
+        },
+        "d7e3c3c8-d368-4228-9cbc-621c038d9c4a": {
+            "config": {
+                "properties": {
+                    "account": "698ef14bf513883a8203d020"
+                },
+                "transform": {
+                    "in": {
+                        "aec23d74-c156-4eac-a160-ea195a9a947f": {
+                            "project": {
+                                "lambda": {
+                                    "id": "{{{var-id}}}",
+                                    "name": "{{{var-updated-name}}}"
+                                },
+                                "modifiers": {
+                                    "id": {
+                                        "var-id": {
+                                            "functions": [],
+                                            "variable": "$.aec23d74-c156-4eac-a160-ea195a9a947f.project.id"
+                                        }
+                                    },
+                                    "name": {
+                                        "var-updated-name": {
+                                            "functions": [],
+                                            "variable": "$.32f9dca3-80a2-4da0-b5fe-e89e799da560.out.updatedProjectName"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "aec23d74-c156-4eac-a160-ea195a9a947f": [
+                        "project"
+                    ]
+                }
+            },
+            "type": "appmixer.jira.projects.UpdateProject",
+            "x": 976,
+            "y": 240
+        },
+        "e6ebf48d-7861-4437-917c-658ae150327f": {
+            "config": {
+                "properties": {
+                    "account": "698ef14bf513883a8203d020"
+                },
+                "transform": {
+                    "in": {
+                        "bf68e135-42fb-40b9-8f99-54f62fb1bf96": {
+                            "projects": {
+                                "lambda": {
+                                    "id": "{{{var-id}}}"
+                                },
+                                "modifiers": {
+                                    "id": {
+                                        "var-id": {
+                                            "functions": [],
+                                            "variable": "$.625d3a3c-be26-4202-bb86-26f3b55dc014.project.id"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "bf68e135-42fb-40b9-8f99-54f62fb1bf96": [
+                        "projects"
+                    ]
+                }
+            },
+            "type": "appmixer.jira.projects.DeleteProject",
+            "x": 1616,
+            "y": 208
+        },
+        "f1b26eda-25d7-458f-9dda-0b12fce82b3e": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "d7e3c3c8-d368-4228-9cbc-621c038d9c4a": {
+                            "project": {
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "{{{expected-updated}}}",
+                                                "field": "{{{updated-name}}}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "expression": {
+                                        "expected-updated": {
+                                            "functions": [],
+                                            "variable": "$.32f9dca3-80a2-4da0-b5fe-e89e799da560.out.updatedProjectName"
+                                        },
+                                        "updated-name": {
+                                            "functions": [],
+                                            "variable": "$.d7e3c3c8-d368-4228-9cbc-621c038d9c4a.project.name"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "d7e3c3c8-d368-4228-9cbc-621c038d9c4a": [
+                        "project"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.Assert",
+            "x": 1200,
+            "y": 432
+        },
+        "f9ae0c8c-d3ad-4307-92ea-d4200f538c52": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "aec23d74-c156-4eac-a160-ea195a9a947f": {
+                            "project": {
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "{{{expected-name}}}",
+                                                "field": "{{{project-name}}}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "expression": {
+                                        "expected-name": {
+                                            "functions": [],
+                                            "variable": "$.32f9dca3-80a2-4da0-b5fe-e89e799da560.out.projectName"
+                                        },
+                                        "project-name": {
+                                            "functions": [],
+                                            "variable": "$.aec23d74-c156-4eac-a160-ea195a9a947f.project.name"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "aec23d74-c156-4eac-a160-ea195a9a947f": [
+                        "project"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.Assert",
+            "x": 944,
+            "y": 544
         }
+    },
+    "name": "E2E Jira - project-crud",
+    "notes": {},
+    "wizard": {
+        "fields": []
     }
 }

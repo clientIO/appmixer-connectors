@@ -10,7 +10,8 @@ function processFolders(knownFolders, currentFolders, newFolders, folder) {
     currentFolders.push(folder['id']);
 }
 
-async function sync(context) {
+// Shared by sync() (production) and test() (Flow Test Mode): the list_folder request.
+async function listEntries(context) {
 
     let params = {
         path: context.properties.path || '',
@@ -26,13 +27,20 @@ async function sync(context) {
         JSON.stringify(params)
     );
 
+    return data['entries'];
+}
+
+async function sync(context) {
+
+    const entries = await listEntries(context);
+
     let known = Array.isArray(context.state.known)
         ? new Set(context.state.known)
         : null;
     let current = [];
     let diff = [];
 
-    data['entries'].forEach(folder => {
+    entries.forEach(folder => {
         processFolders(known, current, diff, folder);
     });
 
@@ -54,5 +62,20 @@ module.exports = {
         await Promise.map(diff, (folder) => {
             return context.sendJson(folder, 'newFolder');
         });
+    },
+
+    // Flow Test Mode: emit one representative folder using the SAME request path as tick(),
+    // but WITHOUT the start()/state baseline that suppresses first-run output.
+    async test(context) {
+
+        const entries = await listEntries(context);
+        const folders = entries.filter(entry => entry['.tag'] === 'folder');
+        if (!folders.length) {
+            throw new Error('No folders found to use as test data.');
+        }
+
+        // Folder entries carry no timestamp; list_folder returns the most recently added
+        // entries last, so take the last folder as the most representative "new" one.
+        return context.sendJson(folders[folders.length - 1], 'newFolder');
     }
 };

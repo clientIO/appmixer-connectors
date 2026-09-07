@@ -8,19 +8,12 @@ module.exports = {
         let since = context.state.since || new Date().toISOString();
         let updatedItems = [];
 
-        const response = await lib.callEndpoint(context, `/databases/${databaseId}/query`, {
-            method: 'POST',
-            data: {
-                sorts: [
-                    {
-                        'timestamp': 'last_edited_time',
-                        'direction': 'descending'
-                    }
-                ]
-            }
+        const results = await lib.queryDatabaseItems(context, databaseId, {
+            timestamp: 'last_edited_time',
+            direction: 'descending'
         });
 
-        response.data.results.forEach(item => {
+        results.forEach(item => {
             const itemLastEditedTime = item.last_edited_time;
 
             if (itemLastEditedTime > since) {
@@ -34,5 +27,24 @@ module.exports = {
 
         const latestUpdateTime = updatedItems.length > 0 ? updatedItems[0].last_edited_time : since;
         await context.saveState({ since: latestUpdateTime });
+    },
+
+    async test(context) {
+        const databaseId = context.properties.databaseId;
+
+        // Fetch newest-first WITHOUT the `since` baseline (which defaults to "now" and
+        // suppresses tick()'s first run), emit the single most-recently-edited item in
+        // the exact shape tick() emits.
+        const results = await lib.queryDatabaseItems(context, databaseId, {
+            timestamp: 'last_edited_time',
+            direction: 'descending',
+            pageSize: 1
+        });
+
+        if (!results.length) {
+            throw new Error('No items in the database to use as test data.');
+        }
+
+        return context.sendJson(results[0], 'out');
     }
 };

@@ -1,0 +1,247 @@
+{
+    "name": "E2E ActiveCampaign - Ecommerce Order Lifecycle",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "on-start": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 192,
+            "source": {},
+            "version": "1.0.0",
+            "config": {}
+        },
+        "create-connection": {
+            "type": "appmixer.activecampaign.ecommerce.CreateConnection",
+            "x": 256,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "on-start": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "on-start": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "externalid": { "var-conn-ext": { "functions": [ { "name": "g_timestamp" } ] } },
+                                    "service": {}, "name": {}, "logoUrl": {}, "linkUrl": {}
+                                },
+                                "lambda": {
+                                    "service": "appmixer-e2e",
+                                    "externalid": "e2e-conn-{{{var-conn-ext}}}",
+                                    "name": "E2E Test Store",
+                                    "logoUrl": "https://example.com/logo.png",
+                                    "linkUrl": "https://example.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-customer": {
+            "type": "appmixer.activecampaign.ecommerce.CreateCustomer",
+            "x": 448,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "create-connection": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-connection": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "connectionid": { "var-cust-conn": { "variable": "$.create-connection.out.id", "functions": [] } },
+                                    "externalid": { "var-cust-ext": { "functions": [ { "name": "g_timestamp" } ] } },
+                                    "email": {}
+                                },
+                                "lambda": {
+                                    "connectionid": "{{{var-cust-conn}}}",
+                                    "externalid": "e2e-cust-{{{var-cust-ext}}}",
+                                    "email": "e2e-ecom@appmixer-test.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-order": {
+            "type": "appmixer.activecampaign.ecommerce.CreateOrder",
+            "x": 640,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "create-customer": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-customer": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "connectionid": { "var-ord-conn": { "variable": "$.create-connection.out.id", "functions": [] } },
+                                    "customerid": { "var-ord-cust": { "variable": "$.create-customer.out.id", "functions": [] } },
+                                    "externalcheckoutid": { "var-ord-ext": { "functions": [ { "name": "g_timestamp" } ] } },
+                                    "externalCreatedDate": { "var-ord-created": { "functions": [ { "name": "g_now" } ] } },
+                                    "abandonedDate": { "var-ord-abandoned": { "functions": [ { "name": "g_now" } ] } },
+                                    "source": {}, "email": {}, "currency": {}, "totalPrice": {}, "orderUrl": {},
+                                    "productName": {}, "productPrice": {}, "productQuantity": {}
+                                },
+                                "lambda": {
+                                    "connectionid": "{{{var-ord-conn}}}",
+                                    "customerid": "{{{var-ord-cust}}}",
+                                    "externalcheckoutid": "e2e-cart-{{{var-ord-ext}}}",
+                                    "externalCreatedDate": "{{{var-ord-created}}}",
+                                    "abandonedDate": "{{{var-ord-abandoned}}}",
+                                    "source": "1",
+                                    "email": "e2e-ecom@appmixer-test.com",
+                                    "currency": "USD",
+                                    "totalPrice": "12999",
+                                    "orderUrl": "https://example.com/cart/1",
+                                    "productName": "E2E Product",
+                                    "productPrice": "12999",
+                                    "productQuantity": "1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-order": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "create-order": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-order": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-order-id": { "variable": "$.create-order.out.id", "functions": [] }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "field": "{{{field-order-id}}}", "assertion": "notEmpty" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1024,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "assert-order": ["out"] } },
+            "config": { "properties": { "timeout": 60 } }
+        },
+        "delete-order": {
+            "type": "appmixer.activecampaign.ecommerce.DeleteOrder",
+            "x": 1216,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "after-all": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "orderId": { "var-del-order": { "variable": "$.create-order.out.id", "functions": [] } }
+                                },
+                                "lambda": { "orderId": "{{{var-del-order}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "delete-customer": {
+            "type": "appmixer.activecampaign.ecommerce.DeleteCustomer",
+            "x": 1408,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "delete-order": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "delete-order": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerId": { "var-del-cust": { "variable": "$.create-customer.out.id", "functions": [] } }
+                                },
+                                "lambda": { "customerId": "{{{var-del-cust}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "delete-connection": {
+            "type": "appmixer.activecampaign.ecommerce.DeleteConnection",
+            "x": 1600,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "delete-customer": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "delete-customer": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "connectionId": { "var-del-conn": { "variable": "$.create-connection.out.id", "functions": [] } }
+                                },
+                                "lambda": { "connectionId": "{{{var-del-conn}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1792,
+            "y": 192,
+            "version": "1.0.1",
+            "source": { "in": { "delete-connection": ["out"] } },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "delete-connection": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": { "var-test-case": { "functions": [ { "name": "g_flowName" } ] } },
+                                    "result": { "var-result": { "variable": "$.after-all.out", "functions": [] } }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{var-test-case}}}",
+                                    "result": "{{{var-result}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

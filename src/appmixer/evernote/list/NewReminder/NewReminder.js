@@ -83,10 +83,7 @@ module.exports = {
 
                     if (diff.size) {
                         return Promise.map(diff, note => {
-                            note['attributes'] = commons.formatFields(
-                                note['attributes'],
-                                ['reminderTime', 'reminderDoneTime'],
-                                commons.formatDate);
+                            commons.formatNoteAttributes(note);
                             return context.sendJson(note, 'reminder');
                         });
                     }
@@ -94,6 +91,25 @@ module.exports = {
             })
             .then(() => {
                 return context.saveState(newState);
+            })
+            .catch(err => {
+                throw commons.verboseError(err);
+            });
+    },
+
+    /**
+     * Flow Test Mode: emit the newest note that has a reminder set, without starting the
+     * flow. Shares the fetch + attribute-formatting path with tick() via commons, skipping
+     * the sync-state baseline so the first/only fetch returns a real reminder.
+     */
+    test(context) {
+
+        return commons.fetchLatestReminder(context)
+            .then(note => {
+                if (!note) {
+                    throw new Error('No recent reminders to use as test data.');
+                }
+                return context.sendJson(note, 'reminder');
             })
             .catch(err => {
                 throw commons.verboseError(err);

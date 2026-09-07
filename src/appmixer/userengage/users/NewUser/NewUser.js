@@ -18,6 +18,20 @@ function processUsers(knownUsers, currentUsers, newUsers, user) {
 }
 
 /**
+ * Map a raw user record into the exact shape emitted on the 'user' port.
+ * Shared by tick() and test() so the output shape stays identical.
+ * @param {Object} user
+ * @return {Object}
+ */
+function mapUser(user) {
+
+    user.attributes = user.attributes.length ? JSON.stringify(user.attributes) : '';
+    user.tags = user.tags ? user.tags.join(',') : '';
+    user.lists = user.lists ? user.lists.join(',') : '';
+    return user;
+}
+
+/**
  * Component which triggers whenever new user is added.
  * @extends {Component}
  */
@@ -41,12 +55,22 @@ module.exports = {
         }
 
         await Promise.map(diff, user => {
-            user.attributes = user.attributes.length ? JSON.stringify(user.attributes) : '';
-            user.tags = user.tags ? user.tags.join(',') : '';
-            user.lists = user.lists ? user.lists.join(',') : '';
-            return context.sendJson(user, 'user');
+            return context.sendJson(mapUser(user), 'user');
         });
         await context.saveState({ known: Array.from(current) });
+    },
+
+    async test(context) {
+
+        let { apiKey } = context.auth;
+
+        // Same 'users' endpoint tick() polls (first page is enough); take the freshest
+        // user and apply the same mapping. No state.
+        let user = await commons.getLatestResult(apiKey, 'users');
+        if (!user) {
+            throw new Error('No recent users to use as test data.');
+        }
+        return context.sendJson(mapUser(user), 'user');
     }
 };
 

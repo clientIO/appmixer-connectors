@@ -1,0 +1,379 @@
+{
+    "name": "E2E cloudflareWAF - Block IPs (TTL and permanent)",
+    "type": "automation",
+    "flow": {
+        "0d465b47-9136-4793-be24-57757703f163": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8f9bd672-1e48-446c-9ea1-0736c69db4ad": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 300,
+            "y": 300,
+            "source": {
+                "in": {
+                    "0d465b47-9136-4793-be24-57757703f163": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "0d465b47-9136-4793-be24-57757703f163": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "ttlIp",
+                                                "text": "203.0.113.10"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "permIp",
+                                                "text": "203.0.113.20"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "34832b37-c4bb-4b61-b7e6-728e8e777f95": {
+            "type": "appmixer.cloudflareWAF.waf.CreateCustomRules",
+            "x": 520,
+            "y": 180,
+            "source": {
+                "in": {
+                    "8f9bd672-1e48-446c-9ea1-0736c69db4ad": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.1.2",
+            "label": "Block IP (TTL 60s)",
+            "config": {
+                "properties": {
+                    "zoneId": "7ed42bdac3f53e2adf25d87664780430"
+                },
+                "transform": {
+                    "in": {
+                        "8f9bd672-1e48-446c-9ea1-0736c69db4ad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "ips": {
+                                        "08967576-4ea8-461f-9b20-35cfed108776": {
+                                            "variable": "$.8f9bd672-1e48-446c-9ea1-0736c69db4ad.out.ttlIp",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ttl": {}
+                                },
+                                "lambda": {
+                                    "ips": "{{{08967576-4ea8-461f-9b20-35cfed108776}}}",
+                                    "ttl": 60
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "06f6cc09-e295-42ce-a4c6-0fcc8f172f75": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 760,
+            "y": 180,
+            "source": {
+                "in": {
+                    "34832b37-c4bb-4b61-b7e6-728e8e777f95": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "34832b37-c4bb-4b61-b7e6-728e8e777f95": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2b5764ae-5f6e-4624-b8b9-e142c4884e01": {
+                                            "variable": "$.34832b37-c4bb-4b61-b7e6-728e8e777f95.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].ruleId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "6459daec-e92b-48d5-bdc1-50fabe2490b2": {
+                                            "variable": "$.34832b37-c4bb-4b61-b7e6-728e8e777f95.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].ip"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{2b5764ae-5f6e-4624-b8b9-e142c4884e01}}}",
+                                                "type": "string"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{6459daec-e92b-48d5-bdc1-50fabe2490b2}}}",
+                                                "type": "string",
+                                                "expected": "203.0.113.10"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "308f0eec-990c-4d60-ac0d-139a34cc11cf": {
+            "type": "appmixer.cloudflareWAF.waf.CreateCustomRules",
+            "x": 520,
+            "y": 420,
+            "source": {
+                "in": {
+                    "8f9bd672-1e48-446c-9ea1-0736c69db4ad": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.1.2",
+            "label": "Block IP (permanent, no TTL)",
+            "config": {
+                "properties": {
+                    "zoneId": "7ed42bdac3f53e2adf25d87664780430"
+                },
+                "transform": {
+                    "in": {
+                        "8f9bd672-1e48-446c-9ea1-0736c69db4ad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "ips": {
+                                        "b0e66f86-f54e-446c-900f-987330114aec": {
+                                            "variable": "$.8f9bd672-1e48-446c-9ea1-0736c69db4ad.out.permIp",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "ips": "{{{b0e66f86-f54e-446c-900f-987330114aec}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c3c8f4e8-ed96-43a5-b773-2a0ad9de37ff": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 760,
+            "y": 420,
+            "source": {
+                "in": {
+                    "308f0eec-990c-4d60-ac0d-139a34cc11cf": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "308f0eec-990c-4d60-ac0d-139a34cc11cf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ef42923f-0f0f-4560-aa00-935d83e0f54d": {
+                                            "variable": "$.308f0eec-990c-4d60-ac0d-139a34cc11cf.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].ruleId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "d624c087-eab8-40d6-87be-b913f17eed4f": {
+                                            "variable": "$.308f0eec-990c-4d60-ac0d-139a34cc11cf.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].ip"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{ef42923f-0f0f-4560-aa00-935d83e0f54d}}}",
+                                                "type": "string"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{d624c087-eab8-40d6-87be-b913f17eed4f}}}",
+                                                "type": "string",
+                                                "expected": "203.0.113.20"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "6066411c-720f-4f01-a36d-dc2fbc3914a9": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1000,
+            "y": 300,
+            "source": {
+                "in": {
+                    "06f6cc09-e295-42ce-a4c6-0fcc8f172f75": [
+                        "out"
+                    ],
+                    "c3c8f4e8-ed96-43a5-b773-2a0ad9de37ff": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bf9bf70c-0648-4a5a-9cef-5f56237becae": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1220,
+            "y": 300,
+            "source": {
+                "in": {
+                    "6066411c-720f-4f01-a36d-dc2fbc3914a9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "6066411c-720f-4f01-a36d-dc2fbc3914a9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "e8d6ddcb-6c09-4bc9-9d5d-85ee88239055": {
+                                            "variable": "$.6066411c-720f-4f01-a36d-dc2fbc3914a9.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {
+                                        "4b0828cc-1856-41cd-bfcf-8166a081f920": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{e8d6ddcb-6c09-4bc9-9d5d-85ee88239055}}}",
+                                    "testCase": "{{{4b0828cc-1856-41cd-bfcf-8166a081f920}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

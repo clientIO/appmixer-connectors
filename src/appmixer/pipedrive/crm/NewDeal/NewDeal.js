@@ -25,26 +25,26 @@ module.exports = {
 
     async tick(context) {
 
-        const dealsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Deals');
-
-        let response = await dealsApi.getAllAsync({});
-        if (response.success === false) {
-            throw new context.CancelError(response.formattedError);
-        }
-
-        let deals = response.data;
+        const deals = await commons.listRecords(context, 'Deals');
         let knownState = context.state.known || {};
         let known = Array.isArray(knownState) ? new Set(knownState) : null;
         let actual = [];
         let diff = [];
 
-        if (Array.isArray(deals)) {
-            deals.forEach(processItems.bind(null, known, actual, diff));
-        }
+        deals.forEach(processItems.bind(null, known, actual, diff));
 
         await Promise.map(diff, item => {
             return context.sendJson(item, 'deal');
         });
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        const deal = await commons.fetchLatestExample(context, 'Deals');
+        if (!deal) {
+            throw new Error('No deal available to use as test data.');
+        }
+        return context.sendJson(deal, 'deal');
     }
 };

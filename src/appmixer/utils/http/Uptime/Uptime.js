@@ -3,36 +3,56 @@ const url = require('url');
 const moment = require('moment');
 const request = require('request');
 
+// Shared by tick() and test(): probe the configured target with a single read-only GET
+// and classify it as up/down using the same rules tick() applies.
+function probeTarget(context) {
+
+    const target = url.parse(context.properties.target);
+    const href = target.href;
+    const protocol = target.protocol;
+
+    return new Promise((resolve, reject) => {
+        if (protocol !== 'http:' && protocol !== 'https:') {
+            return reject(new Error('Unknown protocol ' + protocol));
+        }
+        request({
+            method: 'GET',
+            url: href
+        }, (err, response) => {
+            if (err) {
+                return resolve({ href, isUp: false, statusCode: err.status });
+            }
+            if ((response.statusCode + '')[0] === '5') {
+                return resolve({ href, isUp: false, statusCode: response.statusCode });
+            }
+            return resolve({ href, isUp: true, statusCode: response.statusCode });
+        });
+    });
+}
+
 module.exports = {
 
-    tick(context) {
+    async tick(context) {
 
-        const target = url.parse(context.properties.target);
-        const href = target.href;
-        const protocol = target.protocol;
+        const { href, isUp, statusCode } = await probeTarget(context);
+        if (isUp) {
+            await onUp(href, context, statusCode);
+        } else {
+            await onDown(href, context, statusCode);
+        }
+    },
 
-        return new Promise((resolve, reject) => {
-            if (protocol !== 'http:' && protocol !== 'https:') {
-                return reject(new Error('Unknown protocol ' + protocol));
-            }
-            request({
-                method: 'GET',
-                url: href
-            }, async (err, response, body) => {
-                try {
-                    if (err) {
-                        await onDown(href, context, err.status);
-                    } else if ((response.statusCode + '')[0] === '5') {
-                        await onDown(href, context, response.statusCode);
-                    } else {
-                        await onUp(href, context, response.statusCode);
-                    }
-                    resolve();
-                } catch (err) {
-                    reject(err);
-                }
-            });
-        });
+    async test(context) {
+
+        // Polling-with-source: reuse the same probe tick() uses and emit a single payload
+        // on the same port (up/down) that production would emit for the current target
+        // status, shaped identically. No state read/write.
+        const { href, isUp, statusCode } = await probeTarget(context);
+
+        if (isUp) {
+            return context.sendJson({ target: href, statusCode }, 'up');
+        }
+        return context.sendJson({ target: href, statusCode }, 'down');
     }
 };
 

@@ -54,5 +54,40 @@ module.exports = {
                 return context.response(successPage, 200, { 'Content-Type': 'text/html' });
             }
         }
+    },
+
+    // Flow Test Mode: emit one plausible form entry without waiting for a real submission.
+    // Mirrors what a POST submission produces: keys are 'field_<index>', values are strings
+    // (HTML forms submit strings) except checkbox, which receive() normalizes to a boolean.
+    // Prefers the field's configured defaultValue for realism.
+    test(context) {
+
+        const fields = (context.properties.fields && context.properties.fields.ADD) || [];
+        if (!fields.length) {
+            throw new Error('No form fields defined.');
+        }
+
+        const entry = {};
+        fields.forEach((field, index) => {
+            const name = 'field_' + index;
+            if (field.type === 'checkbox') {
+                entry[name] = true;
+                return;
+            }
+            if (field.defaultValue) {
+                entry[name] = field.defaultValue;
+                return;
+            }
+            switch (field.type) {
+                case 'number': entry[name] = '42'; break;
+                case 'date': entry[name] = '2026-01-01'; break;
+                case 'email': entry[name] = 'user@example.com'; break;
+                case 'color': entry[name] = '#336699'; break;
+                case 'password': entry[name] = 'secret'; break;
+                default: entry[name] = field.label || 'Sample text';
+            }
+        });
+
+        return context.sendJson(entry, 'entry');
     }
 };

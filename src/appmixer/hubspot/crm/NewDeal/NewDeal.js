@@ -69,6 +69,17 @@ class NewDeal extends BaseSubscriptionComponent {
 
         return context.response();
     }
+
+    async test(context) {
+
+        const { pipeline: filterPipeline } = context.properties;
+        const filters = [];
+        if (filterPipeline) {
+            filters.push({ propertyName: 'pipeline', operator: 'EQ', value: filterPipeline });
+        }
+        const record = await this.fetchLatestExample(context, 'deals', { filters });
+        return context.sendJson(record, 'deal');
+    }
 }
 
 module.exports = new NewDeal(subscriptionType);

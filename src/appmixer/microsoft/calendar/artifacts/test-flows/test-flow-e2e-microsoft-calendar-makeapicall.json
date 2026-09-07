@@ -1,0 +1,219 @@
+{
+    "flow": {
+        "51309f02-1515-4f0a-8949-e079ec6dc2d0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e9dea2d3-1283-4378-9bc6-b30153b17731": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 32,
+            "source": {
+                "in": {
+                    "51309f02-1515-4f0a-8949-e079ec6dc2d0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "51309f02-1515-4f0a-8949-e079ec6dc2d0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "endpoint",
+                                                "text": "/me/calendar",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7c713572-7ac5-41eb-a8e9-f88b3309a015": {
+            "type": "appmixer.microsoft.calendar.MakeApiCall",
+            "label": "MakeApiCall (component under test)",
+            "x": 464,
+            "y": 32,
+            "source": {
+                "in": {
+                    "e9dea2d3-1283-4378-9bc6-b30153b17731": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e9dea2d3-1283-4378-9bc6-b30153b17731": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "var-url": {
+                                            "variable": "$.e9dea2d3-1283-4378-9bc6-b30153b17731.out.endpoint",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{var-url}}}",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f94a22bb-62c5-416c-82c5-9ef230d66371": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: GET /me/calendar returns 200",
+            "x": 672,
+            "y": 32,
+            "source": {
+                "in": {
+                    "7c713572-7ac5-41eb-a8e9-f88b3309a015": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7c713572-7ac5-41eb-a8e9-f88b3309a015": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-status": {
+                                            "variable": "$.7c713572-7ac5-41eb-a8e9-f88b3309a015.out.status",
+                                            "functions": []
+                                        },
+                                        "v-resp": {
+                                            "variable": "$.7c713572-7ac5-41eb-a8e9-f88b3309a015.out.body.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "200",
+                                                "field": "{{{v-status}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-resp}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a920d720-f2db-4b9b-8505-a0618d940412": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 880,
+            "y": 32,
+            "source": {
+                "in": {
+                    "f94a22bb-62c5-416c-82c5-9ef230d66371": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "78c19629-017a-4530-b508-b83fbe4d9745": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1088,
+            "y": 32,
+            "source": {
+                "in": {
+                    "a920d720-f2db-4b9b-8505-a0618d940412": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a920d720-f2db-4b9b-8505-a0618d940412": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "rv": {
+                                            "variable": "$.a920d720-f2db-4b9b-8505-a0618d940412.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{rv}}}",
+                                    "testCase": "E2E MS Calendar - MakeApiCall"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        }
+    },
+    "name": "E2E MS Calendar - MakeApiCall",
+    "type": "automation",
+    "notes": {}
+}

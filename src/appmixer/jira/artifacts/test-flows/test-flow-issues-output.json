@@ -1,298 +1,205 @@
 {
-    "name": "E2E Jira - issues-output",
-    "description": "End-to-end test for Jira connector - tests FindIssues and GenerateIssuesOutput components",
+    "err": "{\"message\":\"Component transformation validation error\",\"error\":[{\"message\":\"Malformed transformation\",\"error\":{\"stack\":\"TypeError: Cannot read properties of undefined (reading 'lambdaValidatorHash')\\n    at /usr/src/appmixer/gridvalidator/src/gridvalidator.js:344:59\\n    at Array.forEach (<anonymous>)\\n    at GridValidator.validatePortTransformations (/usr/src/appmixer/gridvalidator/src/gridvalidator.js:342:45)\\n    at Factory.validatePortTransformation (/usr/src/appmixer/engine/src/component/Factory.js:637:37)\\n    at /usr/src/appmixer/engine/src/component/Factory.js:312:29\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async Method.call (/usr/src/appmixer/lib/lock/method.js:34:28)\\n    at async Factory.getComponent (/usr/src/appmixer/engine/src/component/Factory.js:268:21)\",\"message\":\"Cannot read properties of undefined (reading 'lambdaValidatorHash')\"}}],\"data\":[{\"message\":\"Malformed transformation\",\"error\":{\"stack\":\"TypeError: Cannot read properties of undefined (reading 'lambdaValidatorHash')\\n    at /usr/src/appmixer/gridvalidator/src/gridvalidator.js:344:59\\n    at Array.forEach (<anonymous>)\\n    at GridValidator.validatePortTransformations (/usr/src/appmixer/gridvalidator/src/gridvalidator.js:342:45)\\n    at Factory.validatePortTransformation (/usr/src/appmixer/engine/src/component/Factory.js:637:37)\\n    at /usr/src/appmixer/engine/src/component/Factory.js:312:29\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async Method.call (/usr/src/appmixer/lib/lock/method.js:34:28)\\n    at async Factory.getComponent (/usr/src/appmixer/engine/src/component/Factory.js:268:21)\",\"message\":\"Cannot read properties of undefined (reading 'lambdaValidatorHash')\"}}],\"code\":\"GRID_ERR_PORT_TRANSFORMATION\",\"name\":\"ValidationFlowError\",\"stack\":\"ValidationFlowError: Component transformation validation error\\n    at Factory.validatePortTransformation (/usr/src/appmixer/engine/src/component/Factory.js:648:19)\\n    at /usr/src/appmixer/engine/src/component/Factory.js:312:29\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async Method.call (/usr/src/appmixer/lib/lock/method.js:34:28)\\n    at async Factory.getComponent (/usr/src/appmixer/engine/src/component/Factory.js:268:21)\"}",
     "flow": {
-        "on-start": {
-            "type": "appmixer.utils.controls.OnStart",
-            "x": 100,
-            "y": 200,
-            "source": {},
-            "version": "1.0.0",
-            "config": {}
-        },
-        "set-variables": {
-            "type": "appmixer.utils.controls.SetVariable",
-            "x": 250,
-            "y": 200,
-            "source": {
-                "in": {
-                    "on-start": [
-                        "out"
-                    ]
-                }
-            },
-            "version": "1.0.0",
-            "config": {
-                "transform": {
-                    "in": {
-                        "on-start": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "variables": {}
-                                },
-                                "lambda": {
-                                    "variables": {
-                                        "ADD": [
-                                            {
-                                                "type": "text",
-                                                "name": "jqlQuery",
-                                                "text": "type = Bug AND status = Open"
-                                            },
-                                            {
-                                                "type": "number",
-                                                "name": "maxResults",
-                                                "text": "10"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "before-all": {
-            "type": "appmixer.utils.test.BeforeAll",
-            "x": 400,
-            "y": 200,
-            "source": {
-                "in": {
-                    "set-variables": [
-                        "out"
-                    ]
-                }
-            },
-            "version": "1.0.0",
-            "config": {}
-        },
-        "find-issues": {
-            "type": "appmixer.jira.issues.FindIssues",
-            "x": 550,
-            "y": 200,
-            "source": {
-                "in": {
-                    "before-all": [
-                        "out"
-                    ]
-                }
-            },
-            "version": "1.0.0",
-            "config": {
-                "transform": {
-                    "in": {
-                        "before-all": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "query": {
-                                        "var-query": {
-                                            "variable": "$.set-variables.out.jqlQuery",
-                                            "functions": []
-                                        }
-                                    },
-                                    "maxResults": {
-                                        "var-max-results": {
-                                            "variable": "$.set-variables.out.maxResults",
-                                            "functions": []
-                                        }
-                                    },
-                                    "fields": {},
-                                    "sendWholeArray": {}
-                                },
-                                "lambda": {
-                                    "query": "{{{var-query}}}",
-                                    "maxResults": "{{{var-max-results}}}",
-                                    "fields": "*navigable",
-                                    "sendWholeArray": true
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-find-issues": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 700,
-            "y": 100,
-            "source": {
-                "in": {
-                    "find-issues": [
-                        "issue"
-                    ]
-                }
-            },
-            "version": "1.0.0",
-            "config": {
-                "transform": {
-                    "in": {
-                        "find-issues": {
-                            "issue": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "check-issues": {
-                                            "variable": "$.find-issues.issue",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{check-issues}}}",
-                                                "assertion": "notEmpty"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "generate-output": {
-            "type": "appmixer.jira.issues.GenerateIssuesOutput",
-            "x": 700,
-            "y": 300,
-            "source": {
-                "in": {
-                    "find-issues": [
-                        "issue"
-                    ]
-                }
-            },
-            "version": "1.0.0",
-            "config": {
-                "properties": {
-                    "sendWholeArray": true
-                },
-                "transform": {
-                    "in": {
-                        "find-issues": {
-                            "issue": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "sendWholeArray": {}
-                                },
-                                "lambda": {
-                                    "sendWholeArray": true
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-generate-output": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 850,
-            "y": 300,
-            "source": {
-                "in": {
-                    "generate-output": [
-                        "out"
-                    ]
-                }
-            },
-            "version": "1.0.0",
-            "config": {
-                "transform": {
-                    "in": {
-                        "generate-output": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "check-output": {
-                                            "variable": "$.generate-output.out",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{check-output}}}",
-                                                "assertion": "notEmpty"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "after-all": {
-            "type": "appmixer.utils.test.AfterAll",
-            "x": 1000,
-            "y": 200,
-            "source": {
-                "in": {
-                    "assert-find-issues": [
-                        "out"
-                    ],
-                    "assert-generate-output": [
-                        "out"
-                    ]
-                }
-            },
-            "version": "1.0.0",
+        "350ffe1a-5eb5-4d62-98a6-294b1158b2f0": {
             "config": {
                 "properties": {
                     "timeout": 30
                 }
-            }
-        },
-        "process-results": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1150,
-            "y": 200,
+            },
             "source": {
                 "in": {
-                    "after-all": [
+                    "35d0fbdd-f1ea-40b0-89c3-a13f772fd3ab": [
                         "out"
                     ]
                 }
             },
-            "version": "1.0.0",
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 976,
+            "y": 320
+        },
+        "35d0fbdd-f1ea-40b0-89c3-a13f772fd3ab": {
             "config": {
-                "properties": {
-                    "successStoreId": "64cb41824421780007381f86",
-                    "failedStoreId": "64cb41969751560007caf0bf"
-                },
                 "transform": {
                     "in": {
-                        "after-all": {
-                            "out": {
-                                "type": "json2new",
+                        "ff56280e-50ed-4be8-9027-a2811922d6cf": {
+                            "issue": {
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{check-issues}}}"
+                                            }
+                                        ]
+                                    }
+                                },
                                 "modifiers": {
-                                    "recipients": {},
-                                    "testCase": {},
-                                    "result": {
-                                        "result-var": {
-                                            "variable": "$.after-all.out",
-                                            "functions": []
+                                    "expression": {
+                                        "check-issues": {
+                                            "functions": [],
+                                            "variable": "$.ff56280e-50ed-4be8-9027-a2811922d6cf.issue.id"
                                         }
                                     }
                                 },
-                                "lambda": {
-                                    "recipients": "test@appmixer.com",
-                                    "testCase": "E2E Jira - issues-output",
-                                    "result": "{{{result-var}}}"
-                                }
+                                "type": "json2new"
                             }
                         }
                     }
                 }
-            }
+            },
+            "source": {
+                "in": {
+                    "ff56280e-50ed-4be8-9027-a2811922d6cf": [
+                        "issue"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.Assert",
+            "x": 752,
+            "y": 320
+        },
+        "621df3ff-2dbe-46ab-b32b-51a368f464fb": {
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "350ffe1a-5eb5-4d62-98a6-294b1158b2f0": {
+                            "out": {
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E Jira - issues-output"
+                                },
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.350ffe1a-5eb5-4d62-98a6-294b1158b2f0.out"
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "350ffe1a-5eb5-4d62-98a6-294b1158b2f0": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1200,
+            "y": 320
+        },
+        "88cfe8aa-72f6-45ac-9486-c6c7a0387c45": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "a4ddef93-efcd-425a-8285-8002c6a7aaf0": {
+                            "out": {
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "jqlQuery",
+                                                "text": "created >= -30d order by created DESC",
+                                                "type": "text"
+                                            },
+                                            {
+                                                "name": "maxResults",
+                                                "text": "10",
+                                                "toggle": false,
+                                                "type": "number"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "a4ddef93-efcd-425a-8285-8002c6a7aaf0": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 304,
+            "y": 320
+        },
+        "a4ddef93-efcd-425a-8285-8002c6a7aaf0": {
+            "config": {},
+            "source": {},
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 80,
+            "y": 320
+        },
+        "ff56280e-50ed-4be8-9027-a2811922d6cf": {
+            "config": {
+                "properties": {
+                    "account": "698ef14bf513883a8203d020"
+                },
+                "transform": {
+                    "in": {
+                        "88cfe8aa-72f6-45ac-9486-c6c7a0387c45": {
+                            "out": {
+                                "lambda": {
+                                    "fields": "*navigable",
+                                    "maxResults": "{{{var-max-results}}}",
+                                    "outputType": "first",
+                                    "query": "{{{var-query}}}"
+                                },
+                                "modifiers": {
+                                    "fields": {},
+                                    "maxResults": {
+                                        "var-max-results": {
+                                            "functions": [],
+                                            "variable": "$.88cfe8aa-72f6-45ac-9486-c6c7a0387c45.out.maxResults"
+                                        }
+                                    },
+                                    "outputType": {},
+                                    "query": {
+                                        "var-query": {
+                                            "functions": [],
+                                            "variable": "$.88cfe8aa-72f6-45ac-9486-c6c7a0387c45.out.jqlQuery"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "source": {
+                "in": {
+                    "88cfe8aa-72f6-45ac-9486-c6c7a0387c45": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.jira.issues.FindIssues",
+            "x": 528,
+            "y": 320
         }
+    },
+    "name": "E2E Jira - issues-output",
+    "notes": {},
+    "wizard": {
+        "fields": []
     }
 }

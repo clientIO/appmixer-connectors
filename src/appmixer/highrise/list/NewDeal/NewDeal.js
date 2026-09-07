@@ -25,12 +25,8 @@ module.exports = {
 
     async tick(context) {
 
-        let { companyId } = context.properties;
-        const options = { userAgent: context.auth.userAgent };
-        let client = commons.getHighriseAPI(companyId, context.auth.accessToken, options);
-        let getNewDeal = Promise.promisify(client.deals.get, { context: client.deals });
-
-        let res = await getNewDeal();
+        let client = commons.getClient(context);
+        let res = await commons.fetchCollection(client.deals.get, client.deals);
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
@@ -43,6 +39,17 @@ module.exports = {
             });
         }
         await context.saveState({ known: Array.from(actual) });
+    },
+
+    async test(context) {
+
+        const client = commons.getClient(context);
+        const res = await commons.fetchCollection(client.deals.get, client.deals);
+        const deal = commons.pickLatest(res);
+        if (!deal) {
+            throw new Error('No recent deals to use as test data.');
+        }
+        return context.sendJson(deal, 'deal');
     }
 };
 

@@ -23,6 +23,18 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // The branches endpoint has no created sort; take the first listed branch.
+        const branch = await lib.fetchLatest(context, `repos/${repositoryId}/branches`);
+        if (!branch) {
+            throw new Error('No branches to use as test data.');
+        }
+        return context.sendJson(branch, 'branch');
     }
 };
 

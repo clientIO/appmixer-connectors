@@ -1,5 +1,6 @@
 'use strict';
 const Plivo = require('plivo');
+const lib = require('../../lib');
 
 async function registerWebhook(context, client) {
 
@@ -62,5 +63,18 @@ module.exports = {
         const { accountSID, authenticationToken } = context.auth;
         const client = new Plivo.Client(accountSID, authenticationToken);
         return unregisterWebhook(context, client);
+    },
+
+    // Flow Test Mode: fetch the most recent message via the read-only REST API and emit it in the
+    // exact webhook payload shape receive() forwards on the 'sms' port. No webhook registration,
+    // no state writes.
+    async test(context) {
+
+        const { phoneNumber } = context.properties;
+        const sms = await lib.fetchLatestSMS(context, { phoneNumber });
+        if (!sms) {
+            throw new Error('No recent SMS messages to use as test data.');
+        }
+        return context.sendJson(sms, 'sms');
     }
 };

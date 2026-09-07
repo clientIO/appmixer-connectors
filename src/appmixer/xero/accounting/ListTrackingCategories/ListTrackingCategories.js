@@ -1,5 +1,5 @@
 'use strict';
-const { sendArrayOutput } = require('../../commons');
+const { sendArrayOutput, withCache } = require('../../commons');
 const XeroClient = require('../../XeroClient');
 
 const outputPortName = 'trackingCategories';
@@ -10,20 +10,46 @@ module.exports = {
 
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { tenantId, outputType, ...params } = context.messages.in.content;
+        const isSource = context.properties.isSource;
 
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        const xc = new XeroClient(context, tenantId);
-        const records = await xc.requestPaginated('GET', '/api.xro/2.0/TrackingCategories', { params });
+        // tenantId is intentionally not a hard schema requirement so this list can back a dependent
+        // dropdown (e.g. CreateTrackingCategoryOption's Tracking Category select). When called as a
+        // dropdown source (isSource), degrade gracefully to an empty list on ANY problem — a missing
+        // tenantId (still an unresolved variable at design time), an invalid tenantId, or a failed
+        // API call — so the inspector shows no options instead of an error popup and the user can
+        // type the value. Real flow runs must fail loudly, so only suppress when isSource is set.
+        if (!tenantId) {
+            if (isSource) {
+                return context.sendJson({ items: [] }, outputPortName);
+            }
+            throw new context.CancelError('Tenant ID is required!');
+        }
 
-        return sendArrayOutput({
-            context,
-            outputPortName,
-            outputType,
-            records
-        });
+        try {
+            // Cache the assembled tracking categories array so repeated inspector source calls reuse one fetch.
+            const records = await withCache(
+                context,
+                { tenantId, url: '/api.xro/2.0/TrackingCategories', params },
+                () => new XeroClient(context, tenantId)
+                    .requestPaginated('GET', '/api.xro/2.0/TrackingCategories', { params })
+            );
+
+            return sendArrayOutput({
+                context,
+                outputPortName,
+                outputType,
+                records
+            });
+        } catch (err) {
+            if (isSource) {
+                return context.sendJson({ items: [] }, outputPortName);
+            }
+            throw err;
+        }
     },
 
     getOutputPortOptions(context, outputType) {

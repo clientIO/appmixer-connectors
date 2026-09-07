@@ -1,6 +1,6 @@
 {
     "name": "appmixer.microsoft.dynamics",
-    "version": "2.0.0",
+    "version": "2.2.0",
     "changelog": {
         "1.0.3": [
             "Initial release"
@@ -19,6 +19,21 @@
         ],
         "2.0.0": [
             "(breaking change) MakeApiCall: headers and parameters changed to key-value array inputs (body remains textarea/JSON to support nested structures) per standard #1459 — existing flows that used the old string/textarea headers or parameters must be updated"
+        ],
+        "2.1.0": [
+            "Added the 'List Entities' component to retrieve all entities (object types) in the organization.",
+            "CreateObjectRecord/UpdateObjectRecord: the Object Name field is now a typeahead that suggests the most common entities while allowing any entity logical name to be typed manually (or bound from the new 'List Entities' component)."
+        ],
+        "2.1.1": [
+            "CreateObjectRecord/UpdateObjectRecord: lookup fields (e.g. regardingobjectid, transactioncurrencyid) are bound via their target-specific navigation property and are no longer marked as required in the inspector — they use navigation-property names rather than the bare logical name and are commonly auto-populated by the Web API, so requiring them blocked otherwise-valid configurations.",
+            "ListEntities: the output variable picker now adapts to the selected Output Type (array / object / file) instead of always showing the array shape.",
+            "UpdateObjectRecord/UpdateAccount/UpdateContact/UpdateLead: the inspector-generation source now wires the required objectName/id inputs (and the schema declares its properties), so inspector generation is no longer rejected by required-input validation."
+        ],
+        "2.2.0": [
+            "Added polling triggers: New Contact, Updated Contact, New Lead, Updated Lead, New Account, Updated Account, New Object Record and Updated Object Record. They detect created/updated records by polling the Dataverse OData API on createdon/modifiedon, deduplicate by record id and start watching from the moment the flow is started (historical records are never emitted). The New/Updated Object Record triggers work with any (including custom) entity via the same entity selector as the Object Record actions.",
+            "Added the 'Deal Stage Changed' trigger: fires when the sales stage of an opportunity changes. It remembers the stage of each opportunity it has seen and fires only on an actual stage transition (the watched stage attribute is configurable, defaulting to 'salesstage').",
+            "Create/Get/Update/Delete Object Record (and the generic Object Record triggers) now resolve the entity collection segment from the Dataverse metadata instead of naively appending 's' to the logical name, so entities with irregular plurals (e.g. opportunity -> opportunities) work too.",
+            "MakeApiCall: the Request Headers and Query Parameters key-value inputs are also accepted as a JSON string (e.g. when produced by a flow transform)."
         ]
     }
 }

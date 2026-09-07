@@ -52,6 +52,36 @@ module.exports = {
         return variable?.startsWith('{{{') && variable?.endsWith('}}}');
     },
 
+    // Single source of truth for the record -> output shape emitted by the webhook triggers.
+    mapRecord(record) {
+        return {
+            id: record.id,
+            createdTime: record.createdTime,
+            ...record.fields
+        };
+    },
+
+    // Read-only fetch of the newest record in a table, used by the triggers' test() (Flow Test Mode).
+    // Airtable does not allow sorting by CREATED_TIME() via the `sort` param, so we fetch a small page
+    // and pick the newest by the API-provided `createdTime`.
+    async fetchLatestRecord(context, { baseId, tableId }) {
+        const { accessToken } = context.auth;
+        const { data } = await context.httpRequest({
+            url: `https://api.airtable.com/v0/${baseId}/${tableId}`,
+            method: 'GET',
+            headers: { Authorization: `Bearer ${accessToken}` },
+            params: { pageSize: 100 }
+        });
+        const records = (data && data.records) || [];
+        if (records.length === 0) {
+            return null;
+        }
+        const newest = records.reduce((latest, current) => {
+            return Date.parse(current.createdTime) > Date.parse(latest.createdTime) ? current : latest;
+        });
+        return this.mapRecord(newest);
+    },
+
     transformFieldstoBodyFields(fields) {
         const bodyFields = {};
 

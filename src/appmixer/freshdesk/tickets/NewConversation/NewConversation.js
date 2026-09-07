@@ -1,27 +1,59 @@
 'use strict';
-const axios = require('axios');
-const { normalizeMultiselectInput } = require('../../lib');
+const { apiCall, normalizeMultiselectInput } = require('../../lib');
+
+async function fetchConversations(context, ticketId) {
+    const res = await apiCall(context, {
+        url: `/tickets/${ticketId}/conversations`,
+        params: { per_page: 100 }
+    });
+    return Array.isArray(res.data) ? res.data : [];
+}
+
+async function fetchFullTicket(context, ticketId) {
+    const res = await apiCall(context, { url: `/tickets/${ticketId}` });
+    return res.data;
+}
+
+// Whether a conversation should be emitted given the component's include/ignore filters.
+// Shared by tick() and test() so both honor the exact same filtering.
+function isIncludedConversation(conv, includeTypes, ignoredAgentIds) {
+    const type = conv.private === true ? 'notes' : 'conversations';
+    if (!includeTypes.includes(type)) return false;
+    if (ignoredAgentIds.length > 0 && ignoredAgentIds.includes(conv.user_id)) return false;
+    return true;
+}
+
+// Build the trigger output object. Single source of truth for the output shape, shared by
+// tick() and test().
+function toConversationEvent(conv, conversations, ticket) {
+    return {
+        conversation: conv,
+        conversationType: conv.private === true ? 'note' : 'reply',
+        conversationsList: conversations,
+        ticket
+    };
+}
+
+function getFilters(context) {
+    const { ignoreAgents, include } = context.properties;
+    return {
+        ignoredAgentIds: ignoreAgents
+            ? normalizeMultiselectInput(ignoreAgents, context, 'Ignore agents').map(Number)
+            : [],
+        includeTypes: include
+            ? normalizeMultiselectInput(include, context, 'Include')
+            : ['conversations', 'notes']
+    };
+}
 
 module.exports = {
 
     async tick(context) {
 
-        const { auth } = context;
-        const { ignoreAgents, include } = context.properties;
-
-        const ignoredAgentIds = ignoreAgents
-            ? normalizeMultiselectInput(ignoreAgents, context, 'Ignore agents').map(Number)
-            : [];
-
-        const includeTypes = include
-            ? normalizeMultiselectInput(include, context, 'Include')
-            : ['conversations', 'notes'];
+        const { ignoredAgentIds, includeTypes } = getFilters(context);
 
         const state = context.state || {};
         const lookbackMs = 2 * 60 * 1000;
-
-        const baseUrl = `https://${auth.domain}.freshdesk.com/api/v2`;
-        const authConfig = { username: auth.apiKey, password: 'X' };
 
         // flowStartedAt: set once on the very first tick. Any conversation created after this
         // timestamp on a ticket we're seeing for the first time is treated as new.
@@ -40,20 +72,21 @@ module.exports = {
 
         const from = new Date(cursorUpdatedAt.getTime() - lookbackMs).toISOString();
 
-        let nextUrl =
-            `${baseUrl}/tickets?updated_since=${encodeURIComponent(from)}` +
-            '&order_by=updated_at&order_type=asc&per_page=100';
+        const params = new URLSearchParams({
+            updated_since: from,
+            order_by: 'updated_at',
+            order_type: 'asc',
+            per_page: '100'
+        });
 
+        let nextUrl = `/tickets?${params.toString()}`;
         let maxUpdatedAt = state.cursorUpdatedAt || null;
         let maxTicketId = state.cursorTicketId || 0;
 
         const updatedTickets = [];
 
         while (nextUrl) {
-            const res = await axios.get(nextUrl, {
-                auth: authConfig,
-                validateStatus: s => s >= 200 && s < 300
-            });
+            const res = await apiCall(context, { url: nextUrl });
             const tickets = res.data || [];
 
             for (const ticket of tickets) {
@@ -79,8 +112,7 @@ module.exports = {
                 }
             }
 
-            const link = res.headers.link || '';
-            const match = link.match(/<([^>]+)>;\s*rel="next"/);
+            const match = (res.headers.link || '').match(/<([^>]+)>;\s*rel="next"/);
             nextUrl = match ? match[1] : null;
         }
 
@@ -90,11 +122,7 @@ module.exports = {
 
             let conversations;
             try {
-                const { data } = await axios.get(`${baseUrl}/tickets/${ticketId}/conversations`, {
-                    auth: authConfig,
-                    params: { per_page: 100 }
-                });
-                conversations = Array.isArray(data) ? data : [];
+                conversations = await fetchConversations(context, ticketId);
             } catch (err) {
                 continue;
             }
@@ -135,33 +163,18 @@ module.exports = {
 
             for (const conv of conversations) {
                 if (!isNewConv(conv)) continue;
-
-                // Filter by type
-                const isNote = conv.private === true;
-                const type = isNote ? 'notes' : 'conversations';
-                if (!includeTypes.includes(type)) continue;
-
-                // Filter out ignored agents
-                if (ignoredAgentIds.length > 0 && ignoredAgentIds.includes(conv.user_id)) continue;
+                if (!isIncludedConversation(conv, includeTypes, ignoredAgentIds)) continue;
 
                 if (!fetchedFullTicket) {
                     try {
-                        const { data: ticketDetail } = await axios.get(`${baseUrl}/tickets/${ticketId}`, {
-                            auth: authConfig
-                        });
-                        fullTicket = ticketDetail;
+                        fullTicket = await fetchFullTicket(context, ticketId);
                     } catch (err) {
                         // fallback to summary
                     }
                     fetchedFullTicket = true;
                 }
 
-                await context.sendJson({
-                    conversation: conv,
-                    conversationType: isNote ? 'note' : 'reply',
-                    conversationsList: conversations,
-                    ticket: fullTicket
-                }, 'out');
+                await context.sendJson(toConversationEvent(conv, conversations, fullTicket), 'out');
             }
 
             newKnownMaxConvId[ticketId] = newMaxId;
@@ -173,5 +186,34 @@ module.exports = {
             cursorTicketId: maxTicketId,
             knownMaxConvId: newKnownMaxConvId
         });
+    },
+
+    // Flow Test Mode: emit one realistic conversation event without starting the flow.
+    // Reuses the same fetch/filter/shape helpers as tick(): grabs the most recently updated
+    // ticket, picks its newest conversation matching the filters, and emits it. No state touched.
+    async test(context) {
+
+        const { ignoredAgentIds, includeTypes } = getFilters(context);
+
+        const listRes = await apiCall(context, {
+            url: '/tickets?order_by=updated_at&order_type=desc&per_page=1'
+        });
+        const ticketSummary = (listRes.data || [])[0];
+        if (!ticketSummary) {
+            throw new Error('No tickets to use as test data.');
+        }
+
+        const conversations = await fetchConversations(context, ticketSummary.id);
+        const conv = conversations
+            .filter(c => isIncludedConversation(c, includeTypes, ignoredAgentIds))
+            .sort((a, b) => b.id - a.id)[0];
+
+        if (!conv) {
+            throw new Error('No recent conversations to use as test data.');
+        }
+
+        const fullTicket = await fetchFullTicket(context, ticketSummary.id);
+
+        await context.sendJson(toConversationEvent(conv, conversations, fullTicket), 'out');
     }
 };

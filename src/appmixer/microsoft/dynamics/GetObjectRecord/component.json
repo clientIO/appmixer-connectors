@@ -8,32 +8,43 @@
         "service": "appmixer:microsoft:dynamics",
         "scope": []
     },
-    "version": "1.0.0",
+    "version": "1.0.1",
     "inPorts": [
         {
             "name": "in",
             "schema": {
                 "type": "object",
                 "properties": {
-                    "id": { "type": "string" },
-                    "objectName": { "type": "string" }
+                    "id": {
+                        "type": "string"
+                    },
+                    "objectName": {
+                        "type": "string"
+                    }
                 },
-                "required": ["id", "objectName"]
+                "required": [
+                    "id",
+                    "objectName"
+                ]
             },
             "inspector": {
                 "inputs": {
                     "objectName": {
-                        "type": "select",
+                        "type": "text",
                         "label": "Object Name",
                         "index": 1,
-                        "options": [
-                            { "label": "Account", "value": "account" },
-                            { "label": "Campaign", "value": "campaign" },
-                            { "label": "Campaign Response", "value": "campaignresponse" },
-                            { "label": "Contact", "value": "contact" },
-                            { "label": "Incident", "value": "incident" },
-                            { "label": "Lead", "value": "lead" }
-                        ],
+                        "source": {
+                            "url": "/component/appmixer/microsoft/dynamics/GetObjectRecord?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "listDefaultEntities": true
+                                },
+                                "messages": {
+                                    "in/id": "any",
+                                    "in/objectName": "any"
+                                }
+                            }
+                        },
                         "tooltip": "Select object name."
                     },
                     "id": {
@@ -55,7 +66,9 @@
                         "generateOutputPortOptions": true
                     },
                     "messages": {
-                        "in/logicalName": "inputs/in/objectName"
+                        "in/logicalName": "inputs/in/objectName",
+                        "in/objectName": "inputs/in/objectName",
+                        "in/id": "any"
                     }
                 }
             }

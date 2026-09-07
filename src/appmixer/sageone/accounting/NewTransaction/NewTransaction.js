@@ -18,6 +18,22 @@ function processTransactions(knownTransactions, currentTransactions, newTransact
 }
 
 /**
+ * Fetch the transactions list. Shared by tick() and test().
+ * @param {Object} context
+ * @returns {Promise<Array>}
+ */
+async function fetchTransactions(context) {
+
+    const token = context.auth.accessToken;
+    const clientSigningSecret = context.auth.profileInfo.clientSigningSecret;
+    const userAgent = context.auth.profileInfo.userAgent;
+    const url = 'https://api.sageone.com/accounts/v1/transactions';
+
+    const res = await commons.sageoneAPI('GET', token, url, userAgent, clientSigningSecret);
+    return JSON.parse(res);
+}
+
+/**
  * Component which triggers whenever new transaction is added
  * @extends {Component}
  */
@@ -25,13 +41,7 @@ module.exports = {
 
     async tick(context) {
 
-        const token = context.auth.accessToken;
-        const clientSigningSecret = context.auth.profileInfo.clientSigningSecret;
-        const userAgent = context.auth.profileInfo.userAgent;
-        const url = 'https://api.sageone.com/accounts/v1/transactions';
-
-        let res = await commons.sageoneAPI('GET', token, url, userAgent, clientSigningSecret);
-        const data = JSON.parse(res);
+        const data = await fetchTransactions(context);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let current = [];
@@ -43,5 +53,16 @@ module.exports = {
             return context.sendJson(transaction, 'newTransaction');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        // Fetch the transactions list without the state baseline so a real
+        // example is emitted in the same shape and port as tick().
+        const data = await fetchTransactions(context);
+        if (!Array.isArray(data) || !data.length) {
+            throw new Error('No transactions available to use as test data.');
+        }
+        return context.sendJson(data[0], 'newTransaction');
     }
 };

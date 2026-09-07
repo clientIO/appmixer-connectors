@@ -1,0 +1,105 @@
+{
+    "name": "appmixer.posthog.core.RunQuery",
+    "description": "Run a HogQL (SQL-like) query against a PostHog project's analytics data and return the result rows.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:posthog"
+    },
+    "quota": {
+        "manager": "appmixer:posthog",
+        "resources": "query",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "projectId": {
+                        "type": "string"
+                    },
+                    "query": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "projectId",
+                    "query"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "projectId": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Project",
+                        "tooltip": "Pick a project, or type the numeric Project ID directly.",
+                        "source": {
+                            "url": "/component/appmixer/posthog/core/ListProjects?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListProjects#toSelectArray"
+                            }
+                        }
+                    },
+                    "query": {
+                        "type": "textarea",
+                        "index": 2,
+                        "label": "HogQL Query",
+                        "tooltip": "HogQL query to run, e.g. SELECT event, count() FROM events GROUP BY event ORDER BY count() DESC LIMIT 10."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "results": {
+                        "type": "array",
+                        "title": "Result Rows",
+                        "items": {
+                            "type": "array"
+                        },
+                        "example": [
+                            [
+                                "$pageview",
+                                1234
+                            ],
+                            [
+                                "order_created",
+                                56
+                            ]
+                        ]
+                    },
+                    "columns": {
+                        "type": "array",
+                        "title": "Columns",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "event",
+                            "count()"
+                        ]
+                    },
+                    "count": {
+                        "type": "integer",
+                        "title": "Row Count",
+                        "example": 2
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBpZD0iUG9zdGhvZy0tU3RyZWFtbGluZS1TaW1wbGUtSWNvbnMiIGhlaWdodD0iMjQiIHdpZHRoPSIyNCI+CiAgPGRlc2M+CiAgICBQb3N0aG9nIFN0cmVhbWxpbmUgSWNvbjogaHR0cHM6Ly9zdHJlYW1saW5laHEuY29tCiAgPC9kZXNjPgogIDx0aXRsZT5Qb3N0SG9nPC90aXRsZT4KICA8cGF0aCBkPSJNOS44NTQgMTQuNSA1IDkuNjQ3IDAuODU0IDUuNUEwLjUgMC41IDAgMCAwIDAgNS44NTRWOC40NGEwLjUgMC41IDAgMCAwIDAuMTQ2IDAuMzUzTDUgMTMuNjQ3bDAuMTQ3IDAuMTQ2TDkuODU0IDE4LjVsMC4xNDYgMC4xNDd2LTAuMDQ5YzAuMDY1IDAuMDMgMC4xMzQgMC4wNDkgMC4yMDcgMC4wNDloMi41ODZhMC41IDAuNSAwIDAgMCAwLjM1MyAtMC44NTRMOS44NTQgMTQuNXptMCAtNSAtNCAtNGEwLjQ4NyAwLjQ4NyAwIDAgMCAtMC40MDkgLTAuMTQ0IDAuNTE1IDAuNTE1IDAgMCAwIC0wLjM1NiAwLjIxIDAuNDkzIDAuNDkzIDAgMCAwIC0wLjA4OSAwLjI4OFY4LjQ0YTAuNSAwLjUgMCAwIDAgMC4xNDcgMC4zNTNsOSA5YTAuNSAwLjUgMCAwIDAgMC44NTMgLTAuMzU0di0yLjU4NWEwLjUgMC41IDAgMCAwIC0wLjE0NiAtMC4zNTRsLTUgLTV6bTEgLTRhMC41IDAuNSAwIDAgMCAtMC44NTQgMC4zNTRWOC40NGEwLjUgMC41IDAgMCAwIDAuMTQ3IDAuMzUzbDQgNGEwLjUgMC41IDAgMCAwIDAuODUzIC0wLjM1NFY5Ljg1NGEwLjUgMC41IDAgMCAwIC0wLjE0NiAtMC4zNTRsLTQgLTR6bTEyLjY0NyAxMS41MTVhMy44NjMgMy44NjMgMCAwIDEgLTIuMjMyIC0xLjFsLTQuNzA4IC00LjcwN2EwLjUgMC41IDAgMCAwIC0wLjg1NCAwLjM1NHY2LjU4NWEwLjUgMC41IDAgMCAwIDAuNSAwLjVIMjMuNWEwLjUgMC41IDAgMCAwIDAuNSAtMC41di0wLjZjMCAtMC4yNzYgLTAuMjI1IC0wLjQ5NyAtMC40OTkgLTAuNTMyem0tNS4zOTQgMC4wMzJhMC44IDAuOCAwIDEgMSAwIC0xLjYgMC44IDAuOCAwIDAgMSAwIDEuNnpNMC44NTQgMTUuNWEwLjUgMC41IDAgMCAwIC0wLjg1NCAwLjM1NHYyLjI5M2EwLjUgMC41IDAgMCAwIDAuNSAwLjVoMi4yOTNjMC4yMjIgMCAwLjM5IC0wLjEzNSAwLjQ2MiAtMC4zMDlhMC40OTMgMC40OTMgMCAwIDAgLTAuMTA5IC0wLjU0NUwwLjg1NCAxNS41MDF6TTUgMTQuNjQ3IDAuODU0IDEwLjVhMC41IDAuNSAwIDAgMCAtMC44NTQgMC4zNTN2Mi41ODZhMC41IDAuNSAwIDAgMCAwLjE0NiAwLjM1M0w0Ljg1NCAxOC41bDAuMTQ2IDAuMTQ3aDIuNzkzYTAuNSAwLjUgMCAwIDAgMC4zNTMgLTAuODU0TDUgMTQuNjQ3eiIgZmlsbD0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+Cjwvc3ZnPg=="
+}

@@ -31,6 +31,62 @@ module.exports = {
         return data.user;
     },
 
+    async fetchLatestUser(context) {
+
+        const url = `https://${context.auth.subdomain}.zendesk.com/api/v2/users.json`;
+        const headers = {
+            Authorization: 'Bearer ' + context.auth.accessToken
+        };
+        const req = {
+            url: url,
+            method: 'GET',
+            headers: headers,
+            params: {
+                sort_by: 'created_at',
+                sort_order: 'desc',
+                per_page: 1
+            }
+        };
+        const { data } = await context.httpRequest(req);
+        return ((data && data.users) || [])[0] || null;
+    },
+
+    async test(context) {
+
+        // Reuse the production lookup to guarantee identical `user` shape.
+        const latest = await this.fetchLatestUser(context);
+        if (!latest) {
+            throw new Error('No recent users to use as test data.');
+        }
+        const user = await this.showUser(context, latest.id);
+
+        const normalizedEventTypes = context.properties.eventTypes ?
+            lib.normalizeMultiselectInput(context.properties.eventTypes, context, 'Event Types') : [];
+        const eventType = normalizedEventTypes[0] || 'zen:event-type:user.created';
+
+        // Reconstruct the webhook payload shape `receive()` forwards as `data`.
+        const data = {
+            account_id: user.account_id,
+            id: String(user.id),
+            subject: `zen:user:${user.id}`,
+            time: user.updated_at || user.created_at,
+            type: eventType,
+            zendesk_event_version: '2022-06-20',
+            detail: {
+                created_at: user.created_at,
+                email: user.email,
+                id: user.id,
+                external_id: user.external_id,
+                default_group_id: user.default_group_id,
+                organization_id: user.organization_id,
+                role: user.role,
+                updated_at: user.updated_at
+            }
+        };
+
+        return context.sendJson({ user, data }, 'out');
+    },
+
     async createWebhook(context) {
         const url = `https://${context.auth.subdomain}.zendesk.com/api/v2/webhooks`;
         const headers = {

@@ -70,5 +70,25 @@ module.exports = {
                     since: since
                 };
             });
+    },
+
+    /**
+     * Flow Test Mode: emit one representative contact without starting the sync.
+     * Reuses the same people fetch the production path uses (client.people.get via
+     * the shared commons helpers), takes the newest record and wraps it in the same
+     * init-phase payload start() emits. Read-only: no state writes, no upstream
+     * mutations.
+     * @param {Context} context
+     * @return {Promise.<*>}
+     */
+    async test(context) {
+
+        const client = commons.getClient(context);
+        const res = await commons.fetchCollection(client.people.get, client.people);
+        const contact = commons.pickLatest(res);
+        if (!contact) {
+            throw new Error('No recent contacts to use as test data.');
+        }
+        return context.sendJson({ phase: 'init', source: 'highrise', data: contact }, 'contact');
     }
 };

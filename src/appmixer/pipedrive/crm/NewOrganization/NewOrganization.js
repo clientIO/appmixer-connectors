@@ -25,26 +25,26 @@ module.exports = {
 
     async tick(context) {
 
-        const organizationsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Organizations');
-
-        let response = await organizationsApi.getAllAsync({});
-        if (response.success === false) {
-            throw new context.CancelError(response.formattedError);
-        }
-
-        let organizations = response.data;
+        const organizations = await commons.listRecords(context, 'Organizations');
         let knownState = context.state.known || {};
         let known = Array.isArray(knownState) ? new Set(knownState) : null;
         let current = [];
         let diff = [];
 
-        if (Array.isArray(organizations)) {
-            organizations.forEach(processItems.bind(null, known, current, diff));
-        }
+        organizations.forEach(processItems.bind(null, known, current, diff));
 
         await Promise.map(diff, item => {
             return context.sendJson(item, 'organization');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        const organization = await commons.fetchLatestExample(context, 'Organizations');
+        if (!organization) {
+            throw new Error('No organization available to use as test data.');
+        }
+        return context.sendJson(organization, 'organization');
     }
 };

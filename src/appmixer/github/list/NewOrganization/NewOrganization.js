@@ -19,6 +19,16 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        // The orgs endpoint has no created sort; take the first listed organization.
+        const org = await lib.fetchLatest(context, `users/${context.auth.profileInfo.login}/orgs`);
+        if (!org) {
+            throw new Error('No organizations to use as test data.');
+        }
+        return context.sendJson(org, 'out');
     }
 };
 

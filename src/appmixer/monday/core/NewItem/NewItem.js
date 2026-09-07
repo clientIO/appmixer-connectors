@@ -50,6 +50,19 @@ module.exports = {
             await context.sendJson(event, 'out');
             return context.response({});
         }
+    },
+
+    // Flow Test Mode: emit one realistic create_item webhook event without registering a webhook.
+    // Reuses the connector-level helpers shared by every monday item webhook trigger: fetch the
+    // newest item on the configured board via the read-only GraphQL API and reshape it into the
+    // exact `event` body the webhook would deliver (the shape receive() forwards on 'out').
+    async test(context) {
+
+        const item = await commons.fetchLatestItem(context);
+        if (!item) {
+            throw new Error('No items on the board to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookEvent(context, item, 'create_pulse'), 'out');
     }
 };
 

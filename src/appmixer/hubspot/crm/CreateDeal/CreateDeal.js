@@ -14,6 +14,10 @@ module.exports = {
             amount
         } = context.messages.in.content;
 
+        if (!dealname) {
+            throw new context.CancelError('Deal Name is required!');
+        }
+
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 

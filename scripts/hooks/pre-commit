@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Appmixer connectors pre-commit hook.
+#
+# Runs the static validators in strict mode over the files in this diff
+# (staged + unstaged + committed-on-branch vs the base ref). New / changed
+# connector work must be clean; repo-wide legacy debt is ignored.
+#
+# Install (from repo root):
+#   npm run hooks:install
+# or manually:
+#   git config core.hooksPath scripts/hooks
+#
+# Bypass once (use sparingly):
+#   git commit --no-verify
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+echo "pre-commit: validating changed connector files..."
+
+node "$REPO_ROOT/scripts/validate.js" --changed
+status=$?
+
+if [ "$status" -ne 0 ]; then
+    echo ""
+    echo "pre-commit: validation failed — commit blocked."
+    echo "Fix the issues above, or bypass with: git commit --no-verify"
+    exit 1
+fi
+
+exit 0

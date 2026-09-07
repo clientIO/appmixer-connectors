@@ -1,23 +1,22 @@
 'use strict';
 
-const axios = require('axios');
+const { apiCall } = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const { folderId, title, description, status, tags } = context.messages.in.content;
 
         const body = { title, description };
         if (status !== undefined) body.status = status;
         if (tags) body.tags = tags.split(',').map(t => t.trim()).filter(Boolean);
 
-        const { data } = await axios.post(
-            `https://${auth.domain}.freshdesk.com/api/v2/solutions/folders/${folderId}/articles`,
-            body,
-            { auth: { username: auth.apiKey, password: 'X' } }
-        );
+        const { data } = await apiCall(context, {
+            method: 'POST',
+            url: `/solutions/folders/${folderId}/articles`,
+            data: body
+        });
 
         return context.sendJson({
             id: data.id,

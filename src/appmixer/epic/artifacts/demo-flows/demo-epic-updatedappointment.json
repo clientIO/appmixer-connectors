@@ -1,0 +1,123 @@
+{
+    "name": "Demo Epic - Updated Appointment",
+    "type": "automation",
+    "flow": {
+        "e3000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.epic.core.UpdatedAppointment",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "config": {
+                "properties": {
+                    "patient": "erXuFYUfucBZaryVksYEcMg3"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e3000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.email.SendEmail",
+            "x": 272,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e3000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e3000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "a": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.out",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.id"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "b": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.out",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.status"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "c": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.out",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.start"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "d": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.out",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.patient"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "e": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.out",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.serviceType"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "lambda": {
+                                    "to": "test@appmixer.com",
+                                    "subject": "Epic demo — Updated Appointment: Camila Lopez",
+                                    "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;color:#222\"><h2 style=\"color:#DF024D\">Epic — Updated Appointment</h2><p>An appointment was updated for Camila Lopez.</p><ul><li><b>Appointment ID:</b> {{{a}}}</li><li><b>Status:</b> {{{b}}}</li><li><b>Start:</b> {{{c}}}</li><li><b>Service:</b> {{{e}}}</li><li><b>Patient:</b> {{{d}}}</li></ul></div>"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    }
+}

@@ -222,6 +222,30 @@ module.exports = {
         }
     },
 
+    /**
+     * Fetches the most recent record of an entity to use as a Flow Test Mode example.
+     * Uses the SAME query endpoint and `select * from <entity>` projection as
+     * webhookHandler(), so the emitted object is identical to a real webhook delivery —
+     * only the selection differs (newest-first instead of the webhook's IDs).
+     * @param {string} entity QuickBooks entity, e.g. 'Invoice' or 'Customer'.
+     * @param {string} [orderBy] metadata field to sort newest-first.
+     * @returns {Promise<object>} The newest record.
+     */
+    async fetchLatestExample(context, entity, orderBy = 'MetaData.LastUpdatedTime') {
+
+        const query = `select * from ${entity} order by ${orderBy} desc maxresults 1`;
+        const options = {
+            path: `v3/company/${context.profileInfo.companyId}/query?query=${encodeURIComponent(query)}`,
+            method: 'GET'
+        };
+        const { data } = await module.exports.makeRequest({ context, options });
+        const records = (data && data.QueryResponse && data.QueryResponse[entity]) || [];
+        if (!records.length) {
+            throw new context.CancelError(`No ${entity} records found to use as test data.`);
+        }
+        return records[0];
+    },
+
     getBaseUrl,
 
     /**

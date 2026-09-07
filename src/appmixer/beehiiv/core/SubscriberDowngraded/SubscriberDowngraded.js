@@ -1,6 +1,7 @@
 'use strict';
 
 const api = require('../../api');
+const lib = require('../../lib');
 
 module.exports = {
     async start(context) {
@@ -29,5 +30,15 @@ module.exports = {
         const data = context.messages.webhook.content.data;
         await context.sendJson({ data }, 'out');
         return context.response();
+    },
+
+    async test(context) {
+        // A downgrade leaves the subscription on the free tier, so the newest free-tier
+        // subscription is the faithful representation of the delivered payload shape.
+        const record = await lib.fetchLatestSubscription(context, { tier: 'free' });
+        if (!record) {
+            throw new Error('No recent free-tier subscriptions to use as test data.');
+        }
+        return context.sendJson(lib.toWebhookShape(record, 'subscription.downgraded'), 'out');
     }
 };

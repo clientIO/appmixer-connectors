@@ -50,6 +50,21 @@ module.exports = {
                     return context.sendJson(project, 'project');
                 });
             });
+    },
+
+    async test(context) {
+
+        const client = commons.getAsanaAPI(context.auth.accessToken);
+        const workspaceId = context.properties.workspace;
+
+        // Same projects listing + findById path as tick(), picking the newest project.
+        const res = await client.projects.findAll({ workspace: workspaceId });
+        const latest = commons.pickLatest(res.data);
+        if (!latest) {
+            throw new Error('No recent projects to use as test data.');
+        }
+        const project = await client.projects.findById(latest.gid);
+        return context.sendJson(project, 'project');
     }
 };
 

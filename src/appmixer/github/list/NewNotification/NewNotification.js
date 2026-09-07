@@ -19,5 +19,15 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        // Notifications are returned newest-first by default.
+        const notification = await lib.fetchLatest(context, 'notifications');
+        if (!notification) {
+            throw new Error('No recent notifications to use as test data.');
+        }
+        return context.sendJson(notification, 'out');
     }
 };

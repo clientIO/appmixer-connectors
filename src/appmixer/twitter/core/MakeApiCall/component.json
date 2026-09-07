@@ -1,0 +1,148 @@
+{
+    "name": "appmixer.twitter.core.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the Twitter API.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:twitter",
+        "scope": [
+            "tweet.read",
+            "tweet.write",
+            "users.read",
+            "offline.access"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:twitter",
+        "resources": "manage_tweets",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    },
+                    "headers": {
+                        "type": "string"
+                    },
+                    "parameters": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "url",
+                    "method"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to <code>https://api.twitter.com/2</code> (for example <code>/tweets</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            {
+                                "label": "GET",
+                                "value": "GET"
+                            },
+                            {
+                                "label": "POST",
+                                "value": "POST"
+                            },
+                            {
+                                "label": "PUT",
+                                "value": "PUT"
+                            },
+                            {
+                                "label": "PATCH",
+                                "value": "PATCH"
+                            },
+                            {
+                                "label": "DELETE",
+                                "value": "DELETE"
+                            }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object (supports nested objects, arrays, and non-string values)."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Status Code",
+                    "value": "status"
+                },
+                {
+                    "label": "Response Headers",
+                    "value": "headers"
+                },
+                {
+                    "label": "Response Body",
+                    "value": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/png;base64,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"
+}

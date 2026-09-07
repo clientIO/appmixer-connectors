@@ -1,8 +1,17 @@
 'use strict';
-const moment = require('moment');
 const ActiveCampaign = require('../../ActiveCampaign');
+const commons = require('../../activecampaign-commons');
 
 module.exports = {
+
+    async test(context) {
+
+        const task = await commons.fetchLatestTask(context, 'cdate');
+        if (!task) {
+            throw new context.CancelError('No recent tasks to use as test data.');
+        }
+        return context.sendJson(task, 'task');
+    },
 
     start(context) {
 
@@ -46,20 +55,7 @@ module.exports = {
             const { data: getTask } = await ac.call('get', `dealTasks/${id}`);
             const { dealTask } = getTask;
 
-            const task = {
-                id,
-                relationship: dealTask.owner.type,
-                contactId: dealTask.owner.type === 'contact' ? dealTask.relid : undefined,
-                dealId: dealTask.owner.type === 'deal' ? dealTask.relid : undefined,
-                title: dealTask.title,
-                note: dealTask.note,
-                taskType: dealTask.dealTasktype,
-                assignee: dealTask.assignee,
-                due: moment(dealTask.duedate).toISOString(),
-                edate: moment(dealTask.edate).toISOString()
-            };
-
-            await context.sendJson({ ...task }, 'task');
+            await context.sendJson(commons.reshapeTask(dealTask), 'task');
             return context.response();
         }
     }

@@ -19,5 +19,15 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        // The user/teams endpoint has no created sort; take the first listed team.
+        const team = await lib.fetchLatest(context, 'user/teams');
+        if (!team) {
+            throw new Error('No teams to use as test data.');
+        }
+        return context.sendJson(team, 'out');
     }
 };

@@ -1,5 +1,8 @@
 'use strict';
 
+const { WebClient } = require('@slack/web-api');
+const Entities = require('html-entities').AllHtmlEntities;
+
 module.exports = {
 
     async start(context) {
@@ -31,5 +34,27 @@ module.exports = {
             }
             await context.sendJson(context.messages.webhook.content.data, 'message');
         }
+    },
+
+    // Flow Test Mode: emit one realistic channel message without registering the app webhook.
+    // This plugin trigger normally receives events via context.addListener; test() instead fetches
+    // the latest message through the same Slack conversations.history call the polling
+    // NewChannelMessage trigger uses, and honors the same ignoreBotMessages filter as receive().
+    async test(context) {
+
+        const { channelId, ignoreBotMessages } = context.properties;
+        const web = new WebClient(context.auth.accessToken);
+
+        const { messages } = await web.conversations.history({ channel: channelId, limit: 1 });
+        const sample = (messages || [])[0];
+        if (!sample) {
+            throw new Error('No recent messages in the channel to use as test data.');
+        }
+        if (ignoreBotMessages && sample.subtype === 'bot_message') {
+            throw new Error('The most recent message is a bot message.');
+        }
+
+        sample.text = new Entities().decode(sample.text);
+        return context.sendJson(sample, 'message');
     }
 };

@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 /**
  * @extends {Component}
@@ -30,5 +30,18 @@ module.exports = {
     async stop(context) {
 
         return commons.unregisterWebhook(context);
+    },
+
+    async test(context) {
+
+        const customer = await commons.fetchLatestWebhookExample(context, {
+            resource: 'customer',
+            topic: 'customers/update',
+            params: { order: 'updated_at DESC' }
+        });
+        if (!customer) {
+            throw new Error('No recent customers to use as test data.');
+        }
+        return context.sendJson(customer, 'customer');
     }
 };

@@ -42,6 +42,18 @@ module.exports = {
             return context.sendJson(conversation, 'conversation');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        let { apiKey } = context.auth;
+
+        // Same list endpoint tick() polls; take the freshest conversation. No state.
+        let conversation = await commons.getLatestResult(apiKey, 'channels');
+        if (!conversation) {
+            throw new Error('No recent conversations to use as test data.');
+        }
+        return context.sendJson(conversation, 'conversation');
     }
 };
 

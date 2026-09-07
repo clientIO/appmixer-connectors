@@ -1,0 +1,189 @@
+{
+    "name": "E2E Shopify - Updated Checkout Trigger",
+    "type": "automation",
+    "flow": {
+        "a0000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.shopify.checkouts.UpdatedCheckout",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "config": {
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000001": [
+                        "checkout"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0000000-0000-0000-0000-000000000001": {
+                            "checkout": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-token": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000001.checkout.token",
+                                            "functions": []
+                                        },
+                                        "field-topic": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000001.checkout.webhookTopic",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{field-token}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{field-topic}}}",
+                                                "expected": "checkouts/update"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000004": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a0000000-0000-0000-0000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "result": {
+                                        "field-result": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Shopify - Updated Checkout Trigger",
+                                    "result": "{{{field-result}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 576,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 576,
+            "source": {
+                "in": {
+                    "b0000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b0000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "11111111-e2e0-4000-8000-000000000003": {
+            "content": "## ⚠️ Manual E2E — requires a storefront action\n\n`checkouts/update` cannot be provoked through the Admin API (checkout POST returns 406, storefront tokens are denied) — only a real storefront checkout session fires it.\n\n### How to test\n1. Start this flow (the webhook is registered on start).\n2. Open the online store in an **incognito window** (https://<store>.myshopify.com; the dev-store password is in Online Store → Preferences). A fresh window forces a NEW checkout session — a reused window resumes the previous checkout instead.\n3. Add a product to the cart and click through to the checkout page — creating the checkout session fires **checkouts/create**;\n4. then enter the **email address and shipping address** and continue to the payment step — each contact/address change fires **checkouts/update**.\n\nThe Assert then verifies the emitted checkout (token + topic) and ProcessE2EResults records the result. AfterAll timeout is 600 s — finish the storefront steps within 10 minutes of starting the flow.",
+            "height": 400,
+            "width": 400,
+            "x": 64,
+            "y": -128
+        }
+    }
+}

@@ -17,6 +17,16 @@ module.exports = {
 
         const { calendarId, eventId, attendeeEmail, sendUpdates } = context.messages.in.content;
 
+        if (!calendarId) {
+            throw new context.CancelError('Calendar is required!');
+        }
+        if (!eventId) {
+            throw new context.CancelError('Event is required!');
+        }
+        if (!attendeeEmail) {
+            throw new context.CancelError('Attendee Email is required!');
+        }
+
         const params = {
             auth: commons.getOauth2Client(context.auth),
             userId: 'me',

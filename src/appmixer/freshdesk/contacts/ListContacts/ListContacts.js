@@ -1,26 +1,18 @@
 'use strict';
-const request = require('request-promise');
+const { apiCall } = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         let contacts;
 
         try {
-            contacts = await request({
-                method: 'GET',
-                url: `https://${auth.domain}.freshdesk.com/api/v2/contacts`,
-                auth: {
-                    user: auth.apiKey,
-                    password: 'X'
-                },
-                json: true
-            });
+            const { data } = await apiCall(context, { url: '/contacts' });
+            contacts = data;
         } catch (e) {
-            const body = e.response.body;
-            if (body.code === 'access_denied') {
+            const code = e.response?.data?.code || e.response?.body?.code;
+            if (code === 'access_denied') {
                 contacts = [];
             } else {
                 throw e;

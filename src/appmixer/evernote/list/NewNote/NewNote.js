@@ -72,16 +72,32 @@ module.exports = {
             .then(data => {
                 if (data.length) {
                     return Promise.map(data, note => {
-                        note['attributes'] = commons.formatFields(
-                            note['attributes'],
-                            ['reminderTime', 'reminderDoneTime'],
-                            commons.formatDate);
+                        commons.formatNoteAttributes(note);
                         return context.sendJson(note, 'note');
                     }).then(() => {
                         return context.saveState(newState);
                     });
                 }
                 return context.saveState(newState);
+            })
+            .catch(err => {
+                throw commons.verboseError(err);
+            });
+    },
+
+    /**
+     * Flow Test Mode: emit the newest note without starting the flow or waiting for a
+     * new one. Shares the fetch + attribute-formatting path with tick() via commons,
+     * skipping the sync-state baseline so the first/only fetch returns a real note.
+     */
+    test(context) {
+
+        return commons.fetchLatestNote(context)
+            .then(note => {
+                if (!note) {
+                    throw new Error('No recent notes to use as test data.');
+                }
+                return context.sendJson(note, 'note');
             })
             .catch(err => {
                 throw commons.verboseError(err);

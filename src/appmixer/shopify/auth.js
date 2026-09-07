@@ -1,62 +1,34 @@
 'use strict';
-const ShopifyToken = require('shopify-token');
-const commons = require('./shopify-commons');
+const commons = require('./lib');
 
 module.exports = {
 
-    type: 'oauth2',
+    type: 'apiKey',
 
     definition: {
 
-        // we can't split the scopes into components, see related issue: https://github.com/clientIO/appmixer-core/issues/2040
-        scope: [
-            'read_customers',
-            'write_customers',
-            'read_products',
-            'write_products',
-            'read_orders',
-            'write_orders',
-            'read_reports',
-            'write_reports'
-        ],
-
-        accountNameFromProfileInfo: context => {
-
-            return context.profileInfo.name;
-        },
-
-        pre: {
+        auth: {
             store: {
                 type: 'text',
                 name: 'Store Address',
-                tooltip: 'Enter your Shopify store address (without .myshopify.com)',
+                tooltip: 'Enter your Shopify store address (without <b>.myshopify.com</b>).',
+                required: true
+            },
+            accessToken: {
+                type: 'text',
+                name: 'Admin API access token',
+                tooltip: 'Create a custom app in your Shopify admin ' +
+                    '(<i>Settings &rarr; Apps and sales channels &rarr; Develop apps</i>), enable the required ' +
+                    'scopes (customers, products, orders, draft orders, fulfillments, inventory, locations, ' +
+                    'reports, returns) and generate an Admin API access token ' +
+                    '(starts with <b>shpat_</b>). The token is shown only once, so copy it immediately.',
                 required: true
             }
         },
 
-        authUrl: context => {
+        accountNameFromProfileInfo: context => {
 
-            return 'https://{{store}}.myshopify.com/admin/oauth/authorize?' +
-                `client_id=${encodeURIComponent(context.clientId)}&` +
-                `redirect_uri=${encodeURIComponent(context.callbackUrl)}&` +
-                `state=${encodeURIComponent(context.ticket)}&scope=${encodeURIComponent(context.scope.join(','))}`;
-        },
-
-        requestAccessToken: async context => {
-
-            const shopifyToken = new ShopifyToken({
-                redirectUri: context.callbackUrl,
-                apiKey: context.clientId,
-                sharedSecret: context.clientSecret,
-                scopes: context.scope.join(',')
-            });
-
-            const storeAddress = `${context.store}.myshopify.com`;
-            const response = await shopifyToken.getAccessToken(storeAddress, context.authorizationCode);
-            return {
-                accessToken: response['access_token'],
-                refreshToken: null
-            };
+            return context.profileInfo.name;
         },
 
         requestProfileInfo: context => {
@@ -66,18 +38,21 @@ module.exports = {
             return shopify.shop.get();
         },
 
-        validateAccessToken: async context => {
+        // Custom app Admin API access tokens do not expire, so no refresh logic is needed.
+        validate: async context => {
 
             const shopify = commons.getShopifyAPI(context);
 
             try {
                 await shopify.shop.get();
             } catch (err) {
-                if (err.statusCode === 402) {
-                    throw new context.InvalidTokenError(err.statusMessage);
+                if (err.statusCode === 401 || err.statusCode === 402 || err.statusCode === 403) {
+                    throw new context.InvalidTokenError(err.statusMessage || 'Invalid Admin API access token.');
                 }
                 throw err;
             }
+
+            return true;
         }
     }
 };

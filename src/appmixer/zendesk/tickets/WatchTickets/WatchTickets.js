@@ -28,6 +28,61 @@ module.exports = {
         return data.ticket;
     },
 
+    // Returns the latest ticket honoring the configured filter conditions, or null when none match.
+    async fetchLatestTicket(context) {
+
+        const url = `https://${context.auth.subdomain}.zendesk.com/api/v2/tickets.json`;
+        const headers = {
+            Authorization: 'Bearer ' + context.auth.accessToken
+        };
+        const req = {
+            url: url,
+            method: 'GET',
+            headers: headers,
+            params: {
+                sort_by: 'created_at',
+                sort_order: 'desc',
+                per_page: 25
+            }
+        };
+        const { data } = await context.httpRequest(req);
+        const tickets = (data && data.tickets) || [];
+
+        const { typeCondition, statusCondition, priorityCondition } = context.properties;
+        const matches = (ticket) => {
+            const checkConditions = (condition, fieldValue) => {
+                if (!condition || !Array.isArray(condition.ADD)) {
+                    return true;
+                }
+                return condition.ADD.every((cond) => {
+                    switch (cond.operator) {
+                        case 'is':
+                            return fieldValue === cond.value;
+                        case 'is_not':
+                            return fieldValue !== cond.value;
+                        default:
+                            // less_than / greater_than are not meaningfully comparable here, accept.
+                            return true;
+                    }
+                });
+            };
+            return checkConditions(typeCondition, ticket.type)
+                && checkConditions(statusCondition, ticket.status)
+                && checkConditions(priorityCondition, ticket.priority);
+        };
+
+        return tickets.find(matches) || null;
+    },
+
+    async test(context) {
+
+        const ticket = await this.fetchLatestTicket(context);
+        if (!ticket) {
+            throw new Error('No recent tickets to use as test data.');
+        }
+        return context.sendJson({ ticket }, 'out');
+    },
+
     async createWebhook(context) {
 
         const url = `https://${context.auth.subdomain}.zendesk.com/api/v2/webhooks`;

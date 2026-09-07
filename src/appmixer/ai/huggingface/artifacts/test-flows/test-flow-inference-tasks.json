@@ -1,0 +1,592 @@
+{
+    "name": "E2E Hugging Face - Inference Tasks",
+    "flow": {
+        "21e67e5f-82de-4f3d-9543-3bc8f17e00a4": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "94284112-d988-4c9b-94d8-9bed5143f0bc": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "21e67e5f-82de-4f3d-9543-3bc8f17e00a4": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "21e67e5f-82de-4f3d-9543-3bc8f17e00a4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "sampleText",
+                                                "text": "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889. Locally nicknamed La dame de fer, it was constructed as the centrepiece of the 1889 World's Fair and was initially criticised by some of France's leading artists and intellectuals for its design, but it has since become a global cultural icon of France and one of the most recognisable structures in the world."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "eed0c139-8fdc-4fe3-9330-6c06341988ef": {
+            "type": "appmixer.ai.huggingface.SendPrompt",
+            "x": 480,
+            "y": 64,
+            "source": {
+                "in": {
+                    "94284112-d988-4c9b-94d8-9bed5143f0bc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "94284112-d988-4c9b-94d8-9bed5143f0bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "prompt": {},
+                                    "systemPrompt": {},
+                                    "maxTokens": {},
+                                    "temperature": {}
+                                },
+                                "lambda": {
+                                    "model": "meta-llama/Llama-3.1-8B-Instruct",
+                                    "prompt": "What is the capital city of Portugal?",
+                                    "systemPrompt": "Answer with the city name only, no punctuation.",
+                                    "maxTokens": 20,
+                                    "temperature": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2b1cb4d0-8fe7-4377-a5c0-3d57d8d39c58": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 64,
+            "source": {
+                "in": {
+                    "eed0c139-8fdc-4fe3-9330-6c06341988ef": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "eed0c139-8fdc-4fe3-9330-6c06341988ef": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ed461a4c-14bb-4990-96fc-fa5006da692f": {
+                                            "variable": "$.eed0c139-8fdc-4fe3-9330-6c06341988ef.out.answer",
+                                            "functions": []
+                                        },
+                                        "b00df136-ef82-4c49-8a52-6682c51ecc44": {
+                                            "variable": "$.eed0c139-8fdc-4fe3-9330-6c06341988ef.out.totalTokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ed461a4c-14bb-4990-96fc-fa5006da692f}}}",
+                                                "assertion": "regex",
+                                                "regex": "Lisbon"
+                                            },
+                                            {
+                                                "field": "{{{b00df136-ef82-4c49-8a52-6682c51ecc44}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fcb3fce4-9cd1-420f-bd4c-2f5dd5337b09": {
+            "type": "appmixer.ai.huggingface.SummarizeText",
+            "x": 480,
+            "y": 192,
+            "source": {
+                "in": {
+                    "94284112-d988-4c9b-94d8-9bed5143f0bc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "94284112-d988-4c9b-94d8-9bed5143f0bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "text": {
+                                        "4ede1c4b-b507-403c-97b6-a945679d1498": {
+                                            "variable": "$.94284112-d988-4c9b-94d8-9bed5143f0bc.out.sampleText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "model": "facebook/bart-large-cnn",
+                                    "text": "{{{4ede1c4b-b507-403c-97b6-a945679d1498}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "adb0ef2c-53e7-4d85-83ea-db09fd4ef639": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 192,
+            "source": {
+                "in": {
+                    "fcb3fce4-9cd1-420f-bd4c-2f5dd5337b09": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "fcb3fce4-9cd1-420f-bd4c-2f5dd5337b09": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "21033dc9-aaa9-4c84-b68b-5bb184b9c902": {
+                                            "variable": "$.fcb3fce4-9cd1-420f-bd4c-2f5dd5337b09.out.summary",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{21033dc9-aaa9-4c84-b68b-5bb184b9c902}}}",
+                                                "assertion": "regex",
+                                                "regex": "Eiffel"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bff052f2-f2e0-4e4d-bfea-8144021f6e93": {
+            "type": "appmixer.ai.huggingface.ClassifyText",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "94284112-d988-4c9b-94d8-9bed5143f0bc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "94284112-d988-4c9b-94d8-9bed5143f0bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "text": {}
+                                },
+                                "lambda": {
+                                    "model": "distilbert/distilbert-base-uncased-finetuned-sst-2-english",
+                                    "text": "I absolutely love this product, it works beautifully and made my day."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8cd777b9-2cf0-4215-a857-fac7fe63923f": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "bff052f2-f2e0-4e4d-bfea-8144021f6e93": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "bff052f2-f2e0-4e4d-bfea-8144021f6e93": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "8e1b4c22-4d3a-4f1e-9a05-6c2f7b8d1e30": {
+                                            "variable": "$.bff052f2-f2e0-4e4d-bfea-8144021f6e93.out.label",
+                                            "functions": []
+                                        },
+                                        "c47a9f13-2b6d-4e58-8f71-0d93a5c6e824": {
+                                            "variable": "$.bff052f2-f2e0-4e4d-bfea-8144021f6e93.out.score",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{8e1b4c22-4d3a-4f1e-9a05-6c2f7b8d1e30}}}",
+                                                "assertion": "equal",
+                                                "expected": "POSITIVE"
+                                            },
+                                            {
+                                                "field": "{{{c47a9f13-2b6d-4e58-8f71-0d93a5c6e824}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5f3d8a71-9c04-4b2e-8d16-7a5e0c3b9f42": {
+            "type": "appmixer.ai.huggingface.CreateEmbeddings",
+            "x": 480,
+            "y": 448,
+            "source": {
+                "in": {
+                    "94284112-d988-4c9b-94d8-9bed5143f0bc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "94284112-d988-4c9b-94d8-9bed5143f0bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "text": {},
+                                    "normalize": {}
+                                },
+                                "lambda": {
+                                    "model": "sentence-transformers/all-MiniLM-L6-v2",
+                                    "text": "Appmixer connects Hugging Face models to business workflows.",
+                                    "normalize": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b6c2e045-8f37-4a91-bd58-2e04c7f1a936": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "5f3d8a71-9c04-4b2e-8d16-7a5e0c3b9f42": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5f3d8a71-9c04-4b2e-8d16-7a5e0c3b9f42": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a91f5d68-3c7b-4e20-9856-1b4d0af3c657": {
+                                            "variable": "$.5f3d8a71-9c04-4b2e-8d16-7a5e0c3b9f42.out.dimensions",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a91f5d68-3c7b-4e20-9856-1b4d0af3c657}}}",
+                                                "assertion": "equal",
+                                                "expected": "384"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d80a4b93-6e15-42c7-9f38-05ba7c26d1e8": {
+            "type": "appmixer.ai.huggingface.GenerateImage",
+            "x": 480,
+            "y": 576,
+            "source": {
+                "in": {
+                    "94284112-d988-4c9b-94d8-9bed5143f0bc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "94284112-d988-4c9b-94d8-9bed5143f0bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "prompt": {},
+                                    "numInferenceSteps": {},
+                                    "provider": {}
+                                },
+                                "lambda": {
+                                    "model": "fal-ai/flux/schnell",
+                                    "prompt": "a watercolour painting of a lighthouse at dawn",
+                                    "numInferenceSteps": 4,
+                                    "provider": "fal-ai"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3e7f1a52-c94d-4806-b23f-8d61e0ac57b4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 576,
+            "source": {
+                "in": {
+                    "d80a4b93-6e15-42c7-9f38-05ba7c26d1e8": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "d80a4b93-6e15-42c7-9f38-05ba7c26d1e8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f52c8b17-0a4e-4d93-8617-9c3ea240b5d1": {
+                                            "variable": "$.d80a4b93-6e15-42c7-9f38-05ba7c26d1e8.out.fileId",
+                                            "functions": []
+                                        },
+                                        "7ba09e34-5d16-4c82-af70-e18b6d2534c9": {
+                                            "variable": "$.d80a4b93-6e15-42c7-9f38-05ba7c26d1e8.out.contentType",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f52c8b17-0a4e-4d93-8617-9c3ea240b5d1}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{7ba09e34-5d16-4c82-af70-e18b6d2534c9}}}",
+                                                "assertion": "regex",
+                                                "regex": "^image/"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6d14c827-b930-4e5a-81f6-c027a5b3e94d": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "2b1cb4d0-8fe7-4377-a5c0-3d57d8d39c58": [
+                        "out"
+                    ],
+                    "adb0ef2c-53e7-4d85-83ea-db09fd4ef639": [
+                        "out"
+                    ],
+                    "8cd777b9-2cf0-4215-a857-fac7fe63923f": [
+                        "out"
+                    ],
+                    "b6c2e045-8f37-4a91-bd58-2e04c7f1a936": [
+                        "out"
+                    ],
+                    "3e7f1a52-c94d-4806-b23f-8d61e0ac57b4": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9c58e0f2-4a71-4b36-8d9e-13f5c827a06b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6d14c827-b930-4e5a-81f6-c027a5b3e94d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "6d14c827-b930-4e5a-81f6-c027a5b3e94d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "0f6b2d94-7c81-4e35-a920-58d1e46c3a7f": {
+                                            "variable": "$.6d14c827-b930-4e5a-81f6-c027a5b3e94d.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Hugging Face - Inference Tasks",
+                                    "result": "{{{0f6b2d94-7c81-4e35-a920-58d1e46c3a7f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

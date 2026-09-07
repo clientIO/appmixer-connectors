@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 /**
  * Component which triggers whenever new customer comes.
@@ -22,5 +22,18 @@ module.exports = {
     async stop(context) {
 
         return commons.unregisterWebhook(context);
+    },
+
+    async test(context) {
+
+        const customer = await commons.fetchLatestWebhookExample(context, {
+            resource: 'customer',
+            topic: 'customers/create',
+            params: { order: 'created_at DESC' }
+        });
+        if (!customer) {
+            throw new Error('No recent customers to use as test data.');
+        }
+        return context.sendJson(customer, 'customer');
     }
 };

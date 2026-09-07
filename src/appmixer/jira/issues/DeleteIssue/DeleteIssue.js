@@ -9,10 +9,14 @@ module.exports = {
         const { profileInfo: { apiUrl }, auth } = context;
         const { id } = context.messages.in.content;
 
+        if (!id) {
+            throw new context.CancelError('Issue ID or Key is required!');
+        }
+
         await commons.delete(
             `${apiUrl}issue/${id}`,
             auth
         );
-        return context.sendJson({ id }, 'deleted');
+        return context.sendJson({}, 'out');
     }
 };

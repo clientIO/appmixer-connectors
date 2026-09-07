@@ -1,0 +1,703 @@
+{
+    "flow": {
+        "7da5f9a2-ae83-43fc-9cd8-dbe281269d91": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 0,
+            "y": 0,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1b6911ce-172c-4b81-aff0-48713f682557": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 240,
+            "y": 0,
+            "source": {
+                "in": {
+                    "7da5f9a2-ae83-43fc-9cd8-dbe281269d91": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7da5f9a2-ae83-43fc-9cd8-dbe281269d91": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "recipient",
+                                                "text": "e2e-test@appmixer.ai"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "subject",
+                                                "text": "E2E Email Lifecycle Test"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9075bd66-f469-4548-98d9-127c0d2cf02c": {
+            "type": "appmixer.microsoft.mail.CreateDraft",
+            "x": 480,
+            "y": 0,
+            "source": {
+                "in": {
+                    "1b6911ce-172c-4b81-aff0-48713f682557": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1b6911ce-172c-4b81-aff0-48713f682557": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "toRecipients": {
+                                        "c0d31a7c-528f-4778-abc5-188a4553dba7": {
+                                            "variable": "$.1b6911ce-172c-4b81-aff0-48713f682557.out.recipient",
+                                            "functions": []
+                                        }
+                                    },
+                                    "subject": {
+                                        "88d49b5e-ebf3-4327-94c7-13815fa38bc2": {
+                                            "variable": "$.1b6911ce-172c-4b81-aff0-48713f682557.out.subject",
+                                            "functions": []
+                                        }
+                                    },
+                                    "content": {},
+                                    "contentType": {}
+                                },
+                                "lambda": {
+                                    "toRecipients": "{{{c0d31a7c-528f-4778-abc5-188a4553dba7}}}",
+                                    "subject": "{{{88d49b5e-ebf3-4327-94c7-13815fa38bc2}}}",
+                                    "content": "This draft is created by an Appmixer E2E test to verify the mail lifecycle.",
+                                    "contentType": "Text"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bd721cf5-7738-4644-96be-c741a65c271b": {
+            "type": "appmixer.microsoft.mail.GetEmail",
+            "x": 720,
+            "y": 0,
+            "source": {
+                "in": {
+                    "9075bd66-f469-4548-98d9-127c0d2cf02c": [
+                        "email"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9075bd66-f469-4548-98d9-127c0d2cf02c": {
+                            "email": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "messageId": {
+                                        "46dcf887-d755-44bb-89b2-fb348d16b483": {
+                                            "variable": "$.9075bd66-f469-4548-98d9-127c0d2cf02c.email.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "messageId": "{{{46dcf887-d755-44bb-89b2-fb348d16b483}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.0"
+        },
+        "50c5ea9d-09cb-4e24-b5b4-430f48f94153": {
+            "type": "appmixer.microsoft.mail.MarkEmailAsRead",
+            "x": 943,
+            "y": 185,
+            "source": {
+                "in": {
+                    "bd721cf5-7738-4644-96be-c741a65c271b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bd721cf5-7738-4644-96be-c741a65c271b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "emailId": {
+                                        "5f4d3bcd-a62a-4191-8290-2fe1600f1031": {
+                                            "variable": "$.9075bd66-f469-4548-98d9-127c0d2cf02c.email.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "emailId": "{{{5f4d3bcd-a62a-4191-8290-2fe1600f1031}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "48bd7035-b173-43e6-8dd2-00b8932f3bb0": {
+            "type": "appmixer.microsoft.mail.MarkEmailAsUnread",
+            "x": 1207,
+            "y": 353,
+            "source": {
+                "in": {
+                    "50c5ea9d-09cb-4e24-b5b4-430f48f94153": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "50c5ea9d-09cb-4e24-b5b4-430f48f94153": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "emailId": {
+                                        "308c4956-8e67-4996-a9f5-04492b0793ca": {
+                                            "variable": "$.9075bd66-f469-4548-98d9-127c0d2cf02c.email.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "emailId": "{{{308c4956-8e67-4996-a9f5-04492b0793ca}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "b458bcf4-ff5c-411b-b97a-476bb5a48bdb": {
+            "type": "appmixer.microsoft.mail.UpdateCategory",
+            "x": 1437,
+            "y": 606,
+            "source": {
+                "in": {
+                    "48bd7035-b173-43e6-8dd2-00b8932f3bb0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "48bd7035-b173-43e6-8dd2-00b8932f3bb0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "emailId": {
+                                        "afc535f4-95c6-458b-8ffa-16737624f7ac": {
+                                            "variable": "$.9075bd66-f469-4548-98d9-127c0d2cf02c.email.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "emailId": "{{{afc535f4-95c6-458b-8ffa-16737624f7ac}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "17bc1cf4-2bd8-4794-bd69-ca8f55bb80aa": {
+            "type": "appmixer.microsoft.mail.MoveMail",
+            "x": 1781,
+            "y": 606,
+            "source": {
+                "in": {
+                    "b458bcf4-ff5c-411b-b97a-476bb5a48bdb": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b458bcf4-ff5c-411b-b97a-476bb5a48bdb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "emailId": {
+                                        "5ae9239e-f64e-4cd6-bf36-9fb248f6f4cb": {
+                                            "variable": "$.9075bd66-f469-4548-98d9-127c0d2cf02c.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "destinationFolder": {}
+                                },
+                                "lambda": {
+                                    "emailId": "{{{5ae9239e-f64e-4cd6-bf36-9fb248f6f4cb}}}",
+                                    "destinationFolder": "deleteditems"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "50832748-41b1-4a59-ac22-4917d5dee24a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1549,
+            "y": -96,
+            "source": {
+                "in": {
+                    "bd721cf5-7738-4644-96be-c741a65c271b": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "bd721cf5-7738-4644-96be-c741a65c271b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "58be2862-ad21-4b19-ae3d-03ee262bffbe": {
+                                            "variable": "$.bd721cf5-7738-4644-96be-c741a65c271b.out.id",
+                                            "functions": []
+                                        },
+                                        "c3273fbc-7c65-4bf7-b059-a5924878338b": {
+                                            "variable": "$.bd721cf5-7738-4644-96be-c741a65c271b.out.isDraft",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{58be2862-ad21-4b19-ae3d-03ee262bffbe}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{c3273fbc-7c65-4bf7-b059-a5924878338b}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d9229270-8968-48fd-80bf-83a04246df74": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1549,
+            "y": 60,
+            "source": {
+                "in": {
+                    "50c5ea9d-09cb-4e24-b5b4-430f48f94153": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "50c5ea9d-09cb-4e24-b5b4-430f48f94153": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c69674fd-278e-4ab5-b3ff-0b0c0aaecb2a": {
+                                            "variable": "$.50c5ea9d-09cb-4e24-b5b4-430f48f94153.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{c69674fd-278e-4ab5-b3ff-0b0c0aaecb2a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "10278e75-1dab-4e7e-8cde-d4c1d63b704e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1549,
+            "y": 239,
+            "source": {
+                "in": {
+                    "48bd7035-b173-43e6-8dd2-00b8932f3bb0": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "48bd7035-b173-43e6-8dd2-00b8932f3bb0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "cce69a58-b3d3-4ec5-b10c-45364338cbf6": {
+                                            "variable": "$.48bd7035-b173-43e6-8dd2-00b8932f3bb0.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{cce69a58-b3d3-4ec5-b10c-45364338cbf6}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2c9a4543-a543-4aeb-8b8f-5e8c84927345": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 353,
+            "source": {
+                "in": {
+                    "b458bcf4-ff5c-411b-b97a-476bb5a48bdb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "b458bcf4-ff5c-411b-b97a-476bb5a48bdb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "3e42c7f2-202a-43b2-b875-57ddaf2cecd7": {
+                                            "variable": "$.b458bcf4-ff5c-411b-b97a-476bb5a48bdb.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{3e42c7f2-202a-43b2-b875-57ddaf2cecd7}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fbe5f7d0-bd71-4f29-b86f-3ad0087ad618": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1978,
+            "y": 425,
+            "source": {
+                "in": {
+                    "17bc1cf4-2bd8-4794-bd69-ca8f55bb80aa": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "17bc1cf4-2bd8-4794-bd69-ca8f55bb80aa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "8516f097-30d9-4c0d-84c4-ee08acbb18e4": {
+                                            "variable": "$.17bc1cf4-2bd8-4794-bd69-ca8f55bb80aa.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{8516f097-30d9-4c0d-84c4-ee08acbb18e4}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2f851298-50c7-4e0f-99e4-59def992cbf8": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2160,
+            "y": 0,
+            "source": {
+                "in": {
+                    "50832748-41b1-4a59-ac22-4917d5dee24a": [
+                        "out"
+                    ],
+                    "d9229270-8968-48fd-80bf-83a04246df74": [
+                        "out"
+                    ],
+                    "10278e75-1dab-4e7e-8cde-d4c1d63b704e": [
+                        "out"
+                    ],
+                    "2c9a4543-a543-4aeb-8b8f-5e8c84927345": [
+                        "out"
+                    ],
+                    "fbe5f7d0-bd71-4f29-b86f-3ad0087ad618": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f7336491-50ce-42bd-be5a-b321f4933b5d": {
+            "type": "appmixer.microsoft.mail.MakeApiCall",
+            "x": 2400,
+            "y": 0,
+            "source": {
+                "in": {
+                    "2f851298-50c7-4e0f-99e4-59def992cbf8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2f851298-50c7-4e0f-99e4-59def992cbf8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "bcc32beb-61a3-4a77-87a1-abc320cb04ec": {
+                                            "variable": "$.17bc1cf4-2bd8-4794-bd69-ca8f55bb80aa.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "me/messages/{{{bcc32beb-61a3-4a77-87a1-abc320cb04ec}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0c34901f-696c-40aa-bae1-006ff1aae1b5": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2640,
+            "y": 0,
+            "source": {
+                "in": {
+                    "f7336491-50ce-42bd-be5a-b321f4933b5d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "f7336491-50ce-42bd-be5a-b321f4933b5d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "3d642395-50a3-4485-a83d-8e0ca6ef0303": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "f070c5cb-2690-4199-b00c-2e7fe72eec07": {
+                                            "variable": "$.2f851298-50c7-4e0f-99e4-59def992cbf8.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{3d642395-50a3-4485-a83d-8e0ca6ef0303}}}",
+                                    "result": "{{{f070c5cb-2690-4199-b00c-2e7fe72eec07}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Microsoft Mail - Email Lifecycle",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

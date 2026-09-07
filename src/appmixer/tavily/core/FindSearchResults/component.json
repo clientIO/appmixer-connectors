@@ -1,0 +1,261 @@
+{
+    "name": "appmixer.tavily.core.FindSearchResults",
+    "label": "Search Web",
+    "description": "Run a real-time web search with Tavily and return the matching results. Returns a maximum of 20 results per call.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:tavily"
+    },
+    "quota": {
+        "manager": "appmixer:tavily",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 400
+                    },
+                    "searchDepth": {
+                        "type": "string"
+                    },
+                    "topic": {
+                        "type": "string"
+                    },
+                    "maxResults": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 20
+                    },
+                    "timeRange": {
+                        "type": "string"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "includeDomains": {
+                        "type": "string"
+                    },
+                    "excludeDomains": {
+                        "type": "string"
+                    },
+                    "includeRawContent": {
+                        "type": "string"
+                    },
+                    "includeFavicon": {
+                        "type": "boolean"
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "query"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "query": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Query",
+                        "tooltip": "The search query to run. Maximum 400 characters."
+                    },
+                    "searchDepth": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Search Depth",
+                        "defaultValue": "basic",
+                        "tooltip": "<b>Basic</b> costs 1 API credit per search, <b>Advanced</b> costs 2 but retrieves more relevant content.",
+                        "options": [
+                            {
+                                "label": "Basic",
+                                "value": "basic"
+                            },
+                            {
+                                "label": "Advanced",
+                                "value": "advanced"
+                            }
+                        ]
+                    },
+                    "topic": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Topic",
+                        "defaultValue": "general",
+                        "tooltip": "The category of the search. <b>News</b> returns recent articles with a published date, <b>Finance</b> targets financial sources.",
+                        "options": [
+                            {
+                                "label": "General",
+                                "value": "general"
+                            },
+                            {
+                                "label": "News",
+                                "value": "news"
+                            },
+                            {
+                                "label": "Finance",
+                                "value": "finance"
+                            }
+                        ]
+                    },
+                    "maxResults": {
+                        "type": "number",
+                        "index": 4,
+                        "label": "Max Results",
+                        "defaultValue": 5,
+                        "tooltip": "Maximum number of search results to return, between 1 and 20."
+                    },
+                    "timeRange": {
+                        "type": "select",
+                        "index": 5,
+                        "label": "Time Range",
+                        "tooltip": "Only return results published within this time range. Leave empty for no time filter.",
+                        "options": [
+                            {
+                                "label": "Past day",
+                                "value": "day"
+                            },
+                            {
+                                "label": "Past week",
+                                "value": "week"
+                            },
+                            {
+                                "label": "Past month",
+                                "value": "month"
+                            },
+                            {
+                                "label": "Past year",
+                                "value": "year"
+                            }
+                        ]
+                    },
+                    "startDate": {
+                        "type": "date-time",
+                        "index": 6,
+                        "label": "Start Date",
+                        "config": {
+                            "enableTime": false
+                        },
+                        "tooltip": "Only return results published on or after this date."
+                    },
+                    "endDate": {
+                        "type": "date-time",
+                        "index": 7,
+                        "label": "End Date",
+                        "config": {
+                            "enableTime": false
+                        },
+                        "tooltip": "Only return results published on or before this date."
+                    },
+                    "includeDomains": {
+                        "type": "text",
+                        "index": 8,
+                        "label": "Include Domains",
+                        "tooltip": "Comma separated list of domains to restrict the search to, e.g. <code>wikipedia.org, bbc.co.uk</code>. Maximum 300 domains."
+                    },
+                    "excludeDomains": {
+                        "type": "text",
+                        "index": 9,
+                        "label": "Exclude Domains",
+                        "tooltip": "Comma separated list of domains to exclude from the search. Maximum 150 domains."
+                    },
+                    "includeRawContent": {
+                        "type": "select",
+                        "index": 10,
+                        "label": "Include Raw Content",
+                        "tooltip": "Also return the full cleaned page content of each result, in the chosen format.",
+                        "options": [
+                            {
+                                "label": "No",
+                                "value": ""
+                            },
+                            {
+                                "label": "Markdown",
+                                "value": "markdown"
+                            },
+                            {
+                                "label": "Plain text",
+                                "value": "text"
+                            }
+                        ]
+                    },
+                    "includeFavicon": {
+                        "type": "toggle",
+                        "index": 11,
+                        "label": "Include Favicon",
+                        "tooltip": "Also return the favicon URL of each result."
+                    },
+                    "country": {
+                        "type": "text",
+                        "index": 12,
+                        "label": "Country",
+                        "tooltip": "Boost results from a specific country, e.g. <code>united states</code>. Only applies when Topic is <b>General</b>."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 13,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/tavily/core/FindSearchResults?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/query": "dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NiA2NiIgd2lkdGg9IjY2IiBoZWlnaHQ9IjY2IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlRhdmlseSI+PHBhdGggZmlsbD0iIzFGMUUxRSIgZD0iTTQ4LjQ2MzkgMC41QzU3Ljg1MjcgMC41IDY1LjQ2MzkgOC4xMTExNiA2NS40NjM5IDE3LjVWNDguNUM2NS40NjM5IDU3Ljg4ODggNTcuODUyNyA2NS41IDQ4LjQ2MzkgNjUuNUgxNy40NjM5QzguMDc1MDMgNjUuNSAwLjQ2Mzg2OCA1Ny44ODg4IDAuNDYzODY3IDQ4LjVWMTcuNUMwLjQ2Mzg2NyA4LjExMTE2IDguMDc1MDMgMC41IDE3LjQ2MzkgMC41SDQ4LjQ2MzlaTTI4LjE0ODUgMzYuMzU0NUMyNy43OTY1IDM2LjM1NDYgMjcuNDQ3NSAzNi40MjM3IDI3LjEyMjEgMzYuNTU4NkMyNi43OTY4IDM2LjY5MzYgMjYuNTAwMSAzNi44OTIxIDI2LjI1MSAzNy4xNDE2TDIxLjEyNSA0Mi4yNzkzTDE5Ljc2MjcgNDAuOTE0MUMxOC43NjE3IDM5LjkxMTUgMTcuMDQ4NyA0MC40MDc2IDE2LjczNzMgNDEuNzkyTDE0Ljc5NTkgNTAuNDE0MUMxNC43Mjc5IDUwLjcxMDUgMTQuNzM1MSA1MS4wMjA0IDE0LjgxOTQgNTEuMzEyNUMxNC45MDMzIDUxLjYwMzYgMTUuMDYxMiA1MS44NjkzIDE1LjI3NTQgNTIuMDgzQzE1LjQ4OSA1Mi4yOTg4IDE1Ljc1MjcgNTIuNDU4NCAxNi4wNDQgNTIuNTQzQzE2LjMzNTUgNTIuNjI3NSAxNi42NDQ2IDUyLjYzNjUgMTYuOTQwNSA1Mi41Njg0TDI1LjU0NSA1MC42MjIxQzI2LjkyNTUgNTAuMzA5OSAyNy40MjA5IDQ4LjU5MyAyNi40MiA0Ny41ODk4TDI1LjA1NzcgNDYuMjI0NkwzMC4xODQ2IDQxLjA4ODlDMzAuNjg3NyA0MC41ODQ0IDMwLjk2OTggMzkuODk4NyAzMC45Njk4IDM5LjE4NTVDMzAuOTY5NiAzOC40NzI2IDMwLjY4NzQgMzcuNzg4NSAzMC4xODQ2IDM3LjI4NDJMMzAuMTE2MiAzNy4yMTQ4TDMwLjA0NjkgMzcuMTQxNkMyOS43OTc3IDM2Ljg5MiAyOS41MDE0IDM2LjY5MzggMjkuMTc1OCAzNi41NTg2QzI4Ljg1MDQgMzYuNDIzNSAyOC41MDA4IDM2LjM1NDUgMjguMTQ4NSAzNi4zNTQ1Wk00Ni42Mzk3IDMzLjExNzJDNDUuNDQyNCAzMi4zNTk0IDQzLjg4MyAzMy4yMjI1IDQzLjg4MjggMzQuNjQxNlYzNi41NzAzSDMyLjg5ODVDMzMuMjY1NCAzNy4yNzM0IDMzLjQ3NDYgMzguMDczNSAzMy40NzQ2IDM4LjkyMTlDMzMuNDc0NSA0MC4xNDgzIDMzLjAzOTcgNDEuMjczOCAzMi4zMTc0IDQyLjE1MTRINDMuODgxOVY0NC4wODAxQzQzLjg4MjEgNDUuNDk5MiA0NS40NDI1IDQ2LjM2MTUgNDYuNjM5NyA0NS42MDM1TDU0LjA5NzcgNDAuODg0OEM1NC42NTU1IDQwLjUzIDU0LjkzNDUgMzkuOTQ0MyA1NC45MzQ2IDM5LjM1OTRDNTQuOTMzOCAzOC43NzUyIDU0LjY1NDcgMzguMTkwMyA1NC4wOTU3IDM3LjgzNjlMNDYuNjM5NyAzMy4xMTcyWk0yOC40MTQxIDEyLjVDMjguMTEwNSAxMi40OTg3IDI3LjgxMDkgMTIuNTc0OSAyNy41NDUgMTIuNzIxN0MyNy4yNzg4IDEyLjg2ODYgMjcuMDUzNiAxMy4wODI1IDI2Ljg5MjYgMTMuMzQwOEwyMi4xODM2IDIwLjgxMjVDMjEuNDI3IDIyLjAxMjIgMjIuMjg3MSAyMy41NzY3IDIzLjcwMzIgMjMuNTc3MUgyNS42Mjg5VjM0LjY3NzdDMjYuNDI3OCAzNC4xNTAzIDI3LjM4NDkgMzMuODQyOSAyOC40MTMxIDMzLjg0MjhDMjkuNDQxNyAzMy44NDI5IDMwLjM5ODIgMzQuMTUxIDMxLjE5NzMgMzQuNjc4N1YyMy41NzcxSDMzLjEyNDFDMzQuNTQwMiAyMy41NzcgMzUuMzk5OCAyMi4wMTMxIDM0LjY0NDYgMjAuODEyNUwyOS45MzM2IDEzLjM0MDhDMjkuNTc5OSAxMi43ODE0IDI4Ljk5NzIgMTIuNTAwNyAyOC40MTQxIDEyLjVaIi8+PC9zdmc+"
+}

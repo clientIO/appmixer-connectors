@@ -1,0 +1,91 @@
+{
+    "name": "appmixer.intercom.core.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the Intercom API.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:intercom"
+    },
+    "quota": {
+        "manager": "appmixer:intercom",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                    "headers": { "type": "string" },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to <code>https://api.intercom.io</code> (for example <code>/contacts</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object (supports nested objects, arrays, and non-string values)."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "Status Code", "value": "status" },
+                { "label": "Response Headers", "value": "headers" },
+                { "label": "Response Body", "value": "body", "schema": { "type": "object", "properties": {} } }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwMCIgaGVpZ2h0PSIyNTAwIiB2aWV3Qm94PSIwIDAgMjU2IDI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCI+PHBhdGggZD0iTTIyMS44NjcgMTQwLjc0OGE4LjUzNCA4LjUzNCAwIDAgMS0xNy4wNjcgMFY2NGE4LjUzNCA4LjUzNCAwIDAgMSAxNy4wNjcgMHY3Ni43NDh6bS0yLjk3OCA1My40MTNjLTEuMzE5IDEuMTI5LTMyLjkzIDI3LjY1NS05MC44ODkgMjcuNjU1LTU3Ljk1OCAwLTg5LjU2OC0yNi41MjctOTAuODg3LTI3LjY1NmE4LjUzNSA4LjUzNSAwIDAgMS0uOTI1LTEyLjAzMyA4LjUzIDguNTMgMCAwIDEgMTIuMDEzLS45NDJjLjUwMS40MiAyOC43MjkgMjMuNTYzIDc5LjggMjMuNTYzIDUxLjcxMiAwIDc5LjUwMy0yMy4zMSA3OS43NzgtMjMuNTQ1IDMuNTcxLTMuMDY3IDguOTY4LTIuNjU1IDEyLjAzMy45MjVhOC41MzQgOC41MzQgMCAwIDEtLjkyMyAxMi4wMzN6TTM0LjEzMyA2NEE4LjUzNCA4LjUzNCAwIDAgMSA1MS4yIDY0djc2Ljc0OGE4LjUzNCA4LjUzNCAwIDAgMS0xNy4wNjcgMFY2NHptNDIuNjY4LTE3LjA2N2E4LjUzNCA4LjUzNCAwIDAgMSAxNy4wNjYgMHYxMTQuMDAxYTguNTM0IDguNTM0IDAgMCAxLTE3LjA2NiAwdi0xMTR6bTQyLjY2Ni00LjMxOEE4LjUzMiA4LjUzMiAwIDAgMSAxMjggMzQuMDgyYTguNTMyIDguNTMyIDAgMCAxIDguNTM0IDguNTMzdjEyMy43MzNhOC41MzQgOC41MzQgMCAwIDEtMTcuMDY3IDBWNDIuNjE1em00Mi42NjcgNC4zMThhOC41MzQgOC41MzQgMCAwIDEgMTcuMDY2IDB2MTE0LjAwMWE4LjUzNCA4LjUzNCAwIDAgMS0xNy4wNjYgMHYtMTE0ek0yMjQgMEgzMkMxNC4zMjcgMCAwIDE0LjMyNyAwIDMydjE5MmMwIDE3LjY3MiAxNC4zMjcgMzIgMzIgMzJoMTkyYzE3LjY3MyAwIDMyLTE0LjMyOCAzMi0zMlYzMmMwLTE3LjY3My0xNC4zMjctMzItMzItMzJ6IiBmaWxsPSIjMUY4REVEIi8+PC9zdmc+"
+}

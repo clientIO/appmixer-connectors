@@ -23,5 +23,16 @@ module.exports = {
             await context.sendJson(context.messages.webhook.content.data, 'call');
             return context.response();
         }
+    },
+
+    // No fetchable example: NewCall emits Twilio's inbound voice callback request
+    // ("A Call Comes In" webhook). Twilio exposes no API that returns a past
+    // call-event payload in the same parameter shape, so throw and let Flow Test
+    // Mode fall through to the log/schema fallbacks.
+    async test(context) {
+
+        throw new context.CancelError(
+            'NewCall can only be tested by placing a real call to your Twilio number — there is no API to fetch a past inbound-call webhook payload.'
+        );
     }
 };

@@ -1,19 +1,15 @@
 'use strict';
-const axios = require('axios');
+const { apiCall } = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const { ticketId } = context.messages.in.content;
 
-        const url = `https://${auth.domain}.freshdesk.com/api/v2/tickets/${ticketId}`;
-        await axios.delete(url, {
-            auth: {
-                username: auth.apiKey,
-                password: 'X'
-            }
+        await apiCall(context, {
+            method: 'DELETE',
+            url: `/tickets/${ticketId}`
         });
 
         return context.sendJson({ ticketId }, 'ticketId');

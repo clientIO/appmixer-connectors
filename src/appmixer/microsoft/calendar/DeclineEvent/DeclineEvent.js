@@ -5,6 +5,10 @@ module.exports = {
     async receive(context) {
 
         const { eventId, comment, sendResponse } = context.messages.in.content;
+
+        if (!eventId) {
+            throw new context.CancelError('Event ID is required!');
+        }
         const options = {
             url: `https://graph.microsoft.com/v1.0/me/events/${eventId}/decline`,
             method: 'POST',

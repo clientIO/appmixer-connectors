@@ -82,5 +82,21 @@ module.exports = {
     getTimestamp(dateString) {
 
         return Math.floor((dateString ? new Date(dateString) : new Date()) / 1000);
+    },
+
+    /**
+     * Fetch a list endpoint and return the freshest single record from `.results`.
+     * Shared by triggers' test() methods so they go through the same request path
+     * (auth + base URL + quota) tick() uses. The userengage API returns the newest
+     * records first in `.results`, so the first entry is the latest item.
+     * @param {string} token
+     * @param {string} endpoint - e.g. 'channels', 'events', 'email-templates'
+     * @return {Promise<Object|null>} the latest record or null when none exist
+     */
+    async getLatestResult(token, endpoint) {
+
+        const response = await this.getUserengageRequest(token, endpoint, 'GET');
+        const results = (response && Array.isArray(response.results)) ? response.results : [];
+        return results.length ? results[0] : null;
     }
 };

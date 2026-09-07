@@ -62,6 +62,23 @@ module.exports = {
         }));
 
         await context.saveState({ since });
+    },
+
+    // Flow Test Mode: emit one realistic channel message without starting the flow.
+    // Same conversations.history call and message shape as tick(); no state touched.
+    async test(context) {
+
+        const { channelId } = context.properties;
+        const web = new WebClient(context.auth.accessToken);
+
+        const { messages } = await web.conversations.history({ channel: channelId, limit: 1 });
+        const sample = (messages || [])[0];
+        if (!sample) {
+            throw new Error('No recent messages in the channel to use as test data.');
+        }
+
+        sample.text = new Entities().decode(sample.text);
+        return context.sendJson(sample, 'message');
     }
 };
 

@@ -1,0 +1,112 @@
+{
+    "name": "appmixer.firecrawl.core.MakeApiCall",
+    "label": "Make API Call",
+    "description": "Make a custom authorized call to the Firecrawl API. Use it for endpoints or parameters that dedicated components do not cover.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:firecrawl"
+    },
+    "quota": {
+        "manager": "appmixer:firecrawl",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": {
+                        "type": "string",
+                        "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+                    },
+                    "headers": { "type": "string" },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Relative path of the Firecrawl API endpoint, e.g. <code>/v2/team/credit-usage</code>. Absolute URLs are allowed only on the <code>https://api.firecrawl.dev</code> host."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "index": 3,
+                        "label": "Query Parameters",
+                        "tooltip": "Optional query parameters appended to the URL."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Optional JSON request body, e.g. <code>{\"url\":\"https://example.com\"}</code>."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "index": 5,
+                        "label": "Request Headers",
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "statusCode": {
+                        "type": "number",
+                        "title": "Status Code",
+                        "example": 200
+                    },
+                    "headers": {
+                        "type": "object",
+                        "title": "Response Headers",
+                        "example": { "content-type": "application/json" }
+                    },
+                    "body": {
+                        "type": "object",
+                        "title": "Response Body",
+                        "example": { "success": true, "data": { "remainingCredits": 1000 } }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkZpcmVjcmF3bCI+PHBhdGggZmlsbD0iI0ZBNUQxOSIgZD0iTTI0IDJjMi4yIDYuOS0uNiAxMC4zLTQuNiAxNC4zQzE1LjIgMjAuNSAxMiAyNC45IDEyIDMwLjQgMTIgMzkuMSAxNy40IDQ2IDI0IDQ2czEyLTYuOSAxMi0xNS42YzAtNC4zLTEuNi04LjMtNC0xMS42LTEuMyAyLjMtMi43IDMuNy00LjUgNC42LjktNi43LS44LTE0LjctMy41LTIxLjR6Ii8+PHBhdGggZmlsbD0iI0ZGQzEwNyIgZD0iTTI0IDQ2Yy0zLjkgMC03LTMuNi03LTggMC0zLjQgMS43LTUuOSA0LTggMS42LTEuNSAyLjctMyAzLTUgMi4zIDIuNiA3IDYuNyA3IDEzIDAgNC40LTMuMSA4LTcgOHoiLz48L3N2Zz4="
+}

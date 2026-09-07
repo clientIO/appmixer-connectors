@@ -4,11 +4,40 @@ const commons = require('../../google-commons');
 const { normalizeHeader } = require('../common');
 const Promise = require('bluebird');
 
+// Shared fetch helper used by both tick() and test() so requests go through the same path.
+function makeGetRows() {
+    const sheets = google.sheets('v4');
+    return Promise.promisify(sheets.spreadsheets.values.get, { context: sheets.spreadsheets.values });
+}
+
+// Shared row-building helper used by both tick() and test() so the emitted shape is identical.
+// Fetches the row at `rowNumber` (1-based) together with the header row and returns the same
+// object tick() emits: { rowId, ...addHeaders(headers, row) }.
+async function fetchRowAsOutput(context, getRows, worksheetName, rowNumber) {
+
+    const rowRes = await getRows({
+        auth: commons.getOauth2Client(context.auth),
+        spreadsheetId: context.properties.sheetId,
+        range: `${worksheetName}!A${rowNumber}:ZZ${rowNumber}`,
+        majorDimension: 'ROWS'
+    });
+
+    const row = (rowRes.values && rowRes.values[0]) ? rowRes.values[0] : [];
+
+    const headers = (await getRows({
+        auth: commons.getOauth2Client(context.auth),
+        spreadsheetId: context.properties.sheetId,
+        range: `${worksheetName}!A1:ZZ1`,
+        majorDimension: 'ROWS'
+    })).values[0];
+
+    return { rowId: rowNumber, ...addHeaders(headers, row) };
+}
+
 module.exports = {
 
     async tick(context) {
-        const sheets = google.sheets('v4');
-        const getRows = Promise.promisify(sheets.spreadsheets.values.get, { context: sheets.spreadsheets.values });
+        const getRows = makeGetRows();
 
         const indexColumn = context.properties.index.toUpperCase();
         const worksheetName = encodeURIComponent(context.properties.worksheetId.split('/')[1]);
@@ -82,6 +111,37 @@ module.exports = {
 
         // Save the current index values as the known state for the next tick
         await context.saveState({ known: indexValues });
+    },
+
+    // Flow Test Mode: emit the newest row (the last populated cell in the index column)
+    // using the SAME fetch + addHeaders mapping path tick() uses. No baseline/state — tick()
+    // suppresses its first run while seeding state.known, so test() fetches the latest row
+    // directly. Read-only, no state writes.
+    async test(context) {
+
+        const getRows = makeGetRows();
+
+        const indexColumn = context.properties.index.toUpperCase();
+        const worksheetName = encodeURIComponent(context.properties.worksheetId.split('/')[1]);
+
+        const res = await getRows({
+            auth: commons.getOauth2Client(context.auth),
+            spreadsheetId: context.properties.sheetId,
+            range: `${worksheetName}!${indexColumn}1:${indexColumn}`,
+            majorDimension: 'COLUMNS'
+        });
+
+        const indexValues = res.values && res.values[0] ? res.values[0] : [];
+
+        // The header row counts as row 1, so the newest data row needs at least 2 entries.
+        if (indexValues.length < 2) {
+            throw new Error('No rows available in the worksheet to use as test data.');
+        }
+
+        const rowNumber = indexValues.length;
+        const output = await fetchRowAsOutput(context, getRows, worksheetName, rowNumber);
+
+        return context.sendJson(output, 'out');
     }
 };
 

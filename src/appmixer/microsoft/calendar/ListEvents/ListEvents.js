@@ -4,6 +4,122 @@ const { sendArrayOutput } = require('../../microsoft-commons');
 
 const PAGE_SIZE = 100;
 
+// Shared output schema of a MS Graph calendar event. Single source of truth for
+// getOutputPortOptions() — every leaf carries type + title + example so the designer
+// variable picker shows human labels and types instead of raw field names.
+const eventSchema = {
+    '@odata.etag': { type: 'string', title: 'ETag', example: 'W/"IMC6nOVUAEuLXdCeMDU5JQACEFyr7A=="' },
+    id: { type: 'string', title: 'Event ID', example: 'AAMkADQ3YzRkMjgwLTNhM2YtNGM4Ni1iMWFkLTFm' },
+    createdDateTime: { type: 'string', title: 'Created Date Time', example: '2026-07-02T14:43:10.63263Z' },
+    lastModifiedDateTime: { type: 'string', title: 'Last Modified Date Time', example: '2026-07-02T14:43:12.5Z' },
+    changeKey: { type: 'string', title: 'Change Key', example: 'IMC6nOVUAEuLXdCeMDU5JQACEFyr7A==' },
+    categories: { type: 'array', title: 'Categories', items: { type: 'string' }, example: ['Red category'] },
+    transactionId: { type: 'string', title: 'Transaction ID', example: '7E163156-7762-4BEB-A1C6-729EA81755A7' },
+    originalStartTimeZone: { type: 'string', title: 'Original Start Time Zone', example: 'UTC' },
+    originalEndTimeZone: { type: 'string', title: 'Original End Time Zone', example: 'UTC' },
+    iCalUId: { type: 'string', title: 'iCal UID', example: '040000008200E00074C5B7101A82E00800000000' },
+    reminderMinutesBeforeStart: { type: 'number', title: 'Reminder Minutes Before Start', example: 15 },
+    isReminderOn: { type: 'boolean', title: 'Is Reminder On', example: true },
+    hasAttachments: { type: 'boolean', title: 'Has Attachments', example: false },
+    subject: { type: 'string', title: 'Subject', example: 'Team sync' },
+    bodyPreview: { type: 'string', title: 'Body Preview', example: 'Agenda: quarterly review.' },
+    importance: { type: 'string', title: 'Importance', example: 'normal' },
+    sensitivity: { type: 'string', title: 'Sensitivity', example: 'normal' },
+    isAllDay: { type: 'boolean', title: 'Is All Day', example: false },
+    isCancelled: { type: 'boolean', title: 'Is Cancelled', example: false },
+    isOrganizer: { type: 'boolean', title: 'Is Organizer', example: true },
+    responseRequested: { type: 'boolean', title: 'Response Requested', example: true },
+    seriesMasterId: { type: 'string', title: 'Series Master ID', example: 'AAMkADQ3YzRkMjgw' },
+    showAs: { type: 'string', title: 'Show As', example: 'busy' },
+    type: { type: 'string', title: 'Type', example: 'singleInstance' },
+    webLink: { type: 'string', title: 'Web Link', example: 'https://outlook.office365.com/owa/?itemid=...' },
+    onlineMeetingUrl: { type: 'string', title: 'Online Meeting URL', example: 'https://teams.microsoft.com/l/meetup-join/...' },
+    isOnlineMeeting: { type: 'boolean', title: 'Is Online Meeting', example: false },
+    onlineMeetingProvider: { type: 'string', title: 'Online Meeting Provider', example: 'teamsForBusiness' },
+    allowNewTimeProposals: { type: 'boolean', title: 'Allow New Time Proposals', example: true },
+    occurrenceId: { type: 'string', title: 'Occurrence ID', example: 'OID.AAMkADQ3YzRkMjgw' },
+    isDraft: { type: 'boolean', title: 'Is Draft', example: false },
+    hideAttendees: { type: 'boolean', title: 'Hide Attendees', example: false },
+    responseStatus: {
+        type: 'object', title: 'Response Status',
+        properties: {
+            response: { type: 'string', title: 'Response', example: 'organizer' },
+            time: { type: 'string', title: 'Time', example: '0001-01-01T00:00:00Z' }
+        }
+    },
+    body: {
+        type: 'object', title: 'Body',
+        properties: {
+            contentType: { type: 'string', title: 'Content Type', example: 'html' },
+            content: { type: 'string', title: 'Content', example: '<html><body>Agenda</body></html>' }
+        }
+    },
+    start: {
+        type: 'object', title: 'Start',
+        properties: {
+            dateTime: { type: 'string', title: 'Start Date Time', example: '2026-07-03T14:00:00.0000000' },
+            timeZone: { type: 'string', title: 'Start Time Zone', example: 'UTC' }
+        }
+    },
+    end: {
+        type: 'object', title: 'End',
+        properties: {
+            dateTime: { type: 'string', title: 'End Date Time', example: '2026-07-03T15:00:00.0000000' },
+            timeZone: { type: 'string', title: 'End Time Zone', example: 'UTC' }
+        }
+    },
+    location: {
+        type: 'object', title: 'Location',
+        properties: {
+            displayName: { type: 'string', title: 'Display Name', example: 'Prague office' },
+            locationType: { type: 'string', title: 'Location Type', example: 'default' },
+            uniqueIdType: { type: 'string', title: 'Unique ID Type', example: 'unknown' },
+            address: { type: 'object', title: 'Address', properties: {} },
+            coordinates: { type: 'object', title: 'Coordinates', properties: {} }
+        }
+    },
+    locations: { type: 'array', title: 'Locations', items: { type: 'object', properties: {} }, example: [] },
+    recurrence: { type: 'object', title: 'Recurrence', properties: {} },
+    attendees: {
+        type: 'array', title: 'Attendees',
+        items: {
+            type: 'object',
+            properties: {
+                type: { type: 'string', title: 'Type', example: 'required' },
+                status: {
+                    type: 'object', title: 'Status',
+                    properties: {
+                        response: { type: 'string', title: 'Response', example: 'accepted' },
+                        time: { type: 'string', title: 'Time', example: '2026-07-02T14:45:00Z' }
+                    }
+                },
+                emailAddress: {
+                    type: 'object', title: 'Email Address',
+                    properties: {
+                        name: { type: 'string', title: 'Name', example: 'John Doe' },
+                        address: { type: 'string', title: 'Address', example: 'john.doe@example.com' }
+                    }
+                }
+            }
+        }
+    },
+    organizer: {
+        type: 'object', title: 'Organizer',
+        properties: {
+            emailAddress: {
+                type: 'object', title: 'Email Address',
+                properties: {
+                    name: { type: 'string', title: 'Name', example: 'John Doe' },
+                    address: { type: 'string', title: 'Address', example: 'john.doe@example.com' }
+                }
+            }
+        }
+    },
+    onlineMeeting: { type: 'object', title: 'Online Meeting', properties: {} },
+    'calendar@odata.associationLink': { type: 'string', title: 'Calendar Association Link', example: 'https://graph.microsoft.com/v1.0/me/calendars/...' },
+    'calendar@odata.navigationLink': { type: 'string', title: 'Calendar Navigation Link', example: 'https://graph.microsoft.com/v1.0/me/calendars/...' }
+};
+
 module.exports = {
 
     async receive(context) {
@@ -88,7 +204,6 @@ module.exports = {
                 top: Math.min(PAGE_SIZE, MAX_LIMIT - totalEvents),
                 nextLink
             };
-            context.log({ step: 'Making request', options });
 
             const { data: result } = await context.httpRequest(options);
             events = events.concat(result.value);
@@ -107,272 +222,31 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
+        // All variants are derived from the shared eventSchema — do not repeat field lists.
         if (outputType === 'object') {
-            return context.sendJson(
-                [
-                    { label: '@odata.etag', value: '@odata.etag' },
-                    { label: 'id', value: 'id' },
-                    { label: 'createdDateTime', value: 'createdDateTime' },
-                    { label: 'lastModifiedDateTime', value: 'lastModifiedDateTime' },
-                    { label: 'changeKey', value: 'changeKey' },
-                    { label: 'categories', value: 'categories',
-                        schema: { type: 'array',
-                            items: { type: 'object',
-                                properties: {}
-                            }
-                        }
-                    },
-                    { label: 'transactionId', value: 'transactionId' },
-                    { label: 'originalStartTimeZone', value: 'originalStartTimeZone' },
-                    { label: 'originalEndTimeZone', value: 'originalEndTimeZone' },
-                    { label: 'iCalUId', value: 'iCalUId' },
-                    { label: 'reminderMinutesBeforeStart', value: 'reminderMinutesBeforeStart' },
-                    { label: 'isReminderOn', value: 'isReminderOn' },
-                    { label: 'hasAttachments', value: 'hasAttachments' },
-                    { label: 'subject', value: 'subject' },
-                    { label: 'bodyPreview', value: 'bodyPreview' },
-                    { label: 'importance', value: 'importance' },
-                    { label: 'sensitivity', value: 'sensitivity' },
-                    { label: 'isAllDay', value: 'isAllDay' },
-                    { label: 'isCancelled', value: 'isCancelled' },
-                    { label: 'isOrganizer', value: 'isOrganizer' },
-                    { label: 'responseRequested', value: 'responseRequested' },
-                    { label: 'seriesMasterId', value: 'seriesMasterId' },
-                    { label: 'showAs', value: 'showAs' },
-                    { label: 'type', value: 'type' },
-                    { label: 'webLink', value: 'webLink' },
-                    { label: 'onlineMeetingUrl', value: 'onlineMeetingUrl' },
-                    { label: 'isOnlineMeeting', value: 'isOnlineMeeting' },
-                    { label: 'onlineMeetingProvider', value: 'onlineMeetingProvider' },
-                    { label: 'allowNewTimeProposals', value: 'allowNewTimeProposals' },
-                    { label: 'occurrenceId', value: 'occurrenceId' },
-                    { label: 'isDraft', value: 'isDraft' },
-                    { label: 'hideAttendees', value: 'hideAttendees' },
-                    { label: 'responseStatus', value: 'responseStatus',
-                        schema: { type: 'object',
-                            properties: {
-                                response: { label: 'response', value: 'response' },
-                                time: { label: 'time', value: 'time' }
-                            }
-                        }
-                    },
-                    { label: 'body', value: 'body',
-                        schema: { type: 'object',
-                            properties: {
-                                contentType: { label: 'contentType', value: 'contentType' },
-                                content: { label: 'content', value: 'content' }
-                            }
-                        }
-                    },
-                    { label: 'start', value: 'start',
-                        schema: { type: 'object',
-                            properties: {
-                                dateTime: { label: 'dateTime', value: 'dateTime' },
-                                timeZone: { label: 'timeZone', value: 'timeZone' }
-                            }
-                        }
-                    },
-                    { label: 'end', value: 'end',
-                        schema: { type: 'object',
-                            properties: {
-                                dateTime: { label: 'dateTime', value: 'dateTime' },
-                                timeZone: { label: 'timeZone', value: 'timeZone' }
-                            }
-                        }
-                    },
-                    { label: 'location', value: 'location',
-                        schema: { type: 'object',
-                            properties: {
-                                displayName: { label: 'displayName', value: 'displayName' },
-                                locationType: { label: 'locationType', value: 'locationType' },
-                                uniqueIdType: { label: 'uniqueIdType', value: 'uniqueIdType' },
-                                address: { label: 'address', value: 'address',
-                                    schema: { type: 'object',
-                                        properties: {}
-                                    }
-                                },
-                                coordinates: { label: 'coordinates', value: 'coordinates',
-                                    schema: { type: 'object',
-                                        properties: {}
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    { label: 'locations', value: 'locations',
-                        schema: { type: 'array',
-                            items: { type: 'object',
-                                properties: {}
-                            }
-                        }
-                    },
-                    { label: 'recurrence', value: 'recurrence' },
-                    { label: 'attendees', value: 'attendees',
-                        schema: { type: 'array',
-                            items: { type: 'object',
-                                properties: {}
-                            }
-                        }
-                    },
-                    { label: 'organizer', value: 'organizer',
-                        schema: { type: 'object',
-                            properties: {
-                                emailAddress: { label: 'emailAddress', value: 'emailAddress',
-                                    schema: { type: 'object',
-                                        properties: {
-                                            name: { label: 'name', value: 'name' },
-                                            address: { label: 'address', value: 'address' }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    { label: 'onlineMeeting', value: 'onlineMeeting' },
-                    { label: 'calendar@odata.associationLink', value: 'calendar@odata.associationLink' },
-                    { label: 'calendar@odata.navigationLink', value: 'calendar@odata.navigationLink' }
-                ],
-                'out'
+            const options = Object.entries(eventSchema).map(([value, schema]) => ({
+                label: schema.title || value, value, schema
+            }));
+            // sendArrayOutput() appends index/count to each emitted record.
+            options.push(
+                { label: 'Index', value: 'index', schema: { type: 'number', title: 'Index', example: 0 } },
+                { label: 'Count', value: 'count', schema: { type: 'number', title: 'Count', example: 1 } }
             );
+            return context.sendJson(options, 'out');
         } else if (outputType === 'array') {
-            return context.sendJson(
-                [
-                    {
-                        label: 'Result', value: 'result',
-                        schema: { type: 'array',
-                            items: { type: 'object',
-                                properties: {
-                                    '@odata.etag': { type: 'string', title: '@odata.etag' },
-                                    id: { type: 'string', title: 'id' },
-                                    createdDateTime: { type: 'string', title: 'createdDateTime' },
-                                    lastModifiedDateTime: { type: 'string', title: 'lastModifiedDateTime' },
-                                    changeKey: { type: 'string', title: 'changeKey' },
-                                    categories: { type: 'object', title: 'categories',
-                                        schema: { type: 'array',
-                                            items: { type: 'object',
-                                                properties: {}
-                                            }
-                                        }
-                                    },
-                                    transactionId: { type: 'string', title: 'transactionId' },
-                                    originalStartTimeZone: { type: 'string', title: 'originalStartTimeZone' },
-                                    originalEndTimeZone: { type: 'string', title: 'originalEndTimeZone' },
-                                    iCalUId: { type: 'string', title: 'iCalUId' },
-                                    reminderMinutesBeforeStart: { type: 'number', title: 'reminderMinutesBeforeStart' },
-                                    isReminderOn: { type: 'boolean', title: 'isReminderOn' },
-                                    hasAttachments: { type: 'boolean', title: 'hasAttachments' },
-                                    subject: { type: 'string', title: 'subject' },
-                                    bodyPreview: { type: 'string', title: 'bodyPreview' },
-                                    importance: { type: 'string', title: 'importance' },
-                                    sensitivity: { type: 'string', title: 'sensitivity' },
-                                    isAllDay: { type: 'boolean', title: 'isAllDay' },
-                                    isCancelled: { type: 'boolean', title: 'isCancelled' },
-                                    isOrganizer: { type: 'boolean', title: 'isOrganizer' },
-                                    responseRequested: { type: 'boolean', title: 'responseRequested' },
-                                    seriesMasterId: { type: 'object', title: 'seriesMasterId' },
-                                    showAs: { type: 'string', title: 'showAs' },
-                                    type: { type: 'string', title: 'type' },
-                                    webLink: { type: 'string', title: 'webLink' },
-                                    onlineMeetingUrl: { type: 'object', title: 'onlineMeetingUrl' },
-                                    isOnlineMeeting: { type: 'boolean', title: 'isOnlineMeeting' },
-                                    onlineMeetingProvider: { type: 'string', title: 'onlineMeetingProvider' },
-                                    allowNewTimeProposals: { type: 'boolean', title: 'allowNewTimeProposals' },
-                                    occurrenceId: { type: 'object', title: 'occurrenceId' },
-                                    isDraft: { type: 'boolean', title: 'isDraft' },
-                                    hideAttendees: { type: 'boolean', title: 'hideAttendees' },
-                                    responseStatus: { type: 'object', title: 'responseStatus',
-                                        schema: { type: 'object',
-                                            properties: {
-                                                response: { label: 'response', value: 'response' },
-                                                time: { label: 'time', value: 'time' }
-                                            }
-                                        }
-                                    },
-                                    body: { type: 'object', title: 'body',
-                                        schema: { type: 'object',
-                                            properties: {
-                                                contentType: { label: 'contentType', value: 'contentType' },
-                                                content: { label: 'content', value: 'content' }
-                                            }
-                                        }
-                                    },
-                                    start: { type: 'object', title: 'start',
-                                        schema: { type: 'object',
-                                            properties: {
-                                                dateTime: { label: 'dateTime', value: 'dateTime' },
-                                                timeZone: { label: 'timeZone', value: 'timeZone' }
-                                            }
-                                        }
-                                    },
-                                    end: { type: 'object', title: 'end',
-                                        schema: { type: 'object',
-                                            properties: {
-                                                dateTime: { label: 'dateTime', value: 'dateTime' },
-                                                timeZone: { label: 'timeZone', value: 'timeZone' }
-                                            }
-                                        }
-                                    },
-                                    location: { type: 'object', title: 'location',
-                                        schema: { type: 'object',
-                                            properties: {
-                                                displayName: { label: 'displayName', value: 'displayName' },
-                                                locationType: { label: 'locationType', value: 'locationType' },
-                                                uniqueIdType: { label: 'uniqueIdType', value: 'uniqueIdType' },
-                                                address: { label: 'address', value: 'address',
-                                                    schema: { type: 'object',
-                                                        properties: {}
-                                                    }
-                                                },
-                                                coordinates: { label: 'coordinates', value: 'coordinates',
-                                                    schema: { type: 'object',
-                                                        properties: {}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    locations: { type: 'object', title: 'locations',
-                                        schema: { type: 'array',
-                                            items: { type: 'object',
-                                                properties: {}
-                                            }
-                                        }
-                                    },
-                                    recurrence: { type: 'object', title: 'recurrence' },
-                                    attendees: { type: 'object', title: 'attendees',
-                                        schema: { type: 'array',
-                                            items: { type: 'object',
-                                                properties: {}
-                                            }
-                                        }
-                                    },
-                                    organizer: { type: 'object', title: 'organizer',
-                                        schema: { type: 'object',
-                                            properties: {
-                                                emailAddress: { label: 'emailAddress', value: 'emailAddress',
-                                                    schema: { type: 'object',
-                                                        properties: {
-                                                            name: { label: 'name', value: 'name' },
-                                                            address: { label: 'address', value: 'address' }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    onlineMeeting: { type: 'object', title: 'onlineMeeting' },
-                                    'calendar@odata.associationLink': { type: 'string', title: 'calendar@odata.associationLink' },
-                                    'calendar@odata.navigationLink': { type: 'string', title: 'calendar@odata.navigationLink' }
-                                }
-                            }
-                        }
-                    }
-                ],
-                'out'
-            );
+            return context.sendJson([
+                {
+                    label: 'Result', value: 'result',
+                    schema: { type: 'array', items: { type: 'object', properties: eventSchema } }
+                },
+                { label: 'Count', value: 'count', schema: { type: 'number', title: 'Count', example: 1 } }
+            ], 'out');
         } else {
             // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
+            return context.sendJson([
+                { label: 'File ID', value: 'fileId', schema: { type: 'string', title: 'File ID', example: '5edf244a-6395-4f0b-b0c5-1bbef15f1e6a' } },
+                { label: 'Count', value: 'count', schema: { type: 'number', title: 'Count', example: 1 } }
+            ], 'out');
         }
     }
 };

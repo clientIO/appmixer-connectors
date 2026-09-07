@@ -1,10 +1,10 @@
 {
     "name": "E2E Google Calendar - GetAvailability",
-    "description": "E2E test for the GetAvailability component. Tests: (1) default events in a busy range returns available=false with non-empty events array, (2) workingLocation filter returns only working-location events (available field present), (3) eventType field is present on returned events.",
+    "description": "Self-contained E2E test for GetAvailability: creates an event in the queried range, then (1) busy range now→30d returns a non-empty events array, (2) workingLocation filter returns the available field; finally deletes the created event (cleanup). No pre-seeded data required.",
     "type": "automation",
     "notes": {},
     "flow": {
-        "on-start": {
+        "1742ac74-089f-48db-9031-8297482cc697": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
             "y": 16,
@@ -12,32 +12,20 @@
             "version": "1.0.0",
             "config": {}
         },
-        "before-all": {
-            "type": "appmixer.utils.test.BeforeAll",
+        "2623717a-b550-4a34-97c9-3d3c0254be58": {
+            "type": "appmixer.utils.controls.SetVariable",
             "x": 256,
             "y": 16,
-            "source": {
-                "in": {
-                    "on-start": ["out"]
-                }
-            },
-            "version": "1.0.0",
-            "config": {}
-        },
-        "set-variables": {
-            "type": "appmixer.utils.controls.SetVariable",
-            "x": 448,
-            "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "before-all": ["out"]
+                    "1742ac74-089f-48db-9031-8297482cc697": ["out"]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "before-all": {
+                        "1742ac74-089f-48db-9031-8297482cc697": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -60,7 +48,63 @@
                 }
             }
         },
-        "get-availability-busy": {
+        "f508ad36-df5f-4e58-81be-c394da93223d": {
+            "type": "appmixer.google.calendar.CreateEvent",
+            "label": "CreateEvent (busy event in queried range)",
+            "x": 448,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2623717a-b550-4a34-97c9-3d3c0254be58": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2623717a-b550-4a34-97c9-3d3c0254be58": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "calendarId": {
+                                        "var-calendar-id": {
+                                            "variable": "$.2623717a-b550-4a34-97c9-3d3c0254be58.out.calendarId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "start": {
+                                        "var-start": {
+                                            "variable": "$.1742ac74-089f-48db-9031-8297482cc697.out.started",
+                                            "functions": [
+                                                { "name": "g_now" },
+                                                { "name": "g_addTimeSpan", "hashParams": { "hours": { "value": 24 } } }
+                                            ]
+                                        }
+                                    },
+                                    "end": {
+                                        "var-end": {
+                                            "variable": "$.1742ac74-089f-48db-9031-8297482cc697.out.started",
+                                            "functions": [
+                                                { "name": "g_now" },
+                                                { "name": "g_addTimeSpan", "hashParams": { "hours": { "value": 25 } } }
+                                            ]
+                                        }
+                                    },
+                                    "summary": {}
+                                },
+                                "lambda": {
+                                    "calendarId": "{{{var-calendar-id}}}",
+                                    "start": "{{{var-start}}}",
+                                    "end": "{{{var-end}}}",
+                                    "summary": "E2E GetAvailability busy event"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f4f85d91-b216-4d1d-a2f3-bd2a0d3154ff": {
             "type": "appmixer.google.calendar.GetAvailability",
             "label": "GetAvailability (now → 30 days, default events)",
             "x": 640,
@@ -68,25 +112,25 @@
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "set-variables": ["out"]
+                    "f508ad36-df5f-4e58-81be-c394da93223d": ["event"]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "set-variables": {
-                            "out": {
+                        "f508ad36-df5f-4e58-81be-c394da93223d": {
+                            "event": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "calendarId": {
                                         "var-calendar-id": {
-                                            "variable": "$.set-variables.out.calendarId",
+                                            "variable": "$.f508ad36-df5f-4e58-81be-c394da93223d.event.calendarId",
                                             "functions": []
                                         }
                                     },
                                     "startTime": {
                                         "var-start": {
-                                            "variable": "$.on-start.out.started",
+                                            "variable": "$.1742ac74-089f-48db-9031-8297482cc697.out.started",
                                             "functions": [
                                                 { "name": "g_now" }
                                             ]
@@ -94,7 +138,7 @@
                                     },
                                     "endTime": {
                                         "var-end": {
-                                            "variable": "$.on-start.out.started",
+                                            "variable": "$.1742ac74-089f-48db-9031-8297482cc697.out.started",
                                             "functions": [
                                                 { "name": "g_now" },
                                                 { "name": "g_addTimeSpan", "hashParams": { "days": { "value": 30 } } }
@@ -115,27 +159,27 @@
                 }
             }
         },
-        "assert-events-returned": {
+        "ff467818-582c-41fb-989e-d6b4957935a4": {
             "type": "appmixer.utils.test.Assert",
-            "label": "Assert: events array is returned (calendar has events in next 30 days)",
+            "label": "Assert: events array is returned (created event is in next 30 days)",
             "x": 832,
             "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "get-availability-busy": ["out"]
+                    "f4f85d91-b216-4d1d-a2f3-bd2a0d3154ff": ["out"]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "get-availability-busy": {
+                        "f4f85d91-b216-4d1d-a2f3-bd2a0d3154ff": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "events-check": {
-                                            "variable": "$.get-availability-busy.out.events",
+                                            "variable": "$.f4f85d91-b216-4d1d-a2f3-bd2a0d3154ff.out.events",
                                             "functions": []
                                         }
                                     }
@@ -156,7 +200,48 @@
                 }
             }
         },
-        "get-availability-working-location": {
+        "a6455048-b506-4aad-9024-b6c71f344c11": {
+            "type": "appmixer.google.calendar.DeleteEvent",
+            "label": "DeleteEvent (cleanup)",
+            "x": 832,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ff467818-582c-41fb-989e-d6b4957935a4": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ff467818-582c-41fb-989e-d6b4957935a4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "calendarId": {
+                                        "var-calendar-id": {
+                                            "variable": "$.f508ad36-df5f-4e58-81be-c394da93223d.event.calendarId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "eventId": {
+                                        "var-event-id": {
+                                            "variable": "$.f508ad36-df5f-4e58-81be-c394da93223d.event.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "calendarId": "{{{var-calendar-id}}}",
+                                    "eventId": "{{{var-event-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "858bd469-8d08-4ddd-afbd-453fd16e0384": {
             "type": "appmixer.google.calendar.GetAvailability",
             "label": "GetAvailability (workingLocation filter)",
             "x": 640,
@@ -164,25 +249,25 @@
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "set-variables": ["out"]
+                    "2623717a-b550-4a34-97c9-3d3c0254be58": ["out"]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "set-variables": {
+                        "2623717a-b550-4a34-97c9-3d3c0254be58": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "calendarId": {
                                         "var-calendar-id": {
-                                            "variable": "$.set-variables.out.calendarId",
+                                            "variable": "$.2623717a-b550-4a34-97c9-3d3c0254be58.out.calendarId",
                                             "functions": []
                                         }
                                     },
                                     "startTime": {
                                         "var-start": {
-                                            "variable": "$.on-start.out.started",
+                                            "variable": "$.1742ac74-089f-48db-9031-8297482cc697.out.started",
                                             "functions": [
                                                 { "name": "g_now" }
                                             ]
@@ -190,7 +275,7 @@
                                     },
                                     "endTime": {
                                         "var-end": {
-                                            "variable": "$.on-start.out.started",
+                                            "variable": "$.1742ac74-089f-48db-9031-8297482cc697.out.started",
                                             "functions": [
                                                 { "name": "g_now" },
                                                 { "name": "g_addTimeSpan", "hashParams": { "days": { "value": 7 } } }
@@ -211,7 +296,7 @@
                 }
             }
         },
-        "assert-working-location-available-field": {
+        "100ec8c5-e4c5-4e4f-8510-40fa1c2abbfe": {
             "type": "appmixer.utils.test.Assert",
             "label": "Assert: workingLocation filter — available field present in response",
             "x": 832,
@@ -219,19 +304,19 @@
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "get-availability-working-location": ["out"]
+                    "858bd469-8d08-4ddd-afbd-453fd16e0384": ["out"]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "get-availability-working-location": {
+                        "858bd469-8d08-4ddd-afbd-453fd16e0384": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "available-var": {
-                                            "variable": "$.get-availability-working-location.out.available",
+                                            "variable": "$.858bd469-8d08-4ddd-afbd-453fd16e0384.out.available",
                                             "functions": []
                                         }
                                     }
@@ -252,15 +337,16 @@
                 }
             }
         },
-        "after-all": {
+        "65ace62d-35a2-498c-a455-d798457460a6": {
             "type": "appmixer.utils.test.AfterAll",
             "x": 1024,
-            "y": 88,
+            "y": 120,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "assert-events-returned": ["out"],
-                    "assert-working-location-available-field": ["out"]
+                    "ff467818-582c-41fb-989e-d6b4957935a4": ["out"],
+                    "100ec8c5-e4c5-4e4f-8510-40fa1c2abbfe": ["out"],
+                    "a6455048-b506-4aad-9024-b6c71f344c11": ["deleted"]
                 }
             },
             "config": {
@@ -269,24 +355,21 @@
                 }
             }
         },
-        "process-results": {
+        "4e42c047-e8b4-4936-a219-8f29362b0647": {
             "type": "appmixer.utils.test.ProcessE2EResults",
             "x": 1216,
-            "y": 88,
+            "y": 120,
             "version": "1.0.1",
             "source": {
                 "in": {
-                    "after-all": ["out"]
+                    "65ace62d-35a2-498c-a455-d798457460a6": ["out"]
                 }
             },
             "config": {
-                "properties": {
-                    "successStoreId": "69cd26f6e2b144c4b022fd1e",
-                    "failedStoreId": "69cd26f6e92e34e939fd2d1a"
-                },
+                "properties": {},
                 "transform": {
                     "in": {
-                        "after-all": {
+                        "65ace62d-35a2-498c-a455-d798457460a6": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -294,7 +377,7 @@
                                     "testCase": {},
                                     "result": {
                                         "result-var": {
-                                            "variable": "$.after-all.out",
+                                            "variable": "$.65ace62d-35a2-498c-a455-d798457460a6.out",
                                             "functions": []
                                         }
                                     }

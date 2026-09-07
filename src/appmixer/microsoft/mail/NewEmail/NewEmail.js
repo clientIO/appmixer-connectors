@@ -1,6 +1,7 @@
 'use strict';
 
-const { makeRequest, renewBeforeExpirationMs } = require('../commons');
+const commons = require('../commons');
+const { makeRequest, renewBeforeExpirationMs } = commons;
 
 const clientState = 'appmixer.microsoft.mail';
 
@@ -109,5 +110,17 @@ module.exports = {
                 return context.response('', 200);
             }
         }
+    },
+
+    async test(context) {
+
+        // Flow Test Mode: no webhook fires, so list the watched folder newest-first
+        // and emit the most recently received message. Same makeRequest path and
+        // identical message shape `receive()` forwards (GET /me/messages/{id}).
+        const message = await commons.fetchLatestMessage(context, 'receivedDateTime');
+        if (!message) {
+            throw new Error('No recent messages in the watched folder to use as test data.');
+        }
+        return context.sendJson(message, 'out');
     }
 };

@@ -78,6 +78,20 @@ class UpdatedDeal extends BaseSubscriptionComponent {
 
         return context.response();
     }
+
+    async test(context) {
+
+        const { pipeline: filterPipeline, dealstage: filterStage } = context.properties;
+        const filters = [];
+        if (filterPipeline) {
+            filters.push({ propertyName: 'pipeline', operator: 'EQ', value: filterPipeline });
+        }
+        if (filterStage) {
+            filters.push({ propertyName: 'dealstage', operator: 'EQ', value: filterStage });
+        }
+        const record = await this.fetchLatestExample(context, 'deals', { sortProperty: 'lastmodifieddate', filters });
+        return context.sendJson(record, 'deal');
+    }
 }
 
 module.exports = new UpdatedDeal(subscriptionType);

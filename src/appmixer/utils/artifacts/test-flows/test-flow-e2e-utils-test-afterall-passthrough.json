@@ -1,0 +1,191 @@
+{
+    "name": "E2E Utils Test - single-input AfterAll passthrough",
+    "description": "End-to-end test for appmixer.utils.test - covers AfterAll's single-input passthrough branch (one connected source, no aggregation) with a multi-clause Assert, and the ProcessE2EResults success-store write.",
+    "type": "automation",
+    "flow": {
+        "a0e893f0-cef1-4e3b-af4f-b65062e52a8e": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "On Start",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "82db737b-f51e-40ed-a418-38f883832e77": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "label": "Set Variables",
+            "x": 288,
+            "y": 16,
+            "source": {
+                "in": {
+                    "a0e893f0-cef1-4e3b-af4f-b65062e52a8e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0e893f0-cef1-4e3b-af4f-b65062e52a8e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "marker",
+                                                "text": "utils-test-passthrough"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "129304d4-6e78-4f9a-80ca-520cd7539b0a": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert marker and start time",
+            "x": 512,
+            "y": 16,
+            "source": {
+                "in": {
+                    "82db737b-f51e-40ed-a418-38f883832e77": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "82db737b-f51e-40ed-a418-38f883832e77": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-marker": {
+                                            "variable": "$.82db737b-f51e-40ed-a418-38f883832e77.out.marker",
+                                            "functions": []
+                                        },
+                                        "ref-started": {
+                                            "variable": "$.a0e893f0-cef1-4e3b-af4f-b65062e52a8e.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-marker}}}",
+                                                "assertion": "equal",
+                                                "expected": "utils-test-passthrough",
+                                                "type": "string",
+                                                "label": "SetVariable marker reaches the Assert unchanged"
+                                            },
+                                            {
+                                                "field": "{{{ref-started}}}",
+                                                "assertion": "notEmpty",
+                                                "label": "OnStart start time is not empty"
+                                            },
+                                            {
+                                                "field": "{{{ref-started}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T",
+                                                "label": "OnStart start time is an ISO 8601 timestamp"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d50603b6-3298-4f95-87d3-bc8388e05abe": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "After All",
+            "x": 736,
+            "y": 16,
+            "source": {
+                "in": {
+                    "129304d4-6e78-4f9a-80ca-520cd7539b0a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b171fc2a-fe2f-4133-9026-9bd57082b834": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "Process E2E Results",
+            "x": 960,
+            "y": 16,
+            "source": {
+                "in": {
+                    "d50603b6-3298-4f95-87d3-bc8388e05abe": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "d50603b6-3298-4f95-87d3-bc8388e05abe": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "ref-result": {
+                                            "variable": "$.d50603b6-3298-4f95-87d3-bc8388e05abe.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Utils Test - single-input AfterAll passthrough",
+                                    "result": "{{{ref-result}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

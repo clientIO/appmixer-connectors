@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 function buildProduct(productInfo) {
 
@@ -29,7 +29,14 @@ module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context.auth);
+        const shopify = commons.getShopifyAPI(context);
+
+        if (!context.messages.in.content.title) {
+
+            throw new context.CancelError('Title is required!');
+
+        }
+
 
         const productData = buildProduct(context.messages.in.content);
 

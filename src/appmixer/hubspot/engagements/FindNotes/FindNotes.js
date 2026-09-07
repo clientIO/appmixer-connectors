@@ -30,6 +30,10 @@ module.exports = {
             return lib.getOutputPortOptions(context, outputType, schema, { label: 'results', value: 'results' });
         }
 
+        if (!query) {
+            throw new context.CancelError('Query is required!');
+        }
+
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 

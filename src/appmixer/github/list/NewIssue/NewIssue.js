@@ -50,5 +50,28 @@ module.exports = {
         }
 
         await context.saveState({ known: Array.from(actual) });
+    },
+
+    async test(context) {
+
+        let { repositoryId, includePr = false, state = 'all', labels = [] } = context.properties;
+
+        // Mirror the same query-building branch as tick(), honoring the configured filters.
+        const normalizedLabels = labels ? lib.normalizeMultiselectInput(labels, context, 'Labels') : [];
+
+        const query = [
+            `repo:${repositoryId}`,
+            normalizedLabels.length ? `label:${normalizedLabels.map(label => `"${label}"`).join(',')}` : '',
+            state !== 'all' ? `state:${state}` : '',
+            !includePr ? 'is:issue' : ''
+        ].filter(Boolean).join('+');
+
+        const issue = await lib.fetchLatest(context, `search/issues?q=${query}`, {
+            params: { sort: 'created', order: 'desc' }
+        });
+        if (!issue) {
+            throw new Error('No recent issues to use as test data.');
+        }
+        return context.sendJson(issue, 'issue');
     }
 };

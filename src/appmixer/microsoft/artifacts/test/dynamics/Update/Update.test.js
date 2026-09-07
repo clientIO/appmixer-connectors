@@ -16,7 +16,7 @@ describe('Update components', function() {
         beforeEach(function() {
 
             // Set properties to generate output port options.
-            context.messages = { in: { content: { firstname: 'foo' } } };
+            context.messages = { in: { content: { firstname: 'foo', id: 'testId' } } };
             context.properties = {};
         });
 

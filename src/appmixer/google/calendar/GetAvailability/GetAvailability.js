@@ -12,6 +12,16 @@ module.exports = {
 
         const { calendarId, startTime, endTime, eventTypes } = context.messages.in.content;
 
+        if (!calendarId) {
+            throw new context.CancelError('Calendar is required!');
+        }
+        if (!startTime) {
+            throw new context.CancelError('Start time is required!');
+        }
+        if (!endTime) {
+            throw new context.CancelError('End time is required!');
+        }
+
         // Fetch all events in the given time range
         const payload = {
             auth: commons.getOauth2Client(context.auth),

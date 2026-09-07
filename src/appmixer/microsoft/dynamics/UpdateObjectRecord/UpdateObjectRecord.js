@@ -1,9 +1,14 @@
 const _ = require('lodash');
-const { generateInspector } = require('../dynamics-commons');
+const { getEntitySetName, generateInspector, DEFAULT_ENTITIES } = require('../dynamics-commons');
 
 module.exports = {
 
     async receive(context) {
+
+        // Source for the Object Name typeahead - just the curated default entities, no API call.
+        if (context.properties.listDefaultEntities) {
+            return context.sendJson(DEFAULT_ENTITIES, 'out');
+        }
 
         if (context.properties.generateInspector) {
             const inPort = await generateInspector(context, 'IsValidForUpdate');
@@ -11,6 +16,13 @@ module.exports = {
         }
 
         const { id, json, rawJson, objectName } = context.messages.in.content;
+
+        if (!objectName) {
+            throw new context.CancelError('Object Name is required!');
+        }
+        if (!id) {
+            throw new context.CancelError('ID is required!');
+        }
 
         let objectRecord;
 
@@ -37,9 +49,12 @@ module.exports = {
             }
         }
 
+        // Resolve the real collection segment from metadata - a naive `${objectName}s`
+        // breaks for irregular plurals (opportunity -> opportunities).
+        const entitySet = await getEntitySetName(context, objectName);
+
         const options = {
-            // TODO: Make the url construction more robust.
-            url: `${context.resource || context.auth.resource}/api/data/v9.2/${objectName}s(${id})`,
+            url: `${context.resource || context.auth.resource}/api/data/v9.2/${entitySet}(${id})`,
             method: 'PATCH',
             headers: {
                 Authorization: `Bearer ${context.auth?.accessToken || context.accessToken}`,
@@ -49,7 +64,6 @@ module.exports = {
             data: objectRecord
         };
 
-        await context.log({ step: 'Making request', options });
         try {
             const { data, headers, status, statusText } = await context.httpRequest(options);
 

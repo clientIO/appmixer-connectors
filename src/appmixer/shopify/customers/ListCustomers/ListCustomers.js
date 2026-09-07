@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 /**
  * List all customers.
@@ -9,7 +9,7 @@ module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context.auth);
+        const shopify = commons.getShopifyAPI(context);
 
         const params = {
             limit: 50

@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 /**
  * @extends {Component}
@@ -21,5 +21,18 @@ module.exports = {
     async stop(context) {
 
         return commons.unregisterWebhook(context);
+    },
+
+    async test(context) {
+
+        const deleted = await commons.fetchLatestDeleteExample(context, {
+            resource: 'customer',
+            topic: 'customers/delete',
+            params: { order: 'created_at DESC' }
+        });
+        if (!deleted) {
+            throw new Error('No customers to use as test data.');
+        }
+        return context.sendJson(deleted, 'deleted');
     }
 };

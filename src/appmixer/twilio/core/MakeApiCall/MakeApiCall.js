@@ -35,12 +35,15 @@ module.exports = {
 
         const credentials = Buffer.from(`${context.auth.accountSID}:${context.auth.authenticationToken}`).toString('base64');
 
+        // Twilio's REST API expects request bodies as application/x-www-form-urlencoded,
+        // not JSON. context.httpRequest serializes a plain object body according to this
+        // Content-Type. A user can still override the Content-Type via the Headers input.
         const requestOptions = {
             method,
             url: targetUrl,
             headers: {
                 'Authorization': `Basic ${credentials}`,
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 ...extraHeaders
             }
         };

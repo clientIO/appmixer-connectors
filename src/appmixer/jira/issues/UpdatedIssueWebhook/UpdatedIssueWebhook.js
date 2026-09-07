@@ -34,5 +34,16 @@ module.exports = {
         }
 
         return context.response();
+    },
+
+    async test(context) {
+
+        // No webhook registration: fetch the most recently updated issue and reshape
+        // it into the same payload receive() emits (the issue object + webhookEvent).
+        const issue = await commons.fetchLatestIssue(context, { orderBy: 'updated' });
+        if (!issue) {
+            throw new Error('No recently updated issues to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookShape(issue, commons.EventType.issueUpdated), 'issue');
     }
 };

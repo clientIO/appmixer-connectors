@@ -21,6 +21,12 @@ class ContactCreated extends ZohoNotifiable {
         }
 
     }
+
+    async test(context) {
+
+        const contact = await this.fetchLatestExample(context, 'Contacts', 'Created_Time');
+        return context.sendJson(contact, 'contact');
+    }
 }
 
 const events = [

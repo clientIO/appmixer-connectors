@@ -1,5 +1,5 @@
 'use strict';
-const { sendArrayOutput } = require('../../commons');
+const { sendArrayOutput, withCache } = require('../../commons');
 
 const outputPortName = 'tenants';
 
@@ -14,20 +14,25 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        const tenants = await context.httpRequest({
-            url: 'https://api.xero.com/connections',
-            method: 'GET',
-            headers: {
-                authorization: `Bearer ${context.accessToken || context.auth?.accessToken}`,
-                accept: 'application/json'
-            }
+        // Cache the tenant list: ListTenants backs the Tenant ID dropdown of ~20 components, so every
+        // inspector open of any Xero component fires this. See commons.withCache for details.
+        const records = await withCache(context, { url: '/connections' }, async () => {
+            const tenants = await context.httpRequest({
+                url: 'https://api.xero.com/connections',
+                method: 'GET',
+                headers: {
+                    authorization: `Bearer ${context.accessToken || context.auth?.accessToken}`,
+                    accept: 'application/json'
+                }
+            });
+            return tenants.data;
         });
 
         return sendArrayOutput({
             context,
             outputPortName,
             outputType,
-            records: tenants.data
+            records
         });
     },
 

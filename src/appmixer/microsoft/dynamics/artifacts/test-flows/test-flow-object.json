@@ -1,0 +1,837 @@
+{
+    "flow": {
+        "d636528f-e7f5-4f66-b26c-e4d63a9e90bc": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 80,
+            "y": 144,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "db7fbead-036e-446f-ae43-3c6f786a3d30": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 960,
+            "y": 304,
+            "source": {
+                "in": {
+                    "dd438669-843e-49a9-a242-ca59c237604c": [
+                        "emptyResult"
+                    ],
+                    "02850374-2ceb-4ca9-84b4-4e0af3a0a6f6": [
+                        "out"
+                    ],
+                    "69c85c34-fa2e-4ea5-9010-1e03aa2d7786": [
+                        "out"
+                    ],
+                    "6ae1fd39-4511-40b6-9d4a-8a2f63cea319": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 30
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1b7996eb-4be9-4783-9edd-149284dc0a27": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1072,
+            "y": 304,
+            "source": {
+                "in": {
+                    "db7fbead-036e-446f-ae43-3c6f786a3d30": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "db7fbead-036e-446f-ae43-3c6f786a3d30": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "7f6c8865-4f2f-4139-83f6-1702505afa74": {
+                                            "variable": "$.db7fbead-036e-446f-ae43-3c6f786a3d30.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E - Microsoft Dynamics Sales/CRM - *ObjectRecord",
+                                    "result": "{{{7f6c8865-4f2f-4139-83f6-1702505afa74}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "651159f3-a81e-49b1-9dcc-74769b28ca0b": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 224,
+            "y": 144,
+            "source": {
+                "in": {
+                    "d636528f-e7f5-4f66-b26c-e4d63a9e90bc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "label": "SetVariable subject",
+            "config": {
+                "transform": {
+                    "in": {
+                        "d636528f-e7f5-4f66-b26c-e4d63a9e90bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "subject",
+                                                "toggle": false,
+                                                "text": "5 iPhones 📱"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "lastname",
+                                                "text": "Hofman"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4a9fa576-45fb-4e43-9753-e148775fcd24": {
+            "type": "appmixer.microsoft.dynamics.MakeApiCall",
+            "x": 400,
+            "y": 144,
+            "version": "1.0.1",
+            "label": "MakeApiCall POST lead 1 (test data)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "651159f3-a81e-49b1-9dcc-74769b28ca0b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "7421c4b5-a592-4d0c-8364-ee1671c7ecdd": {
+                                            "variable": "$.651159f3-a81e-49b1-9dcc-74769b28ca0b.out.subject",
+                                            "functions": []
+                                        },
+                                        "d40c0109-ad13-47d6-99eb-aa7eb1065dc3": {
+                                            "variable": "$.651159f3-a81e-49b1-9dcc-74769b28ca0b.out.lastname",
+                                            "functions": []
+                                        }
+                                    },
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "/api/data/v9.2/leads",
+                                    "method": "POST",
+                                    "body": "{\n\"subject\":\"{{{7421c4b5-a592-4d0c-8364-ee1671c7ecdd}}}\",\n\"lastname\":\"{{{d40c0109-ad13-47d6-99eb-aa7eb1065dc3}}} 1\"\n}",
+                                    "headers": "[{\"key\": \"Prefer\", \"value\": \"return=representation\"}]"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "source": {
+                "in": {
+                    "651159f3-a81e-49b1-9dcc-74769b28ca0b": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "17e7381b-80bf-4877-add7-018bcfd69dd9": {
+            "type": "appmixer.microsoft.dynamics.MakeApiCall",
+            "x": 608,
+            "y": 144,
+            "source": {
+                "in": {
+                    "4a9fa576-45fb-4e43-9753-e148775fcd24": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "transform": {
+                    "in": {
+                        "4a9fa576-45fb-4e43-9753-e148775fcd24": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "6c0d1d3e-9a5c-4dcf-9a4f-9e4cbc314a13": {
+                                            "variable": "$.651159f3-a81e-49b1-9dcc-74769b28ca0b.out.lastname",
+                                            "functions": []
+                                        },
+                                        "1b8133ca-ed41-40f8-b8d4-2904686b1979": {
+                                            "variable": "$.651159f3-a81e-49b1-9dcc-74769b28ca0b.out.subject",
+                                            "functions": []
+                                        }
+                                    },
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "/api/data/v9.2/leads",
+                                    "method": "POST",
+                                    "body": "{\n\"companyname\": \"Zenithal\",\n\"firstname\": \"Jiří\",\n\"lastname\": \"{{{6c0d1d3e-9a5c-4dcf-9a4f-9e4cbc314a13}}} 2\",\n\"subject\": \"{{{1b8133ca-ed41-40f8-b8d4-2904686b1979}}}\",\n\"budgetamount\": 1001,\n\"budgetstatus\": 2\n}",
+                                    "headers": "[{\"key\": \"Prefer\", \"value\": \"return=representation\"}]"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "label": "MakeApiCall POST lead 2 (test data)",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ca43f7a6-6c8c-4211-a006-36660b973e23": {
+            "type": "appmixer.microsoft.dynamics.DeleteObjectRecord",
+            "x": 608,
+            "y": 288,
+            "version": "1.0.1",
+            "config": {
+                "transform": {
+                    "in": {
+                        "add0ab66-e54d-4a53-9129-870aeb572685": {
+                            "emptyResult": {
+                                "lambda": {
+                                    "objectName": "lead",
+                                    "id": "{{{962948c2-e356-4a3e-8857-3e6d789f88c7}}}"
+                                },
+                                "modifiers": {
+                                    "objectName": {},
+                                    "id": {
+                                        "962948c2-e356-4a3e-8857-3e6d789f88c7": {
+                                            "variable": "$.4a9fa576-45fb-4e43-9753-e148775fcd24.out.response",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.leadid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "label": "Delete object - rawJson",
+            "source": {
+                "in": {
+                    "add0ab66-e54d-4a53-9129-870aeb572685": [
+                        "emptyResult"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "94fcd2a7-b53e-45cc-b50f-075178820560": {
+            "type": "appmixer.microsoft.dynamics.DeleteObjectRecord",
+            "x": 608,
+            "y": 432,
+            "source": {
+                "in": {
+                    "9e1ebc25-f50f-441b-9a47-8c6fe496333a": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9e1ebc25-f50f-441b-9a47-8c6fe496333a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectName": {},
+                                    "id": {
+                                        "ef99a7df-db92-454b-8bd2-511801442bee": {
+                                            "variable": "$.9e1ebc25-f50f-441b-9a47-8c6fe496333a.out.leadid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectName": "lead",
+                                    "id": "{{{ef99a7df-db92-454b-8bd2-511801442bee}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "label": "Delete object - fields",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5d084ea6-1250-4e77-881d-465211427456": {
+            "type": "appmixer.microsoft.dynamics.ListLeads",
+            "x": 224,
+            "y": 288,
+            "source": {
+                "in": {
+                    "17e7381b-80bf-4877-add7-018bcfd69dd9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "17e7381b-80bf-4877-add7-018bcfd69dd9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {},
+                                    "subject": {
+                                        "7949df91-7580-4cf9-8314-63ad482d567e": {
+                                            "variable": "$.651159f3-a81e-49b1-9dcc-74769b28ca0b.out.subject",
+                                            "functions": []
+                                        }
+                                    },
+                                    "orderBy": {},
+                                    "maxRecords": {}
+                                },
+                                "lambda": {
+                                    "outputType": "object",
+                                    "subject": "{{{7949df91-7580-4cf9-8314-63ad482d567e}}}",
+                                    "orderBy": "lastname desc,subject",
+                                    "maxRecords": 1
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "label": "List Leads - all",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "add0ab66-e54d-4a53-9129-870aeb572685": {
+            "type": "appmixer.microsoft.dynamics.ListLeads",
+            "x": 400,
+            "y": 272,
+            "source": {
+                "in": {
+                    "5d084ea6-1250-4e77-881d-465211427456": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5d084ea6-1250-4e77-881d-465211427456": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {},
+                                    "firstname": {},
+                                    "lastname": {},
+                                    "fullname": {},
+                                    "subject": {},
+                                    "companyname": {},
+                                    "email": {},
+                                    "address": {},
+                                    "maxRecords": {}
+                                },
+                                "lambda": {
+                                    "outputType": "array",
+                                    "firstname": "foo",
+                                    "lastname": "foo",
+                                    "fullname": "foo",
+                                    "subject": "foo",
+                                    "companyname": "foo",
+                                    "email": "foo",
+                                    "address": "foo",
+                                    "maxRecords": 3
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "label": "List Leads - nothing",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "be00e514-0490-41c2-bac2-6604a93e22b1": {
+            "type": "appmixer.microsoft.dynamics.ListLeads",
+            "x": 80,
+            "y": 448,
+            "source": {
+                "in": {
+                    "ca43f7a6-6c8c-4211-a006-36660b973e23": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "label": "List Leads - 2nd only",
+            "config": {
+                "transform": {
+                    "in": {
+                        "ca43f7a6-6c8c-4211-a006-36660b973e23": {
+                            "out": {
+                                "lambda": {
+                                    "outputType": "object",
+                                    "subject": "{{{84309ec7-1598-4525-a2c4-95914c9d32c0}}}"
+                                },
+                                "modifiers": {
+                                    "outputType": {},
+                                    "subject": {
+                                        "84309ec7-1598-4525-a2c4-95914c9d32c0": {
+                                            "variable": "$.651159f3-a81e-49b1-9dcc-74769b28ca0b.out.subject",
+                                            "functions": []
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "67a2e3ec-f342-487a-b57e-945c0b2f11fd": {
+            "type": "appmixer.microsoft.dynamics.MakeApiCall",
+            "x": 224,
+            "y": 432,
+            "source": {
+                "in": {
+                    "be00e514-0490-41c2-bac2-6604a93e22b1": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "transform": {
+                    "in": {
+                        "be00e514-0490-41c2-bac2-6604a93e22b1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "32825834-fa5d-4d74-b6f2-3f5aa804ea99": {
+                                            "variable": "$.be00e514-0490-41c2-bac2-6604a93e22b1.out.leadid",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/api/data/v9.2/leads({{{32825834-fa5d-4d74-b6f2-3f5aa804ea99}}})",
+                                    "method": "PATCH",
+                                    "body": "{\"companyname\": \"client.io - updated\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "MakeApiCall PATCH lead (update companyname)"
+        },
+        "9e1ebc25-f50f-441b-9a47-8c6fe496333a": {
+            "type": "appmixer.microsoft.dynamics.GetObjectRecord",
+            "x": 400,
+            "y": 432,
+            "source": {
+                "in": {
+                    "67a2e3ec-f342-487a-b57e-945c0b2f11fd": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "transform": {
+                    "in": {
+                        "67a2e3ec-f342-487a-b57e-945c0b2f11fd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectName": {},
+                                    "id": {
+                                        "da3f0854-d6fa-46c2-aa18-1a6333d83b16": {
+                                            "variable": "$.be00e514-0490-41c2-bac2-6604a93e22b1.out.leadid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectName": "lead",
+                                    "id": "{{{da3f0854-d6fa-46c2-aa18-1a6333d83b16}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "dd438669-843e-49a9-a242-ca59c237604c": {
+            "type": "appmixer.microsoft.dynamics.ListLeads",
+            "x": 80,
+            "y": 576,
+            "source": {
+                "in": {
+                    "94fcd2a7-b53e-45cc-b50f-075178820560": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "94fcd2a7-b53e-45cc-b50f-075178820560": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {},
+                                    "subject": {
+                                        "1fc35bc8-72e4-4a91-9830-2b359b84ef96": {
+                                            "variable": "$.651159f3-a81e-49b1-9dcc-74769b28ca0b.out.subject",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "outputType": "object",
+                                    "subject": "{{{1fc35bc8-72e4-4a91-9830-2b359b84ef96}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "label": "List Leads - all",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "02850374-2ceb-4ca9-84b4-4e0af3a0a6f6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 768,
+            "y": 368,
+            "version": "1.0.0",
+            "label": "Assert Get Object updated",
+            "source": {
+                "in": {
+                    "0d61206e-271a-4d3a-ba1e-e721d74f6e43": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0d61206e-271a-4d3a-ba1e-e721d74f6e43": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "066fac1a-d3c0-4f7f-b145-64b07a85b989": {
+                                            "variable": "$.0d61206e-271a-4d3a-ba1e-e721d74f6e43.out.companyname",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{066fac1a-d3c0-4f7f-b145-64b07a85b989}}}",
+                                                "expected": "client.io - updated"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "69c85c34-fa2e-4ea5-9010-1e03aa2d7786": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 768,
+            "y": 64,
+            "source": {
+                "in": {
+                    "17e7381b-80bf-4877-add7-018bcfd69dd9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "label": "Assert Create Object 2nd",
+            "config": {
+                "transform": {
+                    "in": {
+                        "17e7381b-80bf-4877-add7-018bcfd69dd9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0522cd40-1cf5-4256-bf1e-200f6ca26e71": {
+                                            "variable": "$.17e7381b-80bf-4877-add7-018bcfd69dd9.out.status",
+                                            "functions": []
+                                        },
+                                        "992b86f6-ad02-4800-b95b-931acfbe09cc": {
+                                            "variable": "$.17e7381b-80bf-4877-add7-018bcfd69dd9.out.response",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.leadid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "expected": "201",
+                                                "assertion": "equal",
+                                                "field": "{{{0522cd40-1cf5-4256-bf1e-200f6ca26e71}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{992b86f6-ad02-4800-b95b-931acfbe09cc}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6ae1fd39-4511-40b6-9d4a-8a2f63cea319": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 768,
+            "y": 208,
+            "source": {
+                "in": {
+                    "5d084ea6-1250-4e77-881d-465211427456": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "label": "Assert List Leads - leadid",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5d084ea6-1250-4e77-881d-465211427456": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "8b88d466-01dd-4130-9f0a-ca2ab25e6790": {
+                                            "variable": "$.5d084ea6-1250-4e77-881d-465211427456.out.leadid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{8b88d466-01dd-4130-9f0a-ca2ab25e6790}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0d61206e-271a-4d3a-ba1e-e721d74f6e43": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 576,
+            "y": 432,
+            "source": {
+                "in": {
+                    "9e1ebc25-f50f-441b-9a47-8c6fe496333a": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "label": "SetVariable get companyname",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9e1ebc25-f50f-441b-9a47-8c6fe496333a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "08f675e4-ed56-495a-8456-4e088559523b": {
+                                            "functions": [],
+                                            "variable": "$.9e1ebc25-f50f-441b-9a47-8c6fe496333a.out.companyname"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "companyname",
+                                                "text": "{{{08f675e4-ed56-495a-8456-4e088559523b}}}",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E - Microsoft Dynamics Sales/CRM - *ObjectRecord",
+    "notes": {},
+    "type": "automation"
+}

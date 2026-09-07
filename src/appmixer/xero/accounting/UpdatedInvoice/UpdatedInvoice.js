@@ -1,6 +1,6 @@
 'use strict';
 
-const { webhookHandler } = require('../../commons');
+const { webhookHandler, fetchLatestExample } = require('../../commons');
 
 module.exports = {
 
@@ -25,5 +25,11 @@ module.exports = {
         await webhookHandler(context, '/api.xro/2.0/Invoices');
 
         return context.response();
+    },
+
+    test: async function(context) {
+
+        const record = await fetchLatestExample(context, '/api.xro/2.0/Invoices');
+        return context.sendJson(record, 'out');
     }
 };

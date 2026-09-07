@@ -9,7 +9,8 @@ function processFiles(knownFiles, currentFiles, newFiles, file) {
     currentFiles.push(file['id']);
 }
 
-async function sync(context) {
+// Shared by sync() (production) and test() (Flow Test Mode): the list_folder request.
+async function listEntries(context) {
 
     let params = {
         path: context.properties.path || '',
@@ -25,13 +26,20 @@ async function sync(context) {
         JSON.stringify(params)
     );
 
+    return data['entries'];
+}
+
+async function sync(context) {
+
+    const entries = await listEntries(context);
+
     let known = Array.isArray(context.state.known)
         ? new Set(context.state.known)
         : null;
     let current = [];
     let diff = [];
 
-    data['entries'].forEach(file => {
+    entries.forEach(file => {
         processFiles(known, current, diff, file);
     });
 
@@ -53,5 +61,23 @@ module.exports = {
         await Promise.map(diff, (file) => {
             return context.sendJson(file, 'newFile');
         });
+    },
+
+    // Flow Test Mode: emit one representative file using the SAME request path as tick(),
+    // but WITHOUT the start()/state baseline that suppresses first-run output.
+    async test(context) {
+
+        const entries = await listEntries(context);
+        const files = entries.filter(entry => entry['.tag'] === 'file');
+        if (!files.length) {
+            throw new Error('No files found to use as test data.');
+        }
+
+        // Newest first by server_modified, matching the shape tick() emits.
+        files.sort((a, b) => {
+            return new Date(b['server_modified'] || 0) - new Date(a['server_modified'] || 0);
+        });
+
+        return context.sendJson(files[0], 'newFile');
     }
 };

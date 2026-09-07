@@ -1,418 +1,404 @@
 {
-  "flow": {
-    "on-start": {
-      "type": "appmixer.utils.controls.OnStart",
-      "x": 64,
-      "y": 16,
-      "source": {},
-      "version": "1.0.0",
-      "config": {}
-    },
-    "before-all": {
-      "type": "appmixer.utils.test.BeforeAll",
-      "x": 256,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "on-start": [
-            "out"
-          ]
-        }
-      },
-      "config": {}
-    },
-    "create-company": {
-      "type": "appmixer.freshdesk.companies.CreateCompany",
-      "x": 640,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "gen-ts": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "gen-ts": {
-              "out": {
-                "type": "json2new",
-                "modifiers": {
-                  "name": {
-                    "6d4eb06b-4fff-439d-90a6-090b3a518da7": {
-                      "variable": "$.gen-ts.out.result",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "name": "{{{6d4eb06b-4fff-439d-90a6-090b3a518da7}}}"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "get-company": {
-      "type": "appmixer.freshdesk.companies.GetCompany",
-      "x": 1024,
-      "y": 144,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "create-company": [
-            "company"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "create-company": {
-              "company": {
-                "type": "json2new",
-                "modifiers": {
-                  "companyId": {
-                    "13d8b68c-efd4-4123-88ff-ee8214243f97": {
-                      "variable": "$.create-company.company.id",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "companyId": "{{{13d8b68c-efd4-4123-88ff-ee8214243f97}}}"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "update-company": {
-      "type": "appmixer.freshdesk.companies.UpdateCompany",
-      "x": 1168,
-      "y": 400,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "get-company": [
-            "company"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "get-company": {
-              "company": {
-                "type": "json2new",
-                "modifiers": {
-                  "name": {
-                    "972e32ae-47f4-432a-a40b-09db70504881": {
-                      "variable": "$.gen-ts.out.result",
-                      "functions": []
-                    }
-                  },
-                  "companyId": {
-                    "2289c993-c683-4717-826f-95652386f1c4": {
-                      "variable": "$.create-company.company.id",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "name": "{{{972e32ae-47f4-432a-a40b-09db70504881}}} Updated",
-                  "companyId": "{{{2289c993-c683-4717-826f-95652386f1c4}}}"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "assert-create": {
-      "type": "appmixer.utils.test.Assert",
-      "x": 1408,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "create-company": [
-            "company"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "create-company": {
-              "company": {
-                "type": "json2new",
-                "modifiers": {
-                  "expression": {
-                    "7ffe8505-c9ed-4897-acd9-9d783e211c07": {
-                      "variable": "$.create-company.company.id",
-                      "functions": []
-                    },
-                    "18b08b59-6f5b-4447-8584-ec730a335fe5": {
-                      "variable": "$.create-company.company.name",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "expression": {
-                    "AND": [
-                      {
-                        "assertion": "notEmpty",
-                        "field": "{{{7ffe8505-c9ed-4897-acd9-9d783e211c07}}}"
-                      },
-                      {
-                        "assertion": "notEmpty",
-                        "field": "{{{18b08b59-6f5b-4447-8584-ec730a335fe5}}}"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "assert-get": {
-      "type": "appmixer.utils.test.Assert",
-      "x": 1408,
-      "y": 272,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "get-company": [
-            "company"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "get-company": {
-              "company": {
-                "type": "json2new",
-                "modifiers": {
-                  "expression": {
-                    "a2116d34-9faa-438e-9ebf-13317349d1b9": {
-                      "variable": "$.create-company.company.id",
-                      "functions": []
-                    },
-                    "aa1204cd-eac6-46a2-b275-f8eb164360e4": {
-                      "variable": "$.get-company.company.id",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "expression": {
-                    "AND": [
-                      {
-                        "assertion": "equal",
-                        "field": "{{{a2116d34-9faa-438e-9ebf-13317349d1b9}}}",
-                        "expected": "{{{aa1204cd-eac6-46a2-b275-f8eb164360e4}}}"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "assert-update": {
-      "type": "appmixer.utils.test.Assert",
-      "x": 1408,
-      "y": 400,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "update-company": [
-            "company"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "update-company": {
-              "company": {
-                "type": "json2new",
-                "modifiers": {
-                  "expression": {
-                    "303c929d-bfe4-487a-a0c8-05148a8ed4c6": {
-                      "variable": "$.update-company.company.name",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "expression": {
-                    "AND": [
-                      {
-                        "assertion": "notEmpty",
-                        "field": "{{{303c929d-bfe4-487a-a0c8-05148a8ed4c6}}}"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "after-all": {
-      "type": "appmixer.utils.test.AfterAll",
-      "x": 1600,
-      "y": 272,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "assert-create": [
-            "out"
-          ],
-          "assert-get": [
-            "out"
-          ],
-          "assert-update": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "properties": {
-          "timeout": 30
-        }
-      }
-    },
-    "delete-company": {
-      "type": "appmixer.freshdesk.companies.DeleteCompany",
-      "x": 1792,
-      "y": 272,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "after-all": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "after-all": {
-              "out": {
-                "type": "json2new",
-                "modifiers": {
-                  "companyId": {
-                    "5e1822ae-e31d-4ff7-924c-4b846e9be7d4": {
-                      "variable": "$.create-company.company.id",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "companyId": "{{{5e1822ae-e31d-4ff7-924c-4b846e9be7d4}}}"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "process-results": {
-      "type": "appmixer.utils.test.ProcessE2EResults",
-      "x": 1984,
-      "y": 272,
-      "version": "1.0.1",
-      "source": {
-        "in": {
-          "delete-company": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "properties": {
-          "successStoreId": "69cd26f6e2b144c4b022fd1e",
-          "failedStoreId": "69cd26f6e92e34e939fd2d1a"
+    "flow": {
+        "on-start": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {}
         },
-        "transform": {
-          "in": {
-            "delete-company": {
-              "out": {
-                "type": "json2new",
-                "modifiers": {
-                  "recipients": {},
-                  "testCase": {},
-                  "result": {
-                    "result-var": {
-                      "variable": "$.after-all.out",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "recipients": "david.durman@appmixer.ai",
-                  "testCase": "E2E Freshdesk - Company Lifecycle",
-                  "result": "{{{result-var}}}"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "gen-ts": {
-      "type": "appmixer.utils.controls.CodeBlock",
-      "x": 448,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "before-all": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "before-all": {
-              "out": {
-                "type": "json2new",
-                "modifiers": {
-                  "code": {},
-                  "variables": {}
-                },
-                "lambda": {
-                  "code": "'E2E Test Company ' + Date.now()",
-                  "variables": {
-                    "ADD": [
-                      {
-                        "type": "text",
-                        "toggle": false
-                      }
+        "create-company": {
+            "type": "appmixer.freshdesk.companies.CreateCompany",
+            "x": 640,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "gen-ts": [
+                        "out"
                     ]
-                  }
                 }
-              }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "gen-ts": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "6d4eb06b-4fff-439d-90a6-090b3a518da7": {
+                                            "variable": "$.gen-ts.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "name": "{{{6d4eb06b-4fff-439d-90a6-090b3a518da7}}}"
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
+        },
+        "get-company": {
+            "type": "appmixer.freshdesk.companies.GetCompany",
+            "x": 1024,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-company": [
+                        "company"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-company": {
+                            "company": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "companyId": {
+                                        "13d8b68c-efd4-4123-88ff-ee8214243f97": {
+                                            "variable": "$.create-company.company.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "companyId": "{{{13d8b68c-efd4-4123-88ff-ee8214243f97}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "update-company": {
+            "type": "appmixer.freshdesk.companies.UpdateCompany",
+            "x": 1168,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "get-company": [
+                        "company"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "get-company": {
+                            "company": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "972e32ae-47f4-432a-a40b-09db70504881": {
+                                            "variable": "$.gen-ts.out.result",
+                                            "functions": []
+                                        }
+                                    },
+                                    "companyId": {
+                                        "2289c993-c683-4717-826f-95652386f1c4": {
+                                            "variable": "$.create-company.company.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "name": "{{{972e32ae-47f4-432a-a40b-09db70504881}}} Updated",
+                                    "companyId": "{{{2289c993-c683-4717-826f-95652386f1c4}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-create": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1408,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-company": [
+                        "company"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-company": {
+                            "company": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7ffe8505-c9ed-4897-acd9-9d783e211c07": {
+                                            "variable": "$.create-company.company.id",
+                                            "functions": []
+                                        },
+                                        "18b08b59-6f5b-4447-8584-ec730a335fe5": {
+                                            "variable": "$.create-company.company.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{7ffe8505-c9ed-4897-acd9-9d783e211c07}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{18b08b59-6f5b-4447-8584-ec730a335fe5}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-get": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1408,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "get-company": [
+                        "company"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "get-company": {
+                            "company": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a2116d34-9faa-438e-9ebf-13317349d1b9": {
+                                            "variable": "$.create-company.company.id",
+                                            "functions": []
+                                        },
+                                        "aa1204cd-eac6-46a2-b275-f8eb164360e4": {
+                                            "variable": "$.get-company.company.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{a2116d34-9faa-438e-9ebf-13317349d1b9}}}",
+                                                "expected": "{{{aa1204cd-eac6-46a2-b275-f8eb164360e4}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-update": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1408,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "update-company": [
+                        "company"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "update-company": {
+                            "company": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "303c929d-bfe4-487a-a0c8-05148a8ed4c6": {
+                                            "variable": "$.update-company.company.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{303c929d-bfe4-487a-a0c8-05148a8ed4c6}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1600,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "assert-create": [
+                        "out"
+                    ],
+                    "assert-get": [
+                        "out"
+                    ],
+                    "assert-update": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 30
+                }
+            }
+        },
+        "delete-company": {
+            "type": "appmixer.freshdesk.companies.DeleteCompany",
+            "x": 1792,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "after-all": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "companyId": {
+                                        "5e1822ae-e31d-4ff7-924c-4b846e9be7d4": {
+                                            "variable": "$.create-company.company.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "companyId": "{{{5e1822ae-e31d-4ff7-924c-4b846e9be7d4}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1984,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "delete-company": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "69cd26f6e2b144c4b022fd1e",
+                    "failedStoreId": "69cd26f6e92e34e939fd2d1a"
+                },
+                "transform": {
+                    "in": {
+                        "delete-company": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.after-all.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "david.durman@appmixer.ai",
+                                    "testCase": "E2E Freshdesk - Company Lifecycle",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "gen-ts": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "x": 448,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "on-start": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "on-start": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "code": {},
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "code": "'E2E Test Company ' + Date.now()",
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "toggle": false
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }

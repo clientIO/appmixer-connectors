@@ -1,8 +1,21 @@
 'use strict';
 
 const api = require('../../api');
+const lib = require('../../lib');
 
 module.exports = {
+
+    // Flow Test Mode: fetch the newest work item read-only and wrap it in the
+    // workitem.created service-hook payload receive() forwards (resource IS the
+    // work item, so receive() reads resource.fields).
+    async test(context) {
+
+        const workItem = await lib.fetchLatestWorkItem(context, { orderField: 'System.CreatedDate' });
+        if (!workItem) {
+            throw new Error('No recent work items to use as test data.');
+        }
+        return context.sendJson({ eventType: 'workitem.created', resource: workItem }, 'out');
+    },
 
     async start(context) {
 

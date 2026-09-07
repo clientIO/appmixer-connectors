@@ -1,8 +1,31 @@
 'use strict';
 
 const api = require('../../api');
+const lib = require('../../lib');
 
 module.exports = {
+
+    // Flow Test Mode: fetch the newest work item read-only and wrap it in the
+    // workitem.updated service-hook payload receive() forwards. The updated event
+    // nests the work item under resource.revision (receive() reads
+    // resource.revision.fields); resource.fields holds the changed-field diff, which
+    // isn't reproducible read-only, so it's left empty.
+    async test(context) {
+
+        const workItem = await lib.fetchLatestWorkItem(context, { orderField: 'System.ChangedDate' });
+        if (!workItem) {
+            throw new Error('No recent work items to use as test data.');
+        }
+        const resource = {
+            id: workItem.id,
+            workItemId: workItem.id,
+            rev: workItem.rev,
+            revision: workItem,
+            fields: {},
+            url: workItem.url
+        };
+        return context.sendJson({ eventType: 'workitem.updated', resource }, 'out');
+    },
 
     async start(context) {
 

@@ -33,5 +33,15 @@ module.exports = {
         }
 
         return context.saveState({ savedProjects: Array.from(actual) });
+    },
+
+    async test(context) {
+
+        // Same project listing as tick(); emit one real project as the example.
+        const project = await commons.fetchLatestProject(context);
+        if (!project) {
+            throw new Error('No projects to use as test data.');
+        }
+        return context.sendJson(project, 'project');
     }
 };

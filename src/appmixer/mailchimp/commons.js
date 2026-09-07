@@ -114,9 +114,55 @@ const unregisterWebhook = async (context) => {
     }
 };
 
+// Fetch the single newest record of a collection, sorted by creation desc. Used by
+// the polling triggers' test() (Flow Test Mode): it goes through the same
+// makeMailchimpRequest stack tick() uses, but bypasses the `since_*` baseline filter
+// (which returns nothing on a fresh flow) so it yields a real example item.
+const getLatest = async (context, endpoint, entity, sortField) => {
+
+    const data = await makeMailchimpRequest(
+        context, 'GET', `${endpoint}?count=1&sort_field=${sortField}&sort_dir=DESC`);
+    return ((data && data[entity]) || [])[0] || null;
+};
+
+// Fetch the most recently changed member of a list with the given status
+// ('subscribed' / 'unsubscribed'), for the webhook triggers' test().
+const getLatestMember = async (context, listId, status) => {
+
+    const data = await makeMailchimpRequest(
+        context, 'GET',
+        `/lists/${listId}/members?count=1&status=${status}&sort_field=last_changed&sort_dir=DESC`);
+    return ((data && data.members) || [])[0] || null;
+};
+
+// Reshape a REST member object into the flat shape receive() emits from a
+// subscribe/unsubscribe webhook body (i.e. parseData() output): the webhook's
+// data[...] keys flattened, with merge fields grouped under `merges`.
+const toSubscriberWebhookShape = (member, listId, type) => {
+
+    if (!member) {
+        return null;
+    }
+    return {
+        type,
+        fired_at: member.last_changed,
+        id: member.id,
+        list_id: member.list_id || listId,
+        email: member.email_address,
+        email_type: member.email_type,
+        ip_opt: member.ip_opt,
+        ip_signup: member.ip_signup,
+        web_id: member.web_id,
+        merges: { EMAIL: member.email_address, ...(member.merge_fields || {}) }
+    };
+};
+
 module.exports = {
     sendArrayOutput,
     parseData,
+    getLatest,
+    getLatestMember,
+    toSubscriberWebhookShape,
     lists: {
         registerWebhook,
         unregisterWebhook,

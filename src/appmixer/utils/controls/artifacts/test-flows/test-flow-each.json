@@ -1,0 +1,462 @@
+{
+    "name": "E2E Utils Controls - Each",
+    "description": "Iterates a 5-item list with the Each component on both the no-delay and delayed paths, asserts the 'done' port reports count=5 (so the loop completes \u2014 guards against the delay infinite-loop bug) and uses CallCount on the 'item' port to confirm exactly 5 items are emitted (guards against missing/duplicate items).",
+    "flow": {
+        "on-start": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {}
+        },
+        "before-all": {
+            "type": "appmixer.utils.test.BeforeAll",
+            "x": 256,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "on-start": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {}
+        },
+        "set-variables": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 448,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "before-all": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "before-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "list",
+                                                "text": "[\"alpha\",\"beta\",\"gamma\",\"delta\",\"epsilon\"]"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "expectedCount",
+                                                "text": "5"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "each-immediate": {
+            "type": "appmixer.utils.controls.Each",
+            "x": 640,
+            "y": 160,
+            "version": "1.4.7",
+            "label": "Each (no delay)",
+            "source": {
+                "in": {
+                    "set-variables": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "set-variables": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "list": {
+                                        "list-var": {
+                                            "variable": "$.set-variables.out.list",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "list": "{{{list-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "each-delayed": {
+            "type": "appmixer.utils.controls.Each",
+            "x": 640,
+            "y": 448,
+            "version": "1.4.7",
+            "label": "Each (delay 25ms)",
+            "source": {
+                "in": {
+                    "set-variables": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "set-variables": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "list": {
+                                        "list-var": {
+                                            "variable": "$.set-variables.out.list",
+                                            "functions": []
+                                        }
+                                    },
+                                    "delay": {}
+                                },
+                                "lambda": {
+                                    "list": "{{{list-var}}}",
+                                    "delay": 25
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-done-immediate": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1024,
+            "y": 48,
+            "version": "1.0.0",
+            "label": "Assert done.count == 5 (no delay)",
+            "source": {
+                "in": {
+                    "each-immediate": [
+                        "done"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "each-immediate": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "actual": {
+                                            "variable": "$.each-immediate.done.count",
+                                            "functions": []
+                                        },
+                                        "expected": {
+                                            "variable": "$.set-variables.out.expectedCount",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{actual}}}",
+                                                "expected": "{{{expected}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "count-immediate": {
+            "type": "appmixer.utils.test.CallCount",
+            "x": 832,
+            "y": 224,
+            "version": "1.0.0",
+            "label": "Count items (no delay)",
+            "source": {
+                "in": {
+                    "each-immediate": [
+                        "item"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "each-immediate": {
+                            "item": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "callCount": {}
+                                },
+                                "lambda": {
+                                    "callCount": 5
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-items-immediate": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1024,
+            "y": 224,
+            "version": "1.0.0",
+            "label": "Assert 5 items emitted (no delay)",
+            "source": {
+                "in": {
+                    "count-immediate": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "count-immediate": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "items": {
+                                            "variable": "$.count-immediate.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{items}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-done-delayed": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1024,
+            "y": 384,
+            "version": "1.0.0",
+            "label": "Assert done.count == 5 (delay)",
+            "source": {
+                "in": {
+                    "each-delayed": [
+                        "done"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "each-delayed": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "actual": {
+                                            "variable": "$.each-delayed.done.count",
+                                            "functions": []
+                                        },
+                                        "expected": {
+                                            "variable": "$.set-variables.out.expectedCount",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{actual}}}",
+                                                "expected": "{{{expected}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "count-delayed": {
+            "type": "appmixer.utils.test.CallCount",
+            "x": 832,
+            "y": 512,
+            "version": "1.0.0",
+            "label": "Count items (delay)",
+            "source": {
+                "in": {
+                    "each-delayed": [
+                        "item"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "each-delayed": {
+                            "item": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "callCount": {}
+                                },
+                                "lambda": {
+                                    "callCount": 5
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-items-delayed": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1024,
+            "y": 512,
+            "version": "1.0.0",
+            "label": "Assert 5 items emitted (delay)",
+            "source": {
+                "in": {
+                    "count-delayed": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "count-delayed": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "items": {
+                                            "variable": "$.count-delayed.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{items}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1280,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "assert-done-immediate": [
+                        "out"
+                    ],
+                    "assert-items-immediate": [
+                        "out"
+                    ],
+                    "assert-done-delayed": [
+                        "out"
+                    ],
+                    "assert-items-delayed": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1472,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "after-all": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "",
+                    "failedStoreId": ""
+                },
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.after-all.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Utils Controls - Each",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "customFields": {
+        "category": "E2E_test_flow"
+    }
+}

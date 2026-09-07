@@ -1,6 +1,7 @@
 'use strict';
 
 const api = require('../../api');
+const lib = require('../../lib');
 
 module.exports = {
     async start(context) {
@@ -31,5 +32,13 @@ module.exports = {
         await context.log({ 'step': 'rs', data });
         await context.sendJson({ data }, 'out');
         return context.response();
+    },
+
+    async test(context) {
+        const record = await lib.fetchLatestSubscription(context);
+        if (!record) {
+            throw new Error('No recent subscriptions to use as test data.');
+        }
+        return context.sendJson(lib.toWebhookShape(record, 'subscription.created'), 'out');
     }
 };

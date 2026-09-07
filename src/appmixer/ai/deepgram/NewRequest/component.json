@@ -1,0 +1,67 @@
+{
+    "name": "appmixer.ai.deepgram.NewRequest",
+    "label": "New Request",
+    "description": "Triggers when a new API request is logged for the selected Deepgram project. Polls the project request log and deduplicates by request ID.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "trigger": true,
+    "tick": true,
+    "auth": {
+        "service": "appmixer:ai:deepgram"
+    },
+    "quota": {
+        "manager": "appmixer:ai:deepgram",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "projectId": { "type": "string" }
+            },
+            "required": [
+                "projectId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "projectId": {
+                    "type": "text",
+                    "index": 1,
+                    "label": "Project",
+                    "tooltip": "The Deepgram project to monitor. Start typing to pick from your projects, or enter a project ID manually.",
+                    "source": {
+                        "url": "/component/appmixer/ai/deepgram/ListProjects?outPort=out",
+                        "data": {
+                            "transform": "./ListProjects#toSelectArray",
+                            "messages": {
+                                "in/outputType": "array",
+                                "in/isSource": true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "request_id": { "type": "string", "title": "Request ID", "example": "b1f4a0c2-9d3e-4a7b-8c1d-2e5f6a7b8c9d" },
+                    "project_uuid": { "type": "string", "title": "Project UUID", "example": "bb9e3a1c-1f4e-4c2a-9c3d-2b7f5a6e8d10" },
+                    "created": { "type": "string", "format": "date-time", "title": "Created", "example": "2026-01-15T10:30:00Z" },
+                    "path": { "type": "string", "title": "Path", "example": "/v1/listen" },
+                    "code": { "type": "integer", "title": "Response Code", "example": 200 },
+                    "callback": { "type": "string", "title": "Callback", "example": "" }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJEZWVwZ3JhbSI+CiAgICA8ZGVmcz4KICAgICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImRnLWJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMCI+CiAgICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzA1MDUwNSIvPgogICAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMxRTFFMUUiLz4KICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPC9kZWZzPgogICAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjZGctYmcpIi8+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjAwMDAwMCw0MDAuMDAwMDAwKSBzY2FsZSgwLjEwMDAwMCwtMC4xMDAwMDApIiBmaWxsPSIjRkZGRkZGIj4KICAgICAgICA8cGF0aCBkPSJNOTExIDMyMjEgYy0yMCAtMzYgLTE1IC0xMTk2IDUgLTEyMTUgMjAgLTIxIDY4MiAtMjQgNzAyIC00IDkgOSAxMiA4MCAxMiAyNjAgbDAgMjQ4IDIzOCAwIGMzMTggMCAzOTMgLTIyIDUyMyAtMTUwIDIzNyAtMjMzIDIwMyAtNjEzIC03MSAtNzk1IC0xMjUgLTgzIC0xNDkgLTg4IC00MzYgLTkzIGwtMjUxIC0zIC0zMzYgLTMzOCBjLTE4NiAtMTg1IC0zMzcgLTM0NCAtMzM3IC0zNTIgMCAtMzkgNiAtMzkgNTg2IC0zOSA2MjcgMCA2OTQgNSA4NzkgNzEgNzAyIDI0NyAxMDM5IDk5OSA3NTIgMTY3NSAtMTEzIDI2NyAtMzU3IDUxOSAtNjE4IDYzNyAtMTE3IDUzIC0xMjcgNTcgLTIzMyA4NSBsLTEwMSAyNiAtNjUyIDQgYy02NDIgMyAtNjUyIDMgLTY2MiAtMTd6Ii8+CiAgICA8L2c+Cjwvc3ZnPgo="
+}

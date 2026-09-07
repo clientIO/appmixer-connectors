@@ -59,6 +59,40 @@ module.exports = async context => {
         }
     });
 
+    // WhatsApp Embedded Signup page. The OAuth flow lands here (see
+    // auth.js → authUrl when `esConfigId` is configured), the page runs
+    // Meta's Embedded Signup via the FB JS SDK and redirects back to the
+    // engine's OAuth callback with the resulting code. Requirements in the
+    // Meta App Dashboard:
+    //   - a Login Configuration of type "WhatsApp Embedded Signup"
+    //     (its ID goes to Backoffice → appmixer:whatsapp.esConfigId)
+    //   - this page's domain in "Allowed Domains for the JavaScript SDK"
+    //     + "Login with the JavaScript SDK" toggled on
+    context.http.router.register({
+        method: 'GET',
+        path: '/signup',
+        options: {
+            auth: false,
+            handler: (req, h) => {
+
+                const clientId = context.config?.clientId;
+                const esConfigId = context.config?.esConfigId;
+                const state = req.query?.state;
+                const redirectUri = req.query?.redirect_uri;
+
+                if (!clientId || !esConfigId) {
+                    return h.response('WhatsApp Embedded Signup is not configured (clientId/esConfigId missing).').code(500);
+                }
+                // Guard against open-redirect abuse — only https targets.
+                if (!state || !redirectUri || !/^https:\/\//.test(redirectUri)) {
+                    return h.response('Missing or invalid state/redirect_uri.').code(400);
+                }
+
+                return h.response(renderSignupPage({ clientId, esConfigId, state, redirectUri })).type('text/html');
+            }
+        }
+    });
+
     // Meta webhook URL verification handshake — Meta sends GET with
     // hub.mode=subscribe, hub.verify_token, hub.challenge.
     context.http.router.register({
@@ -83,6 +117,95 @@ module.exports = async context => {
         }
     });
 };
+
+/**
+ * Render the Embedded Signup page. All dynamic values are injected via
+ * JSON.stringify so they cannot break out of the script context.
+ *
+ * Flow: user clicks the button → FB.login() opens Meta's Embedded Signup
+ * popup (config_id of the ES Login Configuration) → the WA_EMBEDDED_SIGNUP
+ * message event delivers sessionInfo (waba_id, phone_number_id) → the
+ * authResponse delivers a code → we redirect to the engine's OAuth
+ * callback with code + state (sessionInfo ids attached for diagnostics;
+ * the server-side WABA discovery in auth.js uses /debug_token, which
+ * carries target_ids for Embedded-Signup-issued tokens).
+ */
+function renderSignupPage({ clientId, esConfigId, state, redirectUri }) {
+
+    const config = JSON.stringify({ clientId, esConfigId, state, redirectUri });
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connect WhatsApp</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh;
+           margin: 0; background: #f5f6f7; color: #1c2b33; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.15);
+            padding: 40px; max-width: 420px; text-align: center; }
+    button { background: #1877f2; border: 0; border-radius: 6px; color: #fff; cursor: pointer;
+             font-size: 16px; font-weight: 600; padding: 12px 24px; }
+    button:disabled { background: #9cb4c8; cursor: default; }
+    p.note { color: #65676b; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="card">
+    <h2>Connect your WhatsApp Business Account</h2>
+    <p>You will be guided through selecting (or creating) a WhatsApp Business Account and phone number.</p>
+    <button id="connect" disabled>Continue with Facebook</button>
+    <p class="note" id="status">Loading Facebook SDK…</p>
+</div>
+<script>
+    var CFG = ${config};
+    var sessionInfo = null;
+
+    window.addEventListener('message', function(event) {
+        if (!/(^|\\.)facebook\\.com$/.test(new URL(event.origin).hostname)) return;
+        try {
+            var data = JSON.parse(event.data);
+            if (data.type === 'WA_EMBEDDED_SIGNUP') sessionInfo = data.data || null;
+        } catch (e) { /* not our message */ }
+    });
+
+    window.fbAsyncInit = function() {
+        FB.init({ appId: CFG.clientId, autoLogAppEvents: false, xfbml: false, version: 'v25.0' });
+        var btn = document.getElementById('connect');
+        btn.disabled = false;
+        document.getElementById('status').textContent = '';
+        btn.addEventListener('click', function() {
+            btn.disabled = true;
+            FB.login(function(response) {
+                if (response.authResponse && response.authResponse.code) {
+                    var url = new URL(CFG.redirectUri);
+                    url.searchParams.set('code', response.authResponse.code);
+                    url.searchParams.set('state', CFG.state);
+                    if (sessionInfo) {
+                        if (sessionInfo.waba_id) url.searchParams.set('waba_id', sessionInfo.waba_id);
+                        if (sessionInfo.phone_number_id) url.searchParams.set('phone_number_id', sessionInfo.phone_number_id);
+                    }
+                    window.location.assign(url.toString());
+                } else {
+                    btn.disabled = false;
+                    document.getElementById('status').textContent =
+                        'Login was cancelled or did not complete. Please try again.';
+                }
+            }, {
+                config_id: CFG.esConfigId,
+                response_type: 'code',
+                override_default_response_type: true,
+                extras: { sessionInfoVersion: '3' }
+            });
+        });
+    };
+</script>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+</body>
+</html>`;
+}
 
 /**
  * Validate X-Hub-Signature-256 against the raw payload using the Meta App

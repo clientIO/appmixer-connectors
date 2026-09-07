@@ -17,6 +17,26 @@ function processEvents(knownEvents, currentEvents, newEvents, event) {
     currentEvents.push(event['Id']);
 }
 
+const DATE_FIELDS = [
+    'ActivityDateTime',
+    'CreatedDate',
+    'EndDateTime',
+    'StartDateTime',
+    'LastModifiedDate',
+    'SystemModstamp',
+    'ReminderDateTime'
+];
+
+/**
+ * Reformat a raw event record's date fields to ISO. Shared by tick() and test()
+ * so both emit an identically shaped event.
+ * @param {Object} event
+ * @return {Object} event
+ */
+function mapEvent(event) {
+    return commons.formatFields(event, DATE_FIELDS, commons.formatDate);
+}
+
 /**
  * Component which triggers whenever new event is added.
  * @extends {Component}
@@ -43,22 +63,21 @@ module.exports = {
         }
 
         await Promise.map(diff, event => {
-            let dates = [
-                'ActivityDateTime',
-                'CreatedDate',
-                'EndDateTime',
-                'StartDateTime',
-                'LastModifiedDate',
-                'SystemModstamp',
-                'ReminderDateTime'
-            ];
-            event = commons.formatFields(event, dates, commons.formatDate);
-            return context.sendJson(event, 'event');
+            return context.sendJson(mapEvent(event), 'event');
         });
 
         await context.saveState({
             known: current,
             since: since
         });
+    },
+
+    async test(context) {
+
+        const event = await commons.findLatestSObject(context, 'Event');
+        if (!event) {
+            throw new Error('No recent events to use as test data.');
+        }
+        return context.sendJson(mapEvent(event), 'event');
     }
 };

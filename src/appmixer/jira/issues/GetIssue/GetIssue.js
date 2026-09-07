@@ -9,6 +9,10 @@ module.exports = {
         const { profileInfo, auth } = context;
         const { id } = context.messages.in.content;
 
+        if (!id) {
+            throw new context.CancelError('Issue ID or Key is required!');
+        }
+
         const issue = await commons.get(
             `${profileInfo.apiUrl}issue/${id}`,
             auth

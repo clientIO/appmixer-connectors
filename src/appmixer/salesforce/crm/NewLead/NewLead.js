@@ -49,5 +49,16 @@ module.exports = {
             known: current,
             since: since
         });
+    },
+
+    async test(context) {
+
+        // Fetch the newest lead directly (no `since` baseline filter, which would suppress
+        // output on a fresh poll). Same SDK path as tick(), same emitted shape.
+        const lead = await commons.findLatestSObject(context, 'Lead');
+        if (!lead) {
+            throw new Error('No recent leads to use as test data.');
+        }
+        return context.sendJson(lead, 'lead');
     }
 };

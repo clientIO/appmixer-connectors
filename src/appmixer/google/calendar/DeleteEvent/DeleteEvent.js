@@ -15,6 +15,14 @@ module.exports = {
 
     receive(context) {
 
+        const { calendarId, eventId } = context.messages.in.content;
+        if (!calendarId) {
+            throw new context.CancelError('Calendar is required!');
+        }
+        if (!eventId) {
+            throw new context.CancelError('Event is required!');
+        }
+
         return deleteEvent({
             auth: commons.getOauth2Client(context.auth),
             userId: 'me',

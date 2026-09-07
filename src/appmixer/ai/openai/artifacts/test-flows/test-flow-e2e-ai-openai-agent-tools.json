@@ -1,0 +1,215 @@
+{
+    "flow": {
+        "0a5e1001-1111-4111-8111-111111111101": {
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 320
+        },
+        "0a5e1002-2222-4222-8222-222222222202": {
+            "config": {
+                "properties": {
+                    "instructions": "You are a test agent. When asked about the service status, first call the status tool, then answer with the single word DONE.",
+                    "model": "gpt-4o-mini"
+                },
+                "transform": {
+                    "in": {
+                        "0a5e1001-1111-4111-8111-111111111101": {
+                            "out": {
+                                "lambda": {
+                                    "prompt": "What is the current service status? Use the status tool, then answer DONE."
+                                },
+                                "modifiers": {
+                                    "prompt": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0a5e1001-1111-4111-8111-111111111101": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.ai.openai.AIAgent",
+            "x": 400,
+            "y": 320
+        },
+        "0a5e1003-3333-4333-8333-333333333303": {
+            "config": {
+                "properties": {
+                    "description": "Returns the current status of the test service."
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0a5e1002-2222-4222-8222-222222222202": [
+                        "tools"
+                    ]
+                }
+            },
+            "type": "appmixer.ai.agenttools.ToolStart",
+            "x": 400,
+            "y": 192
+        },
+        "0a5e1004-4444-4444-8444-444444444404": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "0a5e1003-3333-4333-8333-333333333303": {
+                            "out": {
+                                "lambda": {},
+                                "modifiers": {},
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0a5e1003-3333-4333-8333-333333333303": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.ai.agenttools.ToolOutput",
+            "x": 592,
+            "y": 192
+        },
+        "0a5e1005-5555-4555-8555-555555555505": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "0a5e1002-2222-4222-8222-222222222202": {
+                            "out": {
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{a1000000-aaaa-4aaa-8aaa-a000000000a1}}}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "expression": {
+                                        "a1000000-aaaa-4aaa-8aaa-a000000000a1": {
+                                            "functions": [],
+                                            "variable": "$.0a5e1002-2222-4222-8222-222222222202.out.answer"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0a5e1002-2222-4222-8222-222222222202": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.Assert",
+            "x": 592,
+            "y": 320
+        },
+        "0a5e1006-6666-4666-8666-666666666606": {
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0a5e1005-5555-4555-8555-555555555505": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 784,
+            "y": 448
+        },
+        "0a5e1007-7777-4777-8777-777777777707": {
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "0a5e1006-6666-4666-8666-666666666606": {
+                            "out": {
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "result": "{{{b2000000-bbbb-4bbb-8bbb-b000000000b2}}}",
+                                    "testCase": "E2E Ai/openai - AI Agent Tool Roundtrip"
+                                },
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "b2000000-bbbb-4bbb-8bbb-b000000000b2": {
+                                            "functions": [],
+                                            "variable": "$.0a5e1006-6666-4666-8666-666666666606.out"
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0a5e1006-6666-4666-8666-666666666606": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 976,
+            "y": 448
+        }
+    },
+    "name": "E2E Ai/openai - AI Agent Tool Roundtrip",
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

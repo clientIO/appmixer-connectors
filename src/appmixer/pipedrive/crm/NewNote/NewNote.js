@@ -25,25 +25,26 @@ module.exports = {
 
     async tick(context) {
 
-        const notesApi = commons.getPromisifiedClient(context.auth.apiKey, 'Notes');
-        let response = await notesApi.getAllAsync({});
-        if (response.success === false) {
-            throw new context.CancelError(response.formattedError);
-        }
-
-        let notes = response.data;
+        const notes = await commons.listRecords(context, 'Notes');
         let knownState = context.state.known || {};
         let known = Array.isArray(knownState) ? new Set(knownState) : null;
         let current = [];
         let diff = [];
 
-        if (Array.isArray(notes)) {
-            notes.forEach(processItems.bind(null, known, current, diff));
-        }
+        notes.forEach(processItems.bind(null, known, current, diff));
 
         await Promise.map(diff, item => {
             return context.sendJson(item, 'newNote');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        const note = await commons.fetchLatestExample(context, 'Notes');
+        if (!note) {
+            throw new Error('No note available to use as test data.');
+        }
+        return context.sendJson(note, 'newNote');
     }
 };

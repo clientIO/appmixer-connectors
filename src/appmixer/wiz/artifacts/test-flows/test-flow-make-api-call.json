@@ -1,0 +1,229 @@
+{
+    "flow": {
+        "63244e9c-a064-4cb0-8d83-b6b14d54b179": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "014ce123-b3d7-46b6-b7fc-e8c713633f58": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "63244e9c-a064-4cb0-8d83-b6b14d54b179": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "63244e9c-a064-4cb0-8d83-b6b14d54b179": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "apiPath",
+                                                "text": "/graphql"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bf4f1f65-a6d9-46ca-85c3-7ba02d335523": {
+            "type": "appmixer.wiz.core.MakeApiCall",
+            "x": 448,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "014ce123-b3d7-46b6-b7fc-e8c713633f58": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "014ce123-b3d7-46b6-b7fc-e8c713633f58": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "6f5cd627-9336-4d23-824a-38b1301414c5": {
+                                            "variable": "$.014ce123-b3d7-46b6-b7fc-e8c713633f58.out.apiPath",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{6f5cd627-9336-4d23-824a-38b1301414c5}}}",
+                                    "method": "POST",
+                                    "body": "{\"query\":\"query { __typename }\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e57792a7-c2e9-436c-b815-bff00b4d2c6c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 656,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bf4f1f65-a6d9-46ca-85c3-7ba02d335523": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bf4f1f65-a6d9-46ca-85c3-7ba02d335523": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b0ce7ae8-4ae4-4ad9-886b-2eb221fa6e6a": {
+                                            "variable": "$.bf4f1f65-a6d9-46ca-85c3-7ba02d335523.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.status"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b0ce7ae8-4ae4-4ad9-886b-2eb221fa6e6a}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb76fd74-5ff2-4046-9fa1-2e6d47edb225": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 864,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e57792a7-c2e9-436c-b815-bff00b4d2c6c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8cc69445-4e8e-42b3-a851-ac2c18957d5a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1072,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "bb76fd74-5ff2-4046-9fa1-2e6d47edb225": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "bb76fd74-5ff2-4046-9fa1-2e6d47edb225": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "4a4bfec9-ea92-44c3-9539-4f3fd0119085": {
+                                            "variable": "$.bb76fd74-5ff2-4046-9fa1-2e6d47edb225.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Wiz - Make API Call",
+                                    "result": "{{{4a4bfec9-ea92-44c3-9539-4f3fd0119085}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Wiz - Make API Call",
+    "type": "automation",
+    "notes": {}
+}

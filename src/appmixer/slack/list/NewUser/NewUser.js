@@ -41,6 +41,22 @@ module.exports = {
             }
         }
         await context.saveState({ known: Array.from(actual) });
+    },
+
+    // Flow Test Mode: emit one realistic user without starting the flow. Same users.list call
+    // and user shape as tick(); picks the most recently updated active member. No state touched.
+    async test(context) {
+
+        const web = new WebClient(context.auth.accessToken);
+        const { members } = await web.users.list({ limit: 999 });
+
+        const sample = (members || [])
+            .filter(member => !member.deleted)
+            .sort((a, b) => (b.updated || 0) - (a.updated || 0))[0];
+        if (!sample) {
+            throw new Error('No users to use as test data.');
+        }
+        return context.sendJson(sample, 'user');
     }
 };
 

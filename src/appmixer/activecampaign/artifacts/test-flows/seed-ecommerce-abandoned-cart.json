@@ -1,0 +1,197 @@
+{
+    "name": "SEED ActiveCampaign - Abandoned Cart (manual trigger testing)",
+    "description": "HELPER (manual, not auto-run). Seeds an ActiveCampaign e-commerce connection, customer and one abandoned cart (state=2, created via externalcheckoutid) so the AbandonedCart / OrderStatusUpdated triggers have live data for Flow Test Mode (test()) or live tick testing. Run once; it intentionally leaves the data behind (no cleanup).",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "on-start": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 192,
+            "source": {},
+            "version": "1.0.0",
+            "config": {}
+        },
+        "create-connection": {
+            "type": "appmixer.activecampaign.ecommerce.CreateConnection",
+            "x": 256,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "on-start": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "on-start": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "externalid": {
+                                        "var-conn-ext": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "service": {},
+                                    "name": {},
+                                    "logoUrl": {},
+                                    "linkUrl": {}
+                                },
+                                "lambda": {
+                                    "service": "appmixer-e2e",
+                                    "externalid": "seed-conn-{{{var-conn-ext}}}",
+                                    "name": "E2E Seed Store",
+                                    "logoUrl": "https://example.com/logo.png",
+                                    "linkUrl": "https://example.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-customer": {
+            "type": "appmixer.activecampaign.ecommerce.CreateCustomer",
+            "x": 448,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-connection": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-connection": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "connectionid": {
+                                        "var-cust-conn": {
+                                            "variable": "$.create-connection.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "externalid": {
+                                        "var-cust-ext": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "email": {}
+                                },
+                                "lambda": {
+                                    "connectionid": "{{{var-cust-conn}}}",
+                                    "externalid": "seed-cust-{{{var-cust-ext}}}",
+                                    "email": "e2e-ecom-seed@appmixer-test.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-order": {
+            "type": "appmixer.activecampaign.ecommerce.CreateOrder",
+            "x": 640,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-customer": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-customer": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "connectionid": {
+                                        "var-ord-conn": {
+                                            "variable": "$.create-connection.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "customerid": {
+                                        "var-ord-cust": {
+                                            "variable": "$.create-customer.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "externalcheckoutid": {
+                                        "var-ord-ext": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "externalCreatedDate": {
+                                        "var-ord-created": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "abandonedDate": {
+                                        "var-ord-abandoned": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "source": {},
+                                    "email": {},
+                                    "currency": {},
+                                    "totalPrice": {},
+                                    "orderUrl": {},
+                                    "productName": {},
+                                    "productPrice": {},
+                                    "productQuantity": {}
+                                },
+                                "lambda": {
+                                    "connectionid": "{{{var-ord-conn}}}",
+                                    "customerid": "{{{var-ord-cust}}}",
+                                    "externalcheckoutid": "seed-cart-{{{var-ord-ext}}}",
+                                    "externalCreatedDate": "{{{var-ord-created}}}",
+                                    "abandonedDate": "{{{var-ord-abandoned}}}",
+                                    "source": "1",
+                                    "email": "e2e-ecom-seed@appmixer-test.com",
+                                    "currency": "USD",
+                                    "totalPrice": "12999",
+                                    "orderUrl": "https://example.com/cart/seed",
+                                    "productName": "E2E Seed Product",
+                                    "productPrice": "12999",
+                                    "productQuantity": "1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

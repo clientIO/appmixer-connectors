@@ -28,5 +28,16 @@ module.exports = {
                 }
             });
         });
+    },
+
+    async test(context) {
+
+        // Reuse the same /account.json read as tick() and emit the account object.
+        // tick() only emits when the account changes vs state; test() emits the current one.
+        const account = await fakturoid.get('/account.json', context.auth, null);
+        if (!account) {
+            throw new Error('No account data available to use as test data.');
+        }
+        return context.sendJson(account, 'account');
     }
 };

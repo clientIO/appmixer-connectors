@@ -33,5 +33,17 @@ module.exports = {
             known: Array.from(current),
             since: since
         });
+    },
+
+    async test(context) {
+
+        // Newest file via the same request stack as tick(), without the
+        // since_created_at baseline filter (which suppresses output on a fresh flow).
+        const file = await aggregators.getMailchimpDriver()
+            .getLatest(context, '/file-manager/files', 'files', 'added_date');
+        if (!file) {
+            throw new Error('No recent files to use as test data.');
+        }
+        return context.sendJson(file, 'file');
     }
 };

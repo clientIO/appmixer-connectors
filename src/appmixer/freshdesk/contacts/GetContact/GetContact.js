@@ -1,25 +1,16 @@
 'use strict';
 
-const axios = require('axios');
+const { apiCall } = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const { contactId } = context.messages.in.content;
 
         let data;
         try {
-            const response = await axios.get(
-                `https://${auth.domain}.freshdesk.com/api/v2/contacts/${contactId}`,
-                {
-                    auth: {
-                        username: auth.apiKey,
-                        password: 'X'
-                    }
-                }
-            );
+            const response = await apiCall(context, { url: `/contacts/${contactId}` });
             data = response.data;
         } catch (err) {
             if (err.response?.status === 404) {

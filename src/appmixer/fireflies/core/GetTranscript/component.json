@@ -1,0 +1,113 @@
+{
+    "name": "appmixer.fireflies.core.GetTranscript",
+    "label": "Get Transcript",
+    "description": "Retrieve a single Fireflies meeting transcript by its ID, including summary, action items, speakers and sentence-level transcript.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:fireflies"
+    },
+    "quota": {
+        "manager": "appmixer:fireflies",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "transcriptId": { "type": "string" }
+                },
+                "required": ["transcriptId"]
+            },
+            "inspector": {
+                "inputs": {
+                    "transcriptId": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "Transcript ID",
+                        "tooltip": "The unique ID of the transcript to retrieve. You can obtain it from Find Transcripts, List Transcripts or the New Transcript trigger."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string", "title": "Transcript ID", "example": "01HXY2ZK9QF3M4N5P6Q7R8S9T" },
+                    "title": { "type": "string", "title": "Title", "example": "Weekly Sync — Product" },
+                    "host_email": { "type": "string", "title": "Host Email", "example": "host@example.com" },
+                    "organizer_email": { "type": "string", "title": "Organizer Email", "example": "organizer@example.com" },
+                    "transcript_url": { "type": "string", "title": "Transcript URL", "example": "https://app.fireflies.ai/view/01HXY2ZK9QF3M4N5P6Q7R8S9T" },
+                    "meeting_link": { "type": "string", "title": "Meeting Link", "example": "https://zoom.us/j/123456789" },
+                    "duration": { "type": "number", "title": "Duration (minutes)", "example": 32.5 },
+                    "dateString": { "type": "string", "format": "date-time", "title": "Date", "example": "2026-08-01T14:00:00.000Z" },
+                    "date": { "type": "number", "title": "Date (epoch ms)", "example": 1754056800000 },
+                    "audio_url": { "type": "string", "title": "Audio URL", "example": "https://api.fireflies.ai/audio/01HXY2ZK9QF3M4N5P6Q7R8S9T.mp3" },
+                    "video_url": { "type": "string", "title": "Video URL", "example": "https://api.fireflies.ai/video/01HXY2ZK9QF3M4N5P6Q7R8S9T.mp4" },
+                    "participants": {
+                        "type": "array",
+                        "title": "Participants",
+                        "items": { "type": "string" },
+                        "example": ["organizer@example.com", "guest@example.com"]
+                    },
+                    "speakers": {
+                        "type": "array",
+                        "title": "Speakers",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": { "type": "integer" },
+                                "name": { "type": "string" }
+                            }
+                        },
+                        "example": [{ "id": 0, "name": "Jane Doe" }, { "id": 1, "name": "John Smith" }]
+                    },
+                    "summary": {
+                        "type": "object",
+                        "title": "Summary",
+                        "properties": {
+                            "overview": { "type": "string" },
+                            "short_summary": { "type": "string" },
+                            "action_items": { "type": "string" },
+                            "keywords": { "type": "array", "items": { "type": "string" } },
+                            "outline": { "type": "string" },
+                            "bullet_gist": { "type": "string" },
+                            "gist": { "type": "string" }
+                        },
+                        "example": {
+                            "short_summary": "The team reviewed the roadmap and agreed on Q3 priorities.",
+                            "action_items": "Jane to draft the spec. John to schedule the kickoff.",
+                            "keywords": ["roadmap", "Q3", "priorities"]
+                        }
+                    },
+                    "sentences": {
+                        "type": "array",
+                        "title": "Sentences",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "index": { "type": "integer" },
+                                "speaker_name": { "type": "string" },
+                                "speaker_id": { "type": "string" },
+                                "text": { "type": "string" },
+                                "start_time": { "type": "number" },
+                                "end_time": { "type": "number" }
+                            }
+                        },
+                        "example": [{ "index": 0, "speaker_name": "Jane Doe", "text": "Let's get started.", "start_time": 1.2, "end_time": 2.8 }]
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4bWxuczp4PSJuc19leHRlbmQ7IiB4bWxuczppPSJuc19haTsiIHhtbG5zOmdyYXBoPSJuc19ncmFwaHM7IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDU2IDU2IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1NiA1NjsiIHhtbDpzcGFjZT0icHJlc2VydmUiPgogPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KICAuc3Qwe2ZpbGw6dXJsKCNTVkdJRF8xXyk7fQoJLnN0MXtmaWxsOnVybCgjU1ZHSURfMl8pO30KCS5zdDJ7ZmlsbDp1cmwoI1NWR0lEXzNfKTt9Cgkuc3Qze2ZpbGw6dXJsKCNTVkdJRF80Xyk7fQoJLnN0NHtvcGFjaXR5OjAuMTg7ZmlsbDp1cmwoI1NWR0lEXzVfKTtlbmFibGUtYmFja2dyb3VuZDpuZXcgICAgO30KCS5zdDV7b3BhY2l0eTowLjE4O2ZpbGw6dXJsKCNTVkdJRF82Xyk7ZW5hYmxlLWJhY2tncm91bmQ6bmV3ICAgIDt9Cgkuc3Q2e29wYWNpdHk6MC4xODtmaWxsOnVybCgjU1ZHSURfN18pO2VuYWJsZS1iYWNrZ3JvdW5kOm5ldyAgICA7fQoJLnN0N3tvcGFjaXR5OjAuMTg7ZmlsbDp1cmwoI1NWR0lEXzhfKTtlbmFibGUtYmFja2dyb3VuZDpuZXcgICAgO30KIDwvc3R5bGU+CiA8bWV0YWRhdGE+CiAgPHNmdyB4bWxucz0ibnNfc2Z3OyI+CiAgIDxzbGljZXM+CiAgIDwvc2xpY2VzPgogICA8c2xpY2VTb3VyY2VCb3VuZHMgYm90dG9tTGVmdE9yaWdpbj0idHJ1ZSIgaGVpZ2h0PSI1NiIgd2lkdGg9IjU2IiB4PSItMTI5LjgiIHk9Ii0xNzIuOCI+CiAgIDwvc2xpY2VTb3VyY2VCb3VuZHM+CiAgPC9zZnc+CiA8L21ldGFkYXRhPgogPGc+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF8xXyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxNDQuNjY0NCIgeTE9Ii0xMzMuNzc4MSIgeDI9IjU0LjM4MTEiIHkyPSItMzguOTE5NSIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgwLjg1NzEgMCAwIC0wLjg1NzEgLTc5LjIzODkgLTY4LjE3MzYpIj4KICAgPHN0b3Agb2Zmc2V0PSIwIiBzdHlsZT0ic3RvcC1jb2xvcjojRTgyQTczIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuMTEzIiBzdHlsZT0ic3RvcC1jb2xvcjojREUyRDdBIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuMyIgc3R5bGU9InN0b3AtY29sb3I6I0M1Mzg4RiI+CiAgIDwvc3RvcD4KICAgPHN0b3Agb2Zmc2V0PSIwLjU0IiBzdHlsZT0ic3RvcC1jb2xvcjojOUI0QUIwIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuODE4IiBzdHlsZT0ic3RvcC1jb2xvcjojNjI2MkRFIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuOTk0IiBzdHlsZT0ic3RvcC1jb2xvcjojM0I3M0ZGIj4KICAgPC9zdG9wPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTE4LjQsMEgwdjE4LjNoMTguNFYweiI+CiAgPC9wYXRoPgogIDxsaW5lYXJHcmFkaWVudCBpZD0iU1ZHSURfMl8iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMTQ1LjE2NjQiIHkxPSItMTMzLjMwODQiIHgyPSI1NC44ODMxIiB5Mj0iLTM4LjQ0OTkiIGdyYWRpZW50VHJhbnNmb3JtPSJtYXRyaXgoMC44NTcxIDAgMCAtMC44NTcxIC03OS4yMzg5IC02OC4xNzM2KSI+CiAgIDxzdG9wIG9mZnNldD0iMCIgc3R5bGU9InN0b3AtY29sb3I6I0ZGM0M4MiI+CiAgIDwvc3RvcD4KICAgPHN0b3Agb2Zmc2V0PSIwLjEwMyIgc3R5bGU9InN0b3AtY29sb3I6I0Y1M0U4OCI+CiAgIDwvc3RvcD4KICAgPHN0b3Agb2Zmc2V0PSIwLjI3NCIgc3R5bGU9InN0b3AtY29sb3I6I0RDNDU5OCI+CiAgIDwvc3RvcD4KICAgPHN0b3Agb2Zmc2V0PSIwLjQ5MiIgc3R5bGU9InN0b3AtY29sb3I6I0IyNTFCMiI+CiAgIDwvc3RvcD4KICAgPHN0b3Agb2Zmc2V0PSIwLjc0NSIgc3R5bGU9InN0b3AtY29sb3I6Izc5NjFENyI+CiAgIDwvc3RvcD4KICAgPHN0b3Agb2Zmc2V0PSIwLjk5NCIgc3R5bGU9InN0b3AtY29sb3I6IzNCNzNGRiI+CiAgIDwvc3RvcD4KICA8L2xpbmVhckdyYWRpZW50PgogIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik00MC4yLDIyLjFIMjEuOHYxOC4zaDE4LjRWMjIuMXoiPgogIDwvcGF0aD4KICA8bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzNfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjE0NC43NjI1IiB5MT0iLTEyMy4yMDExIiB4Mj0iMTE0LjE3MSIgeTI9Ii0xMi4zNDAzIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAuODU3MSAwIDAgLTAuODU3MSAtNzkuMjM4OSAtNjguMTczNikiPgogICA8c3RvcCBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiNFODJBNzMiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4xMTMiIHN0eWxlPSJzdG9wLWNvbG9yOiNERTJEN0EiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4zIiBzdHlsZT0ic3RvcC1jb2xvcjojQzUzODhGIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuNTQiIHN0eWxlPSJzdG9wLWNvbG9yOiM5QjRBQjAiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC44MTgiIHN0eWxlPSJzdG9wLWNvbG9yOiM2MjYyREUiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC45OTQiIHN0eWxlPSJzdG9wLWNvbG9yOiMzQjczRkYiPgogICA8L3N0b3A+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8cGF0aCBjbGFzcz0ic3QyIiBkPSJNNDAuMiwwSDIxLjh2MTguM0g1NnYtMi42YzAtNC4yLTEuNy04LjEtNC42LTExLjFDNDguNCwxLjcsNDQuNCwwLDQwLjIsMEw0MC4yLDB6Ij4KICA8L3BhdGg+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF80XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMzQuODIzNyIgeTE9Ii0xMzIuMzI3MSIgeDI9IjI1LjMwOTgiIHkyPSItOTguOTYzNiIgZ3JhZGllbnRUcmFuc2Zvcm09Im1hdHJpeCgwLjg1NzEgMCAwIC0wLjg1NzEgLTc5LjIzODkgLTY4LjE3MzYpIj4KICAgPHN0b3Agb2Zmc2V0PSIwIiBzdHlsZT0ic3RvcC1jb2xvcjojRTgyQTczIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuMTEzIiBzdHlsZT0ic3RvcC1jb2xvcjojREUyRDdBIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuMyIgc3R5bGU9InN0b3AtY29sb3I6I0M1Mzg4RiI+CiAgIDwvc3RvcD4KICAgPHN0b3Agb2Zmc2V0PSIwLjU0IiBzdHlsZT0ic3RvcC1jb2xvcjojOUI0QUIwIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuODE4IiBzdHlsZT0ic3RvcC1jb2xvcjojNjI2MkRFIj4KICAgPC9zdG9wPgogICA8c3RvcCBvZmZzZXQ9IjAuOTk0IiBzdHlsZT0ic3RvcC1jb2xvcjojM0I3M0ZGIj4KICAgPC9zdG9wPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHBhdGggY2xhc3M9InN0MyIgZD0iTTAsMjIuMXYxOC4zYzAsNC4yLDEuNyw4LjEsNC42LDExLjFjMywyLjksNyw0LjYsMTEuMiw0LjZoMi42VjIyLjFIMHoiPgogIDwvcGF0aD4KICA8bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzVfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjgyLjIwNzgiIHkxPSItNTIuNzkwOCIgeDI9IjExMi44ODM2IiB5Mj0iLTEyMy4wODA1IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAuODU3MSAwIDAgLTAuODU3MSAtNzkuMjM4OSAtNjguMTczNikiPgogICA8c3RvcCBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiNFODJBNzMiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4xMTQiIHN0eWxlPSJzdG9wLWNvbG9yOiNERTI4NkUiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4zMDMiIHN0eWxlPSJzdG9wLWNvbG9yOiNDNTIzNjEiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC41NDQiIHN0eWxlPSJzdG9wLWNvbG9yOiM5QjFBNEQiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC44MjUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2MjBGMzAiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC45OTQiIHN0eWxlPSJzdG9wLWNvbG9yOiMzRDA4MUUiPgogICA8L3N0b3A+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8cGF0aCBjbGFzcz0ic3Q0IiBkPSJNMCwwbDE4LjQsMTguM0gwVjB6Ij4KICA8L3BhdGg+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF82XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMDcuNjU0MiIgeTE9Ii03OC41Mjk2IiB4Mj0iMTM4LjMzIiB5Mj0iLTE0OC44MTk0IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAuODU3MSAwIDAgLTAuODU3MSAtNzkuMjM4OSAtNjguMTczNikiPgogICA8c3RvcCBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiNFODJBNzMiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4xMTQiIHN0eWxlPSJzdG9wLWNvbG9yOiNERTI4NkUiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4zMDMiIHN0eWxlPSJzdG9wLWNvbG9yOiNDNTIzNjEiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC41NDQiIHN0eWxlPSJzdG9wLWNvbG9yOiM5QjFBNEQiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC44MjUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2MjBGMzAiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC45OTQiIHN0eWxlPSJzdG9wLWNvbG9yOiMzRDA4MUUiPgogICA8L3N0b3A+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8cGF0aCBjbGFzcz0ic3Q1IiBkPSJNMjEuOCwyMi4xbDE4LjQsMTguM0gyMS44VjIyLjF6Ij4KICA8L3BhdGg+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJTVkdJRF83XyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI3MC44MzExIiB5MT0iLTk5LjMyMDkiIHgyPSIxNDAuMzA0NiIgeTI9Ii0xNDUuNDc0IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAuODU3MSAwIDAgLTAuODU3MSAtNzkuMjM4OSAtNjguMTczNikiPgogICA8c3RvcCBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiNFODJBNzMiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4xMTQiIHN0eWxlPSJzdG9wLWNvbG9yOiNERTI4NkUiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4zMDMiIHN0eWxlPSJzdG9wLWNvbG9yOiNDNTIzNjEiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC41NDQiIHN0eWxlPSJzdG9wLWNvbG9yOiM5QjFBNEQiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC44MjUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2MjBGMzAiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC45OTQiIHN0eWxlPSJzdG9wLWNvbG9yOiMzRDA4MUUiPgogICA8L3N0b3A+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8cGF0aCBjbGFzcz0ic3Q2IiBkPSJNMCw0MC4zYzAsNC4yLDEuNyw4LjEsNC42LDExLjFjMywyLjksNyw0LjYsMTEuMiw0LjZoMi42VjIyLjFMMCw0MC4zeiI+CiAgPC9wYXRoPgogIDxsaW5lYXJHcmFkaWVudCBpZD0iU1ZHSURfOF8iIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iMjk3LjY5MDQiIHkxPSItMTM2MC44ODUxIiB4Mj0iMzA5LjU5NDYiIHkyPSItMTQ1NC44NzU0IiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDAuODU3MSAwIDAgLTAuODU3MSAtNzkuMjM4OSAtNjguMTczNikiPgogICA8c3RvcCBvZmZzZXQ9IjAiIHN0eWxlPSJzdG9wLWNvbG9yOiNFODJBNzMiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4xMTQiIHN0eWxlPSJzdG9wLWNvbG9yOiNERTI4NkUiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC4zMDMiIHN0eWxlPSJzdG9wLWNvbG9yOiNDNTIzNjEiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC41NDQiIHN0eWxlPSJzdG9wLWNvbG9yOiM5QjFBNEQiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC44MjUiIHN0eWxlPSJzdG9wLWNvbG9yOiM2MjBGMzAiPgogICA8L3N0b3A+CiAgIDxzdG9wIG9mZnNldD0iMC45OTQiIHN0eWxlPSJzdG9wLWNvbG9yOiMzRDA4MUUiPgogICA8L3N0b3A+CiAgPC9saW5lYXJHcmFkaWVudD4KICA8cGF0aCBjbGFzcz0ic3Q3IiBkPSJNNDAuMiwwYzQuMiwwLDguMiwxLjcsMTEuMiw0LjZjMywyLjksNC42LDYuOSw0LjYsMTEuMXYyLjZIMjEuOEw0MC4yLDB6Ij4KICA8L3BhdGg+CiA8L2c+Cjwvc3ZnPg=="
+}

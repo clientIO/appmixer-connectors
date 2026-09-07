@@ -14,6 +14,16 @@ module.exports = {
             location
         } = context.messages.in.content;
 
+        if (!subject) {
+            throw new context.CancelError('Subject is required!');
+        }
+        if (!start) {
+            throw new context.CancelError('Start is required!');
+        }
+        if (!end) {
+            throw new context.CancelError('End is required!');
+        }
+
         const attendees = emails?.split(',').map(email => ({ emailAddress: { address: email.trim() } }));
         const options = {
             url: 'https://graph.microsoft.com/v1.0/me/events',
@@ -43,8 +53,6 @@ module.exports = {
                 accept: 'application/json'
             }
         };
-
-        context.log({ step: 'Making request', options });
 
         const { data } = await context.httpRequest(options);
 

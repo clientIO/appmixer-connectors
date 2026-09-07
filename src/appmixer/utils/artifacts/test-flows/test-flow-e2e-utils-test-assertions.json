@@ -1,0 +1,282 @@
+{
+    "name": "E2E Utils Test - assertions and AfterAll aggregation",
+    "description": "End-to-end test for appmixer.utils.test - exercises all three Assert assertion types (equal, notEmpty, regex) on parallel branches, AfterAll's multi-input aggregation, and the ProcessE2EResults success-store write.",
+    "type": "automation",
+    "flow": {
+        "34b68eff-f841-4cd8-bc79-0eeb7b1040d4": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "On Start",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4f7d5233-1660-4558-880b-41fc9a95203f": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "label": "Set Variables",
+            "x": 288,
+            "y": 16,
+            "source": {
+                "in": {
+                    "34b68eff-f841-4cd8-bc79-0eeb7b1040d4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "34b68eff-f841-4cd8-bc79-0eeb7b1040d4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "expectedText",
+                                                "text": "appmixer-utils-test-e2e"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "expectedNumber",
+                                                "text": "42"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ecf4c0b9-c956-402f-b3a1-6eb3b68dfccf": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert equal",
+            "x": 512,
+            "y": 16,
+            "source": {
+                "in": {
+                    "4f7d5233-1660-4558-880b-41fc9a95203f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4f7d5233-1660-4558-880b-41fc9a95203f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-expected-text": {
+                                            "variable": "$.4f7d5233-1660-4558-880b-41fc9a95203f.out.expectedText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-expected-text}}}",
+                                                "assertion": "equal",
+                                                "expected": "appmixer-utils-test-e2e",
+                                                "type": "string",
+                                                "label": "SetVariable text variable survives the transform"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8e3d3af0-e129-47e5-a3f3-2500c2ba37c2": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert notEmpty",
+            "x": 512,
+            "y": 144,
+            "source": {
+                "in": {
+                    "4f7d5233-1660-4558-880b-41fc9a95203f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4f7d5233-1660-4558-880b-41fc9a95203f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-started": {
+                                            "variable": "$.34b68eff-f841-4cd8-bc79-0eeb7b1040d4.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-started}}}",
+                                                "assertion": "notEmpty",
+                                                "label": "OnStart start time is reachable from a downstream branch"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "45d3b6db-d18f-466f-9277-f56ed0a97091": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert regex",
+            "x": 512,
+            "y": 272,
+            "source": {
+                "in": {
+                    "4f7d5233-1660-4558-880b-41fc9a95203f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4f7d5233-1660-4558-880b-41fc9a95203f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-expected-number": {
+                                            "variable": "$.4f7d5233-1660-4558-880b-41fc9a95203f.out.expectedNumber",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-expected-number}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]+$",
+                                                "label": "SetVariable numeric text variable matches ^[0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6e62ddb9-3db8-43dd-aec4-e20e702015ea": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "After All",
+            "x": 736,
+            "y": 144,
+            "source": {
+                "in": {
+                    "ecf4c0b9-c956-402f-b3a1-6eb3b68dfccf": [
+                        "out"
+                    ],
+                    "8e3d3af0-e129-47e5-a3f3-2500c2ba37c2": [
+                        "out"
+                    ],
+                    "45d3b6db-d18f-466f-9277-f56ed0a97091": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "073bf46c-e9c4-4f50-bd22-c3f134b08d82": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "Process E2E Results",
+            "x": 960,
+            "y": 144,
+            "source": {
+                "in": {
+                    "6e62ddb9-3db8-43dd-aec4-e20e702015ea": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "6e62ddb9-3db8-43dd-aec4-e20e702015ea": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "ref-result": {
+                                            "variable": "$.6e62ddb9-3db8-43dd-aec4-e20e702015ea.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Utils Test - assertions and AfterAll aggregation",
+                                    "result": "{{{ref-result}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -21,6 +21,20 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // Fetch the newest milestone (across all states), sorted by creation date.
+        const milestone = await lib.fetchLatest(context, `repos/${repositoryId}/milestones`, {
+            params: { state: 'all', sort: 'created', direction: 'desc' }
+        });
+        if (!milestone) {
+            throw new Error('No recent milestones to use as test data.');
+        }
+        return context.sendJson(milestone, 'out');
     }
 };
 

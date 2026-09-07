@@ -56,5 +56,21 @@ module.exports = {
                 return lib.registerWebhook(context);
             }
         }
+    },
+
+    // Flow Test Mode: emit one realistic updated file/folder without registering a webhook.
+    // Read-only — lists files newest-first by modifiedTime via the shared helper, honoring the
+    // same folder/fileTypesRestriction filters and the same isUpdatedFileOrFolder predicate
+    // receive() applies, and emits the file in the identical output shape.
+    async test(context) {
+
+        const example = await lib.fetchLatestExampleFile(context, {
+            orderBy: 'modifiedTime desc',
+            filter: isUpdatedFileOrFolder
+        });
+        if (!example) {
+            throw new Error('No matching files or folders to use as test data.');
+        }
+        return context.sendJson(example, 'out');
     }
 };

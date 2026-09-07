@@ -14,6 +14,20 @@ module.exports = {
         return context.setTimeout({ lastTick: now }, context.properties.interval * 60 * 1000);
     },
 
+    async test(context) {
+
+        // Sourceless timer: emit a single representative tick payload of the same
+        // shape receive() produces, without setting any timeout or touching state.
+        const interval = (context.properties.interval || 0) * 60 * 1000;
+        const now = Date.now();
+        const lastTick = now - interval;
+        return context.sendJson({
+            lastTick: new Date(lastTick).toISOString(),
+            now: new Date(now).toISOString(),
+            elapsed: now - lastTick
+        }, 'out');
+    },
+
     async receive(context) {
 
         if (context.messages.timeout) {

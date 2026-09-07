@@ -72,6 +72,33 @@ module.exports = {
                 await lock.unlock();
             }
         }
+    },
+
+    async test(context) {
+
+        const { accessToken } = context.auth;
+        const { driveId } = context.properties;
+
+        if (!driveId) {
+            throw new context.CancelError('Drive ID is required!');
+        }
+
+        // Flow Test Mode: fetch the current delta WITHOUT the baseline deltaLink
+        // (which start()/tick() use to suppress already-seen items) so we get the
+        // existing files, then emit the most recently modified one. Same fetch +
+        // processDelta path tick() uses, so the shape is identical.
+        const latestChanges = await getLatestChanges(`/drives/${driveId}/items/root/delta`, accessToken);
+        const changes = processDelta(latestChanges?.value);
+
+        if (!changes.length) {
+            throw new Error('No files found in the watched location to use as test data.');
+        }
+
+        const newest = changes
+            .slice()
+            .sort((a, b) => new Date(b.lastModifiedDateTime || 0) - new Date(a.lastModifiedDateTime || 0))[0];
+
+        return context.sendJson(newest, 'out');
     }
 };
 

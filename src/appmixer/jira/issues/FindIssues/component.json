@@ -20,7 +20,7 @@
                     "properties": { "type": "string" },
                     "fieldsByKeys": { "type": "boolean" },
                     "failFast": { "type": "boolean" },
-                    "sendWholeArray": { "type": "boolean" }
+                    "outputType": { "type": "string" }
                 },
                 "required": ["query"]
             },
@@ -69,12 +69,18 @@
                         "index": 6,
                         "defaultValue": false
                     },
-                    "sendWholeArray": {
-                        "type": "toggle",
-                        "defaultValue": false,
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
                         "index": 7,
-                        "label": "Send All Issues at Once",
-                        "tooltip": "If enabled, all issues are sent as an array in a single message. Otherwise, each issue is sent separately."
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
                     }
                 }
             }
@@ -84,14 +90,20 @@
         {
             "name": "issue",
             "source": {
-                "url": "/component/appmixer/jira/issues/GenerateIssuesOutput?outPort=out",
+                "url": "/component/appmixer/jira/issues/GenerateIssuesOutput?outPort=out&ignoreAuth=true",
                 "data": {
                     "properties": {
-                        "sendWholeArray": "inputs/in/sendWholeArray"
+                        "outputType": "inputs/in/outputType"
+                    },
+                    "messages": {
+                        "in/query": "any"
                     },
                     "transform": "./GenerateIssuesOutput#getOutputOptions"
                 }
             }
+        },
+        {
+            "name": "notFound"
         }
     ],
     "icon": "data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjI1MDAiIHZpZXdCb3g9IjIuNTkgMCAyMTQuMDkxMDEwMDggMjI0IiB3aWR0aD0iMjM2MSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGxpbmVhckdyYWRpZW50IGlkPSJhIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDAgMjY0KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMDIuNCIgeDI9IjU2LjE1IiB5MT0iMjE4LjYzIiB5Mj0iMTcyLjM5Ij48c3RvcCBvZmZzZXQ9Ii4xOCIgc3RvcC1jb2xvcj0iIzAwNTJjYyIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzI2ODRmZiIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJiIiB4MT0iMTE0LjY1IiB4Mj0iMTYwLjgxIiB4bGluazpocmVmPSIjYSIgeTE9Ijg1Ljc3IiB5Mj0iMTMxLjkyIi8+PHBhdGggZD0ibTIxNC4wNiAxMDUuNzMtOTYuMzktOTYuMzktOS4zNC05LjM0LTcyLjU2IDcyLjU2LTMzLjE4IDMzLjE3YTguODkgOC44OSAwIDAgMCAwIDEyLjU0bDY2LjI5IDY2LjI5IDM5LjQ1IDM5LjQ0IDcyLjU1LTcyLjU2IDEuMTMtMS4xMiAzMi4wNS0zMmE4Ljg3IDguODcgMCAwIDAgMC0xMi41OXptLTEwNS43MyAzOS4zOS0zMy4xMi0zMy4xMiAzMy4xMi0zMy4xMiAzMy4xMSAzMy4xMnoiIGZpbGw9IiMyNjg0ZmYiLz48cGF0aCBkPSJtMTA4LjMzIDc4Ljg4YTU1Ljc1IDU1Ljc1IDAgMCAxIC0uMjQtNzguNjFsLTcyLjQ3IDcyLjQ0IDM5LjQ0IDM5LjQ0eiIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Im0xNDEuNTMgMTExLjkxLTMzLjIgMzMuMjFhNTUuNzcgNTUuNzcgMCAwIDEgMCA3OC44Nmw3Mi42Ny03Mi42M3oiIGZpbGw9InVybCgjYikiLz48L3N2Zz4="

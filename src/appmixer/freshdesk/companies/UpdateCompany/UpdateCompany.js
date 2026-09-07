@@ -1,13 +1,11 @@
 'use strict';
 
-const axios = require('axios');
-const { trimUndefined } = require('../../lib');
+const { apiCall, trimUndefined } = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const content = context.messages.in.content;
 
         const body = trimUndefined({
@@ -22,16 +20,11 @@ module.exports = {
         });
 
         const companyId = parseInt(content.companyId, 10);
-        const response = await axios.put(
-            `https://${auth.domain}.freshdesk.com/api/v2/companies/${companyId}`,
-            body,
-            {
-                auth: {
-                    username: auth.apiKey,
-                    password: 'X'
-                }
-            }
-        );
+        const response = await apiCall(context, {
+            method: 'PUT',
+            url: `/companies/${companyId}`,
+            data: body
+        });
 
         const data = response.data;
         return context.sendJson({

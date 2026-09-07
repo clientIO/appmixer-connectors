@@ -23,5 +23,17 @@ module.exports = {
         }
 
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // The watchers endpoint has no created sort; take the first listed watcher.
+        const watcher = await lib.fetchLatest(context, `repos/${repositoryId}/watchers`);
+        if (!watcher) {
+            throw new Error('No watchers to use as test data.');
+        }
+        return context.sendJson(watcher, 'out');
     }
 };

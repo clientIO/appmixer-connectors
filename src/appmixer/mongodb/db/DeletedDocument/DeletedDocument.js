@@ -8,7 +8,8 @@ const {
     setOperationalTimestamp,
     processDocuments,
     closeClient,
-    waitForConnectionId
+    waitForConnectionId,
+    fetchLatestDocument
 } = require('../../common');
 
 module.exports = {
@@ -111,5 +112,16 @@ module.exports = {
             await client.close();
             lock && await lock.unlock();
         }
+    },
+
+    // Flow Test Mode: read-only. No document has actually been deleted, so we
+    // emit the newest existing document as a representative example, in the same
+    // `{ document }` shape the store path emits deleted documents with.
+    async test(context) {
+        const document = await fetchLatestDocument(context);
+        if (!document) {
+            throw new Error('No documents in the collection to use as test data.');
+        }
+        return context.sendJson({ document }, 'out');
     }
 };

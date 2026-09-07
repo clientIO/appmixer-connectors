@@ -1,0 +1,336 @@
+{
+    "flow": {
+        "6e99139a-abf3-4382-bbf5-0552758b6394": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2e5586c1-092f-41aa-9560-3bbc8eef3930": {
+            "type": "appmixer.hubspot.crm.CreateContact",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6e99139a-abf3-4382-bbf5-0552758b6394": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6e99139a-abf3-4382-bbf5-0552758b6394": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {
+                                        "ts-cccdce6d": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "firstname": {},
+                                    "lastname": {}
+                                },
+                                "lambda": {
+                                    "email": "e2e-task-{{{ts-cccdce6d}}}@example.com",
+                                    "firstname": "E2E",
+                                    "lastname": "TaskTarget"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e3818c84-a730-4b2c-9852-95074605899d": {
+            "type": "appmixer.hubspot.engagements.CreateTask",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "2e5586c1-092f-41aa-9560-3bbc8eef3930": [
+                        "contact"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2e5586c1-092f-41aa-9560-3bbc8eef3930": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectId": {
+                                        "oid-1": {
+                                            "variable": "$.2e5586c1-092f-41aa-9560-3bbc8eef3930.contact.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "associationTypeId": {},
+                                    "hsTaskSubject": {},
+                                    "hsTaskBody": {},
+                                    "hsTaskStatus": {},
+                                    "hsTaskType": {}
+                                },
+                                "lambda": {
+                                    "objectId": "{{{oid-1}}}",
+                                    "associationTypeId": 204,
+                                    "hsTaskSubject": "E2E follow-up task",
+                                    "hsTaskBody": "Created by the E2E Create Task flow.",
+                                    "hsTaskStatus": "NOT_STARTED",
+                                    "hsTaskType": "TODO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "d510af5a-06ee-4df0-aefc-f4acb768815a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e3818c84-a730-4b2c-9852-95074605899d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e3818c84-a730-4b2c-9852-95074605899d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "tid-1": {
+                                            "variable": "$.e3818c84-a730-4b2c-9852-95074605899d.out.id",
+                                            "functions": []
+                                        },
+                                        "tar-1": {
+                                            "variable": "$.e3818c84-a730-4b2c-9852-95074605899d.out.archived",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{tid-1}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{tar-1}}}",
+                                                "assertion": "equal",
+                                                "expected": "false"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2980f97-cf41-4a54-8e80-b3d7d7485bbe": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "d510af5a-06ee-4df0-aefc-f4acb768815a": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "0d314e90-4260-455f-9936-3f56edcb0cdb": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e2980f97-cf41-4a54-8e80-b3d7d7485bbe": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2980f97-cf41-4a54-8e80-b3d7d7485bbe": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "dt-1": {
+                                            "variable": "$.e3818c84-a730-4b2c-9852-95074605899d.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/crm/v3/objects/tasks/{{{dt-1}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "518386a7-225e-4cc5-b2c4-fd743590d18d": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 1312,
+            "y": 320,
+            "source": {
+                "in": {
+                    "0d314e90-4260-455f-9936-3f56edcb0cdb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0d314e90-4260-455f-9936-3f56edcb0cdb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "dc-1": {
+                                            "variable": "$.2e5586c1-092f-41aa-9560-3bbc8eef3930.contact.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/crm/v3/objects/contacts/{{{dc-1}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "3e82e172-528e-40e7-9c79-f0eeeda295b0": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 320,
+            "source": {
+                "in": {
+                    "518386a7-225e-4cc5-b2c4-fd743590d18d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "518386a7-225e-4cc5-b2c4-fd743590d18d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-ct": {
+                                            "variable": "$.e2980f97-cf41-4a54-8e80-b3d7d7485bbe.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubSpot - Create Task",
+                                    "result": "{{{res-ct}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            }
+        }
+    },
+    "name": "E2E HubSpot - Create Task",
+    "type": "automation",
+    "notes": {
+        "d850570d-bfb1-4daa-95b2-b08db64b3a77": {
+            "content": "ENVIRONMENT \u2014 this flow is built for:\n- Appmixer account: auth+hubspot@appmixer.com (service appmixer:hubspot)\n- HubSpot portal: 148964607 (developer test account, EU, accountType DEVELOPER_TEST)\n- No portal assets required (contact is created and deleted by the flow).",
+            "x": 64,
+            "y": 64,
+            "width": 460,
+            "height": 170
+        }
+    }
+}

@@ -21,8 +21,14 @@ module.exports = {
             throw new context.CancelError('IP address is required');
         }
 
-        if (!ttl) {
-            throw new context.CancelError('TTL is required');
+        // TTL is optional. A positive TTL means a timed block that needs scheduled cleanup.
+        // A missing/blank TTL or TTL=0 means a permanent block (no automatic removal).
+        let ttlSeconds = 0;
+        if (ttl !== undefined && ttl !== null && ttl !== '') {
+            ttlSeconds = Number(ttl);
+            if (!Number.isFinite(ttlSeconds) || ttlSeconds < 0) {
+                throw new context.CancelError('TTL must be a non-negative number of seconds.');
+            }
         }
 
         if (ips.length === 0) {
@@ -36,7 +42,9 @@ module.exports = {
         try {
 
             // https://docs.appmixer.com/6.0/v4.1/component-definition/behaviour#async-context.lock-lockname-options
-            lock = await context.lock(context.componentId, getLockConfiguration(context));
+            // Lock per zone, not per component: multiple Block IPs components writing to the
+            // same zone share block rules and would otherwise overwrite each other's updates.
+            lock = await context.lock(`cloudflareWAF-zone-${zoneId}`, getLockConfiguration(context));
 
             let ruleset = (await client.listZoneRulesets(context))
                 .find(ruleset => ruleset.kind === 'zone' && ruleset.phase === 'http_request_firewall_custom');
@@ -62,6 +70,13 @@ module.exports = {
                 });
 
                 (await Promise.allSettled(promises)).forEach(result => {
+                    if (result.status === 'rejected') {
+                        context.log('error', {
+                            step: '[Cloudflare WAF] Failed to create or update block rule.',
+                            message: result.reason?.message
+                        });
+                        return;
+                    }
                     const updatedOrCreatedRules = result?.value?.result?.rules || [];
                     updatedOrCreatedRules.forEach(rule => {
                         const index = resultRules.findIndex(r => r.id === rule.id);
@@ -77,9 +92,11 @@ module.exports = {
             const updatedIps = lib.findIpsInRules(resultRules, parsedIps);
             const updatedIpsArray = Object.entries(updatedIps).map(([ip, { id }]) => ({ ip, ruleId: id }));
 
-            if (updatedIpsArray.length) {
+            // Only persist rules for scheduled cleanup when a positive TTL was provided.
+            // Permanent blocks (no TTL or TTL=0) are not tracked in the DB.
+            if (updatedIpsArray.length && ttlSeconds > 0) {
 
-                const removeAfter = new Date().getTime() + ttl * 1000;
+                const removeAfter = Date.now() + ttlSeconds * 1000;
                 const dbItems = updatedIpsArray.map(item => {
                     const { ip, ruleId } = item;
                     return {

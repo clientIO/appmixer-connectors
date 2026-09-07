@@ -1,5 +1,5 @@
 'use strict';
-const { ensureStore, createQueryProcessor } = require('../../common');
+const { ensureStore, createQueryProcessor, fetchLatestRow } = require('../../common');
 
 async function processNewRows(context, storeId, query, params, lock, idField) {
 
@@ -127,5 +127,21 @@ module.exports = {
             await context.sendJson({ row: item.value }, 'out');
             return context.response('ok');
         }
+    },
+
+    async test(context) {
+
+        const { query, idField } = context.properties;
+
+        // Read-only: run the same validated SELECT path tick() uses, but collect rows locally
+        // instead of writing them to the data store. Pass 0 for the optional "?" timestamp
+        // placeholder so ALL rows are considered (no baseline suppression), then emit the newest
+        // row in the same shape receive() emits on the 'out' port for an "insert" event.
+        const row = await fetchLatestRow(context, query, [0], idField);
+        if (!row) {
+            throw new Error('No rows returned by the query to use as test data.');
+        }
+
+        return context.sendJson({ row }, 'out');
     }
 };

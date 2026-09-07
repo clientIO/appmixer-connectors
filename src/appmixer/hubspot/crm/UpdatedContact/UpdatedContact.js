@@ -69,6 +69,12 @@ class UpdatedContact extends BaseSubscriptionComponent {
 
         return context.response();
     }
+
+    async test(context) {
+
+        const record = await this.fetchLatestExample(context, 'contacts', { sortProperty: 'lastmodifieddate' });
+        return context.sendJson(record, 'contact');
+    }
 }
 
 module.exports = new UpdatedContact(subscriptionType);

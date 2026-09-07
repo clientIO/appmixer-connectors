@@ -25,26 +25,26 @@ module.exports = {
 
     async tick(context) {
 
-        const personsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Pipelines');
-
-        let response = await personsApi.getAllAsync({});
-        if (response.success === false) {
-            throw new context.CancelError(response.formattedError);
-        }
-
-        let pipelines = response.data;
+        const pipelines = await commons.listRecords(context, 'Pipelines');
         let knownState = context.state.known || {};
         let known = Array.isArray(knownState) ? new Set(knownState) : null;
         let current = [];
         let diff = [];
 
-        if (Array.isArray(pipelines)) {
-            pipelines.forEach(processItems.bind(null, known, current, diff));
-        }
+        pipelines.forEach(processItems.bind(null, known, current, diff));
 
         await Promise.map(diff, item => {
             return context.sendJson(item, 'pipeline');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        const pipeline = await commons.fetchLatestExample(context, 'Pipelines');
+        if (!pipeline) {
+            throw new Error('No pipeline available to use as test data.');
+        }
+        return context.sendJson(pipeline, 'pipeline');
     }
 };

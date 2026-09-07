@@ -14,6 +14,25 @@ module.exports = {
         return new AsanaAPI.Client.create().useAccessToken(token);
     },
 
+    /**
+     * Pick the most recently created record from a listing. Asana `gid`s are monotonically
+     * increasing, so the highest `gid` is the newest record; `created_at` is preferred when
+     * present. Shared by the triggers' `test()` methods to select the freshest item to emit
+     * as Flow Test Mode example data.
+     * @param {Array<Object>} records
+     * @returns {Object|null}
+     */
+    pickLatest(records = []) {
+
+        const rank = record => (record.created_at ? Date.parse(record.created_at) : Number(record.gid));
+        return (records || []).reduce((latest, record) => {
+            if (!latest) {
+                return record;
+            }
+            return rank(record) > rank(latest) ? record : latest;
+        }, null);
+    },
+
     // Expects standardized outputType: 'item', 'items', 'file'
     async sendArrayOutput({ context, outputPortName = 'out', outputType = 'items', records = [] }) {
         if (outputType === 'item') {

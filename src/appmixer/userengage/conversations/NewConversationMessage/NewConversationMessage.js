@@ -50,6 +50,18 @@ function processMessages(knownMessages, currentMessages, newMessages, message) {
 }
 
 /**
+ * Map a raw message into the exact shape emitted on the 'message' port.
+ * Shared by tick() and test() so the output shape stays identical.
+ * @param {Object} message
+ * @return {Object}
+ */
+function mapMessage(message) {
+
+    message['source_context'] = JSON.stringify(message['source_context']);
+    return message;
+}
+
+/**
  * Component which triggers whenever new conversation message comes.
  * @extends {Component}
  */
@@ -89,8 +101,7 @@ module.exports = {
             state['knownMessages'] = current;
 
             await Promise.map(diff, message => {
-                message['source_context'] = JSON.stringify(message['source_context']);
-                return context.sendJson(message, 'message');
+                return context.sendJson(mapMessage(message), 'message');
             });
             await context.saveState(state);
         } else {
@@ -105,11 +116,38 @@ module.exports = {
             state['knownMessages'] = current;
 
             await Promise.map(diff, message => {
-                message['source_context'] = JSON.stringify(message['source_context']);
-                return context.sendJson(message, 'message');
+                return context.sendJson(mapMessage(message), 'message');
             });
             await context.saveState(state);
         }
+    },
+
+    async test(context) {
+
+        let { apiKey } = context.auth;
+        let { conversation } = context.properties;
+
+        // Mirror tick()'s branch selection so the output matches whichever path
+        // production would take for this config. No state.
+        let channelId = conversation;
+        if (!channelId) {
+            // No conversation filter: pick the freshest conversation, like tick()'s scan.
+            let latestConversation = await commons.getLatestResult(apiKey, 'channels');
+            if (!latestConversation) {
+                throw new Error('No recent conversations to use as test data.');
+            }
+            channelId = latestConversation.id;
+        }
+
+        let channel = await commons.getUserengageRequest(apiKey, 'channels/' + channelId, 'GET');
+        let messages = (channel && channel.results && Array.isArray(channel.results.messages))
+            ? channel.results.messages
+            : [];
+        if (!messages.length) {
+            throw new Error('No recent conversation messages to use as test data.');
+        }
+        // Same per-message mapping tick() applies before emitting.
+        return context.sendJson(mapMessage(messages[0]), 'message');
     }
 };
 

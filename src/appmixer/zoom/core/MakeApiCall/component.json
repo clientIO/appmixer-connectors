@@ -1,0 +1,148 @@
+{
+    "name": "appmixer.zoom.core.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the Zoom API.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:zoom",
+        "scope": [
+            "user:read:user",
+            "meeting:write:meeting",
+            "meeting:read:meeting",
+            "meeting:update:meeting",
+            "meeting:delete:meeting",
+            "meeting:read:list_meetings",
+            "cloud_recording:read:list_user_recordings"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:zoom",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    },
+                    "headers": {
+                        "type": "string"
+                    },
+                    "parameters": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "url",
+                    "method"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to <code>https://api.zoom.us/v2</code> (for example <code>/users/me</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            {
+                                "label": "GET",
+                                "value": "GET"
+                            },
+                            {
+                                "label": "POST",
+                                "value": "POST"
+                            },
+                            {
+                                "label": "PUT",
+                                "value": "PUT"
+                            },
+                            {
+                                "label": "PATCH",
+                                "value": "PATCH"
+                            },
+                            {
+                                "label": "DELETE",
+                                "value": "DELETE"
+                            }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object (supports nested objects, arrays, and non-string values)."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Status Code",
+                    "value": "status"
+                },
+                {
+                    "label": "Response Headers",
+                    "value": "headers"
+                },
+                {
+                    "label": "Response Body",
+                    "value": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAPMSURBVFhHpZdNaB1VFMd/504UP2s1i4g11IWI4LMKukhKC9lExRaJJCDtSrtSyqONlS78IAtFFBuhSRddFvzAD6QLA27UkkUSEEEEEWsDBSm2r9S2qamk72XucTHz3tx3587MMw784Z57/uec/z1z3513Bfc5bIdA64iOIAwgCAYQB5Ez7vjUs72xoAgNhHmIZqmbpXZJAWBKDdfsEUQPYkQCCcqSp3aFiEysIsww33eILyU2AFy2R7BMYkWwgAXiFK5d6pMEri84FsHKAXba6aQDL9shIrvYWbmvvMou9Gk5T1QR3WEQrXet3F9tlR3sBmk30o6EeEkn6oZ1HcklDQX0Ygd9qZAQzzJisDLQ9f5cEfmAcrtUlCOkzYsZMFic9nttCyWqKuTbOa7TDSticgGJwyMGEvlxvj9kd8ZZftNx+MnbxNzc/7BzooSkAyGyQ8oJ8Xm5xD3Y6bhbQCh5Zz7dqEVJQ7FldhqfF1CUvJMgIMTnBAoV8YWJOMaIcU+piSEY7E9tYO5nOL8Czz+ZzJ38CVabYAzs2gZb7oa5X5RzK/BsTdh0KzRj+PaMMv6YcGEVvjmdfiu8UzPi4akpkLRU8my6BQbvgb4I3hwT1lrC+y8Ia03hvruEd8aEj5fgxEvC4/cL/zThwwnDqd+UUwcNV67D8AMwM2748wo8V4N77xAWz7pVAAVhLI4RMf5ZbSL4aL8QW/j+V2XbVuHVT5NVTO8RVpvwdA2G3k3mxp+Apx6B3Y8KW163bL4NfjhseOhty9Z++OxFw/BR27V6pGAPiIXj+4Tbb4Z9xxVrQV2OJt8aVe+dqrBugVhotaCVzjebEBmvThqXCXASTe6CvTtg6Xdl/yjcaMJoDab3CtN7hNEafDCn/HEJPn9FeGs3vDchHPtOE1EWNBZoj1PR/gYkhogH83vgr2tw/moSGBm4KYIDJ6D/Tri4Aq99An+vwckfobkOfQbe+ArOXIDTDVhuQCuGs5dguSFcvwHnrsLyxVSIZrWEZ8J7oBJl/JDPkP1rcuYMNmvVf4LfzipfwRmS7gHP0StChcp8nUMpq+f9CjYgJFSoyteZF0y4/RsQUoQKEcFzIEOPQoqKVPnTPaDhLrjoUUgZgiJUDUoD6/w+S8WUCAkWqODENAyW+RzRFRMUVCKkCt0i5oXtdhhYQNLT0D9AiuByTeBTWwlVkJ2GRbOEZQZbtWoPXdwNdCOWY3xhFpK74aAcQvUoqpor4AcWotfXoooyi5HJdhOzZ9huR6kD6fXcuS+2mblWFsF9Lepcz2WWr81Cu+S/gQN2phw23r0AAAAASUVORK5CYII="
+}

@@ -1,7 +1,7 @@
 'use strict';
 
-const { ListBucketsCommand } = require('@aws-sdk/client-s3');
-const { init, processItems } = require('../lib');
+const lib = require('../lib');
+const { processItems } = lib;
 
 /**
  * Component which triggers whenever new bucket is created.
@@ -11,17 +11,7 @@ module.exports = {
 
     async tick(context) {
 
-        const { s3, region } = init(context);
-        let Buckets;
-        try {
-            const response = await s3.send(new ListBucketsCommand({ BucketRegion: region }));
-            Buckets = response.Buckets || [];
-        } catch (error) {
-            // Re-throw with just the error message. Otherwise a
-            // [unable to serialize, circular reference is too complex to analyze]
-            // error is thrown.
-            throw new Error(error.message);
-        }
+        const Buckets = await lib.listBuckets(context);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
@@ -39,5 +29,24 @@ module.exports = {
             });
             return Promise.all(promises);
         }
+    },
+
+    async test(context) {
+
+        // Fetch buckets the same way tick() does, but WITHOUT the state baseline that
+        // suppresses output on the first poll. Emit the most recently created bucket so the
+        // shape matches what tick() emits for a newly created one.
+        const Buckets = await lib.listBuckets(context);
+        if (!Buckets.length) {
+            throw new Error('No buckets found to use as test data.');
+        }
+
+        const newest = Buckets.slice().sort((a, b) => {
+            const da = a.CreationDate ? new Date(a.CreationDate).getTime() : 0;
+            const db = b.CreationDate ? new Date(b.CreationDate).getTime() : 0;
+            return db - da;
+        })[0];
+
+        return context.sendJson(newest, 'bucket');
     }
 };

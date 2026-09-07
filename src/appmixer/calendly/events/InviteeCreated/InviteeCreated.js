@@ -34,6 +34,17 @@ module.exports = {
         }
     },
 
+    // Flow Test Mode: emit one realistic invitee.created payload without registering a webhook.
+    // Reuses the connector-level helpers shared by every Calendly webhook trigger: fetch the most
+    // recent invitee via REST and reshape it into the exact body the webhook would deliver.
+    async test(context) {
+        const invitee = await commons.fetchLatestExample(context);
+        if (!invitee) {
+            throw new Error('No recent invitees to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookShape(context, invitee, 'invitee.created'), 'out');
+    },
+
     /**
      * Register webhook in Calendly API.
      * @param {Context} context

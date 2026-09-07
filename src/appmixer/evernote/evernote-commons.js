@@ -102,5 +102,93 @@ module.exports = {
             record[field] = formatFunc(record[field]);
         });
         return record;
+    },
+
+    /**
+     * Format the reminder date fields on a note's attributes object exactly the way the
+     * triggers emit them (reminderTime/reminderDoneTime -> ISO). Shared by tick() and test().
+     * @param {Object} note
+     * @return {Object} note
+     */
+    formatNoteAttributes(note) {
+
+        note['attributes'] = this.formatFields(
+            note['attributes'],
+            ['reminderTime', 'reminderDoneTime'],
+            this.formatDate);
+        return note;
+    },
+
+    /**
+     * Fetch the newest note (full, with content) from Evernote. Shared by the NewNote
+     * trigger's tick() and test(). Returns the formatted note or null when none exists.
+     * No baseline/sync-state gating - always returns the newest note.
+     * @param {Object} context
+     * @return {Promise<Object|null>}
+     */
+    fetchLatestNote(context) {
+
+        const client = this.getEvernoteAPI(context.auth.accessToken).getNoteStore();
+        return client.findNotesMetadata({ ascending: false }, 0, 1, { includeCreated: true })
+            .then(res => {
+                const meta = res && res['notes'] && res['notes'][0];
+                if (!meta) {
+                    return null;
+                }
+                return client.getNoteWithResultSpec(meta['guid'], { includeContent: true });
+            })
+            .then(note => {
+                if (!note) {
+                    return null;
+                }
+                return this.formatNoteAttributes(note);
+            });
+    },
+
+    /**
+     * Fetch the newest note that has a reminder set (full). Shared by the NewReminder
+     * trigger's test(). No baseline/sync-state gating.
+     * @param {Object} context
+     * @return {Promise<Object|null>}
+     */
+    fetchLatestReminder(context) {
+
+        const client = this.getEvernoteAPI(context.auth.accessToken).getNoteStore();
+        return client.findNotesMetadata({ ascending: false }, 0, 1000, { includeAttributes: true })
+            .then(res => {
+                const metas = (res && res['notes']) || [];
+                const meta = metas.find(m =>
+                    m['attributes'] && m['attributes']['reminderOrder']);
+                if (!meta) {
+                    return null;
+                }
+                return client.getNoteWithResultSpec(meta['guid'], {});
+            })
+            .then(note => {
+                if (!note) {
+                    return null;
+                }
+                return this.formatNoteAttributes(note);
+            });
+    },
+
+    /**
+     * Fetch the newest notebook. Shared by the NewNotebook trigger's test().
+     * @param {Object} context
+     * @return {Promise<Object|null>}
+     */
+    fetchLatestNotebook(context) {
+
+        const client = this.getEvernoteAPI(context.auth.accessToken).getNoteStore();
+        return client.listNotebooks()
+            .then(notebooks => {
+                if (!notebooks || !notebooks.length) {
+                    return null;
+                }
+                // Newest notebook by service update sequence number when available.
+                const sorted = notebooks.slice().sort((a, b) =>
+                    (b['serviceUpdated'] || 0) - (a['serviceUpdated'] || 0));
+                return sorted[0];
+            });
     }
 };

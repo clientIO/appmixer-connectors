@@ -12,6 +12,32 @@ module.exports = {
         });
     },
 
+    // Shared GET against the Trello REST API: builds the authenticated URL the same
+    // way for every trigger and returns the response body (an array). Used by both
+    // tick() and test() so they issue byte-for-byte identical requests.
+    async fetchAll(context, urlPath) {
+
+        const { data } = await context.httpRequest({
+            headers: { 'Content-Type': 'application/json' },
+            url: `https://api.trello.com${urlPath}?${this.getAuthQueryParams(context)}`
+        });
+        return data;
+    },
+
+    // Trello ids are Mongo ObjectIds whose first 8 hex chars are the creation
+    // timestamp, so the record with the greatest timestamp is the newest. Used by
+    // test() to pick the freshest item to emit as Flow Test Mode example data.
+    pickLatestById(records = []) {
+
+        const timestamp = record => parseInt(String(record.id).substring(0, 8), 16) || 0;
+        return (records || []).reduce((latest, record) => {
+            if (!latest) {
+                return record;
+            }
+            return timestamp(record) > timestamp(latest) ? record : latest;
+        }, null);
+    },
+
     isAppmixerVariable(variable) {
 
         return variable?.startsWith('{{{') && variable?.endsWith('}}}');

@@ -49,5 +49,19 @@ module.exports = {
         }
 
         return context.saveState({ createdTime: latestIssueCreateDate ?? now });
+    },
+
+    async test(context) {
+
+        // Newest issue first (no `created > now` baseline that suppresses output on a
+        // fresh flow), honoring the same project filter as tick().
+        const issue = await commons.fetchLatestIssue(context, {
+            project: context.properties.project,
+            orderBy: 'created'
+        });
+        if (!issue) {
+            throw new Error('No recent issues to use as test data.');
+        }
+        return context.sendJson(issue, 'issue');
     }
 };

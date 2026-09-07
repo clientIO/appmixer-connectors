@@ -25,6 +25,27 @@ module.exports = {
         }
     },
 
+    // Flow Test Mode: first fetch the full sheet (GET /sheets/{sheetId}) to find the newest row's
+    // ID, then fetch that row via the SAME single-row GET receive() uses so the emitted shape is
+    // identical. Note the full-sheet fetch makes test() heavier than a single receive() call.
+    async test(context) {
+
+        const { sheetId } = context.properties;
+        if (!sheetId) {
+            throw new context.CancelError('Sheet ID is required!');
+        }
+
+        const sheet = await this.httpRequest(context, 'GET', `/sheets/${sheetId}`);
+        const rows = sheet.rows || [];
+        if (!rows.length) {
+            throw new Error('The sheet has no rows to use as test data.');
+        }
+        // Rows come back in row order; the last one is the most recently added.
+        const newestRowId = rows[rows.length - 1].id;
+        const data = await this.httpRequest(context, 'GET', `/sheets/${sheetId}/rows/${newestRowId}`);
+        return context.sendJson(data, 'out');
+    },
+
     async receive(context) {
 
         const { challenge, events } = context.messages.webhook?.content?.data || {};

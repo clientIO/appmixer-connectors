@@ -1,8 +1,17 @@
 'use strict';
-const moment = require('moment');
 const ActiveCampaign = require('../../ActiveCampaign');
+const commons = require('../../activecampaign-commons');
 
 module.exports = {
+
+    async test(context) {
+
+        const task = await commons.fetchLatestTask(context, 'udate');
+        if (!task) {
+            throw new context.CancelError('No recent tasks to use as test data.');
+        }
+        return context.sendJson(task, 'task');
+    },
 
     async tick(context) {
 
@@ -28,20 +37,7 @@ module.exports = {
 
         if (updated.size) {
             const promises = Array.from(updated).map(task => {
-                const fields = {
-                    id: task.id,
-                    relationship: task.owner.type,
-                    contactId: task.owner.type === 'contact' ? task.relid : undefined,
-                    dealId: task.owner.type === 'deal' ? task.relid : undefined,
-                    title: task.title,
-                    note: task.note,
-                    taskType: task.dealTasktype,
-                    assignee: task.assignee,
-                    due: moment(task.duedate).toISOString(),
-                    edate: moment(task.edate).toISOString()
-                };
-
-                return context.sendJson(fields, 'task');
+                return context.sendJson(commons.reshapeTask(task), 'task');
             });
             await Promise.all(promises);
         }

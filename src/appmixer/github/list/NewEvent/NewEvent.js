@@ -24,6 +24,18 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // Events are returned newest-first by default.
+        const event = await lib.fetchLatest(context, `repos/${repositoryId}/events`);
+        if (!event) {
+            throw new Error('No recent events to use as test data.');
+        }
+        return context.sendJson(event, 'event');
     }
 };
 

@@ -1,0 +1,375 @@
+{
+    "name": "E2E Google Calendar - AcceptEvent",
+    "description": "Self-contained E2E test for AcceptEvent: creates an event, accepts the invitation as the account owner, asserts the accepted event is returned, then deletes the event (cleanup). No pre-seeded data required.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "138d4b87-e3e0-44e3-a837-c6344a65da91": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {}
+        },
+        "14ccf1b3-93eb-4155-a54b-b01144ff9da8": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 448,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "138d4b87-e3e0-44e3-a837-c6344a65da91": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "138d4b87-e3e0-44e3-a837-c6344a65da91": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "calendarId",
+                                                "text": "primary"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "7972ad4e-91d3-4a6d-9d95-1a151b056201": {
+            "type": "appmixer.google.calendar.CreateEvent",
+            "label": "CreateEvent (event to accept)",
+            "x": 640,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "14ccf1b3-93eb-4155-a54b-b01144ff9da8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "14ccf1b3-93eb-4155-a54b-b01144ff9da8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "calendarId": {
+                                        "var-calendar-id": {
+                                            "variable": "$.14ccf1b3-93eb-4155-a54b-b01144ff9da8.out.calendarId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "start": {
+                                        "var-start": {
+                                            "variable": "$.138d4b87-e3e0-44e3-a837-c6344a65da91.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 24
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "end": {
+                                        "var-end": {
+                                            "variable": "$.138d4b87-e3e0-44e3-a837-c6344a65da91.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 25
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "summary": {}
+                                },
+                                "lambda": {
+                                    "calendarId": "{{{var-calendar-id}}}",
+                                    "start": "{{{var-start}}}",
+                                    "end": "{{{var-end}}}",
+                                    "summary": "E2E AcceptEvent test event"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f7784ee8-c73e-485c-992b-738ec86fd738": {
+            "type": "appmixer.google.calendar.AcceptEvent",
+            "label": "AcceptEvent (accept the created event)",
+            "x": 832,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7972ad4e-91d3-4a6d-9d95-1a151b056201": [
+                        "event"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7972ad4e-91d3-4a6d-9d95-1a151b056201": {
+                            "event": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "calendarId": {
+                                        "var-calendar-id": {
+                                            "variable": "$.7972ad4e-91d3-4a6d-9d95-1a151b056201.event.calendarId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "eventId": {
+                                        "var-event-id": {
+                                            "variable": "$.7972ad4e-91d3-4a6d-9d95-1a151b056201.event.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "attendeeEmail": {
+                                        "var-attendee-email": {
+                                            "variable": "$.7972ad4e-91d3-4a6d-9d95-1a151b056201.event.creator.email",
+                                            "functions": []
+                                        }
+                                    },
+                                    "sendUpdates": {}
+                                },
+                                "lambda": {
+                                    "calendarId": "{{{var-calendar-id}}}",
+                                    "eventId": "{{{var-event-id}}}",
+                                    "attendeeEmail": "{{{var-attendee-email}}}",
+                                    "sendUpdates": "none"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "4121b1cd-33bc-42ca-9b6e-c1102db73e20": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: accepted event id is returned",
+            "x": 1024,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f7784ee8-c73e-485c-992b-738ec86fd738": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f7784ee8-c73e-485c-992b-738ec86fd738": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "event-id-check": {
+                                            "variable": "$.f7784ee8-c73e-485c-992b-738ec86fd738.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{event-id-check}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "6d988a11-dce4-49a0-80de-ac9e763f5bac": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: calendarId is returned in response",
+            "x": 1024,
+            "y": 160,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f7784ee8-c73e-485c-992b-738ec86fd738": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f7784ee8-c73e-485c-992b-738ec86fd738": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "calendar-id-check": {
+                                            "variable": "$.f7784ee8-c73e-485c-992b-738ec86fd738.out.calendarId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{calendar-id-check}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "78361009-bb32-4c9b-9ba5-b5150bba2663": {
+            "type": "appmixer.google.calendar.DeleteEvent",
+            "label": "DeleteEvent (cleanup)",
+            "x": 1024,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f7784ee8-c73e-485c-992b-738ec86fd738": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f7784ee8-c73e-485c-992b-738ec86fd738": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "calendarId": {
+                                        "var-calendar-id": {
+                                            "variable": "$.f7784ee8-c73e-485c-992b-738ec86fd738.out.calendarId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "eventId": {
+                                        "var-event-id": {
+                                            "variable": "$.f7784ee8-c73e-485c-992b-738ec86fd738.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "calendarId": "{{{var-calendar-id}}}",
+                                    "eventId": "{{{var-event-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "fe776feb-6f19-40b2-abce-ae711f965af2": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1216,
+            "y": 120,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4121b1cd-33bc-42ca-9b6e-c1102db73e20": [
+                        "out"
+                    ],
+                    "6d988a11-dce4-49a0-80de-ac9e763f5bac": [
+                        "out"
+                    ],
+                    "78361009-bb32-4c9b-9ba5-b5150bba2663": [
+                        "deleted"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 30
+                }
+            }
+        },
+        "6c480813-c566-4717-997f-e1f1d63f6da1": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1408,
+            "y": 120,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "fe776feb-6f19-40b2-abce-ae711f965af2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "fe776feb-6f19-40b2-abce-ae711f965af2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.fe776feb-6f19-40b2-abce-ae711f965af2.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "vero.a@appmixer.ai",
+                                    "testCase": "E2E Google Calendar - AcceptEvent",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

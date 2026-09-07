@@ -1,0 +1,269 @@
+{
+    "name": "E2E QuickBooks NewCustomer trigger",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "4caf9385-d5f5-4204-8a5c-be256e932345": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "config": {}
+        },
+        "f841ef20-a6aa-4c77-a1c9-349133c4dcbf": {
+            "type": "appmixer.quickbooks.accounting.CreateCustomer",
+            "x": 320,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "4caf9385-d5f5-4204-8a5c-be256e932345": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4caf9385-d5f5-4204-8a5c-be256e932345": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "displayName": {
+                                        "v-cust-ts": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "givenName": {},
+                                    "familyName": {},
+                                    "companyName": {},
+                                    "primaryEmailAddrAddress": {},
+                                    "printOnCheckName": {}
+                                },
+                                "lambda": {
+                                    "displayName": "E2E QB Customer {{{v-cust-ts}}}",
+                                    "givenName": "E2E",
+                                    "familyName": "Tester",
+                                    "companyName": "E2E Test Co",
+                                    "primaryEmailAddrAddress": "e2e-customer@appmixer-test.com",
+                                    "printOnCheckName": "E2E Test Co"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c0e8bb53-0b8a-4dc6-bfcc-6cd67562e1a5": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 576,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f841ef20-a6aa-4c77-a1c9-349133c4dcbf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f841ef20-a6aa-4c77-a1c9-349133c4dcbf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-5b31d2b9": {
+                                            "variable": "$.f841ef20-a6aa-4c77-a1c9-349133c4dcbf.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-5b31d2b9}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "6a512999-4793-49c2-a070-cecc72318627": {
+            "type": "appmixer.quickbooks.accounting.NewCustomer",
+            "x": 320,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "cd3652b4-5ef2-4b68-9a3b-db11505a3afe": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 576,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "6a512999-4793-49c2-a070-cecc72318627": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6a512999-4793-49c2-a070-cecc72318627": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-d5898ef3": {
+                                            "variable": "$.6a512999-4793-49c2-a070-cecc72318627.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-d5898ef3}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ce8ba9e7-848d-4779-81bc-4f32cedef384": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "c0e8bb53-0b8a-4dc6-bfcc-6cd67562e1a5": [
+                        "out"
+                    ],
+                    "cd3652b4-5ef2-4b68-9a3b-db11505a3afe": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "d383808f-f5be-4d38-9009-f156622c5135": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1088,
+            "y": 560,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "ce8ba9e7-848d-4779-81bc-4f32cedef384": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "ce8ba9e7-848d-4779-81bc-4f32cedef384": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "v-test-case": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "v-result-b3eeda01": {
+                                            "variable": "$.ce8ba9e7-848d-4779-81bc-4f32cedef384.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{v-test-case}}}",
+                                    "result": "{{{v-result-b3eeda01}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -80,5 +80,30 @@ module.exports = {
                 lock.unlock();
             }
         }
+    },
+
+    async test(context) {
+
+        // Polling-with-source: reuse the same error-log query and addLabels() mapping
+        // tick() uses, but fetch only the newest matching error for this flow. No lock,
+        // no state read/write.
+        const result = await context.callAppmixer({
+            endPoint: '/logs',
+            method: 'GET',
+            qs: {
+                size: 1,
+                query: 'severity:error',
+                flowId: context.flowId,
+                sort: ['_id:desc', 'gridTimestamp:desc']
+            }
+        });
+
+        const hits = result?.hits || [];
+        if (!hits.length) {
+            throw new Error('No recent errors in this flow to use as test data.');
+        }
+
+        const [error] = addLabels(context, hits);
+        return context.sendJson(error, 'out');
     }
 };

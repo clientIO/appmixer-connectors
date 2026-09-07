@@ -1,0 +1,91 @@
+{
+    "name": "appmixer.harvest.core.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the Harvest API.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:harvest"
+    },
+    "quota": {
+        "manager": "appmixer:harvest",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                    "headers": { "type": "string" },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to <code>https://api.harvestapp.com/v2</code> (for example <code>/v1/resource</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object (supports nested objects, arrays, and non-string values)."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "Status Code", "value": "status" },
+                { "label": "Response Headers", "value": "headers" },
+                { "label": "Response Body", "value": "body", "schema": { "type": "object", "properties": {} } }
+            ]
+        }
+    ],
+    "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAM6SURBVFhHnVY9TxVBFD13lvcSqIwkJFYUSkwEYiHRmsLwG9DG2sRYiw0djQ01jY1GfoKxeJ1BkQQLCwIUr9HQqIX6DDD3WuzM7p27s/tevMlhZ3bOPffMx86DAGC0vbgqRFsgWSFyBQioAApP1VePKkQ1YlsASOhIGBL2EPpEIs+mn34Z0Gh7cVWAt0TUK4uqApQpbgvbkPDHmqj6ZVtYLoiw5sTLFgl65UBAadX0o3Do56BzrYYBAT3xsuVYsFI7pVoPqi1qNtVT7VPM02OJt7BsyTuABSuuICrAzcGGgO7bAshwksnk3xegwqVJBhnXEEK7YWtiDADQ6MWtsqkPnWnTlXlM3X4YMgB/8g787SA4LMNdu4Pixv1K+PLzK8iPYdkRVIcvaQNw7bOpQTNzKJbXSyytg2YXmpzZBRRLgbO8DpqZU8VbwED3FgRSIywnwgYHWJ5CuwGbrMNyx3GsloIDc7knbCDhfRxLxAVgTiGGw/q71zVY1eGwAtEdh8MRHWvnOv6Xk1mJ8hDqAU1gmVy8laM0Kt0a4QwEkk6wyIp3GMhqmToC0GjzplTfPfQNW//wuPm76D94WYv7c4Av6z4AuCmg6Ffd89ePwMOPtTF9D6h+fQZy++9VW0fRB3ozKVRxwOhomK2tL6KGCdW2yztJ6Fx9DpK2PoR29tFEfKrwB7s4f/M4gT/YTThlboTRVbVccgfE7zu5F5rfOJ8dg48GKc6OE07jbhF1X6h6Lusw57xLPJrXEfN81NP9uk44AzkTKtGegdx2tXGstnmvLqIuE0Z9EgO5VczUqs9Adv/jWEbcG2RNWh1TozwDOXcZ52PFDcfmt+g64bYlVQlWPMtv48SZN/nCQPH83tVNiPp3X5RYbFMBAkOGh5DhZ/DJB8j3r/W4ADTVB/7+CpxD8NF74PfPhKNNxo+G/jy5nniPPwlJ5N5NEnZVVOEY6U0YlkX3IS3LnUMXj4O24TpheJsoDIhXZix8CyxvjJYwvCOW/cR9xnX8j6ox4xZIWMnO1RSAWPYdMW2I8EWZZT8tBRbIhMjlWk0RviCmDTe9czpw7NYg2APjMus2N5MudOWVNfYcu7XpndPBP/KnJAy1daJ9AAAAAElFTkSuQmCC"
+}

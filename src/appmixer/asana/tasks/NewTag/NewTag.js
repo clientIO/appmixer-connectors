@@ -51,5 +51,20 @@ module.exports = {
                     return context.sendJson(tag, 'tag');
                 });
             });
+    },
+
+    async test(context) {
+
+        const client = commons.getAsanaAPI(context.auth.accessToken);
+        const workspaceId = context.properties.workspace;
+
+        // Same tags listing + findById path as tick(), picking the newest tag.
+        const res = await client.tags.findAll({ workspace: workspaceId });
+        const latest = commons.pickLatest(res.data);
+        if (!latest) {
+            throw new Error('No recent tags to use as test data.');
+        }
+        const tag = await client.tags.findById(latest.gid);
+        return context.sendJson(tag, 'tag');
     }
 };

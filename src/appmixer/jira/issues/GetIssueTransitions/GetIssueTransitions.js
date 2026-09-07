@@ -50,6 +50,10 @@ module.exports = {
             });
         }
 
+        if (!id) {
+            throw new context.CancelError('Issue ID or Key is required!');
+        }
+
         try {
             const results = (await commons.get(`${profileInfo.apiUrl}issue/${id}/transitions`, auth));
 
@@ -61,7 +65,7 @@ module.exports = {
             }
 
             if (records.length === 0) {
-                context.sendJson({ name, id }, 'noFound');
+                return context.sendJson({ name, id }, 'notFound');
             }
 
             return lib.sendArrayOutput({

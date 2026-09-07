@@ -1,0 +1,337 @@
+{
+    "flow": {
+        "f493404a-cc1e-4661-871a-e7532c99a5d7": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "85e9539a-d38b-4574-831f-cb56e0aa7a10": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 32,
+            "source": {
+                "in": {
+                    "f493404a-cc1e-4661-871a-e7532c99a5d7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f493404a-cc1e-4661-871a-e7532c99a5d7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "attendeeEmail",
+                                                "text": "test@appmixer.onmicrosoft.com",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7a5aa6e8-fdf4-4ef4-85d9-0ce507223740": {
+            "type": "appmixer.microsoft.calendar.CreateEvent",
+            "label": "CreateEvent (test data)",
+            "x": 464,
+            "y": 32,
+            "source": {
+                "in": {
+                    "85e9539a-d38b-4574-831f-cb56e0aa7a10": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "85e9539a-d38b-4574-831f-cb56e0aa7a10": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "subject": {
+                                        "var-ts": {
+                                            "variable": "$.f493404a-cc1e-4661-871a-e7532c99a5d7.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "start": {
+                                        "var-start": {
+                                            "variable": "$.f493404a-cc1e-4661-871a-e7532c99a5d7.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 24
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "end": {
+                                        "var-end": {
+                                            "variable": "$.f493404a-cc1e-4661-871a-e7532c99a5d7.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 25
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "subject": "E2E MS Calendar GetEvent {{{var-ts}}}",
+                                    "start": "{{{var-start}}}",
+                                    "end": "{{{var-end}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "f9712d81-4cde-4745-ab7b-65cf3a94b9b1": {
+            "type": "appmixer.microsoft.calendar.GetEvent",
+            "label": "GetEvent (component under test)",
+            "x": 672,
+            "y": 32,
+            "source": {
+                "in": {
+                    "7a5aa6e8-fdf4-4ef4-85d9-0ce507223740": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a5aa6e8-fdf4-4ef4-85d9-0ce507223740": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "eventId": {
+                                        "var-id": {
+                                            "variable": "$.7a5aa6e8-fdf4-4ef4-85d9-0ce507223740.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "eventId": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "de4f95e5-0563-4a26-9914-bc0070a8d9c3": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: fetched id equals created id",
+            "x": 896,
+            "y": 32,
+            "source": {
+                "in": {
+                    "f9712d81-4cde-4745-ab7b-65cf3a94b9b1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f9712d81-4cde-4745-ab7b-65cf3a94b9b1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-created": {
+                                            "variable": "$.7a5aa6e8-fdf4-4ef4-85d9-0ce507223740.out.id",
+                                            "functions": []
+                                        },
+                                        "v-got": {
+                                            "variable": "$.f9712d81-4cde-4745-ab7b-65cf3a94b9b1.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "{{{v-created}}}",
+                                                "field": "{{{v-got}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0ab8f5eb-4111-407f-af17-a82a8a2d5026": {
+            "type": "appmixer.microsoft.calendar.DeleteEvent",
+            "label": "DeleteEvent (cleanup)",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f9712d81-4cde-4745-ab7b-65cf3a94b9b1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f9712d81-4cde-4745-ab7b-65cf3a94b9b1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "eventId": {
+                                        "var-id": {
+                                            "variable": "$.7a5aa6e8-fdf4-4ef4-85d9-0ce507223740.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "eventId": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d813bf33-fa59-4171-96e5-8a4083eeca9d": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1120,
+            "y": 160,
+            "source": {
+                "in": {
+                    "de4f95e5-0563-4a26-9914-bc0070a8d9c3": [
+                        "out"
+                    ],
+                    "0ab8f5eb-4111-407f-af17-a82a8a2d5026": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1374e8af-b00f-4335-97b8-f7b0787f8c9c": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1408,
+            "y": 160,
+            "source": {
+                "in": {
+                    "d813bf33-fa59-4171-96e5-8a4083eeca9d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "d813bf33-fa59-4171-96e5-8a4083eeca9d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.d813bf33-fa59-4171-96e5-8a4083eeca9d.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E MS Calendar - GetEvent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        }
+    },
+    "name": "E2E MS Calendar - GetEvent",
+    "type": "automation",
+    "notes": {}
+}

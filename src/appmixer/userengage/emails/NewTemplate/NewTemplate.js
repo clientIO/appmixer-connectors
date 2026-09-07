@@ -40,5 +40,17 @@ module.exports = {
             return context.sendJson(template, 'template');
         });
         await context.saveState({ known: Array.from(current) });
+    },
+
+    async test(context) {
+
+        let { apiKey } = context.auth;
+
+        // Same list endpoint tick() polls; take the freshest template. No state.
+        let template = await commons.getLatestResult(apiKey, 'email-templates');
+        if (!template) {
+            throw new Error('No recent templates to use as test data.');
+        }
+        return context.sendJson(template, 'template');
     }
 };

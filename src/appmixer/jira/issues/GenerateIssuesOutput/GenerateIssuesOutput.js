@@ -7,11 +7,24 @@ module.exports = {
 
     async receive(context) {
 
-        const { sendWholeArray = false, isWebhook = false } = context.properties;
-        return context.sendJson({ sendWholeArray, isWebhook }, 'out');
+        const { sendWholeArray = false, isWebhook = false, outputType } = context.properties;
+        return context.sendJson({ sendWholeArray, isWebhook, outputType }, 'out');
     },
 
-    getOutputOptions({ sendWholeArray, isWebhook }) {
+    getOutputOptions({ sendWholeArray, isWebhook, outputType }) {
+        // outputType-based shape (FindIssues): array -> whole list, file -> fileId,
+        // first/object -> a single issue's fields.
+        if (outputType === 'array') {
+            return [{
+                label: 'Issues',
+                value: 'issues',
+                schema: { type: 'array', items: { type: 'object' } }
+            }];
+        }
+        if (outputType === 'file') {
+            return [{ label: 'File ID', value: 'fileId' }];
+        }
+
         if (sendWholeArray) {
             return [{ label: 'Issues', value: 'issues' }];
         } else {

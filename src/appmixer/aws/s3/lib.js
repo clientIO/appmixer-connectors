@@ -1,6 +1,6 @@
 'use strict';
 
-const { S3Client, GetBucketNotificationConfigurationCommand, PutBucketNotificationConfigurationCommand } = require('@aws-sdk/client-s3');
+const { S3Client, GetBucketNotificationConfigurationCommand, PutBucketNotificationConfigurationCommand, ListBucketsCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
 const { SNSClient, CreateTopicCommand, SetTopicAttributesCommand, SubscribeCommand, UnsubscribeCommand, DeleteTopicCommand, ConfirmSubscriptionCommand } = require('@aws-sdk/client-sns');
 const { KMSClient, DescribeKeyCommand, ListKeyPoliciesCommand, GetKeyPolicyCommand } = require('@aws-sdk/client-kms');
 const crypto = require('crypto');
@@ -26,6 +26,74 @@ module.exports = {
             sns,
             kms,
             region
+        };
+    },
+
+    /**
+     * List all buckets for the configured account/region. Shared by the NewBucket /
+     * DeletedBucket polling triggers (tick + test) so they all fetch buckets the same way.
+     * @param {Context} context
+     * @return {Promise<Array>} array of raw bucket objects ({ Name, CreationDate, ... })
+     */
+    async listBuckets(context) {
+
+        const { s3, region } = this.init(context);
+        try {
+            const response = await s3.send(new ListBucketsCommand({ BucketRegion: region }));
+            return response.Buckets || [];
+        } catch (error) {
+            // Re-throw with just the error message. Otherwise a
+            // [unable to serialize, circular reference is too complex to analyze]
+            // error is thrown.
+            throw new Error(error.message);
+        }
+    },
+
+    /**
+     * Find the most-recently-modified object in the configured bucket and reshape it into the
+     * exact S3 event-notification `object` record that the NewObject / UpdatedObject triggers
+     * emit from `receive()` (`{ key, size, eTag }`). Read-only (listObjectsV2 only) — used by
+     * the triggers' test() methods to produce realistic Flow Test Mode data without a real event.
+     * @param {Context} context
+     * @return {Promise<Object|null>} S3-event-shaped object record, or null if the bucket is empty
+     */
+    async fetchLatestObject(context) {
+
+        const { bucket } = context.properties;
+        const { s3 } = this.init(context);
+
+        let latest = null;
+        let continuationToken;
+        // ListObjectsV2 returns no ordering guarantee, so scan pages and keep the newest. Cap the
+        // scan at MAX_PAGES: test() only needs a representative recent object, and scanning an entire
+        // large bucket would make Flow Test Mode slow/expensive and risk execution timeouts.
+        const MAX_PAGES = 10;
+        let pagesScanned = 0;
+        do {
+            const response = await s3.send(new ListObjectsV2Command({
+                Bucket: bucket,
+                ContinuationToken: continuationToken
+            }));
+            const contents = response.Contents || [];
+            for (const item of contents) {
+                if (!latest || new Date(item.LastModified) > new Date(latest.LastModified)) {
+                    latest = item;
+                }
+            }
+            pagesScanned += 1;
+            continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+        } while (continuationToken && pagesScanned < MAX_PAGES);
+
+        if (!latest) {
+            return null;
+        }
+
+        // Reshape into the S3 event-notification object record (same keys S3 puts on the wire).
+        // eTag in S3 events is unquoted; ListObjectsV2 returns it quoted.
+        return {
+            key: latest.Key,
+            size: latest.Size,
+            eTag: typeof latest.ETag === 'string' ? latest.ETag.replace(/^"|"$/g, '') : latest.ETag
         };
     },
 

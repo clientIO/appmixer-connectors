@@ -6,19 +6,7 @@ module.exports = {
 
     async tick(context) {
 
-        let allNotifications = [];
-        let cursor;
-        do {
-            const response = await lib.xrpc(context, {
-                method: 'GET',
-                nsid: 'app.bsky.notification.listNotifications',
-                params: Object.assign({ limit: 100 }, cursor ? { cursor } : {})
-            });
-            const batch = response.notifications || [];
-            allNotifications = allNotifications.concat(batch);
-            cursor = response.cursor;
-            if (!cursor || batch.length === 0) break;
-        } while (cursor);
+        const allNotifications = await lib.listAllNotifications(context);
 
         const replies = allNotifications.filter(n => n.reason === 'reply');
 
@@ -29,5 +17,14 @@ module.exports = {
             await context.sendJson(reply, 'out');
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        const reply = await lib.fetchLatestNotification(context, 'reply');
+        if (!reply) {
+            throw new Error('No recent reply notifications to use as test data.');
+        }
+        return context.sendJson(reply, 'out');
     }
 };

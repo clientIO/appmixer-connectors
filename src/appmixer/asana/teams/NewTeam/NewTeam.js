@@ -51,5 +51,20 @@ module.exports = {
                     return context.sendJson(team, 'team');
                 });
             });
+    },
+
+    async test(context) {
+
+        const client = commons.getAsanaAPI(context.auth.accessToken);
+        const workspaceId = context.properties.workspace;
+
+        // Same teams listing + findById path as tick(), picking the newest team.
+        const res = await client.teams.findByOrganization(workspaceId);
+        const latest = commons.pickLatest(res.data);
+        if (!latest) {
+            throw new Error('No recent teams to use as test data.');
+        }
+        const team = await client.teams.findById(latest.gid);
+        return context.sendJson(team, 'team');
     }
 };

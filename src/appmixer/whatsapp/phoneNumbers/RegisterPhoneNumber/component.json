@@ -2,7 +2,7 @@
     "name": "appmixer.whatsapp.phoneNumbers.RegisterPhoneNumber",
     "author": "Appmixer <info@appmixer.com>",
     "label": "Register Sender Phone Number",
-    "description": "Register YOUR business sender phone number with the WhatsApp Cloud API. Required one-time step before this number can send or receive messages. Does NOT register recipients \u2014 recipients (end users you message) are identified by E.164 phone number and need no registration.",
+    "description": "Register YOUR business sender phone number with the WhatsApp Cloud API. Required one-time step before this number can send or receive messages. Does NOT register recipients — recipients (end users you message) are identified by E.164 phone number and need no registration.",
     "version": "1.0.0",
     "private": false,
     "auth": {
@@ -21,6 +21,9 @@
             "schema": {
                 "type": "object",
                 "properties": {
+                    "businessAccountId": {
+                        "type": "string"
+                    },
                     "phoneNumberId": {
                         "type": "string"
                     },
@@ -32,32 +35,62 @@
                     }
                 },
                 "required": [
+                    "businessAccountId",
                     "phoneNumberId",
                     "pin"
                 ]
             },
             "inspector": {
                 "inputs": {
-                    "phoneNumberId": {
+                    "businessAccountId": {
                         "type": "text",
                         "index": 1,
+                        "label": "WhatsApp Business Account ID",
+                        "tooltip": "Select the WhatsApp Business Account (WABA). If the dropdown is empty, enter your WABA ID manually — you can find it in Meta Business Manager (business.facebook.com → Settings → Accounts → WhatsApp Accounts).",
+                        "source": {
+                            "url": "/component/appmixer/whatsapp/businessAccounts/ListBusinessAccounts?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListBusinessAccounts#toSelectArray"
+                            }
+                        }
+                    },
+                    "phoneNumberId": {
+                        "type": "text",
+                        "index": 2,
                         "label": "Phone Number ID",
-                        "tooltip": "ID of YOUR business sender phone number to register (from Meta Business Manager \u2192 WhatsApp \u2192 Phone numbers). NOT a recipient number."
+                        "tooltip": "ID of YOUR business sender phone number to register (from Meta Business Manager → WhatsApp → Phone numbers). NOT a recipient number. Pick from the dropdown (populated when the WABA above is filled in), or paste a Phone Number ID manually.",
+                        "source": {
+                            "url": "/component/appmixer/whatsapp/phoneNumbers/ListPhoneNumbers?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/businessAccountId": "inputs/in/businessAccountId",
+                                    "in/phoneNumberId": "any",
+                                    "in/pin": "any"
+                                },
+                                "transform": "./ListPhoneNumbers#toSelectArray",
+                                "properties": {
+                                    "isSource": true
+                                }
+                            }
+                        }
                     },
                     "pin": {
                         "type": "text",
-                        "index": 2,
+                        "index": 3,
                         "label": "Two-step Verification PIN",
-                        "tooltip": "6-digit two-step verification PIN of YOUR business sender number. For Meta test numbers this is usually <code>000000</code>. For owned numbers it is the PIN set when you verified the number via SMS/voice; reset via Meta App Dashboard \u2192 WhatsApp \u2192 API Setup \u2192 Two-step verification."
+                        "tooltip": "6-digit two-step verification PIN of YOUR business sender number. For Meta test numbers this is usually <code>000000</code>. For owned numbers it is the PIN set when you verified the number via SMS/voice; reset via Meta App Dashboard → WhatsApp → API Setup → Two-step verification."
                     },
                     "dataLocalizationRegion": {
                         "type": "select",
-                        "index": 3,
+                        "index": 4,
                         "label": "Data Localization Region",
                         "tooltip": "Optional. ISO 3166-1 alpha-2 region code if your WABA participates in WhatsApp data-localization. Leave blank for global storage.",
                         "options": [
                             {
-                                "label": "(none \u2014 global)",
+                                "label": "(none — global)",
                                 "value": ""
                             },
                             {

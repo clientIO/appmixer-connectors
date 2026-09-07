@@ -2,6 +2,7 @@
 const HighriseAPI = require('node-highrise-api');
 const check = require('check-types');
 const moment = require('moment');
+const Promise = require('bluebird');
 
 module.exports = {
 
@@ -69,5 +70,51 @@ module.exports = {
     generateSince() {
 
         return moment.utc().format('YYYYMMDDHHmmss');
+    },
+
+    /**
+     * Build a Highrise API client from the trigger context. Shared by both the
+     * production tick() path and the Flow Test Mode test() path so the request
+     * (auth + transport) lives in one place.
+     * @param {Object} context
+     * @return {*} HighriseAPI client
+     */
+    getClient(context) {
+
+        const { companyId } = context.properties;
+        const options = { userAgent: context.auth.userAgent };
+        return this.getHighriseAPI(companyId, context.auth.accessToken, options);
+    },
+
+    /**
+     * Promisified fetch of a Highrise collection. `clientMethod` is the SDK list
+     * method (e.g. client.people.get) and `methodContext` its owner object so the
+     * SDK builds the request and maps the response exactly as it does for tick().
+     * @param {function} clientMethod
+     * @param {Object} methodContext
+     * @param {...*} args - args forwarded to the SDK method (e.g. `true` for open cases)
+     * @return {Promise.<Array>}
+     */
+    fetchCollection(clientMethod, methodContext, ...args) {
+
+        const promisified = Promise.promisify(clientMethod, { context: methodContext });
+        return promisified(...args);
+    },
+
+    /**
+     * Pick the newest record from a Highrise collection. Highrise records carry a
+     * numeric `id` that increases with creation order, so the highest id is the
+     * most recently created item. Used by test() to emit one representative record.
+     * @param {Array} records
+     * @return {Object|null}
+     */
+    pickLatest(records) {
+
+        if (!Array.isArray(records) || records.length === 0) {
+            return null;
+        }
+        return records.reduce((latest, record) => {
+            return (record && record.id > latest.id) ? record : latest;
+        }, records[0]);
     }
 };

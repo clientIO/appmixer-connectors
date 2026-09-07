@@ -1,0 +1,209 @@
+{
+    "name": "E2E Epic - Get Appointment",
+    "flow": {
+        "66337063-d423-4fab-81c6-8d87383aeea6": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "79214ab1-54c1-46d6-9162-1463d65d11b3": {
+            "type": "appmixer.epic.core.MakeApiCall",
+            "x": 256,
+            "y": 300,
+            "source": {
+                "in": {
+                    "66337063-d423-4fab-81c6-8d87383aeea6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "66337063-d423-4fab-81c6-8d87383aeea6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "url": "Appointment?patient=erXuFYUfucBZaryVksYEcMg3&status=booked&date=ge2026-09-01&_count=1",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "27d036c7-0a46-412c-a100-424b1d920584": {
+            "type": "appmixer.epic.core.GetAppointment",
+            "x": 448,
+            "y": 300,
+            "source": {
+                "in": {
+                    "79214ab1-54c1-46d6-9162-1463d65d11b3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "79214ab1-54c1-46d6-9162-1463d65d11b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "appointmentId": {
+                                        "1d6cf5f1-f601-4923-a783-bc55f1e24919": {
+                                            "functions": [],
+                                            "variable": "$.79214ab1-54c1-46d6-9162-1463d65d11b3.out.body.entry.0.resource.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "appointmentId": "{{{1d6cf5f1-f601-4923-a783-bc55f1e24919}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c743d662-6232-42d7-917b-07dd923e758d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 300,
+            "source": {
+                "in": {
+                    "27d036c7-0a46-412c-a100-424b1d920584": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "27d036c7-0a46-412c-a100-424b1d920584": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "53ba3b1a-d9d1-4985-8831-1c098b2e2136": {
+                                            "functions": [],
+                                            "variable": "$.27d036c7-0a46-412c-a100-424b1d920584.out.id"
+                                        },
+                                        "7fb219d1-f89d-4c40-acf4-f75025d1b061": {
+                                            "functions": [],
+                                            "variable": "$.27d036c7-0a46-412c-a100-424b1d920584.out.start"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{53ba3b1a-d9d1-4985-8831-1c098b2e2136}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{7fb219d1-f89d-4c40-acf4-f75025d1b061}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0a0babed-1985-4237-86bf-4373e3576f57": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 300,
+            "source": {
+                "in": {
+                    "c743d662-6232-42d7-917b-07dd923e758d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7c1aee1d-12ba-4650-addc-c5d9c2ee8b26": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1024,
+            "y": 300,
+            "source": {
+                "in": {
+                    "0a0babed-1985-4237-86bf-4373e3576f57": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "0a0babed-1985-4237-86bf-4373e3576f57": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "ea3ac4a0-2ab8-4b3e-9f61-9b0a4f9eb069": {
+                                            "functions": [],
+                                            "variable": "$.0a0babed-1985-4237-86bf-4373e3576f57.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Epic - Get Appointment",
+                                    "result": "{{{ea3ac4a0-2ab8-4b3e-9f61-9b0a4f9eb069}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    }
+}

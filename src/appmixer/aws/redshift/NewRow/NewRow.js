@@ -34,7 +34,7 @@ module.exports = {
                 }
             }
         } catch (error) {
-            throw new context.CancelError('Error executing query: ' + error);
+            throw new context.CancelError('Error executing query: ' + (error.message || error));
         }
     },
     /**
@@ -52,5 +52,27 @@ module.exports = {
         const queryResponse = await runQuery({ context: context.auth, query: updatedQuery });
         return queryResponse.rows;
 
+    },
+
+    async test(context) {
+
+        const { query, compareField: field } = context.properties;
+        const sanitizedQuery = query.replace(/;$/, '');
+
+        // Same read-only query the first tick uses to find the newest row (no state baseline),
+        // emitting it in the exact { row } shape tick() emits.
+        const latestRowQuery = `${sanitizedQuery} ORDER BY ${field} DESC LIMIT 1`;
+        let latestRowResult;
+        try {
+            latestRowResult = await runQuery({ context: context.auth, query: latestRowQuery });
+        } catch (error) {
+            throw new context.CancelError('Error executing query: ' + (error.message || error));
+        }
+
+        if (!latestRowResult.rows.length) {
+            throw new Error('No rows found to use as test data.');
+        }
+
+        return context.sendJson({ row: latestRowResult.rows[0] }, 'out');
     }
 };

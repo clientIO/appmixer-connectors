@@ -18,49 +18,53 @@ module.exports = async (context) => {
 
         const { eventName, params } = listener;
 
+        // Retry on lock contention. Each ContactPropertyChanged listener contributes a distinct
+        // propertyName, so two listeners of the same subscriptionType starting concurrently must not
+        // drop each other's subscription — wait for the lock instead of silently giving up.
+        let lock;
         try {
-            const lock = await context.lock(eventName);
+            lock = await context.lock(eventName, {
+                ttl: 1000 * 30,
+                retryDelay: 500,
+                maxRetryCount: 20
+            });
 
-            try {
-                const subscriptionType = eventName.split(':')[0];
-                const subscriptions = getSubscriptionsByType(subscriptionType, context);
-                const results = await getHubSpotSubscriptions(context, params);
-                const currentActiveSubs = results.filter(s => s.enabled).map(s => s.eventType);
+            const subscriptionType = eventName.split(':')[0];
+            const subscriptions = getSubscriptionsByType(subscriptionType, context, params);
+            const results = await getHubSpotSubscriptions(context, params);
 
-                let subscriptionsToCreate = [];
-                subscriptions.forEach(s => {
-                    if (!currentActiveSubs.includes(s.subscriptionDetails.subscriptionType)) {
-                        subscriptionsToCreate.push(s);
-                    }
-                });
+            // Reconcile on the full (eventType, propertyName) pair. HubSpot models each watched
+            // property as its own subscription, so comparing eventType alone would treat every
+            // propertyChange property as already-subscribed once any one of them exists.
+            const subKey = (eventType, propertyName) => `${eventType}:${propertyName || ''}`;
+            const existingByKey = new Map();
+            results.forEach(r => existingByKey.set(subKey(r.eventType, r.propertyName), r));
 
-                if (!subscriptionsToCreate.length) {
-                    return {};
+            const subscriptionsToCreate = [];
+            for (const sub of subscriptions) {
+                const { subscriptionType: evType, propertyName } = sub.subscriptionDetails;
+                const existing = existingByKey.get(subKey(evType, propertyName));
+                if (!existing) {
+                    subscriptionsToCreate.push(sub);
+                } else if (!existing.enabled) {
+                    // Re-enable a disabled subscription for this exact property — don't stop at the
+                    // first one, every desired property must end up active.
+                    await activateHubSpotSubscription(context, params, existing.id);
                 }
+            }
 
-                // If deletion or creation, check if we need to enable or create the subscription
-                for (const sub of subscriptionsToCreate) {
-                    const existingSub = results.find(r => r.eventType === sub.subscriptionDetails.subscriptionType);
-                    if (existingSub) {
-                        // Enable the existing subscription
-                        await activateHubSpotSubscription(context, params, existingSub.id);
-                        return;
-                    }
-                }
-
+            if (subscriptionsToCreate.length) {
                 const { data } = await createHubSpotSubscriptions(context, params, subscriptionsToCreate);
                 return data;
+            }
 
-            } catch (err) {
-                context.log('error', 'hubspot-plugin-listener-added-error', { listener, error: err.message });
-                throw err;
-            } finally {
-                await lock.unlock();
-            }
+            return {};
+
         } catch (err) {
-            if (err.message !== 'locked') {
-                throw err;
-            }
+            context.log('error', 'hubspot-plugin-listener-added-error', { listener, error: err.message });
+            throw err;
+        } finally {
+            await lock?.unlock();
         }
     });
 
@@ -174,7 +178,7 @@ async function triggerListenersDelayed(context, eventName, payload) {
     await context.triggerListeners({ eventName, payload });
 }
 
-function getSubscriptionsByType(subscriptionType, context) {
+function getSubscriptionsByType(subscriptionType, context, params = {}) {
 
     let subscriptions = [];
 
@@ -187,7 +191,13 @@ function getSubscriptionsByType(subscriptionType, context) {
             }
         }));
     } else if (subscriptionType === 'contact.propertyChange') {
-        subscriptions = WATCHED_PROPERTIES_CONTACT.map(propertyName => ({
+        // Start with the default watched properties.
+        const propertySet = new Set(WATCHED_PROPERTIES_CONTACT);
+        // If a specific property was requested (e.g. by ContactPropertyChanged), ensure it is included.
+        if (params.propertyName) {
+            propertySet.add(params.propertyName);
+        }
+        subscriptions = Array.from(propertySet).map(propertyName => ({
             enabled: true,
             subscriptionDetails: {
                 subscriptionType,

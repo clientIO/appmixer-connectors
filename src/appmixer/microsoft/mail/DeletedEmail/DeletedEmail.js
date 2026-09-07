@@ -1,6 +1,7 @@
 'use strict';
 
-const { makeRequest, renewBeforeExpirationMs } = require('../commons');
+const commons = require('../commons');
+const { makeRequest, renewBeforeExpirationMs } = commons;
 
 const clientState = 'appmixer.microsoft.mail';
 
@@ -108,5 +109,17 @@ module.exports = {
                 return context.response('', 200);
             }
         }
+    },
+
+    async test(context) {
+
+        // Flow Test Mode: a real delete notification carries no fetchable message,
+        // so `receive()` emits only { id: resourceData.id }. Reconstruct that exact
+        // minimal shape from the id of the newest message currently in the folder.
+        const message = await commons.fetchLatestMessage(context, 'receivedDateTime');
+        if (!message) {
+            throw new Error('No recent messages in the watched folder to use as test data.');
+        }
+        return context.sendJson({ id: message.id }, 'out');
     }
 };

@@ -1,6 +1,7 @@
 'use strict';
 
 const Hubspot = require('./Hubspot');
+const { getObjectProperties } = require('./commons');
 
 class BaseSubscriptionComponent {
 
@@ -109,6 +110,49 @@ class BaseSubscriptionComponent {
         this.configureHubspot(context);
         const portalId = context.auth?.profileInfo?.hub_id;
         return context.removeListener(`${this.subscriptionType}:${portalId}`);
+    }
+
+    /**
+     * Flow Test Mode helper shared by every subscription trigger's test(). Fetches the
+     * newest object of `objectType` via the CRM search API and emits it on `outputPort`
+     * in the SAME shape receive() emits (an element of a batch/read result:
+     * { id, properties, createdAt, updatedAt, archived }). Honors the same `properties`
+     * selection as receive(); callers pass any property filters (pipeline, dealstage)
+     * so the example matches the trigger's configuration.
+     * @param {string} objectType 'contacts' | 'deals'
+     * @param {object} [opts]
+     * @param {string} [opts.sortProperty] property to sort newest-first ('createdate' by default)
+     * @param {object[]} [opts.filters] HubSpot search filters ({ propertyName, operator, value })
+     * @returns {Promise<object>} The newest record.
+     */
+    async fetchLatestExample(context, objectType, { sortProperty = 'createdate', filters = [] } = {}) {
+
+        this.configureHubspot(context);
+
+        let propertiesToReturn;
+        const { properties } = context.properties;
+        if (!properties) {
+            propertiesToReturn = await getObjectProperties(context, this.hubspot, objectType, 'names');
+        } else {
+            propertiesToReturn = properties.split(',');
+        }
+
+        const body = {
+            sorts: [{ propertyName: sortProperty, direction: 'DESCENDING' }],
+            properties: propertiesToReturn,
+            limit: 1
+        };
+        if (filters.length) {
+            body.filterGroups = [{ filters }];
+        }
+
+        const { data } = await this.hubspot.call('post', `crm/v3/objects/${objectType}/search`, body);
+        const record = data.results && data.results[0];
+        if (!record) {
+            throw new context.CancelError(`No ${objectType} found to use as test data.`);
+        }
+
+        return record;
     }
 }
 

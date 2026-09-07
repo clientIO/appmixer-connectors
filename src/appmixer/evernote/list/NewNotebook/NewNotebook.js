@@ -47,6 +47,25 @@ module.exports = {
             .catch(err => {
                 throw commons.verboseError(err);
             });
+    },
+
+    /**
+     * Flow Test Mode: emit the newest notebook without starting the flow. Reuses the same
+     * listNotebooks() source tick() reads from (via commons), emitting the notebook object
+     * in the identical shape tick() sends.
+     */
+    test(context) {
+
+        return commons.fetchLatestNotebook(context)
+            .then(notebook => {
+                if (!notebook) {
+                    throw new Error('No notebooks to use as test data.');
+                }
+                return context.sendJson(notebook, 'notebook');
+            })
+            .catch(err => {
+                throw commons.verboseError(err);
+            });
     }
 };
 

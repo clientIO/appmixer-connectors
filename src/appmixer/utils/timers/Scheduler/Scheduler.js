@@ -1,6 +1,8 @@
 'use strict';
 const parser = require('cron-parser');
-const moment = require('moment');
+// moment-timezone (not plain moment) — isValidTimezone() below uses moment.tz.zone(),
+// which is undefined on plain moment and would throw whenever a timezone is set.
+const moment = require('moment-timezone');
 
 const getExpression = properties => {
 
@@ -24,6 +26,29 @@ module.exports = {
             const previousDate = context.messages.timeout.content.previousDate;
             return this.scheduleJob(context, { previousDate, firstTime: false });
         }
+    },
+
+    async test(context) {
+
+        // Sourceless schedule: emit a single representative payload of the same shape
+        // scheduleJob() sends, computed from the same cron expression and timezone, but
+        // without acquiring a lock, setting a timeout or touching state.
+        const { timezone } = context.properties;
+        if (timezone && !isValidTimezone(timezone)) {
+            throw new context.CancelError('Invalid timezone');
+        }
+
+        const expression = getExpression(context.properties);
+        const options = timezone ? { tz: timezone } : {};
+        const interval = parser.parseExpression(expression, options);
+        if (!interval.hasNext()) {
+            throw new context.CancelError('Next scheduled date doesn\'t exist');
+        }
+
+        const now = moment().toISOString();
+        const nextDate = interval.next().toISOString();
+
+        return context.sendJson({ previousDate: null, now, nextDate }, 'out');
     },
 
     async start(context) {

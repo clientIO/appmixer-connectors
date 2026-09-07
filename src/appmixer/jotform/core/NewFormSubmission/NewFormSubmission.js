@@ -22,6 +22,16 @@ module.exports = {
         }
     },
 
+    // No fetchable example: NewFormSubmission emits the raw JotForm webhook POST body
+    // (multipart form fields, rawRequest, …), which has no equivalent fetchable REST
+    // shape. Throw and let Flow Test Mode fall through to the log/schema fallbacks.
+    test: async function(context) {
+
+        throw new context.CancelError(
+            'NewFormSubmission can only be tested by submitting the form — the JotForm webhook POST body has no equivalent fetchable REST shape.'
+        );
+    },
+
     httpRequest: async function(context, override = {}) {
 
         let url = null;

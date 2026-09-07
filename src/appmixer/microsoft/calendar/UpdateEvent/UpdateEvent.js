@@ -15,6 +15,10 @@ module.exports = {
             location
         } = context.messages.in.content;
 
+        if (!eventId) {
+            throw new context.CancelError('Event ID is required!');
+        }
+
         // Attendees are not mandatory when updating an event.
         const attendees = emails?.split(',').map(email => ({ emailAddress: { address: email } }));
         const options = {
@@ -52,8 +56,6 @@ module.exports = {
                 displayName: location
             };
         }
-
-        context.log({ step: 'Making request', options });
 
         const { data } = await context.httpRequest(options);
 

@@ -1,0 +1,117 @@
+{
+    "name": "appmixer.e2b.core.CreateSandbox",
+    "description": "Create a new E2B sandbox from a template. Returns the sandbox ID used by the other components.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:e2b"
+    },
+    "quota": {
+        "manager": "appmixer:e2b",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "templateID": {
+                        "type": "string"
+                    },
+                    "timeout": {
+                        "type": "integer"
+                    },
+                    "metadata": {
+                        "type": "string"
+                    },
+                    "envVars": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "templateID": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Template ID",
+                        "defaultValue": "base",
+                        "tooltip": "The sandbox template to use. Pick one from the list (public templates and your team templates) or enter a template ID or name. Use <b>code-interpreter-v1</b> if you plan to use the Run Code component.",
+                        "source": {
+                            "url": "/component/appmixer/e2b/core/ListTemplates?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/outputType": "array"
+                                },
+                                "transform": "./ListTemplates#toSelectArray"
+                            }
+                        }
+                    },
+                    "timeout": {
+                        "type": "number",
+                        "index": 2,
+                        "label": "Timeout (seconds)",
+                        "defaultValue": 300,
+                        "tooltip": "How long the sandbox stays alive before it is automatically killed, in seconds. Defaults to 300 (the API default is only 15 seconds). Sandboxes are ephemeral - set a generous timeout if you plan to use the sandbox in later components."
+                    },
+                    "metadata": {
+                        "type": "textarea",
+                        "index": 3,
+                        "label": "Metadata (JSON)",
+                        "tooltip": "Optional JSON object of custom key/value metadata to attach to the sandbox, e.g. <b>{\"userId\": \"42\"}</b>."
+                    },
+                    "envVars": {
+                        "type": "key-value",
+                        "keyLabel": "Name",
+                        "valueLabel": "Value",
+                        "addLabel": "Add variable",
+                        "removeLabel": "Remove variable",
+                        "index": 4,
+                        "label": "Environment Variables",
+                        "tooltip": "Optional environment variables available inside the sandbox, e.g. <b>NODE_ENV</b> = <b>production</b>."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "sandboxID": {
+                        "type": "string",
+                        "title": "Sandbox ID",
+                        "example": "i3xkz5qz8p6z9r2v4w7yq"
+                    },
+                    "templateID": {
+                        "type": "string",
+                        "title": "Template ID",
+                        "example": "base"
+                    },
+                    "clientID": {
+                        "type": "string",
+                        "title": "Client ID",
+                        "example": "3d3f5e9a"
+                    },
+                    "alias": {
+                        "type": "string",
+                        "title": "Alias",
+                        "example": "base"
+                    },
+                    "envdVersion": {
+                        "type": "string",
+                        "title": "envd Version",
+                        "example": "0.1.5"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NSIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDY1IDE4IiBmaWxsPSJub25lIiA+CiAgPHBhdGggIGQ9Ik0yMC4yMjM1IDBWNC42NzY0NUg1LjQ5MzI4QzUuMDQyNjMgNC42NzY2MSA0LjY3NjQ1IDUuMDQyNiA0LjY3NjQ1IDUuNDkzMjhWNS44NDQ5NEM0LjY3NjQ1IDYuMjk1NjMgNS4wNDI2MyA2LjY2MTYxIDUuNDkzMjggNi42NjE3OEgyMC4yMjM1VjExLjMzODJINS40OTMyOEM1LjA0MjYzIDExLjMzODQgNC42NzY0NSAxMS43MDQ0IDQuNjc2NDUgMTIuMTU1MVYxMi41MDY3QzQuNjc2NTcgMTIuOTU3MyA1LjA0MjcxIDEzLjMyMjIgNS40OTMyOCAxMy4zMjIzSDIwLjIyMzVWMThIMy4xMjY2OEMxLjM5OTk4IDE3Ljk5OTYgMS45ODQxNGUtMDUgMTYuNTk4OSAwIDE0Ljg3MjFWMy4xMjY2OEMwLjAwMDI4MDQ2NSAxLjQwMDA4IDEuNDAwMTMgMC4wMDA0MzI3NjcgMy4xMjY2OCAwSDIwLjIyMzVaIiBmaWxsPSJibGFjayIvPgogIDxwYXRoIGQ9Ik0zOS4yNzIzIDBDNDAuOTk5MiAwLjAwMDE1NTA1NiA0Mi4zOTkgMS40MDA5MiA0Mi4zOTkgMy4xMjc5MVY4LjM2NzAxQzQyLjM5ODkgMTAuMDEwMSA0MS4wNjcyIDExLjM0MTcgMzkuNDI0IDExLjM0MTlIMzYuOTU4N0MzNi45NDEzIDExLjM0MDggMzYuOTIzMiAxMS4zMzgyIDM2LjkwNTcgMTEuMzM4MkgyNy42Mzc5QzI3LjE4NzMgMTEuMzM4NCAyNi44MjExIDExLjcwNDQgMjYuODIxMSAxMi4xNTUxVjEyLjUwNjdDMjYuODIxMyAxMi45NTcyIDI3LjE4NzQgMTMuMzIyMSAyNy42Mzc5IDEzLjMyMjNINDIuMzkwM1YxOEgyMi4xNDQ2VjkuNjMyOTlDMjIuMTQ0NiA3Ljk4OTk4IDIzLjQ3NjcgNi42NTczMiAyNS4xMTk1IDYuNjU2ODRIMjcuNTc2MkMyNy41OTY3IDYuNjU4MzggMjcuNjE3NCA2LjY2MTc0IDI3LjYzNzkgNi42NjE3OEgzNi45MDU3QzM3LjM1NjMgNi42NjE3MSAzNy43MjI1IDYuMjk1NzggMzcuNzIyNSA1Ljg0NDk0VjUuNDkzMjhDMzcuNzIyNCA1LjA0MjU1IDM3LjM1NjMgNC42Nzc3NSAzNi45MDU3IDQuNjc3NjhIMjIuMTc1NVYwSDM5LjI3MjNaIiBmaWxsPSJibGFjayIvPgogIDxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNjEuNDM3OSAwQzYzLjE2NDggMy42Nzg2ZS0wNSA2NC41NjU1IDEuMzk5ODUgNjQuNTY1OCAzLjEyNjY4VjE0Ljg3MjFDNjQuNTY1OCAxNi41OTkyIDYzLjE2NDkgMTggNjEuNDM3OSAxOEg0NC4zMzg2VjBINjEuNDM3OVpNNDkuODMxOSAxMS4zMzgyQzQ5LjM4MTMgMTEuMzM4NCA0OS4wMTUxIDExLjcwNDQgNDkuMDE1MSAxMi4xNTUxVjEyLjUwNjdDNDkuMDE1MiAxMi45NTczIDQ5LjM4MTMgMTMuMzIyMiA0OS44MzE5IDEzLjMyMjNINTkuMDcyNUM1OS41MjMgMTMuMzIyMiA1OS44ODggMTIuOTU3NCA1OS44ODgxIDEyLjUwNjdWMTIuMTU1MUM1OS44ODgxIDExLjcwNDMgNTkuNTIzMSAxMS4zMzg0IDU5LjA3MjUgMTEuMzM4Mkg0OS44MzE5Wk00OS44MzE5IDQuNjc2NDVDNDkuMzgxMyA0LjY3NjYxIDQ5LjAxNTEgNS4wNDI2IDQ5LjAxNTEgNS40OTMyOFY1Ljg0NDk0QzQ5LjAxNTEgNi4yOTU2MiA0OS4zODEzIDYuNjYxNjEgNDkuODMxOSA2LjY2MTc4SDU5LjA3MjVDNTkuNTIzMSA2LjY2MTYyIDU5Ljg4ODEgNi4yOTU3MSA1OS44ODgxIDUuODQ0OTRWNS40OTMyOEM1OS44ODgxIDUuMDQyNTIgNTkuNTIzMSA0LjY3NjYxIDU5LjA3MjUgNC42NzY0NUg0OS44MzE5WiIgZmlsbD0iYmxhY2siLz4KPC9zdmc+Cg=="
+}

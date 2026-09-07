@@ -8,7 +8,8 @@ const {
     setOperationalTimestamp,
     processDocuments,
     closeClient,
-    waitForConnectionId
+    waitForConnectionId,
+    fetchLatestDocument
 } = require('../../common');
 
 module.exports = {
@@ -105,5 +106,16 @@ module.exports = {
         } finally {
             lock && await lock.unlock();
         }
+    },
+
+    // Flow Test Mode: read-only. Emit the newest document. The webhook path
+    // (receive) emits the full document under `document` plus `oldDocument`; we
+    // reuse the same full-document shape since no real "before" value exists.
+    async test(context) {
+        const document = await fetchLatestDocument(context);
+        if (!document) {
+            throw new Error('No documents in the collection to use as test data.');
+        }
+        return context.sendJson({ document, oldDocument: document }, 'out');
     }
 };

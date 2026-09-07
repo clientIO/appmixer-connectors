@@ -28,32 +28,21 @@ module.exports = {
 
             requestProfileInfo: async context => {
 
-                const tenants = await context.httpRequest({
-                    url: 'https://api.xero.com/connections',
-                    method: 'GET',
-                    headers: {
-                        authorization: `Bearer ${context.accessToken}`,
-                        accept: 'application/json'
-                    }
-                });
-
-                const tenantId = tenants.data[0].tenantId;
-
-                // Use first tenant to get user info. All tenants should have the same user.
                 const { data } = await context.httpRequest({
-                    url: 'https://api.xero.com/api.xro/2.0/Users',
+                    url: 'https://identity.xero.com/connect/userinfo',
                     method: 'GET',
                     headers: {
                         authorization: `Bearer ${context.accessToken}`,
-                        'Xero-tenant-id': tenantId,
                         accept: 'application/json'
                     }
                 });
 
-                return data.Users[0];
+
+                await context.log({ 'step': 'auth', data });
+                return data;
             },
 
-            accountNameFromProfileInfo: 'EmailAddress'
+            accountNameFromProfileInfo: 'email'
         };
     }
 };

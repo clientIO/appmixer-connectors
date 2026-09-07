@@ -1,0 +1,337 @@
+{
+    "name": "appmixer.latchshot.core.RenderPage",
+    "author": "Latchshot <andy@osmosis.ai>",
+    "description": "Capture a PNG, JPEG, or PDF of a public HTTP(S) page and store the direct response bytes as a file. Private pages, cookies, custom headers, scripts, selectors, proxies, and interactions are not supported.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:latchshot"
+    },
+    "quota": {
+        "manager": "appmixer:latchshot",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "format": {
+                        "type": "string",
+                        "enum": [
+                            "png",
+                            "jpeg",
+                            "pdf"
+                        ]
+                    },
+                    "width": {
+                        "type": "integer",
+                        "minimum": 320,
+                        "maximum": 2560
+                    },
+                    "height": {
+                        "type": "integer",
+                        "minimum": 240,
+                        "maximum": 1440
+                    },
+                    "scale": {
+                        "type": "integer",
+                        "enum": [
+                            1,
+                            2
+                        ]
+                    },
+                    "quality": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "fullPage": {
+                        "type": "boolean"
+                    },
+                    "waitUntil": {
+                        "type": "string",
+                        "enum": [
+                            "domcontentloaded",
+                            "load",
+                            "networkidle"
+                        ]
+                    },
+                    "delay": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 3000
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "minimum": 3000,
+                        "maximum": 30000
+                    },
+                    "darkMode": {
+                        "type": "boolean"
+                    },
+                    "reducedMotion": {
+                        "type": "boolean"
+                    },
+                    "blockAds": {
+                        "type": "boolean"
+                    },
+                    "blockTrackers": {
+                        "type": "boolean"
+                    },
+                    "blockChats": {
+                        "type": "boolean"
+                    },
+                    "hideCookieBanners": {
+                        "type": "boolean"
+                    },
+                    "hidePopups": {
+                        "type": "boolean"
+                    },
+                    "paper": {
+                        "type": "string",
+                        "enum": [
+                            "A4",
+                            "Letter",
+                            "Legal"
+                        ]
+                    },
+                    "landscape": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "label": "Public Page URL",
+                        "index": 1,
+                        "tooltip": "Public HTTP or HTTPS URL on port 80 or 443. Do not send private, signed, credential-bearing, or customer-only URLs."
+                    },
+                    "format": {
+                        "type": "select",
+                        "label": "Format",
+                        "index": 2,
+                        "defaultValue": "png",
+                        "options": [
+                            {
+                                "label": "PNG",
+                                "value": "png"
+                            },
+                            {
+                                "label": "JPEG",
+                                "value": "jpeg"
+                            },
+                            {
+                                "label": "PDF",
+                                "value": "pdf"
+                            }
+                        ]
+                    },
+                    "width": {
+                        "type": "number",
+                        "label": "Viewport Width",
+                        "index": 3,
+                        "defaultValue": 1440,
+                        "tooltip": "Viewport width from 320 to 2560 CSS pixels."
+                    },
+                    "height": {
+                        "type": "number",
+                        "label": "Viewport Height",
+                        "index": 4,
+                        "defaultValue": 900,
+                        "tooltip": "Viewport height from 240 to 1440 CSS pixels."
+                    },
+                    "scale": {
+                        "type": "select",
+                        "label": "Device Scale",
+                        "index": 5,
+                        "defaultValue": 1,
+                        "options": [
+                            {
+                                "label": "1x",
+                                "value": 1
+                            },
+                            {
+                                "label": "2x",
+                                "value": 2
+                            }
+                        ]
+                    },
+                    "quality": {
+                        "type": "number",
+                        "label": "JPEG Quality",
+                        "index": 6,
+                        "defaultValue": 85,
+                        "tooltip": "JPEG encoding quality from 1 to 100. Ignored for PNG and PDF."
+                    },
+                    "fullPage": {
+                        "type": "toggle",
+                        "label": "Full Page",
+                        "index": 7,
+                        "defaultValue": false,
+                        "tooltip": "Capture the bounded full document height for PNG or JPEG output."
+                    },
+                    "waitUntil": {
+                        "type": "select",
+                        "label": "Wait Until",
+                        "index": 8,
+                        "defaultValue": "domcontentloaded",
+                        "options": [
+                            {
+                                "label": "DOM Content Loaded",
+                                "value": "domcontentloaded"
+                            },
+                            {
+                                "label": "Load",
+                                "value": "load"
+                            },
+                            {
+                                "label": "Network Idle",
+                                "value": "networkidle"
+                            }
+                        ]
+                    },
+                    "delay": {
+                        "type": "number",
+                        "label": "Extra Delay (ms)",
+                        "index": 9,
+                        "defaultValue": 0,
+                        "tooltip": "Extra wait from 0 to 3000 milliseconds after page readiness."
+                    },
+                    "timeout": {
+                        "type": "number",
+                        "label": "Navigation Timeout (ms)",
+                        "index": 10,
+                        "defaultValue": 15000,
+                        "tooltip": "Navigation timeout from 3000 to 30000 milliseconds."
+                    },
+                    "darkMode": {
+                        "type": "toggle",
+                        "label": "Dark Mode",
+                        "index": 11,
+                        "defaultValue": false
+                    },
+                    "reducedMotion": {
+                        "type": "toggle",
+                        "label": "Reduced Motion",
+                        "index": 12,
+                        "defaultValue": true
+                    },
+                    "blockAds": {
+                        "type": "toggle",
+                        "label": "Block Known Ad Hosts",
+                        "index": 13,
+                        "defaultValue": false
+                    },
+                    "blockTrackers": {
+                        "type": "toggle",
+                        "label": "Block Known Tracker Hosts",
+                        "index": 14,
+                        "defaultValue": false
+                    },
+                    "blockChats": {
+                        "type": "toggle",
+                        "label": "Block Known Chat Widgets",
+                        "index": 15,
+                        "defaultValue": false
+                    },
+                    "hideCookieBanners": {
+                        "type": "toggle",
+                        "label": "Hide Common Cookie Banners",
+                        "index": 16,
+                        "defaultValue": false,
+                        "tooltip": "Best-effort hiding only. Latchshot does not click consent or set consent state."
+                    },
+                    "hidePopups": {
+                        "type": "toggle",
+                        "label": "Hide Common Signup Popups",
+                        "index": 17,
+                        "defaultValue": false,
+                        "tooltip": "Best-effort hiding of common newsletter, signup, and discount overlays without interaction."
+                    },
+                    "paper": {
+                        "type": "select",
+                        "label": "PDF Paper",
+                        "index": 18,
+                        "defaultValue": "A4",
+                        "options": [
+                            {
+                                "label": "A4",
+                                "value": "A4"
+                            },
+                            {
+                                "label": "Letter",
+                                "value": "Letter"
+                            },
+                            {
+                                "label": "Legal",
+                                "value": "Legal"
+                            }
+                        ]
+                    },
+                    "landscape": {
+                        "type": "toggle",
+                        "label": "PDF Landscape",
+                        "index": 19,
+                        "defaultValue": false
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "fileId": {
+                        "type": "string",
+                        "format": "appmixer-file-id",
+                        "title": "File ID",
+                        "example": "64f6f1f9193228000754082f"
+                    },
+                    "filename": {
+                        "type": "string",
+                        "title": "File Name",
+                        "example": "latchshot-1784548800000.png"
+                    },
+                    "contentType": {
+                        "type": "string",
+                        "title": "Content Type",
+                        "example": "image/png"
+                    },
+                    "fileSize": {
+                        "type": "integer",
+                        "title": "File Size (bytes)",
+                        "example": 45231
+                    },
+                    "renderMs": {
+                        "type": "integer",
+                        "title": "Render Time (ms)",
+                        "example": 834
+                    },
+                    "quotaRemaining": {
+                        "type": "integer",
+                        "title": "Monthly Successful Renders Remaining",
+                        "example": 99
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTIiIGZpbGw9IiMxNTVmNzgiLz4KICA8cGF0aCBkPSJNMjEgMTVoLTd2MzRoN000MyAxNWg3djM0aC03IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVjYXA9InNxdWFyZSIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjciIGZpbGw9IiNiZWU5NDQiLz4KPC9zdmc+Cg=="
+}

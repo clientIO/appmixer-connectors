@@ -1,0 +1,122 @@
+{
+    "name": "Demo Shopify - Abandoned Cart",
+    "type": "automation",
+    "flow": {
+        "e3000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.shopify.checkouts.AbandonedCart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "config": {
+                "properties": {}
+            }
+        },
+        "e3000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.email.SendEmail",
+            "x": 272,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e3000000-0000-0000-0000-000000000001": [
+                        "checkout"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e3000000-0000-0000-0000-000000000001": {
+                            "checkout": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "a": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.checkout",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.email"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "b": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.checkout",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.abandoned_checkout_url"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "c": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.checkout",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.total_price"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "d": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.checkout",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.currency"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "e": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.checkout",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.id"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "lambda": {
+                                    "to": "{{{a}}}",
+                                    "subject": "You left something in your cart 🛒",
+                                    "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;color:#222\"><h2 style=\"color:#5E8E3E\">Still thinking it over?</h2><p>We saved your cart. Complete your purchase whenever you're ready.</p><p><b>Cart total:</b> {{{c}}} {{{d}}}</p><p><a href=\"{{{b}}}\" style=\"background:#5E8E3E;color:#fff;padding:10px 18px;text-decoration:none;border-radius:4px\">Return to checkout</a></p><p style=\"color:#888;font-size:12px\">Checkout reference: {{{e}}}</p></div>"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "22222222-de30-4000-8000-000000000001": {
+            "content": "## How to verify this trigger\n\nAbandoned checkouts cannot be created through the Admin API — only a real storefront session creates one:\n\n1. Open the online store in an **incognito window** (https://<store>.myshopify.com; dev stores are password-protected — password is in Online Store → Preferences). A fresh window is required, otherwise Shopify resumes your previous checkout instead of creating a new one.\n2. Add a product to the cart and proceed to checkout.\n3. Enter an **email address and shipping address** and continue to the payment step (without contact info the checkout never appears in the abandoned list).\n4. Close the tab before paying.\n\nShopify lists the checkout in Admin → Orders → Abandoned checkouts (and in the API this trigger polls) after a delay of **~10 minutes**. The flow must already be running at that moment — the trigger baselines existing checkouts on its first poll and only emits checkouts that appear while it runs.",
+            "height": 360,
+            "width": 380,
+            "x": 64,
+            "y": -80
+        }
+    }
+}

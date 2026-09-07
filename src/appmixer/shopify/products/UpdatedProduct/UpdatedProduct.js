@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 /**
  * Component which triggers whenever new product comes.
@@ -22,5 +22,18 @@ module.exports = {
     async stop(context) {
 
         return commons.unregisterWebhook(context);
+    },
+
+    async test(context) {
+
+        const product = await commons.fetchLatestWebhookExample(context, {
+            resource: 'product',
+            topic: 'products/update',
+            params: { order: 'updated_at DESC' }
+        });
+        if (!product) {
+            throw new Error('No recent products to use as test data.');
+        }
+        return context.sendJson(product, 'product');
     }
 };

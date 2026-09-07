@@ -25,26 +25,26 @@ module.exports = {
 
     async tick(context) {
 
-        const goalsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Goals');
-
-        let response = await goalsApi.getAllAsync({ everyone: 1 });
-        if (response.success === false) {
-            throw new context.CancelError(response.formattedError);
-        }
-
-        const goals = response.data;
+        const goals = await commons.listRecords(context, 'Goals', { everyone: 1 });
         let knownState = context.state.known || {};
         let known = Array.isArray(knownState) ? new Set(knownState) : null;
         let current = [];
         let diff = [];
 
-        if (Array.isArray(goals)) {
-            goals.forEach(processItems.bind(null, known, current, diff));
-        }
+        goals.forEach(processItems.bind(null, known, current, diff));
 
         await Promise.map(diff, item => {
             return context.sendJson(item, 'goal');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        const goal = await commons.fetchLatestExample(context, 'Goals', { everyone: 1 });
+        if (!goal) {
+            throw new Error('No goal available to use as test data.');
+        }
+        return context.sendJson(goal, 'goal');
     }
 };

@@ -1,0 +1,215 @@
+{
+    "name": "E2E PrestaShop - Get Contact",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "bac455c2-8a82-480a-a6e1-753647d3039a": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 240,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7b5f9a16-9d82-46d8-96c9-1db469d97319": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bac455c2-8a82-480a-a6e1-753647d3039a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bac455c2-8a82-480a-a6e1-753647d3039a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Name",
+                                                "text": "E2E Get Contact"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e4433d42-a4db-4729-99bc-b2dc6d1d9d89": {
+            "type": "appmixer.prestashop.core.GetContact",
+            "x": 448,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7b5f9a16-9d82-46d8-96c9-1db469d97319": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7b5f9a16-9d82-46d8-96c9-1db469d97319": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactId": {}
+                                },
+                                "lambda": {
+                                    "contactId": "1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "49d19cc6-aea8-4862-a49c-f90ab050c117": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e4433d42-a4db-4729-99bc-b2dc6d1d9d89": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4433d42-a4db-4729-99bc-b2dc6d1d9d89": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "898fb977-22e9-4a55-851e-d87ae34e4dda": {
+                                            "variable": "$.e4433d42-a4db-4729-99bc-b2dc6d1d9d89.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{898fb977-22e9-4a55-851e-d87ae34e4dda}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22ba88b1-43d9-44ea-a679-bee0c50af8ca": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "49d19cc6-aea8-4862-a49c-f90ab050c117": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c8443b21-512e-4d5c-ae12-6608e4110494": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1024,
+            "y": 240,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "22ba88b1-43d9-44ea-a679-bee0c50af8ca": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "22ba88b1-43d9-44ea-a679-bee0c50af8ca": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d6084ba7-bdfd-4216-b178-8b62c854232e": {
+                                            "variable": "$.22ba88b1-43d9-44ea-a679-bee0c50af8ca.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E PrestaShop - Get Contact",
+                                    "result": "{{{d6084ba7-bdfd-4216-b178-8b62c854232e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -1,0 +1,394 @@
+{
+    "flow": {
+        "e9488235-52d2-4879-9bdc-361faa27e93d": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2b066432-e811-4872-ab14-ffadcf3977ce": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e9488235-52d2-4879-9bdc-361faa27e93d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e9488235-52d2-4879-9bdc-361faa27e93d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "testNetwork",
+                                                "text": "STAGING"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "comments",
+                                                "text": "Appmixer E2E activation"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "testListId",
+                                                "text": "222379_SALTTESTNEW"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "410b39db-c4d0-401d-83c0-6e8a10c998c7": {
+            "type": "appmixer.akamai.clientlist.GetLists",
+            "x": 448,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "2b066432-e811-4872-ab14-ffadcf3977ce": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2b066432-e811-4872-ab14-ffadcf3977ce": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a589598c0a5d051ff7226f9"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1ec3170e-9540-4a6d-b8d9-b63014e4446b": {
+            "type": "appmixer.akamai.clientlist.ActivateList",
+            "x": 640,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "410b39db-c4d0-401d-83c0-6e8a10c998c7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "410b39db-c4d0-401d-83c0-6e8a10c998c7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "listId": {
+                                        "7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a01": {
+                                            "variable": "$.2b066432-e811-4872-ab14-ffadcf3977ce.out.testListId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "network": {
+                                        "7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a02": {
+                                            "variable": "$.2b066432-e811-4872-ab14-ffadcf3977ce.out.testNetwork",
+                                            "functions": []
+                                        }
+                                    },
+                                    "comments": {
+                                        "7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a03": {
+                                            "variable": "$.2b066432-e811-4872-ab14-ffadcf3977ce.out.comments",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "listId": "{{{7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a01}}}",
+                                    "network": "{{{7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a02}}}",
+                                    "comments": "{{{7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a03}}}",
+                                    "waitForActivation": true,
+                                    "timeout": 900
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a589598c0a5d051ff7226f9"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1753ba4-32ed-42da-aca9-206ae85eec28": {
+            "type": "appmixer.akamai.clientlist.WaitForActivation",
+            "x": 848,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1ec3170e-9540-4a6d-b8d9-b63014e4446b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1ec3170e-9540-4a6d-b8d9-b63014e4446b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "listId": {
+                                        "7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a04": {
+                                            "variable": "$.2b066432-e811-4872-ab14-ffadcf3977ce.out.testListId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "network": {
+                                        "7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a05": {
+                                            "variable": "$.2b066432-e811-4872-ab14-ffadcf3977ce.out.testNetwork",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "listId": "{{{7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a04}}}",
+                                    "network": "{{{7ad2f0b1-1c2d-4e3f-8a4b-5c6d7e8f9a05}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a589598c0a5d051ff7226f9"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9256b34f-47c0-4874-952f-f9e66744d2aa": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1056,
+            "y": 208,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1ec3170e-9540-4a6d-b8d9-b63014e4446b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1ec3170e-9540-4a6d-b8d9-b63014e4446b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-activate-status": {
+                                            "variable": "$.1ec3170e-9540-4a6d-b8d9-b63014e4446b.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.activationStatus"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{field-activate-status}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "49e3208c-807e-42cd-bdf6-31b3b7e37f50": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1056,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f1753ba4-32ed-42da-aca9-206ae85eec28": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1753ba4-32ed-42da-aca9-206ae85eec28": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-wait-status": {
+                                            "variable": "$.f1753ba4-32ed-42da-aca9-206ae85eec28.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.activationStatus"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{field-wait-status}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4314d14d-0144-45f4-8dc9-8cfed8dac473": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1280,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9256b34f-47c0-4874-952f-f9e66744d2aa": [
+                        "out"
+                    ],
+                    "49e3208c-807e-42cd-bdf6-31b3b7e37f50": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f2c7b2e0-efb1-4874-99ff-03d18691b767": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1488,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "4314d14d-0144-45f4-8dc9-8cfed8dac473": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "4314d14d-0144-45f4-8dc9-8cfed8dac473": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.4314d14d-0144-45f4-8dc9-8cfed8dac473.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Akamai - Activate List and Wait",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Akamai - Activate List and Wait",
+    "type": "automation",
+    "notes": {}
+}

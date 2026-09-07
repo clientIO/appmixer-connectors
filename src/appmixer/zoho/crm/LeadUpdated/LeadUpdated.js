@@ -21,6 +21,12 @@ class LeadUpdated extends ZohoNotifiable {
         }
 
     }
+
+    async test(context) {
+
+        const lead = await this.fetchLatestExample(context, 'Leads');
+        return context.sendJson(lead, 'lead');
+    }
 }
 
 const events = [

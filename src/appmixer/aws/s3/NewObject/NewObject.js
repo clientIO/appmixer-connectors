@@ -81,5 +81,27 @@ module.exports = {
         }
 
         return context.response();
+    },
+
+    /**
+     * Flow Test Mode: emit one realistic item shaped exactly like receive() emits, built from
+     * the most-recently-modified object in the configured bucket (read-only listObjectsV2).
+     * @param {Context} context
+     * @return {*}
+     */
+    async test(context) {
+
+        const { bucket } = context.properties;
+        const object = await lib.fetchLatestObject(context);
+        if (!object) {
+            throw new Error('No objects in the bucket to use as test data.');
+        }
+
+        object.Bucket = bucket;
+        object.EventType = 'ObjectCreated:Put';
+        object.ObjectUrl = lib.getObjectUrl(bucket, object.key, context.properties.region);
+        object.key = decodeURIComponent(object.key.replace(/\+/g, ' '));
+
+        return context.sendJson(object, 'object');
     }
 };

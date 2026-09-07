@@ -17,6 +17,18 @@ function processCards(knownCards, actualCards, newCards, card) {
 }
 
 /**
+ * Build the cards listing URL, honoring the optional boardListId filter.
+ * @param {Object} properties context.properties
+ * @return {string} urlString
+ */
+function buildUrl({ boardId, boardListId }) {
+
+    return boardListId
+        ? '/1/lists/' + boardListId + '/cards'
+        : '/1/boards/' + boardId + '/cards';
+}
+
+/**
  * Component which triggers whenever new card is added to a board or to a board list if
  * certain board list is specified.
  * @extends {Component}
@@ -25,19 +37,7 @@ module.exports = {
 
     async tick(context) {
 
-        let { boardId, boardListId } = context.properties;
-
-        let url;
-        if (boardListId) {
-            url = '/1/lists/' + boardListId + '/cards';
-        } else {
-            url = '/1/boards/' + boardId + '/cards';
-        }
-
-        const { data: res } = await context.httpRequest({
-            headers: { 'Content-Type': 'application/json' },
-            url: `https://api.trello.com${url}?${commons.getAuthQueryParams(context)}`
-        });
+        const res = await commons.fetchAll(context, buildUrl(context.properties));
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
@@ -50,6 +50,17 @@ module.exports = {
             }));
         }
         await context.saveState({ known: Array.from(actual) });
+    },
+
+    async test(context) {
+
+        // Same listing request as tick(), honoring the same board/list filter.
+        const res = await commons.fetchAll(context, buildUrl(context.properties));
+        const latest = commons.pickLatestById(res);
+        if (!latest) {
+            throw new Error('No recent cards to use as test data.');
+        }
+        return context.sendJson(latest, 'card');
     }
 };
 

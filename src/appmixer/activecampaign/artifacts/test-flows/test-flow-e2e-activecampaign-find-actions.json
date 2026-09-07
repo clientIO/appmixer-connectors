@@ -1,0 +1,418 @@
+{
+    "name": "E2E ActiveCampaign - Find Contacts and Deals",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "on-start": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 192,
+            "source": {},
+            "version": "1.0.0",
+            "config": {}
+        },
+
+        "create-contact": {
+            "type": "appmixer.activecampaign.contacts.CreateContact",
+            "x": 256,
+            "y": 64,
+            "version": "1.0.0",
+            "source": { "in": { "on-start": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "on-start": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "email": {}, "firstName": {}, "lastName": {}, "phone": {} },
+                                "lambda": {
+                                    "email": "e2e-find-contacts@appmixer-test.com",
+                                    "firstName": "E2E",
+                                    "lastName": "Contact",
+                                    "phone": "+1 555 010 2222"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "find-contacts": {
+            "type": "appmixer.activecampaign.contacts.FindContacts",
+            "x": 448,
+            "y": 64,
+            "version": "1.0.0",
+            "source": { "in": { "create-contact": ["contact"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-contact": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": { "search": {}, "outputType": {} },
+                                "lambda": {
+                                    "search": "e2e-find-contacts@appmixer-test.com",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-contacts": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 64,
+            "version": "1.0.0",
+            "source": { "in": { "find-contacts": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "find-contacts": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-contact-id": { "variable": "$.find-contacts.out.id", "functions": [] }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "field": "{{{field-contact-id}}}", "assertion": "notEmpty" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "create-contact-deal": {
+            "type": "appmixer.activecampaign.contacts.CreateContact",
+            "x": 256,
+            "y": 320,
+            "version": "1.0.0",
+            "source": { "in": { "on-start": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "on-start": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "email": {}, "firstName": {}, "lastName": {}, "phone": {} },
+                                "lambda": {
+                                    "email": "e2e-find-deals@appmixer-test.com",
+                                    "firstName": "E2E",
+                                    "lastName": "Deal Owner",
+                                    "phone": "+1 555 010 3333"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-pipeline": {
+            "type": "appmixer.activecampaign.pipelines.CreatePipeline",
+            "x": 448,
+            "y": 320,
+            "version": "1.0.0",
+            "source": { "in": { "create-contact-deal": ["contact"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-contact-deal": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": { "title": {}, "currency": {} },
+                                "lambda": { "title": "E2E Test Pipeline", "currency": "usd" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-stage": {
+            "type": "appmixer.activecampaign.stages.CreateStage",
+            "x": 640,
+            "y": 320,
+            "version": "1.0.0",
+            "source": { "in": { "create-pipeline": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-pipeline": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "group": { "var-stage-pipeline": { "variable": "$.create-pipeline.out.id", "functions": [] } },
+                                    "title": {}
+                                },
+                                "lambda": { "title": "E2E Test Stage", "group": "{{{var-stage-pipeline}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "list-users": {
+            "type": "appmixer.activecampaign.users.ListUsers",
+            "x": 832,
+            "y": 320,
+            "version": "1.0.0",
+            "source": { "in": { "create-stage": ["out"] } },
+            "config": {}
+        },
+        "create-deal": {
+            "type": "appmixer.activecampaign.deals.CreateDeal",
+            "x": 1024,
+            "y": 320,
+            "version": "1.0.0",
+            "source": { "in": { "list-users": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "list-users": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactId": {
+                                        "var-deal-contact": { "variable": "$.create-contact-deal.contact.id", "functions": [] }
+                                    },
+                                    "owner": {
+                                        "var-deal-owner": {
+                                            "variable": "$.list-users.out",
+                                            "functions": [ { "name": "g_jsonPath", "params": [ { "value": "$.data.users[0].id" } ] } ]
+                                        }
+                                    },
+                                    "stage": {
+                                        "var-deal-stage": { "variable": "$.create-stage.out.id", "functions": [] }
+                                    },
+                                    "title": {},
+                                    "value": {},
+                                    "currency": {}
+                                },
+                                "lambda": {
+                                    "contactId": "{{{var-deal-contact}}}",
+                                    "owner": "{{{var-deal-owner}}}",
+                                    "stage": "{{{var-deal-stage}}}",
+                                    "title": "E2E Test Deal",
+                                    "value": "100",
+                                    "currency": "USD"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "find-deals": {
+            "type": "appmixer.activecampaign.deals.FindDeals",
+            "x": 1216,
+            "y": 320,
+            "version": "1.0.0",
+            "source": { "in": { "create-deal": ["deal"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-deal": {
+                            "deal": {
+                                "type": "json2new",
+                                "modifiers": { "search": {}, "outputType": {} },
+                                "lambda": { "search": "E2E Test Deal", "outputType": "first" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-deals": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1408,
+            "y": 320,
+            "version": "1.0.0",
+            "source": { "in": { "find-deals": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "find-deals": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-deal-id": { "variable": "$.find-deals.out.id", "functions": [] }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "field": "{{{field-deal-id}}}", "assertion": "notEmpty" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1600,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "assert-contacts": ["out"],
+                    "assert-deals": ["out"]
+                }
+            },
+            "config": { "properties": { "timeout": 60 } }
+        },
+
+        "delete-deal": {
+            "type": "appmixer.activecampaign.deals.DeleteDeal",
+            "x": 1792,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "after-all": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "dealId": { "var-del-deal": { "variable": "$.create-deal.deal.id", "functions": [] } }
+                                },
+                                "lambda": { "dealId": "{{{var-del-deal}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "delete-stage": {
+            "type": "appmixer.activecampaign.stages.DeleteStage",
+            "x": 1984,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "delete-deal": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "delete-deal": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "stageId": { "var-del-stage": { "variable": "$.create-stage.out.id", "functions": [] } }
+                                },
+                                "lambda": { "stageId": "{{{var-del-stage}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "delete-pipeline": {
+            "type": "appmixer.activecampaign.pipelines.DeletePipeline",
+            "x": 2176,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "delete-stage": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "delete-stage": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "pipelineId": { "var-del-pipeline": { "variable": "$.create-pipeline.out.id", "functions": [] } }
+                                },
+                                "lambda": { "pipelineId": "{{{var-del-pipeline}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "delete-contact-deal": {
+            "type": "appmixer.activecampaign.contacts.DeleteContact",
+            "x": 2368,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "delete-pipeline": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "delete-pipeline": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactId": { "var-del-deal-contact": { "variable": "$.create-contact-deal.contact.id", "functions": [] } }
+                                },
+                                "lambda": { "contactId": "{{{var-del-deal-contact}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "delete-contact": {
+            "type": "appmixer.activecampaign.contacts.DeleteContact",
+            "x": 2560,
+            "y": 192,
+            "version": "1.0.0",
+            "source": { "in": { "delete-contact-deal": ["out"] } },
+            "config": {
+                "transform": {
+                    "in": {
+                        "delete-contact-deal": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactId": { "var-del-contact": { "variable": "$.create-contact.contact.id", "functions": [] } }
+                                },
+                                "lambda": { "contactId": "{{{var-del-contact}}}" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2752,
+            "y": 192,
+            "version": "1.0.1",
+            "source": { "in": { "delete-contact": ["out"] } },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "delete-contact": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": { "var-test-case": { "functions": [ { "name": "g_flowName" } ] } },
+                                    "result": { "var-result": { "variable": "$.after-all.out", "functions": [] } }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{var-test-case}}}",
+                                    "result": "{{{var-result}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

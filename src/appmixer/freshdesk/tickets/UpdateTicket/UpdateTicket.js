@@ -1,8 +1,7 @@
 'use strict';
 
-const { trimUndefined } = require('../../lib');
+const { apiCall, trimUndefined } = require('../../lib');
 const mime = require('mime-types');
-const axios = require('axios');
 const FormData = require('form-data');
 
 module.exports = {
@@ -20,8 +19,6 @@ module.exports = {
             return context.sendJson({ attachmentId: file.fileId }, 'updatedTicket');
         } else {
             // Triggered from flow
-            const { auth } = context;
-
             let body = {
                 subject: content.subject,
                 description: content.description,
@@ -38,8 +35,6 @@ module.exports = {
                 responder_id: content.agentId,
                 tags: content.tags ? content.tags.split(',') : undefined
             };
-
-            const url = `https://${auth.domain}.freshdesk.com/api/v2/tickets/${content.ticketId}`;
 
             let response;
 
@@ -65,19 +60,17 @@ module.exports = {
                     }
                 });
 
-                response = await axios.put(url, formData, {
-                    auth: {
-                        username: auth.apiKey,
-                        password: 'X'
-                    },
+                response = await apiCall(context, {
+                    method: 'PUT',
+                    url: `/tickets/${content.ticketId}`,
+                    data: formData,
                     headers: formData.getHeaders()
                 });
             } else {
-                response = await axios.put(url, trimUndefined(body), {
-                    auth: {
-                        username: auth.apiKey,
-                        password: 'X'
-                    }
+                response = await apiCall(context, {
+                    method: 'PUT',
+                    url: `/tickets/${content.ticketId}`,
+                    data: trimUndefined(body)
                 });
             }
 

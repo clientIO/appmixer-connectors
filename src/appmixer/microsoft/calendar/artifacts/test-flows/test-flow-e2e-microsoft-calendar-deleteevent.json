@@ -1,0 +1,332 @@
+{
+    "flow": {
+        "783f2226-1e48-49cc-91ec-7125873a4dc6": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "78d465a1-5403-494f-b485-235f22e48788": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 32,
+            "source": {
+                "in": {
+                    "783f2226-1e48-49cc-91ec-7125873a4dc6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "783f2226-1e48-49cc-91ec-7125873a4dc6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "attendeeEmail",
+                                                "text": "test@appmixer.onmicrosoft.com",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6c224bc4-6e7d-4e77-a467-d2f4b300edd2": {
+            "type": "appmixer.microsoft.calendar.CreateEvent",
+            "label": "CreateEvent (test data)",
+            "x": 464,
+            "y": 32,
+            "source": {
+                "in": {
+                    "78d465a1-5403-494f-b485-235f22e48788": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "78d465a1-5403-494f-b485-235f22e48788": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "subject": {
+                                        "var-ts": {
+                                            "variable": "$.783f2226-1e48-49cc-91ec-7125873a4dc6.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "start": {
+                                        "var-start": {
+                                            "variable": "$.783f2226-1e48-49cc-91ec-7125873a4dc6.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 24
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "end": {
+                                        "var-end": {
+                                            "variable": "$.783f2226-1e48-49cc-91ec-7125873a4dc6.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 25
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "subject": "E2E MS Calendar DeleteEvent {{{var-ts}}}",
+                                    "start": "{{{var-start}}}",
+                                    "end": "{{{var-end}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "21db98ab-27b6-427a-b9b0-009122ad2629": {
+            "type": "appmixer.microsoft.calendar.DeleteEvent",
+            "label": "DeleteEvent (component under test)",
+            "x": 672,
+            "y": 32,
+            "source": {
+                "in": {
+                    "6c224bc4-6e7d-4e77-a467-d2f4b300edd2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6c224bc4-6e7d-4e77-a467-d2f4b300edd2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "eventId": {
+                                        "var-id": {
+                                            "variable": "$.6c224bc4-6e7d-4e77-a467-d2f4b300edd2.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "eventId": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a94d8d9a-5791-44bf-82f3-20f7bcf16117": {
+            "type": "appmixer.microsoft.calendar.ListEvents",
+            "label": "ListEvents (verify deletion — expects empty result)",
+            "x": 880,
+            "y": 32,
+            "source": {
+                "in": {
+                    "21db98ab-27b6-427a-b9b0-009122ad2629": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "21db98ab-27b6-427a-b9b0-009122ad2629": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filter": {
+                                        "var-subj": {
+                                            "variable": "$.6c224bc4-6e7d-4e77-a467-d2f4b300edd2.out.subject",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "filter": "subject eq '{{{var-subj}}}'"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "30c5e69b-4698-430f-86e4-b40b48bdb501": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: deleted event is no longer listed",
+            "x": 1088,
+            "y": 32,
+            "source": {
+                "in": {
+                    "a94d8d9a-5791-44bf-82f3-20f7bcf16117": [
+                        "emptyResult"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a94d8d9a-5791-44bf-82f3-20f7bcf16117": {
+                            "emptyResult": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-empty": {
+                                            "variable": "$.a94d8d9a-5791-44bf-82f3-20f7bcf16117.emptyResult.options",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-empty}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bc38fa27-0a63-4dc0-8910-41142c508a85": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1280,
+            "y": 32,
+            "source": {
+                "in": {
+                    "30c5e69b-4698-430f-86e4-b40b48bdb501": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "28424c82-c3a0-4e65-89ef-d6727b4ae6ee": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1504,
+            "y": 32,
+            "source": {
+                "in": {
+                    "bc38fa27-0a63-4dc0-8910-41142c508a85": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "bc38fa27-0a63-4dc0-8910-41142c508a85": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.bc38fa27-0a63-4dc0-8910-41142c508a85.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E MS Calendar - DeleteEvent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        }
+    },
+    "name": "E2E MS Calendar - DeleteEvent",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

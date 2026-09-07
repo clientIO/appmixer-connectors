@@ -21,6 +21,18 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // Releases are returned newest-first by default.
+        const release = await lib.fetchLatest(context, `repos/${repositoryId}/releases`);
+        if (!release) {
+            throw new Error('No recent releases to use as test data.');
+        }
+        return context.sendJson(release, 'out');
     }
 };
 

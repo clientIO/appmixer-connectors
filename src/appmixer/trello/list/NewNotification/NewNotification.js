@@ -20,14 +20,13 @@ function processNotifications(knownNotifications, actualNotifications, newNotifi
  * Component which triggers whenever new notification is in Trello
  * @extends {Component}
  */
+const NOTIFICATIONS_URL = '/1/members/me/notifications';
+
 module.exports = {
 
     async tick(context) {
 
-        const { data: res } = await context.httpRequest({
-            headers: { 'Content-Type': 'application/json' },
-            url: `https://api.trello.com/1/members/me/notifications?${commons.getAuthQueryParams(context)}`
-        });
+        const res = await commons.fetchAll(context, NOTIFICATIONS_URL);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
@@ -41,5 +40,16 @@ module.exports = {
             }));
         }
         await context.saveState({ known: Array.from(actual) });
+    },
+
+    async test(context) {
+
+        // Same notifications listing as tick().
+        const res = await commons.fetchAll(context, NOTIFICATIONS_URL);
+        const latest = commons.pickLatestById(res);
+        if (!latest) {
+            throw new Error('No recent notifications to use as test data.');
+        }
+        return context.sendJson(latest, 'notification');
     }
 };

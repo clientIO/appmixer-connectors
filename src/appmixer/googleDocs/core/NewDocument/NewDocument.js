@@ -130,7 +130,7 @@ async function getSubfolderIds(context, folderId) {
  * @param {boolean} recursive - Whether to include subfolders
  * @returns {Promise<string[]>} Array of folder IDs to monitor
  */
-async function getMonitoredFolderIds(context, folderId, recursive) {
+async function getMonitoredFolderIds(context, folderId, recursive, { skipCache = false } = {}) {
 
     if (!folderId) {
         return [];
@@ -141,15 +141,21 @@ async function getMonitoredFolderIds(context, folderId, recursive) {
     }
 
     const cacheKey = `googledocs_subfolders_${folderId}`;
-    const cached = await context.staticCache.get(cacheKey);
 
-    if (cached) {
-        return cached;
+    // Flow Test Mode passes skipCache so test() stays read-only (no staticCache writes, which have
+    // no cleanup path in test runs and would otherwise leak across runs/users).
+    if (!skipCache) {
+        const cached = await context.staticCache.get(cacheKey);
+        if (cached) {
+            return cached;
+        }
     }
 
     const subfolderIds = await getSubfolderIds(context, folderId);
     const folderIds = [folderId, ...subfolderIds];
-    await context.staticCache.set(cacheKey, folderIds, FOLDER_CACHE_TTL_MS);
+    if (!skipCache) {
+        await context.staticCache.set(cacheKey, folderIds, FOLDER_CACHE_TTL_MS);
+    }
 
     return folderIds;
 }
@@ -261,5 +267,28 @@ module.exports = {
         } finally {
             lock?.unlock();
         }
+    },
+
+    // Flow Test Mode: emit one representative document using the SAME fetch/filter path as
+    // tick() (newest-first via orderBy createdTime desc), mirroring the recursive branch, but
+    // WITHOUT dedup state, locking or state writes.
+    async test(context) {
+
+        const { folder = {}, recursive } = context.properties;
+        const folderId = typeof folder === 'string' ? folder : folder.id;
+
+        const folderIds = await getMonitoredFolderIds(context, folderId, recursive, { skipCache: true });
+        let documents = await fetchDocuments(context, folderId, recursive);
+
+        if (folderId && recursive) {
+            documents = filterByFolders(documents, folderIds);
+        }
+
+        if (!documents.length) {
+            throw new Error('No documents found to use as test data.');
+        }
+
+        // fetchDocuments orders by createdTime desc, so the first entry is the newest.
+        return context.sendJson(documents[0], 'out');
     }
 };

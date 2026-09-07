@@ -25,5 +25,22 @@ module.exports = {
             await Promise.all(diff.map(commit => context.sendJson(commit, 'commit')));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        const { repositoryId, branchId } = context.properties;
+
+        const params = {};
+        if (branchId) {
+            params.sha = branchId;
+        }
+
+        // Commits are returned newest-first by default.
+        const commit = await lib.fetchLatest(context, `repos/${repositoryId}/commits`, { params });
+        if (!commit) {
+            throw new Error('No recent commits to use as test data.');
+        }
+        return context.sendJson(commit, 'commit');
     }
 };

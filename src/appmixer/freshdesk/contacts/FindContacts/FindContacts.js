@@ -1,7 +1,6 @@
 'use strict';
 
-const axios = require('axios');
-const { sendArrayOutput } = require('../../lib');
+const { apiCall, sendArrayOutput } = require('../../lib');
 
 const DEFAULT_PREFIX = 'freshdesk-contacts-export';
 
@@ -74,7 +73,6 @@ module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const content = context.messages.in.content;
         const { outputType = 'array' } = content;
 
@@ -86,16 +84,10 @@ module.exports = {
 
         // Search by name using the autocomplete endpoint
         if (content.searchName) {
-            const response = await axios.get(
-                `https://${auth.domain}.freshdesk.com/api/v2/contacts/autocomplete`,
-                {
-                    params: { term: content.searchName },
-                    auth: {
-                        username: auth.apiKey,
-                        password: 'X'
-                    }
-                }
-            );
+            const response = await apiCall(context, {
+                url: '/contacts/autocomplete',
+                params: { term: content.searchName }
+            });
             const contacts = Array.isArray(response.data) ? response.data : [];
 
             if (contacts.length === 0) {
@@ -114,16 +106,10 @@ module.exports = {
         // Freshdesk search API requires the query wrapped in double quotes, e.g. "email:'test@example.com'"
         if (content.query) {
             const searchQuery = content.query.startsWith('"') ? content.query : `"${content.query}"`;
-            const response = await axios.get(
-                `https://${auth.domain}.freshdesk.com/api/v2/search/contacts`,
-                {
-                    params: { query: searchQuery },
-                    auth: {
-                        username: auth.apiKey,
-                        password: 'X'
-                    }
-                }
-            );
+            const response = await apiCall(context, {
+                url: '/search/contacts',
+                params: { query: searchQuery }
+            });
             const contacts = Array.isArray(response.data) ? response.data : (response.data.results || []);
 
             if (contacts.length === 0) {
@@ -138,16 +124,7 @@ module.exports = {
         if (content.companyId) params.company_id = content.companyId;
         if (content.tag) params.tag = content.tag;
 
-        const response = await axios.get(
-            `https://${auth.domain}.freshdesk.com/api/v2/contacts`,
-            {
-                params,
-                auth: {
-                    username: auth.apiKey,
-                    password: 'X'
-                }
-            }
-        );
+        const response = await apiCall(context, { url: '/contacts', params });
 
         const contacts = response.data || [];
 

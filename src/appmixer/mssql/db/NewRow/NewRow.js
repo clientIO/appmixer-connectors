@@ -1,5 +1,5 @@
 'use strict';
-const { ensureStore, createQueryProcessor } = require('../../common');
+const { ensureStore, createQueryProcessor, fetchLatestRow } = require('../../common');
 
 async function processNewRows(context, storeId, query, params, lock, idField) {
 
@@ -128,5 +128,14 @@ module.exports = {
             await context.sendJson({ row: item.value }, 'out');
             return context.response('ok');
         }
+    },
+
+    async test(context) {
+
+        const row = await fetchLatestRow(context);
+        if (!row) {
+            throw new Error('No rows match the configured query to use as test data.');
+        }
+        return context.sendJson({ row }, 'out');
     }
 };

@@ -13,7 +13,8 @@ module.exports = {
             accountNameFromProfileInfo: 'name',
 
             scope: [
-                'offline_access'
+                'offline_access',
+                'read:me'
             ],
 
             pre: function() {
@@ -28,13 +29,17 @@ module.exports = {
 
             authUrl(context) {
 
-                return 'https://auth.atlassian.com/authorize?' +
-                    'audience=api.atlassian.com&' +
-                    `client_id=${encodeURIComponent(context.clientId)}&` +
-                    `redirect_uri=${encodeURIComponent(context.callbackUrl)}&` +
-                    `state=${encodeURIComponent(context.ticket)}&` +
-                    `scope=${encodeURIComponent(context.scope.join(' '))}&` +
-                    'response_type=code&prompt=consent';
+                const params = new URLSearchParams({
+                    audience: 'api.atlassian.com',
+                    client_id: context.clientId,
+                    redirect_uri: context.callbackUrl,
+                    state: context.ticket,
+                    scope: context.scope.join(' '),
+                    response_type: 'code',
+                    prompt: 'consent'
+                });
+
+                return `https://auth.atlassian.com/authorize?${params.toString()}`;
             },
 
             async requestProfileInfo(context) {
@@ -77,10 +82,28 @@ module.exports = {
                     name = data[0].name;
                 }
 
+                const apiUrl = `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/`;
+
+                // Fetch the authenticated user's accountId (needs read:me).
+                // Stored on profileInfo so components can default to the connected
+                // user — e.g. CreateProject leadAccountId.
+                let accountId;
+                try {
+                    const me = await context.httpRequest({
+                        method: 'GET',
+                        url: 'https://api.atlassian.com/me',
+                        headers: { Authorization: `Bearer ${context.accessToken}` }
+                    });
+                    accountId = me.data && me.data.account_id;
+                } catch (err) {
+                    // read:me not granted / call failed — leave accountId undefined.
+                }
+
                 return {
                     cloudId,
                     name,
-                    apiUrl: `https://api.atlassian.com/ex/jira/${cloudId}/rest/api/3/`,
+                    accountId,
+                    apiUrl,
                     updatedAt: new Date()
                 };
             },

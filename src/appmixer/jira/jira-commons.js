@@ -90,6 +90,46 @@ module.exports = {
         actualItems.add(item['id']);
     },
 
+    // Fetch the single newest issue (sorted by `created`/`updated` desc), honoring an
+    // optional project filter. Shared by the issue triggers' test() (Flow Test Mode):
+    // it reuses the same search request + fields tick() uses, but without the
+    // `created/updated > now` baseline that suppresses output on a fresh flow.
+    async fetchLatestIssue(context, { project, orderBy = 'created' } = {}) {
+
+        const { profileInfo: { apiUrl }, auth } = context;
+        let jql = project ? `project = "${project}" ` : '';
+        jql += `ORDER BY ${orderBy} DESC`;
+
+        const issues = await this.getAPINoPagination({
+            endpoint: `${apiUrl}search/jql`,
+            credentials: auth,
+            key: 'issues',
+            params: { maxResults: 1, jql, fields: '*navigable' }
+        });
+        return (Array.isArray(issues) ? issues : [])[0] || null;
+    },
+
+    // Fetch one project via the same project/search request the project triggers use.
+    async fetchLatestProject(context) {
+
+        const { profileInfo: { apiUrl }, auth } = context;
+        const projects = await this.pager({
+            endpoint: `${apiUrl}project/search`,
+            credentials: auth,
+            key: 'values',
+            params: { maxResults: 100 }
+        });
+        return (Array.isArray(projects) ? projects : [])[0] || null;
+    },
+
+    // The webhook triggers' receive() emits data[key] with a `webhookEvent` field
+    // added (see executeWebhookRequest); their test() reshapes a REST record the
+    // same way.
+    toWebhookShape(record, webhookEvent) {
+
+        return { ...record, webhookEvent };
+    },
+
     buildDocType(data) {
 
         return {

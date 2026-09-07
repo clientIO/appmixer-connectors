@@ -45,5 +45,26 @@ module.exports = {
             return context.sendJson(comment, 'comment');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        let { siteId, postId } = context.properties;
+
+        // Reuse the same fetch+shape path as tick() (honoring the optional postId
+        // filter via the same getBlogComments branch); the WordPress comments endpoint
+        // returns newest-first, so the first item is the most recent comment. No state
+        // baseline is applied here, so unlike tick()'s first run this emits an item.
+        let response = await commons.getBlogComments(
+            {
+                siteId,
+                postId
+            });
+
+        if (!response.length) {
+            throw new Error('No comments on the site to use as test data.');
+        }
+
+        return context.sendJson(response[0], 'comment');
     }
 };

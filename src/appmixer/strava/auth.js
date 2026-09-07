@@ -1,5 +1,7 @@
 'use strict';
 
+const { API_BASE_URL } = require('./constants');
+
 module.exports = {
     type: 'oauth2',
 
@@ -36,7 +38,7 @@ module.exports = {
         requestAccessToken: async (context) => {
             const response = await context.httpRequest({
                 method: 'POST',
-                url: 'https://www.strava.com/api/v3/oauth/token',
+                url: `${API_BASE_URL}/oauth/token`,
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
@@ -62,7 +64,7 @@ module.exports = {
         refreshAccessToken: async (context) => {
             const response = await context.httpRequest({
                 method: 'POST',
-                url: 'https://www.strava.com/api/v3/oauth/token',
+                url: `${API_BASE_URL}/oauth/token`,
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
                 },
@@ -88,7 +90,7 @@ module.exports = {
         requestProfileInfo: async (context) => {
             const response = await context.httpRequest({
                 method: 'GET',
-                url: 'https://www.strava.com/api/v3/athlete',
+                url: `${API_BASE_URL}/athlete`,
                 headers: {
                     Authorization: `Bearer ${context.accessToken}`
                 }
@@ -99,7 +101,7 @@ module.exports = {
         validateAccessToken: async (context) => {
             await context.httpRequest({
                 method: 'GET',
-                url: 'https://www.strava.com/api/v3/athlete',
+                url: `${API_BASE_URL}/athlete`,
                 headers: {
                     Authorization: `Bearer ${context.accessToken}`
                 }

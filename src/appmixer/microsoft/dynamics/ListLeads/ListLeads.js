@@ -70,7 +70,6 @@ module.exports = {
                 $top: Math.min(PAGE_SIZE, MAX_LIMIT - totalRecords),
                 nextLink
             };
-            context.log({ step: 'Making request', options });
 
             const { data: result } = await context.httpRequest(options);
             records = records.concat(result.value);

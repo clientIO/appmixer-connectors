@@ -1,5 +1,5 @@
 'use strict';
-const { ensureStore, createQueryProcessor } = require('../../common');
+const { ensureStore, createQueryProcessor, fetchLatestRow } = require('../../common');
 
 async function processUpdatedRows(context, storeId, query, params, lock, idField) {
 
@@ -160,5 +160,26 @@ module.exports = {
 
             return context.response('ok');
         }
+    },
+
+    async test(context) {
+
+        const { query, idField, recordOldValues } = context.properties;
+
+        // Read-only: run the same validated SELECT path tick() uses, but collect rows locally
+        // instead of writing them to the data store. Pass 0 for the optional "?" timestamp
+        // placeholder so ALL rows are considered, then emit the newest row.
+        const row = await fetchLatestRow(context, query, [0], idField);
+        if (!row) {
+            throw new Error('No rows returned by the query to use as test data.');
+        }
+
+        // Mirror receive()'s branching: when recordOldValues is enabled the output carries both
+        // updatedRow and oldRow. In Test Mode there is no historical value to compare against, so
+        // we represent the current row as both sides to keep the emitted shape identical.
+        if (recordOldValues) {
+            return context.sendJson({ updatedRow: row, oldRow: row }, 'out');
+        }
+        return context.sendJson({ updatedRow: row }, 'out');
     }
 };

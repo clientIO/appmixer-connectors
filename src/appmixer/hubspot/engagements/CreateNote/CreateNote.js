@@ -10,6 +10,16 @@ module.exports = {
             hsNoteBody
         } = context.messages.in.content;
 
+        if (!objectId) {
+            throw new context.CancelError('Associated Object ID is required!');
+        }
+        if (!hsNoteBody) {
+            throw new context.CancelError('Note Body is required!');
+        }
+        if (!associationTypeId) {
+            throw new context.CancelError('Association Type is required!');
+        }
+
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
@@ -31,8 +41,6 @@ module.exports = {
                 }
             ]
         };
-
-        context.log({ stage: 'Engagements - CreateNote payload', payload });
 
         const { data } = await hs.call(
             'post',

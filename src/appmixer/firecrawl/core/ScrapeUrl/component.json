@@ -1,0 +1,182 @@
+{
+    "name": "appmixer.firecrawl.core.ScrapeUrl",
+    "label": "Scrape URL",
+    "description": "Scrape a single URL and return its content as LLM-ready markdown, optionally together with HTML, links, a summary or a screenshot.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:firecrawl"
+    },
+    "quota": {
+        "manager": "appmixer:firecrawl",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "includeHtml": { "type": "boolean" },
+                    "includeRawHtml": { "type": "boolean" },
+                    "includeLinks": { "type": "boolean" },
+                    "includeSummary": { "type": "boolean" },
+                    "includeScreenshot": { "type": "boolean" },
+                    "onlyMainContent": { "type": "boolean" },
+                    "waitFor": { "type": "number" },
+                    "timeout": { "type": "number" },
+                    "mobile": { "type": "boolean" }
+                },
+                "required": ["url"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "URL",
+                        "tooltip": "The URL of the page to scrape, e.g. <code>https://example.com/blog</code>. Markdown content is always returned."
+                    },
+                    "includeHtml": {
+                        "type": "toggle",
+                        "index": 1,
+                        "label": "Include HTML",
+                        "defaultValue": false,
+                        "tooltip": "Also return the processed HTML of the page."
+                    },
+                    "includeRawHtml": {
+                        "type": "toggle",
+                        "index": 2,
+                        "label": "Include Raw HTML",
+                        "defaultValue": false,
+                        "tooltip": "Also return the raw, unprocessed HTML of the page."
+                    },
+                    "includeLinks": {
+                        "type": "toggle",
+                        "index": 3,
+                        "label": "Include Links",
+                        "defaultValue": false,
+                        "tooltip": "Also return the list of links found on the page."
+                    },
+                    "includeSummary": {
+                        "type": "toggle",
+                        "index": 4,
+                        "label": "Include Summary",
+                        "defaultValue": false,
+                        "tooltip": "Also return an LLM generated summary of the page content."
+                    },
+                    "includeScreenshot": {
+                        "type": "toggle",
+                        "index": 5,
+                        "label": "Include Screenshot",
+                        "defaultValue": false,
+                        "tooltip": "Also return a URL of a screenshot of the page."
+                    },
+                    "onlyMainContent": {
+                        "type": "toggle",
+                        "index": 6,
+                        "label": "Only Main Content",
+                        "defaultValue": true,
+                        "tooltip": "Return only the main content of the page, excluding headers, navigation and footers."
+                    },
+                    "waitFor": {
+                        "type": "number",
+                        "index": 7,
+                        "label": "Wait For (ms)",
+                        "tooltip": "Delay in milliseconds before fetching the content, allowing the page to load. Leave empty for no extra delay."
+                    },
+                    "timeout": {
+                        "type": "number",
+                        "index": 8,
+                        "label": "Timeout (ms)",
+                        "tooltip": "Request timeout in milliseconds (1000-300000). Defaults to 60000."
+                    },
+                    "mobile": {
+                        "type": "toggle",
+                        "index": 9,
+                        "label": "Emulate Mobile Device",
+                        "defaultValue": false,
+                        "tooltip": "Scrape the page as a mobile device."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "markdown": {
+                        "type": "string",
+                        "title": "Markdown",
+                        "example": "# Example Domain\n\nThis domain is for use in illustrative examples in documents."
+                    },
+                    "html": {
+                        "type": "string",
+                        "title": "HTML",
+                        "example": "<div><h1>Example Domain</h1><p>This domain is for use in illustrative examples.</p></div>"
+                    },
+                    "rawHtml": {
+                        "type": "string",
+                        "title": "Raw HTML",
+                        "example": "<!DOCTYPE html><html><head><title>Example Domain</title></head><body>...</body></html>"
+                    },
+                    "links": {
+                        "type": "array",
+                        "title": "Links",
+                        "items": { "type": "string" },
+                        "example": ["https://www.iana.org/domains/example"]
+                    },
+                    "summary": {
+                        "type": "string",
+                        "title": "Summary",
+                        "example": "A reserved domain used for illustrative examples in documentation."
+                    },
+                    "screenshot": {
+                        "type": "string",
+                        "title": "Screenshot URL",
+                        "example": "https://storage.googleapis.com/firecrawl-screenshots/abc123.png"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "title": "Metadata",
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "title": "Page Title",
+                                "example": "Example Domain"
+                            },
+                            "description": {
+                                "type": "string",
+                                "title": "Page Description",
+                                "example": "This domain is for use in illustrative examples in documents."
+                            },
+                            "language": {
+                                "type": "string",
+                                "title": "Language",
+                                "example": "en"
+                            },
+                            "sourceURL": {
+                                "type": "string",
+                                "title": "Source URL",
+                                "example": "https://example.com"
+                            },
+                            "statusCode": {
+                                "type": "number",
+                                "title": "Status Code",
+                                "example": 200
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkZpcmVjcmF3bCI+PHBhdGggZmlsbD0iI0ZBNUQxOSIgZD0iTTI0IDJjMi4yIDYuOS0uNiAxMC4zLTQuNiAxNC4zQzE1LjIgMjAuNSAxMiAyNC45IDEyIDMwLjQgMTIgMzkuMSAxNy40IDQ2IDI0IDQ2czEyLTYuOSAxMi0xNS42YzAtNC4zLTEuNi04LjMtNC0xMS42LTEuMyAyLjMtMi43IDMuNy00LjUgNC42LjktNi43LS44LTE0LjctMy41LTIxLjR6Ii8+PHBhdGggZmlsbD0iI0ZGQzEwNyIgZD0iTTI0IDQ2Yy0zLjkgMC03LTMuNi03LTggMC0zLjQgMS43LTUuOSA0LTggMS42LTEuNSAyLjctMyAzLTUgMi4zIDIuNiA3IDYuNyA3IDEzIDAgNC40LTMuMSA4LTcgOHoiLz48L3N2Zz4="
+}

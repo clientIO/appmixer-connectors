@@ -1,23 +1,33 @@
 {
     "name": "appmixer.whatsapp",
-    "version": "2.0.0",
+    "version": "2.2.0",
     "changelog": {
         "1.0.0": [
             "Initial WhatsApp Business Cloud API connector.",
             "Messages: SendTextMessage, SendTemplateMessage, SendImageMessage, SendVideoMessage, SendAudioMessage, SendDocumentMessage, SendLocationMessage.",
             "Media: UploadMedia, GetMediaURL, DownloadMedia, DeleteMedia.",
-            "Sender phone numbers: RegisterSenderPhoneNumber (Register Sender), DeregisterPhoneNumber, ListPhoneNumbers, GetPhoneNumber, GetRegistrationStatus, EnsurePhoneNumberRegistered — all operate on YOUR business sender numbers, never on recipients.",
+            "Sender phone numbers: RegisterSenderPhoneNumber (Register Sender), DeregisterPhoneNumber, ListPhoneNumbers, GetPhoneNumber, GetRegistrationStatus, EnsurePhoneNumberRegistered \u2014 all operate on YOUR business sender numbers, never on recipients.",
             "Triggers (webhook): NewMessage, MessageStatusUpdated.",
             "Core: MakeApiCall (per #1459 standard)."
         ],
         "1.1.0": [
             "Send*Message component descriptions clarify the 24-hour messaging window and silent-drop behaviour.",
             "OAuth now uses Facebook Login for Business with a Meta Login Configuration ID (`appmixer:whatsapp.configId` in Backoffice). Customers see the WABA asset picker instead of a plain consent screen. Falls back to plain OAuth when configId is not set.",
-            "Auth fails explicitly when /debug_token returns granular_scopes but no WhatsApp Business Account is selected — prevents 'connected but useless' accounts.",
-            "New ListMessageTemplates component (messages/). Usable standalone and as the dynamic-source dropdown for SendTemplateMessage's Template Name field — customers now pick APPROVED templates from a typeahead."
+            "Auth fails explicitly when /debug_token returns granular_scopes but no WhatsApp Business Account is selected \u2014 prevents 'connected but useless' accounts.",
+            "New ListMessageTemplates component (messages/). Usable standalone and as the dynamic-source dropdown for SendTemplateMessage's Template Name field \u2014 customers now pick APPROVED templates from a typeahead."
         ],
         "2.0.0": [
-            "(breaking change) MakeApiCall: headers and parameters changed from textarea/JSON string to key-value array inputs per standard #1459 (body remains textarea/JSON to support nested structures) — existing flows that used the old string-typed headers or parameters must be updated."
+            "(breaking change) MakeApiCall: headers and parameters changed from textarea/JSON string to key-value array inputs per standard #1459 (body remains textarea/JSON to support nested structures) \u2014 existing flows that used the old string-typed headers or parameters must be updated."
+        ],
+        "2.1.1": [
+            "New WhatsApp Embedded Signup flow (Backoffice: appmixer:whatsapp.esConfigId + Meta App 'Allowed Domains for the JavaScript SDK'). Auth starts on a plugin-served page running Meta's Embedded Signup via the FB JS SDK \u2014 users select or create a WABA and phone number, Zapier-style; the resulting token carries enumerable WABA target_ids. Requires a verified business and advanced access for the whatsapp scopes on the Meta App.",
+            "OAuth simplified to two flows: Embedded Signup (esConfigId) and plain OAuth with explicit whatsapp scopes (+ auth_type=rerequest so stale Business Integration grants are re-prompted). The Login-Configuration redirect flow (configId) was removed \u2014 it added setup complexity over plain OAuth without any benefit (same picker, same scopes, no WABA enumeration).",
+            "Auth: WABA discovery hardened \u2014 /debug_token failures are logged instead of silently swallowed; auth now always fails when the token carries no whatsapp scope at all (Meta drops scopes silently for stale grants or standard access without an app role). WABA IDs are collected from both whatsapp granular scopes; unrestricted grants ('all current and future WABAs', no target_ids) pass with manual WABA entry, with best-effort enumeration via /me/businesses when business_management happens to be granted.",
+            "New ListBusinessAccounts component (businessAccounts/). Lists the WABAs granted during OAuth (from profileInfo, no extra Graph API scope needed) with best-effort name enrichment.",
+            "WhatsApp Business Account ID is now a required dynamic dropdown (sourced from ListBusinessAccounts) on all components that take it \u2014 Send*Message, ListMessageTemplates, ListPhoneNumbers, UploadMedia, NewMessage, MessageStatusUpdated. Manual entry remains possible via variable mode."
+        ],
+        "2.2.0": [
+            "Added test() (Flow Test Mode) to the NewMessage and MessageStatusUpdated triggers (representative synthetic payload \u2014 the WhatsApp Cloud API cannot list past messages/statuses)."
         ]
     }
 }

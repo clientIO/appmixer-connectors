@@ -70,6 +70,35 @@ module.exports = {
     },
 
     /**
+     * Fetch the single newest record from a GitHub list/search endpoint, reusing the same
+     * request path (`apiRequest`) that triggers' `tick()` use. Shared by every trigger's
+     * `test()` (Flow Test Mode) so the emitted item is identical in shape to production.
+     *
+     * Honors the caller's params (e.g. newest-first sort) and forces `per_page: 1`. Handles
+     * both plain list responses (`data` is an array) and the search API shape
+     * (`data.items` is an array). Returns the first record, or `null` if none.
+     *
+     * @param {Object} context
+     * @param {String} action GitHub API path (relative to https://api.github.com/)
+     * @param {Object} [options]
+     * @param {Object} [options.params] extra query params (merged before per_page override)
+     * @returns {Promise<Object|null>}
+     */
+    async fetchLatest(context, action, { params = {} } = {}) {
+
+        const res = await this.apiRequest(context, action, {
+            params: { ...params, per_page: 1 }
+        });
+
+        const data = res.data;
+        const records = Array.isArray(data)
+            ? data
+            : (data && Array.isArray(data.items) ? data.items : []);
+
+        return records.length ? records[0] : null;
+    },
+
+    /**
      * Process items to find newly added.
      * @param knowItems
      * @param {Set} actualItems

@@ -21,6 +21,18 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // The labels endpoint has no created sort; take the first listed label.
+        const label = await lib.fetchLatest(context, `repos/${repositoryId}/labels`);
+        if (!label) {
+            throw new Error('No labels to use as test data.');
+        }
+        return context.sendJson(label, 'label');
     }
 };
 

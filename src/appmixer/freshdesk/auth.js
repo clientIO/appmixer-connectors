@@ -1,5 +1,4 @@
 'use strict';
-const request = require('request-promise');
 
 module.exports = {
 
@@ -28,28 +27,27 @@ module.exports = {
 
             // curl https://mydomain.freshdesk.com/api/v2/agents/me \
             //  -u myApiKey:X'
-            return request({
+            const encoded = Buffer.from(`${context.apiKey}:X`).toString('base64');
+            const { data } = await context.httpRequest({
                 method: 'GET',
                 url: `https://${context.domain}.freshdesk.com/api/v2/agents/me`,
-                auth: {
-                    user: context.apiKey,
-                    password: 'X'
-                },
-                json: true
+                headers: {
+                    Authorization: `Basic ${encoded}`
+                }
             });
+            return data;
         },
 
         validate: async context => {
 
             // curl https://mydomain.freshdesk.com/api/v2/agents/me \
             //  -u myApiKey:X'
-            const credentials = `${context.apiKey}:X`;
-            const encoded = (new Buffer(credentials)).toString('base64');
-            await request({
+            const encoded = Buffer.from(`${context.apiKey}:X`).toString('base64');
+            await context.httpRequest({
                 method: 'GET',
                 url: `https://${context.domain}.freshdesk.com/api/v2/agents/me`,
                 headers: {
-                    'Authorization': `Basic ${encoded}`
+                    Authorization: `Basic ${encoded}`
                 }
             });
             // if the request doesn't fail, return true (exception will be captured in caller)

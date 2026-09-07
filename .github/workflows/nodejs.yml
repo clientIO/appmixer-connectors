@@ -13,6 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        # Full history so validate:changed can resolve merge-base against the base branch.
+        fetch-depth: 0
     - name: Use Node.js 24.6.0
       uses: actions/setup-node@v4
       with:
@@ -31,7 +34,22 @@ jobs:
       run: node ./scripts/npm_install.js
     - name: Run lint
       run: npm run lint
-    - name: Run validate
+    # The connector source validator suite lives in appmixer-cli (single source of
+    # truth) — this repo's dev tracks the CLI's dev branch, published to npm as
+    # the public `dev` dist-tag on every CLI dev push (appmixer-cli publish-dev
+    # workflow). A dist-tag needs no credentials, which matters here: PRs come
+    # from forks, and GitHub withholds Actions secrets from fork-triggered
+    # workflows — a token-based git install can never work in this job.
+    # scripts/validate.js is a thin wrapper over `appmixer connector validate`;
+    # only the two git-workflow rules stay local (scripts/validators, --rules-dir).
+    - name: Install appmixer CLI (dev dist-tag)
+      run: npm install -g appmixer@dev
+    # Gate PRs on the files they actually change (strict) — a PR no longer fails for unrelated repo-wide debt.
+    - name: Run validate (changed files, strict)
+      run: node scripts/validate.js --changed --base origin/${{ github.base_ref }}
+    # Whole-repo ratchet kept as an informational signal only (does not block the PR).
+    - name: Run validate (whole repo, ratcheted — informational)
       run: npm run validate
+      continue-on-error: true
     - name: Run unit tests
       run: npm run test-unit

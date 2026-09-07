@@ -1,0 +1,629 @@
+{
+    "name": "Demo Epic - Clinical Records",
+    "type": "automation",
+    "flow": {
+        "e2000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "patientId",
+                                                "text": "erXuFYUfucBZaryVksYEcMg3"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "notifyEmail",
+                                                "text": "test@appmixer.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.epic.core.FindLabResults",
+            "x": 480,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patient": {
+                                        "mp": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000002.out.patientId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patient": "{{{mp}}}",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000004": {
+            "type": "appmixer.epic.core.FindCarePlans",
+            "x": 688,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patient": {
+                                        "mp": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000002.out.patientId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patient": "{{{mp}}}",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000005": {
+            "type": "appmixer.epic.core.FindDiagnosticReports",
+            "x": 896,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patient": {
+                                        "mp": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000002.out.patientId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patient": "{{{mp}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000006": {
+            "type": "appmixer.epic.core.GetDiagnosticReport",
+            "x": 1104,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000005": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "diagnosticReportId": {
+                                        "gi": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000005.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "diagnosticReportId": "{{{gi}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000007": {
+            "type": "appmixer.epic.core.FindProcedures",
+            "x": 1312,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000006": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000006": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patient": {
+                                        "mp": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000002.out.patientId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patient": "{{{mp}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000008": {
+            "type": "appmixer.epic.core.GetProcedure",
+            "x": 1520,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000007": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000007": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "procedureId": {
+                                        "gi": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000007.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "procedureId": "{{{gi}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000009": {
+            "type": "appmixer.epic.core.FindMedicationRequests",
+            "x": 1728,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000008": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000008": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patient": {
+                                        "mp": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000002.out.patientId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patient": "{{{mp}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000010": {
+            "type": "appmixer.epic.core.GetMedicationRequest",
+            "x": 1936,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000009": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000009": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "medicationRequestId": {
+                                        "gi": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000009.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "medicationRequestId": "{{{gi}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000011": {
+            "type": "appmixer.epic.core.MakeApiCall",
+            "x": 2352,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000014": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000014": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "url": "Appointment?patient=erXuFYUfucBZaryVksYEcMg3&_count=5",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000012": {
+            "type": "appmixer.epic.core.GetAppointment",
+            "x": 2560,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000011": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000011": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "appointmentId": {
+                                        "ai": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000011.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.entry[0].resource.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "appointmentId": "{{{ai}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000013": {
+            "type": "appmixer.utils.email.SendEmail",
+            "x": 2768,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000012": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000012": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "to": {
+                                        "te": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000002.out.notifyEmail",
+                                            "functions": []
+                                        }
+                                    },
+                                    "labs": {
+                                        "lc": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000003.out.count",
+                                            "functions": []
+                                        }
+                                    },
+                                    "care": {
+                                        "cc": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000004.out.count",
+                                            "functions": []
+                                        }
+                                    },
+                                    "dr": {
+                                        "drc": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000006.out.code",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "proc": {
+                                        "pc": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000008.out.code",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "mr": {
+                                        "mrc": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000010.out.medicationCodeableConcept",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "appt": {
+                                        "aps": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000012.out.start",
+                                            "functions": []
+                                        }
+                                    },
+                                    "med": {
+                                        "mc": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000014.out.code",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "to": "{{{te}}}",
+                                    "subject": "Epic demo — Camila Lopez clinical records",
+                                    "html": "<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#222\"><h2 style=\"color:#DF024D\">Epic demo — clinical records</h2><p><b>Patient:</b> Camila Lopez</p><ul><li><b>Lab results:</b> {{{lc}}}</li><li><b>Care plans:</b> {{{cc}}}</li><li><b>Diagnostic report:</b> {{{drc}}}</li><li><b>Procedure:</b> {{{pc}}}</li><li><b>Medication order:</b> {{{mrc}}}</li><li><b>Medication:</b> {{{mc}}}</li><li><b>Next appointment:</b> {{{aps}}}</li></ul></div>"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2000000-0000-0000-0000-000000000014": {
+            "type": "appmixer.epic.core.GetMedication",
+            "x": 2144,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e2000000-0000-0000-0000-000000000010": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-0000-0000-000000000010": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "medicationId": {
+                                        "mi": {
+                                            "variable": "$.e2000000-0000-0000-0000-000000000010.out.medicationReference",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.reference"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "name": "g_split",
+                                                    "params": [
+                                                        {
+                                                            "value": "/"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "name": "g_last",
+                                                    "params": []
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "medicationId": "{{{mi}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    }
+}

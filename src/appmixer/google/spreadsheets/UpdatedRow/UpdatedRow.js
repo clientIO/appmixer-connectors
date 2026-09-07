@@ -66,6 +66,28 @@ const getChangedRows = (newRows, oldRows, includeHeaders, format) => {
     return changed;
 };
 
+// Shared fetch helper used by both tick() and test() so requests go through the same path.
+async function fetchSheetRows(context) {
+
+    const { sheetId, worksheetId } = context.properties;
+    const [, worksheetName] = worksheetId.split('/');
+    const sheets = google.sheets('v4');
+    const getSheetRows = Promise.promisify(sheets.spreadsheets.values.get, {
+        context: sheets.spreadsheets.values
+    });
+
+    const response = await getSheetRows({
+        auth: commons.getOauth2Client(context.auth),
+        spreadsheetId: sheetId,
+        range: encodeURIComponent(worksheetName),
+        majorDimension: 'ROWS',
+        dateTimeRenderOption: 'FORMATTED_STRING',
+        valueRenderOption: 'UNFORMATTED_VALUE'
+    });
+
+    return response['values'] || [];
+}
+
 /**
  * Runs periodically to fetch sheet rows
  * and compare them for change
@@ -75,29 +97,12 @@ module.exports = {
     async tick(context) {
 
         const {
-            sheetId,
-            worksheetId,
             withHeaders,
             rowFormat,
             allAtOnce
         } = context.properties;
 
-        const [, worksheetName] = worksheetId.split('/');
-        const sheets = google.sheets('v4');
-        const getSheetRows = Promise.promisify(sheets.spreadsheets.values.get, {
-            context: sheets.spreadsheets.values
-        });
-
-        const response = await getSheetRows({
-            auth: commons.getOauth2Client(context.auth),
-            spreadsheetId: sheetId,
-            range: encodeURIComponent(worksheetName),
-            majorDimension: 'ROWS',
-            dateTimeRenderOption: 'FORMATTED_STRING',
-            valueRenderOption: 'UNFORMATTED_VALUE'
-        });
-
-        const currentRows = response['values'] || [];
+        const currentRows = await fetchSheetRows(context);
         let changed = [];
         if (!context.state.rows) {
             await context.saveState({ rows: currentRows });
@@ -134,5 +139,34 @@ module.exports = {
             const { row, index } = change;
             await context.sendJson({ row, index }, 'out');
         }
+    },
+
+    // Flow Test Mode: emit the newest row mapped exactly the way tick() maps a changed row.
+    // tick() suppresses its first run while seeding state.rows, so test() fetches rows directly
+    // and reuses the SAME getChangedRows() mapping (treating the latest row as "changed" by
+    // diffing against the rows without it). Read-only, no state writes.
+    async test(context) {
+
+        const { withHeaders, rowFormat, allAtOnce } = context.properties;
+
+        const currentRows = await fetchSheetRows(context);
+        if (!currentRows.length) {
+            throw new Error('No rows available in the worksheet to use as test data.');
+        }
+
+        // Mark only the last row as changed by comparing against the rows without it.
+        const previousRows = currentRows.slice(0, -1);
+        const changed = getChangedRows(currentRows, previousRows, withHeaders, rowFormat);
+
+        if (!changed.length) {
+            throw new Error('No rows available in the worksheet to use as test data.');
+        }
+
+        if (allAtOnce) {
+            return context.sendJson({ rows: changed }, 'out');
+        }
+
+        const { row, index } = changed[changed.length - 1];
+        return context.sendJson({ row, index }, 'out');
     }
 };

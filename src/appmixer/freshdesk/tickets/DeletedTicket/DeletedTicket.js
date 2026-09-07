@@ -1,16 +1,37 @@
 'use strict';
-const axios = require('axios');
+const { apiCall } = require('../../lib');
+
+function mapDeletedTicket(ticket) {
+    return {
+        id: ticket.id,
+        subject: ticket.subject,
+        deleted_at: ticket.updated_at,
+        ticketJson: ticket
+    };
+}
+
+// Shared by tick() and test(): fetch one page of deleted tickets, keep only the ones actually
+// flagged `deleted`, and map them to the trigger output shape. Centralizes the request, the
+// deleted-filter and the pagination parsing so tick() and test() stay in sync.
+async function requestDeletedTickets(context, urlOrParams) {
+
+    const url = typeof urlOrParams === 'string'
+        ? urlOrParams
+        : `/tickets?${urlOrParams.toString()}`;
+
+    const res = await apiCall(context, { url });
+    const records = (res.data || []).filter(ticket => ticket.deleted).map(mapDeletedTicket);
+    const match = (res.headers.link || '').match(/<([^>]+)>;\s*rel="next"/);
+
+    return { records, nextUrl: match ? match[1] : null };
+}
 
 module.exports = {
 
     async tick(context) {
 
-        const { auth } = context;
         const state = context.state || {};
         const lookbackMs = 2 * 60 * 1000;
-
-        const baseUrl = `https://${auth.domain}.freshdesk.com/api/v2/tickets`;
-        const authConfig = { username: auth.apiKey, password: 'X' };
 
         // Deleted tickets API supports updated_since too (filter=deleted)
         const cursorUpdatedAt = state.cursorUpdatedAt
@@ -21,27 +42,24 @@ module.exports = {
 
         const isFirstRun = !state.cursorUpdatedAt;
 
-        let nextUrl =
-            `${baseUrl}?filter=deleted` +
-            `&updated_since=${encodeURIComponent(from)}` +
-            '&order_by=updated_at&order_type=asc&per_page=100';
+        const params = new URLSearchParams({
+            filter: 'deleted',
+            updated_since: from,
+            order_by: 'updated_at',
+            order_type: 'asc',
+            per_page: '100'
+        });
 
+        let nextUrl = params;
         let maxUpdatedAt = state.cursorUpdatedAt || null;
         let maxTicketId = state.cursorTicketId || 0;
 
         while (nextUrl) {
-            const res = await axios.get(nextUrl, {
-                auth: authConfig,
-                validateStatus: s => s >= 200 && s < 300
-            });
+            const { records, nextUrl: next } = await requestDeletedTickets(context, nextUrl);
 
-            const tickets = res.data || [];
-
-            for (const ticket of tickets) {
-                const updatedAt = ticket.updated_at;
-                const ticketId = ticket.id;
-
-                if (!ticket.deleted) continue;
+            for (const fields of records) {
+                const updatedAt = fields.deleted_at;
+                const ticketId = fields.id;
 
                 // On the first run, skip emission entirely (baseline-only behavior).
                 const isAfterCursor =
@@ -52,12 +70,7 @@ module.exports = {
 
                 if (!isAfterCursor) continue;
 
-                await context.sendJson({
-                    id: ticket.id,
-                    subject: ticket.subject,
-                    deleted_at: ticket.updated_at,
-                    ticketJson: ticket
-                }, 'ticket');
+                await context.sendJson(fields, 'ticket');
 
                 if (
                     !maxUpdatedAt ||
@@ -69,13 +82,32 @@ module.exports = {
                 }
             }
 
-            const link = res.headers.link || '';
-            const match = link.match(/<([^>]+)>;\s*rel="next"/);
-            nextUrl = match ? match[1] : null;
+            nextUrl = next;
         }
 
         // Always persist cursor even when no results, to prevent gaps if polling interval exceeds lookback window.
         const cursorToSave = maxUpdatedAt || cursorUpdatedAt.toISOString();
         await context.saveState({ cursorUpdatedAt: cursorToSave, cursorTicketId: maxTicketId });
+    },
+
+    // Flow Test Mode: emit one realistic deleted ticket without starting the flow.
+    // Reuses requestDeletedTickets() — only the query differs (most recently deleted first,
+    // single page) and no cursor/state is touched.
+    async test(context) {
+
+        const params = new URLSearchParams({
+            filter: 'deleted',
+            order_by: 'updated_at',
+            order_type: 'desc',
+            per_page: '1'
+        });
+
+        const { records } = await requestDeletedTickets(context, params);
+
+        if (!records.length) {
+            throw new Error('No recent deleted tickets to use as test data.');
+        }
+
+        await context.sendJson(records[0], 'ticket');
     }
 };

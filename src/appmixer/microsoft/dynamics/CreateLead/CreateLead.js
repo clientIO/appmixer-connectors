@@ -5,7 +5,6 @@ module.exports = {
     async receive(context) {
 
         // Call CreateObjectRecord with 'lead' as the entity name and 'data' as the data.
-        // context.log({ step: 'Calling CreateObjectRecord', objectName: 'lead', data: context.messages.in.content });
         const result = await context.componentStaticCall('appmixer.microsoft.dynamics.CreateObjectRecord', 'out', {
             messages: { in: { objectName: 'lead', ...context.messages.in.content } },
             properties: context.properties

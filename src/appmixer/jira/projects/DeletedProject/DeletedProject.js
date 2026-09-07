@@ -40,5 +40,17 @@ module.exports = {
         }
 
         return context.saveState({ savedProjects: projects });
+    },
+
+    async test(context) {
+
+        // A deletion can't be observed without prior state, so emit one current
+        // project as a representative example of the deleted-project payload shape
+        // (same project object tick() sends on the 'deleted' port).
+        const project = await commons.fetchLatestProject(context);
+        if (!project) {
+            throw new Error('No projects to use as test data.');
+        }
+        return context.sendJson(project, 'deleted');
     }
 };

@@ -125,6 +125,24 @@ class ActiveCampaign {
         return this.paginatedCall('get', 'dealTasks', params, limit, assembler);
     }
 
+    async getAutomations(params = {}) {
+
+        const { data } = await this.call('get', 'automations', {
+            ...params,
+            limit: ActiveCampaign.MAX_RECORDS_PER_PAGE
+        });
+        return data.automations || [];
+    }
+
+    async getEcomOrders(params = {}) {
+
+        const { data } = await this.call('get', 'ecomOrders', {
+            limit: ActiveCampaign.MAX_RECORDS_PER_PAGE,
+            ...params
+        });
+        return data.ecomOrders || [];
+    }
+
     registerWebhook(name, url, events) {
 
         return this.call('post', 'webhooks', {

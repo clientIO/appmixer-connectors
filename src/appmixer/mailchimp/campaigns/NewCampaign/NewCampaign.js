@@ -35,5 +35,17 @@ module.exports = {
             known: Array.from(current),
             since: since
         });
+    },
+
+    async test(context) {
+
+        // Newest campaign via the same request stack as tick(), without the
+        // since_create_time baseline filter (which suppresses output on a fresh flow).
+        const campaign = await aggregators.getMailchimpDriver()
+            .getLatest(context, '/campaigns', 'campaigns', 'create_time');
+        if (!campaign) {
+            throw new Error('No recent campaigns to use as test data.');
+        }
+        return context.sendJson(campaign, 'campaign');
     }
 };

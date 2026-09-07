@@ -116,6 +116,15 @@ class SnowflakeDB {
         };
         return this.collectRows(context.auth, statement);
     }
+    // Read-only fetch of a single representative row from the base table.
+    // Used by trigger test() methods (Flow Test Mode) - never consumes/advances the
+    // change stream and performs no mutations.
+    async getSampleRow(auth, schema, tableName) {
+
+        const sqlText = `select * from ${schema}.${tableName} limit 1;`;
+        const data = await this.collectRows(auth, { sqlText });
+        return data && data.length ? data[0] : null;
+    }
 
 };
 

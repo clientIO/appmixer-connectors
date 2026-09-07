@@ -2,6 +2,12 @@
 
 const { makeRequest } = require('../commons');
 
+// Metadata-only fields of the base attachment resource. Selecting only these
+// guarantees the binary `contentBytes` (a fileAttachment-specific property) is
+// never returned, which avoids Appmixer's max message size exception on emails
+// with large attachments. Use the DownloadAttachment component to get content.
+const METADATA_FIELDS = ['id', 'name', 'contentType', 'size', 'isInline', 'lastModifiedDateTime'];
+
 module.exports = {
 
     async receive(context) {
@@ -12,8 +18,16 @@ module.exports = {
 
         const { messageId, outputType } = context.messages.in.content;
 
+        if (!messageId) {
+            throw new context.CancelError('Message ID is required!');
+        }
+
         const url = `/me/messages/${messageId}/attachments`;
-        const attachmentsResponse = await makeRequest(context, { path: url, method: 'GET' });
+        const attachmentsResponse = await makeRequest(context, {
+            path: url,
+            method: 'GET',
+            params: { '$select': METADATA_FIELDS.join(',') }
+        });
 
         const value = attachmentsResponse.data.value;
 
@@ -36,9 +50,6 @@ module.exports = {
                 { label: 'Name', value: 'name' },
                 { label: 'Size', value: 'size' },
                 { label: 'Content Type', value: 'contentType' },
-                { label: 'Content Location', value: 'contentLocation' },
-                { label: 'Content Bytes', value: 'contentBytes' },
-                { label: 'Content ID', value: 'contentId' },
                 { label: 'Last Modified Date Time', value: 'lastModifiedDateTime' }
             ], 'out');
         } else if (outputType === 'attachments') {

@@ -51,6 +51,14 @@ module.exports = {
 
     async receive(context) {
 
+        const { calendarId, query } = context.messages.in.content;
+        if (!calendarId) {
+            throw new context.CancelError('Calendar is required!');
+        }
+        if (!query) {
+            throw new context.CancelError('Query is required!');
+        }
+
         const events = await findEvents(context);
 
         if (events.length === 0) {

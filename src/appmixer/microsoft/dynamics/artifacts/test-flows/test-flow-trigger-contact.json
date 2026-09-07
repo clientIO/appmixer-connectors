@@ -1,0 +1,511 @@
+{
+    "flow": {
+        "565dd41d-e78e-45d8-ab63-09a0d58feb02": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a806970d-6717-484d-89f2-b190b6d58096": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 208,
+            "y": 32,
+            "source": {
+                "in": {
+                    "565dd41d-e78e-45d8-ab63-09a0d58feb02": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "565dd41d-e78e-45d8-ab63-09a0d58feb02": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "testPrefix",
+                                                "text": "E2E Dynamics Trigger",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "984a08ac-6720-43a0-9869-07aa03d7c279": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (trigger baseline tick)",
+            "x": 368,
+            "y": 32,
+            "source": {
+                "in": {
+                    "a806970d-6717-484d-89f2-b190b6d58096": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a806970d-6717-484d-89f2-b190b6d58096": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "068f2349-c51e-4825-9440-d955376e6a95": {
+            "type": "appmixer.microsoft.dynamics.CreateContact",
+            "label": "CreateContact (test data)",
+            "x": 528,
+            "y": 32,
+            "source": {
+                "in": {
+                    "984a08ac-6720-43a0-9869-07aa03d7c279": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "984a08ac-6720-43a0-9869-07aa03d7c279": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "rawJson": {},
+                                    "firstname": {},
+                                    "lastname": {
+                                        "var-ts": {
+                                            "variable": "$.565dd41d-e78e-45d8-ab63-09a0d58feb02.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "rawJson": false,
+                                    "firstname": "E2E Trigger",
+                                    "lastname": "Contact {{{var-ts}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "27d8ecba-a46e-4655-959c-502bec6e7224": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: test record created",
+            "x": 688,
+            "y": 32,
+            "source": {
+                "in": {
+                    "068f2349-c51e-4825-9440-d955376e6a95": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "068f2349-c51e-4825-9440-d955376e6a95": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.068f2349-c51e-4825-9440-d955376e6a95.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "004b941a-3f28-4b6b-b182-5e13af966de7": {
+            "type": "appmixer.microsoft.dynamics.UpdateContact",
+            "label": "UpdateContact (fire updated trigger)",
+            "x": 736,
+            "y": -176,
+            "source": {
+                "in": {
+                    "068f2349-c51e-4825-9440-d955376e6a95": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "068f2349-c51e-4825-9440-d955376e6a95": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "rawJson": {},
+                                    "id": {
+                                        "var-id": {
+                                            "variable": "$.068f2349-c51e-4825-9440-d955376e6a95.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "json": {}
+                                },
+                                "lambda": {
+                                    "rawJson": true,
+                                    "id": "{{{var-id}}}",
+                                    "json": "{\"jobtitle\": \"E2E Updated\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7be3e012-6bfe-45fd-993e-4bf899f91de3": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (triggers pick up record)",
+            "x": 960,
+            "y": -176,
+            "source": {
+                "in": {
+                    "004b941a-3f28-4b6b-b182-5e13af966de7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "004b941a-3f28-4b6b-b182-5e13af966de7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "3m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c400ae24-a1b8-4f64-a056-066c0070771c": {
+            "type": "appmixer.microsoft.dynamics.DeleteContact",
+            "label": "DeleteContact (cleanup)",
+            "x": 1152,
+            "y": -176,
+            "source": {
+                "in": {
+                    "7be3e012-6bfe-45fd-993e-4bf899f91de3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7be3e012-6bfe-45fd-993e-4bf899f91de3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "id": {
+                                        "var-id": {
+                                            "variable": "$.068f2349-c51e-4825-9440-d955376e6a95.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "id": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fa44ef2e-b55a-4ceb-a79f-0477687720f0": {
+            "type": "appmixer.microsoft.dynamics.NewContact",
+            "label": "NewContact (trigger under test)",
+            "x": 48,
+            "y": 336,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            }
+        },
+        "cffc8a7a-76d1-48ef-9445-2d33eae336d1": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: NewContact fired with record id",
+            "x": 256,
+            "y": 336,
+            "source": {
+                "in": {
+                    "fa44ef2e-b55a-4ceb-a79f-0477687720f0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fa44ef2e-b55a-4ceb-a79f-0477687720f0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.fa44ef2e-b55a-4ceb-a79f-0477687720f0.out.contactid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c5e4d595-778e-4451-b942-dca6a7b0b797": {
+            "type": "appmixer.microsoft.dynamics.UpdatedContact",
+            "label": "UpdatedContact (trigger under test)",
+            "x": 48,
+            "y": 480,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            }
+        },
+        "0f55b956-0c9a-4913-a405-c1dd9dc5f93b": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: UpdatedContact fired with record id",
+            "x": 256,
+            "y": 480,
+            "source": {
+                "in": {
+                    "c5e4d595-778e-4451-b942-dca6a7b0b797": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c5e4d595-778e-4451-b942-dca6a7b0b797": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.c5e4d595-778e-4451-b942-dca6a7b0b797.out.contactid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "55004018-ac21-44c7-9fc8-26aa22abc645": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1376,
+            "y": 336,
+            "source": {
+                "in": {
+                    "27d8ecba-a46e-4655-959c-502bec6e7224": [
+                        "out"
+                    ],
+                    "cffc8a7a-76d1-48ef-9445-2d33eae336d1": [
+                        "out"
+                    ],
+                    "0f55b956-0c9a-4913-a405-c1dd9dc5f93b": [
+                        "out"
+                    ],
+                    "c400ae24-a1b8-4f64-a056-066c0070771c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5168a9ad-2674-4cb1-bc3c-74f811dd1a86": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1536,
+            "y": 336,
+            "source": {
+                "in": {
+                    "55004018-ac21-44c7-9fc8-26aa22abc645": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "55004018-ac21-44c7-9fc8-26aa22abc645": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.55004018-ac21-44c7-9fc8-26aa22abc645.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E - Microsoft Dynamics Sales/CRM - New/Updated Contact triggers"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E - Microsoft Dynamics Sales/CRM - New/Updated Contact triggers",
+    "type": "automation",
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

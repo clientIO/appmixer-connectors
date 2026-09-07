@@ -34,6 +34,18 @@ module.exports = {
         }
     },
 
+    // Flow Test Mode: emit one realistic invitee_no_show.created payload without registering
+    // a webhook. Finds a recent invitee marked as no-show and reshapes it into the no-show
+    // webhook body via the shared connector-level helpers.
+    async test(context) {
+        const invitee = await commons.fetchLatestExample(context, { find: i => !!i.no_show });
+        if (!invitee) {
+            throw new Error('No recent invitees marked as no-show to use as test data.');
+        }
+        return context.sendJson(
+            commons.toNoShowWebhookShape(context, invitee, 'invitee_no_show.created'), 'out');
+    },
+
     /**
      * Register webhook in Calendly API.
      * @param {Context} context

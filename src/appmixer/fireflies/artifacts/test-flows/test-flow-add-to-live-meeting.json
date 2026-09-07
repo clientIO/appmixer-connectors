@@ -1,0 +1,161 @@
+{
+    "name": "E2E Fireflies - Add To Live Meeting",
+    "flow": {
+        "f5e741f5-ae9e-48e5-b0fa-f8b823c92eb9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d6139887-7e68-41d3-a490-ca5ebd345702": {
+            "type": "appmixer.fireflies.core.AddToLiveMeeting",
+            "x": 340,
+            "y": 300,
+            "source": {
+                "in": {
+                    "f5e741f5-ae9e-48e5-b0fa-f8b823c92eb9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f5e741f5-ae9e-48e5-b0fa-f8b823c92eb9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "meetingLink": "https://zoom.us/j/1234567890",
+                                    "title": "E2E Live Meeting",
+                                    "duration": 30
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5180b3f3-f84e-4915-9b09-56a5fbd3c210": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 560,
+            "y": 300,
+            "source": {
+                "in": {
+                    "d6139887-7e68-41d3-a490-ca5ebd345702": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d6139887-7e68-41d3-a490-ca5ebd345702": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f-success": {
+                                            "variable": "$.d6139887-7e68-41d3-a490-ca5ebd345702.out.success",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f-success}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "acfafc85-9ede-43fa-ae42-01d16745af3c": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 780,
+            "y": 300,
+            "source": {
+                "in": {
+                    "5180b3f3-f84e-4915-9b09-56a5fbd3c210": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b141dc1e-6768-4b9d-85c3-022eebb8f56b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1000,
+            "y": 300,
+            "source": {
+                "in": {
+                    "acfafc85-9ede-43fa-ae42-01d16745af3c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "acfafc85-9ede-43fa-ae42-01d16745af3c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.acfafc85-9ede-43fa-ae42-01d16745af3c.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fireflies - Add To Live Meeting",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

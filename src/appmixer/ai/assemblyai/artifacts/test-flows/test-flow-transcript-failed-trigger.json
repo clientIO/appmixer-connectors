@@ -1,0 +1,195 @@
+{
+    "name": "E2E AssemblyAI - Transcript Failed Trigger",
+    "flow": {
+        "bd85b83c-e3c4-41b2-95fd-531659489cad": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "b8790787-38ec-4572-b2df-d7c3aa4f0773": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 300,
+            "y": 300,
+            "source": { "in": { "bd85b83c-e3c4-41b2-95fd-531659489cad": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "bd85b83c-e3c4-41b2-95fd-531659489cad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "variables": {} },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "audioUrl",
+                                                "text": "https://storage.googleapis.com/aai-web-samples/this-file-does-not-exist-e2e.mp3"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "1d048d93-ae38-4a4c-90b7-94ec62700713": {
+            "type": "appmixer.ai.assemblyai.TranscribeAudio",
+            "x": 500,
+            "y": 300,
+            "source": { "in": { "b8790787-38ec-4572-b2df-d7c3aa4f0773": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "b8790787-38ec-4572-b2df-d7c3aa4f0773": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "audioUrl": {
+                                        "da7255b1-77d9-4739-83f6-935dec07aeed": {
+                                            "variable": "$.b8790787-38ec-4572-b2df-d7c3aa4f0773.out.audioUrl",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": { "audioUrl": "{{{da7255b1-77d9-4739-83f6-935dec07aeed}}}" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "47d99d9a-06ae-4924-9b1f-86b4f08c052a": {
+            "type": "appmixer.ai.assemblyai.TranscriptFailed",
+            "x": 500,
+            "y": 560,
+            "source": {},
+            "version": "1.0.0",
+            "config": { "properties": {} },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "6dcfa944-246e-4827-9f79-baee21b1b1f1": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 720,
+            "y": 560,
+            "source": { "in": { "47d99d9a-06ae-4924-9b1f-86b4f08c052a": ["transcript"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "47d99d9a-06ae-4924-9b1f-86b4f08c052a": {
+                            "transcript": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "18a309a5-7ebb-4c53-b55d-dcecebebb1a5": {
+                                            "variable": "$.47d99d9a-06ae-4924-9b1f-86b4f08c052a.transcript.id",
+                                            "functions": []
+                                        },
+                                        "7e77c987-2dd7-4442-ab80-b5ab2e774f96": {
+                                            "variable": "$.47d99d9a-06ae-4924-9b1f-86b4f08c052a.transcript.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "assertion": "notEmpty", "field": "{{{18a309a5-7ebb-4c53-b55d-dcecebebb1a5}}}" },
+                                            { "assertion": "regex", "field": "{{{7e77c987-2dd7-4442-ab80-b5ab2e774f96}}}", "regex": "^error$" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "70305059-4081-41c8-97d6-c2cdcada2f3c": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 940,
+            "y": 440,
+            "source": { "in": { "6dcfa944-246e-4827-9f79-baee21b1b1f1": ["out"] } },
+            "version": "1.0.0",
+            "config": { "properties": { "timeout": 420 } },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "29b748f5-ed49-4153-b659-68e2c6d81e5c": {
+            "type": "appmixer.ai.assemblyai.DeleteTranscript",
+            "x": 1140,
+            "y": 440,
+            "source": { "in": { "70305059-4081-41c8-97d6-c2cdcada2f3c": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "70305059-4081-41c8-97d6-c2cdcada2f3c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "cb9680d2-da9e-4af0-a1ca-32186c527334": {
+                                            "variable": "$.47d99d9a-06ae-4924-9b1f-86b4f08c052a.transcript.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": { "transcriptId": "{{{cb9680d2-da9e-4af0-a1ca-32186c527334}}}" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "78c46a0b-1bce-4e5a-9890-ae6bc3154fd3": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1340,
+            "y": 440,
+            "source": { "in": { "29b748f5-ed49-4153-b659-68e2c6d81e5c": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "29b748f5-ed49-4153-b659-68e2c6d81e5c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "5f25867c-b009-4495-8c8e-f6d959a8bc3a": {
+                                            "variable": "$.70305059-4081-41c8-97d6-c2cdcada2f3c.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E AssemblyAI - Transcript Failed Trigger",
+                                    "result": "{{{5f25867c-b009-4495-8c8e-f6d959a8bc3a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

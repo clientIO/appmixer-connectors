@@ -2,9 +2,52 @@
 
 const pathModule = require('path');
 
+const api = require('./api');
+
 const DEFAULT_PREFIX = 'beehiiv-objects-export';
 
 module.exports = {
+
+    /**
+     * Read-only fetch of the newest subscription matching the optional status/tier filters.
+     * Shared by the webhook triggers' test() methods so Flow Test Mode can emit a real record
+     * without registering a webhook or touching state. Uses the same subscriptions list endpoint
+     * (api.Index5) the rest of the connector relies on.
+     * @param {object} context
+     * @param {object} [filters] - { status, tier } passed through to the list endpoint.
+     * @returns {Promise<object|null>} The newest matching subscription record, or null.
+     */
+    async fetchLatestSubscription(context, { status, tier } = {}) {
+
+        const { publicationId } = context.properties;
+        if (!publicationId) {
+            throw new context.CancelError('Publication ID is required!');
+        }
+
+        const response = await api.Index5.execute(context, {
+            publicationId,
+            status,
+            tier,
+            limit: 1,
+            order_by: 'created',
+            direction: 'desc'
+        });
+
+        const records = (response && response.data) || [];
+        return records[0] || null;
+    },
+
+    /**
+     * Reshape a subscription record into the exact webhook-event body the triggers' receive()
+     * emits on the `out` port. All beehiiv subscription webhooks deliver `{ data: <subscription> }`
+     * regardless of event type, so eventType only documents intent and does not alter the shape.
+     * @param {object} record - The subscription record.
+     * @param {string} eventType - The beehiiv event type (e.g. 'subscription.created').
+     * @returns {object} `{ data }`
+     */
+    toWebhookShape(record, eventType) {
+        return { data: record };
+    },
 
     async sendArrayOutput({
         context,

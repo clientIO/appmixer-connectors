@@ -17,6 +17,25 @@ function processOpportunities(knownOpportunities, currentOpportunities, newOppor
     currentOpportunities.push(opportunity['Id']);
 }
 
+const DATE_FIELDS = [
+    'CloseDate',
+    'CreatedDate',
+    'LastModifiedDate',
+    'LastViewedDate',
+    'LastReferencedDate',
+    'SystemModstamp'
+];
+
+/**
+ * Reformat a raw opportunity record's date fields to ISO. Shared by tick() and test()
+ * so both emit an identically shaped opportunity.
+ * @param {Object} opportunity
+ * @return {Object} opportunity
+ */
+function mapOpportunity(opportunity) {
+    return commons.formatFields(opportunity, DATE_FIELDS, commons.formatDate);
+}
+
 /**
  * Component which triggers whenever new opportunity is added.
  * @extends {Component}
@@ -43,21 +62,21 @@ module.exports = {
         }
 
         await Promise.map(diff, opportunity => {
-            let dates = [
-                'CloseDate',
-                'CreatedDate',
-                'LastModifiedDate',
-                'LastViewedDate',
-                'LastReferencedDate',
-                'SystemModstamp'
-            ];
-            opportunity = commons.formatFields(opportunity, dates, commons.formatDate);
-            return context.sendJson(opportunity, 'opportunity');
+            return context.sendJson(mapOpportunity(opportunity), 'opportunity');
         });
 
         await context.saveState({
             known: current,
             since: since
         });
+    },
+
+    async test(context) {
+
+        const opportunity = await commons.findLatestSObject(context, 'Opportunity');
+        if (!opportunity) {
+            throw new Error('No recent opportunities to use as test data.');
+        }
+        return context.sendJson(mapOpportunity(opportunity), 'opportunity');
     }
 };

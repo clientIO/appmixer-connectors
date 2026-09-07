@@ -162,6 +162,29 @@ module.exports = {
         }
     },
 
+    // Read-only fetch of the newest document in the configured collection.
+    // Shared by every trigger's test() (Flow Test Mode). Opens its own short-lived
+    // client and closes it; does NOT touch any state, change stream or resume token.
+    async fetchLatestDocument(context) {
+        // test() must not write connector state. getClient()/closeClient() persist state via
+        // context.service.stateSet/stateUnset, so use a short-lived client (getClientForAuth) that
+        // only opens a connection and is closed directly here, touching no state.
+        const client = await module.exports.getClientForAuth(context.auth);
+
+        try {
+            const collection = module.exports.getCollection(
+                client, context.auth.database, context.properties.collection
+            );
+            // Newest document first; mirrors the same find()+JSON normalization
+            // path tick()/processDocuments() use to shape emitted documents.
+            const doc = await collection.findOne({}, { sort: { _id: -1 } });
+            if (!doc) return null;
+            return JSON.parse(JSON.stringify(doc));
+        } finally {
+            await client.close();
+        }
+    },
+
     async closeClient(context, connectionId) {
         await context.service.stateUnset(connectionId);
         const client = MONGO_CONNECTOR_OPEN_CONNECTIONS[connectionId];

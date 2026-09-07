@@ -21,6 +21,12 @@ class ContactUpdated extends ZohoNotifiable {
         }
 
     }
+
+    async test(context) {
+
+        const contact = await this.fetchLatestExample(context, 'Contacts');
+        return context.sendJson(contact, 'contact');
+    }
 }
 
 const events = [

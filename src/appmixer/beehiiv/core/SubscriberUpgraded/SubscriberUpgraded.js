@@ -1,6 +1,7 @@
 'use strict';
 
 const api = require('../../api');
+const lib = require('../../lib');
 
 module.exports = {
     async start(context) {
@@ -29,5 +30,13 @@ module.exports = {
         const data = context.messages.webhook.content.data;
         await context.sendJson({ data }, 'out');
         return context.response();
+    },
+
+    async test(context) {
+        const record = await lib.fetchLatestSubscription(context, { tier: 'premium' });
+        if (!record) {
+            throw new Error('No recent premium subscriptions to use as test data.');
+        }
+        return context.sendJson(lib.toWebhookShape(record, 'subscription.upgraded'), 'out');
     }
 };

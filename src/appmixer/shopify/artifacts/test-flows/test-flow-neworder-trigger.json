@@ -1,0 +1,231 @@
+{
+    "name": "E2E Shopify - New Order Trigger",
+    "type": "automation",
+    "flow": {
+        "a0000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.shopify.orders.NewOrder",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "config": {
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000001": [
+                        "order"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0000000-0000-0000-0000-000000000001": {
+                            "order": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-order-id": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000001.order.id",
+                                            "functions": []
+                                        },
+                                        "field-topic": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000001.order.webhookTopic",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{field-order-id}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{field-topic}}}",
+                                                "expected": "orders/create"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000004": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a0000000-0000-0000-0000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "result": {
+                                        "field-result": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Shopify - New Order Trigger",
+                                    "result": "{{{field-result}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 576,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.shopify.orders.CreateOrder",
+            "x": 480,
+            "y": 576,
+            "source": {
+                "in": {
+                    "b0000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b0000000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "email": "e2e.neworder@example.com",
+                                    "test": true,
+                                    "line_items": {
+                                        "ADD": [
+                                            {
+                                                "variantType": "custom",
+                                                "title": "Appmixer E2E Trigger Item",
+                                                "price": 9.99,
+                                                "quantity": 1
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 576,
+            "source": {
+                "in": {
+                    "b0000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b0000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "11111111-e2e0-4000-8000-000000000002": {
+            "content": "## ⚠️ CreateOrder – dynamic inspector\n\nWhen the flow is saved in the designer, the engine (dev-automated-00001) **wipes the Line Items** (dynamic inspector). The automated E2E runner is **not affected** — it uploads the flow via the API and starts it immediately, with no designer save in between.\n\n### For a MANUAL test in the designer\nSet the Line Item by hand (otherwise you get a red “Should exclusively match one schema” error):\n\n- **Item Type:** Custom\n- **Title:** Appmixer E2E Line Item\n- **Price:** 9.99\n- **Quantity:** 2\n\n(The store has no product variants, so don't use Variant + Variant ID.)",
+            "height": 304,
+            "width": 320,
+            "x": 448,
+            "y": 352
+        }
+    }
+}

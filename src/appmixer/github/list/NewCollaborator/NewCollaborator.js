@@ -23,6 +23,18 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // The collaborators endpoint has no created sort; take the first listed collaborator.
+        const collaborator = await lib.fetchLatest(context, `repos/${repositoryId}/collaborators`);
+        if (!collaborator) {
+            throw new Error('No collaborators to use as test data.');
+        }
+        return context.sendJson(collaborator, 'collaborator');
     }
 };
 

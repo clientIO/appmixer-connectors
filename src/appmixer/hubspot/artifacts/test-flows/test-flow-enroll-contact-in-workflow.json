@@ -1,0 +1,323 @@
+{
+    "flow": {
+        "910cd3cf-6a4e-4f7c-987c-7de2b01db31d": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8decbd7a-ce6c-4622-93d0-287d590600b7": {
+            "type": "appmixer.hubspot.crm.CreateContact",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "910cd3cf-6a4e-4f7c-987c-7de2b01db31d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "910cd3cf-6a4e-4f7c-987c-7de2b01db31d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {
+                                        "ts-fae7ef83": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "firstname": {},
+                                    "lastname": {}
+                                },
+                                "lambda": {
+                                    "email": "e2e-enroll-{{{ts-fae7ef83}}}@example.com",
+                                    "firstname": "E2E",
+                                    "lastname": "Enrollee"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "a65e94ae-5b8f-4fb3-82e7-60f5a998af79": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "8decbd7a-ce6c-4622-93d0-287d590600b7": [
+                        "contact"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8decbd7a-ce6c-4622-93d0-287d590600b7": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/automation/v2/workflows/71431203",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "515d27a3-099f-43a9-877e-65ad7cc12a75": {
+            "type": "appmixer.hubspot.crm.EnrollContactInWorkflow",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a65e94ae-5b8f-4fb3-82e7-60f5a998af79": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a65e94ae-5b8f-4fb3-82e7-60f5a998af79": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {
+                                        "em-1": {
+                                            "variable": "$.8decbd7a-ce6c-4622-93d0-287d590600b7.contact.email",
+                                            "functions": []
+                                        }
+                                    },
+                                    "workflowId": {}
+                                },
+                                "lambda": {
+                                    "workflowId": "71431203",
+                                    "email": "{{{em-1}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e3aa4cc8-38a8-42f9-9bb6-6400fe9a520c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "515d27a3-099f-43a9-877e-65ad7cc12a75": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "515d27a3-099f-43a9-877e-65ad7cc12a75": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "en-1": {
+                                            "variable": "$.515d27a3-099f-43a9-877e-65ad7cc12a75.out.workflowId",
+                                            "functions": []
+                                        },
+                                        "en-2": {
+                                            "variable": "$.515d27a3-099f-43a9-877e-65ad7cc12a75.out.email",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{en-1}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{en-2}}}",
+                                                "assertion": "regex",
+                                                "expected": "^e2e-enroll-.*@example\\.com$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "8dbe2502-4e1d-4cdb-bee3-fed1d885ccd8": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e3aa4cc8-38a8-42f9-9bb6-6400fe9a520c": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            }
+        },
+        "dbad7c4d-b738-494d-bfda-a04269a703b4": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 1312,
+            "y": 320,
+            "source": {
+                "in": {
+                    "8dbe2502-4e1d-4cdb-bee3-fed1d885ccd8": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8dbe2502-4e1d-4cdb-bee3-fed1d885ccd8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "dc-1": {
+                                            "variable": "$.8decbd7a-ce6c-4622-93d0-287d590600b7.contact.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/crm/v3/objects/contacts/{{{dc-1}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "d27cd78b-1c53-42e5-b5b0-9f3ef2b755ab": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 320,
+            "source": {
+                "in": {
+                    "dbad7c4d-b738-494d-bfda-a04269a703b4": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "dbad7c4d-b738-494d-bfda-a04269a703b4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-en": {
+                                            "variable": "$.8dbe2502-4e1d-4cdb-bee3-fed1d885ccd8.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubSpot - Enroll Contact In Workflow",
+                                    "result": "{{{res-en}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            }
+        }
+    },
+    "name": "E2E HubSpot - Enroll Contact In Workflow",
+    "notes": {
+        "c41d8373-05b9-4237-9010-cd256d24dff9": {
+            "x": 72,
+            "y": -85,
+            "width": 470,
+            "height": 300,
+            "content": "ENVIRONMENT \u2014 this flow is built for:\n- Appmixer account: auth+hubspot@appmixer.com (service appmixer:hubspot)\n- HubSpot portal: 148964607 (developer test account, EU, accountType DEVELOPER_TEST)\n- Portal asset: contact workflow 71431203 (v2/v3 id) 'E2E Enroll Test Workflow'\n\nMANUAL PREREQUISITES \u2014 this flow needs a HubSpot portal with workflows:\n1) Workflows are a Professional/Enterprise feature. Use a developer test account (accountType DEVELOPER_TEST) or any Pro+ portal; on free/STANDARD portals the workflows API returns 403 'workflows-access-public-api' regardless of OAuth scopes.\n2) The portal must contain at least one ACTIVE contact-based workflow (create one in Automation > Workflows). The flow enrolls a fresh contact into the first workflow returned by GET /automation/v4/flows.\n3) The connected account must include the 'automation' scope (hubspot bundle >= 4.8.0).\n4) The workflowId in the Enroll component and the sanity-check GET URL are pinned to the test portal's workflow \u2014 update both when porting to another portal. Use the v2/v3 workflow id (GET /automation/v2/workflows), NOT the v4 flows id \u2014 the v2 enrollment endpoint parses workflowId as a 32-bit integer and rejects v4 ids."
+        }
+    },
+    "type": "automation"
+}

@@ -11,7 +11,7 @@ module.exports = {
 
         const {
             // Filter paramters
-            fullname, telephone1, address1_city, emailaddress1, maxRecords,
+            fullname, telephone1, address1City, emailaddress1, maxRecords,
 
             // Supports the OData Query Parameters that don't change the shape of the response.
             // Note that `$filter` is not supported here, use MakeApiCall instead.
@@ -31,8 +31,8 @@ module.exports = {
         if (telephone1) {
             filterQueries.push(`contains(telephone1,'${telephone1}')`);
         }
-        if (address1_city) {
-            filterQueries.push(`contains(address1_city,'${address1_city}')`);
+        if (address1City) {
+            filterQueries.push(`contains(address1_city,'${address1City}')`);
         }
         if (emailaddress1) {
             filterQueries.push(`contains(emailaddress1,'${emailaddress1}')`);
@@ -62,7 +62,6 @@ module.exports = {
                 $top: Math.min(PAGE_SIZE, MAX_LIMIT - totalRecords),
                 nextLink
             };
-            context.log({ step: 'Making request', options });
 
             const { data: result } = await context.httpRequest(options);
             records = records.concat(result.value);

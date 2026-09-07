@@ -1,0 +1,383 @@
+{
+    "flow": {
+        "406e0c67-be8c-45d4-ba16-811ac68f7027": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9c5d4fe0-e1e0-462f-a45b-af1f4a1f60f7": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 32,
+            "source": {
+                "in": {
+                    "406e0c67-be8c-45d4-ba16-811ac68f7027": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "406e0c67-be8c-45d4-ba16-811ac68f7027": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "attendeeEmail",
+                                                "text": "test@appmixer.onmicrosoft.com",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1afbd469-a9c4-43ea-a7d1-0e7520b441a7": {
+            "type": "appmixer.microsoft.calendar.DeletedEvent",
+            "label": "DeletedEvent (trigger under test)",
+            "x": 48,
+            "y": 320,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9ed94b3d-29a1-4032-af17-33885fcf607a": {
+            "type": "appmixer.microsoft.calendar.CreateEvent",
+            "label": "CreateEvent (test data)",
+            "x": 608,
+            "y": 32,
+            "source": {
+                "in": {
+                    "ed5dc931-5ccf-4e6a-affa-92b82ac5b422": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c5d4fe0-e1e0-462f-a45b-af1f4a1f60f7": {},
+                        "ed5dc931-5ccf-4e6a-affa-92b82ac5b422": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "subject": {
+                                        "var-ts": {
+                                            "variable": "$.406e0c67-be8c-45d4-ba16-811ac68f7027.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "start": {
+                                        "var-start": {
+                                            "variable": "$.406e0c67-be8c-45d4-ba16-811ac68f7027.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 24
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "end": {
+                                        "var-end": {
+                                            "variable": "$.406e0c67-be8c-45d4-ba16-811ac68f7027.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 25
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "subject": "E2E MS Calendar DeletedEvent {{{var-ts}}}",
+                                    "start": "{{{var-start}}}",
+                                    "end": "{{{var-end}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "b5ec815f-c51b-49b2-baaf-0c8c960175fd": {
+            "type": "appmixer.microsoft.calendar.DeleteEvent",
+            "label": "DeleteEvent (provokes the trigger)",
+            "x": 816,
+            "y": -80,
+            "source": {
+                "in": {
+                    "9ed94b3d-29a1-4032-af17-33885fcf607a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9ed94b3d-29a1-4032-af17-33885fcf607a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "eventId": {
+                                        "var-id": {
+                                            "variable": "$.9ed94b3d-29a1-4032-af17-33885fcf607a.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "eventId": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5849700b-5308-4cb0-9ba0-b6a25ec17677": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: test event created",
+            "x": 816,
+            "y": 160,
+            "source": {
+                "in": {
+                    "9ed94b3d-29a1-4032-af17-33885fcf607a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9ed94b3d-29a1-4032-af17-33885fcf607a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-id": {
+                                            "variable": "$.9ed94b3d-29a1-4032-af17-33885fcf607a.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-id}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c79d8649-fb50-40af-85d6-c1e1bbb5f916": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: DeletedEvent trigger fired with event id",
+            "x": 816,
+            "y": 320,
+            "source": {
+                "in": {
+                    "1afbd469-a9c4-43ea-a7d1-0e7520b441a7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1afbd469-a9c4-43ea-a7d1-0e7520b441a7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-tid": {
+                                            "variable": "$.1afbd469-a9c4-43ea-a7d1-0e7520b441a7.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-tid}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "73a4004f-a27d-4a9c-8f4d-2b26f2e07ff8": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1072,
+            "y": 160,
+            "source": {
+                "in": {
+                    "5849700b-5308-4cb0-9ba0-b6a25ec17677": [
+                        "out"
+                    ],
+                    "c79d8649-fb50-40af-85d6-c1e1bbb5f916": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b8dead1f-0015-431d-9352-31cc27e79423": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1264,
+            "y": 160,
+            "source": {
+                "in": {
+                    "73a4004f-a27d-4a9c-8f4d-2b26f2e07ff8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "73a4004f-a27d-4a9c-8f4d-2b26f2e07ff8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.73a4004f-a27d-4a9c-8f4d-2b26f2e07ff8.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E MS Calendar - DeletedEvent trigger"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "ed5dc931-5ccf-4e6a-affa-92b82ac5b422": {
+            "type": "appmixer.utils.timers.Wait",
+            "source": {
+                "in": {
+                    "9c5d4fe0-e1e0-462f-a45b-af1f4a1f60f7": [
+                        "out"
+                    ]
+                }
+            },
+            "x": 432,
+            "y": 32,
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c5d4fe0-e1e0-462f-a45b-af1f4a1f60f7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "name": "E2E MS Calendar - DeletedEvent trigger",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

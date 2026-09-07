@@ -31,6 +31,30 @@ module.exports = {
         return this.scheduleJob(context, { now, previousDate: null, firstTime: true });
     },
 
+    // Flow Test Mode: emit one well-formed schedule payload without setting any timeout or
+    // touching state. Reuses the same getNextRun() computation start()/receive() use, so the
+    // output shape and the schedule semantics can never drift from production.
+    async test(context) {
+
+        const { timezone = 'GMT' } = context.properties;
+        if (timezone && !isValidTimezone(timezone)) {
+            throw new context.CancelError('Invalid timezone');
+        }
+
+        const now = moment().toISOString();
+        const nextDate = this.getNextRun(context, { now, previousDate: null, firstTime: true });
+        if (!nextDate) {
+            throw new Error('No next run within the configured schedule (end date reached).');
+        }
+
+        return context.sendJson({
+            previousDate: null,
+            nextDateGMT: nextDate.toISOString(),
+            nextDateLocal: moment(nextDate).tz(timezone).format('YYYY-MM-DDTHH:mm:ss.SSS'),
+            timezone
+        }, 'out');
+    },
+
     /**
      *
      * @param context

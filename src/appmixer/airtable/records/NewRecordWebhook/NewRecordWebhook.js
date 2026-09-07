@@ -1,5 +1,7 @@
 'use strict';
 
+const commons = require('../../airtable-commons');
+
 const registerWebhook = async (context) => {
 
     const { baseId, tableId } = context.properties;
@@ -89,13 +91,7 @@ module.exports = {
                     }
                 });
 
-                const newRecords = records.records.map((record) => {
-                    return {
-                        id: record.id,
-                        createdTime: record.createdTime,
-                        ...record.fields
-                    };
-                });
+                const newRecords = records.records.map((record) => commons.mapRecord(record));
 
                 await context.sendArray(newRecords, 'out');
             }
@@ -178,5 +174,16 @@ module.exports = {
                 await lock.unlock();
             }
         }
+    },
+
+    async test(context) {
+        const { baseId, tableId } = context.properties;
+        // Read-only: skip webhook registration/state. Emit the newest existing record in the same
+        // shape receive() emits, so Flow Test Mode produces a real, fetchable item.
+        const record = await commons.fetchLatestRecord(context, { baseId, tableId });
+        if (!record) {
+            throw new Error('No records in the table to use as test data.');
+        }
+        return context.sendJson(record, 'out');
     }
 };

@@ -1,12 +1,11 @@
 'use strict';
 
-const axios = require('axios');
+const { apiCall } = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const { articleId, title, description, status, tags } = context.messages.in.content;
 
         const body = {};
@@ -15,11 +14,11 @@ module.exports = {
         if (status !== undefined) body.status = status;
         if (tags) body.tags = tags.split(',').map(t => t.trim()).filter(Boolean);
 
-        const { data } = await axios.put(
-            `https://${auth.domain}.freshdesk.com/api/v2/solutions/articles/${articleId}`,
-            body,
-            { auth: { username: auth.apiKey, password: 'X' } }
-        );
+        const { data } = await apiCall(context, {
+            method: 'PUT',
+            url: `/solutions/articles/${articleId}`,
+            data: body
+        });
 
         return context.sendJson({
             id: data.id,

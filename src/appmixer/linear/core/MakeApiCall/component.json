@@ -1,0 +1,91 @@
+{
+    "name": "appmixer.linear.core.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the Linear API.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:linear"
+    },
+    "quota": {
+        "manager": "appmixer:linear",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                    "headers": { "type": "string" },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to <code>https://api.linear.app/graphql</code> (for example <code>/v1/resource</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object (supports nested objects, arrays, and non-string values)."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "Status Code", "value": "status" },
+                { "label": "Response Headers", "value": "headers" },
+                { "label": "Response Body", "value": "body", "schema": { "type": "object", "properties": {} } }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGZpbGw9IiMyMjIzMjYiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+CiAgPHBhdGgKICAgIGQ9Ik0xLjIyNTQxIDYxLjUyMjhjLS4yMjI1LS45NDg1LjkwNzQ4LTEuNTQ1OSAxLjU5NjM4LS44NTdMMzkuMzM0MiA5Ny4xNzgyYy42ODg5LjY4ODkuMDkxNSAxLjgxODktLjg1NyAxLjU5NjRDMjAuMDUxNSA5NC40NTIyIDUuNTQ3NzkgNzkuOTQ4NSAxLjIyNTQxIDYxLjUyMjhaTS4wMDE4OTEzNSA0Ni44ODkxYy0uMDE3NjQzNzUuMjgzMy4wODg4NzIxNS41NTk5LjI4OTU3MTY1Ljc2MDZMNTIuMzUwMyA5OS43MDg1Yy4yMDA3LjIwMDcuNDc3My4zMDc1Ljc2MDYuMjg5NiAyLjM2OTItLjE0NzYgNC42OTM4LS40NiA2Ljk2MjQtLjkyNTkuNzY0NS0uMTU3IDEuMDMwMS0xLjA5NjMuNDc4Mi0xLjY0ODFMMi41NzU5NSAzOS40NDg1Yy0uNTUxODYtLjU1MTktMS40OTExNy0uMjg2My0xLjY0ODE3NC40NzgyLS40NjU5MTUgMi4yNjg2LS43NzgzMiA0LjU5MzItLjkyNTg4NDY1IDYuOTYyNFpNNC4yMTA5MyAyOS43MDU0Yy0uMTY2NDkuMzczOC0uMDgxNjkuODEwNi4yMDc2NSAxLjFsNjQuNzc2MDIgNjQuNzc2Yy4yODk0LjI4OTQuNzI2Mi4zNzQyIDEuMS4yMDc3IDEuNzg2MS0uNzk1NiAzLjUxNzEtMS42OTI3IDUuMTg1NS0yLjY4NC41NTIxLS4zMjguNjM3My0xLjA4NjcuMTgzMi0xLjU0MDdMOC40MzU2NiAyNC4zMzY3Yy0uNDU0MDktLjQ1NDEtMS4yMTI3MS0uMzY4OS0xLjU0MDc0LjE4MzItLjk5MTMyIDEuNjY4NC0xLjg4ODQzIDMuMzk5NC0yLjY4Mzk5IDUuMTg1NVpNMTIuNjU4NyAxOC4wNzRjLS4zNzAxLS4zNzAxLS4zOTMtLjk2MzctLjA0NDMtMS4zNTQxQzIxLjc3OTUgNi40NTkzMSAzNS4xMTE0IDAgNDkuOTUxOSAwIDc3LjU5MjcgMCAxMDAgMjIuNDA3MyAxMDAgNTAuMDQ4MWMwIDE0Ljg0MDUtNi40NTkzIDI4LjE3MjQtMTYuNzE5OSAzNy4zMzc1LS4zOTAzLjM0ODctLjk4NC4zMjU4LTEuMzU0Mi0uMDQ0M0wxMi42NTg3IDE4LjA3NFoiCiAgLz4KPC9zdmc+Cg=="
+}

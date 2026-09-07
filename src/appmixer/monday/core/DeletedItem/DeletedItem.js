@@ -52,6 +52,19 @@ module.exports = {
             await context.sendJson(event, 'out');
             return context.response({});
         }
+    },
+
+    // Flow Test Mode: emit one realistic item_deleted webhook event without registering a webhook.
+    // An already-deleted item cannot be fetched, so the newest current item on the board is used
+    // to reconstruct a representative delete event body. Reuses the shared helpers and reshapes the
+    // item into the exact `event` body the webhook delivers (type delete_pulse) on 'out'.
+    async test(context) {
+
+        const item = await commons.fetchLatestItem(context);
+        if (!item) {
+            throw new Error('No items on the board to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookEvent(context, item, 'delete_pulse'), 'out');
     }
 };
 

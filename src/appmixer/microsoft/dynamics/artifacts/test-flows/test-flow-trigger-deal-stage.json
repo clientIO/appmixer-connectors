@@ -1,0 +1,515 @@
+{
+    "flow": {
+        "b88ed41b-cae8-4f1b-95d4-483ec156e92e": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fc9727b3-71cb-4045-a70b-2ff0a3992c43": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 208,
+            "y": 32,
+            "source": {
+                "in": {
+                    "b88ed41b-cae8-4f1b-95d4-483ec156e92e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b88ed41b-cae8-4f1b-95d4-483ec156e92e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "testPrefix",
+                                                "text": "E2E Dynamics Trigger",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e543669d-2617-4110-aee6-919a5530d596": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (after trigger baseline)",
+            "x": 368,
+            "y": 32,
+            "source": {
+                "in": {
+                    "fc9727b3-71cb-4045-a70b-2ff0a3992c43": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fc9727b3-71cb-4045-a70b-2ff0a3992c43": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ed7deab3-b991-4adb-86bf-4e3848e2f9de": {
+            "type": "appmixer.microsoft.dynamics.MakeApiCall",
+            "label": "MakeApiCall POST opportunity (test data)",
+            "x": 528,
+            "y": 32,
+            "source": {
+                "in": {
+                    "e543669d-2617-4110-aee6-919a5530d596": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e543669d-2617-4110-aee6-919a5530d596": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "var-ts": {
+                                            "variable": "$.b88ed41b-cae8-4f1b-95d4-483ec156e92e.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "/api/data/v9.2/opportunities",
+                                    "method": "POST",
+                                    "body": "{\"name\": \"E2E Trigger Deal {{{var-ts}}}\"}",
+                                    "headers": "[{\"key\": \"Prefer\", \"value\": \"return=representation\"}]"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "02013db4-cc5a-4b04-8a3e-ec8b98b60d3c": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: test deal created",
+            "x": 752,
+            "y": 32,
+            "source": {
+                "in": {
+                    "ed7deab3-b991-4adb-86bf-4e3848e2f9de": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ed7deab3-b991-4adb-86bf-4e3848e2f9de": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.ed7deab3-b991-4adb-86bf-4e3848e2f9de.out.response",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.opportunityid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f0267cab-0881-486d-8855-00bc984a7511": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (trigger baselines the new deal)",
+            "x": 752,
+            "y": -112,
+            "source": {
+                "in": {
+                    "ed7deab3-b991-4adb-86bf-4e3848e2f9de": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ed7deab3-b991-4adb-86bf-4e3848e2f9de": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d7d8f44c-eda7-4c21-9e5d-27e824a5c1d4": {
+            "type": "appmixer.microsoft.dynamics.MakeApiCall",
+            "label": "MakeApiCall PATCH salesstage",
+            "x": 1024,
+            "y": -112,
+            "source": {
+                "in": {
+                    "f0267cab-0881-486d-8855-00bc984a7511": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f0267cab-0881-486d-8855-00bc984a7511": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "var-id": {
+                                            "variable": "$.ed7deab3-b991-4adb-86bf-4e3848e2f9de.out.response",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.opportunityid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/api/data/v9.2/opportunities({{{var-id}}})",
+                                    "method": "PATCH",
+                                    "body": "{\"salesstage\": 1}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "f43d3b90-8b8e-46d9-bbce-8c397948ae89": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (trigger picks up stage change)",
+            "x": 1216,
+            "y": -112,
+            "source": {
+                "in": {
+                    "d7d8f44c-eda7-4c21-9e5d-27e824a5c1d4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d7d8f44c-eda7-4c21-9e5d-27e824a5c1d4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "3m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "177a60bb-864d-4434-9688-401aeeb90b52": {
+            "type": "appmixer.microsoft.dynamics.DeleteObjectRecord",
+            "label": "DeleteObjectRecord (cleanup)",
+            "x": 1408,
+            "y": -112,
+            "source": {
+                "in": {
+                    "f43d3b90-8b8e-46d9-bbce-8c397948ae89": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f43d3b90-8b8e-46d9-bbce-8c397948ae89": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectName": {},
+                                    "id": {
+                                        "var-id": {
+                                            "variable": "$.ed7deab3-b991-4adb-86bf-4e3848e2f9de.out.response",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.opportunityid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectName": "opportunity",
+                                    "id": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "0e98b59e-f432-43ac-92c1-365329ebeb4d": {
+            "type": "appmixer.microsoft.dynamics.DealStageChanged",
+            "label": "DealStageChanged (trigger under test)",
+            "x": 544,
+            "y": 256,
+            "source": {},
+            "config": {
+                "properties": {
+                    "stageField": "salesstage",
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "28a99d82-557e-4121-90ba-d50a8b53c284": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: DealStageChanged fired with record id",
+            "x": 752,
+            "y": 256,
+            "source": {
+                "in": {
+                    "0e98b59e-f432-43ac-92c1-365329ebeb4d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0e98b59e-f432-43ac-92c1-365329ebeb4d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.0e98b59e-f432-43ac-92c1-365329ebeb4d.out.opportunityid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "36c76c44-10e5-47e2-aaac-d08581ded2c6": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1648,
+            "y": 192,
+            "source": {
+                "in": {
+                    "02013db4-cc5a-4b04-8a3e-ec8b98b60d3c": [
+                        "out"
+                    ],
+                    "28a99d82-557e-4121-90ba-d50a8b53c284": [
+                        "out"
+                    ],
+                    "177a60bb-864d-4434-9688-401aeeb90b52": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 720
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9b919993-d508-495a-a87c-f05af567dd47": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1872,
+            "y": 192,
+            "source": {
+                "in": {
+                    "36c76c44-10e5-47e2-aaac-d08581ded2c6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "36c76c44-10e5-47e2-aaac-d08581ded2c6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.36c76c44-10e5-47e2-aaac-d08581ded2c6.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E - Microsoft Dynamics Sales/CRM - Deal Stage Changed trigger"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E - Microsoft Dynamics Sales/CRM - Deal Stage Changed trigger",
+    "notes": {},
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    }
+}

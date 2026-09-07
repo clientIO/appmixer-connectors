@@ -26,5 +26,14 @@ module.exports = {
             await context.sendJson(data.data, 'out');
         }
         return context.response();
+    },
+
+    async test(context) {
+        // Newest-updated person reshaped into the body receive() emits (data.data).
+        const person = await commons.fetchLatestPerson(context, 'update_time');
+        if (!person) {
+            throw new Error('No person available to use as test data.');
+        }
+        return context.sendJson(person, 'out');
     }
 };

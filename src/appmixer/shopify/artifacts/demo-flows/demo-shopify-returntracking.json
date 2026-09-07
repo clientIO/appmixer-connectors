@@ -1,0 +1,122 @@
+{
+    "name": "Demo Shopify - Return Tracking",
+    "type": "automation",
+    "flow": {
+        "e3000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.shopify.returns.ReturnTracking",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "config": {
+                "properties": {}
+            }
+        },
+        "e3000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.email.SendEmail",
+            "x": 272,
+            "y": 300,
+            "source": {
+                "in": {
+                    "e3000000-0000-0000-0000-000000000001": [
+                        "return"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e3000000-0000-0000-0000-000000000001": {
+                            "return": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "a": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.return",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.name"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "b": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.return",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.status"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "c": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.return",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.order_id"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "d": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.return",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.total_quantity"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "e": {
+                                        "variable": "$.e3000000-0000-0000-0000-000000000001.return",
+                                        "functions": [
+                                            {
+                                                "name": "g_jsonPath",
+                                                "params": [
+                                                    {
+                                                        "value": "$.id"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                },
+                                "lambda": {
+                                    "to": "returns@appmixer.com",
+                                    "subject": "Return {{{a}}} — status: {{{b}}}",
+                                    "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;color:#222\"><h2 style=\"color:#5E8E3E\">Return status updated</h2><p>A return has changed status.</p><ul><li><b>Return:</b> {{{a}}}</li><li><b>Status:</b> {{{b}}}</li><li><b>Order ID:</b> {{{c}}}</li><li><b>Items:</b> {{{d}}}</li><li><b>Return ID:</b> {{{e}}}</li></ul></div>"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "22222222-de30-4000-8000-000000000002": {
+            "content": "## How to verify this trigger (storefront)\n\nOne-time setup: in Settings → Customer accounts switch to the new customer accounts and enable **Self-serve returns**; in Settings → Payments activate the **(for testing) Bogus Gateway**.\n\n1. Start this flow.\n2. Open the online store (https://<store>.myshopify.com; the password of a dev store is in Online Store → Preferences).\n3. Add a product to the cart, check out with your email and address, and pay with the Bogus Gateway (card number **1**, any future expiry, any CVC).\n4. In the admin, **fulfill** the new order (returns are only possible for fulfilled items).\n5. Log into the customer portal at https://<store>.myshopify.com/account (a one-time code is emailed to you), open the order and click **Request return** → fires **returns/request**.\n6. In the admin, open the order and **Approve** the return request → fires **returns/approve**.\n7. Optionally finish the journey in the admin: decline, cancel, close or reopen the return — each step fires its own event.\n\nThe trigger listens to the events selected in the **Return Events** property (all by default) and emits the fired topic in the `webhookTopic` output field. Note that `returns/update` alone never fires during a standard return journey — each step has its own topic.",
+            "height": 380,
+            "width": 380,
+            "x": 64,
+            "y": -100
+        }
+    }
+}

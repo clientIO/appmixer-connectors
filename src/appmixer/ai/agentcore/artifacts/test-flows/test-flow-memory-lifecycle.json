@@ -1,0 +1,1151 @@
+{
+    "name": "E2E AWS AgentCore - Memory lifecycle",
+    "type": "automation",
+    "flow": {
+        "10ccae5a-0612-4064-bfed-5eb2c458f53b": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 0,
+            "y": 360,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9e804291-baae-4066-bafe-00fb942e52f4": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 240,
+            "y": 360,
+            "source": {
+                "in": {
+                    "10ccae5a-0612-4064-bfed-5eb2c458f53b": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "10ccae5a-0612-4064-bfed-5eb2c458f53b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "04f6142c-306d-4108-bc46-2d0e8c8d65c6": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "memoryName",
+                                                "text": "appmixer_e2e_mem_{{{04f6142c-306d-4108-bc46-2d0e8c8d65c6}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "actorId",
+                                                "text": "appmixer-e2e-actor"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "sessionId",
+                                                "text": "appmixer-e2e-memory-session"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "namespace",
+                                                "text": "/facts/appmixer-e2e-actor"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "searchQuery",
+                                                "text": "Where does the user live?"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "messageText",
+                                                "text": "My name is Alex Novak, I live in Prague and I am allergic to peanuts."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fb45614d-a6d7-41d4-83cd-38305e7258d9": {
+            "type": "appmixer.ai.agentcore.CreateMemory",
+            "x": 480,
+            "y": 360,
+            "source": {
+                "in": {
+                    "9e804291-baae-4066-bafe-00fb942e52f4": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9e804291-baae-4066-bafe-00fb942e52f4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "c7b22e66-a034-4664-beaf-1189802c8122": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.memoryName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "description": {},
+                                    "eventExpiryDuration": {},
+                                    "strategyType": {},
+                                    "strategyName": {},
+                                    "strategyNamespaces": {},
+                                    "waitForActive": {}
+                                },
+                                "lambda": {
+                                    "name": "{{{c7b22e66-a034-4664-beaf-1189802c8122}}}",
+                                    "description": "Appmixer E2E test memory",
+                                    "eventExpiryDuration": 7,
+                                    "strategyType": "semantic",
+                                    "strategyName": "facts",
+                                    "strategyNamespaces": "/facts/{actorId}",
+                                    "waitForActive": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "794e800c-8271-4e09-8b44-c4184ca6dceb": {
+            "type": "appmixer.ai.agentcore.CreateEvent",
+            "x": 720,
+            "y": 360,
+            "source": {
+                "in": {
+                    "fb45614d-a6d7-41d4-83cd-38305e7258d9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "fb45614d-a6d7-41d4-83cd-38305e7258d9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "350f61d7-0a23-409e-a5ef-e01508e42ff5": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "actorId": {
+                                        "882ebf62-d689-496a-b30a-b46937193d9c": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.actorId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "sessionId": {
+                                        "eb7643e5-563f-4927-ab4e-481ce5cc4727": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.sessionId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "role": {},
+                                    "messageText": {
+                                        "4c18a9ca-3a4e-4ff7-8481-d2583ed77666": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.messageText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{350f61d7-0a23-409e-a5ef-e01508e42ff5}}}",
+                                    "actorId": "{{{882ebf62-d689-496a-b30a-b46937193d9c}}}",
+                                    "sessionId": "{{{eb7643e5-563f-4927-ab4e-481ce5cc4727}}}",
+                                    "role": "USER",
+                                    "messageText": "{{{4c18a9ca-3a4e-4ff7-8481-d2583ed77666}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6ea8b5f8-390f-4bfc-8202-322d2cfe3c84": {
+            "type": "appmixer.ai.agentcore.ListEvents",
+            "x": 960,
+            "y": 120,
+            "source": {
+                "in": {
+                    "794e800c-8271-4e09-8b44-c4184ca6dceb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "794e800c-8271-4e09-8b44-c4184ca6dceb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "09ac7df1-9f9e-43b5-985e-19d6cd8b5fcb": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "actorId": {
+                                        "ad16e707-9751-4339-a207-791464ca602a": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.actorId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "sessionId": {
+                                        "12d23c17-e15f-4cd2-9884-277044c05424": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.sessionId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "includePayloads": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{09ac7df1-9f9e-43b5-985e-19d6cd8b5fcb}}}",
+                                    "actorId": "{{{ad16e707-9751-4339-a207-791464ca602a}}}",
+                                    "sessionId": "{{{12d23c17-e15f-4cd2-9884-277044c05424}}}",
+                                    "includePayloads": true,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f055c4ad-416a-46c5-ba6d-945713d9eafc": {
+            "type": "appmixer.ai.agentcore.ListSessions",
+            "x": 960,
+            "y": 280,
+            "source": {
+                "in": {
+                    "794e800c-8271-4e09-8b44-c4184ca6dceb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "794e800c-8271-4e09-8b44-c4184ca6dceb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "0cbbabbc-60c7-4e98-9802-443f638a3ffd": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "actorId": {
+                                        "2bed14e7-0861-47dc-8b3e-624d71adf726": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.actorId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{0cbbabbc-60c7-4e98-9802-443f638a3ffd}}}",
+                                    "actorId": "{{{2bed14e7-0861-47dc-8b3e-624d71adf726}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3ad406c8-8010-45ec-8e67-aa80c82985e1": {
+            "type": "appmixer.ai.agentcore.ListMemories",
+            "x": 960,
+            "y": 440,
+            "source": {
+                "in": {
+                    "794e800c-8271-4e09-8b44-c4184ca6dceb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "794e800c-8271-4e09-8b44-c4184ca6dceb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1943cc77-0185-4a64-8e9c-e803696ee0cb": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 960,
+            "y": 600,
+            "source": {
+                "in": {
+                    "794e800c-8271-4e09-8b44-c4184ca6dceb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "794e800c-8271-4e09-8b44-c4184ca6dceb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9ca0345c-847c-4d71-b80d-6ba2c2ad35f5": {
+            "type": "appmixer.ai.agentcore.ListMemoryRecords",
+            "x": 1200,
+            "y": 600,
+            "source": {
+                "in": {
+                    "1943cc77-0185-4a64-8e9c-e803696ee0cb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "1943cc77-0185-4a64-8e9c-e803696ee0cb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "d3bf753b-bc9d-4a35-8e83-5f0fadabcdc5": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "namespace": {
+                                        "43da827d-cd20-48ef-ae28-b6141083cf8a": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.namespace",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{d3bf753b-bc9d-4a35-8e83-5f0fadabcdc5}}}",
+                                    "namespace": "{{{43da827d-cd20-48ef-ae28-b6141083cf8a}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "94d29074-a9f6-4e94-aa2a-afb89fc7110b": {
+            "type": "appmixer.ai.agentcore.FindMemoryRecords",
+            "x": 1440,
+            "y": 520,
+            "source": {
+                "in": {
+                    "9ca0345c-847c-4d71-b80d-6ba2c2ad35f5": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9ca0345c-847c-4d71-b80d-6ba2c2ad35f5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "d2bc5cef-b9a6-4d79-9566-5a2b905d4eb1": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "namespace": {
+                                        "412a0ea8-d0e7-4953-92d3-134076728b9e": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.namespace",
+                                            "functions": []
+                                        }
+                                    },
+                                    "searchQuery": {
+                                        "723b4b57-d959-4da7-b681-b23264ee00e8": {
+                                            "variable": "$.9e804291-baae-4066-bafe-00fb942e52f4.out.searchQuery",
+                                            "functions": []
+                                        }
+                                    },
+                                    "topK": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{d2bc5cef-b9a6-4d79-9566-5a2b905d4eb1}}}",
+                                    "namespace": "{{{412a0ea8-d0e7-4953-92d3-134076728b9e}}}",
+                                    "searchQuery": "{{{723b4b57-d959-4da7-b681-b23264ee00e8}}}",
+                                    "topK": 3,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7090d7f3-a6f6-4769-8f69-b44bfb17aceb": {
+            "type": "appmixer.ai.agentcore.GetMemoryRecord",
+            "x": 1440,
+            "y": 680,
+            "source": {
+                "in": {
+                    "9ca0345c-847c-4d71-b80d-6ba2c2ad35f5": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9ca0345c-847c-4d71-b80d-6ba2c2ad35f5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "4d7a561e-5be5-414e-a2b7-21ae622632cb": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "memoryRecordId": {
+                                        "257b882b-86a8-495e-bc11-0f24fcf60899": {
+                                            "variable": "$.9ca0345c-847c-4d71-b80d-6ba2c2ad35f5.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.memoryRecordId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{4d7a561e-5be5-414e-a2b7-21ae622632cb}}}",
+                                    "memoryRecordId": "{{{257b882b-86a8-495e-bc11-0f24fcf60899}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e3e0100e-7ad1-4156-9324-ada6a980148b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 360,
+            "source": {
+                "in": {
+                    "fb45614d-a6d7-41d4-83cd-38305e7258d9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "fb45614d-a6d7-41d4-83cd-38305e7258d9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6c8fc380-c949-4435-9f94-c499e2794b67": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6c8fc380-c949-4435-9f94-c499e2794b67}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4ad8e59c-83d2-4578-8c64-ed9d8c18f056": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 200,
+            "source": {
+                "in": {
+                    "794e800c-8271-4e09-8b44-c4184ca6dceb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "794e800c-8271-4e09-8b44-c4184ca6dceb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "de95cabf-cfa5-4aff-bb78-327b05ccee5c": {
+                                            "variable": "$.794e800c-8271-4e09-8b44-c4184ca6dceb.out.eventId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{de95cabf-cfa5-4aff-bb78-327b05ccee5c}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7bb3cbbb-205f-4100-bd68-d992991cf35e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 120,
+            "source": {
+                "in": {
+                    "6ea8b5f8-390f-4bfc-8202-322d2cfe3c84": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6ea8b5f8-390f-4bfc-8202-322d2cfe3c84": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "69afae56-f8d3-4745-8e4c-02d2f94c4aa8": {
+                                            "variable": "$.6ea8b5f8-390f-4bfc-8202-322d2cfe3c84.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.eventId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{69afae56-f8d3-4745-8e4c-02d2f94c4aa8}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "acc75e6b-0e70-42aa-875d-a94755d29561": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 280,
+            "source": {
+                "in": {
+                    "f055c4ad-416a-46c5-ba6d-945713d9eafc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "f055c4ad-416a-46c5-ba6d-945713d9eafc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2c0ae4db-f7f5-428f-89a9-b3a52a0a00fa": {
+                                            "variable": "$.f055c4ad-416a-46c5-ba6d-945713d9eafc.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.sessionId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{2c0ae4db-f7f5-428f-89a9-b3a52a0a00fa}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "48f1f45a-de7c-49f6-b385-8f856a5a1bb3": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 440,
+            "source": {
+                "in": {
+                    "3ad406c8-8010-45ec-8e67-aa80c82985e1": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "3ad406c8-8010-45ec-8e67-aa80c82985e1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f454a741-ef83-41db-805a-9ee96014b351": {
+                                            "variable": "$.3ad406c8-8010-45ec-8e67-aa80c82985e1.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f454a741-ef83-41db-805a-9ee96014b351}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c159e79b-6718-473a-95ac-23d2339b1edf": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 600,
+            "source": {
+                "in": {
+                    "9ca0345c-847c-4d71-b80d-6ba2c2ad35f5": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9ca0345c-847c-4d71-b80d-6ba2c2ad35f5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "5dc53c3b-7fff-4301-a272-871a40cf4587": {
+                                            "variable": "$.9ca0345c-847c-4d71-b80d-6ba2c2ad35f5.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.memoryRecordId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{5dc53c3b-7fff-4301-a272-871a40cf4587}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bd069d96-ec81-4c13-af0d-4ce6be8d5195": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 680,
+            "source": {
+                "in": {
+                    "94d29074-a9f6-4e94-aa2a-afb89fc7110b": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "94d29074-a9f6-4e94-aa2a-afb89fc7110b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6d2bb059-8aee-4ea5-b723-cd577914b4b1": {
+                                            "variable": "$.94d29074-a9f6-4e94-aa2a-afb89fc7110b.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.memoryRecordId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6d2bb059-8aee-4ea5-b723-cd577914b4b1}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fd34991e-b76a-49ed-9339-de7932782336": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 760,
+            "source": {
+                "in": {
+                    "7090d7f3-a6f6-4769-8f69-b44bfb17aceb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7090d7f3-a6f6-4769-8f69-b44bfb17aceb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "4e24c410-0151-4b6f-84ea-ccdc9bb13821": {
+                                            "variable": "$.7090d7f3-a6f6-4769-8f69-b44bfb17aceb.out.memoryRecordId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{4e24c410-0151-4b6f-84ea-ccdc9bb13821}}}",
+                                                "assertion": "notEmpty",
+                                                "type": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7d81fc00-42b8-4789-b605-01f8300f8738": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1920,
+            "y": 360,
+            "source": {
+                "in": {
+                    "e3e0100e-7ad1-4156-9324-ada6a980148b": [
+                        "out"
+                    ],
+                    "4ad8e59c-83d2-4578-8c64-ed9d8c18f056": [
+                        "out"
+                    ],
+                    "7bb3cbbb-205f-4100-bd68-d992991cf35e": [
+                        "out"
+                    ],
+                    "acc75e6b-0e70-42aa-875d-a94755d29561": [
+                        "out"
+                    ],
+                    "48f1f45a-de7c-49f6-b385-8f856a5a1bb3": [
+                        "out"
+                    ],
+                    "c159e79b-6718-473a-95ac-23d2339b1edf": [
+                        "out"
+                    ],
+                    "bd069d96-ec81-4c13-af0d-4ce6be8d5195": [
+                        "out"
+                    ],
+                    "fd34991e-b76a-49ed-9339-de7932782336": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "145925cb-12df-4ca4-9cab-55ba25aad819": {
+            "type": "appmixer.ai.agentcore.DeleteMemoryRecord",
+            "x": 2160,
+            "y": 360,
+            "source": {
+                "in": {
+                    "7d81fc00-42b8-4789-b605-01f8300f8738": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7d81fc00-42b8-4789-b605-01f8300f8738": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "3df29365-35a6-4783-9e93-343196bac318": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "memoryRecordId": {
+                                        "5a4571f8-17c7-4728-a85e-74aed72dfc37": {
+                                            "variable": "$.9ca0345c-847c-4d71-b80d-6ba2c2ad35f5.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.memoryRecordId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{3df29365-35a6-4783-9e93-343196bac318}}}",
+                                    "memoryRecordId": "{{{5a4571f8-17c7-4728-a85e-74aed72dfc37}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9bce87fc-e893-4c46-a33a-13ecc0832816": {
+            "type": "appmixer.ai.agentcore.DeleteMemory",
+            "x": 2400,
+            "y": 360,
+            "source": {
+                "in": {
+                    "145925cb-12df-4ca4-9cab-55ba25aad819": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "145925cb-12df-4ca4-9cab-55ba25aad819": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "memoryId": {
+                                        "3a7b84c8-8a20-4aa5-8c23-2813b49040a6": {
+                                            "variable": "$.fb45614d-a6d7-41d4-83cd-38305e7258d9.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "memoryId": "{{{3a7b84c8-8a20-4aa5-8c23-2813b49040a6}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ad0e4688-0176-401e-9627-9fe5fdcdd144": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2640,
+            "y": 360,
+            "source": {
+                "in": {
+                    "9bce87fc-e893-4c46-a33a-13ecc0832816": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "9bce87fc-e893-4c46-a33a-13ecc0832816": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "3c8ffce5-2f7a-4e5b-b472-6ad2c56beda2": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "c85f2477-867a-46d3-bbb6-eb196de1e477": {
+                                            "variable": "$.7d81fc00-42b8-4789-b605-01f8300f8738.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{3c8ffce5-2f7a-4e5b-b472-6ad2c56beda2}}}",
+                                    "result": "{{{c85f2477-867a-46d3-bbb6-eb196de1e477}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -20,5 +20,18 @@ module.exports = {
             return context.sendJson(event, 'event');
         });
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        // Reuse the same request path as tick(). The events endpoint returns events
+        // newest-first by default, so emit the first (latest) one. No dedup/state:
+        // tick() suppresses the first poll (baseline), but test() must return a real item.
+        const events = await fakturoid.get('/events.json', context.auth, {});
+        const event = Array.isArray(events) ? events[0] : null;
+        if (!event) {
+            throw new Error('No recent event to use as test data.');
+        }
+        return context.sendJson(event, 'event');
     }
 };

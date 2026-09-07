@@ -1,0 +1,357 @@
+{
+    "flow": {
+        "ac78b25d-ace9-46e3-afcd-b28ea29410bd": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 336,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "41e84da4-223a-42f2-9d37-43e504b36f9e": {
+            "type": "appmixer.xero.accounting.ListTenants",
+            "x": 528,
+            "y": 320,
+            "source": {
+                "in": {
+                    "ac78b25d-ace9-46e3-afcd-b28ea29410bd": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ac78b25d-ace9-46e3-afcd-b28ea29410bd": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "outputType": "items"
+                                },
+                                "modifiers": {
+                                    "outputType": {}
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a341625422c3ef50ebfd509"
+                }
+            },
+            "label": "List Tenants"
+        },
+        "b9f325f3-837e-45f8-9c1e-60e4797bde03": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 720,
+            "y": 320,
+            "source": {
+                "in": {
+                    "41e84da4-223a-42f2-9d37-43e504b36f9e": [
+                        "tenants"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "41e84da4-223a-42f2-9d37-43e504b36f9e": {
+                            "tenants": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "tenantId",
+                                                "text": "{{{fd28319f-0462-4c72-b8bd-3489be8d1408}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "optionName",
+                                                "text": "E2E Option {{{d9a08cd8-d0ab-47fc-b6e6-94e68064f790}}}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "variables": {
+                                        "fd28319f-0462-4c72-b8bd-3489be8d1408": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].tenantId"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "variable": "$.41e84da4-223a-42f2-9d37-43e504b36f9e.tenants.items"
+                                        },
+                                        "d9a08cd8-d0ab-47fc-b6e6-94e68064f790": {
+                                            "functions": [],
+                                            "variable": "$.ac78b25d-ace9-46e3-afcd-b28ea29410bd.out.started"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e41a07e8-8711-4b9b-8823-064da9db2114": {
+            "type": "appmixer.xero.accounting.ListTrackingCategories",
+            "x": 912,
+            "y": 320,
+            "source": {
+                "in": {
+                    "b9f325f3-837e-45f8-9c1e-60e4797bde03": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b9f325f3-837e-45f8-9c1e-60e4797bde03": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "tenantId": "{{{c4ebff94-48eb-4225-b14a-783e63e06c82}}}",
+                                    "outputType": "items"
+                                },
+                                "modifiers": {
+                                    "tenantId": {
+                                        "c4ebff94-48eb-4225-b14a-783e63e06c82": {
+                                            "functions": [],
+                                            "variable": "$.b9f325f3-837e-45f8-9c1e-60e4797bde03.out.tenantId"
+                                        }
+                                    },
+                                    "outputType": {}
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a341625422c3ef50ebfd509"
+                }
+            },
+            "label": "List Tracking Categories (pick one)"
+        },
+        "cc10b5d9-10a2-4a55-b207-08db9a9dfe2c": {
+            "type": "appmixer.xero.accounting.CreateTrackingCategoryOption",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e41a07e8-8711-4b9b-8823-064da9db2114": [
+                        "trackingCategories"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e41a07e8-8711-4b9b-8823-064da9db2114": {
+                            "trackingCategories": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "93a95770-54ca-4eb0-9439-7a24d43e9dfc": {
+                                            "variable": "$.b9f325f3-837e-45f8-9c1e-60e4797bde03.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "trackingCategoryId": {
+                                        "99e33545-6d2d-4e2d-b87a-f8f9323e6354": {
+                                            "variable": "$.e41a07e8-8711-4b9b-8823-064da9db2114.trackingCategories.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].TrackingCategoryID"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "name": {
+                                        "38041722-d893-49f8-b4aa-343d24ff565b": {
+                                            "variable": "$.b9f325f3-837e-45f8-9c1e-60e4797bde03.out.optionName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{93a95770-54ca-4eb0-9439-7a24d43e9dfc}}}",
+                                    "trackingCategoryId": "{{{99e33545-6d2d-4e2d-b87a-f8f9323e6354}}}",
+                                    "name": "{{{38041722-d893-49f8-b4aa-343d24ff565b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "label": "Create Tracking Category Option"
+        },
+        "6453264c-61c5-48f0-abfb-ca1a519255ce": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 320,
+            "source": {
+                "in": {
+                    "cc10b5d9-10a2-4a55-b207-08db9a9dfe2c": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cc10b5d9-10a2-4a55-b207-08db9a9dfe2c": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{1e911981-9d0c-4e4e-bb56-549119cb5779}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{7aec015a-4994-4130-a052-1090f7242b45}}}",
+                                                "expected": "{{{3832fdab-f606-460f-a322-b823b87e63ef}}}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "expression": {
+                                        "1e911981-9d0c-4e4e-bb56-549119cb5779": {
+                                            "functions": [],
+                                            "variable": "$.cc10b5d9-10a2-4a55-b207-08db9a9dfe2c.out.TrackingOptionID"
+                                        },
+                                        "7aec015a-4994-4130-a052-1090f7242b45": {
+                                            "functions": [],
+                                            "variable": "$.cc10b5d9-10a2-4a55-b207-08db9a9dfe2c.out.Name"
+                                        },
+                                        "3832fdab-f606-460f-a322-b823b87e63ef": {
+                                            "functions": [],
+                                            "variable": "$.b9f325f3-837e-45f8-9c1e-60e4797bde03.out.optionName"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "83567d45-6783-484e-b403-c01f7464e623": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6453264c-61c5-48f0-abfb-ca1a519255ce": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "6b4c4577-82a1-4d7c-bdc1-38c31a0cf50b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 320,
+            "source": {
+                "in": {
+                    "83567d45-6783-484e-b403-c01f7464e623": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "83567d45-6783-484e-b403-c01f7464e623": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "02156195-b6b0-4170-a7aa-0677706b0204": {
+                                            "variable": "$.83567d45-6783-484e-b403-c01f7464e623.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Xero",
+                                    "result": "{{{02156195-b6b0-4170-a7aa-0677706b0204}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "name": "E2E Xero - Create Tracking Category Option",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

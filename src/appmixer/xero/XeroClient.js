@@ -62,7 +62,7 @@ class XeroClient {
         return records;
     }
 
-    async request(method, url, { data, headers = {}, params = {} } = {}) {
+    async request(method, url, { data, headers = {}, params = {}, retries = 2 } = {}) {
 
         const request = {
             method,
@@ -72,20 +72,29 @@ class XeroClient {
             params
         };
 
-        this.log({ step: 'XeroClient.request', request });
-        return this.client(request)
-            .then(response => response.data)
-            .catch(e => {
+        try {
+            const response = await this.client(request);
+            return response.data;
+        } catch (e) {
+            // Honor Retry-After on 429 so a single throttled page does not fail the whole paginated
+            // fetch. Xero returns Retry-After in seconds; cap the wait to keep the call responsive.
+            if (e.response?.status === 429 && retries > 0) {
+                const retryAfter = parseInt(e.response.headers?.['retry-after'], 10);
+                const waitSeconds = Math.min(Number.isFinite(retryAfter) ? retryAfter : 1, 30);
+                this.log({ step: 'XeroClient.request rate limited (429), retrying', url, waitSeconds, retries });
+                await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+                return this.request(method, url, { data, headers, params, retries: retries - 1 });
+            }
 
-                if (e.response?.data) {
-                    if (Array.isArray(e.response.data)) {
-                        const errorData = e.response.data[0];
-                        throw errorData;
-                    }
-                    throw e.response.data;
+            if (e.response?.data) {
+                if (Array.isArray(e.response.data)) {
+                    const errorData = e.response.data[0];
+                    throw errorData;
                 }
-                throw e;
-            });
+                throw e.response.data;
+            }
+            throw e;
+        }
     }
 }
 

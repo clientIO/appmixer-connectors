@@ -21,21 +21,53 @@
             "schema": {
                 "type": "object",
                 "properties": {
+                    "businessAccountId": {
+                        "type": "string"
+                    },
                     "phoneNumberId": {
                         "type": "string"
                     }
                 },
                 "required": [
+                    "businessAccountId",
                     "phoneNumberId"
                 ]
             },
             "inspector": {
                 "inputs": {
-                    "phoneNumberId": {
+                    "businessAccountId": {
                         "type": "text",
                         "index": 1,
+                        "label": "WhatsApp Business Account ID",
+                        "tooltip": "Select the WhatsApp Business Account (WABA). If the dropdown is empty, enter your WABA ID manually — you can find it in Meta Business Manager (business.facebook.com → Settings → Accounts → WhatsApp Accounts).",
+                        "source": {
+                            "url": "/component/appmixer/whatsapp/businessAccounts/ListBusinessAccounts?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListBusinessAccounts#toSelectArray"
+                            }
+                        }
+                    },
+                    "phoneNumberId": {
+                        "type": "text",
+                        "index": 2,
                         "label": "Phone Number ID",
-                        "tooltip": "ID of YOUR business sender phone number to deregister."
+                        "tooltip": "ID of YOUR business sender phone number to deregister. Pick from the dropdown (populated when the WABA above is filled in), or paste a Phone Number ID manually.",
+                        "source": {
+                            "url": "/component/appmixer/whatsapp/phoneNumbers/ListPhoneNumbers?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/businessAccountId": "inputs/in/businessAccountId",
+                                    "in/phoneNumberId": "any"
+                                },
+                                "transform": "./ListPhoneNumbers#toSelectArray",
+                                "properties": {
+                                    "isSource": true
+                                }
+                            }
+                        }
                     }
                 }
             }

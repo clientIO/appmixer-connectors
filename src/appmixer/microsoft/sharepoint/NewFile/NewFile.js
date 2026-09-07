@@ -148,6 +148,42 @@ module.exports = {
         }
     },
 
+    async test(context) {
+
+        // Flow Test Mode: no webhook fires. Read the full current delta WITHOUT the
+        // baseline deltaLink that start()/receive() use to suppress already-seen items,
+        // then emit the most recently created file. Same getLatestChanges fetch,
+        // fileTypesRestriction filter and identical delta-item shape `receive()` forwards.
+        const { accessToken } = context.auth;
+        const { driveId, parentPath, fileTypesRestriction } = context.properties;
+        const path = parentPath ? `:/${parentPath}:` : '';
+        const latest = await getLatestChanges(`/drives/${driveId}/root${path}/delta`, accessToken);
+
+        const normalizedFileTypesRestriction = fileTypesRestriction ?
+            lib.normalizeMultiselectInput(fileTypesRestriction, context, 'File Types Restriction') : [];
+
+        const files = (latest.value || []).filter((file) => {
+            const isFile = Object.keys(file).includes('file');
+            if (!isFile || !file.createdDateTime) {
+                return false;
+            }
+            if (normalizedFileTypesRestriction.length > 0) {
+                return normalizedFileTypesRestriction.some(t => file.file.mimeType.startsWith(t));
+            }
+            return true;
+        });
+
+        if (!files.length) {
+            throw new Error('No matching files found in the Drive to use as test data.');
+        }
+
+        const newest = files
+            .slice()
+            .sort((a, b) => new Date(b.createdDateTime || 0) - new Date(a.createdDateTime || 0))[0];
+
+        return context.sendJson(newest, 'file');
+    },
+
     async tick(context) {
 
         const { accessToken } = context.auth;

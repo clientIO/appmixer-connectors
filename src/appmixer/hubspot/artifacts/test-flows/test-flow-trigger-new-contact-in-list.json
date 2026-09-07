@@ -1,0 +1,382 @@
+{
+    "flow": {
+        "aeadf9b0-c957-4120-9117-46af23bd6d70": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "696946f2-f59b-4a32-ad7f-af9c9c5f0f3d": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "aeadf9b0-c957-4120-9117-46af23bd6d70": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aeadf9b0-c957-4120-9117-46af23bd6d70": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "207a8722-3a74-4127-8a60-7f02ede1dad7": {
+            "type": "appmixer.hubspot.crm.CreateContact",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "696946f2-f59b-4a32-ad7f-af9c9c5f0f3d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "696946f2-f59b-4a32-ad7f-af9c9c5f0f3d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {
+                                        "ts-6ef46d38": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "firstname": {},
+                                    "lastname": {}
+                                },
+                                "lambda": {
+                                    "email": "e2e-list-{{{ts-6ef46d38}}}@example.com",
+                                    "firstname": "E2E",
+                                    "lastname": "InList"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "1bbf8ba4-8dd7-437d-a344-d845624927ed": {
+            "type": "appmixer.hubspot.crm.AddContactToList",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "207a8722-3a74-4127-8a60-7f02ede1dad7": [
+                        "contact"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "207a8722-3a74-4127-8a60-7f02ede1dad7": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactIds": {
+                                        "aid-1": {
+                                            "variable": "$.207a8722-3a74-4127-8a60-7f02ede1dad7.contact.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "listId": {}
+                                },
+                                "lambda": {
+                                    "listId": "21",
+                                    "contactIds": "{{{aid-1}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e003bf6e-3d34-4315-b92c-41acf0d69f24": {
+            "type": "appmixer.hubspot.crm.NewContactInList",
+            "x": 64,
+            "y": 576,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "listId": "21",
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "b4c80398-e6e2-4967-9767-e938c86af0db": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 576,
+            "source": {
+                "in": {
+                    "e003bf6e-3d34-4315-b92c-41acf0d69f24": [
+                        "contact"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e003bf6e-3d34-4315-b92c-41acf0d69f24": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "av-0-e7a47883": {
+                                            "variable": "$.e003bf6e-3d34-4315-b92c-41acf0d69f24.contact.properties.hs_object_id",
+                                            "functions": []
+                                        },
+                                        "av-1-00915855": {
+                                            "variable": "$.e003bf6e-3d34-4315-b92c-41acf0d69f24.contact.properties.email",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{av-0-e7a47883}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{av-1-00915855}}}",
+                                                "assertion": "regex",
+                                                "expected": "^e2e-list-.*@example\\.com$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d29bf69a-5319-43dd-af5b-46753194bf8d": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "b4c80398-e6e2-4967-9767-e938c86af0db": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "f197d829-e199-491a-95dd-cbb62a0f98c1": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 1312,
+            "y": 320,
+            "source": {
+                "in": {
+                    "d43f3675-e13d-4218-ae76-aff762312db8": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d43f3675-e13d-4218-ae76-aff762312db8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "del-2": {
+                                            "variable": "$.e003bf6e-3d34-4315-b92c-41acf0d69f24.contact.properties.hs_object_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/crm/v3/objects/contacts/{{{del-2}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "8efea08e-2951-4c90-a3fd-04fedc154806": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f197d829-e199-491a-95dd-cbb62a0f98c1": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f197d829-e199-491a-95dd-cbb62a0f98c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-e19615f2": {
+                                            "variable": "$.f197d829-e199-491a-95dd-cbb62a0f98c1.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubSpot - New Contact In List Trigger",
+                                    "result": "{{{res-e19615f2}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            }
+        },
+        "d43f3675-e13d-4218-ae76-aff762312db8": {
+            "type": "appmixer.hubspot.crm.RemoveContactFromList",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "d29bf69a-5319-43dd-af5b-46753194bf8d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d29bf69a-5319-43dd-af5b-46753194bf8d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactIds": {
+                                        "rid-1": {
+                                            "variable": "$.e003bf6e-3d34-4315-b92c-41acf0d69f24.contact.properties.hs_object_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "listId": {}
+                                },
+                                "lambda": {
+                                    "listId": "21",
+                                    "contactIds": "{{{rid-1}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        }
+    },
+    "name": "E2E HubSpot - New Contact In List Trigger",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "fdf305f8-e2d9-488b-8663-098cfc43e501": {
+            "content": "ENVIRONMENT \u2014 this flow is built for:\n- Appmixer account: auth+hubspot@appmixer.com (service appmixer:hubspot)\n- HubSpot portal: 148964607 (developer test account, EU, accountType DEVELOPER_TEST)\n- Portal asset: MANUAL contact list 21 'E2E Trigger Test List' \u2014 update the trigger listId and the memberships URLs when porting.",
+            "x": 64,
+            "y": 64,
+            "width": 460,
+            "height": 170
+        }
+    }
+}

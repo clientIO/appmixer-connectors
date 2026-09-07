@@ -34,5 +34,16 @@ module.exports = {
         }
 
         return context.response();
+    },
+
+    async test(context) {
+
+        // No webhook registration: fetch one project and reshape it into the same
+        // payload receive() emits (the project object + webhookEvent).
+        const project = await commons.fetchLatestProject(context);
+        if (!project) {
+            throw new Error('No projects to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookShape(project, commons.EventType.projectCreated), 'project');
     }
 };

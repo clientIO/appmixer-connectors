@@ -1,5 +1,6 @@
 'use strict';
 const commons = require('../../jira-commons');
+const lib = require('../../lib.outputPortOptions');
 
 /**
  * Enhanced JQL search component using the new /rest/api/3/search/jql endpoint
@@ -18,12 +19,12 @@ module.exports = {
             properties,
             fieldsByKeys = false,
             failFast = false,
-            sendWholeArray = false
+            outputType = 'array'
         } = context.messages.in.content;
 
         // Validate required parameters
         if (!query || !query.trim()) {
-            throw new context.CancelError('JQL query is required');
+            throw new context.CancelError('JQL query is required!');
         }
 
         // Build query parameters
@@ -54,37 +55,18 @@ module.exports = {
         // Execute the search
         const found = await commons.get(`${apiUrl}search/jql`, auth, params);
 
-        // Handle results
         const issues = found?.issues || [];
 
         if (issues.length === 0) {
-            return context.sendJson({
-                message: 'No issues found matching the query',
-                query: query,
-                totalCount: 0
-            }, 'issue');
+            return context.sendJson({ query }, 'notFound');
         }
 
-        if (sendWholeArray) {
-            return context.sendJson({
-                issues: issues,
-                totalCount: issues.length,
-                query: query,
-                maxResults: params.maxResults
-            }, 'issue');
-        }
-
-        // Send issues one by one
-        const promises = issues.map((issue, index) => {
-            return context.sendJson({
-                ...issue,
-                _metadata: {
-                    index: index,
-                    totalCount: issues.length,
-                    query: query
-                }
-            }, 'issue');
+        return lib.sendArrayOutput({
+            context,
+            outputPortName: 'issue',
+            records: issues,
+            outputType,
+            arrayPropertyValue: 'issues'
         });
-        return Promise.all(promises);
     }
 };

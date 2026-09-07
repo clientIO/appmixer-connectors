@@ -123,6 +123,16 @@ module.exports = {
             await context.sendJson(out, 'out');
             return context.response(out);
         }
+    },
+
+    // No fetchable example: WatchCall emits the raw Voys call-notification webhook
+    // body. Voys exposes no API to fetch a past notification in the same shape, so
+    // throw and let Flow Test Mode fall through to the log/schema fallbacks.
+    test: async function(context) {
+
+        throw new context.CancelError(
+            'WatchCall can only be tested by a real Voys call notification — there is no API to fetch a past notification payload.'
+        );
     }
 
 };

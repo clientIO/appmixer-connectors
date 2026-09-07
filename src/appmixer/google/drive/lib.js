@@ -250,7 +250,7 @@ const getChangedFiles = async (
             if (fileTypesRestriction?.length) {
                 let isAllowed = false;
                 for (const allowedType of fileTypesRestriction) {
-                    isAllowed = allowedType === '#FILE' ? false : mimeType.startsWith(allowedType);
+                    isAllowed = allowedType === '#FILE' ? mimeType !== 'application/vnd.google-apps.folder' : mimeType.startsWith(allowedType);
                     if (isAllowed) break; // No need to search further since we found a match.
                 }
                 if (!isAllowed) return;
@@ -366,6 +366,72 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
     }
 };
 
+// Build the file resource output object exactly as checkMonitoredFiles() emits it.
+const toFileOutput = (file) => {
+    return {
+        isFolder: file.mimeType === 'application/vnd.google-apps.folder',
+        isFile: file.mimeType !== 'application/vnd.google-apps.folder',
+        googleDriveFileMetadata: file
+    };
+};
+
+// Read-only fetch of a single example file for Flow Test Mode, shaped identically to what the
+// webhook path (checkMonitoredFiles) emits: { isFolder, isFile, googleDriveFileMetadata }.
+// Honors the same folder / fileTypesRestriction filters the trigger uses and the same
+// drive.files.list seam findFiles() uses. `filter` is the trigger's own change-style predicate
+// (isNewFileOrFolder / isUpdatedFileOrFolder) applied to a synthesized change so the emitted
+// file matches whichever path production would emit. Touches no state, registers no webhook.
+const fetchLatestExampleFile = async (context, { orderBy, filter } = {}) => {
+
+    const { folder = {}, fileTypesRestriction } = context.properties;
+    const normalizedFileTypesRestriction = normalizeMultiselectInput(fileTypesRestriction);
+
+    let folderId = null;
+    if (typeof folder === 'string') {
+        folderId = folder;
+    } else if (folder.id) {
+        folderId = folder.id;
+    }
+
+    const auth = getOauth2Client(context.auth);
+    const drive = google.drive({ version: 'v3', auth });
+
+    // Exclude trashed files — the New/Updated triggers only emit non-trashed files.
+    const queryParts = ['trashed = false'];
+    if (folderId) {
+        queryParts.push(`'${folderId}' in parents`);
+    }
+
+    const { data } = await drive.files.list({
+        q: queryParts.join(' and '),
+        fields: '*',
+        pageSize: 50,
+        orderBy: orderBy || 'modifiedTime desc'
+    });
+
+    const files = data.files || [];
+
+    for (const file of files) {
+        // Apply the trigger's own predicate against a synthesized "file" change.
+        if (filter && !filter({ changeType: 'file', removed: false, file })) {
+            continue;
+        }
+        // Apply the same file type restriction logic checkMonitoredFiles uses.
+        if (normalizedFileTypesRestriction.length) {
+            const mimeType = file.mimeType;
+            let isAllowed = false;
+            for (const allowedType of normalizedFileTypesRestriction) {
+                isAllowed = allowedType === '#FILE' ? mimeType !== 'application/vnd.google-apps.folder' : mimeType.startsWith(allowedType);
+                if (isAllowed) break;
+            }
+            if (!isAllowed) continue;
+        }
+        return toFileOutput(file);
+    }
+
+    return null;
+};
+
 const getOauth2Client = (auth) => {
 
     const { clientId, clientSecret, accessToken } = auth;
@@ -420,5 +486,7 @@ module.exports = {
     getOauth2Client,
     getCredentials,
     isDebug,
-    normalizeMultiselectInput
+    normalizeMultiselectInput,
+    toFileOutput,
+    fetchLatestExampleFile
 };

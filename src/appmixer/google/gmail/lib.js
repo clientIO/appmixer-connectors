@@ -190,6 +190,40 @@ module.exports = {
         return labelIds.length !== 1 || (labelIds.indexOf('SENT') === -1 && labelIds.indexOf('DRAFT') === -1);
     },
 
+    // Fetch a single full message by ID and normalize it to the trigger output shape.
+    // Shared by listNewMessages() (per-message fetch) and fetchLatestExample()/test() so the
+    // output is produced in exactly one place. Returns null if the message was deleted
+    // (permanently) between listing and fetching — Gmail returns 404 in that race.
+    async fetchMessage(context, id) {
+
+        try {
+            const response = await this.callEndpoint(context, `/users/me/messages/${id}`, {
+                method: 'GET',
+                params: { format: 'full' }
+            });
+            return this.normalizeEmail(response.data);
+        } catch (err) {
+            if (err?.response?.status === 404) {
+                return null;
+            }
+            throw err;
+        }
+    },
+
+    // Fetch the single most recent message matching `query`, normalized to the same shape
+    // tick() emits. Read-only, touches no state — used by NewEmail.test() for Flow Test Mode.
+    async fetchLatestExample(context, query) {
+
+        const response = await this.callEndpoint(context, '/users/me/messages', {
+            params: { maxResults: 1, q: query || '' }
+        });
+        const message = (response.data.messages || [])[0];
+        if (!message) {
+            return null;
+        }
+        return this.fetchMessage(context, message.id);
+    },
+
     async listNewMessages(context, query, state) {
 
         const newState = {};
@@ -254,22 +288,11 @@ module.exports = {
         }
 
         // Fetch the full email data for new messages.
-        let emails = await Promise.map(messages, async (message) => {
-            try {
-                const response = await this.callEndpoint(context, `/users/me/messages/${message.id}`, {
-                    method: 'GET',
-                    params: { format: 'full' }
-                });
-                return this.normalizeEmail(response.data);
-            } catch (err) {
-                // email can be deleted (permanently) in gmail between listNewMessages call and
-                // this getMessage call, in such case - ignore it and return null.
-                if (err?.response?.status === 404) {
-                    return null;
-                }
-                throw err;
-            }
-        }, { concurrency: 10 });
+        let emails = await Promise.map(
+            messages,
+            (message) => this.fetchMessage(context, message.id),
+            { concurrency: 10 }
+        );
 
         // Update the state with the latest message ID.
         const lastMessage = emails[0];

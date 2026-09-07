@@ -64,5 +64,27 @@ module.exports = {
         }
 
         return context.response();
+    },
+
+    /**
+     * Flow Test Mode: a deleted object cannot be fetched read-only, so build a representative
+     * ObjectRemoved event from the most-recently-modified object currently in the bucket
+     * (read-only listObjectsV2). The emitted shape matches receive() exactly.
+     * @param {Context} context
+     * @return {*}
+     */
+    async test(context) {
+
+        const { bucket } = context.properties;
+        const object = await lib.fetchLatestObject(context);
+        if (!object) {
+            throw new Error('No objects in the bucket to use as test data.');
+        }
+
+        object.Bucket = bucket;
+        object.EventType = 'ObjectRemoved:Delete';
+        object.key = decodeURIComponent(object.key.replace(/\+/g, ' '));
+
+        return context.sendJson(object, 'deleted');
     }
 };

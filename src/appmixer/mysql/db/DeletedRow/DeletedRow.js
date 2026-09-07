@@ -1,5 +1,5 @@
 'use strict';
-const { ensureStore, createQueryProcessor } = require('../../common');
+const { ensureStore, createQueryProcessor, fetchLatestRow } = require('../../common');
 
 async function processDeletedRowsStart(context, storeId, query, lock, idField) {
 
@@ -106,5 +106,21 @@ module.exports = {
                 lock.unlock();
             }
         }
+    },
+
+    async test(context) {
+
+        const { query, idField } = context.properties;
+
+        // Read-only: run the same validated SELECT path tick() uses, but collect rows locally
+        // instead of writing them to the data store. A genuinely deleted row is not available in
+        // Test Mode, so we emit the newest row currently returned by the query in the SAME
+        // { row } shape tick() emits on the 'out' port for a detected deletion.
+        const row = await fetchLatestRow(context, query, [], idField);
+        if (!row) {
+            throw new Error('No rows returned by the query to use as test data.');
+        }
+
+        return context.sendJson({ row }, 'out');
     }
 };

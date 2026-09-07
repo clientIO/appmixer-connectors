@@ -1,8 +1,17 @@
 'use strict';
-const moment = require('moment');
 const ActiveCampaign = require('../../ActiveCampaign');
+const commons = require('../../activecampaign-commons');
 
 module.exports = {
+
+    async test(context) {
+
+        const deal = await commons.fetchLatestDeal(context, 'udate');
+        if (!deal) {
+            throw new context.CancelError('No recent deals to use as test data.');
+        }
+        return context.sendJson(deal, 'deal');
+    },
 
     start(context) {
 
@@ -43,31 +52,10 @@ module.exports = {
 
             const ac = new ActiveCampaign(auth.url, auth.apiKey, context);
 
-            const { data: getContact } = await ac.call('get', `deals/${id}`);
-            const { deal } = getContact;
+            const { data: getDeal } = await ac.call('get', `deals/${id}`);
+            const { deal, fieldValues = [] } = getDeal;
 
-            const dealInfo = {
-                id,
-                owner: deal.owner,
-                contactId: deal.contact,
-                organization: deal.organization,
-                group: deal.group,
-                stage: deal.stage,
-                title: deal.title,
-                description: deal.description,
-                createdDate: moment(deal.cdate).toISOString(),
-                value: deal.value / 100,
-                currency: deal.currency
-            };
-
-            const { fieldValues = [] } = getContact;
-            if (fieldValues.length > 0) {
-                fieldValues.forEach(field => {
-                    dealInfo[`customField_${field}`] = field.value;
-                });
-            }
-
-            await context.sendJson(dealInfo, 'deal');
+            await context.sendJson(commons.reshapeDeal(deal, fieldValues), 'deal');
             return context.response();
         }
     }

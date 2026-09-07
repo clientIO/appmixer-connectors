@@ -50,5 +50,16 @@ module.exports = {
                 await context.sendJson(emailCommons.normalizeEmail(email), 'out');
             });
         }
+    },
+
+    // Flow Test Mode: emit one realistic starred email without starting the flow.
+    // Reuses lib.fetchLatestExample/fetchMessage (normalizeEmail) — same shape as tick().
+    async test(context) {
+
+        const email = await emailCommons.fetchLatestExample(context, 'is:starred');
+        if (!email) {
+            throw new Error('No starred emails to use as test data.');
+        }
+        return context.sendJson(email, 'out');
     }
 };

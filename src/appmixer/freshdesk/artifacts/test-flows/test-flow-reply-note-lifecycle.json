@@ -1,389 +1,375 @@
 {
-  "name": "E2E Freshdesk - Reply and Note Lifecycle",
-  "flow": {
-    "on-start": {
-      "type": "appmixer.utils.controls.OnStart",
-      "x": 64,
-      "y": 16,
-      "source": {},
-      "version": "1.0.0",
-      "config": {}
-    },
-    "before-all": {
-      "type": "appmixer.utils.test.BeforeAll",
-      "x": 256,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "on-start": [
-            "out"
-          ]
-        }
-      },
-      "config": {}
-    },
-    "gen-ts": {
-      "type": "appmixer.utils.controls.CodeBlock",
-      "x": 448,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "before-all": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "before-all": {
-              "out": {
-                "type": "json2new",
-                "modifiers": {
-                  "code": {},
-                  "variables": {}
-                },
-                "lambda": {
-                  "code": "Date.now().toString()",
-                  "variables": {
-                    "ADD": [
-                      {
-                        "type": "text",
-                        "toggle": false
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "create-ticket": {
-      "type": "appmixer.freshdesk.tickets.CreateTicket",
-      "x": 640,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "gen-ts": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "gen-ts": {
-              "out": {
-                "type": "json2new",
-                "modifiers": {
-                  "subject": {
-                    "ts-var": {
-                      "variable": "$.gen-ts.out.result",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "subject": "E2E Test Ticket {{{ts-var}}}",
-                  "description": "E2E test ticket for reply and note lifecycle testing",
-                  "requesterEmail": "e2e-test@appmixer.ai",
-                  "status": 2,
-                  "priority": 1
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "create-reply": {
-      "type": "appmixer.freshdesk.tickets.CreateReply",
-      "x": 896,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "create-ticket": [
-            "newTicket"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "create-ticket": {
-              "newTicket": {
-                "type": "json2new",
-                "modifiers": {
-                  "ticketId": {
-                    "ticket-id-var": {
-                      "variable": "$.create-ticket.newTicket.id",
-                      "functions": []
-                    }
-                  },
-                  "body": {
-                    "ts-var": {
-                      "variable": "$.gen-ts.out.result",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "ticketId": "{{{ticket-id-var}}}",
-                  "body": "E2E test reply {{{ts-var}}}"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "create-note": {
-      "type": "appmixer.freshdesk.tickets.CreateNote",
-      "x": 896,
-      "y": 200,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "create-ticket": [
-            "newTicket"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "create-ticket": {
-              "newTicket": {
-                "type": "json2new",
-                "modifiers": {
-                  "ticketId": {
-                    "ticket-id-var": {
-                      "variable": "$.create-ticket.newTicket.id",
-                      "functions": []
-                    }
-                  },
-                  "body": {
-                    "ts-var": {
-                      "variable": "$.gen-ts.out.result",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "ticketId": "{{{ticket-id-var}}}",
-                  "body": "E2E test note {{{ts-var}}}",
-                  "private": true
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "assert-reply": {
-      "type": "appmixer.utils.test.Assert",
-      "x": 1152,
-      "y": 16,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "create-reply": [
-            "newReply"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "create-reply": {
-              "newReply": {
-                "type": "json2new",
-                "modifiers": {
-                  "expression": {
-                    "reply-id-var": {
-                      "variable": "$.create-reply.newReply.id",
-                      "functions": []
-                    },
-                    "reply-ticket-id-var": {
-                      "variable": "$.create-reply.newReply.ticketId",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "expression": {
-                    "AND": [
-                      {
-                        "assertion": "notEmpty",
-                        "field": "{{{reply-id-var}}}"
-                      },
-                      {
-                        "assertion": "notEmpty",
-                        "field": "{{{reply-ticket-id-var}}}"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "assert-note": {
-      "type": "appmixer.utils.test.Assert",
-      "x": 1152,
-      "y": 200,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "create-note": [
-            "newNote"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "create-note": {
-              "newNote": {
-                "type": "json2new",
-                "modifiers": {
-                  "expression": {
-                    "note-id-var": {
-                      "variable": "$.create-note.newNote.id",
-                      "functions": []
-                    },
-                    "note-ticket-id-var": {
-                      "variable": "$.create-note.newNote.ticketId",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "expression": {
-                    "AND": [
-                      {
-                        "assertion": "notEmpty",
-                        "field": "{{{note-id-var}}}"
-                      },
-                      {
-                        "assertion": "notEmpty",
-                        "field": "{{{note-ticket-id-var}}}"
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "after-all": {
-      "type": "appmixer.utils.test.AfterAll",
-      "x": 1344,
-      "y": 100,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "assert-reply": [
-            "out"
-          ],
-          "assert-note": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "properties": {
-          "timeout": 30
-        }
-      }
-    },
-    "delete-ticket": {
-      "type": "appmixer.freshdesk.tickets.DeleteTicket",
-      "x": 1536,
-      "y": 100,
-      "version": "1.0.0",
-      "source": {
-        "in": {
-          "after-all": [
-            "out"
-          ]
-        }
-      },
-      "config": {
-        "transform": {
-          "in": {
-            "after-all": {
-              "out": {
-                "type": "json2new",
-                "modifiers": {
-                  "ticketId": {
-                    "ticket-id-var": {
-                      "variable": "$.create-ticket.newTicket.id",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "ticketId": "{{{ticket-id-var}}}"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "process-results": {
-      "type": "appmixer.utils.test.ProcessE2EResults",
-      "x": 1728,
-      "y": 100,
-      "version": "1.0.1",
-      "source": {
-        "in": {
-          "delete-ticket": [
-            "ticketId"
-          ]
-        }
-      },
-      "config": {
-        "properties": {
-          "successStoreId": "69cd26f6e2b144c4b022fd1e",
-          "failedStoreId": "69cd26f6e92e34e939fd2d1a"
+    "name": "E2E Freshdesk - Reply and Note Lifecycle",
+    "flow": {
+        "on-start": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {}
         },
-        "transform": {
-          "in": {
-            "delete-ticket": {
-              "ticketId": {
-                "type": "json2new",
-                "modifiers": {
-                  "recipients": {},
-                  "testCase": {},
-                  "result": {
-                    "result-var": {
-                      "variable": "$.after-all.out",
-                      "functions": []
-                    }
-                  }
-                },
-                "lambda": {
-                  "recipients": "david.durman@appmixer.ai",
-                  "testCase": "E2E Freshdesk - Reply and Note Lifecycle",
-                  "result": "{{{result-var}}}"
+        "gen-ts": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "x": 448,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "on-start": [
+                        "out"
+                    ]
                 }
-              }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "on-start": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "code": {},
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "code": "Date.now().toString()",
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "toggle": false
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
+        },
+        "create-ticket": {
+            "type": "appmixer.freshdesk.tickets.CreateTicket",
+            "x": 640,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "gen-ts": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "gen-ts": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "subject": {
+                                        "ts-var": {
+                                            "variable": "$.gen-ts.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "subject": "E2E Test Ticket {{{ts-var}}}",
+                                    "description": "E2E test ticket for reply and note lifecycle testing",
+                                    "requesterEmail": "e2e-test@appmixer.ai",
+                                    "status": 2,
+                                    "priority": 1
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-reply": {
+            "type": "appmixer.freshdesk.tickets.CreateReply",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-ticket": [
+                        "newTicket"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-ticket": {
+                            "newTicket": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "ticketId": {
+                                        "ticket-id-var": {
+                                            "variable": "$.create-ticket.newTicket.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "body": {
+                                        "ts-var": {
+                                            "variable": "$.gen-ts.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "ticketId": "{{{ticket-id-var}}}",
+                                    "body": "E2E test reply {{{ts-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "create-note": {
+            "type": "appmixer.freshdesk.tickets.CreateNote",
+            "x": 896,
+            "y": 200,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-ticket": [
+                        "newTicket"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-ticket": {
+                            "newTicket": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "ticketId": {
+                                        "ticket-id-var": {
+                                            "variable": "$.create-ticket.newTicket.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "body": {
+                                        "ts-var": {
+                                            "variable": "$.gen-ts.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "ticketId": "{{{ticket-id-var}}}",
+                                    "body": "E2E test note {{{ts-var}}}",
+                                    "private": true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-reply": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1152,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-reply": [
+                        "newReply"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-reply": {
+                            "newReply": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "reply-id-var": {
+                                            "variable": "$.create-reply.newReply.id",
+                                            "functions": []
+                                        },
+                                        "reply-ticket-id-var": {
+                                            "variable": "$.create-reply.newReply.ticketId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{reply-id-var}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{reply-ticket-id-var}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "assert-note": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1152,
+            "y": 200,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-note": [
+                        "newNote"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-note": {
+                            "newNote": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "note-id-var": {
+                                            "variable": "$.create-note.newNote.id",
+                                            "functions": []
+                                        },
+                                        "note-ticket-id-var": {
+                                            "variable": "$.create-note.newNote.ticketId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{note-id-var}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{note-ticket-id-var}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1344,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "assert-reply": [
+                        "out"
+                    ],
+                    "assert-note": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 30
+                }
+            }
+        },
+        "delete-ticket": {
+            "type": "appmixer.freshdesk.tickets.DeleteTicket",
+            "x": 1536,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "after-all": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "ticketId": {
+                                        "ticket-id-var": {
+                                            "variable": "$.create-ticket.newTicket.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "ticketId": "{{{ticket-id-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 100,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "delete-ticket": [
+                        "ticketId"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "69cd26f6e2b144c4b022fd1e",
+                    "failedStoreId": "69cd26f6e92e34e939fd2d1a"
+                },
+                "transform": {
+                    "in": {
+                        "delete-ticket": {
+                            "ticketId": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.after-all.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "david.durman@appmixer.ai",
+                                    "testCase": "E2E Freshdesk - Reply and Note Lifecycle",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
     }
-  }
 }

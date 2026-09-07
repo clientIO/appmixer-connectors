@@ -1,5 +1,7 @@
 'use strict';
 
+const { fetchLatestRecord } = require('../../lib');
+
 const eventName = (context) => `${(context.auth.instance)}.${(context.properties.tableName)}.update`;
 
 module.exports = {
@@ -20,5 +22,15 @@ module.exports = {
         if (context.messages.webhook) {
             await context.sendJson(context.messages.webhook.content.data, 'out');
         }
+    },
+
+    async test(context) {
+
+        const { tableName } = context.properties;
+        const record = await fetchLatestRecord(context, { tableName, orderField: 'sys_updated_on' });
+        if (!record) {
+            throw new Error(`No records in table "${tableName}" to use as test data.`);
+        }
+        return context.sendJson(record, 'out');
     }
 };

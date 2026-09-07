@@ -1,22 +1,19 @@
 'use strict';
-const axios = require('axios');
-const { normalizeMultiselectInput } = require('../../lib');
+const { normalizeMultiselectInput, requestTickets } = require('../../lib');
+
+function getNormalizedEmbed(context) {
+    const { embed } = context.properties;
+    return embed ? normalizeMultiselectInput(embed, context, 'Embed fields') : [];
+}
 
 module.exports = {
 
     async tick(context) {
 
-        const { auth } = context;
-        const { embed } = context.properties;
-        const normalizedEmbed = embed
-            ? normalizeMultiselectInput(embed, context, 'Embed fields')
-            : [];
+        const normalizedEmbed = getNormalizedEmbed(context);
 
         const state = context.state || {};
         const lookbackMs = 2 * 60 * 1000;
-
-        const baseUrl = `https://${auth.domain}.freshdesk.com/api/v2/tickets`;
-        const authConfig = { username: auth.apiKey, password: 'X' };
 
         const cursorUpdatedAt = state.cursorUpdatedAt
             ? new Date(state.cursorUpdatedAt)
@@ -37,21 +34,16 @@ module.exports = {
 
         const isFirstRun = !state.cursorUpdatedAt;
 
-        let nextUrl = `${baseUrl}?${params.toString()}`;
+        let nextUrl = params;
         let maxUpdatedAt = state.cursorUpdatedAt || null;
         let maxTicketId = state.cursorTicketId || 0;
 
         while (nextUrl) {
-            const res = await axios.get(nextUrl, {
-                auth: authConfig,
-                validateStatus: s => s >= 200 && s < 300
-            });
+            const { records, nextUrl: next } = await requestTickets(context, nextUrl, normalizedEmbed);
 
-            const tickets = res.data || [];
-
-            for (const ticket of tickets) {
-                const updatedAt = ticket.updated_at;
-                const ticketId = ticket.id;
+            for (const fields of records) {
+                const updatedAt = fields.updatedAt;
+                const ticketId = fields.id;
 
                 // Strict cursor check with tie-breaker on id.
                 // On the first run, skip emission entirely (baseline-only behavior).
@@ -62,36 +54,6 @@ module.exports = {
                     );
 
                 if (!isAfterCursor) continue;
-
-                const fields = {
-                    id: ticket.id,
-                    createdAt: ticket.created_at,
-                    updatedAt: ticket.updated_at,
-                    dueBy: ticket.due_by,
-                    frDueBy: ticket.fr_due_by,
-                    subject: ticket.subject,
-                    type: ticket.type,
-                    source: ticket.source,
-                    sourceInfo: ticket.source_info || null,
-                    status: ticket.status,
-                    priority: ticket.priority,
-                    agentId: ticket.responder_id,
-                    groupId: ticket.group_id,
-                    emailConfigId: ticket.email_config_id,
-                    productId: ticket.product_id,
-                    tags: ticket.tags,
-                    customFields: ticket.custom_fields,
-                    ticketJson: ticket
-                };
-
-                if (normalizedEmbed.includes('requester') && ticket.requester) {
-                    fields.requesterId = ticket.requester.id;
-                    fields.requesterName = ticket.requester.name;
-                    fields.requesterEmail = ticket.requester.email;
-                }
-                if (normalizedEmbed.includes('description')) {
-                    fields.description = ticket.description_text;
-                }
 
                 await context.sendJson(fields, 'ticket');
 
@@ -105,13 +67,36 @@ module.exports = {
                 }
             }
 
-            const link = res.headers.link || '';
-            const match = link.match(/<([^>]+)>;\s*rel="next"/);
-            nextUrl = match ? match[1] : null;
+            nextUrl = next;
         }
 
         // Always persist cursor even when no results, to prevent gaps if polling interval exceeds lookback window.
         const cursorToSave = maxUpdatedAt || cursorUpdatedAt.toISOString();
         await context.saveState({ cursorUpdatedAt: cursorToSave, cursorTicketId: maxTicketId });
+    },
+
+    // Flow Test Mode: emit one realistic ticket without starting the flow.
+    // Reuses the same requestTickets()/mapTicket() path as tick() — the only difference
+    // is the query (most recently updated first, single page) and that no cursor/state is touched.
+    async test(context) {
+
+        const normalizedEmbed = getNormalizedEmbed(context);
+
+        const params = new URLSearchParams({
+            order_by: 'updated_at',
+            order_type: 'desc',
+            per_page: '1'
+        });
+        if (normalizedEmbed.length > 0) {
+            params.set('include', normalizedEmbed.join(','));
+        }
+
+        const { records } = await requestTickets(context, params, normalizedEmbed);
+
+        if (!records.length) {
+            throw new Error('No recent tickets to use as test data.');
+        }
+
+        await context.sendJson(records[0], 'ticket');
     }
 };

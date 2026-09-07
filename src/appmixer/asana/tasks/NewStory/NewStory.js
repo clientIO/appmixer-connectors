@@ -51,5 +51,20 @@ module.exports = {
                     context.sendJson(story, 'story');
                 });
             });
+    },
+
+    async test(context) {
+
+        const client = commons.getAsanaAPI(context.auth.accessToken);
+        const taskId = context.properties.task;
+
+        // Same stories listing + findById path as tick(), picking the newest story.
+        const res = await client.tasks.stories(taskId);
+        const latest = commons.pickLatest(res.data);
+        if (!latest) {
+            throw new Error('No recent stories to use as test data.');
+        }
+        const story = await client.stories.findById(latest.gid);
+        return context.sendJson(story, 'story');
     }
 };

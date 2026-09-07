@@ -54,5 +54,33 @@ module.exports = {
         }
 
         return context.saveState({ updatedTime: latestIssueUpdateDate ?? now });
+    },
+
+    async test(context) {
+
+        const { profileInfo: { apiUrl }, auth } = context;
+        const { project } = context.properties;
+
+        // Newest updated issues first (no `updated > now` baseline), via the same
+        // search request and fields tick() uses.
+        let jql = project ? `project = "${project}" ` : '';
+        jql += 'ORDER BY updated DESC';
+
+        const issues = await commons.getAPINoPagination({
+            endpoint: `${apiUrl}search/jql`,
+            credentials: auth,
+            key: 'issues',
+            params: { maxResults: 100, jql, fields: '*navigable' }
+        });
+
+        // Same "actually updated, not just created" filter as tick().
+        const updated = (issues || []).find(i => {
+            return (new Date(i.fields.updated).valueOf() - new Date(i.fields.created).valueOf()) > 59000;
+        });
+
+        if (!updated) {
+            throw new Error('No recently updated issues to use as test data.');
+        }
+        return context.sendJson(updated, 'issue');
     }
 };

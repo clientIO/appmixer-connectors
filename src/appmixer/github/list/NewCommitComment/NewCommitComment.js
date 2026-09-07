@@ -24,5 +24,17 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        // Commit comments are returned newest-first by default.
+        const comment = await lib.fetchLatest(context, `repos/${repositoryId}/comments`);
+        if (!comment) {
+            throw new Error('No recent commit comments to use as test data.');
+        }
+        return context.sendJson(comment, 'comment');
     }
 };

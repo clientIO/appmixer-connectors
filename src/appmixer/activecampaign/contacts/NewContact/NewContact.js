@@ -1,8 +1,17 @@
 'use strict';
-const moment = require('moment');
 const ActiveCampaign = require('../../ActiveCampaign');
+const commons = require('../../activecampaign-commons');
 
 module.exports = {
+
+    async test(context) {
+
+        const contact = await commons.fetchLatestContact(context, 'cdate');
+        if (!contact) {
+            throw new context.CancelError('No recent contacts to use as test data.');
+        }
+        return context.sendJson(contact, 'contact');
+    },
 
     start(context) {
 
@@ -45,25 +54,9 @@ module.exports = {
 
             try {
                 const { data: getContact } = await ac.call('get', `contacts/${id}`);
-                const { contact: contactInfo } = getContact;
+                const { contact: contactInfo, fieldValues = [] } = getContact;
 
-                const contact = {
-                    id,
-                    email: contactInfo.email,
-                    firstName: contactInfo.firstName,
-                    lastName: contactInfo.lastName,
-                    phone: contactInfo.phone,
-                    createdDate: moment(contactInfo.cdate).toISOString()
-                };
-
-                const { fieldValues = [] } = getContact;
-                if (fieldValues.length > 0) {
-                    fieldValues.forEach(field => {
-                        contact[`customField_${field.field}`] = field.value;
-                    });
-                }
-
-                await context.sendJson(contact, 'contact');
+                await context.sendJson(commons.reshapeContact(contactInfo, fieldValues), 'contact');
                 return context.response();
             } catch (err) {
                 // Ignore when the contact does not exist anymore

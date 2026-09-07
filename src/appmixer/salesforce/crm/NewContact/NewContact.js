@@ -17,6 +17,28 @@ function processContacts(knownContacts, currentContacts, newContacts, contact) {
     currentContacts.push(contact['Id']);
 }
 
+const DATE_FIELDS = [
+    'CreatedDate',
+    'EmailBouncedDate',
+    'LastActivityDate',
+    'LastCURequestDate',
+    'LastCUUpdateDate',
+    'LastModifiedDate',
+    'LastReferencedDate',
+    'LastViewedDate',
+    'SystemModstamp'
+];
+
+/**
+ * Reformat a raw contact record's date fields to ISO. Shared by tick() and test()
+ * so both emit an identically shaped contact.
+ * @param {Object} contact
+ * @return {Object} contact
+ */
+function mapContact(contact) {
+    return commons.formatFields(contact, DATE_FIELDS, commons.formatDate);
+}
+
 /**
  * Component which triggers whenever new contact is added.
  * @extends {Component}
@@ -43,24 +65,21 @@ module.exports = {
         }
 
         await Promise.map(diff, contact => {
-            let dates = [
-                'CreatedDate',
-                'EmailBouncedDate',
-                'LastActivityDate',
-                'LastCURequestDate',
-                'LastCUUpdateDate',
-                'LastModifiedDate',
-                'LastReferencedDate',
-                'LastViewedDate',
-                'SystemModstamp'
-            ];
-            contact = commons.formatFields(contact, dates, commons.formatDate);
-            return context.sendJson(contact, 'contact');
+            return context.sendJson(mapContact(contact), 'contact');
         });
 
         await context.saveState({
             known: current,
             since: since
         });
+    },
+
+    async test(context) {
+
+        const contact = await commons.findLatestSObject(context, 'Contact');
+        if (!contact) {
+            throw new Error('No recent contacts to use as test data.');
+        }
+        return context.sendJson(mapContact(contact), 'contact');
     }
 };

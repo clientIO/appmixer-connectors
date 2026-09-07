@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 /**
  * Component which triggers whenever new order comes.
@@ -22,6 +22,19 @@ module.exports = {
     async stop(context) {
 
         return commons.unregisterWebhook(context);
+    },
+
+    async test(context) {
+
+        const order = await commons.fetchLatestWebhookExample(context, {
+            resource: 'order',
+            topic: 'orders/create',
+            params: { status: 'any', order: 'created_at DESC' }
+        });
+        if (!order) {
+            throw new Error('No recent orders to use as test data.');
+        }
+        return context.sendJson(order, 'order');
     }
 };
 

@@ -140,5 +140,17 @@ module.exports = {
             await context.sendJson({ row: item.value }, 'out');
             return context.response('ok');
         }
+    },
+
+    // Flow Test Mode: emit one realistic row without starting the flow, creating a store or
+    // registering a webhook. Read-only — runs the same query through the shared helper and
+    // emits the newest matching row in the exact { row } shape receive() forwards on 'insert'.
+    async test(context) {
+
+        const row = await moduleCommons.fetchLatestExampleRow(context);
+        if (!row) {
+            throw new Error('No rows returned by the query to use as test data.');
+        }
+        return context.sendJson({ row }, 'out');
     }
 };

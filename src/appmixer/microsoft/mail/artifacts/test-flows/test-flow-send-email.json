@@ -1,0 +1,237 @@
+{
+    "flow": {
+        "6a9e0c3a-88e8-46fb-984e-852441734b22": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 0,
+            "y": 0,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "02bab120-5b50-4450-b6c0-aa83536389d2": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 240,
+            "y": 0,
+            "source": {
+                "in": {
+                    "6a9e0c3a-88e8-46fb-984e-852441734b22": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6a9e0c3a-88e8-46fb-984e-852441734b22": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "recipient",
+                                                "text": "e2e-test@appmixer.ai"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "subject",
+                                                "text": "E2E Send Email Test"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2ea85a87-d6b7-40c9-ba7a-ad9d9ae8b027": {
+            "type": "appmixer.microsoft.mail.SendEmail",
+            "x": 480,
+            "y": 0,
+            "source": {
+                "in": {
+                    "02bab120-5b50-4450-b6c0-aa83536389d2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "02bab120-5b50-4450-b6c0-aa83536389d2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "toRecipients": {
+                                        "cecb1c8d-6bca-485f-9000-edf210553e30": {
+                                            "variable": "$.02bab120-5b50-4450-b6c0-aa83536389d2.out.recipient",
+                                            "functions": []
+                                        }
+                                    },
+                                    "subject": {
+                                        "3174fadf-e6f4-4b3b-b1f8-381e6224f76e": {
+                                            "variable": "$.02bab120-5b50-4450-b6c0-aa83536389d2.out.subject",
+                                            "functions": []
+                                        }
+                                    },
+                                    "content": {},
+                                    "contentType": {}
+                                },
+                                "lambda": {
+                                    "toRecipients": "{{{cecb1c8d-6bca-485f-9000-edf210553e30}}}",
+                                    "subject": "{{{3174fadf-e6f4-4b3b-b1f8-381e6224f76e}}}",
+                                    "content": "This email is sent by an Appmixer E2E test verifying the Send Email component.",
+                                    "contentType": "Text"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3c89eae3-05cf-4b81-9d90-4af89a290b2e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 720,
+            "y": 220,
+            "source": {
+                "in": {
+                    "2ea85a87-d6b7-40c9-ba7a-ad9d9ae8b027": [
+                        "email"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "2ea85a87-d6b7-40c9-ba7a-ad9d9ae8b027": {
+                            "email": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "8abb6a98-8b9d-4a6d-9e85-b7d363f027db": {
+                                            "variable": "$.2ea85a87-d6b7-40c9-ba7a-ad9d9ae8b027.email.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{8abb6a98-8b9d-4a6d-9e85-b7d363f027db}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c75c7e6b-0697-47d1-82fb-fdb7d0a7ee14": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 960,
+            "y": 0,
+            "source": {
+                "in": {
+                    "3c89eae3-05cf-4b81-9d90-4af89a290b2e": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b4937cfd-a35d-4906-aaa4-bb92db9558e1": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1200,
+            "y": 0,
+            "source": {
+                "in": {
+                    "c75c7e6b-0697-47d1-82fb-fdb7d0a7ee14": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "c75c7e6b-0697-47d1-82fb-fdb7d0a7ee14": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "53220b19-733c-4263-ad2a-7e69ffc72351": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "9bbe8ed2-cb8c-48a5-8744-4f4df0c30deb": {
+                                            "variable": "$.c75c7e6b-0697-47d1-82fb-fdb7d0a7ee14.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{53220b19-733c-4263-ad2a-7e69ffc72351}}}",
+                                    "result": "{{{9bbe8ed2-cb8c-48a5-8744-4f4df0c30deb}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Microsoft Mail - Send Email",
+    "type": "automation",
+    "notes": {}
+}

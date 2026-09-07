@@ -15,8 +15,26 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
+        if (!tenantId) {
+            throw new context.CancelError('Tenant ID is required!');
+        }
+
         const xc = new XeroClient(context, tenantId);
-        const records = await xc.requestPaginated('GET', '/api.xro/2.0/Journals', { params });
+        // The Journals endpoint does not support page-based pagination: it returns up to 100
+        // journals per call and the next batch is requested via `offset` (the last JournalNumber).
+        const pageSize = 100;
+        const countLimit = 10000;
+        let records = [];
+        let offset = 0;
+        let batch;
+        do {
+            const response = await xc.request('GET', '/api.xro/2.0/Journals', { params: { ...params, offset } });
+            batch = (response && response.Journals) || [];
+            records = records.concat(batch);
+            if (batch.length) {
+                offset = batch[batch.length - 1].JournalNumber;
+            }
+        } while (batch.length === pageSize && records.length < countLimit);
 
         return sendArrayOutput({
             context,

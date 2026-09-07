@@ -2,6 +2,7 @@
 'use strict';
 
 const lib = require('../../lib.generated');
+const { API_BASE_URL } = require('../../constants');
 
 const schema = {
     'type': { 'type': 'string', 'title': 'Stream Type' },
@@ -34,22 +35,33 @@ module.exports = {
 
         // Get activity streams using Strava API
         // https://developers.strava.com/docs/reference/#api-Streams-getActivityStreams
-        const { data } = await context.httpRequest({
-            method: 'GET',
-            url: `https://www.strava.com/api/v3/activities/${activityId}/streams`,
-            headers: {
-                'Authorization': `Bearer ${context.auth.accessToken}`
-            },
-            params: {
-                keys: keysParam,
-                key_by_type: true
+        let data;
+        try {
+            ({ data } = await context.httpRequest({
+                method: 'GET',
+                url: `${API_BASE_URL}/activities/${activityId}/streams`,
+                headers: {
+                    'Authorization': `Bearer ${context.auth.accessToken}`
+                },
+                params: {
+                    keys: keysParam
+                }
+            }));
+        } catch (error) {
+            // Strava answers 404 both for an unknown activity and for one that
+            // simply carries no stream data (every manually created activity).
+            if (error.response && error.response.status === 404) {
+                return context.sendJson({}, 'notFound');
             }
-        });
+            throw error;
+        }
 
-        if (data.length === 0) {
+        const records = Array.isArray(data) ? data : [];
+
+        if (records.length === 0) {
             return context.sendJson({}, 'notFound');
         }
 
-        return lib.sendArrayOutput({ context, records: data, outputType });
+        return lib.sendArrayOutput({ context, records, outputType });
     }
 };

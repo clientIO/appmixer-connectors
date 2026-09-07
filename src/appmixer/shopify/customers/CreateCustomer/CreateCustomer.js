@@ -1,6 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
-const lib = require('../../lib');
+const commons = require('../../lib');
 
 function buildCustomer(customerInfo, context) {
 
@@ -36,7 +35,7 @@ function buildCustomer(customerInfo, context) {
     }
 
     if (customerInfo.tax_exemptions) {
-        customer['tax_exemptions'] = lib.normalizeMultiselectInput(customerInfo.tax_exemptions, context, 'Tax Exemptions');
+        customer['tax_exemptions'] = commons.normalizeMultiselectInput(customerInfo.tax_exemptions, context, 'Tax Exemptions');
     }
 
     if (metafields.length > 0) {
@@ -54,10 +53,17 @@ module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context.auth);
+        const shopify = commons.getShopifyAPI(context);
 
         const customerInfo = context.messages.in.content;
 
+
+        if (!customerInfo.firstName) {
+            throw new context.CancelError('First name is required!');
+        }
+        if (!customerInfo.lastName) {
+            throw new context.CancelError('Last name is required!');
+        }
         const customer = await shopify.customer.create(buildCustomer(customerInfo, context));
         return context.sendJson(customer, 'customer');
     }

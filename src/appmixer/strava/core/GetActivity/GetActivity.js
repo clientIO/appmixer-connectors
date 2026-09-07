@@ -1,6 +1,8 @@
 
 'use strict';
 
+const { API_BASE_URL } = require('../../constants');
+
 module.exports = {
     async receive(context) {
 
@@ -15,7 +17,7 @@ module.exports = {
         // https://developers.strava.com/docs/reference/#api-Activities-getActivityById
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: `https://www.strava.com/api/v3/activities/${activityId}`,
+            url: `${API_BASE_URL}/activities/${activityId}`,
             headers: {
                 'Authorization': `Bearer ${context.auth.accessToken}`
             }

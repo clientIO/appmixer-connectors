@@ -1,5 +1,7 @@
 'use strict';
 
+const { API_BASE_URL } = require('../../constants');
+
 module.exports = {
     async receive(context) {
 
@@ -33,7 +35,7 @@ module.exports = {
         // https://developers.strava.com/docs/reference/#api-Activities-updateActivityById
         await context.httpRequest({
             method: 'PUT',
-            url: `https://www.strava.com/api/v3/activities/${activityId}`,
+            url: `${API_BASE_URL}/activities/${activityId}`,
             headers: {
                 'Authorization': `Bearer ${context.auth.accessToken}`,
                 'Content-Type': 'application/json'

@@ -1,7 +1,6 @@
 'use strict';
 
-const axios = require('axios');
-const { sendArrayOutput } = require('../../lib');
+const { apiCall, sendArrayOutput } = require('../../lib');
 
 const DEFAULT_PREFIX = 'freshdesk-companies-export';
 
@@ -58,7 +57,6 @@ module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const content = context.messages.in.content;
         const { outputType = 'array' } = content;
 
@@ -66,14 +64,11 @@ module.exports = {
             return getOutputPortOptions(context, outputType);
         }
 
-        const baseUrl = `https://${auth.domain}.freshdesk.com/api/v2`;
-        const authConfig = { username: auth.apiKey, password: 'X' };
-
         // Search by name via autocomplete
         if (content.searchName) {
-            const response = await axios.get(`${baseUrl}/companies/autocomplete`, {
-                params: { name: content.searchName },
-                auth: authConfig
+            const response = await apiCall(context, {
+                url: '/companies/autocomplete',
+                params: { name: content.searchName }
             });
             const companies = Array.isArray(response.data) ? response.data : [];
             if (companies.length === 0) return context.sendJson({}, 'notFound');
@@ -83,9 +78,9 @@ module.exports = {
         // Filter query via search API
         if (content.query) {
             const searchQuery = content.query.startsWith('"') ? content.query : `"${content.query}"`;
-            const response = await axios.get(`${baseUrl}/search/companies`, {
-                params: { query: searchQuery },
-                auth: authConfig
+            const response = await apiCall(context, {
+                url: '/search/companies',
+                params: { query: searchQuery }
             });
             const companies = Array.isArray(response.data) ? response.data : (response.data.results || []);
             if (companies.length === 0) return context.sendJson({}, 'notFound');
@@ -93,12 +88,7 @@ module.exports = {
         }
 
         // List all companies
-        const params = {};
-
-        const response = await axios.get(`${baseUrl}/companies`, {
-            params,
-            auth: authConfig
-        });
+        const response = await apiCall(context, { url: '/companies' });
         const companies = response.data || [];
         if (companies.length === 0) return context.sendJson({}, 'notFound');
         return sendArrayOutput({ context, records: companies, outputType, defaultPrefix: DEFAULT_PREFIX });

@@ -1,0 +1,95 @@
+{
+    "name": "appmixer.linkedin.core.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the LinkedIn API.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:linkedin",
+        "scope": [ "w_member_social" ]
+    },
+    "quota": {
+        "manager": "appmixer:linkedin:shares",
+        "resources": "shares",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                    "headers": { "type": "string" },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to <code>https://api.linkedin.com</code> (for example <code>/rest/posts</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object (supports nested objects, arrays, and non-string values)."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "Status Code", "value": "status" },
+                { "label": "Response Headers", "value": "headers" },
+                { "label": "Response Body", "value": "body", "schema": { "type": "object", "properties": {} } }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3NS43NjggNzYuMjQ4Ij48ZGVmcz48c3R5bGU+LmF7ZmlsbDojMDY5O30uYntmaWxsOiNmZmY7ZmlsbC1ydWxlOmV2ZW5vZGQ7fTwvc3R5bGU+PC9kZWZzPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC05NTUxLjA5OCAtMjUwNykiPjxwYXRoIGNsYXNzPSJhIiBkPSJNMjQzLjgzNi05Ni44MjZhNS41MzIsNS41MzIsMCwwLDEsNS42LTUuNDYySDMxNGE1LjUzMiw1LjUzMiwwLDAsMSw1LjYsNS40NjJWLTMxLjVhNS41MzIsNS41MzIsMCwwLDEtNS42LDUuNDYySDI0OS40MzVhNS41MzIsNS41MzIsMCwwLDEtNS42LTUuNDYyWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTMwNy4yNjIgMjYwOS4yODgpIi8+PHBhdGggY2xhc3M9ImIiIGQ9Ik0yNjYuOC0zOC40NlYtNzIuODlIMjU1LjM2djM0LjQzWm0tNS43MjItMzkuMTMxYzMuOTkxLDAsNi40NzUtMi42NDQsNi40NzUtNS45NDgtLjA3NC0zLjM3OC0yLjQ4NC01Ljk0OS02LjQtNS45NDlzLTYuNDc0LDIuNTcxLTYuNDc0LDUuOTQ5YzAsMy4zLDIuNDgzLDUuOTQ4LDYuMzI0LDUuOTQ4aC4wNzRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5MzA3LjI2MiAyNjA5LjI4OCkiLz48cGF0aCBjbGFzcz0iYiIgZD0iTTI3My4xMzYtMzguNDZIMjg0LjU4Vi01Ny42ODdhNy44NDQsNy44NDQsMCwwLDEsLjM3Ny0yLjc5Myw2LjI2NCw2LjI2NCwwLDAsMSw1Ljg3Mi00LjE4NWM0LjE0MSwwLDUuOCwzLjE1Nyw1LjgsNy43ODZWLTM4LjQ2aDExLjQ0M1YtNTguMmMwLTEwLjU3NS01LjY0Ni0xNS41LTEzLjE3NS0xNS41YTExLjQsMTEuNCwwLDAsMC0xMC4zOSw1LjhoLjA3NlYtNzIuODlIMjczLjEzN2MuMTUsMy4yMzEsMCwzNC40MywwLDM0LjQzWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTMwNy4yNjIgMjYwOS4yODgpIi8+PC9nPjwvc3ZnPg=="
+}

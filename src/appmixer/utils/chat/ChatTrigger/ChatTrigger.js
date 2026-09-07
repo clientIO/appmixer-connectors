@@ -17,6 +17,18 @@ const chatScriptSnippet = `
 
 module.exports = {
 
+    // Flow Test Mode: the 'out' port emits a live user chat message. There is no API to fetch a
+    // real one and its shape is not derived from user config, so a fabricated sample would test
+    // nothing and match no real run. Fail with a clear explanation instead.
+    async test(context) {
+
+        throw new context.CancelError(
+            'Flow Test Mode is not available for this trigger: a chat message can only come from a '
+            + 'real conversation, and there is no API to fetch one as sample data. Open the chat and '
+            + 'send a message to trigger the flow instead.'
+        );
+    },
+
     async start(context) {
 
         const config = {

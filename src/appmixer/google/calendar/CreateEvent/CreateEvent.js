@@ -40,6 +40,17 @@ module.exports = {
 
     receive(context) {
 
+        const { calendarId, start, end } = context.messages.in.content;
+        if (!calendarId) {
+            throw new context.CancelError('Calendar is required!');
+        }
+        if (!start) {
+            throw new context.CancelError('Start time is required!');
+        }
+        if (!end) {
+            throw new context.CancelError('End time is required!');
+        }
+
         return insertEvent({
             auth: commons.getOauth2Client(context.auth),
             userId: 'me',

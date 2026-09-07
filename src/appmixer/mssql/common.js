@@ -102,6 +102,45 @@ async function runQuery({ context, query, stream = false }) {
     }
 }
 
+/**
+ * Read-only helper shared by triggers' test() methods (Flow Test Mode). Runs the SAME user
+ * SELECT/WITH query the triggers poll (honoring context.properties.query and idField), but
+ * wrapped to return only the single newest row, ordered by the configured idField DESC.
+ * Mirrors the initial-run semantics by substituting the optional "?" timestamp placeholder
+ * with 0 so that ALL rows match (and the newest is returned). Performs no mutations and writes
+ * no state.
+ *
+ * @param {object} context - The component context (uses context.auth + context.properties).
+ * @returns {Promise<object|null>} The newest row object, or null if the query returns no rows.
+ */
+async function fetchLatestRow(context) {
+
+    const { query, idField } = context.properties;
+    if (!query) {
+        throw new Error('SQL Query is required.');
+    }
+    if (!idField) {
+        throw new Error('ID field is required.');
+    }
+
+    validateQuery(query);
+
+    // Same substitution start()/tick() apply on the initial run: replace the "?" timestamp
+    // placeholder with 0 so the query matches all rows, then pick the newest.
+    const baseQuery = query.replace(/\?/g, '0');
+
+    // Wrap as a subquery so we can deterministically pick the newest row by the configured
+    // idField without assuming anything about the user's ORDER BY / column list.
+    // Escape closing brackets (T-SQL doubles `]` inside a bracket-quoted identifier) so an idField
+    // containing `]` cannot break out of the quoting / inject SQL.
+    const safeIdField = String(idField).replace(/]/g, ']]');
+    const wrappedQuery = `SELECT TOP 1 * FROM (${baseQuery}) AS appmixer_test_sub ORDER BY [${safeIdField}] DESC`;
+
+    const result = await runQuery({ context: context.auth, query: wrappedQuery });
+    const recordset = (result && result.recordset) || [];
+    return recordset[0] || null;
+}
+
 module.exports = {
 
     StreamProcessor,
@@ -166,5 +205,6 @@ module.exports = {
 
     runQuery,
     createConnection,
-    validateQuery
+    validateQuery,
+    fetchLatestRow
 };

@@ -25,13 +25,9 @@ module.exports = {
 
     async tick(context) {
 
-        let { companyId } = context.properties;
-        const options = { userAgent: context.auth.userAgent };
-        let client = commons.getHighriseAPI(companyId, context.auth.accessToken, options);
-        let getNewCase = Promise.promisify(client.cases.get, { context: client.cases });
-
+        let client = commons.getClient(context);
         // Boolean parameter represents that case is open. For closed cases needs to be false
-        let res = await getNewCase(true);
+        let res = await commons.fetchCollection(client.cases.get, client.cases, true);
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
@@ -45,6 +41,18 @@ module.exports = {
         }
 
         await context.saveState({ known: Array.from(actual) });
+    },
+
+    async test(context) {
+
+        const client = commons.getClient(context);
+        // Mirror tick(): fetch open cases only (the same `true` argument).
+        const res = await commons.fetchCollection(client.cases.get, client.cases, true);
+        const aCase = commons.pickLatest(res);
+        if (!aCase) {
+            throw new Error('No recent open cases to use as test data.');
+        }
+        return context.sendJson(aCase, 'case');
     }
 };
 

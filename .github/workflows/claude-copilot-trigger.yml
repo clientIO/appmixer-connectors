@@ -1,0 +1,52 @@
+name: Claude Copilot Trigger
+
+# Phase 1 of the Copilot-review responder (see claude-copilot-responder.yml).
+#
+# WHY TWO WORKFLOWS: `pull_request_review` events fired on a PR whose head
+# lives in a fork run WITHOUT repository secrets and with a read-only token
+# (GitHub's fork hardening). Since apx-vero PRs always come from the apx-vero
+# fork, the responder could never see VERO_GH_TOKEN when triggered directly.
+#
+# So this tiny unprivileged workflow runs on the review event, applies the
+# cheap gate (Copilot review on an apx-vero PR, not a bare approval) and
+# uploads the PR number + review id as an artifact. The privileged responder
+# runs on `workflow_run` (which DOES get secrets), reads the artifact and
+# strictly re-verifies everything against the live API before acting.
+#
+# NOTE: `workflow_run` only fires for workflows on the default branch — both
+# files must be merged to `dev` before the chain works.
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions: {}
+
+jobs:
+  capture:
+    # Cheap gate only — the responder re-verifies all of this via the API.
+    # ('opilot' avoids any case ambiguity on the leading C in the bot login
+    #  `copilot-pull-request-reviewer[bot]`.)
+    if: >
+      github.event.pull_request.user.login == 'apx-vero' &&
+      contains(github.event.review.user.login, 'opilot') &&
+      github.event.review.state != 'approved'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Write event payload
+        env:
+          PR: ${{ github.event.pull_request.number }}
+          REVIEW: ${{ github.event.review.id }}
+        run: |
+          jq -n --arg pr "$PR" --arg review "$REVIEW" \
+            '{pr_number: $pr, review_id: $review}' > event.json
+          cat event.json
+
+      - name: Upload event artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: copilot-review-event
+          path: event.json
+          retention-days: 1

@@ -162,5 +162,18 @@ module.exports = {
 
             return context.response('ok');
         }
+    },
+
+    // Flow Test Mode: emit one realistic row without starting the flow, creating a store or
+    // registering a webhook. Read-only — runs the same query through the shared helper and emits
+    // the newest matching row as { updatedRow }, the shape receive() forwards for a fresh row
+    // ('insert' branch). oldRow is only available on a real diff, so it is omitted here.
+    async test(context) {
+
+        const row = await moduleCommons.fetchLatestExampleRow(context);
+        if (!row) {
+            throw new Error('No rows returned by the query to use as test data.');
+        }
+        return context.sendJson({ updatedRow: row }, 'out');
     }
 };

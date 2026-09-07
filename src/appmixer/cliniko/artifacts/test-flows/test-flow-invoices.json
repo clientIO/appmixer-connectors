@@ -1,0 +1,187 @@
+{
+    "name": "E2E Cliniko - Invoices",
+    "flow": {
+        "fcee02a7-cfe9-5394-a0a2-beb9787448e5": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "296af79c-1aa2-54bc-8971-57548a4938ae": {
+            "type": "appmixer.cliniko.core.FindInvoices",
+            "x": 272,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "fcee02a7-cfe9-5394-a0a2-beb9787448e5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fcee02a7-cfe9-5394-a0a2-beb9787448e5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e8d484a9-616a-5fe6-a459-f08f6778dd1d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "296af79c-1aa2-54bc-8971-57548a4938ae": [
+                        "out",
+                        "notFound"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "296af79c-1aa2-54bc-8971-57548a4938ae": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "92ed8398-6eb8-57f0-bc07-926101dd402c": {
+                                            "functions": [],
+                                            "variable": "$.296af79c-1aa2-54bc-8971-57548a4938ae.out.id"
+                                        },
+                                        "ac184d1d-b0d8-524a-9d62-c36d82c357c3": {
+                                            "functions": [],
+                                            "variable": "$.296af79c-1aa2-54bc-8971-57548a4938ae.out.total_amount"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{92ed8398-6eb8-57f0-bc07-926101dd402c}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{ac184d1d-b0d8-524a-9d62-c36d82c357c3}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            "notFound": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {}
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "none (this account has no invoices - create one in the Cliniko UI, the API cannot: every /invoices path is GET-only)",
+                                                "expected": "at least one invoice"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "74fe8eae-1049-5b59-9eac-43cff384f915": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "e8d484a9-616a-5fe6-a459-f08f6778dd1d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "6e30008a-301b-56fb-9519-d52b222da14c": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "74fe8eae-1049-5b59-9eac-43cff384f915": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "74fe8eae-1049-5b59-9eac-43cff384f915": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "5d03e320-ac97-5c2e-90b7-809659b3ebad": {
+                                            "functions": [],
+                                            "variable": "$.74fe8eae-1049-5b59-9eac-43cff384f915.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Cliniko - Invoices",
+                                    "result": "{{{5d03e320-ac97-5c2e-90b7-809659b3ebad}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

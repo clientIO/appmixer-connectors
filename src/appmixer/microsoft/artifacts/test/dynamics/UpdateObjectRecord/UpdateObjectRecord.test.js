@@ -34,6 +34,9 @@ describe('UpdateObjectRecord', function() {
 
                 // Stub the httpRequest function.
                 context.httpRequest = sinon.stub().resolves(leadResponseStub);
+                // The entity-set (collection) segment is resolved from the metadata API
+                // and cached; serve it from the cache so only the update request runs.
+                context.staticCache.get = sinon.stub().resolves('leads');
             });
 
             it('should call httpRequest with correct options', async function() {

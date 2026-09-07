@@ -6,13 +6,25 @@
     "auth": {
         "service": "appmixer:jira",
         "scope": [
-            "read:jira-work"
+            "read:issue-type:jira",
+            "read:project:jira",
+            "read:project.property:jira",
+            "read:user:jira",
+            "read:application-role:jira",
+            "read:avatar:jira",
+            "read:group:jira",
+            "read:issue-type-hierarchy:jira",
+            "read:project-category:jira",
+            "read:project-version:jira",
+            "read:project.component:jira"
         ]
     },
     "properties": {
         "schema": {
             "properties": {
-                "generateInspector": { "type": "boolean" },
+                "generateInspector": {
+                    "type": "boolean"
+                },
                 "url": {}
             }
         },
@@ -21,7 +33,11 @@
                 "url": {
                     "source": {
                         "url": "/component/appmixer/jira/projects/NewProjectWebhook?outPort=project",
-                        "data": { "properties": { "generateInspector": true } }
+                        "data": {
+                            "properties": {
+                                "generateInspector": true
+                            }
+                        }
                     }
                 }
             }
@@ -30,35 +46,155 @@
     "outPorts": [
         {
             "name": "project",
-            "options": [
-                { "label": "Project ID", "value": "id" },
-                { "label": "Project Key", "value": "key" },
-                { "label": "Project Name", "value": "name" },
-                { "label": "Project Description", "value": "description" },
-                { "label": "Project Lead", "value": "lead" },
-                { "label": "Lead Key", "value": "lead.key" },
-                { "label": "Lead Account ID", "value": "lead.accountId" },
-                { "label": "Lead Name", "value": "lead.name" },
-                { "label": "Lead Avatar URLs", "value": "lead.avatarUrls" },
-                { "label": "Lead Display Name", "value": "lead.displayName" },
-                { "label": "Lead Status", "value": "lead.active" },
-                { "label": "Project Components", "value": "components" },
-                { "label": "Project Issue Types", "value": "issueTypes" },
-                { "label": "Project Email", "value": "email" },
-                { "label": "Project URL", "value": "url" },
-                { "label": "Project Assignee Type", "value": "assigneeType" },
-                { "label": "Project versions", "value": "versions" },
-                { "label": "Project Roles", "value": "roles" },
-                { "label": "Project Avatar URLs", "value": "avatarUrls" },
-                { "label": "Project Category", "value": "projectCategory" },
-                { "label": "Category ID", "value": "projectCategory.id" },
-                { "label": "Category Name", "value": "projectCategory.name" },
-                { "label": "Category Description", "value": "projectCategory.description" },
-                { "label": "Project Simplified", "value": "simplified" },
-                { "label": "Project Style", "value": "style" },
-                { "label": "Project Properties", "value": "properties" },
-                { "label": "Project Insight", "value": "insight" }
-            ]
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Project ID",
+                        "example": "10001"
+                    },
+                    "key": {
+                        "type": "string",
+                        "title": "Project Key",
+                        "example": "PROJ"
+                    },
+                    "name": {
+                        "type": "string",
+                        "title": "Project Name",
+                        "example": "My Project"
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Project Description",
+                        "example": "A sample project."
+                    },
+                    "lead": {
+                        "type": "object",
+                        "title": "Project Lead",
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "title": "Lead Key",
+                                "example": "lead"
+                            },
+                            "accountId": {
+                                "type": "string",
+                                "title": "Lead Account ID",
+                                "example": "5b10a2844c20165700ede21g"
+                            },
+                            "name": {
+                                "type": "string",
+                                "title": "Lead Name",
+                                "example": "lead"
+                            },
+                            "avatarUrls": {
+                                "type": "object",
+                                "title": "Lead Avatar URLs",
+                                "example": {
+                                    "48x48": "https://example.atlassian.net/secure/useravatar?size=large&ownerId=lead&avatarId=10100"
+                                }
+                            },
+                            "displayName": {
+                                "type": "string",
+                                "title": "Lead Display Name",
+                                "example": "Project Lead"
+                            },
+                            "active": {
+                                "type": "boolean",
+                                "title": "Lead Status",
+                                "example": true
+                            }
+                        }
+                    },
+                    "components": {
+                        "type": "array",
+                        "title": "Project Components",
+                        "example": []
+                    },
+                    "issueTypes": {
+                        "type": "array",
+                        "title": "Project Issue Types",
+                        "example": []
+                    },
+                    "email": {
+                        "type": "string",
+                        "title": "Project Email",
+                        "example": "lead@example.com"
+                    },
+                    "url": {
+                        "type": "string",
+                        "title": "Project URL",
+                        "example": "https://example.atlassian.net/browse/PROJ"
+                    },
+                    "assigneeType": {
+                        "type": "string",
+                        "title": "Project Assignee Type",
+                        "example": "PROJECT_LEAD"
+                    },
+                    "versions": {
+                        "type": "array",
+                        "title": "Project versions",
+                        "example": []
+                    },
+                    "roles": {
+                        "type": "object",
+                        "title": "Project Roles",
+                        "example": {}
+                    },
+                    "avatarUrls": {
+                        "type": "object",
+                        "title": "Project Avatar URLs",
+                        "example": {
+                            "48x48": "https://example.atlassian.net/secure/projectavatar?size=large&avatarId=10324"
+                        }
+                    },
+                    "projectCategory": {
+                        "type": "object",
+                        "title": "Project Category",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Category ID",
+                                "example": "10000"
+                            },
+                            "name": {
+                                "type": "string",
+                                "title": "Category Name",
+                                "example": "First Category"
+                            },
+                            "description": {
+                                "type": "string",
+                                "title": "Category Description",
+                                "example": "First category description."
+                            }
+                        }
+                    },
+                    "simplified": {
+                        "type": "boolean",
+                        "title": "Project Simplified",
+                        "example": false
+                    },
+                    "style": {
+                        "type": "string",
+                        "title": "Project Style",
+                        "example": "classic"
+                    },
+                    "properties": {
+                        "type": "array",
+                        "title": "Project Properties",
+                        "example": []
+                    },
+                    "insight": {
+                        "type": "object",
+                        "title": "Project Insight",
+                        "example": {
+                            "totalIssueCount": 100,
+                            "lastIssueUpdateTime": "2026-06-29T12:00:00.000+0000"
+                        }
+                    }
+                }
+            }
         }
     ],
     "icon": "data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjI1MDAiIHZpZXdCb3g9IjIuNTkgMCAyMTQuMDkxMDEwMDggMjI0IiB3aWR0aD0iMjM2MSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayI+PGxpbmVhckdyYWRpZW50IGlkPSJhIiBncmFkaWVudFRyYW5zZm9ybT0ibWF0cml4KDEgMCAwIC0xIDAgMjY0KSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSIxMDIuNCIgeDI9IjU2LjE1IiB5MT0iMjE4LjYzIiB5Mj0iMTcyLjM5Ij48c3RvcCBvZmZzZXQ9Ii4xOCIgc3RvcC1jb2xvcj0iIzAwNTJjYyIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzI2ODRmZiIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJiIiB4MT0iMTE0LjY1IiB4Mj0iMTYwLjgxIiB4bGluazpocmVmPSIjYSIgeTE9Ijg1Ljc3IiB5Mj0iMTMxLjkyIi8+PHBhdGggZD0ibTIxNC4wNiAxMDUuNzMtOTYuMzktOTYuMzktOS4zNC05LjM0LTcyLjU2IDcyLjU2LTMzLjE4IDMzLjE3YTguODkgOC44OSAwIDAgMCAwIDEyLjU0bDY2LjI5IDY2LjI5IDM5LjQ1IDM5LjQ0IDcyLjU1LTcyLjU2IDEuMTMtMS4xMiAzMi4wNS0zMmE4Ljg3IDguODcgMCAwIDAgMC0xMi41OXptLTEwNS43MyAzOS4zOS0zMy4xMi0zMy4xMiAzMy4xMi0zMy4xMiAzMy4xMSAzMy4xMnoiIGZpbGw9IiMyNjg0ZmYiLz48cGF0aCBkPSJtMTA4LjMzIDc4Ljg4YTU1Ljc1IDU1Ljc1IDAgMCAxIC0uMjQtNzguNjFsLTcyLjQ3IDcyLjQ0IDM5LjQ0IDM5LjQ0eiIgZmlsbD0idXJsKCNhKSIvPjxwYXRoIGQ9Im0xNDEuNTMgMTExLjkxLTMzLjIgMzMuMjFhNTUuNzcgNTUuNzcgMCAwIDEgMCA3OC44Nmw3Mi42Ny03Mi42M3oiIGZpbGw9InVybCgjYikiLz48L3N2Zz4="

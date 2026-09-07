@@ -5,6 +5,11 @@ module.exports = {
     async receive(context) {
 
         const { id } = context.messages.in.content;
+
+        if (!id) {
+            throw new context.CancelError('ID is required!');
+        }
+
         const result = await context.componentStaticCall('appmixer.microsoft.dynamics.MakeApiCall', 'out', {
             messages: { in: { url: `/api/data/v9.2/accounts(${id})`, method: 'GET' } }
         });

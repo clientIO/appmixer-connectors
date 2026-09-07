@@ -86,6 +86,10 @@ module.exports = {
         const id = issue.id;
         const { status } = issue;
 
+        if (!id) {
+            throw new context.CancelError('Issue ID is required!');
+        }
+
         const hasCustomFields = Object.keys(issue).some(key => key.startsWith('customfield_'));
         if (hasCustomFields) {
             try {

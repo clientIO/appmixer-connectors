@@ -117,6 +117,31 @@ module.exports = {
         }
 
         return { diff, actual };
+    },
+
+    /**
+     * Fetch the single newest work item (read-only) for Flow Test Mode, honoring the
+     * trigger's organization/projectId and optional workItemType filter. `orderField`
+     * is the System field to sort by descending (CreatedDate for new, ChangedDate for
+     * updated). Returns the raw API work item (dotted field keys) or null.
+     */
+    async fetchLatestWorkItem(context, { orderField }) {
+        const api = require('./api');
+        const { organization, projectId, workItemType } = context.properties;
+        if (!organization || !projectId) {
+            throw new context.CancelError('Organization and Project ID are required!');
+        }
+        // SELECT TOP 1 — only the newest work item is needed, so don't fetch every matching ID.
+        let wiqlQuery = 'SELECT TOP 1 [System.Id] FROM WorkItems WHERE [System.TeamProject] = @project';
+        if (workItemType) {
+            // Escape single quotes so a value containing one cannot break out of the WIQL string
+            // literal (prevents a broken query and WIQL injection).
+            const safeWorkItemType = workItemType.replace(/'/g, '\'\'');
+            wiqlQuery += ` AND [System.WorkItemType] = '${safeWorkItemType}'`;
+        }
+        wiqlQuery += ` ORDER BY [${orderField}] DESC`;
+        const data = await api.FindWorkItems.execute(context, { organization, project: projectId, wiqlQuery });
+        return (data.value || [])[0] || null;
     }
 };
 

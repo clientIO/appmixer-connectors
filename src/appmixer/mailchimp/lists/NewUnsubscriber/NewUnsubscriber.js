@@ -29,6 +29,21 @@ module.exports = {
             const unSubscriberData = mailchimpDriver.parseData(data);
             await context.sendJson(unSubscriberData, 'out');
         }
+    },
+
+    async test(context) {
+
+        // No webhook registration: fetch the newest unsubscribed member of the list and
+        // reshape it into the same body an 'unsubscribe' webhook delivers (parseData output).
+        const { listId } = context.properties;
+        if (!listId) {
+            throw new context.CancelError('List ID is required!');
+        }
+        const member = await mailchimpDriver.getLatestMember(context, listId, 'unsubscribed');
+        if (!member) {
+            throw new Error('No unsubscribed members in the list to use as test data.');
+        }
+        return context.sendJson(mailchimpDriver.toSubscriberWebhookShape(member, listId, 'unsubscribe'), 'out');
     }
 
 };

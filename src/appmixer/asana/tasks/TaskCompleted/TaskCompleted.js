@@ -87,5 +87,30 @@ module.exports = {
                     }
                 });
         }
+    },
+
+    async test(context) {
+
+        const client = commons.getAsanaAPI(context.auth.accessToken);
+        const { task, project } = context.properties;
+
+        if (task) {
+            // Same single-task path as tick(): emit it only if it is completed.
+            const res = await client.tasks.findById(task);
+            if (!res.completed) {
+                throw new Error('The configured task is not completed yet.');
+            }
+            return context.sendJson(res, 'task');
+        }
+
+        // Same project-wide path as tick(): fetch tasks, keep completed, emit the newest.
+        const res = await client.tasks.findByProject(project);
+        const tasks = await Promise.all((res.data || []).map(t => client.tasks.findById(t.gid)));
+        const completed = tasks.filter(t => t.completed);
+        const latest = commons.pickLatest(completed);
+        if (!latest) {
+            throw new Error('No completed tasks to use as test data.');
+        }
+        return context.sendJson(latest, 'task');
     }
 };

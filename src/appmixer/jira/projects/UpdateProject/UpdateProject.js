@@ -9,6 +9,10 @@ module.exports = {
         const id = project.id;
         delete project.id;
 
+        if (!id) {
+            throw new context.CancelError('Project ID or Key is required!');
+        }
+
         try {
             const result = await commons.put(`${apiUrl}project/${id}`, auth, project);
             return context.sendJson(result, 'project');

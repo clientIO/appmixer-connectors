@@ -51,5 +51,20 @@ module.exports = {
                     context.sendJson(subtask, 'subtask');
                 });
             });
+    },
+
+    async test(context) {
+
+        const client = commons.getAsanaAPI(context.auth.accessToken);
+        const taskId = context.properties.task;
+
+        // Same subtasks listing + findById path as tick(), picking the newest subtask.
+        const res = await client.tasks.subtasks(taskId);
+        const latest = commons.pickLatest(res.data);
+        if (!latest) {
+            throw new Error('No recent subtasks to use as test data.');
+        }
+        const subtask = await client.tasks.findById(latest.gid);
+        return context.sendJson(subtask, 'subtask');
     }
 };

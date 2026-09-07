@@ -12,5 +12,14 @@ module.exports = {
     start(context) {
 
         return context.sendJson({ started: (new Date()).toISOString() }, 'out');
+    },
+
+    /**
+     * Sourceless trigger: emit the same single payload start() produces.
+     * @param {Context} context
+     */
+    test(context) {
+
+        return context.sendJson({ started: (new Date()).toISOString() }, 'out');
     }
 };

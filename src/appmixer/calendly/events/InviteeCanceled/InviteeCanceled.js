@@ -35,6 +35,16 @@ module.exports = {
         }
     },
 
+    // Flow Test Mode: emit one realistic invitee.canceled payload without registering a webhook.
+    // Reuses the connector-level helpers shared by every Calendly webhook trigger.
+    async test(context) {
+        const invitee = await commons.fetchLatestExample(context, { status: 'canceled' });
+        if (!invitee) {
+            throw new Error('No recent canceled invitees to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookShape(context, invitee, 'invitee.canceled'), 'out');
+    },
+
     /**
      * Register webhook in Calendly API.
      * @param {Context} context

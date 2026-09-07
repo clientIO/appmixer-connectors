@@ -1,0 +1,67 @@
+{
+    "name": "appmixer.epic.core.FindDevices",
+    "label": "Find Devices",
+    "description": "Retrieve the devices (implants/equipment) associated with a patient in Epic. Returns up to one page of results (Epic's default page size).",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:epic"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "patient": { "type": "string" },
+                    "outputType": { "type": "string" }
+                },
+                "required": ["patient"]
+            },
+            "inspector": {
+                "inputs": {
+                    "patient": {
+                        "type": "text",
+                        "label": "Patient ID",
+                        "index": 1,
+                        "tooltip": "The FHIR ID of the patient. Use Find Patients to look it up."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 2,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/epic/core/FindDevices?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/patient": "any",
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMTggMTU5Ij4KPHBhdGggZmlsbD0iI0RGMDI0RCIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMjk1Ljc3MTk0Miw4OC45Njg0MDcgQzI4OC4zODExNjUsMTA0Ljk2OTM3NiAyNzQuNjUzMjI5LDExMS4zMTQ3NDMgMjU4LjIzNDk1NSwxMTIuODMzNTM0IEMyNTEuMTcwNDcxLDExMy40ODcwNDUgMjQzLjg5NjgyMCwxMTMuMjA3NzAzIDIzNi44NDE3NjYsMTEyLjM0MzQwNyBDMjI0LjI2ODI5NSwxMTAuODAzMDMyIDIxNC4xNjI2ODksMTA1LjYyNzE5NyAyMTEuNjYwMjE3LDkwLjAzNDM3MCBDMjA5Ljk1MTQwMSw5Ny44NTk4MjUgMjA4LjU2OTg4NSwxMDQuMTg2NDQwIDIwNy4xNDg3NzMsMTEwLjY5NDM5NyBDMTk5LjE3NjU3NSwxMTAuNjk0Mzk3IDE5MS40MjQ3NzQsMTEwLjY5NDM5NyAxODMuNDEyMTQwLDExMC42OTQzOTcgQzE4NC4zNjgxOTUsMTA1LjU1NjgwMSAxODUuMzEwMDEzLDEwMC40OTU2MjEgMTg2LjI1MTg0Niw5NS40MzQ0NDEgQzE3OC4yNzk5MzgsMTA0LjA1NTEwNyAxNjkuNDU3MjkxLDExMC41MDM1MDIgMTU3Ljk2NTMxNywxMTIuMzgzNTkxIEMxNDYuOTM4MDgwLDExNC4xODc2NTMgMTM2LjA4MDQ2MCwxMTQuNDk5NTY1IDEyNi43MzcwNzYsMTA1LjcyNjI5NSBDMTI0Ljg0MTE0OCwxMTQuMjM5MTgyIDEyMy4wNTE3MzUsMTIyLjI3MzgxMSAxMjAuNzE5ODcyLDEzMC44MzExMzEgQzExMi41MTkwODksMTMxLjU2OTAxNiAxMDQuODYwNzU2LDEzMS43ODQxOTUgOTcuMjAyNDIzLDEzMS45OTkzOTAgQzk4LjU1NTc2MywxMjUuMTg1NDU1IDk5LjkwOTEwMywxMTguMzcxNTIxIDEwMS4zNTY1NDQsMTExLjA4Mzc2MyBDNzQuNDM2NjUzLDExMS4wODM3NjMgNDcuODc1NDI3LDExMS4wODM3NjMgMjAuODcxOTAxLDExMS4wODM3NjMgQzI2LjE3NjQ1OCw4NS4yNzM2ODkgMzEuMzc5ODYwLDU5Ljk1NTc5NSAzNy4xNzQ4NDMsMzQuMTUyODc0IEMzOS43MTg5ODMsMzMuNDQ1NDMxIDQxLjY3MTIwNywzMy4wMzI5MjUgNDMuNjI0MTYxLDMzLjAyOTQ0NiBDNjguMzUyMzc5LDMyLjk4NTM5MCA5My4wODA3MDQsMzMuMDAwMTk4IDExNy44MDkwMDYsMzIuOTk5OTk2IEMxMTYuNzk1OTY3LDM4LjE5OTM0OCAxMTUuNzgyOTI4LDQzLjM5ODcwMSAxMTQuNjI4NDI2LDQ5LjMyNDExMiBDMTIyLjMzMzQyMCw0OS4zMjQxMTIgMTI5LjcwMjYyMSw0OS4zMjQxMTIgMTM3LjU1ODE1MSw0OS4zMjQxMTIgQzEzNy4xMzUxMDEsNTEuOTE0MDU5IDEzNi44MzI1MDQsNTMuNzY2NTA2IDEzNi4zOTg3MTIsNTYuNDIyMjIyIEMxMzguMDIwMTU3LDU1LjYzMjQ5NiAxMzkuMjg1MTEwLDU1LjEzOTY4MyAxNDAuNDIzOTk2LDU0LjQ0MTI4MCBDMTQ2LjgyOTg2NSw1MC41MTI5OTcgMTUzLjI5NTIyNyw0Ny4yODg5MDYgMTYxLjI5ODAxOSw0OC44MjMzNDEgQzE2NC43MzQxNjEsNDkuNDgyMTc0IDE2OC41MTI4NDgsNDguMzQ3NjQxIDE3MS45NTE5OTYsNDguOTk4OTU5IEMxODIuMzM3MTI4LDUwLjk2NTczMyAxODkuMzM3NjE2LDU2LjgzNDQ0NiAxOTIuMTkxMjg0LDY3LjgxNDk0OSBDMTkzLjU0MDYxOSw2MS42ODU2MDQgMTk0Ljg4OTk1NCw1NS41NTYyNTkgMTk2LjI4NTk5NSw0OS4yMTQ4MjEgQzIwNC4wODg4ODIsNDkuMjE0ODIxIDIxMS44NjY0NTUsNDkuMjE0ODIxIDIyMC4wODI3NzksNDkuMjE0ODIxIEMyMTguODM2NTE3LDU1LjEyMDczOSAyMTcuNjI1MTgzLDYwLjg2MTE2MCAyMTYuMjkyNDM1LDY3LjE3Njk0MSBDMjE3LjI1MzQ2NCw2Ni42MjAwMjYgMjE4LjA1MDU4Myw2Ni40MjMzODYgMjE4LjM5ODMxNSw2NS45MTc3MzIgQzIyNi42ODkyNDAsNTMuODYxMzcwIDIzOC45MTkwNjcsNDguMzYxOTY5IDI1Mi43NjIwNTQsNDcuMzkwMjAyIEMyNjIuNzM2ODQ3LDQ2LjY4OTk3MiAyNzMuMDgzNTU3LDQ3LjQwODQ2MyAyODIuODk5MDE3LDQ5LjM0NTU4OSBDMjk0LjAxNDYxOCw1MS41MzkzMDcgMjk5LjA0NTU2Myw1OS4zNTYzMjcgMjk4LjkxMjQ0NSw3MS4wMDU2NzYgQzI5NC44NjQwMTQsNzEuMDA1Njc2IDI5MC43OTA2MTksNzEuMDA1Njg0IDI4Ni43MTcyMjQsNzEuMDA1Njg0IEMyODIuNzI1OTgzLDcxLjAwNTY4NCAyNzguNzM0NzExLDcxLjAwNTY3NiAyNzQuODA4Mjg5LDcxLjAwNTY3NiBDMjcxLjM4Nzc1Niw2My4xOTQxNDEgMjY1LjkwMDcyNiw2MS4wODg2MTUgMjU0LjczMjgzNCw2My4xODE2ODMgQzI0My4yODg3NTcsNjUuMzI2NTA4IDIzNS4zOTQ0NzAsNzcuNDg2NTI2IDIzOC4xMzc2MzQsODguODEwMDA1IEMyMzkuMTg4ODg5LDkzLjE0OTQ2MCAyNDIuMzMzNTU3LDk1LjU2MzU3NiAyNDYuMzM1NDE5LDk2Ljc1ODI3OCBDMjU2LjMzMDA0OCw5OS43NDIwMTIgMjY1LjY4NTczMCw5Ni4xMDY5NDkgMjcyLjAxNjIzNSw4Ny40NjkzMzcgQzI3NS4xMzUzNDUsODcuNzkwMjM3IDI3Ny42MDYyMDEsODcuODY1Mjg4IDI4MC4wNzMxNTEsODguMDA3NTE1IEMyODUuMzA3MTU5LDg4LjMwOTI2NSAyOTAuNTM5MTI0LDg4LjY0NjAxMSAyOTUuNzcxOTQyLDg4Ljk2ODQwNyBNMTA1LjAwMzk1Miw2NC44MTI5MDQgQzEwMy45NTUzNzYsNjkuNjE5MDgwIDEwMi45MDY4MDcsNzQuNDI1MjYyIDEwMS44MTg3OTQsNzkuNDEyMjQ3IEM4NS43MjM1ODcsNzkuNDEyMjQ3IDcwLjEyMjQ3NSw3OS40MTIyNDcgNTQuMTQzNzk5LDc5LjQxMjI0NyBDNTMuMzE3MDE3LDg0LjEyMTc5NiA1Mi41MzIyNjUsODguNTkxOTM0IDUxLjY2NTIxOCw5My41MzA4MzggQzY0Ljg1MzU2OSw5My41MzA4MzggNzcuMzA5NDI1LDkzLjU2MTA2NiA4OS43NjUwMDcsOTMuNTE1OTM4IEM5NC43MzM3NjUsOTMuNDk3OTQwIDEwMS4xMjQxOTksOTUuMTM2NTM2IDEwNC4yNjU0NzIsOTIuNjg1ODM3IEMxMDcuMzMyMzQ0LDkwLjI5MzE5OCAxMDcuMDc5NTgyLDgzLjY0NjcwNiAxMDguMjg4NTQ0LDc4Ljg2ODc1OSBDMTA4LjM2OTk0Miw3OC41NDcwNjYgMTA4LjUyNDE3MCw3OC4yNDE0NDcgMTA4LjU4NDc0Nyw3Ny45MTcxODMgQzExMC40MDAzMzAsNjguMTk3NTAyIDExMi4yMDgzNjYsNTguNDc2NDEwIDExMy4zNDE1NjAsNDguMjc5ODg0IEM5Ni42MzA5NDMsNDguMTkwMDQ0IDc5LjkyMDM1Nyw0OC4wODgyODcgNjMuMjA5NjI1LDQ4LjA1MDI4OSBDNjIuNDc2OTM2LDQ4LjA0ODYyMiA2MS43NDI5MjAsNDguNjMwNzE4IDYwLjQzODkwOCw0OS40NTQ5NjQgQzU5LjYzOTIyMSw1My45MTM3MDQgNTguODM5NTM5LDU4LjM3MjQ0OCA1OC41NDkzNDcsNjMuNTAxMzc3IEM2MC4zNDk4NjksNjMuNjY3Njg2IDYyLjE0OTk1Niw2My45NzI1NzYgNjMuOTUwOTgxLDYzLjk3ODI0OSBDNzcuNjE0MTUxLDY0LjAyMTI5NCA5MS4yNzc1MTIsNjQuMDA1NzM3IDEwNS4wMDM5NTIsNjQuODEyOTA0IE0xNjQuNjk4MjEyLDY4Ljk4NjAyMyBDMTU3Ljg1MDc4NCw2Mi40ODI1MDYgMTUwLjAwNDUxNyw2My44MDQ5ODUgMTQyLjM4NjgxMCw2Ni43MzI1NTIgQzEzNS4zMjAwMjMsNjkuNDQ4NDAyIDEzMC42ODU3MTUsNzcuMjE3MDY0IDEzMS42MTg2MDcsODQuNzUzMzM0IEMxMzEuOTg2OTY5LDg3LjcyOTA4MCAxMzMuNzM2NjQ5LDkxLjI0OTg4NiAxMzYuMDA4OTQyLDkzLjEzMjcyOSBDMTQxLjY2MjI0Nyw5Ny44MTcxMTYgMTUzLjc4NTg3Myw5Ni42NzkwNzcgMTU5LjgwMDc1MSw5MS42NDExMjEgQzE2Ni4yMTMzMTgsODYuMjcwMDczIDE2OC40MDE4MTAsNzcuMTkxODAzIDE2NC42OTgyMTIsNjguOTg2MDIzIHoiLz4KPHBhdGggZmlsbD0iI0RGMDI0RCIgZD0iTTIyMy44MDE4OTUsMzEuOTY3MTA2IEMyMjMuMzU2NzgxLDM0LjExODk3MyAyMjIuOTExNjY3LDM2LjI3MDgzNiAyMjEuOTMwNDgxLDM4Ljk0MTI3MyBDMjE5Ljc2NjQ3OSwzOS45NzMxMjIgMjE4LjE0OTkzMyw0MC44ODE5NDcgMjE2LjUwODYwNiw0MC45MjkwOTIgQzIxMC40MDM3MTcsNDEuMTA0NDMxIDIwNC4yOTA2ODAsNDAuOTk2NTAyIDE5OC4xODA3MTAsNDAuOTk0OTE5IEMxOTguOTI4ODMzLDM3LjE4NDYyMCAxOTkuNjc2OTU2LDMzLjM3NDMxNyAyMDEuMTM2ODU2LDI5LjI3Njk2MCBDMjA3LjU2OTEwNywyOC45OTM2MjQgMjEzLjMwMzIwNywyOC43ODAwMzcgMjE5LjAwMTU1NiwyOS4xMzY5NzYgQzIyMC42NTQyODIsMjkuMjQwNTAxIDIyMi4yMDQ2MjAsMzAuOTc4NDIwIDIyMy44MDE4OTUsMzEuOTY3MTA2IHoiLz4KPC9zdmc+Cg=="
+}

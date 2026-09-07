@@ -1,8 +1,6 @@
 'use strict';
-const uuid = require('uuid');
 
-// Timeout interval in milliseconds (3 minutes)
-const TIMEOUT_INTERVAL = (context) => parseInt(context.config.timeoutIntervalMs, 10) || 180000; // 3 minutes
+const eachDelay = require('./EachDelay');
 
 function parseVariable(listVariable) {
 
@@ -38,42 +36,6 @@ function getInputConfig(componentConfig) {
     }
 
     return null;
-}
-
-/**
- * Calculate batch size based on delay and timeout interval.
- * @param {number} delay - Delay between items in milliseconds
- * @returns {number} - Number of items that can be processed in one timeout interval
- */
-function calculateBatchSize(context, delay) {
-    return Math.floor(TIMEOUT_INTERVAL(context) / delay);
-}
-
-/**
- * Send a batch of items with delay between each item.
- * @param {Object} context - Appmixer context
- * @param {Array} items - Items to send
- * @param {number} startIndex - Starting index in the original list
- * @param {number} count - Total count of items
- * @param {string} correlationId - Correlation ID for this Each execution
- * @param {number} delay - Delay between items in milliseconds
- */
-async function sendBatch(context, items, startIndex, count, correlationId, delay) {
-
-    for (let i = 0; i < items.length; i++) {
-        const listItem = {
-            index: startIndex + i,
-            value: items[i],
-            count,
-            correlationId
-        };
-        await context.sendJson(listItem, 'item');
-
-        // Add delay between items (except for the last item)
-        if (delay && i < items.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
 }
 
 const generateOutputPortOptions = async function(context) {
@@ -155,64 +117,8 @@ module.exports = {
         const { buildOutPortOptions = false } = context.properties;
 
         if (context.messages.timeout) {
-            const { id } = context.messages.timeout.content;
-
-            // Fetch the stored data from the plugin (items list only)
-            const storedData = await context.callAppmixer({
-                endPoint: `/plugins/appmixer/utils/controls/${encodeURIComponent(id)}`,
-                method: 'GET'
-            });
-
-            if (!storedData || !storedData.items) {
-                // Data no longer exists, nothing to process
-                await context.log({ 'step': 'no-data', message: 'Each timeout: nothing to process, stored data missing or has no items' });
-                return;
-            }
-
-            const { items, delay, correlationId, count } = storedData;
-
-            // Get current index from state (same pattern as non-delayed Each)
-            const lastSentIndexCache = await context.stateGet(id);
-            const currentIndex = lastSentIndexCache?.index || 0;
-
-            const batchSize = calculateBatchSize(context, delay);
-            const remainingItems = items.slice(currentIndex);
-
-            if (remainingItems.length === 0) {
-                // All items have been processed, clean up and send done
-                await context.callAppmixer({
-                    endPoint: `/plugins/appmixer/utils/controls/${encodeURIComponent(id)}`,
-                    method: 'DELETE'
-                });
-                await context.stateUnset(id);
-                await context.sendJson({ count, correlationId }, 'done');
-                return;
-            }
-
-            // Get the batch to process
-            const batchItems = remainingItems.slice(0, batchSize);
-            const newIndex = currentIndex + batchItems.length;
-
-            // Send the batch with delays
-            await sendBatch(context, batchItems, currentIndex, count, correlationId, delay);
-
-            // Update index in state after each item is sent
-            await context.stateSet(id, { index: newIndex });
-
-            if (newIndex >= items.length) {
-                // All items have been sent, clean up and send done
-                await context.callAppmixer({
-                    endPoint: `/plugins/appmixer/utils/controls/${encodeURIComponent(id)}`,
-                    method: 'DELETE'
-                });
-                await context.stateUnset(id);
-                await context.sendJson({ count, correlationId }, 'done');
-            } else {
-                // Schedule next timeout
-                await context.setTimeout({ id }, TIMEOUT_INTERVAL(context));
-            }
-
-            return;
+            // A scheduled timeout drives the next batch of a delayed Each loop.
+            return eachDelay.handleTimeout(context);
         }
 
         if (buildOutPortOptions) {
@@ -221,8 +127,23 @@ module.exports = {
 
         let list = getItemsList(context, context.messages.in.content.list);
 
-        const eachCorrelationId = uuid.v4();
-        const { delay } = context.messages.in.content;
+        // Use context.id as the Each<->JoinEach pairing correlation ID. It is unique per Each
+        // execution (so it never collides across runs, including nested Each) yet stays identical
+        // when the engine re-delivers this `in` message after an error - so a re-delivered run reuses
+        // the SAME correlation ID without generating one or relying on persisted state. Note this is
+        // intentionally NOT the message-envelope correlationId (context.messages.in.correlationId),
+        // which can be shared across the items of a parent Each and would collide in nested loops.
+        const eachCorrelationId = context.id;
+
+        // Normalize and validate the delay. The inspector is numeric, but a transform/lambda can feed
+        // any value (a non-numeric string, an object, ...). An invalid delay must be rejected here:
+        // otherwise it flows into the delayed path as a NaN/negative batch size, producing empty
+        // batches that never advance the index and re-schedule timeouts forever.
+        const rawDelay = context.messages.in.content.delay;
+        const delay = (rawDelay == null || rawDelay === '') ? 0 : Number(rawDelay);
+        if (!Number.isFinite(delay) || delay < 0) {
+            throw new context.CancelError('Property \'delay\' must be a non-negative number (milliseconds).');
+        }
 
         if (!Array.isArray(list)) {
             // Not an array, send empty done
@@ -233,57 +154,35 @@ module.exports = {
         const count = list.length;
 
         if (delay) {
-            const id = context.id;
-            const batchSize = calculateBatchSize(context, delay);
-
-            // Calculate how many items we can send in the first batch
-            const firstBatchItems = list.slice(0, batchSize);
-            const currentIndex = firstBatchItems.length;
-
-            // Send the first batch immediately with delays
-            await sendBatch(context, firstBatchItems, 0, count, eachCorrelationId, delay);
-
-            if (currentIndex >= list.length) {
-                // All items sent in first batch, we're done
-                await context.sendJson({ count, correlationId: eachCorrelationId }, 'done');
-            } else {
-                // Store the list in MongoDB via plugin for later processing
-                await context.callAppmixer({
-                    endPoint: `/plugins/appmixer/utils/controls/${encodeURIComponent(id)}`,
-                    method: 'POST',
-                    body: {
-                        items: list,
-                        delay,
-                        correlationId: eachCorrelationId,
-                        count
-                    }
-                });
-
-                // Store current index in state (same pattern as non-delayed Each)
-                await context.stateSet(id, { index: currentIndex });
-
-                // Schedule timeout to process the next batch
-                await context.setTimeout({ id, timestamp: new Date() }, TIMEOUT_INTERVAL(context));
-            }
-            return;
+            // Delayed iteration is batched and timeout-driven - see EachDelay.js.
+            return eachDelay.handleDelayedStart(context, {
+                list,
+                correlationId: eachCorrelationId,
+                count,
+                delay
+            });
         }
 
         // No delay - process all items immediately
         const contextId = context.id;
         const lastSentIndexCache = await context.stateGet(contextId);
+        const resumeOffset = lastSentIndexCache?.index || 0;
         if (lastSentIndexCache) {
-            list = list.slice(lastSentIndexCache.index);
+            list = list.slice(resumeOffset);
         }
         for (let i = 0; i < list.length; i++) {
+            const absoluteIndex = i + resumeOffset;
             const listItem = {
-                index: i + (lastSentIndexCache?.index || 0),
+                index: absoluteIndex,
                 value: list[i],
                 count,
                 correlationId: eachCorrelationId
             };
             await context.sendJson(listItem, 'item');
+            // Persist the ABSOLUTE index so a crash + resume continues from the right place
+            // (storing the local loop index here would re-send already-processed items).
             await context.stateSet(contextId, {
-                index: i
+                index: absoluteIndex
             });
         }
 

@@ -1,0 +1,310 @@
+{
+    "name": "E2E QuickBooks NewInvoice trigger",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "4d8b991c-21bd-4a36-ba03-e8e4da1d3d71": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "config": {}
+        },
+        "43542bc7-7548-416c-81d4-33ebdb2a2f48": {
+            "type": "appmixer.quickbooks.accounting.CreateCustomer",
+            "x": 320,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "4d8b991c-21bd-4a36-ba03-e8e4da1d3d71": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4d8b991c-21bd-4a36-ba03-e8e4da1d3d71": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "displayName": {
+                                        "v-cust-ts": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "givenName": {},
+                                    "familyName": {},
+                                    "companyName": {},
+                                    "primaryEmailAddrAddress": {},
+                                    "printOnCheckName": {}
+                                },
+                                "lambda": {
+                                    "displayName": "E2E QB Customer {{{v-cust-ts}}}",
+                                    "givenName": "E2E",
+                                    "familyName": "Tester",
+                                    "companyName": "E2E Test Co",
+                                    "primaryEmailAddrAddress": "e2e-customer@appmixer-test.com",
+                                    "printOnCheckName": "E2E Test Co"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "fe4ffb34-db81-49e8-88a8-04d5e042041f": {
+            "type": "appmixer.quickbooks.accounting.CreateInvoice",
+            "x": 576,
+            "y": 320,
+            "version": "1.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "43542bc7-7548-416c-81d4-33ebdb2a2f48": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "43542bc7-7548-416c-81d4-33ebdb2a2f48": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerId": {
+                                        "v-inv-cust": {
+                                            "variable": "$.43542bc7-7548-416c-81d4-33ebdb2a2f48.out.Id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "lineItemsJSON": {}
+                                },
+                                "lambda": {
+                                    "customerId": "{{{v-inv-cust}}}",
+                                    "lineItemsJSON": "[{ \"DetailType\": \"SalesItemLineDetail\", \"Amount\": 50, \"Description\": \"E2E service\", \"SalesItemLineDetail\": { \"Qty\": 1 } }]"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f0d70c91-c99f-4d2e-962d-8e79fcd4d7f6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "fe4ffb34-db81-49e8-88a8-04d5e042041f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fe4ffb34-db81-49e8-88a8-04d5e042041f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-e999096f": {
+                                            "variable": "$.fe4ffb34-db81-49e8-88a8-04d5e042041f.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-e999096f}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b843299d-ddd9-491e-bfb7-939980abc5d6": {
+            "type": "appmixer.quickbooks.accounting.NewInvoice",
+            "x": 576,
+            "y": 560,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "dc1ed34f-404b-4cf6-9315-e9358c9facd7": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b843299d-ddd9-491e-bfb7-939980abc5d6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b843299d-ddd9-491e-bfb7-939980abc5d6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a104a821": {
+                                            "variable": "$.b843299d-ddd9-491e-bfb7-939980abc5d6.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-a104a821}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "3efdf99d-3140-43e0-b20b-fa930bb12666": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1088,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f0d70c91-c99f-4d2e-962d-8e79fcd4d7f6": [
+                        "out"
+                    ],
+                    "dc1ed34f-404b-4cf6-9315-e9358c9facd7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "3c7945df-4c14-489a-94f4-f220ae9ae53c": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1344,
+            "y": 560,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "3efdf99d-3140-43e0-b20b-fa930bb12666": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "3efdf99d-3140-43e0-b20b-fa930bb12666": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "v-test-case": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "v-result-24a90a57": {
+                                            "variable": "$.3efdf99d-3140-43e0-b20b-fa930bb12666.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{v-test-case}}}",
+                                    "result": "{{{v-result-24a90a57}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

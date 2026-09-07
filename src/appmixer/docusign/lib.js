@@ -60,6 +60,30 @@ const getEnvelope = async (args, accessToken) => {
 };
 
 /**
+ * List the most recently changed envelope (read-only) for Flow Test Mode.
+ * @param {Object} args
+ * @param {String} args.basePath
+ * @param {String} args.accountId
+ * @param {String} accessToken
+ * @return {Promise<Object|null>} the newest envelope status record, or null
+ */
+const listLatestEnvelope = async (args, accessToken) => {
+
+    let dsApiClient = new docusign.ApiClient();
+    dsApiClient.setBasePath(args.basePath + '/restapi/');
+    dsApiClient.addDefaultHeader('Authorization', 'Bearer ' + accessToken);
+    let envelopesApi = new docusign.EnvelopesApi(dsApiClient);
+    const fromDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const result = await envelopesApi.listStatusChanges(args.accountId, {
+        fromDate,
+        count: '1',
+        order: 'desc',
+        orderBy: 'last_modified'
+    });
+    return (result.envelopes || [])[0] || null;
+};
+
+/**
  * Create and send envelope.
  * @param {Object} args
  * @param {String} args.basePath
@@ -221,6 +245,7 @@ module.exports = {
     getAccessToken,
     refreshToken,
     getEnvelope,
+    listLatestEnvelope,
     requestSignature,
     registerDocusignWebhook,
     unregisterDocusignWebhook,

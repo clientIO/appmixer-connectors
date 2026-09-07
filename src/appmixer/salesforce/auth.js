@@ -68,6 +68,33 @@ module.exports = {
 
             requestProfileInfo: async context => {
 
+                if (!instanceId || !instanceUrl) {
+                    // The identity URL and instance URL normally come from the
+                    // requestAccessToken closure. When the account is created from
+                    // pre-obtained tokens (token import via the accounts API), that
+                    // closure state is empty — recover both from the OAuth userinfo
+                    // endpoint instead.
+                    const { baseUrl = 'https://login.salesforce.com' } = context.authConfig;
+                    const { data: userinfo } = await context.httpRequest({
+                        method: 'GET',
+                        url: new URL('/services/oauth2/userinfo', baseUrl).toString(),
+                        headers: {
+                            'Authorization': `Bearer ${context.accessToken}`
+                        }
+                    });
+                    const restUrl = userinfo['urls'] && userinfo['urls']['rest'];
+                    if (!userinfo['sub'] || !restUrl) {
+                        // The urls claim requires the connected app to have the
+                        // `profile`/`full` scope; without it we cannot derive the
+                        // instance URL from the token alone.
+                        throw new Error('Salesforce userinfo response is missing the "sub"/"urls" claims. '
+                            + 'Grant the connected app the "profile" (or "full") scope, or create the account '
+                            + 'through the standard OAuth flow.');
+                    }
+                    instanceId = userinfo['sub'];
+                    instanceUrl = new URL(restUrl).origin;
+                }
+
                 const { data } = await context.httpRequest({
                     method: 'GET',
                     url: instanceId,

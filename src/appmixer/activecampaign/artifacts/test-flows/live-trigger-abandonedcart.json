@@ -1,0 +1,124 @@
+{
+    "name": "LIVE ActiveCampaign - AbandonedCart trigger (tick test)",
+    "description": "HELPER (manual live tick test, not auto-run). Verifies the AbandonedCart trigger polls and fires: start the flow, wait ~1 tick (baseline records existing carts), create a NEW abandoned cart (e.g. via the seed flow / CreateOrder with externalcheckoutid), then the next tick emits it -> Assert(id notEmpty). Requires tick:true on the trigger and an externally created cart between ticks, so it is not part of the auto-run E2E suite.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "abandoned-cart": {
+            "type": "appmixer.activecampaign.ecommerce.AbandonedCart",
+            "x": 256,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {},
+            "config": {}
+        },
+        "assert-cart": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "abandoned-cart": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "abandoned-cart": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-cart-id": {
+                                            "variable": "$.abandoned-cart.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{field-cart-id}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 640,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "assert-cart": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 30
+                }
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 832,
+            "y": 192,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "after-all": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "var-tc": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "var-res": {
+                                            "variable": "$.after-all.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{var-tc}}}",
+                                    "result": "{{{var-res}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

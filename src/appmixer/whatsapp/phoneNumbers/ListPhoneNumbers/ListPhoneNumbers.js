@@ -58,7 +58,6 @@ module.exports = {
             // In dropdown-source mode: never throw — return empty so the dropdown
             // degrades gracefully and the user can type the phoneNumberId manually.
             if (isSource) {
-                await context.log({ step: 'list-phone-numbers-source-error', message: err.message || String(err) });
                 return context.sendJson({ phoneNumbers: [], count: 0 }, 'out');
             }
             throw err;

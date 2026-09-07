@@ -33,5 +33,16 @@ module.exports = {
             known: Array.from(current),
             since: since
         });
+    },
+
+    async test(context) {
+
+        // Newest list via the same request stack as tick(), without the
+        // since_date_created baseline filter (which suppresses output on a fresh flow).
+        const list = await mailchimpDriver.getLatest(context, '/lists', 'lists', 'date_created');
+        if (!list) {
+            throw new Error('No recent lists to use as test data.');
+        }
+        return context.sendJson(list, 'list');
     }
 };

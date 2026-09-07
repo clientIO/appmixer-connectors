@@ -1,9 +1,53 @@
 const Promise = require('bluebird');
 const EventEmitter = require('events');
+const { BigQuery } = require('@google-cloud/bigquery');
+const googleCommons = require('../google-commons');
 
 module.exports.getInterval = function(context) {
 
     return parseInt(context.config.queryPollingInterval, 10) || 5 * 1000;
+};
+
+// Read-only fetch of a single example row for Flow Test Mode. Runs the SAME user query the
+// trigger polls with (the `?` placeholder, if any, is bound to 0 so all rows are eligible)
+// using the SAME BigQuery client/auth as tick(), then returns the first row collected from the
+// result stream. No data store, no webhook, no state writes. Returns null when the query is
+// empty so test() can throw and fall through to the engine's fallback chain.
+module.exports.fetchLatestExampleRow = function(context) {
+
+    const { query, projectId } = context.properties;
+
+    const client = new BigQuery({
+        authClient: googleCommons.getAuthLibraryOAuth2Client(context.auth),
+        projectId
+    });
+
+    return new Promise((resolve, reject) => {
+        let settled = false;
+        const finish = (err, row) => {
+            if (settled) return;
+            settled = true;
+            return err ? reject(err) : resolve(row);
+        };
+
+        client.createQueryJob({ query, params: [0] }).then(([job]) => {
+            const stream = job.getQueryResultsStream({
+                wrapIntegers: {
+                    integerTypeCastFunction: value => {
+                        return parseInt(value) > Number.MAX_SAFE_INTEGER ? value : parseInt(value);
+                    }
+                }
+            });
+            stream.on('data', row => {
+                // The polling path stores each row under idField; the webhook then emits the
+                // stored row value. Emitting the first row collected here yields the same shape.
+                finish(null, row);
+                stream.destroy();
+            });
+            stream.on('error', err => finish(err));
+            stream.on('end', () => finish(null, null));
+        }).catch(err => finish(err));
+    });
 };
 
 module.exports.StreamProcessor = class {

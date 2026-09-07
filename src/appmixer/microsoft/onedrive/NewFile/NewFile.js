@@ -129,6 +129,27 @@ module.exports = {
         }
     },
 
+    async test(context) {
+
+        // Flow Test Mode: no webhook fires. Read the full current delta WITHOUT the
+        // baseline deltaLink that start()/receive() use to suppress already-seen items,
+        // then emit the most recently created file. Same getLatestChanges fetch and
+        // identical delta-item shape `receive()` forwards.
+        const { accessToken } = context.auth;
+        const latest = await getLatestChanges('/me/drive/root/delta', accessToken);
+        const files = (latest.value || []).filter(file => file.createdDateTime);
+
+        if (!files.length) {
+            throw new Error('No files found in OneDrive to use as test data.');
+        }
+
+        const newest = files
+            .slice()
+            .sort((a, b) => new Date(b.createdDateTime || 0) - new Date(a.createdDateTime || 0))[0];
+
+        return context.sendJson(newest, 'file');
+    },
+
     async tick(context) {
 
         const { accessToken } = context.auth;

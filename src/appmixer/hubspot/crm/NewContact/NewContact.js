@@ -62,6 +62,12 @@ class NewContact extends BaseSubscriptionComponent {
 
         return context.response();
     }
+
+    async test(context) {
+
+        const record = await this.fetchLatestExample(context, 'contacts');
+        return context.sendJson(record, 'contact');
+    }
 }
 
 module.exports = new NewContact(subscriptionType);

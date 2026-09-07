@@ -14,6 +14,10 @@ module.exports = {
             endpoint = `${apiUrl}user/search?query=`;
         }
 
+        if (!endpoint) {
+            throw new context.CancelError('Either "type" or "endpoint" is required to list field options.');
+        }
+
         // Fix labels endpoint. The one provided by Get create issue metadata is not working.
         if (endpoint.includes('rest/api/1.0/labels/suggest')) {
             endpoint = `${apiUrl}label`;

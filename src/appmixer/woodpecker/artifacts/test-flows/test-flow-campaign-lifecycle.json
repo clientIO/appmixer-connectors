@@ -1,0 +1,762 @@
+{
+    "flow": {
+        "79fd3be0-bcee-48e5-9559-6e48c035a0ba": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": -237,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f2ce69e8-b060-4b81-bffc-01e29d778b02": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": -45,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "79fd3be0-bcee-48e5-9559-6e48c035a0ba": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "79fd3be0-bcee-48e5-9559-6e48c035a0ba": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "campaignName",
+                                                "text": "E2E Outreach Campaign"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "fromName",
+                                                "text": "Appmixer E2E"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "timezone",
+                                                "text": "America/New_York"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "57654b3a-a484-4bbe-ba6a-7e2ee34675be": {
+            "type": "appmixer.woodpecker.core.CreateCampaign",
+            "x": 380,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ab000000-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ab000000-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "var-campaign-name": {
+                                            "variable": "$.f2ce69e8-b060-4b81-bffc-01e29d778b02.out.campaignName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "timezone": {
+                                        "var-timezone": {
+                                            "variable": "$.f2ce69e8-b060-4b81-bffc-01e29d778b02.out.timezone",
+                                            "functions": []
+                                        }
+                                    },
+                                    "emailAccountId": {
+                                        "var-mailbox-id": {
+                                            "variable": "$.ab000000-0000-4000-8000-000000000001.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "name": "{{{var-campaign-name}}}",
+                                    "timezone": "{{{var-timezone}}}",
+                                    "emailAccountId": "{{{var-mailbox-id}}}",
+                                    "subject": "E2E probe subject",
+                                    "message": "<div>Hi {{FIRST_NAME | \"there\"}}, this is an Appmixer E2E campaign.</div>",
+                                    "dailyEnroll": 10
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c31ead38-4481-4ea7-bbab-c681ba8cd2c6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 660,
+            "y": 234,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "57654b3a-a484-4bbe-ba6a-7e2ee34675be": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "57654b3a-a484-4bbe-ba6a-7e2ee34675be": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-create-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        },
+                                        "field-create-name": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.name",
+                                            "functions": []
+                                        },
+                                        "expected-name": {
+                                            "variable": "$.f2ce69e8-b060-4b81-bffc-01e29d778b02.out.campaignName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{field-create-id}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{field-create-name}}}",
+                                                "expected": "{{{expected-name}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "645cf6f7-2e61-4674-adf4-fa137e452d42": {
+            "type": "appmixer.woodpecker.core.GetCampaign",
+            "x": 640,
+            "y": 64,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "57654b3a-a484-4bbe-ba6a-7e2ee34675be": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "57654b3a-a484-4bbe-ba6a-7e2ee34675be": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "campaignId": {
+                                        "var-get-campaign-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "campaignId": "{{{var-get-campaign-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4dba1108-cf65-46aa-a8d8-d9ee350b3056": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1216,
+            "y": 64,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "645cf6f7-2e61-4674-adf4-fa137e452d42": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "645cf6f7-2e61-4674-adf4-fa137e452d42": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-get-id": {
+                                            "variable": "$.645cf6f7-2e61-4674-adf4-fa137e452d42.out.id",
+                                            "functions": []
+                                        },
+                                        "field-get-name": {
+                                            "variable": "$.645cf6f7-2e61-4674-adf4-fa137e452d42.out.name",
+                                            "functions": []
+                                        },
+                                        "expected-name": {
+                                            "variable": "$.f2ce69e8-b060-4b81-bffc-01e29d778b02.out.campaignName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{field-get-id}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{field-get-name}}}",
+                                                "expected": "{{{expected-name}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "59e1bed4-df6c-44ea-927d-814fe9e31656": {
+            "type": "appmixer.woodpecker.core.GetCampaignStatistics",
+            "x": 736,
+            "y": 369,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "57654b3a-a484-4bbe-ba6a-7e2ee34675be": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "57654b3a-a484-4bbe-ba6a-7e2ee34675be": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "campaignId": {
+                                        "var-stats-campaign-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "campaignId": "{{{var-stats-campaign-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4970f47e-b71a-4c06-a95c-079ecac07748": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1013,
+            "y": 369,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "59e1bed4-df6c-44ea-927d-814fe9e31656": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "59e1bed4-df6c-44ea-927d-814fe9e31656": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-stats-id": {
+                                            "variable": "$.59e1bed4-df6c-44ea-927d-814fe9e31656.out.id",
+                                            "functions": []
+                                        },
+                                        "field-stats-sent": {
+                                            "variable": "$.59e1bed4-df6c-44ea-927d-814fe9e31656.out.sent",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{field-stats-id}}}"
+                                            },
+                                            {
+                                                "assertion": "regex",
+                                                "field": "{{{field-stats-sent}}}",
+                                                "expected": "^[0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8a2a809b-1d8d-416a-8a81-6f56c7f14e7f": {
+            "type": "appmixer.woodpecker.core.AddProspectsToCampaign",
+            "x": 553,
+            "y": 784,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "57654b3a-a484-4bbe-ba6a-7e2ee34675be": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "57654b3a-a484-4bbe-ba6a-7e2ee34675be": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "campaignId": {
+                                        "var-add-campaign-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "prospects": {},
+                                    "force": {}
+                                },
+                                "lambda": {
+                                    "campaignId": "{{{var-add-campaign-id}}}",
+                                    "prospects": "[{\"email\":\"e2e.prospect@appmixer-test.com\",\"first_name\":\"E2E\",\"last_name\":\"Prospect\"}]",
+                                    "force": true
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "eeaf28ff-965e-48f3-93ce-334d40d37c94": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1216,
+            "y": 765,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8a2a809b-1d8d-416a-8a81-6f56c7f14e7f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8a2a809b-1d8d-416a-8a81-6f56c7f14e7f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-add-status": {
+                                            "variable": "$.8a2a809b-1d8d-416a-8a81-6f56c7f14e7f.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{field-add-status}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6fa8d204-ae33-48ce-ac97-d541c980bd85": {
+            "type": "appmixer.woodpecker.core.RunCampaign",
+            "x": 568,
+            "y": 552,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "57654b3a-a484-4bbe-ba6a-7e2ee34675be": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "57654b3a-a484-4bbe-ba6a-7e2ee34675be": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "campaignId": {
+                                        "var-run-campaign-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "campaignId": "{{{var-run-campaign-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0ab7ea35-f345-4244-818f-41eecee577e7": {
+            "type": "appmixer.woodpecker.core.PauseCampaign",
+            "x": 832,
+            "y": 576,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6fa8d204-ae33-48ce-ac97-d541c980bd85": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6fa8d204-ae33-48ce-ac97-d541c980bd85": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "campaignId": {
+                                        "var-pause-campaign-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "campaignId": "{{{var-pause-campaign-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ca826e85-3e64-4889-b30f-dfbaf5de50a3": {
+            "type": "appmixer.woodpecker.core.StopCampaign",
+            "x": 1024,
+            "y": 536,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0ab7ea35-f345-4244-818f-41eecee577e7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0ab7ea35-f345-4244-818f-41eecee577e7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "campaignId": {
+                                        "var-stop-campaign-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "campaignId": "{{{var-stop-campaign-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "dcd50e73-a01a-4209-a0b3-7b53a29ecf51": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1408,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c31ead38-4481-4ea7-bbab-c681ba8cd2c6": [
+                        "out"
+                    ],
+                    "4dba1108-cf65-46aa-a8d8-d9ee350b3056": [
+                        "out"
+                    ],
+                    "4970f47e-b71a-4c06-a95c-079ecac07748": [
+                        "out"
+                    ],
+                    "eeaf28ff-965e-48f3-93ce-334d40d37c94": [
+                        "out"
+                    ],
+                    "ca826e85-3e64-4889-b30f-dfbaf5de50a3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7171bee3-e948-4123-9beb-6fb77d2fec83": {
+            "type": "appmixer.woodpecker.core.DeleteCampaign",
+            "x": 1600,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "dcd50e73-a01a-4209-a0b3-7b53a29ecf51": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "dcd50e73-a01a-4209-a0b3-7b53a29ecf51": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "campaignId": {
+                                        "var-delete-campaign-id": {
+                                            "variable": "$.57654b3a-a484-4bbe-ba6a-7e2ee34675be.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "campaignId": "{{{var-delete-campaign-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "76c443a5-7209-4fcc-b94d-eaaf00a46ddb": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1792,
+            "y": 320,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "7171bee3-e948-4123-9beb-6fb77d2fec83": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "7171bee3-e948-4123-9beb-6fb77d2fec83": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.dcd50e73-a01a-4209-a0b3-7b53a29ecf51.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Woodpecker - Campaign Lifecycle",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ab000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.woodpecker.core.ListMailboxes",
+            "x": 147,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f2ce69e8-b060-4b81-bffc-01e29d778b02": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f2ce69e8-b060-4b81-bffc-01e29d778b02": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a61ff1ea9f32b6f479883b8"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Woodpecker - Campaign Lifecycle",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

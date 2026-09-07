@@ -36,6 +36,27 @@ module.exports = {
         }
     },
 
+    test(context) {
+
+        // App-event webhook trigger: there is no upstream to fetch, but the user supplies a
+        // representative event payload via the eventDataExample property (the same example
+        // that drives the dynamic output schema). Emit it in the exact { data } shape
+        // receive() emits for a real event.
+        const example = context.properties.eventDataExample;
+        if (!example) {
+            throw new Error('No event data example configured to use as test data.');
+        }
+
+        let data;
+        try {
+            data = JSON.parse(example);
+        } catch (err) {
+            throw new Error('The configured event data example is not valid JSON.');
+        }
+
+        return context.sendJson({ data }, 'out');
+    },
+
     getOutputPortOptions(context, eventDataExample) {
 
         let schema;

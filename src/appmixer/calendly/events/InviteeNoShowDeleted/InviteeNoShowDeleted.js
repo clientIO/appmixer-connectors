@@ -34,6 +34,18 @@ module.exports = {
         }
     },
 
+    // Flow Test Mode: emit one realistic invitee_no_show.deleted payload without registering
+    // a webhook. The deleted-webhook payload refers to a no-show record, so an existing no-show
+    // is the closest realistic example — reshaped via the shared connector-level helpers.
+    async test(context) {
+        const invitee = await commons.fetchLatestExample(context, { find: i => !!i.no_show });
+        if (!invitee) {
+            throw new Error('No recent invitees marked as no-show to use as test data.');
+        }
+        return context.sendJson(
+            commons.toNoShowWebhookShape(context, invitee, 'invitee_no_show.deleted'), 'out');
+    },
+
     /**
      * Register webhook in Calendly API.
      * @param {Context} context

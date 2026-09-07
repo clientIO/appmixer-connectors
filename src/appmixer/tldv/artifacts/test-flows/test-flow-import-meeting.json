@@ -1,0 +1,246 @@
+{
+    "name": "E2E tl;dv - Import Meeting",
+    "flow": {
+        "d0d030d5-74fd-49ec-81b5-7fb8511b74b0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1f8af472-168b-4a01-ab4b-4f371fbdbf4b": {
+            "type": "appmixer.tldv.core.ImportMeeting",
+            "x": 256,
+            "y": 320,
+            "source": {
+                "in": {
+                    "d0d030d5-74fd-49ec-81b5-7fb8511b74b0": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "d0d030d5-74fd-49ec-81b5-7fb8511b74b0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {},
+                                    "url": {},
+                                    "correlationId": {},
+                                    "pollingTimeout": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E import async probe",
+                                    "url": "https://download.samplelib.com/mp3/sample-3s.mp3",
+                                    "correlationId": "e2e-tldv-import",
+                                    "pollingTimeout": 180
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e02febe8-965c-4e1c-909b-5c3b1c3e34ee": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 320,
+            "source": {
+                "in": {
+                    "1f8af472-168b-4a01-ab4b-4f371fbdbf4b": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "1f8af472-168b-4a01-ab4b-4f371fbdbf4b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-1f8af472-out": {
+                                            "variable": "$.1f8af472-168b-4a01-ab4b-4f371fbdbf4b.out.jobId",
+                                            "functions": []
+                                        },
+                                        "f1-1f8af472-out": {
+                                            "variable": "$.1f8af472-168b-4a01-ab4b-4f371fbdbf4b.out.correlationId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f0-1f8af472-out}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{f1-1f8af472-out}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-tldv-import"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2cf2ddee-e7ed-40e0-b631-70f924b4bbe0": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 640,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e02febe8-965c-4e1c-909b-5c3b1c3e34ee": [
+                        "out"
+                    ],
+                    "a7d3c1b2-4e5f-4a6b-8c9d-0e1f2a3b4c5d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 240
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4cce397b-6f9c-4791-89e4-8279288206eb": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 832,
+            "y": 320,
+            "source": {
+                "in": {
+                    "2cf2ddee-e7ed-40e0-b631-70f924b4bbe0": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "2cf2ddee-e7ed-40e0-b631-70f924b4bbe0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "f5f24f24-5a69-45ed-afeb-503fc911cda1": {
+                                            "variable": "$.2cf2ddee-e7ed-40e0-b631-70f924b4bbe0.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E tl;dv - Import Meeting",
+                                    "result": "{{{f5f24f24-5a69-45ed-afeb-503fc911cda1}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a7d3c1b2-4e5f-4a6b-8c9d-0e1f2a3b4c5d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 448,
+            "source": {
+                "in": {
+                    "1f8af472-168b-4a01-ab4b-4f371fbdbf4b": [
+                        "done"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "1f8af472-168b-4a01-ab4b-4f371fbdbf4b": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-1f8af472-done": {
+                                            "variable": "$.1f8af472-168b-4a01-ab4b-4f371fbdbf4b.done.id",
+                                            "functions": []
+                                        },
+                                        "f1-1f8af472-done": {
+                                            "variable": "$.1f8af472-168b-4a01-ab4b-4f371fbdbf4b.done.jobId",
+                                            "functions": []
+                                        },
+                                        "f2-1f8af472-done": {
+                                            "variable": "$.1f8af472-168b-4a01-ab4b-4f371fbdbf4b.done.correlationId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f0-1f8af472-done}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{f1-1f8af472-done}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{f2-1f8af472-done}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-tldv-import"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

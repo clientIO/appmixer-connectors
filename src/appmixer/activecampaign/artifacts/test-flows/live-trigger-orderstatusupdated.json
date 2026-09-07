@@ -1,0 +1,132 @@
+{
+    "name": "LIVE ActiveCampaign - OrderStatusUpdated trigger (tick test)",
+    "description": "HELPER (manual live tick test, not auto-run). Verifies the OrderStatusUpdated trigger fires on a state change: start the flow, wait ~1 tick (baseline records order states), change an existing order state (e.g. PUT /ecomOrders/:id with an externalid to recover an abandoned cart, state 2->3), then the next tick emits the order with previousState -> Assert(id & previousState notEmpty). Not auto-runnable (needs the external state change between ticks).",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "order-status": {
+            "type": "appmixer.activecampaign.ecommerce.OrderStatusUpdated",
+            "x": 256,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {},
+            "config": {}
+        },
+        "assert-status": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "order-status": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "order-status": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-id": {
+                                            "variable": "$.order-status.out.id",
+                                            "functions": []
+                                        },
+                                        "field-prev": {
+                                            "variable": "$.order-status.out.previousState",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{field-id}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{field-prev}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 640,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "assert-status": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 30
+                }
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 832,
+            "y": 192,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "after-all": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "var-tc": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "var-res": {
+                                            "variable": "$.after-all.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{var-tc}}}",
+                                    "result": "{{{var-res}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

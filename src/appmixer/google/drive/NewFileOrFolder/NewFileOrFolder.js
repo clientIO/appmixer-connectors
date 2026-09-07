@@ -65,5 +65,21 @@ module.exports = {
                 return lib.registerWebhook(context);
             }
         }
+    },
+
+    // Flow Test Mode: emit one realistic newly-created file/folder without registering a
+    // webhook. Read-only — lists files newest-first by createdTime via the shared helper,
+    // honoring the same folder/fileTypesRestriction filters and the same isNewFileOrFolder
+    // predicate receive() applies, and emits the file in the identical output shape.
+    async test(context) {
+
+        const example = await lib.fetchLatestExampleFile(context, {
+            orderBy: 'createdTime desc',
+            filter: isNewFileOrFolder
+        });
+        if (!example) {
+            throw new Error('No matching files or folders to use as test data.');
+        }
+        return context.sendJson(example, 'out');
     }
 };

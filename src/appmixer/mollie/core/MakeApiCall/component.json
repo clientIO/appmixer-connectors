@@ -1,0 +1,91 @@
+{
+    "name": "appmixer.mollie.core.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the Mollie API.",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:mollie"
+    },
+    "quota": {
+        "manager": "appmixer:mollie",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                    "headers": { "type": "string" },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to <code>https://api.mollie.com/v2</code> (for example <code>/v1/resource</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object (supports nested objects, arrays, and non-string values)."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "Status Code", "value": "status" },
+                { "label": "Response Headers", "value": "headers" },
+                { "label": "Response Body", "value": "body", "schema": { "type": "object", "properties": {} } }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI2LjAuMywgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxvZ29fLV8yMDIyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiCgkgeT0iMHB4IiB2aWV3Qm94PSIwIDAgOTM1LjcgNDUzIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA5MzUuNyA0NTM7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7fQo8L3N0eWxlPgo8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNzQxLjMsMjIwLjhjMTQuNywwLDI3LjksOS43LDMyLjUsMjMuNGgtNjQuOUM3MTMuNSwyMzAuNCw3MjYuNiwyMjAuOCw3NDEuMywyMjAuOEw3NDEuMywyMjAuOHogTTgwNi40LDI1NgoJYzAtMTcuMS02LjctMzMuMi0xOC43LTQ1LjRjLTEyLjEtMTIuMi0yOC4xLTE5LTQ1LjEtMTljLTAuMywwLTAuNiwwLTAuOCwwYy0xNy42LDAuMi0zNC4zLDcuMi00Ni44LDE5LjcKCWMtMTIuNSwxMi41LTE5LjUsMjkuMS0xOS43LDQ2LjhjLTAuMiwxOC4xLDYuNywzNS4xLDE5LjUsNDguMWMxMi44LDEzLDI5LjgsMjAuMSw0Ny44LDIwLjFoMC4xYzIzLjcsMCw0NS45LTEyLjcsNTgtMzNsMS41LTIuNgoJbC0yNi42LTEzLjFsLTEuMywyLjJjLTYuNywxMS0xOC4yLDE3LjUtMzEsMTcuNWMtMTYuNCwwLTMwLjUtMTAuOS0zNC45LTI2LjVoOThMODA2LjQsMjU2TDgwNi40LDI1Nkw4MDYuNCwyNTZ6IE02MzkuNywxNjguNgoJYy0xMS42LDAtMjEtOS40LTIxLTIxczkuNC0yMSwyMS0yMXMyMSw5LjQsMjEsMjFDNjYwLjgsMTU5LjIsNjUxLjMsMTY4LjYsNjM5LjcsMTY4LjYgTTYyMy42LDMyMy42aDMyLjJWMTk0LjNoLTMyLjJWMzIzLjZ6CgkgTTU2MiwxMjkuNGgzMi4ydjE5NC4zSDU2MlYxMjkuNHogTTUwMC40LDMyMy42aDMyLjJWMTI5LjRoLTMyLjJWMzIzLjZ6IE00MTUuNywyOTQuNGMtMTkuNSwwLTM1LjQtMTUuOS0zNS40LTM1LjQKCXMxNS45LTM1LjQsMzUuNC0zNS40czM1LjQsMTUuOSwzNS40LDM1LjRDNDUxLjEsMjc4LjUsNDM1LjIsMjk0LjQsNDE1LjcsMjk0LjRMNDE1LjcsMjk0LjR6IE00MTUuNywxOTEuNQoJYy0zNy4yLDAtNjcuNCwzMC4zLTY3LjQsNjcuNHMzMC4zLDY3LjQsNjcuNCw2Ny40czY3LjQtMzAuMyw2Ny40LTY3LjRTNDUyLjksMTkxLjUsNDE1LjcsMTkxLjVMNDE1LjcsMTkxLjVMNDE1LjcsMTkxLjV6CgkgTTI3OC4yLDE5MS43Yy0xLjgtMC4xLTMuNC0wLjItNS4yLTAuMmMtMTYuMiwwLTMxLjYsNi42LTQyLjcsMTguNGMtMTEuMS0xMS43LTI2LjQtMTguNC00Mi41LTE4LjRjLTMyLjIsMC01OC41LDI2LjItNTguNSw1OC40Cgl2NzMuN2gzMS41di03Mi44YzAtMTMuNCwxMS0yNS43LDIzLjktMjdjMC45LTAuMSwxLjgtMC4xLDIuNy0wLjFjMTQuNiwwLDI2LjUsMTEuOSwyNi41LDI2LjV2NzMuNWgzMi4ydi03Mi45CgljMC0xMy4zLDEwLjktMjUuNiwyMy45LTI2LjljMC45LTAuMSwxLjgtMC4xLDIuNy0wLjFjMTQuNiwwLDI2LjUsMTEuOCwyNi42LDI2LjN2NzMuN2gzMi4ydi03Mi44YzAtMTQuOC01LjUtMjktMTUuMy00MAoJQzMwNi40LDE5OS44LDI5Mi45LDE5MywyNzguMiwxOTEuNyIvPgo8L3N2Zz4K"
+}

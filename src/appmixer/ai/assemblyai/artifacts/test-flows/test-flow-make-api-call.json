@@ -1,0 +1,115 @@
+{
+    "name": "E2E AssemblyAI - Make API Call",
+    "flow": {
+        "29316971-d5d9-4163-a091-bbbc5a13bbe8": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "07f0eb24-a08a-4305-a675-59b50b513eb2": {
+            "type": "appmixer.ai.assemblyai.MakeApiCall",
+            "x": 320,
+            "y": 300,
+            "source": { "in": { "29316971-d5d9-4163-a091-bbbc5a13bbe8": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "29316971-d5d9-4163-a091-bbbc5a13bbe8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "url": {}, "method": {} },
+                                "lambda": { "url": "/v2/transcript?limit=1", "method": "GET" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "f50ca60d-f797-4a9f-9f5e-fcb1b8e0f1bb": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 540,
+            "y": 300,
+            "source": { "in": { "07f0eb24-a08a-4305-a675-59b50b513eb2": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "07f0eb24-a08a-4305-a675-59b50b513eb2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1c6110b0-b34f-4166-8ac2-075d902e11aa": {
+                                            "variable": "$.07f0eb24-a08a-4305-a675-59b50b513eb2.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "assertion": "regex", "field": "{{{1c6110b0-b34f-4166-8ac2-075d902e11aa}}}", "regex": "^2\\d\\d$" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "a62b152f-7d88-47a5-b9c4-62307aff7ea6": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 760,
+            "y": 300,
+            "source": { "in": { "f50ca60d-f797-4a9f-9f5e-fcb1b8e0f1bb": ["out"] } },
+            "version": "1.0.0",
+            "config": { "properties": { "timeout": 180 } },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "5ea38778-4dfb-462d-bad5-4dee4f06b18e": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 960,
+            "y": 300,
+            "source": { "in": { "a62b152f-7d88-47a5-b9c4-62307aff7ea6": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "a62b152f-7d88-47a5-b9c4-62307aff7ea6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "467509c6-3905-4304-89fd-ab60970bcc89": {
+                                            "variable": "$.a62b152f-7d88-47a5-b9c4-62307aff7ea6.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E AssemblyAI - Make API Call",
+                                    "result": "{{{467509c6-3905-4304-89fd-ab60970bcc89}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

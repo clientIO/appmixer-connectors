@@ -51,12 +51,9 @@ module.exports = {
 
     async tick(context) {
 
-        let { boardId, boardListId, boardListCardId } = context.properties;
+        const { boardId, boardListId, boardListCardId } = context.properties;
 
-        let { data: res } = await context.httpRequest({
-            headers: { 'Content-Type': 'application/json' },
-            url: `https://api.trello.com${buildUrl(boardId, boardListId, boardListCardId)}?${commons.getAuthQueryParams(context)}`
-        });
+        const res = await commons.fetchAll(context, buildUrl(boardId, boardListId, boardListCardId));
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
@@ -69,6 +66,19 @@ module.exports = {
             }));
         }
         await context.saveState({ known: Array.from(actual) });
+    },
+
+    async test(context) {
+
+        const { boardId, boardListId, boardListCardId } = context.properties;
+
+        // Same actions listing as tick(), honoring the same board/list/card scope.
+        const res = await commons.fetchAll(context, buildUrl(boardId, boardListId, boardListCardId));
+        const latest = commons.pickLatestById(res);
+        if (!latest) {
+            throw new Error('No recent activity to use as test data.');
+        }
+        return context.sendJson(latest, 'activity');
     }
 };
 

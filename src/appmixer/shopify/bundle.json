@@ -1,6 +1,6 @@
 {
     "name": "appmixer.shopify",
-    "version": "1.2.1",
+    "version": "2.0.0",
     "changelog": {
         "1.0.1": [
             "Initial version."
@@ -16,6 +16,22 @@
         ],
         "1.2.1": [
             "Added output examples to component schemas."
+        ],
+        "1.3.0": [
+            "Implemented test() methods for all trigger components to support Flow Test Mode."
+        ],
+        "1.4.0": [
+            "Added MakeApiCall component for performing arbitrary authorized API calls to the Shopify API."
+        ],
+        "2.0.0": [
+            "BREAKING: Authentication switched from OAuth 2.0 to an Admin API access token (apiKey). Each merchant creates a custom app in their Shopify admin (Settings → Apps and sales channels → Develop apps) and provides the store address and shpat_ token; the auth tooltip lists all scopes the connector uses. Existing users must reconnect. App Store-only GDPR webhooks and the OAuth install route were removed.",
+            "BREAKING: Find Customers migrated to the standard outputType pattern ('Output Type' selector, 'out' + 'notFound' ports, array output under 'result'); flows wired to the old 'customer' port must be rewired.",
+            "BREAKING: Removed the reports CRUD components (plan-gated Shopify REST Report resource). Replaced by ShopifyQL-based Run Report (arbitrary query), Sales Report and Payments Report (friendly date range + grouping), available on basic/developer plans.",
+            "Removed the shopify-api-node dependency: lib.js now calls the Admin REST API (2024-04) directly through context.httpRequest with throttling, 429/Retry-After handling and cursor pagination.",
+            "Added 13 trigger components: New Paid Order, Cancelled Order, Fulfilled Order, New Refund, New/Updated Fulfillment, New/Updated Checkout, New/Updated Draft Order, Abandoned Cart, Inventory Level Updated and Return Tracking (new modules: checkouts, draftorders, inventory, returns).",
+            "Return Tracking subscribes to the whole returns/* topic family via a 'Return Events' multiselect (returns/update alone never fires during a standard return journey) and registers webhooks through GraphQL, emitting the fired topic in webhookTopic.",
+            "Create Order: omit empty customer objects and strip the UI-only variantType discriminator.",
+            "Added E2E trigger test flows covering every trigger component (self-provoke via MakeApiCall where the Admin API allows it; storefront-driven flows carry step-by-step notes)."
         ]
     }
 }

@@ -1,5 +1,5 @@
 'use strict';
-const commons = require('../../shopify-commons');
+const commons = require('../../lib');
 
 function buildOrder(orderInfo) {
 
@@ -29,6 +29,11 @@ function buildOrder(orderInfo) {
         };
     }
 
+    // Shopify rejects an order with an empty customer object
+    // ("customer: Required parameter missing or invalid") — only send it
+    // when a customer id or at least one customer field was provided.
+    const hasCustomer = Object.values(customer).some(value => value !== undefined && value !== null && value !== '');
+
     const order = {
         email,
         phone,
@@ -36,8 +41,11 @@ function buildOrder(orderInfo) {
         note,
         tags,
         test,
-        customer,
-        'line_items': orderInfo.line_items.ADD,
+        ...(hasCustomer ? { customer } : {}),
+        // `variantType` is a UI-only discriminator (Variant vs Custom line item)
+        // used by the inspector's `when` conditions; strip it before sending so
+        // Shopify only receives real line-item fields.
+        'line_items': orderInfo.line_items.ADD.map(({ variantType, ...lineItem }) => lineItem),
         'buyer_accepts_marketing': orderInfo.buyer_accepts_marketing,
         'financial_status': orderInfo.financial_status,
         'fulfillment_status': orderInfo.fulfillment_status === 'null' ? null : orderInfo.fulfillment_status,
@@ -94,7 +102,7 @@ module.exports = {
             return context.sendJson(products, 'order');
         }
 
-        const shopify = commons.getShopifyAPI(context.auth);
+        const shopify = commons.getShopifyAPI(context);
         const orderInput = buildOrder(context.messages.in.content);
 
         await context.log({ step: 'Creating order: ', ...orderInput });

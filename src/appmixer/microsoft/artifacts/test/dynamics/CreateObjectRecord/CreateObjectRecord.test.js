@@ -34,6 +34,9 @@ describe('CreateObjectRecord', function() {
 
                 // Stub the httpRequest function.
                 context.httpRequest = sinon.stub().resolves(leadResponseStub);
+                // The entity-set (collection) segment is resolved from the metadata API
+                // and cached; serve it from the cache so only the create request runs.
+                context.staticCache.get = sinon.stub().resolves('leads');
             });
 
             it('should call httpRequest with correct options', async function() {
@@ -67,6 +70,30 @@ describe('CreateObjectRecord', function() {
                 assert.equal(context.sendJson.callCount, 1, 'should call sendJson once');
                 assert.equal(context.sendJson.args[0][0].objectName, 'lead', 'should call sendJson with correct objectName');
                 assert.equal(context.sendJson.args[0][0].id, leadResponseStub.data.leadid, 'should call sendJson with correct id');
+            });
+
+            it('should resolve the entity set from metadata on cache miss (irregular plurals)', async function() {
+
+                context.staticCache.get = sinon.stub().resolves(undefined);
+                context.httpRequest = sinon.stub();
+                // First call: EntityDefinitions metadata lookup; second call: the create.
+                context.httpRequest.onFirstCall().resolves({ data: { EntitySetName: 'opportunities' } });
+                context.httpRequest.onSecondCall().resolves(leadResponseStub);
+
+                context.properties = {};
+                context.messages = { in: { content: { objectName: 'opportunity', subject: 'Test' } } };
+
+                await action.receive(context);
+
+                assert.equal(context.httpRequest.callCount, 2, 'should call metadata + create');
+                assert.ok(
+                    context.httpRequest.args[0][0].url.includes("EntityDefinitions(LogicalName='opportunity')"),
+                    'first request resolves the entity set from metadata');
+                assert.equal(
+                    context.httpRequest.args[1][0].url,
+                    `${context.resource}/api/data/v9.2/opportunities`,
+                    'create uses the resolved entity set, not a naive plural');
+                assert.equal(context.staticCache.set.callCount, 1, 'caches the resolved entity set');
             });
         });
     });

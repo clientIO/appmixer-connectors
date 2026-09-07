@@ -1,5 +1,5 @@
 'use strict';
-const { ensureStore, createQueryProcessor } = require('../../common');
+const { ensureStore, createQueryProcessor, fetchLatestRow } = require('../../common');
 
 async function processUpdatedRows(context, storeId, query, params, lock, idField) {
 
@@ -160,5 +160,23 @@ module.exports = {
 
             return context.response('ok');
         }
+    },
+
+    async test(context) {
+
+        const { recordOldValues } = context.properties;
+
+        const row = await fetchLatestRow(context);
+        if (!row) {
+            throw new Error('No rows match the configured query to use as test data.');
+        }
+
+        // Mirror receive()'s branching: with recordOldValues the update path emits both the new
+        // and old row; otherwise only the updated row is emitted. No prior value exists in a
+        // read-only fetch, so the same row stands in for oldRow.
+        if (recordOldValues) {
+            return context.sendJson({ updatedRow: row, oldRow: row }, 'out');
+        }
+        return context.sendJson({ updatedRow: row }, 'out');
     }
 };

@@ -1,5 +1,5 @@
 'use strict';
-const { sendArrayOutput } = require('../../commons');
+const { sendArrayOutput, withCache } = require('../../commons');
 const XeroClient = require('../../XeroClient');
 
 const outputPortName = 'contacts';
@@ -15,8 +15,17 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
-        const xc = new XeroClient(context, tenantId);
-        const records = await xc.requestPaginated('GET', '/api.xro/2.0/Contacts', { params });
+        if (!tenantId) {
+            throw new context.CancelError('Tenant ID is required!');
+        }
+
+        // Cache the assembled (post-pagination) contacts array so the burst of inspector source calls
+        // does not trip Xero's rate limits. See commons.withCache for details.
+        const records = await withCache(
+            context,
+            { tenantId, url: '/api.xro/2.0/Contacts', params },
+            () => new XeroClient(context, tenantId).requestPaginated('GET', '/api.xro/2.0/Contacts', { params })
+        );
 
         return sendArrayOutput({
             context,

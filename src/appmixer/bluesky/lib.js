@@ -196,6 +196,55 @@ function toCsv(array) {
 }
 
 // ---------------------------------------------------------------------------
+// Notification trigger helpers (shared by tick() and test())
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch all notifications for the authenticated user, following pagination.
+ * Notifications are returned newest-first by the API.
+ * Shared by every notification trigger's tick().
+ */
+async function listAllNotifications(context) {
+    let allNotifications = [];
+    let cursor;
+    do {
+        const response = await xrpc(context, {
+            method: 'GET',
+            nsid: 'app.bsky.notification.listNotifications',
+            params: Object.assign({ limit: 100 }, cursor ? { cursor } : {})
+        });
+        const batch = response.notifications || [];
+        allNotifications = allNotifications.concat(batch);
+        cursor = response.cursor;
+        if (!cursor || batch.length === 0) break;
+    } while (cursor);
+    return allNotifications;
+}
+
+/**
+ * Fetch the newest notification matching `reason` (e.g. 'follow', 'mention',
+ * 'reply'). Used by test() to surface a representative item WITHOUT the
+ * dedup baseline that suppresses first-run output in tick(). The API returns
+ * notifications newest-first, so the first match is the most recent one.
+ */
+async function fetchLatestNotification(context, reason) {
+    let cursor;
+    do {
+        const response = await xrpc(context, {
+            method: 'GET',
+            nsid: 'app.bsky.notification.listNotifications',
+            params: Object.assign({ limit: 100 }, cursor ? { cursor } : {})
+        });
+        const batch = response.notifications || [];
+        const match = batch.find(n => n.reason === reason);
+        if (match) return match;
+        cursor = response.cursor;
+        if (!cursor || batch.length === 0) break;
+    } while (cursor);
+    return null;
+}
+
+// ---------------------------------------------------------------------------
 // Trigger dedup helpers
 // ---------------------------------------------------------------------------
 
@@ -217,5 +266,7 @@ module.exports = {
     buildFacets,
     sendArrayOutput,
     getOutputPortOptions,
-    getNewItems
+    getNewItems,
+    listAllNotifications,
+    fetchLatestNotification
 };

@@ -1,0 +1,431 @@
+{
+    "flow": {
+        "3b024b44-ed50-46bb-b601-bdb5d8b3702c": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d0076092-7436-4b23-9df1-76b73d592a41": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 32,
+            "source": {
+                "in": {
+                    "3b024b44-ed50-46bb-b601-bdb5d8b3702c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3b024b44-ed50-46bb-b601-bdb5d8b3702c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "attendeeEmail",
+                                                "text": "test@appmixer.onmicrosoft.com",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8d6ebb9f-d663-4158-b1ff-e482c92bcf75": {
+            "type": "appmixer.microsoft.calendar.CreateEvent",
+            "label": "CreateEvent as ORGANIZER (invites attendee)",
+            "x": 464,
+            "y": 32,
+            "source": {
+                "in": {
+                    "d0076092-7436-4b23-9df1-76b73d592a41": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "account": "69c567f7e315d6b35fb2e07a"
+                },
+                "transform": {
+                    "in": {
+                        "d0076092-7436-4b23-9df1-76b73d592a41": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "subject": {
+                                        "var-ts": {
+                                            "variable": "$.3b024b44-ed50-46bb-b601-bdb5d8b3702c.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "emails": {
+                                        "var-attendee": {
+                                            "variable": "$.d0076092-7436-4b23-9df1-76b73d592a41.out.attendeeEmail",
+                                            "functions": []
+                                        }
+                                    },
+                                    "start": {
+                                        "var-start": {
+                                            "variable": "$.3b024b44-ed50-46bb-b601-bdb5d8b3702c.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 24
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "end": {
+                                        "var-end": {
+                                            "variable": "$.3b024b44-ed50-46bb-b601-bdb5d8b3702c.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 25
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "subject": "E2E MS Calendar DeclineEvent {{{var-ts}}}",
+                                    "emails": "{{{var-attendee}}}",
+                                    "start": "{{{var-start}}}",
+                                    "end": "{{{var-end}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "17981091-df7d-4235-8236-78a2c2d62ec7": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (invitation delivery to attendee)",
+            "x": 672,
+            "y": 32,
+            "source": {
+                "in": {
+                    "8d6ebb9f-d663-4158-b1ff-e482c92bcf75": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8d6ebb9f-d663-4158-b1ff-e482c92bcf75": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1d1f0e24-71a0-485d-8ab5-e09987e76850": {
+            "type": "appmixer.microsoft.calendar.ListEvents",
+            "label": "ListEvents as ATTENDEE (find their copy of the invite)",
+            "x": 880,
+            "y": 32,
+            "source": {
+                "in": {
+                    "17981091-df7d-4235-8236-78a2c2d62ec7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                },
+                "transform": {
+                    "in": {
+                        "17981091-df7d-4235-8236-78a2c2d62ec7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filter": {
+                                        "var-subj": {
+                                            "variable": "$.8d6ebb9f-d663-4158-b1ff-e482c92bcf75.out.subject",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "filter": "subject eq '{{{var-subj}}}'",
+                                    "outputType": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "69232d4d-d5bf-45f3-950f-9e432e91b784": {
+            "type": "appmixer.microsoft.calendar.DeclineEvent",
+            "label": "DeclineEvent as ATTENDEE (component under test)",
+            "x": 1088,
+            "y": 32,
+            "source": {
+                "in": {
+                    "1d1f0e24-71a0-485d-8ab5-e09987e76850": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                },
+                "transform": {
+                    "in": {
+                        "1d1f0e24-71a0-485d-8ab5-e09987e76850": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "eventId": {
+                                        "var-id": {
+                                            "variable": "$.1d1f0e24-71a0-485d-8ab5-e09987e76850.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "comment": {}
+                                },
+                                "lambda": {
+                                    "eventId": "{{{var-id}}}",
+                                    "comment": "E2E DeclineEvent test"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7e1c479f-b20c-4514-8824-5b44fcdfeb24": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: attendee copy found and DeclineEvent succeeded",
+            "x": 1296,
+            "y": 32,
+            "source": {
+                "in": {
+                    "69232d4d-d5bf-45f3-950f-9e432e91b784": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "69232d4d-d5bf-45f3-950f-9e432e91b784": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-id": {
+                                            "variable": "$.1d1f0e24-71a0-485d-8ab5-e09987e76850.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-id}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e66b5490-c9b2-4c00-9da9-881dc9ba001e": {
+            "type": "appmixer.microsoft.calendar.DeleteEvent",
+            "label": "DeleteEvent as ORGANIZER (cleanup, cancels invite)",
+            "x": 1296,
+            "y": 208,
+            "source": {
+                "in": {
+                    "69232d4d-d5bf-45f3-950f-9e432e91b784": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "account": "69c567f7e315d6b35fb2e07a"
+                },
+                "transform": {
+                    "in": {
+                        "69232d4d-d5bf-45f3-950f-9e432e91b784": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "eventId": {
+                                        "var-id": {
+                                            "variable": "$.8d6ebb9f-d663-4158-b1ff-e482c92bcf75.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "eventId": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8c91cc52-e366-4162-b87a-d5cc4a84793d": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 112,
+            "source": {
+                "in": {
+                    "7e1c479f-b20c-4514-8824-5b44fcdfeb24": [
+                        "out"
+                    ],
+                    "e66b5490-c9b2-4c00-9da9-881dc9ba001e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 240
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8c1efa3e-9550-4132-88ba-c59c50b7f061": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 112,
+            "source": {
+                "in": {
+                    "8c91cc52-e366-4162-b87a-d5cc4a84793d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "8c91cc52-e366-4162-b87a-d5cc4a84793d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.8c91cc52-e366-4162-b87a-d5cc4a84793d.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E MS Calendar - DeclineEvent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        }
+    },
+    "name": "E2E MS Calendar - DeclineEvent",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

@@ -1,6 +1,15 @@
 'use strict';
 
 function kvToObj(arr) {
+    // The engine can deliver the key-value input as a JSON string (e.g. when the array
+    // comes from a flow transform instead of the designer's key-value editor).
+    if (typeof arr === 'string') {
+        try {
+            arr = JSON.parse(arr);
+        } catch (e) {
+            return {};
+        }
+    }
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
     for (const row of arr) {
@@ -54,7 +63,6 @@ module.exports = {
             options.params = queryParams;
         }
 
-        await context.log({ step: 'Making request', options });
 
         try {
             const { data, status, statusText } = await context.httpRequest(options);

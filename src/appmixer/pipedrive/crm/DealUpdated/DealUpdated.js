@@ -23,14 +23,7 @@ module.exports = {
 
     async tick(context) {
 
-        const dealsApi = commons.getPromisifiedClient(context.auth.apiKey, 'Deals');
-        const response = await dealsApi.getAllAsync({});
-
-        if (response.success === false) {
-            throw new context.CancelError(response.formattedError);
-        }
-
-        const deals = response.data;
+        const deals = await commons.listRecords(context, 'Deals');
         const { previousState } = context.state || {};
 
         const {
@@ -52,5 +45,29 @@ module.exports = {
                 }
             });
         }
+    },
+
+    async test(context) {
+
+        const deals = await commons.listRecords(context, 'Deals');
+        const first = deals[0];
+        if (!first) {
+            throw new Error('No deal available to use as test data.');
+        }
+
+        // tick() emits a checkListForChanges 'changed' entry. With includeOldData that entry
+        // carries the new record under `item` and the previous one under `oldItem`. There is
+        // no real prior version in Test Mode, so reuse the same deal for both sides and the
+        // same observedFieldsMapping tick() uses to keep the shape identical.
+        const deal = typeof first.toObject === 'function' ? first.toObject() : first;
+        const mapped = observedFieldsMapping(deal);
+
+        return context.sendJson({
+            id: deal.id,
+            state: 'changed',
+            item: deal,
+            oldItem: deal,
+            ...mapped
+        }, 'deal');
     }
 };

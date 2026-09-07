@@ -1,0 +1,182 @@
+{
+    "name": "Demo Salesforce - Get Contacts",
+    "type": "automation",
+    "flow": {
+        "c2000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c2000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.salesforce.crm.CreateContact",
+            "x": 256,
+            "y": 300,
+            "source": {
+                "contact": {
+                    "c2000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "contact": {
+                        "c2000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "firstName": "Alex",
+                                    "lastName": "Demo Contact",
+                                    "email": "alex.demo@example.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c2000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.salesforce.crm.FindContacts",
+            "x": 448,
+            "y": 300,
+            "source": {
+                "in": {
+                    "c2000000-0000-0000-0000-000000000002": [
+                        "newContact"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c2000000-0000-0000-0000-000000000002": {
+                            "newContact": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "accountId": {
+                                        "v-accountId": {
+                                            "variable": "$.c2000000-0000-0000-0000-000000000002.newContact.AccountId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "accountId": "{{{v-accountId}}}",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c2000000-0000-0000-0000-000000000004": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 640,
+            "y": 300,
+            "source": {
+                "in": {
+                    "c2000000-0000-0000-0000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c2000000-0000-0000-0000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "v-firstName": {
+                                            "variable": "$.c2000000-0000-0000-0000-000000000003.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].Name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "v-firstEmail": {
+                                            "variable": "$.c2000000-0000-0000-0000-000000000003.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].Email"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "v-firstPhone": {
+                                            "variable": "$.c2000000-0000-0000-0000-000000000003.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].Phone"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "contactName",
+                                                "text": "{{{v-firstName}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "contactEmail",
+                                                "text": "{{{v-firstEmail}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "contactPhone",
+                                                "text": "{{{v-firstPhone}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    }
+}

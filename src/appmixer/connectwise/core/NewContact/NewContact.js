@@ -27,6 +27,48 @@ module.exports = {
         }
     },
 
+    test: async function(context) {
+
+        // Honor the subscription scope (properties.level/objectId) so Test Mode emits an
+        // example the configured trigger would actually deliver. All paths fetch through the
+        // same REST client/base URL the webhook lifecycle uses; the resource matches the
+        // schema of the webhook Entity.
+        const { level, objectId } = context.properties;
+        const baseUrl = this.getBaseUrl(context) + '/company/contacts';
+
+        // level=Owner subscribes to every contact — the newest one is representative.
+        if (level === 'Owner') {
+            const response = await this.httpRequest(context, {
+                url: baseUrl,
+                method: 'GET',
+                query: { orderBy: 'id desc', pageSize: 1 }
+            });
+            const record = (response.data || [])[0];
+            if (!record) {
+                throw new context.CancelError('No contacts found to use as test data.');
+            }
+            return context.sendJson(record, 'out');
+        }
+
+        // level=Contact subscribes to one specific contact — fetch exactly that record.
+        if (level === 'Contact') {
+            const response = await this.httpRequest(context, {
+                url: `${baseUrl}/${objectId}`,
+                method: 'GET'
+            });
+            if (!response.data) {
+                throw new context.CancelError(`Contact ${objectId} not found to use as test data.`);
+            }
+            return context.sendJson(response.data, 'out');
+        }
+
+        // Type/Territory/Company narrow delivery to a subset that cannot be reproduced
+        // faithfully with a read-only fetch — throw rather than emit an out-of-scope sample.
+        throw new context.CancelError(
+            `Flow Test Mode cannot sample a "${level}"-scoped subscription read-only. Use level "Owner" or "Contact", or trigger it with a real event.`
+        );
+    },
+
     httpRequest: async function(context, override = {}) {
 
         let url = null;

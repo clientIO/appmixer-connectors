@@ -1,0 +1,509 @@
+{
+    "flow": {
+        "b505a59e-c66b-4325-9e8e-161ebf8647c9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3503710f-58c9-4dcc-8de4-8c327e423fd4": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 208,
+            "y": 32,
+            "source": {
+                "in": {
+                    "b505a59e-c66b-4325-9e8e-161ebf8647c9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b505a59e-c66b-4325-9e8e-161ebf8647c9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "testPrefix",
+                                                "text": "E2E Dynamics Trigger",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "88a464c6-21d7-48d5-8613-2467a002598c": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (trigger baseline tick)",
+            "x": 368,
+            "y": 32,
+            "source": {
+                "in": {
+                    "3503710f-58c9-4dcc-8de4-8c327e423fd4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3503710f-58c9-4dcc-8de4-8c327e423fd4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a72f42f1-a97f-4f42-93de-2f3bd2a36a0d": {
+            "type": "appmixer.microsoft.dynamics.CreateAccount",
+            "label": "CreateAccount (test data)",
+            "x": 528,
+            "y": 32,
+            "source": {
+                "in": {
+                    "88a464c6-21d7-48d5-8613-2467a002598c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "88a464c6-21d7-48d5-8613-2467a002598c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "rawJson": {},
+                                    "name": {
+                                        "var-ts": {
+                                            "variable": "$.b505a59e-c66b-4325-9e8e-161ebf8647c9.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "rawJson": false,
+                                    "name": "E2E Trigger Account {{{var-ts}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "14ed5f3e-05ec-4f2c-9346-cfc4d0fb3b28": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: test record created",
+            "x": 784,
+            "y": 32,
+            "source": {
+                "in": {
+                    "a72f42f1-a97f-4f42-93de-2f3bd2a36a0d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a72f42f1-a97f-4f42-93de-2f3bd2a36a0d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.a72f42f1-a97f-4f42-93de-2f3bd2a36a0d.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d9bf69b7-35fe-4517-adf7-436c767d333f": {
+            "type": "appmixer.microsoft.dynamics.UpdateAccount",
+            "label": "UpdateAccount (fire updated trigger)",
+            "x": 720,
+            "y": -160,
+            "source": {
+                "in": {
+                    "a72f42f1-a97f-4f42-93de-2f3bd2a36a0d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a72f42f1-a97f-4f42-93de-2f3bd2a36a0d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "rawJson": {},
+                                    "id": {
+                                        "var-id": {
+                                            "variable": "$.a72f42f1-a97f-4f42-93de-2f3bd2a36a0d.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "json": {}
+                                },
+                                "lambda": {
+                                    "rawJson": true,
+                                    "id": "{{{var-id}}}",
+                                    "json": "{\"description\": \"E2E Updated\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "916eef81-7506-422d-8dfa-41b691894832": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (triggers pick up record)",
+            "x": 944,
+            "y": -160,
+            "source": {
+                "in": {
+                    "d9bf69b7-35fe-4517-adf7-436c767d333f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d9bf69b7-35fe-4517-adf7-436c767d333f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "3m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ea319ffb-fa0a-495f-884a-7c80376f90a0": {
+            "type": "appmixer.microsoft.dynamics.DeleteAccount",
+            "label": "DeleteAccount (cleanup)",
+            "x": 1376,
+            "y": 176,
+            "source": {
+                "in": {
+                    "916eef81-7506-422d-8dfa-41b691894832": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "916eef81-7506-422d-8dfa-41b691894832": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "id": {
+                                        "var-id": {
+                                            "variable": "$.a72f42f1-a97f-4f42-93de-2f3bd2a36a0d.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "id": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "199d02fd-8965-469e-b930-2321734842bf": {
+            "type": "appmixer.microsoft.dynamics.NewAccount",
+            "label": "NewAccount (trigger under test)",
+            "x": 560,
+            "y": 256,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            }
+        },
+        "08740684-bb26-48c4-9ea8-55a7fd65a135": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: NewAccount fired with record id",
+            "x": 768,
+            "y": 256,
+            "source": {
+                "in": {
+                    "199d02fd-8965-469e-b930-2321734842bf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "199d02fd-8965-469e-b930-2321734842bf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.199d02fd-8965-469e-b930-2321734842bf.out.accountid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9b3a7be6-cb18-4ae6-a576-3b173571e0cf": {
+            "type": "appmixer.microsoft.dynamics.UpdatedAccount",
+            "label": "UpdatedAccount (trigger under test)",
+            "x": 560,
+            "y": 400,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "account": "6a4d0b3374eaf6ddca810f90"
+                }
+            }
+        },
+        "54882eb2-049f-49ca-a62f-a5bf7954b1dd": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: UpdatedAccount fired with record id",
+            "x": 768,
+            "y": 400,
+            "source": {
+                "in": {
+                    "9b3a7be6-cb18-4ae6-a576-3b173571e0cf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9b3a7be6-cb18-4ae6-a576-3b173571e0cf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-a": {
+                                            "variable": "$.9b3a7be6-cb18-4ae6-a576-3b173571e0cf.out.accountid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "95a804a4-c93f-4829-b9cc-189129ac593c": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1536,
+            "y": 176,
+            "source": {
+                "in": {
+                    "14ed5f3e-05ec-4f2c-9346-cfc4d0fb3b28": [
+                        "out"
+                    ],
+                    "08740684-bb26-48c4-9ea8-55a7fd65a135": [
+                        "out"
+                    ],
+                    "54882eb2-049f-49ca-a62f-a5bf7954b1dd": [
+                        "out"
+                    ],
+                    "ea319ffb-fa0a-495f-884a-7c80376f90a0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "94d556da-00f7-4bc3-bdf9-963dbf810318": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1696,
+            "y": 176,
+            "source": {
+                "in": {
+                    "95a804a4-c93f-4829-b9cc-189129ac593c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "95a804a4-c93f-4829-b9cc-189129ac593c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.95a804a4-c93f-4829-b9cc-189129ac593c.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E - Microsoft Dynamics Sales/CRM - New/Updated Account triggers"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E - Microsoft Dynamics Sales/CRM - New/Updated Account triggers",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

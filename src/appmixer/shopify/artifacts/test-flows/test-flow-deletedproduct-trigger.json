@@ -1,0 +1,260 @@
+{
+    "name": "E2E Shopify - Deleted Product Trigger",
+    "type": "automation",
+    "flow": {
+        "a0000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.shopify.products.DeletedProduct",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "config": {
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000001": [
+                        "deleted"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0000000-0000-0000-0000-000000000001": {
+                            "deleted": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-id": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000001.deleted.id",
+                                            "functions": []
+                                        },
+                                        "field-topic": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000001.deleted.webhookTopic",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{field-id}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{field-topic}}}",
+                                                "expected": "products/delete"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0000000-0000-0000-0000-000000000004": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a0000000-0000-0000-0000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a0000000-0000-0000-0000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "result": {
+                                        "field-result": {
+                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Shopify - Deleted Product Trigger",
+                                    "result": "{{{field-result}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 576,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 576,
+            "source": {
+                "in": {
+                    "b0000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b0000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.shopify.products.CreateProduct",
+            "x": 480,
+            "y": 576,
+            "source": {
+                "in": {
+                    "b0000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b0000000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "title": "Appmixer E2E Trigger Product",
+                                    "body_html": "<p>E2E</p>",
+                                    "vendor": "Appmixer",
+                                    "product_type": "E2E",
+                                    "tags": "appmixer-e2e",
+                                    "published": false
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a5dbb68b33bcbd1269431be"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0000000-0000-0000-0000-000000000004": {
+            "type": "appmixer.shopify.products.DeleteProduct",
+            "x": 688,
+            "y": 576,
+            "source": {
+                "in": {
+                    "b0000000-0000-0000-0000-000000000003": [
+                        "product"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b0000000-0000-0000-0000-000000000003": {
+                            "product": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "id": {
+                                        "del-id": {
+                                            "variable": "$.b0000000-0000-0000-0000-000000000003.product.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "id": "{{{del-id}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a5dbb68b33bcbd1269431be"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    }
+}

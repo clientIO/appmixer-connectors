@@ -117,6 +117,31 @@ async function requestPaginated(context, { method, url, data = {}, headers = {},
     return records;
 }
 
+/**
+ * Fetches the single newest record from a ServiceNow table via the read-only Table API.
+ * Shared by the webhook triggers' test() methods so Flow Test Mode can emit a representative
+ * record with the exact same shape that receive() forwards from the webhook payload.
+ * @param {object} context Appmixer context (auth + properties available).
+ * @param {object} opts
+ * @param {string} opts.tableName Table to query (from context.properties.tableName).
+ * @param {string} [opts.orderField='sys_created_on'] Field to order by, newest first.
+ * @returns {object|null} The newest record object, or null if the table has no records.
+ */
+async function fetchLatestRecord(context, { tableName, orderField = 'sys_created_on' } = {}) {
+
+    const { data } = await callEndpoint(context, {
+        method: 'GET',
+        action: `table/${tableName}`,
+        params: {
+            sysparm_limit: 1,
+            sysparm_query: `ORDERBYDESC${orderField}`
+        }
+    });
+
+    const records = data?.result || [];
+    return records[0] || null;
+}
+
 // Expects standardized outputType: 'item', 'items', 'file'
 async function sendArrayOutput({ context, outputPortName = 'out', outputType = 'items', records = [] }) {
     if (outputType === 'item') {
@@ -293,6 +318,7 @@ module.exports = {
     requestPaginated,
     sendArrayOutput,
     callEndpoint,
+    fetchLatestRecord,
     toInspector,
     toOutputScheme,
     getColumns

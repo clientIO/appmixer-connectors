@@ -34,5 +34,17 @@ module.exports = {
         }
 
         return context.response();
+    },
+
+    async test(context) {
+
+        // A deletion can't be observed live, so fetch one current project as a
+        // representative example and reshape it into the deleted-project payload
+        // receive() emits (the project object + webhookEvent).
+        const project = await commons.fetchLatestProject(context);
+        if (!project) {
+            throw new Error('No projects to use as test data.');
+        }
+        return context.sendJson(commons.toWebhookShape(project, commons.EventType.projectDeleted), 'deleted');
     }
 };

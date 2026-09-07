@@ -22,6 +22,19 @@ module.exports = {
             }));
         }
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        let { repositoryId } = context.properties;
+
+        const pullRequest = await lib.fetchLatest(context, `repos/${repositoryId}/pulls`, {
+            params: { sort: 'created', direction: 'desc' }
+        });
+        if (!pullRequest) {
+            throw new Error('No recent pull requests to use as test data.');
+        }
+        return context.sendJson(pullRequest, 'pullRequest');
     }
 };
 

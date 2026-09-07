@@ -1,5 +1,5 @@
 'use strict';
-const { ensureStore, createQueryProcessor } = require('../../common');
+const { ensureStore, createQueryProcessor, fetchLatestRow } = require('../../common');
 
 async function processDeletedRowsStart(context, storeId, query, lock, idField) {
 
@@ -106,5 +106,17 @@ module.exports = {
                 lock.unlock();
             }
         }
+    },
+
+    async test(context) {
+
+        // A deletion can't be fabricated read-only, so the representative example is the newest
+        // row currently matching the query — the same row shape tick() emits when it detects a
+        // deletion ({ row: <stored row> }).
+        const row = await fetchLatestRow(context);
+        if (!row) {
+            throw new Error('No rows match the configured query to use as test data.');
+        }
+        return context.sendJson({ row }, 'out');
     }
 };

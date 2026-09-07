@@ -61,5 +61,21 @@ module.exports = {
                 await lock.unlock();
             }
         }
+    },
+
+    async test(context) {
+
+        // Read-only, no state: reuse the same fetch+filter path as tick() WITHOUT the
+        // id baseline that start()/tick() use to suppress already-seen messages, so Flow
+        // Test Mode emits the newest existing message in the exact shape tick() emits.
+        const messages = await getProjectMessages(context);
+
+        // messagesToState() treats the last element as the newest (highest id); mirror that.
+        const latest = messages.slice(-1)[0];
+        if (!latest) {
+            throw new Error('No sent messages in the project to use as test data.');
+        }
+
+        return context.sendJson(latest, 'out');
     }
 };

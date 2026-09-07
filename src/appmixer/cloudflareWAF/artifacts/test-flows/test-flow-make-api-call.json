@@ -1,0 +1,231 @@
+{
+    "name": "E2E cloudflareWAF - Make API Call",
+    "type": "automation",
+    "flow": {
+        "0b1e4425-84db-4dcb-adc1-0f343b929411": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "515416a5-c2e2-4760-b940-a19f8f8af705": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 300,
+            "y": 300,
+            "source": {
+                "in": {
+                    "0b1e4425-84db-4dcb-adc1-0f343b929411": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "0b1e4425-84db-4dcb-adc1-0f343b929411": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "endpoint",
+                                                "text": "/accounts"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "335d0882-1b9a-4013-9bbb-61048b2e721b": {
+            "type": "appmixer.cloudflareWAF.core.MakeApiCall",
+            "x": 520,
+            "y": 300,
+            "source": {
+                "in": {
+                    "515416a5-c2e2-4760-b940-a19f8f8af705": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "label": "Verify API Token",
+            "config": {
+                "transform": {
+                    "in": {
+                        "515416a5-c2e2-4760-b940-a19f8f8af705": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "a87df281-bea2-45db-8060-f129453fe47a": {
+                                            "variable": "$.515416a5-c2e2-4760-b940-a19f8f8af705.out.endpoint",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{a87df281-bea2-45db-8060-f129453fe47a}}}",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fda02728-c6a9-4763-a1a0-128ce9be7f02": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 760,
+            "y": 300,
+            "source": {
+                "in": {
+                    "335d0882-1b9a-4013-9bbb-61048b2e721b": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "335d0882-1b9a-4013-9bbb-61048b2e721b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "62994834-2afa-4af2-a3fa-3488f8e6dac5": {
+                                            "variable": "$.335d0882-1b9a-4013-9bbb-61048b2e721b.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.status"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "200",
+                                                "field": "{{{62994834-2afa-4af2-a3fa-3488f8e6dac5}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "00f1ae59-38ee-4487-8a20-59726a30b611": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1000,
+            "y": 300,
+            "source": {
+                "in": {
+                    "fda02728-c6a9-4763-a1a0-128ce9be7f02": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1974c76d-2999-44fd-87d4-2ee4068e27f8": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1220,
+            "y": 300,
+            "source": {
+                "in": {
+                    "00f1ae59-38ee-4487-8a20-59726a30b611": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "00f1ae59-38ee-4487-8a20-59726a30b611": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "12648f78-f1d0-4df2-b9e5-61093fb94b78": {
+                                            "variable": "$.00f1ae59-38ee-4487-8a20-59726a30b611.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {
+                                        "f7de3852-78d2-4cae-9c36-7dda5546cc6b": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{12648f78-f1d0-4df2-b9e5-61093fb94b78}}}",
+                                    "testCase": "{{{f7de3852-78d2-4cae-9c36-7dda5546cc6b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

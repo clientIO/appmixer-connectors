@@ -52,5 +52,20 @@ module.exports = {
                     return context.sendJson(tag, 'tag');
                 });
             });
+    },
+
+    async test(context) {
+
+        const client = commons.getAsanaAPI(context.auth.accessToken);
+        const { task } = context.properties;
+
+        // Same path as tick(): read the task's tags, then findById the newest tag.
+        const res = await client.tasks.findById(task);
+        const latest = commons.pickLatest(res.tags);
+        if (!latest) {
+            throw new Error('No tags on the task to use as test data.');
+        }
+        const tag = await client.tags.findById(latest.gid);
+        return context.sendJson(tag, 'tag');
     }
 };

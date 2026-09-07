@@ -17,6 +17,11 @@ module.exports = {
         }
 
         const records = await resources.getResources(context, { filterBy, limit });
+
+        if (!records.length) {
+            return context.sendJson({ filter: filterBy }, 'notFound');
+        }
+
         return context.sendArray(records, 'out');
     }
 };

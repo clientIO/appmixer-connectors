@@ -39,5 +39,21 @@ module.exports = {
             return context.sendJson(post, 'post');
         });
         await context.saveState({ known: current });
+    },
+
+    async test(context) {
+
+        let { siteId } = context.properties;
+
+        // Reuse the same fetch+shape path as tick(); the WordPress posts endpoint
+        // returns newest-first, so the first item is the most recent post. No state
+        // baseline is applied here, so unlike tick()'s first run this emits an item.
+        let res = await commons.getBlogPosts({ siteId });
+
+        if (!res.length) {
+            throw new Error('No posts on the site to use as test data.');
+        }
+
+        return context.sendJson(res[0], 'post');
     }
 };

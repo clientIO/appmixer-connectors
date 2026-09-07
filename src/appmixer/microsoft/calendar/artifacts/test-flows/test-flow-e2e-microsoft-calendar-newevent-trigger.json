@@ -1,0 +1,387 @@
+{
+    "flow": {
+        "387fb403-004b-4b8b-8c03-b71254577ede": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 32,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3f2fb8f6-14c2-4440-912a-61391c3e3f5a": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 32,
+            "source": {
+                "in": {
+                    "387fb403-004b-4b8b-8c03-b71254577ede": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "387fb403-004b-4b8b-8c03-b71254577ede": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "name": "attendeeEmail",
+                                                "text": "test@appmixer.onmicrosoft.com",
+                                                "type": "text"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "135372c6-f277-45f2-a5c1-312019a408e0": {
+            "type": "appmixer.microsoft.calendar.NewEvent",
+            "label": "NewEvent (trigger under test)",
+            "x": 48,
+            "y": 480,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4498054e-a3ae-42e7-96f5-83f77d7a7a56": {
+            "type": "appmixer.microsoft.calendar.CreateEvent",
+            "label": "CreateEvent (test data)",
+            "x": 608,
+            "y": 32,
+            "source": {
+                "in": {
+                    "c387ba90-52da-4682-afe5-3b242726f857": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c387ba90-52da-4682-afe5-3b242726f857": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "subject": {
+                                        "var-ts": {
+                                            "variable": "$.387fb403-004b-4b8b-8c03-b71254577ede.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "start": {
+                                        "var-start": {
+                                            "variable": "$.387fb403-004b-4b8b-8c03-b71254577ede.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 24
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "end": {
+                                        "var-end": {
+                                            "variable": "$.387fb403-004b-4b8b-8c03-b71254577ede.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "hours": {
+                                                            "value": 25
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "subject": "E2E MS Calendar NewEvent {{{var-ts}}}",
+                                    "start": "{{{var-start}}}",
+                                    "end": "{{{var-end}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "ae1d62fe-aef8-47a1-a33c-875daa813a05": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: test event created",
+            "x": 816,
+            "y": 32,
+            "source": {
+                "in": {
+                    "4498054e-a3ae-42e7-96f5-83f77d7a7a56": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4498054e-a3ae-42e7-96f5-83f77d7a7a56": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-id": {
+                                            "variable": "$.4498054e-a3ae-42e7-96f5-83f77d7a7a56.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-id}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d5a8332b-cecc-4eb8-9a62-5b5346602149": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: NewEvent trigger fired with event id",
+            "x": 416,
+            "y": 320,
+            "source": {
+                "in": {
+                    "135372c6-f277-45f2-a5c1-312019a408e0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "135372c6-f277-45f2-a5c1-312019a408e0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-tid": {
+                                            "variable": "$.135372c6-f277-45f2-a5c1-312019a408e0.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v-tid}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f31575e7-7d0c-4902-83d7-64e77a3a8c43": {
+            "type": "appmixer.microsoft.calendar.DeleteEvent",
+            "label": "DeleteEvent (cleanup)",
+            "x": 416,
+            "y": 480,
+            "source": {
+                "in": {
+                    "135372c6-f277-45f2-a5c1-312019a408e0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "135372c6-f277-45f2-a5c1-312019a408e0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "eventId": {
+                                        "var-id": {
+                                            "variable": "$.135372c6-f277-45f2-a5c1-312019a408e0.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "eventId": "{{{var-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "07e0130e-d4c0-44ba-b5b6-905d19535734": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1056,
+            "y": 128,
+            "source": {
+                "in": {
+                    "ae1d62fe-aef8-47a1-a33c-875daa813a05": [
+                        "out"
+                    ],
+                    "d5a8332b-cecc-4eb8-9a62-5b5346602149": [
+                        "out"
+                    ],
+                    "f31575e7-7d0c-4902-83d7-64e77a3a8c43": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "19c133e7-b704-4f20-a93e-2aa89c3558c3": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1280,
+            "y": 128,
+            "source": {
+                "in": {
+                    "07e0130e-d4c0-44ba-b5b6-905d19535734": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "07e0130e-d4c0-44ba-b5b6-905d19535734": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.07e0130e-d4c0-44ba-b5b6-905d19535734.out",
+                                            "functions": []
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E MS Calendar - NewEvent trigger"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        },
+        "c387ba90-52da-4682-afe5-3b242726f857": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait (subscription propagation)",
+            "x": 416,
+            "y": 32,
+            "source": {
+                "in": {
+                    "3f2fb8f6-14c2-4440-912a-61391c3e3f5a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3f2fb8f6-14c2-4440-912a-61391c3e3f5a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E MS Calendar - NewEvent trigger",
+    "type": "automation",
+    "notes": {}
+}

@@ -1,31 +1,24 @@
 'use strict';
-const axios = require('axios');
-const { normalizeMultiselectInput } = require('../../lib');
+const { apiCall, normalizeMultiselectInput } = require('../../lib');
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
         const { ticketId, embed } = context.messages.in.content;
 
         // Normalize the multiselect field
         const normalizedEmbed = embed ?
             normalizeMultiselectInput(embed, context, 'Embed fields') : [];
 
-        const requestObject = {
-            auth: {
-                username: auth.apiKey,
-                password: 'X'
-            }
-        };
+        const params = normalizedEmbed.length > 0
+            ? { include: normalizedEmbed.join(',') }
+            : undefined;
 
-        if (normalizedEmbed.length > 0) {
-            requestObject.params = { include: normalizedEmbed.join(',') };
-        }
-
-        const url = `https://${auth.domain}.freshdesk.com/api/v2/tickets/${ticketId}`;
-        const { data } = await axios.get(url, requestObject);
+        const { data } = await apiCall(context, {
+            url: `/tickets/${ticketId}`,
+            params
+        });
 
         const fields = {
             id: data.id,

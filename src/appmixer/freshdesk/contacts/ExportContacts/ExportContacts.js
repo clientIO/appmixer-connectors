@@ -1,20 +1,21 @@
 'use strict';
 
-const axios = require('axios');
+const { apiCall } = require('../../lib');
 
-const POLL_INTERVAL_MS = 30000;   // re-check every 30s
-const MAX_POLLS = 60;             // up to 30 minutes total (60 × 30s)
+// Appmixer silently rounds any context.setTimeout delay below one minute up to
+// one minute, so a shorter interval here would only make the constants lie: the
+// ceiling below and the timeout message are both derived from this value.
+const POLL_INTERVAL_MS = 60000;   // re-check every 60s (engine floor)
+const MAX_POLLS = 60;             // up to 60 minutes total (60 x 60s)
 
 module.exports = {
 
     async receive(context) {
 
-        const { auth } = context;
-
         // ── Resumed from a timeout (polling tick) ───────────────────────────
         if (context.messages.timeout) {
             const { exportId, polls } = context.messages.timeout.content;
-            return poll(context, auth, exportId, polls);
+            return poll(context, exportId, polls);
         }
 
         // ── First invocation ─────────────────────────────────────────────────
@@ -31,14 +32,11 @@ module.exports = {
             throw new context.CancelError('At least one of Default Fields or Custom Fields must be provided.');
         }
 
-        const baseUrl = `https://${auth.domain}.freshdesk.com/api/v2`;
-        const authConfig = { username: auth.apiKey, password: 'X' };
-
-        const exportResponse = await axios.post(
-            `${baseUrl}/contacts/export`,
-            { fields },
-            { auth: authConfig }
-        );
+        const exportResponse = await apiCall(context, {
+            method: 'POST',
+            url: '/contacts/export',
+            data: { fields }
+        });
 
         const exportId = exportResponse.data && exportResponse.data.id;
         if (!exportId) {
@@ -66,19 +64,13 @@ function parseList(str) {
  * Called on each timeout tick — checks export status and either schedules
  * the next poll, streams the file, or throws on failure/timeout.
  */
-async function poll(context, auth, exportId, polls) {
+async function poll(context, exportId, polls) {
 
     if (polls >= MAX_POLLS) {
         throw new Error(`Freshdesk contact export timed out after ${(MAX_POLLS * POLL_INTERVAL_MS) / 1000}s (id: ${exportId}).`);
     }
 
-    const baseUrl = `https://${auth.domain}.freshdesk.com/api/v2`;
-    const authConfig = { username: auth.apiKey, password: 'X' };
-
-    const statusResponse = await axios.get(
-        `${baseUrl}/contacts/export/${exportId}`,
-        { auth: authConfig }
-    );
+    const statusResponse = await apiCall(context, { url: `/contacts/export/${exportId}` });
 
     const responseData = statusResponse.data;
     const status = responseData.status;
@@ -91,8 +83,9 @@ async function poll(context, auth, exportId, polls) {
     }
 
     if (downloadUrl) {
-        // Stream the file directly into Appmixer file storage — no buffering
-        const downloadResponse = await axios.get(downloadUrl, { responseType: 'stream' });
+        // Stream the file directly into Appmixer file storage — no buffering.
+        // downloadUrl is a pre-signed external URL, so it needs no Freshdesk auth.
+        const downloadResponse = await context.httpRequest({ url: downloadUrl, responseType: 'stream' });
         const fileName = `freshdesk-contacts-export-${exportId}.csv`;
         const savedFile = await context.saveFileStream(fileName, downloadResponse.data);
 

@@ -1,0 +1,227 @@
+{
+    "flow": {
+        "dab68c2f-5f30-450f-ade7-c9230a6907d6": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fe928be3-afff-417c-bdb9-f5f1a47efff1": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "dab68c2f-5f30-450f-ade7-c9230a6907d6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "dab68c2f-5f30-450f-ade7-c9230a6907d6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "apiPath",
+                                                "text": "/client-list/v1/lists"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "01fe545c-3512-4042-becd-426303fbea37": {
+            "type": "appmixer.akamai.core.MakeApiCall",
+            "x": 448,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "fe928be3-afff-417c-bdb9-f5f1a47efff1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fe928be3-afff-417c-bdb9-f5f1a47efff1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "3f5a7c91-2b4d-4e6f-8a1c-9d0e1f2a3b01": {
+                                            "variable": "$.fe928be3-afff-417c-bdb9-f5f1a47efff1.out.apiPath",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{3f5a7c91-2b4d-4e6f-8a1c-9d0e1f2a3b01}}}",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a589598c0a5d051ff7226f9"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b843635e-731d-4f02-b90c-6c01bae81dce": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 656,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "01fe545c-3512-4042-becd-426303fbea37": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "01fe545c-3512-4042-becd-426303fbea37": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "field-api-status": {
+                                            "variable": "$.01fe545c-3512-4042-becd-426303fbea37.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.status"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{field-api-status}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "055c0791-f28b-4e0f-a3ce-69fef23e27f2": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 864,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b843635e-731d-4f02-b90c-6c01bae81dce": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ed852fc5-f82d-4c52-a0ba-0a8d83493b90": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1072,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "055c0791-f28b-4e0f-a3ce-69fef23e27f2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "055c0791-f28b-4e0f-a3ce-69fef23e27f2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.055c0791-f28b-4e0f-a3ce-69fef23e27f2.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Akamai - Make API Call",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Akamai - Make API Call",
+    "type": "automation",
+    "notes": {}
+}

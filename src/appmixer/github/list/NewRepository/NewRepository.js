@@ -22,5 +22,16 @@ module.exports = {
         }
 
         await context.saveState({ known: actual });
+    },
+
+    async test(context) {
+
+        const repo = await lib.fetchLatest(context, 'user/repos', {
+            params: { sort: 'created', direction: 'desc' }
+        });
+        if (!repo) {
+            throw new Error('No recent repositories to use as test data.');
+        }
+        return context.sendJson(repo, 'out');
     }
 };

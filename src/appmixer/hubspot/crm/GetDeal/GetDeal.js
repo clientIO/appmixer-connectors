@@ -9,6 +9,10 @@ module.exports = {
             dealId
         } = context.messages.in.content;
 
+        if (!dealId) {
+            throw new context.CancelError('Deal ID is required!');
+        }
+
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 
