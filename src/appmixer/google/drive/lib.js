@@ -511,12 +511,15 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
         }
 
     } catch (err) {
+        // Whatever interrupted the run (lost lock, Google 5xx, rate limit, engine send quota),
+        // the part of the backlog that is not persisted yet must not wait for the next webhook
+        // - there may never be one. Flag it so the next tick() resumes from the last page token.
+        await context.stateSet('hasSkippedMessage', true);
         if (!(err instanceof LockLostError)) {
             throw err;
         }
         // Progress is durable, so simply stop here and let the next tick() pick it up.
         await context.log({ step: 'lock-lost', error: err.message });
-        await context.stateSet('hasSkippedMessage', true);
     } finally {
         await safeUnlock(context, lock);
     }

@@ -111,6 +111,19 @@ describe('google.drive.lib checkMonitoredFiles paging & locking', () => {
         assert.strictEqual(lock.unlock.callCount, 1);
     });
 
+    it('should flag the rest of the backlog for the next tick when an emit fails mid-page', async () => {
+
+        stubPages(3);
+        context.sendJson.onCall(1).rejects(new Error('Context send quota exceeded.'));
+
+        await assert.rejects(lib.checkMonitoredFiles(context, { filter: () => true }), /send quota/);
+
+        // Page 0 was committed, page 1 was not; the next tick must resume, not wait for a webhook.
+        assert.deepStrictEqual(startPageTokens(), ['p1']);
+        assert.ok(context.stateSet.calledWith('hasSkippedMessage', true));
+        assert.strictEqual(lock.unlock.callCount, 1);
+    });
+
     it('should not let an unlock failure mask the outcome', async () => {
 
         stubPages(1);
