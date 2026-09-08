@@ -1,0 +1,25 @@
+{
+    "name": "appmixer.ai.agent",
+    "engine": ">=6.4",
+    "version": "1.5.0",
+    "changelog": {
+        "1.4.0": [
+            "Rework Langfuse trace hierarchy for streaming: disable SDK auto-telemetry and build spans manually. Hierarchy: Appmixer AI Agent (AGENT) > generation (SPAN, input=system+messages, output=final text) > model_step_N (SPAN, input=req body, output=text+toolcalls, usage) > tool_call:name (SPAN, model decision) + text (SPAN, text chunk) + tool execution spans (SPAN, input=args, output=result)."
+        ],
+        "1.3.0": [
+            "Fix Langfuse generation spans showing no input/output/toolCalls: removed functionId from experimental_telemetry — the prefix it added to span names (e.g. 'appmixer-ai-agent:ai.streamText.doStream') broke Langfuse OTLP ingestion's name-based mapping of ai.prompt.messages and ai.response.toolCalls.",
+            "Fix total cost not shown on agent span: stamp gen_ai.usage.input_tokens/output_tokens and gen_ai.request.model on the agent span after run() so Langfuse can compute aggregate cost.",
+            "Fix tool call span nested under root Agent instead of under the step's generation: drop capturedCtx override and rely on AsyncLocalStorageContextManager for natural OTEL context propagation — the SDK's ai.streamText span is active when execute() is called, so tool spans are now correctly nested as siblings of the doStream GENERATION observations."
+        ],
+        "1.2.0": [
+            "Fix Langfuse tracing: tool call spans were being silently dropped by @langfuse/otel v5 LangfuseSpanProcessor. The processor's isDefaultExportSpan filter requires a gen_ai.* attribute to pass. Added gen_ai.operation.name: 'execute_tool' and gen_ai.tool.name to all tool spans so they are correctly exported and appear in Langfuse traces."
+        ],
+        "1.1.0": [
+            "Fix Langfuse tracing: tool call spans were not appearing in Langfuse traces.",
+            "Root causes: (1) tool spans were parented to the wrong OTEL context because async-context propagation through the Vercel AI SDK was unavailable; fixed by capturing the agent span OTEL context synchronously in buildVercelTools and passing it explicitly to executeToolByName. (2) langfuse.observation.type was set to 'tool' which is not a valid Langfuse type; changed to 'span'. (3) Added @opentelemetry/context-async-hooks dependency for proper async context propagation."
+        ],
+        "1.0.0": [
+            "First version."
+        ]
+    }
+}
