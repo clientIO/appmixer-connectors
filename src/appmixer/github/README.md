@@ -36,3 +36,20 @@ For loop detection, note the login Appmixer writes with: with OAuth/PAT that is 
 owner of the connected account (so a human's `sender.login` on board events is
 indistinguishable from Appmixer's own writes); with a GitHub App it is the
 `…[bot]` account. Flows should use that login as the "ignored sender" allowlist.
+
+## E2E test flows (`artifacts/test-flows`)
+
+Preconditions the flows assume on the connected account:
+
+- `E2E GitHub - Issue Comments`, `New Assigned Issue Trigger`, `New Mention Trigger`:
+  push access to `apx-vero/appmixer-test` with issues enabled (`repo` scope).
+- `E2E GitHub - New Mention Trigger`: GitHub never notifies an account about its
+  own mentions, so while the flow runs a **second** account has to comment
+  `@<connected login>` on the probe issue the flow opens; the flow closes it afterwards.
+- `E2E GitHub - Project Board`: a user-owned board of the connected account
+  (`project` scope for `UpdateProjectItemField`).
+- `E2E GitHub - On Project Item Changed Trigger`: `admin:org_hook` + `read:org`
+  + `project` on an organization the account administers, and an organization
+  board whose title contains `Appmixer E2E` with at least one item whose
+  `Status` is not the first option (the flow moves it to the first option and
+  the cleanup moves it back).
