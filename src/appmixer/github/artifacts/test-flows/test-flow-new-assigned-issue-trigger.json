@@ -1,0 +1,287 @@
+{
+    "name": "E2E GitHub - New Assigned Issue Trigger",
+    "flow": {
+        "0f20534a-53be-50a9-a612-b0c971ff2323": {
+            "type": "appmixer.github.list.NewAssignedIssue",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "apx-vero/appmixer-test"
+                }
+            }
+        },
+        "b02b0454-87b1-5eb3-a1b0-b37813e2b0e1": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0f20534a-53be-50a9-a612-b0c971ff2323": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0f20534a-53be-50a9-a612-b0c971ff2323": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "108130e7-8e31-58d7-ada6-1209ac1f3001": {
+                                            "variable": "$.0f20534a-53be-50a9-a612-b0c971ff2323.out.id",
+                                            "functions": []
+                                        },
+                                        "4a8b5414-3f2b-58b3-bc93-bcbcdbedb5b4": {
+                                            "variable": "$.0f20534a-53be-50a9-a612-b0c971ff2323.out.title",
+                                            "functions": []
+                                        },
+                                        "e21c2659-304d-502a-89be-e46092ef4cb1": {
+                                            "variable": "$.0f20534a-53be-50a9-a612-b0c971ff2323.out.assignee.login",
+                                            "functions": []
+                                        },
+                                        "3c9c0567-55cb-5621-b719-5de8039df001": {
+                                            "variable": "$.0f20534a-53be-50a9-a612-b0c971ff2323.out.state",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{108130e7-8e31-58d7-ada6-1209ac1f3001}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{4a8b5414-3f2b-58b3-bc93-bcbcdbedb5b4}}}",
+                                                "expected": "E2E NewAssignedIssue test issue"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{e21c2659-304d-502a-89be-e46092ef4cb1}}}",
+                                                "expected": "apx-vero"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{3c9c0567-55cb-5621-b719-5de8039df001}}}",
+                                                "expected": "open"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b519dbb4-0802-5050-951d-1e7dc0b4b9ed": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b02b0454-87b1-5eb3-a1b0-b37813e2b0e1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "c4e6c396-bd31-5d01-8785-b9775770e80c": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "x": 688,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b519dbb4-0802-5050-951d-1e7dc0b4b9ed": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b519dbb4-0802-5050-951d-1e7dc0b4b9ed": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "88116bf7-a32b-5c2c-81b3-73ab367c6d20": {
+                                            "variable": "$.0f20534a-53be-50a9-a612-b0c971ff2323.out.number",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/repos/apx-vero/appmixer-test/issues/{{{88116bf7-a32b-5c2c-81b3-73ab367c6d20}}}",
+                                    "method": "PATCH",
+                                    "body": "{\"state\": \"closed\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c741393b-0b2e-5d59-b7d2-2c045c94a16d": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 320,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "c4e6c396-bd31-5d01-8785-b9775770e80c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "c4e6c396-bd31-5d01-8785-b9775770e80c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "51aaa880-7f71-581d-bb59-b5873beb4b8b": {
+                                            "variable": "$.b519dbb4-0802-5050-951d-1e7dc0b4b9ed.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E GitHub - New Assigned Issue Trigger",
+                                    "result": "{{{51aaa880-7f71-581d-bb59-b5873beb4b8b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "fa6bbe7b-6e3a-5904-b39f-b5e3b8fcde79": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "24617418-8afa-562b-9a9d-0b5198a656ec": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "fa6bbe7b-6e3a-5904-b39f-b5e3b8fcde79": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fa6bbe7b-6e3a-5904-b39f-b5e3b8fcde79": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "42f36790-01e9-5909-9e4c-7646cd5ef39a": {
+            "type": "appmixer.github.list.CreateIssue",
+            "x": 480,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "issue": {
+                    "24617418-8afa-562b-9a9d-0b5198a656ec": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "apx-vero/appmixer-test"
+                },
+                "transform": {
+                    "issue": {
+                        "24617418-8afa-562b-9a9d-0b5198a656ec": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "title": {},
+                                    "body": {},
+                                    "assignees": {}
+                                },
+                                "lambda": {
+                                    "title": "E2E NewAssignedIssue test issue",
+                                    "body": "Opened by the Appmixer end-to-end test flow to fire NewAssignedIssue. Safe to close.",
+                                    "assignees": "apx-vero"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
