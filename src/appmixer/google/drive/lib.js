@@ -438,6 +438,8 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
 
         let pageToken = startPageToken;
         let pagesProcessed = 0;
+        let filesEmitted = 0;
+        const startedAt = Date.now();
 
         while (pageToken) {
 
@@ -485,6 +487,7 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
                 processedFilesSet.add(group, file.id);
                 await context.sendJson(toFileOutput(file), 'out');
                 await context.stateSet('processedFiles', processedFilesSet.export());
+                filesEmitted += 1;
                 // Emitting a large batch must not outlive the last extension either. Neither
                 // sendJson() nor stateSet() has a timeout, so re-arm on elapsed time, not on
                 // the number of files emitted.
@@ -508,6 +511,21 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
                 await context.stateSet('hasSkippedMessage', true);
                 break;
             }
+        }
+
+        // One line per run so that a support log export shows how much work each webhook or
+        // tick did and how long the lock was held - the missing piece when diagnosing #2829.
+        // Best effort: a logging failure must not turn a completed run into a failed one.
+        try {
+            await context.log({
+                step: 'changes-processed',
+                pages: pagesProcessed,
+                files: filesEmitted,
+                deferred: Boolean(pageToken),
+                durationMs: Date.now() - startedAt
+            });
+        } catch (logErr) {
+            // ignore
         }
 
     } catch (err) {
