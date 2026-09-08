@@ -31,7 +31,8 @@ rather than a testable action and must not appear as a flow node
 Nothing in these flows is bound to a tenant ID, but the model IDs are pinned literals
 and must be available to the connected Groq account:
 
-- `llama-3.3-70b-versatile` — `SendPrompt` and the `MakeApiCall` chat completion
+- `openai/gpt-oss-120b` — `SendPrompt` and the `MakeApiCall` chat completion
+  (`llama-3.3-70b-versatile` was retired by Groq before the first run, 2026-09-08)
 - `whisper-large-v3` — `CreateTranscription` and `CreateTranslation`
 
 Groq retires models on its own schedule. When one of these disappears the flows fail
@@ -46,6 +47,9 @@ returns for the same role.
   component implements it as `expect(field).to.exist`, which an empty string passes.
   The `conversationId` is suffixed with `g_timestamp`, so every run starts a fresh
   conversation instead of appending to the previous run's stored history.
+  `gpt-oss` is a reasoning model: its hidden reasoning counts against
+  `max_completion_tokens` (~60–80 tokens for the echo), so the flows allow 1000 —
+  a 200 budget would end with `finish_reason: length` and an empty answer.
 - **Audio flow.** The speech sample is downloaded at run time from
   `https://dpgr.am/spacewalk.wav` (the same public asset the deepgram flows use) —
   2.2 MB of real speech, too big to inline as base64. `appmixer.utils.files.RemoveFile`

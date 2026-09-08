@@ -8,20 +8,30 @@ const lib = require('../lib');
 // as ITEM_SCHEMA gives the offline tooling (`appmixer connector verify`,
 // outport-nested-title-prefix) the same contract the static ports declare.
 //
-// Shape per https://console.groq.com/docs/api-reference#models-list: id, object,
-// created and owned_by are on every record; active, context_window and
-// max_completion_tokens are Groq extensions of the OpenAI model object.
+// Shape sampled from the live API on 2026-09-08 (14 models): id, object, created
+// and owned_by are the OpenAI model object and are on every record; the rest are
+// Groq extensions that were present on every record too. `public_apps` (always
+// null) and `pricing` (absent on some models, polymorphic) are not declared.
 const ITEM_SCHEMA = {
     type: 'object',
     required: ['id', 'object', 'created', 'owned_by'],
     properties: {
-        id: { type: 'string', title: 'ID', example: 'llama-3.3-70b-versatile' },
+        id: { type: 'string', title: 'ID', example: 'openai/gpt-oss-120b' },
         object: { type: 'string', title: 'Object', example: 'model' },
-        created: { type: 'integer', title: 'Created', example: 1733447754 },
-        owned_by: { type: 'string', title: 'Owned By', example: 'Meta' },
+        created: { type: 'integer', title: 'Created', example: 1754407633 },
+        owned_by: { type: 'string', title: 'Owned By', example: 'OpenAI' },
+        name: { type: 'string', title: 'Name', example: 'GPT OSS 120B' },
         active: { type: 'boolean', title: 'Active', example: true },
         context_window: { type: 'integer', title: 'Context Window', example: 131072 },
-        max_completion_tokens: { type: 'integer', title: 'Max Completion Tokens', example: 32768 }
+        context_length: { type: 'integer', title: 'Context Length', example: 131072 },
+        max_completion_tokens: { type: 'integer', title: 'Max Completion Tokens', example: 65536 },
+        max_output_length: { type: 'integer', title: 'Max Output Length', example: 65536 },
+        input_modalities: {
+            type: 'array', title: 'Input Modalities', items: { type: 'string' }, example: ['text']
+        },
+        output_modalities: {
+            type: 'array', title: 'Output Modalities', items: { type: 'string' }, example: ['text']
+        }
     }
 };
 
