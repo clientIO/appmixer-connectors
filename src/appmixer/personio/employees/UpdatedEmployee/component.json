@@ -1,0 +1,57 @@
+{
+    "name": "maesn.personio.employees.UpdatedEmployee",
+    "author": "Rovan Talani <Rovan.talani@maesn.com>",
+    "description": "This trigger fires every time an employee is updated.",
+    "version": "1.0.1",
+    "auth": {
+        "service": "maesn:personio"
+    },
+    "state": {
+        "persistent": true 
+    },
+    "inPorts": [{"name": "in"}],
+    "properties": {
+        "schema": {
+            "properties": {
+                "storeId": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "storeId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "storeId": {
+                    "type": "select",
+                    "label": "Storage",
+                    "index": 1,
+                    "source": {
+                        "url": "/component/appmixer/utils/storage/ListStores?outPort=out",
+                        "data": {
+                            "transform": "./ListStores#toSelectArray"
+                        }
+                    },
+                    "tooltip": "Select storage."
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "employee",
+            "options": [
+                {"label": "Email", "value": "attributes.email.value"},
+                {"label": "Employee Id", "value": "attributes.id.value"},
+                {"label": "First Name", "value": "attributes.first_name.value"},
+                {"label": "Last Name", "value": "attributes.last_name.value"},
+                {"label": "Sub Company Name", "value": "attributes.subcompany.value.attributes.name"}, 
+                {"label": "Cost Centers", "value": "attributes.cost_centers"},
+                {"label": "Status", "value": "attributes.status.value"},
+                {"label": "Supervisor", "value": "attributes.supervisor.value"}
+            ]
+        }
+    ],
+    "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAgVBMVEX///8AAACwsLBaWlr6+vr19fXn5+dra2uZmZnNzc2jo6PKysqoqKh1dXXv7+98fHy1tbXg4ODExMSNjY2Dg4O/v7/Y2NhMTEzp6ekVFRVUVFSHh4dfX19dXV1/f3/S0tIuLi4dHR0/Pz8wMDCdnZ04ODgZGRknJycMDAxFRUVtbW31PlO3AAAIjklEQVR4nO2d2VrqMBCAoVCg7LsIeAQURd//AY+Ky0wySbM0S/nyXyo0M10ya4dGI5FIJBKJRCKRSCQSiUTCD/l4PZ9mw/5zP5uuHsft0PJUyWz+PDq9NhkOo6wTWjJ72uv++5lVDfC6qLWSRe9NotwP21loOY1oF707Be2uvNfukdwMW8raXVmFFlmHx8WTpnqf9EKLrUoxMdDui2Vo0VUwV++T59DilzFb2Kj3yTy0CjLyoczmqZKHVkPIoFuBeh+MQitCs+ndq+twf9pPlrvlv0mL3G83oZUhmG/VVHvZL7L1GH11PN+x5ya6/XT8rHTduv1C9ITND/ijXsUvpVB4+o6jaYljPUKfX/sRXYmMi4U4Wn2VsAGpmDmXW5G83PYtH1UPBr81cSm1OrORSK1vDj2du20Hvtl1JrQGRcnued/TDPem4Mt3bmTWYSX3XS5L/b0CavjmQGQtSraX94HJQeEzva9aYj36UvXeMsNAHaYCgvptcv0Wxg5XDg/Tr1JiPaT6tWziniE8UlGZwJrI9LssxuUHkHCEBwsUP2UXsX4n2xQS3Emb20rk1WUlCY5G9plOdPQQTttAYv96FdxTODrxnzZdi1PWh0rO9wYd07tXOhaHR6eKskb4DPrO7ovjh61y3KC1hGeHJhPq163sVBf4wF6LUIUwMT9CcmT7uztjdybHR/b5FI73Iv0myLpvXq5/XZgtg3M0PjdSYX5pgq9W+/cfO5NlmNM4rUR2FQZH0f3Jemcg1DfIIP3DR29VIrwCuchC7Ll9oA3+q/8MsTeKnXOrzrBJ0yL2zwH4/1l3IXar9lSVmQlctBNp/5bgE0fNlVbMCp6S3csmyb0gfIA+s6axZhXUvgWMKAQxhCjsnsEPDbWWYhX08xAKcqA7YfyAomItd2TKLlKVEyhjwC565UHirsC06avOWpw/6CMqpC/gqyxrAm2FlsXntmsjd0EPwQWUn9o5/KhGAqnHLvNuKb0CdAPFqCSARy6JxWLufZkZmcY+l7phL+DT6raCc+ndFypoJ6Y8MYtshepW0T5xZ9JOeoUlyTBpr2CeTGzF5uhdwTWZCFXKgBrYikdupYO56GqQmWzFRkj4FbXtnn8enlzHvNQd+qK47yNboVRT451e17do50go+E/120helS/whWPXuyjnG35wUfcPoYlRsGgd3qt3XbGnAiWNVuQO/F55XMHFEu5LoVSzgU4RCe0apbZixy/muCN4TLgxLa0qC+ziLgvvc87MO48m1sQF1Itgka0oSUBQbr1RQ4M6c37Fo2aefqAuLlX8cFyAIeoR2tsa2qdk+1NOvHJxdlzJJvLZmndoQ91WUHeo63CQiz+bF/17BtkKSRhC3aGuG/L5NbcGvqGardhQyVfX3ST8FTTKkUBbcRF9iHKaXl1nDXkFzVpF4BEEtiJ/IBR03tLFhy9m2zbaP+h6A5nb0t/RNOFuG9NtGzlh5GNM5ract3AX7IrGSS5YuqWamAoqc9ByXuEds0saPxSoBYawFeQF9NBzyNTMLRLN6HHmnmTuVvlE1ys0ga3sWhhelPxg/0leQB/t6ew2auNZwOMwtoK8gF5aEDrMmjYKIi2wrWB6D668eXlbi2n/MWx/uYJsBbQ3A7LC6uf1XuYeVU6okcCzBdJl7XdKv6Of95iY5iq7Plxkdf5sAJFravrr48J5Na1yLQ8KoH+MQIeeLeCrLZ2x9ZYNgJStoNs0u9761PAltG0852/COd3D4W9IAqq3W+cQHlklxvR4iL3H1wpwSGF7NHRD5lTI6fkCNpj0tnUmFmYm7hqrY/AL2MAPjm73GQfatSaC+SWex5SgBLe1h0glXxi8j5pB9sv6aKVvb784TtgTwK3guNgN7dyoMgU9tDdxcNb4ySIapWo6gHOQeU9EN4K5HALb8I3zXBoN4RKbe6ZEJfCXbqjRKzkhjGlPdZs41s9Z89EiKoBIPpvuB0Tl8ZugA5BmvDyGmaGp6FX1rq83CQTwsY1RY7xQv0PAG/QbzkwbPIcrNt/6S6AdFMM0z+jvpSvhm2y7SMYBDmC7q7Y9HApfdd5HNNdp+vs66kFPwVxs5Z+CjQegGa8Wo9GkrydVRzJEL5pxQBYMJOM5azPIUUzel0wacN0T4572Svie7BcBR5BYshqdz8tBv3TKXD3H4n5sRrLYARFaUlPKJ7B9E+kEx1LU54/WaugvQFnBiOeMSmELxWJOoUU1RJZmekf/rKu1p/IdV3YbXL2PaUClFvS0ndNXohxV70MLagzVK/IzCAoakiimN5rBdkj/TdFDnV7+RnRUD0yubjOQX0LVj8B5J0uy7sf9+NrtDXB2AqZ6ngKJ5hZ4Ca36jWIFVe8jy11UA/JYQwvjBFi9fwgtjAtQ9T6KDHDVoApdXcN7KXAuSGRz4SsCXsJIRopXC6rP1TW8l4JaAWoa3suBrU91De+loOp9XcN7KShsDF/vdcDtu2w3Et6LQS7bLdQMOVDDZa1/jFEEdNks32SIlCPQ0O5tm0hBLlvUP/1mCnpnKpLmmWqBjX/BfwTGCTfvsqEsW20rMjJQR1RoYZwAe4Y0smzt57fmZVsHDwhFTupZth8/yMdb6pagvmdlccGtHb2bZxQ5wbEf0ecEYLJbuYkG9cNFnrlCpX3Vwih+wyPyiBI9hqr9wExbuVMBrYGPoXLkdKiThjCPqJzsvq+ThrBXUdl8H5GCkdc5YJ+pslOKm1Mjr3PA51D5S/h9wMgTrKCZT70/AZkYb78eY8rv9dBpMQFpgUv8hZzvViG9SV1/TXDxe94f0cV0sVP68WnI6jrPrOzHB2pN0e/P690dlkgkEolEIpFIJBKJRCIk6yxu7Af2yeethUfzV4VrqKF9sTFpGJqkYdIwaRiepGHSsNHItq2Y2d7ki/CJRCKRSCQSiUQikUgkEjfHf1eoXqL4uVL7AAAAAElFTkSuQmCC"
+}
