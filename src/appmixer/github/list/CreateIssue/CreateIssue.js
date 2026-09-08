@@ -11,6 +11,9 @@ module.exports = {
 
         let repositoryId = context.properties.repositoryId;
         let issue = context.messages.issue.content;
+        if (!issue.title) {
+            throw new context.CancelError('Title is required!');
+        }
 
         // Normalize multiselect fields
         if (issue.assignees) {

@@ -9,6 +9,9 @@ module.exports = {
 
     async receive(context) {
         const { pullRequest, title = '', body = '', base = '', state = '' } = context.messages.in.content;
+        if (!pullRequest) {
+            throw new context.CancelError('Pull request is required!');
+        }
         let requestData = {};
         if (title) requestData.title = title;
         if (body) requestData.body = body;

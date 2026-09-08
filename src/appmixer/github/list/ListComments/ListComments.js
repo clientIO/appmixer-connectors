@@ -2,16 +2,20 @@
 
 const lib = require('../../lib');
 
-const schema = {
-    'id': { 'type': 'integer', 'title': 'ID', 'example': 2384759211 },
-    'nodeId': { 'type': 'string', 'title': 'Node ID', 'example': 'IC_kwDOAA12oc6abcde' },
-    'body': { 'type': 'string', 'title': 'Body', 'example': '<!-- agent-log -->\nRun started.' },
-    'htmlUrl': { 'type': 'string', 'title': 'HTML URL', 'example': 'https://github.com/Appmixer-ai/appmixer-components/issues/2834#issuecomment-2384759211' },
-    'createdAt': { 'type': 'string', 'title': 'Created At', 'example': '2026-09-04T11:27:45Z' },
-    'updatedAt': { 'type': 'string', 'title': 'Updated At', 'example': '2026-09-04T11:31:02Z' },
-    'authorAssociation': { 'type': 'string', 'title': 'Author Association', 'example': 'MEMBER' },
-    'userLogin': { 'type': 'string', 'title': 'User Login', 'example': 'octocat' },
-    'userId': { 'type': 'integer', 'title': 'User ID', 'example': 583231 }
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['id', 'body'],
+    properties: {
+        'id': { 'type': 'integer', 'title': 'ID', 'example': 2384759211 },
+        'nodeId': { 'type': 'string', 'title': 'Node ID', 'example': 'IC_kwDOAA12oc6abcde' },
+        'body': { 'type': 'string', 'title': 'Body', 'example': '<!-- agent-log -->\nRun started.' },
+        'htmlUrl': { 'type': 'string', 'title': 'HTML URL', 'example': 'https://github.com/Appmixer-ai/appmixer-components/issues/2834#issuecomment-2384759211' },
+        'createdAt': { 'type': 'string', 'title': 'Created At', 'example': '2026-09-04T11:27:45Z' },
+        'updatedAt': { 'type': 'string', 'title': 'Updated At', 'example': '2026-09-04T11:31:02Z' },
+        'authorAssociation': { 'type': 'string', 'title': 'Author Association', 'example': 'MEMBER' },
+        'userLogin': { 'type': 'string', 'title': 'User Login', 'example': 'octocat' },
+        'userId': { 'type': 'integer', 'title': 'User ID', 'example': 583231 }
+    }
 };
 
 /**
@@ -20,12 +24,14 @@ const schema = {
  */
 module.exports = {
 
+    ITEM_SCHEMA,
+
     async receive(context) {
 
         const { repositoryId, issueNumber, outputType = 'array' } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Comments' });
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Comments' });
         }
 
         if (!repositoryId) {
