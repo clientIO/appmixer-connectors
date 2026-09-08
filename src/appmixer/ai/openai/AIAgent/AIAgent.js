@@ -461,10 +461,21 @@ module.exports = {
 
                 const outputs = await this.callTools(context, message.tool_calls);
                 (outputs || []).forEach((output) => {
+                    // OpenAI requires 'content' to be a string. A tool chain may
+                    // produce no output (nothing mapped to ToolOutput's 'output'
+                    // field), in which case output.output is null/undefined and
+                    // OpenAI rejects the request with
+                    // "Invalid value for 'content': expected a string, got null.".
+                    let content = output.output;
+                    if (content === null || content === undefined) {
+                        content = '';
+                    } else if (typeof content !== 'string') {
+                        content = JSON.stringify(content);
+                    }
                     messages.push({
                         role: 'tool',
                         tool_call_id: output.tool_call_id,
-                        content: output.output
+                        content
                     });
                 });
 

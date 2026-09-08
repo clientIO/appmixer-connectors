@@ -1,0 +1,281 @@
+{
+    "name": "appmixer.ai.exa.FindSearchResults",
+    "label": "Search Web",
+    "description": "Run a semantic or keyword web search with Exa and return the matching pages, optionally with their cleaned page content.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:ai:exa"
+    },
+    "quota": {
+        "manager": "appmixer:ai:exa",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string"
+                    },
+                    "searchType": {
+                        "type": "string"
+                    },
+                    "numResults": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "includeDomains": {
+                        "type": "string"
+                    },
+                    "excludeDomains": {
+                        "type": "string"
+                    },
+                    "startPublishedDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "endPublishedDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "userLocation": {
+                        "type": "string"
+                    },
+                    "includeText": {
+                        "type": "boolean"
+                    },
+                    "includeHighlights": {
+                        "type": "boolean"
+                    },
+                    "summaryQuery": {
+                        "type": "string"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "query"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "query": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Query",
+                        "tooltip": "What to search the web for. Exa is semantic, so a descriptive phrase works better than keywords."
+                    },
+                    "searchType": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Search Type",
+                        "defaultValue": "auto",
+                        "tooltip": "<b>Auto</b> lets Exa pick the best method. <b>Fast</b> and <b>Instant</b> are cheaper and quicker, the <b>Deep</b> modes search harder and cost more per call - <b>Deep (reasoning)</b> adds stronger reasoning for complex analysis. These are the six modes Exa documents for <code>/search</code>.",
+                        "options": [
+                            {
+                                "label": "Auto",
+                                "value": "auto"
+                            },
+                            {
+                                "label": "Fast",
+                                "value": "fast"
+                            },
+                            {
+                                "label": "Instant",
+                                "value": "instant"
+                            },
+                            {
+                                "label": "Neural (semantic)",
+                                "value": "neural"
+                            },
+                            {
+                                "label": "Keyword",
+                                "value": "keyword"
+                            },
+                            {
+                                "label": "Deep (lite)",
+                                "value": "deep-lite"
+                            },
+                            {
+                                "label": "Deep",
+                                "value": "deep"
+                            },
+                            {
+                                "label": "Deep (reasoning)",
+                                "value": "deep-reasoning"
+                            }
+                        ]
+                    },
+                    "numResults": {
+                        "type": "number",
+                        "index": 3,
+                        "label": "Number Of Results",
+                        "defaultValue": 10,
+                        "tooltip": "How many results to return, between 1 and 100."
+                    },
+                    "category": {
+                        "type": "select",
+                        "index": 4,
+                        "label": "Category",
+                        "tooltip": "Restrict the search to one kind of page. Leave empty to search everything.",
+                        "options": [
+                            {
+                                "label": "Company",
+                                "value": "company"
+                            },
+                            {
+                                "label": "People",
+                                "value": "people"
+                            },
+                            {
+                                "label": "Research paper",
+                                "value": "research paper"
+                            },
+                            {
+                                "label": "News",
+                                "value": "news"
+                            },
+                            {
+                                "label": "PDF",
+                                "value": "pdf"
+                            },
+                            {
+                                "label": "GitHub",
+                                "value": "github"
+                            },
+                            {
+                                "label": "Personal site",
+                                "value": "personal site"
+                            },
+                            {
+                                "label": "Financial report",
+                                "value": "financial report"
+                            }
+                        ]
+                    },
+                    "includeDomains": {
+                        "type": "text",
+                        "index": 5,
+                        "label": "Include Domains",
+                        "tooltip": "Comma separated list of domains to restrict the search to, e.g. <code>wikipedia.org, bbc.co.uk</code>."
+                    },
+                    "excludeDomains": {
+                        "type": "text",
+                        "index": 6,
+                        "label": "Exclude Domains",
+                        "tooltip": "Comma separated list of domains to leave out of the results."
+                    },
+                    "startPublishedDate": {
+                        "type": "date-time",
+                        "index": 7,
+                        "label": "Published After",
+                        "config": {
+                            "enableTime": false
+                        },
+                        "tooltip": "Only return pages published on or after this date."
+                    },
+                    "endPublishedDate": {
+                        "type": "date-time",
+                        "index": 8,
+                        "label": "Published Before",
+                        "config": {
+                            "enableTime": false
+                        },
+                        "tooltip": "Only return pages published on or before this date."
+                    },
+                    "userLocation": {
+                        "type": "text",
+                        "index": 9,
+                        "label": "User Location",
+                        "tooltip": "Two letter ISO country code of the searcher, e.g. <code>US</code>. Biases results towards that country."
+                    },
+                    "includeText": {
+                        "type": "toggle",
+                        "index": 10,
+                        "label": "Include Page Text",
+                        "tooltip": "Also return the cleaned full text of each result. Costs extra Exa credits per page."
+                    },
+                    "includeHighlights": {
+                        "type": "toggle",
+                        "index": 11,
+                        "label": "Include Highlights",
+                        "tooltip": "Also return the snippets of each page that are most relevant to the query."
+                    },
+                    "summaryQuery": {
+                        "type": "text",
+                        "index": 12,
+                        "label": "Summary Query",
+                        "tooltip": "Ask Exa to summarise each result with this question in mind, e.g. <code>What does this company sell?</code>. Leave empty for no summary."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "index": 13,
+                        "label": "Output Type",
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/ai/exa/FindSearchResults?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/query": "dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "title": "Query",
+                        "example": "open source workflow automation"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjI0IDEyIDEwMiAxMjYiIHdpZHRoPSIxMDIiIGhlaWdodD0iMTI2IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkV4YSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzIsIDIwKSI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0wIDBIODZWOC4yMDg5Nkw0OS4yOTgxIDU1TDg2IDEwMS43OTFWMTEwSDBWMFpNNDMuNTQwOCA0Ny40Mjg5TDczLjM2NTIgOC4yMDg5NkgxMy43MTY0TDQzLjU0MDggNDcuNDI4OVpNOS42NzU3MyAxOC4wMzc1VjUwLjg5NTVIMzQuNjYyM0w5LjY3NTczIDE4LjAzNzVaTTM0LjY2MjMgNTkuMTA0NUg5LjY3NTczVjkxLjk2MjVMMzQuNjYyMyA1OS4xMDQ1Wk0xMy43MTY0IDEwMS43OTFMNDMuNTQwOCA2Mi41NzExTDczLjM2NTIgMTAxLjc5MUgxMy43MTY0WiIgZmlsbD0iIzFGNDBFRCIvPjwvZz48L3N2Zz4="
+}

@@ -1,6 +1,16 @@
 'use strict';
 
 function kvToObj(arr) {
+    // The designer serializes key-value grids as a JSON string.
+    if (typeof arr === 'string') {
+        const trimmed = arr.trim();
+        if (!trimmed.length) return {};
+        try {
+            arr = JSON.parse(trimmed);
+        } catch (e) {
+            return {};
+        }
+    }
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
     for (const row of arr) {

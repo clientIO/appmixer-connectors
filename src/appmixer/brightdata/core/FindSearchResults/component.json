@@ -1,0 +1,178 @@
+{
+    "name": "appmixer.brightdata.core.FindSearchResults",
+    "label": "Find Search Results",
+    "description": "Run a search-engine query through the Bright Data SERP API and return the parsed organic results.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:brightdata"
+    },
+    "quota": {
+        "manager": "appmixer:brightdata",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "zone": {
+                        "type": "string"
+                    },
+                    "query": {
+                        "type": "string"
+                    },
+                    "engine": {
+                        "type": "string",
+                        "enum": [
+                            "google",
+                            "bing",
+                            "duckduckgo",
+                            "yandex"
+                        ]
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "numResults": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100
+                    },
+                    "page": {
+                        "type": "integer",
+                        "minimum": 1
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "zone",
+                    "query"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "zone": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Zone (Proxy / API name)",
+                        "tooltip": "Name of the <b>SERP API</b> you created in the Bright Data control panel under <b>Proxies &amp; Scraping Infrastructure</b>. The dashboard now calls these Proxies/APIs, but the API parameter is still <code>zone</code> — the value is whatever you named that SERP API. Use the <b>List Zones</b> component to see what exists on your account."
+                    },
+                    "query": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Query",
+                        "tooltip": "What to search for, exactly as you would type it into the search engine."
+                    },
+                    "engine": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Search Engine",
+                        "defaultValue": "google",
+                        "tooltip": "Which search engine to query.",
+                        "options": [
+                            {
+                                "label": "Google",
+                                "value": "google"
+                            },
+                            {
+                                "label": "Bing",
+                                "value": "bing"
+                            },
+                            {
+                                "label": "DuckDuckGo",
+                                "value": "duckduckgo"
+                            },
+                            {
+                                "label": "Yandex",
+                                "value": "yandex"
+                            }
+                        ]
+                    },
+                    "country": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "Country",
+                        "tooltip": "Two letter ISO country code to search from, for example <code>us</code>. Supported by Google and Bing."
+                    },
+                    "language": {
+                        "type": "text",
+                        "index": 5,
+                        "label": "Language",
+                        "tooltip": "Two letter language code of the results, for example <code>en</code>."
+                    },
+                    "numResults": {
+                        "type": "number",
+                        "index": 6,
+                        "label": "Number Of Results",
+                        "defaultValue": 10,
+                        "tooltip": "How many results the search engine should return per page, between 1 and 100. Supported by Google and Bing."
+                    },
+                    "page": {
+                        "type": "number",
+                        "index": 7,
+                        "label": "Page",
+                        "defaultValue": 1,
+                        "tooltip": "Which page of results to fetch. Page 1 is the first page."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "index": 8,
+                        "label": "Output Type",
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/brightdata/core/FindSearchResults?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/zone": "dummy",
+                        "in/query": "dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSJub25lIj4KICA8cGF0aCBmaWxsPSIjM0Q3RkZDIiBkPSJNMCAyLjY4QzAgMS4yIDEuMiAwIDIuNjggMGgyNi42NEMzMC44IDAgMzIgMS4yIDMyIDIuNjh2MjYuNjRDMzIgMzAuOCAzMC44IDMyIDI5LjMyIDMySDIuNjhBMi42OCAyLjY4IDAgMCAxIDAgMjkuMzJ6Ii8+CiAgPHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTEzLjc3MyA3LjI0MmMuMzEuNTkyLjE1NSAxLjA5LS4wNjMgMS42MTgtLjM0Mi44NzItLjI0OSAxLjcxMi4zNzQgMi40MjguNjIyLjc0NiAxLjQ5My44NCAyLjM5Ni42NTMgMS4yNDQtLjI4IDEuOTYtMS40NjMgMS43NzMtMi43Ny0uMDkzLS42MjItLjQ2Ni0xLjI0NC0uMTI0LTEuOTI5LS4zMTEuMTU2LS4zMTEuMTU2LS42ODQuNzc4LS4zNDMtLjQwNC0uNjU0LS44NC0xLjAyNy0xLjI3Ni0uMzEyLS4zNDItLjYyMy0uNjUzLS40MzYtMS4yMTNhMS4zMyAxLjMzIDAgMCAwLS42ODUuNzQ3Yy0uMDkzLjMxLS4xNTUuNjIyLS4yMTcuOTMzLS4wNjMuMzExLS4yMTguNTkxLS41My43NzgtLjE4Ni0uMzQyLS4zNzMtLjU5MS0uNzc3LS43NDdtLS43MzYgMTkuMTcydi0xLjUyMmwxLjY0OS0uMjE1di04LjcwMmwtMS41Mi0uNDkzdi0xLjY5NGw0LjE1NC0uNTU3Ljg3OC0uMDg3djExLjUxMmwxLjYyNy4yMzZ2MS41MjJ6Ii8+Cjwvc3ZnPg=="
+}

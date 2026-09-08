@@ -1,10 +1,44 @@
 'use strict';
 
+const crypto = require('crypto');
 const pathModule = require('path');
 
 const DEFAULT_PREFIX = 'gohighlevel-export';
 
+// HighLevel signs every marketplace webhook payload with this Ed25519 key and sends the
+// base64 signature in the `X-GHL-Signature` header. The legacy RSA-SHA256 `X-WH-Signature`
+// header is deprecated as of September 1, 2026 and must not be relied on any more.
+// https://marketplace.gohighlevel.com/docs/webhook/WebhookIntegrationGuide
+const WEBHOOK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAi2HR1srL4o18O8BRa7gVJY7G7bupbN3H9AwJrHCDiOg=
+-----END PUBLIC KEY-----`;
+
 module.exports = {
+
+    // Header name as it appears on the lower-cased request headers object.
+    WEBHOOK_SIGNATURE_HEADER: 'x-ghl-signature',
+
+    /**
+     * Verify the Ed25519 `X-GHL-Signature` header HighLevel sends with every webhook payload.
+     * `rawBody` must be the untouched request body (Buffer or string), not a re-serialized
+     * object, otherwise the signature will never match. Returns `true` only on a valid
+     * signature, so callers can reject the request on `false`.
+     */
+    verifyWebhookSignature({ rawBody, signature }) {
+
+        if (!rawBody || !signature || signature === 'N/A') return false;
+
+        try {
+            return crypto.verify(
+                null,
+                Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody, 'utf8'),
+                WEBHOOK_PUBLIC_KEY,
+                Buffer.from(signature, 'base64')
+            );
+        } catch (e) {
+            return false;
+        }
+    },
 
     async sendArrayOutput({
         context,

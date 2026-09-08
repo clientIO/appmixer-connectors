@@ -1,0 +1,100 @@
+{
+    "name": "appmixer.ai.gladia.MakeApiCall",
+    "label": "Make API Call",
+    "description": "Perform an arbitrary authorized API call to Gladia. Provide a path (or full URL), method, headers, query parameters and body. The x-gladia-key header is added automatically.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:ai:gladia"
+    },
+    "quota": {
+        "manager": "appmixer:ai:gladia",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": {
+                        "type": "string",
+                        "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+                    },
+                    "headers": { "type": "string" },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "A path relative to <code>https://api.gladia.io</code>, for example <code>/v2/transcription</code>. A full URL is accepted only when it points at <code>https://api.gladia.io</code>; any other host is rejected so your API key is never sent elsewhere."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "The HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "index": 3,
+                        "label": "Query Parameters",
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Optional JSON request body."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "index": 5,
+                        "label": "Request Headers",
+                        "tooltip": "Optional additional headers. The x-gladia-key header is set automatically."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "statusCode": { "type": "integer", "title": "Status Code", "example": 200 },
+                    "headers": { "type": "object", "title": "Response Headers", "properties": {} },
+                    "body": { "type": "object", "title": "Response Body", "properties": {} }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDcgNDQ3IiB3aWR0aD0iNDQ3IiBoZWlnaHQ9IjQ0NyIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJHbGFkaWEiPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMC4wMDAwMDAsNDQ3LjAwMDAwMCkgc2NhbGUoMC4xMDAwMDAsLTAuMTAwMDAwKSIgZmlsbD0iIzBDMEMwQyI+CiAgICAgICAgPHBhdGggZD0iTTYzNSA0NDYwIGMtMzE5IC00OSAtNTczIC0zMDEgLTYyNSAtNjIyIC0xNCAtODcgLTE0IC0zMTE5IDAgLTMyMDYgNDYgLTI4MiAyMzEgLTQ5NyA1MTEgLTU5NCBsOTQgLTMzIDE2MjAgMCAxNjIwIDAgOTQgMzMgYzI4MCA5NyA0NjUgMzEyIDUxMSA1OTQgMTQgODcgMTQgMzExOSAwIDMyMDYgLTQ3IDI4OSAtMjU0IDUyMCAtNTQ1IDYwOCAtNTcgMTcgLTE0OSAxOCAtMTY0NSAyMCAtODcyIDEgLTE2MDcgLTIgLTE2MzUgLTZ6Ii8+CiAgICA8L2c+CiAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjAwMDAwMCw0NDcuMDAwMDAwKSBzY2FsZSgwLjEwMDAwMCwtMC4xMDAwMDApIiBmaWxsPSIjRkZGRkZGIj4KICAgICAgICA8cGF0aCBkPSJNMjA3OCAzNDQxIGwtMyAtNDUwIC0yNDggMjgyIGMtMzI4IDM3NSAtMjk4IDM1NiAtNTkwIDM1NyBsLTE5OSAwIDg0IC05NyBjNTM2IC02MjggNTU5IC02NTIgNzA1IC03MjMgMTMyIC02NSAyMDggLTgwIDQwNSAtODAgMjMyIDAgMzM3IDI3IDQ4OCAxMjUgODMgNTQgMTI3IDk3IDI4MCAyNzYgNjkgODAgMTkwIDIyMSAyNzAgMzEzIDgwIDkzIDE0NyAxNzIgMTQ4IDE3NyA1IDEzIC0zNjUgMTEgLTQxMyAtMiAtNzIgLTIwIC0xMjEgLTY2IC0zNjIgLTM0MCBsLTIzOCAtMjcxIC0zIDQ0MSAtMiA0NDEgLTE2MCAwIC0xNjAgMCAtMiAtNDQ5eiBNODQyIDMyMTkgbDMgLTIxNCAzMCAtNTQgYzI0IC00MyA4MiAtMTAwIDMwNSAtMjk1IGwyNzYgLTI0MSAtNDM4IC0zIC00MzggLTIgMCAtMTY1IDAgLTE2NSA0NDcgLTIgNDQ2IC0zIC0yODEgLTI0OCBjLTI3NCAtMjQwIC0zMTYgLTI4NCAtMzQwIC0zNTYgLTEyIC0zNCAtMTggLTQyMSAtNyAtNDIxIDIxIDAgNjY5IDU3MiA3MjIgNjM3IDEzMSAxNjEgMTczIDI5NSAxNzMgNTUxIDAgMTkzIC0xNSAyNzMgLTc0IDM5NyAtNjQgMTMxIC0xMDggMTc5IC00MTMgNDQxIC0xNTggMTM2IC0zMTYgMjczIC0zNTEgMzAzIGwtNjMgNTUgMyAtMjE1eiBNMzUwNSAzMzI4IGMtNjYgLTU3IC0yMTQgLTE4NSAtMzMwIC0yODQgLTMxNyAtMjczIC0zNjkgLTM0MSAtNDMxIC01NjQgLTI5IC0xMDIgLTI2IC0zOTcgNCAtNTAzIDU4IC0yMDIgMTIwIC0yODIgNDIyIC01NDMgMTM0IC0xMTUgMjg5IC0yNDggMzQ0IC0yOTYgNTYgLTQ4IDEwNCAtODggMTA5IC04OCAxMyAwIDggMzUyIC02IDQwOCAtMjIgODMgLTU0IDExNyAtMzM3IDM2MyAtMTQ4IDEyOSAtMjY5IDIzNiAtMjY5IDIzOSAtMSAzIDE5NiA1IDQzNiA1IGw0MzggMCAzIDE2MiAyIDE2MyAtNDUxIDIgLTQ1MSAzIDIyOSAyMDAgYzQyOCAzNzQgNDA2IDM0MyA0MTEgNTk1IDIgOTYgMiAxOTAgMCAyMDkgbC0zIDMzIC0xMjAgLTEwNHogTTIwNjUgMTc0MSBjLTE1OSAtMjYgLTMwMyAtOTQgLTQxMiAtMTk0IC0yNSAtMjMgLTExNCAtMTIxIC0xOTcgLTIxNyAtODIgLTk2IC0yMDQgLTIzOCAtMjcwIC0zMTUgLTY3IC03NyAtMTI4IC0xNDggLTEzNSAtMTU4IC0xNCAtMTggLTcgLTE5IDE5NSAtMTUgMjkxIDUgMjUxIC0yMiA2MjQgNDA1IGwxODUgMjEyIDMgLTQ0MCAyIC00MzkgMTY1IDAgMTY1IDAgMiA0NDkgMyA0NDkgMjQ0IC0yNzkgYzI1MiAtMjg4IDI4NyAtMzIxIDM2NyAtMzQ1IDU1IC0xNiA0MTggLTIxIDQxMiAtNCAtOSAyNyAtNTkxIDY5MCAtNjM4IDcyNyAtNzQgNTggLTE4OSAxMTcgLTI4MCAxNDMgLTgzIDI0IC0zNDEgMzYgLTQzNSAyMXoiLz4KICAgIDwvZz4KPC9zdmc+Cg=="
+}
