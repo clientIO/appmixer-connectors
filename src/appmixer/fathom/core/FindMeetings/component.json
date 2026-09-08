@@ -1,0 +1,140 @@
+{
+    "name": "appmixer.fathom.core.FindMeetings",
+    "label": "Find Meetings",
+    "description": "Search meetings recorded by Fathom using filters such as date range, meeting type, recorder, teams and calendar-invitee domains. Returns a maximum of 500 meetings.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:fathom"
+    },
+    "quota": {
+        "manager": "appmixer:fathom",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "createdAfter": { "type": "string", "format": "date-time" },
+                    "createdBefore": { "type": "string", "format": "date-time" },
+                    "meetingType": { "type": "string" },
+                    "recordedBy": { "type": "string" },
+                    "teams": { "type": "string" },
+                    "calendarInviteesDomains": { "type": "string" },
+                    "calendarInviteesDomainsType": { "type": "string" },
+                    "includeActionItems": { "type": "boolean" },
+                    "includeHighlights": { "type": "boolean" },
+                    "includeCrmMatches": { "type": "boolean" },
+                    "outputType": { "type": "string" }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "createdAfter": {
+                        "type": "date-time",
+                        "label": "Created After",
+                        "index": 1,
+                        "tooltip": "Only return meetings created after this date/time."
+                    },
+                    "createdBefore": {
+                        "type": "date-time",
+                        "label": "Created Before",
+                        "index": 2,
+                        "tooltip": "Only return meetings created before this date/time."
+                    },
+                    "meetingType": {
+                        "type": "text",
+                        "label": "Meeting Type",
+                        "index": 3,
+                        "tooltip": "Filter by meeting type. Use the List Meeting Types component to discover the available values."
+                    },
+                    "recordedBy": {
+                        "type": "text",
+                        "label": "Recorded By",
+                        "index": 4,
+                        "tooltip": "Filter by the email address(es) of the recorder. Provide a comma-separated list for multiple values."
+                    },
+                    "teams": {
+                        "type": "text",
+                        "label": "Teams",
+                        "index": 5,
+                        "tooltip": "Filter by team name(s). Provide a comma-separated list for multiple values. Use the List Teams component to discover the available values."
+                    },
+                    "calendarInviteesDomains": {
+                        "type": "text",
+                        "label": "Calendar Invitee Domains",
+                        "index": 6,
+                        "tooltip": "Filter by calendar-invitee email domain(s), e.g. acme.com. Provide a comma-separated list for multiple values."
+                    },
+                    "calendarInviteesDomainsType": {
+                        "type": "select",
+                        "label": "Invitee Domains Type",
+                        "index": 7,
+                        "tooltip": "How the calendar-invitee domains filter is applied.",
+                        "options": [
+                            { "label": "All", "value": "all" },
+                            { "label": "Only internal", "value": "only_internal" },
+                            { "label": "One or more external", "value": "one_or_more_external" }
+                        ]
+                    },
+                    "includeActionItems": {
+                        "type": "toggle",
+                        "label": "Include Action Items",
+                        "index": 8,
+                        "tooltip": "Include action items for each meeting."
+                    },
+                    "includeHighlights": {
+                        "type": "toggle",
+                        "label": "Include Highlights",
+                        "index": 9,
+                        "tooltip": "Include highlights for each meeting."
+                    },
+                    "includeCrmMatches": {
+                        "type": "toggle",
+                        "label": "Include CRM Matches",
+                        "index": 10,
+                        "tooltip": "Include CRM matches (contacts, companies, deals) for each meeting."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 11,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/fathom/core/FindMeetings?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwMGJlZmY7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogIzAwNzI5OTsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMCw2NjguN3YyMDUuNzhjMCw1My45NywzNC4yNCwxMDIuODgsODUuOCwxMTkuMDgsODcuNDgsMjcuNDksMTY3Ljg4LTM2Ljk5LDE2Ny44OC0xMjAuMjJ2LTc3LjQ1TDAsNjY4LjdaIi8+CiAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNODczLjcyLDYyNi4wN2MtMTkuMDUsMC0zOC4zOC00LjMtNTYuNTgtMTMuMzhMNzIuNzgsMjQxLjQzQzExLjE1LDIxMC42OS0xNy41MSwxMzYuNiwxMS4xOCw3NC4wNSw0MS4yLDguNTksMTE5LjI2LTE4LjUzLDE4My4yMywxMy4zOGw3NDQuMjUsMzcxLjIxYzYyLjQ1LDMxLjE1LDkxLDEwOS4wOCw1OS43OSwxNzEuNDMtMjIuMjIsNDQuMzgtNjcuMDIsNzAuMDUtMTEzLjU1LDcwLjA1WiIvPgogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTUwMC4wOSw4MTMuNjZjLTE5LjA1LDAtMzguMzgtNC4zLTU2LjU4LTEzLjM4bC0zNzAuNzItMTg0LjljLTYxLjYzLTMwLjc0LTkwLjI5LTEwNC44Mi02MS42MS0xNjcuMzcsMzAuMDItNjUuNDYsMTA4LjA4LTkyLjU5LDE3Mi4wNi02MC42OGwzNzAuNjIsMTg0Ljg1YzYyLjQ1LDMxLjE1LDkxLDEwOS4wOCw1OS43OSwxNzEuNDMtMjIuMjIsNDQuMzgtNjcuMDIsNzAuMDUtMTEzLjU1LDcwLjA1WiIvPgo8L3N2Zz4="
+}

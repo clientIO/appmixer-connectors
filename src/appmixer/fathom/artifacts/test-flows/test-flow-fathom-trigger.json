@@ -1,0 +1,202 @@
+{
+    "name": "E2E Fathom - New Meeting Content Ready Trigger",
+    "type": "automation",
+    "flow": {
+        "964c40ea-3caf-44de-9bad-27b8b2ffc2fb": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 192,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d6a91718-6049-4aa8-94fa-0f0f614b51c8": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "964c40ea-3caf-44de-9bad-27b8b2ffc2fb": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "964c40ea-3caf-44de-9bad-27b8b2ffc2fb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Marker",
+                                                "text": "e2e-fathom-trigger"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "2b840565-8133-4d4b-9da9-af1a92352969": {
+            "type": "appmixer.fathom.core.NewMeetingContentReady",
+            "x": 256,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "triggeredFor": [
+                        "my_recordings"
+                    ],
+                    "includeActionItems": true
+                }
+            }
+        },
+        "2dcd3c7f-c211-440a-a86f-453dd9443f0c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2b840565-8133-4d4b-9da9-af1a92352969": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2b840565-8133-4d4b-9da9-af1a92352969": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "bc8d0f27-1b1f-4ba4-be71-b635efee95c9": {
+                                            "variable": "$.2b840565-8133-4d4b-9da9-af1a92352969.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.recording_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{bc8d0f27-1b1f-4ba4-be71-b635efee95c9}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a4a83511-fa95-478d-91d5-5fdb88d30592": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 640,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2dcd3c7f-c211-440a-a86f-453dd9443f0c": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "81df95f0-9721-4b3b-965a-c4e00d67fa7c": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 832,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a4a83511-fa95-478d-91d5-5fdb88d30592": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "a4a83511-fa95-478d-91d5-5fdb88d30592": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "27c26658-38d7-44f5-82b8-01f5775a256f": {
+                                            "variable": "$.a4a83511-fa95-478d-91d5-5fdb88d30592.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fathom - New Meeting Content Ready Trigger",
+                                    "result": "{{{27c26658-38d7-44f5-82b8-01f5775a256f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

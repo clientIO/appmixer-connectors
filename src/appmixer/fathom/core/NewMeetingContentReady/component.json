@@ -1,0 +1,183 @@
+{
+    "name": "appmixer.fathom.core.NewMeetingContentReady",
+    "label": "New Meeting Content Ready",
+    "description": "Triggers when Fathom finishes processing a meeting and its content (summary, transcript, action items) is ready. Registers a Fathom webhook when the flow starts and removes it when the flow stops.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "trigger": true,
+    "webhook": true,
+    "auth": {
+        "service": "appmixer:fathom"
+    },
+    "quota": {
+        "manager": "appmixer:fathom",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "triggeredFor": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                },
+                "includeSummary": { "type": "boolean" },
+                "includeTranscript": { "type": "boolean" },
+                "includeActionItems": { "type": "boolean" },
+                "includeCrmMatches": { "type": "boolean" }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "triggeredFor": {
+                    "type": "multiselect",
+                    "label": "Triggered For",
+                    "index": 1,
+                    "defaultValue": ["my_recordings"],
+                    "tooltip": "Which recordings should trigger this webhook. Defaults to your own recordings when nothing is selected.",
+                    "options": [
+                        { "label": "My recordings", "value": "my_recordings" },
+                        { "label": "Shared external recordings", "value": "shared_external_recordings" },
+                        { "label": "My recordings shared with team", "value": "my_shared_with_team_recordings" },
+                        { "label": "Shared team recordings", "value": "shared_team_recordings" }
+                    ]
+                },
+                "includeSummary": {
+                    "type": "toggle",
+                    "label": "Include Summary",
+                    "index": 2,
+                    "tooltip": "Include the AI summary in the webhook payload. At least one of the Include toggles must be turned on."
+                },
+                "includeTranscript": {
+                    "type": "toggle",
+                    "label": "Include Transcript",
+                    "index": 3,
+                    "tooltip": "Include the transcript in the webhook payload. At least one of the Include toggles must be turned on."
+                },
+                "includeActionItems": {
+                    "type": "toggle",
+                    "label": "Include Action Items",
+                    "index": 4,
+                    "tooltip": "Include action items in the webhook payload. At least one of the Include toggles must be turned on."
+                },
+                "includeCrmMatches": {
+                    "type": "toggle",
+                    "label": "Include CRM Matches",
+                    "index": 5,
+                    "tooltip": "Include CRM matches (contacts, companies, deals) in the webhook payload. At least one of the Include toggles must be turned on."
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "recording_id": { "type": "integer", "title": "Recording ID", "example": 123456 },
+                    "title": { "type": "string", "title": "Title", "example": "Acme <> Fathom — Weekly Sync" },
+                    "meeting_title": { "type": "string", "title": "Meeting Title", "example": "Weekly Sync" },
+                    "meeting_type": { "type": "string", "title": "Meeting Type", "example": "external" },
+                    "url": { "type": "string", "title": "URL", "example": "https://fathom.video/calls/123456" },
+                    "share_url": { "type": "string", "title": "Share URL", "example": "https://fathom.video/share/abc123" },
+                    "created_at": { "type": "string", "format": "date-time", "title": "Created At", "example": "2026-01-15T10:30:00Z" },
+                    "recording_start_time": { "type": "string", "format": "date-time", "title": "Recording Start Time", "example": "2026-01-15T10:02:00Z" },
+                    "recording_end_time": { "type": "string", "format": "date-time", "title": "Recording End Time", "example": "2026-01-15T10:29:00Z" },
+                    "transcript_language": { "type": "string", "title": "Transcript Language", "example": "en" },
+                    "recorded_by": {
+                        "type": "object",
+                        "title": "Recorded By",
+                        "properties": {
+                            "name": { "type": "string", "example": "Jane Doe" },
+                            "email": { "type": "string", "example": "jane.doe@example.com" }
+                        }
+                    },
+                    "default_summary": {
+                        "type": "object",
+                        "title": "Default Summary",
+                        "properties": {
+                            "template_name": { "type": "string", "title": "Template Name", "example": "general" },
+                            "markdown_formatted": { "type": "string", "title": "Markdown Formatted", "example": "## Key Takeaways\n- Renewal on track" }
+                        }
+                    },
+                    "transcript": {
+                        "type": "array",
+                        "title": "Transcript",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "speaker": {
+                                    "type": "object",
+                                    "properties": {
+                                        "display_name": { "type": "string", "example": "Jane Doe" },
+                                        "matched_calendar_invitee_email": { "type": "string", "example": "jane.doe@example.com" }
+                                    }
+                                },
+                                "text": { "type": "string", "example": "Thanks everyone for joining today." },
+                                "timestamp": { "type": "string", "example": "00:00:12" }
+                            }
+                        },
+                        "example": [
+                            {
+                                "speaker": { "display_name": "Jane Doe", "matched_calendar_invitee_email": "jane.doe@example.com" },
+                                "text": "Thanks everyone for joining today.",
+                                "timestamp": "00:00:12"
+                            }
+                        ]
+                    },
+                    "action_items": {
+                        "type": "array",
+                        "title": "Action Items",
+                        "items": { "type": "object" },
+                        "example": [
+                            {
+                                "description": "Send renewal quote to Acme",
+                                "user_generated": false,
+                                "completed": false,
+                                "recording_timestamp": "00:10:45",
+                                "recording_playback_url": "https://fathom.video/calls/123456?timestamp=645",
+                                "assignee": { "name": "Jane Doe", "email": "jane.doe@example.com", "team": "Sales" }
+                            }
+                        ]
+                    },
+                    "crm_matches": {
+                        "type": "object",
+                        "title": "CRM Matches",
+                        "properties": {
+                            "contacts": {
+                                "type": "array",
+                                "title": "Contacts",
+                                "items": { "type": "object" },
+                                "example": [
+                                    { "name": "John Smith", "email": "john.smith@client.com", "record_url": "https://app.hubspot.com/contacts/123" }
+                                ]
+                            },
+                            "companies": {
+                                "type": "array",
+                                "title": "Companies",
+                                "items": { "type": "object" },
+                                "example": [
+                                    { "name": "Acme Corp", "record_url": "https://app.hubspot.com/companies/456" }
+                                ]
+                            },
+                            "deals": {
+                                "type": "array",
+                                "title": "Deals",
+                                "items": { "type": "object" },
+                                "example": [
+                                    { "name": "Q1 Renewal", "amount": 50000, "record_url": "https://app.hubspot.com/deals/789" }
+                                ]
+                            },
+                            "error": { "type": "string", "title": "Error", "example": "no CRM connected" }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICMwMGJlZmY7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogIzAwNzI5OTsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPHBhdGggY2xhc3M9ImNscy0yIiBkPSJNMCw2NjguN3YyMDUuNzhjMCw1My45NywzNC4yNCwxMDIuODgsODUuOCwxMTkuMDgsODcuNDgsMjcuNDksMTY3Ljg4LTM2Ljk5LDE2Ny44OC0xMjAuMjJ2LTc3LjQ1TDAsNjY4LjdaIi8+CiAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNODczLjcyLDYyNi4wN2MtMTkuMDUsMC0zOC4zOC00LjMtNTYuNTgtMTMuMzhMNzIuNzgsMjQxLjQzQzExLjE1LDIxMC42OS0xNy41MSwxMzYuNiwxMS4xOCw3NC4wNSw0MS4yLDguNTksMTE5LjI2LTE4LjUzLDE4My4yMywxMy4zOGw3NDQuMjUsMzcxLjIxYzYyLjQ1LDMxLjE1LDkxLDEwOS4wOCw1OS43OSwxNzEuNDMtMjIuMjIsNDQuMzgtNjcuMDIsNzAuMDUtMTEzLjU1LDcwLjA1WiIvPgogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTUwMC4wOSw4MTMuNjZjLTE5LjA1LDAtMzguMzgtNC4zLTU2LjU4LTEzLjM4bC0zNzAuNzItMTg0LjljLTYxLjYzLTMwLjc0LTkwLjI5LTEwNC44Mi02MS42MS0xNjcuMzcsMzAuMDItNjUuNDYsMTA4LjA4LTkyLjU5LDE3Mi4wNi02MC42OGwzNzAuNjIsMTg0Ljg1YzYyLjQ1LDMxLjE1LDkxLDEwOS4wOCw1OS43OSwxNzEuNDMtMjIuMjIsNDQuMzgtNjcuMDIsNzAuMDUtMTEzLjU1LDcwLjA1WiIvPgo8L3N2Zz4="
+}
