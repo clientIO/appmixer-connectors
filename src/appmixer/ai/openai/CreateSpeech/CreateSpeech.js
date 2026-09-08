@@ -12,17 +12,18 @@ module.exports = {
         }
 
 
-        const { data: readStream } = await lib.request(context, '/audio/speech', {
+        const format = responseFormat || 'mp3';
+        const { data: readStream } = await lib.request(context, 'post', '/audio/speech', {
             model: model || 'tts-1',
             input,
             voice,
-            response_format: responseFormat,
+            response_format: format,
             speed
         }, {
             responseType: 'stream'
         });
 
-        const filename = `generated-audio-${(new Date).toISOString()}.${responseFormat}`;
+        const filename = `generated-audio-${(new Date).toISOString()}.${format}`;
         const file = await context.saveFileStream(filename, readStream);
         return context.sendJson({ fileId: file.fileId, input, fileSize: file.length }, 'out');
     }
