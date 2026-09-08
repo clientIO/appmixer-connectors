@@ -1,0 +1,398 @@
+{
+    "name": "E2E Tavily - Extract, Crawl and Map",
+    "flow": {
+        "5e2a9c04-8b31-4d76-9f58-1a3c7e0b6d29": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7a4c1e26-0d53-4f98-b17a-3c5e9b2d8f40": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "5e2a9c04-8b31-4d76-9f58-1a3c7e0b6d29": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5e2a9c04-8b31-4d76-9f58-1a3c7e0b6d29": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "targetUrl",
+                                                "text": "https://docs.tavily.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9c6e3a48-2f75-4b10-8d39-5e7a1c4f0b62": {
+            "type": "appmixer.tavily.core.FindExtractedPages",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "7a4c1e26-0d53-4f98-b17a-3c5e9b2d8f40": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a4c1e26-0d53-4f98-b17a-3c5e9b2d8f40": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "urls": {},
+                                    "extractDepth": {},
+                                    "format": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "urls": "https://docs.tavily.com/welcome",
+                                    "extractDepth": "basic",
+                                    "format": "markdown",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1e8a5c60-4b97-4d32-9f51-7a9c3e6b2d84": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "9c6e3a48-2f75-4b10-8d39-5e7a1c4f0b62": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c6e3a48-2f75-4b10-8d39-5e7a1c4f0b62": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b1c2d3e4-0001-4000-8000-000000000001": {
+                                            "variable": "$.9c6e3a48-2f75-4b10-8d39-5e7a1c4f0b62.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b1c2d3e4-0001-4000-8000-000000000001}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://",
+                                                "value": "^https?://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3a0c7e82-6d19-4f54-b073-9c1e5a8d4f06": {
+            "type": "appmixer.tavily.core.FindCrawledPages",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "7a4c1e26-0d53-4f98-b17a-3c5e9b2d8f40": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a4c1e26-0d53-4f98-b17a-3c5e9b2d8f40": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "maxDepth": {},
+                                    "maxPages": {},
+                                    "extractDepth": {},
+                                    "format": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "url": "https://docs.tavily.com",
+                                    "maxDepth": 1,
+                                    "maxPages": 5,
+                                    "extractDepth": "basic",
+                                    "format": "markdown",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5c2e9a04-8f31-4b76-9285-1e3a7c0b6d28": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 448,
+            "source": {
+                "in": {
+                    "3a0c7e82-6d19-4f54-b073-9c1e5a8d4f06": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "3a0c7e82-6d19-4f54-b073-9c1e5a8d4f06": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b1c2d3e4-0002-4000-8000-000000000002": {
+                                            "variable": "$.3a0c7e82-6d19-4f54-b073-9c1e5a8d4f06.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b1c2d3e4-0002-4000-8000-000000000002}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://",
+                                                "value": "^https?://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7e4a1c26-0b53-4d98-b407-3c5e9a2f8b40": {
+            "type": "appmixer.tavily.core.FindSiteLinks",
+            "x": 896,
+            "y": 576,
+            "source": {
+                "in": {
+                    "7a4c1e26-0d53-4f98-b17a-3c5e9b2d8f40": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a4c1e26-0d53-4f98-b17a-3c5e9b2d8f40": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "maxDepth": {},
+                                    "maxPages": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "url": "https://docs.tavily.com",
+                                    "maxDepth": 1,
+                                    "maxPages": 10,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9a6c3e48-2d75-4f10-8629-5e7a1c4b0f62": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 576,
+            "source": {
+                "in": {
+                    "7e4a1c26-0b53-4d98-b407-3c5e9a2f8b40": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7e4a1c26-0b53-4d98-b407-3c5e9a2f8b40": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b1c2d3e4-0003-4000-8000-000000000003": {
+                                            "variable": "$.7e4a1c26-0b53-4d98-b407-3c5e9a2f8b40.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b1c2d3e4-0003-4000-8000-000000000003}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://",
+                                                "value": "^https?://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1c8e5a60-4f97-4b32-9841-7a9c3e6d2b84": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1312,
+            "y": 576,
+            "source": {
+                "in": {
+                    "1e8a5c60-4b97-4d32-9f51-7a9c3e6b2d84": [
+                        "out"
+                    ],
+                    "5c2e9a04-8f31-4b76-9285-1e3a7c0b6d28": [
+                        "out"
+                    ],
+                    "9a6c3e48-2d75-4f10-8629-5e7a1c4b0f62": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3e0a7c82-6b19-4d54-b263-9c1e5a8f4d06": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 576,
+            "source": {
+                "in": {
+                    "1c8e5a60-4f97-4b32-9841-7a9c3e6d2b84": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "1c8e5a60-4f97-4b32-9841-7a9c3e6d2b84": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "b1c2d3e4-0004-4000-8000-000000000004": {
+                                            "variable": "$.1c8e5a60-4f97-4b32-9841-7a9c3e6d2b84.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Tavily - Extract, Crawl and Map",
+                                    "result": "{{{b1c2d3e4-0004-4000-8000-000000000004}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

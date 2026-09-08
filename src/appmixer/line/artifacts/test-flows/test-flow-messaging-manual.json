@@ -1,0 +1,335 @@
+{
+    "name": "E2E LINE - Messaging (manual)",
+    "flow": {
+        "cc330000-0000-0000-0000-000000000008": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 192,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc330000-0000-0000-0000-000000000001": {
+            "type": "appmixer.line.core.NewMessages",
+            "x": 208,
+            "y": 320,
+            "source": {},
+            "config": {
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc330000-0000-0000-0000-000000000002": {
+            "type": "appmixer.line.core.SendReplyMessage",
+            "x": 400,
+            "y": 320,
+            "source": {
+                "in": {
+                    "cc330000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cc330000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "replyToken": {
+                                        "rt": {
+                                            "functions": [],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000001.out.replyToken"
+                                        }
+                                    },
+                                    "messages": {}
+                                },
+                                "lambda": {
+                                    "replyToken": "{{{rt}}}",
+                                    "messages": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "text": "E2E: reply received."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc330000-0000-0000-0000-000000000003": {
+            "type": "appmixer.line.core.SendPushMessage",
+            "x": 592,
+            "y": 320,
+            "source": {
+                "in": {
+                    "cc330000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cc330000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "to": {
+                                        "uid": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.userId"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000001.out.source"
+                                        }
+                                    },
+                                    "messages": {}
+                                },
+                                "lambda": {
+                                    "to": "{{{uid}}}",
+                                    "messages": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "text": "E2E: push message."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc330000-0000-0000-0000-000000000004": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 400,
+            "y": 448,
+            "source": {
+                "in": {
+                    "cc330000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cc330000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v0": {
+                                            "functions": [],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000001.out.type"
+                                        },
+                                        "v1": {
+                                            "functions": [],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000001.out.replyToken"
+                                        },
+                                        "v2": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.userId"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000001.out.source"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{v0}}}",
+                                                "expected": "message"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v1}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v2}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc330000-0000-0000-0000-000000000005": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 592,
+            "y": 448,
+            "source": {
+                "in": {
+                    "cc330000-0000-0000-0000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cc330000-0000-0000-0000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v0": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.text"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000001.out.message"
+                                        },
+                                        "v1": {
+                                            "functions": [],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000001.out.webhookEventId"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v0}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v1}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc330000-0000-0000-0000-000000000006": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 784,
+            "y": 448,
+            "source": {
+                "in": {
+                    "cc330000-0000-0000-0000-000000000004": [
+                        "out"
+                    ],
+                    "cc330000-0000-0000-0000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc330000-0000-0000-0000-000000000007": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 976,
+            "y": 448,
+            "source": {
+                "in": {
+                    "cc330000-0000-0000-0000-000000000006": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "cc330000-0000-0000-0000-000000000006": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res": {
+                                            "functions": [],
+                                            "variable": "$.cc330000-0000-0000-0000-000000000006.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E LINE - Messaging (manual)",
+                                    "result": "{{{res}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('../lib');
+
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
@@ -27,10 +29,9 @@ module.exports = {
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const baseUrl = 'https://router.requesty.ai';
-        const targetUrl = url.startsWith('http://') || url.startsWith('https://')
-            ? url
-            : `${baseUrl}${url}`;
+        // Pin the origin: this component attaches the connector's API key to the request, so an
+        // arbitrary absolute URL would leak the credential to a third-party host.
+        const targetUrl = lib.resolveApiUrl(context, url);
 
         const requestOptions = {
             method,

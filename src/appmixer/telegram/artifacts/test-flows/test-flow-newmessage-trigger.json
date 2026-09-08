@@ -1,0 +1,312 @@
+{
+    "name": "E2E Telegram - new message trigger",
+    "flow": {
+        "cc78b3ee-fba6-4858-b325-a32aeeb64334": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a7daa304-6304-44a8-8423-d6e839206429": {
+            "type": "appmixer.telegram.core.SendMessage",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "cc78b3ee-fba6-4858-b325-a32aeeb64334": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "cc78b3ee-fba6-4858-b325-a32aeeb64334": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "text": {},
+                                    "parseMode": {}
+                                },
+                                "lambda": {
+                                    "chatId": "-5393771328",
+                                    "text": "E2E: reply to THIS message in the group to fire the New Message trigger.",
+                                    "parseMode": "HTML"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "17fe71b4-f668-4dae-9bbb-f8a688a03dd2": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "a7daa304-6304-44a8-8423-d6e839206429": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "a7daa304-6304-44a8-8423-d6e839206429": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a672fd2a-4c4d-4e3f-a9ae-0f8d791f4b67": {
+                                            "variable": "$.a7daa304-6304-44a8-8423-d6e839206429.out.message_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a672fd2a-4c4d-4e3f-a9ae-0f8d791f4b67}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e6fdb2f7-386b-4aba-891c-a74fce7e4c54": {
+            "type": "appmixer.telegram.core.NewMessage",
+            "x": 272,
+            "y": 576,
+            "source": {},
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "chatId": "-5393771328",
+                    "includeEdited": false,
+                    "includeChannelPosts": false
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3505b4d8-63e6-46a5-9719-9f126be72bf8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 576,
+            "source": {
+                "in": {
+                    "e6fdb2f7-386b-4aba-891c-a74fce7e4c54": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "e6fdb2f7-386b-4aba-891c-a74fce7e4c54": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a362bc7b-8a94-48ec-833b-a970eea13234": {
+                                            "variable": "$.e6fdb2f7-386b-4aba-891c-a74fce7e4c54.out.message_id",
+                                            "functions": []
+                                        },
+                                        "8984218b-4097-46ab-960a-bd356cc311a9": {
+                                            "variable": "$.e6fdb2f7-386b-4aba-891c-a74fce7e4c54.out.update_kind",
+                                            "functions": []
+                                        },
+                                        "5c1e7d2a-0f4b-4e0e-9a1c-7b2d3e4f5a61": {
+                                            "variable": "$.e6fdb2f7-386b-4aba-891c-a74fce7e4c54.out.from.id",
+                                            "functions": []
+                                        },
+                                        "6d2f8e3b-1a5c-4f1f-8b2d-8c3e4f5a6b72": {
+                                            "variable": "$.e6fdb2f7-386b-4aba-891c-a74fce7e4c54.out.chat.type",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a362bc7b-8a94-48ec-833b-a970eea13234}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{8984218b-4097-46ab-960a-bd356cc311a9}}}",
+                                                "assertion": "equal",
+                                                "expected": "message"
+                                            },
+                                            {
+                                                "field": "{{{5c1e7d2a-0f4b-4e0e-9a1c-7b2d3e4f5a61}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{6d2f8e3b-1a5c-4f1f-8b2d-8c3e4f5a6b72}}}",
+                                                "assertion": "equal",
+                                                "expected": "group"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ad664fb5-7a61-4d59-bc15-a1e97730d650": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 576,
+            "source": {
+                "in": {
+                    "17fe71b4-f668-4dae-9bbb-f8a688a03dd2": [
+                        "out"
+                    ],
+                    "3505b4d8-63e6-46a5-9719-9f126be72bf8": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1f03b206-5d6b-4457-95a7-c3d5461c0568": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 576,
+            "source": {
+                "in": {
+                    "ad664fb5-7a61-4d59-bc15-a1e97730d650": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "695d11bf9bd2c7da7fff03f6",
+                    "failedStoreId": "695d11c1c38355dede7fa7a0"
+                },
+                "transform": {
+                    "in": {
+                        "ad664fb5-7a61-4d59-bc15-a1e97730d650": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "dd05d9a8-df3a-4341-958c-a6cfc16b373a": {
+                                            "variable": "$.ad664fb5-7a61-4d59-bc15-a1e97730d650.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Telegram - new message trigger",
+                                    "result": "{{{dd05d9a8-df3a-4341-958c-a6cfc16b373a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ded27039-603a-4a5b-82e1-7fcc315e43c3": {
+            "type": "appmixer.telegram.core.DeleteMessage",
+            "x": 896,
+            "y": 704,
+            "source": {
+                "in": {
+                    "ad664fb5-7a61-4d59-bc15-a1e97730d650": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "ad664fb5-7a61-4d59-bc15-a1e97730d650": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "messageId": {
+                                        "a84a1e61-1513-46f8-b5ff-5df687611f87": {
+                                            "variable": "$.a7daa304-6304-44a8-8423-d6e839206429.out.message_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "chatId": "-5393771328",
+                                    "messageId": "{{{a84a1e61-1513-46f8-b5ff-5df687611f87}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "3c6d9eb5-4f7a-4082-9138-8e4c0d7f2a63": {
+            "content": "ENVIRONMENT — this flow is built for:\n- Telegram account: an apiKey account holding a bot token (service appmixer:telegram).\n- Chat: group chat id -5393771328. The bot MUST already be a member of that group.\n- Retargeting: the chat id is a literal on every Telegram component in this flow — change all of them together, or the cleanup step will target a different chat than the one under test.\n\nMANUAL STEP REQUIRED — this flow cannot complete unattended.\nTelegram never delivers a bot its own messages, so the trigger has to be provoked by a human:\n1. Start the flow. The bot posts \"E2E: reply to THIS message...\" into the group.\n2. REPLY to that message in Telegram. A plain new message is not enough — with the bot's privacy mode on it only receives replies to itself and messages that @-mention it.\n3. The trigger fires and the flow deletes the reply. AfterAll waits 600s; with no reply the flow just times out.",
+            "x": 64,
+            "y": 64,
+            "width": 520,
+            "height": 300
+        }
+    }
+}

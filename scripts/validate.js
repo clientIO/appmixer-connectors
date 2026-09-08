@@ -6,14 +6,18 @@
 // file — the pre-commit hook, `npm run validate`, CI — keeps working
 // unchanged; the rules themselves are the CLI's.
 //
-// What stays in THIS repo (loaded via --rules-dir):
-//   scripts/validators/bundle-bump-on-change.js   git-workflow rule
-//   scripts/validators/oauth-scope-bump.js        git-workflow rule
+// What stays in THIS repo:
+//   scripts/validators/bundle-bump-on-change.js   git-workflow rule (loaded via --rules-dir)
+//   scripts/validators/oauth-scope-bump.js        git-workflow rule (loaded via --rules-dir)
 //   scripts/validators/_shared.js                 helpers for the two above
-//   scripts/validators/_ignore-list.js            repo-specific suppressions
-//   scripts/validators/.thresholds.json           repo-specific ratchet caps
-// The CLI picks the ignore-list and thresholds up from these legacy locations
-// automatically.
+//   validators.ignore.js                          repo-specific suppressions (repo root)
+//   validators.thresholds.json                    repo-specific ratchet caps (repo root)
+// The root data files are the CLI's standard workspace locations, picked up
+// automatically; `--update-thresholds` writes back to validators.thresholds.json.
+// (They used to live in scripts/validators/ as _ignore-list.js / .thresholds.json
+// — an artifact of the pre-CLI runner, where anything in that dir without a `_`
+// prefix was loaded as a rule. The CLI keeps a fallback for those legacy paths
+// so older branches still validate.)
 //
 // Flag translation: the old runner took `--connector <name>`; the CLI takes
 // the connector as a positional argument. Everything else passes through

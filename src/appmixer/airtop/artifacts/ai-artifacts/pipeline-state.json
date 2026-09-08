@@ -1,0 +1,158 @@
+{
+    "connector": "airtop",
+    "vendor": "appmixer",
+    "module": "core",
+    "connectorPath": "src/appmixer/airtop",
+    "branch": "feature/airtop-connector",
+    "updatedAt": "2026-09-03",
+    "apiDocs": "https://docs.airtop.ai/api-reference/airtop-api",
+    "openApiSpec": "https://docs.airtop.ai/openapi.json",
+    "baseUrl": "https://api.airtop.ai/api/v1",
+    "auth": {
+        "status": "done",
+        "storedAs": "appmixer:airtop",
+        "tokenValid": true,
+        "accountId": "6a8da10544249be6241ce1ad"
+    },
+    "steps": {
+        "build": {
+            "status": "done",
+            "notes": "10 components generated under core/. service.json, bundle.json, auth.js, quota.js and lib.js in place. The icon is carried in service.json metadata; the stray icon.svg was removed in 32ba23c3."
+        },
+        "review": {
+            "status": "done",
+            "notes": "Second review-connector pass on 2026-09-03 against the updated rules (appmixer-skills 8053f7a, CLI #451). Fixed: outPort `required` per level; Take Screenshot stores the image as a file and emits fileId instead of inlining a base64 data URL; Query Page moved to the async endpoint + setTimeout continuation; every numeric input now goes through lib.parseIntegerInput; MakeApiCall no longer drops unparseable key-value inputs silently; quota comment corrected. node scripts/validate.js --connector airtop: 0 failures, 1 warning (writable-fields-readable on CreateSession - the session GET response only echoes the configuration under a field the API marks DEPRECATED, so those inputs are deliberately not surfaced). eslint: clean. Re-verified LIVE on 2026-09-03 with a real API key: appmixer connector verify airtop -> 1 pass, 0 fail (only a WARN for the DEPRECATED `configuration` object the listing returns and the connector deliberately does not surface); samples recorded in artifacts/samples/. CLI component tests: CreateSession (running after 15.5 s), CreateWindow, FindSessions, the async QueryPage (continuation delivered after exactly 60 s, out = modelResponse/status/requestId/credits) and TakeScreenshot (fileId + 6 236 B jpg, no image bytes in the message). No session left behind."
+        },
+        "cli-tests": {
+            "status": "done",
+            "notes": "API key obtained from https://portal.airtop.ai/ and stored via `appmixer test auth login src/appmixer/airtop/auth.js`. 10/10 components pass against the live API - per-component results in cliTestResults below."
+        },
+        "e2e": "done",
+        "ship": "done"
+    },
+    "components": [
+        {
+            "name": "CreateSession",
+            "type": "Create",
+            "endpoint": "POST /sessions"
+        },
+        {
+            "name": "GetSession",
+            "type": "Get",
+            "endpoint": "GET /sessions/{id}"
+        },
+        {
+            "name": "FindSessions",
+            "type": "Find (outputType)",
+            "endpoint": "GET /sessions"
+        },
+        {
+            "name": "TerminateSession",
+            "type": "Delete",
+            "endpoint": "DELETE /sessions/{id}"
+        },
+        {
+            "name": "CreateWindow",
+            "type": "Create",
+            "endpoint": "POST /sessions/{sessionId}/windows"
+        },
+        {
+            "name": "QueryPage",
+            "type": "Action",
+            "endpoint": "POST /sessions/{sessionId}/windows/{windowId}/page-query"
+        },
+        {
+            "name": "ClickElement",
+            "type": "Action",
+            "endpoint": "POST /sessions/{sessionId}/windows/{windowId}/click"
+        },
+        {
+            "name": "TypeText",
+            "type": "Action",
+            "endpoint": "POST /sessions/{sessionId}/windows/{windowId}/type"
+        },
+        {
+            "name": "TakeScreenshot",
+            "type": "Action",
+            "endpoint": "POST /sessions/{sessionId}/windows/{windowId}/screenshot"
+        },
+        {
+            "name": "MakeApiCall",
+            "type": "Action",
+            "endpoint": "any"
+        }
+    ],
+    "openIssues": [
+        "E2E validator warnings (non-blocking): CreateSession and TerminateSession have no dedicated Assert in the browser-interaction flow; CreateWindow has no Close Window cleanup component (terminating the session releases the window); several optional inputs are untested.",
+        "No Close Window / Load URL / Hover / Scroll / Monitor / PaginatedExtraction components yet - candidates for a 1.1.0 bundle.",
+        "Airtop rate limits are not documented; quota.js uses a conservative 10 requests/second per user."
+    ],
+    "target": {
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "e2eUser": "test@appmixer.ai",
+        "pushRemote": "origin",
+        "prRepo": "Appmixer-ai/appmixer-connectors",
+        "prBase": "dev"
+    },
+    "cliTestResults": {
+        "FindSessions": "PASS \u2014 both ports exercised: notFound with no sessions, out with result[] + count when one exists",
+        "MakeApiCall": "PASS \u2014 GET /sessions returned HTTP 200",
+        "CreateSession": "PASS (after fix) \u2014 now emits status running, not initializing",
+        "GetSession": "PASS",
+        "CreateWindow": "PASS \u2014 returns windowId and echoes sessionId for chaining",
+        "QueryPage": "PASS \u2014 returned \"Wikipedia The Free Encyclopedia\", 15 credits",
+        "TakeScreenshot": "PASS \u2014 base64 data URL returned",
+        "TypeText": "PASS \u2014 27 credits",
+        "ClickElement": "PASS \u2014 485 credits (by far the most expensive operation)",
+        "TerminateSession": "PASS \u2014 returns {} per the Delete contract"
+    },
+    "fixesApplied": [
+        "CreateSession emitted the session immediately, while Airtop still reports status \"initializing\". The session is unusable until \"running\": CreateWindow and every page operation answer HTTP 404 before then. This passed the CLI test only because GetSession was run manually in between; in a real flow (create session -> open window) it failed every time. CreateSession now polls GET /sessions/{id} every 2 s until the session reports running, with a 120 s ceiling and a CancelError if the session ends first.",
+        "E2E flow test-flow-session-lifecycle.json filtered FindSessions on status \"running\" while the session was still initializing, so FindSessions took the notFound port. Its Assert never fired, AfterAll never completed, and TerminateSession never ran \u2014 leaking a billed session on every run. The status filter was removed so the lookup is deterministic.",
+        "Take Screenshot emitted the whole image as a base64 data URL. The broker CANCELS (does not retry) any message over BROKER_SERVER_MAX_MESSAGE_SIZE_BYTES (2 MB default) and base64 inflates by a third, so a large screenshot could kill the message; nothing downstream could attach or upload it either. It now decodes the image and stores it with context.saveFileStream, emitting fileId/fileName/fileSize. The Format input was dropped - it only chose a transport that is now an internal detail.",
+        "Query Page blocked receive() for up to 300 s on Airtop's synchronous endpoint. Airtop also exposes POST /api/v1/async/sessions/{id}/windows/{id}/page-query (returns requestId) plus GET /api/v1/requests/{requestId}/status, so the component now submits and collects the answer through a context.setTimeout continuation at the engine's one-minute floor, with a 15-minute ceiling. Output schema and port are unchanged; a fast query now takes at least one minute. Its quota resource moved from browser-operations to requests - a submit-and-return component does not hold a concurrency slot.",
+        "CreateSession timeoutMinutes and TakeScreenshot maxWidth/maxHeight used a bare parseInt, so a non-numeric binding reached Airtop as null (serialized NaN). All numeric inputs now go through lib.parseIntegerInput with an explicit range.",
+        "MakeApiCall silently dropped Query Parameters / Request Headers whose bound value was not parseable, turning a filtered call into an unfiltered one that still reported success. It now throws a CancelError.",
+        "Live verification found three fields declared on outPorts that the API does not return: CreateWindow title/url (absent with waitUntil=load and waitUntil=complete alike - the create-window response carries only windowId and targetId) were removed; the Find Sessions listing turned out to be polymorphic by status, so cdpUrl/cdpWsUrl/chromedriverUrl/currentUsage stay declared but are now optional per level via `required` on the static schemas."
+    ],
+    "notes": [
+        "INSTANCE ARTIFACT, not a connector defect: the first flow start after every publish fails with TokenError \"Missing type property: apiKey | oauth | oauth2\" (observed at 14:16 after the first publish and 14:24 after the republish). A re-run with no publish in between passes with 0 errors. Budget one throwaway run after publishing, or re-run before believing a NEEDS_FIX.",
+        "Airtop credit costs measured live: QueryPage 15, TypeText 27, ClickElement 485. ClickElement is by far the most expensive operation \u2014 keep it out of flows that run often.",
+        "The account is on a free plan: session listings report recordingState \"free_plan_disabled\", so the CreateSession `record` option cannot be exercised on this account.",
+        "The session-lifecycle Assert on FindSessions is weak \u2014 it asserts the whole result array is notEmpty, which stringifies to \"[object Object],...\". It passes, but a future revision should assert a specific field instead.",
+        "appmixer test component binds a FIXED port 2300; two component tests cannot run concurrently (EADDRINUSE).",
+        "Session listing vs. session detail return DIFFERENT records: GET /sessions omits the connection URLs for a session that has ended, while GET /sessions/{id} returns them for both running and ended sessions. `currentUsage` shows up only once a session has been running for a while - it is absent right after creation and on an ended session. Any assertion on those fields must account for status.",
+        "The Airtop async API is real and used by Query Page: POST /api/v1/async/sessions/{id}/windows/{wid}/page-query answers 201 with {requestId, errors, warnings} at the ROOT (no data envelope), and GET /api/v1/requests/{requestId}/status answers {status: pending|completed|error, response} where `response` is the full AI envelope (data.modelResponse + meta.status/usage). Measured: query completed in ~5 s, delivered by the continuation at the engine's 60 s floor.",
+        "appmixer connector verify cannot express `required` for a dynamic (source) outPort - it reads the generateOutputPortOptions list and treats every option as required. Find Sessions therefore reports a FAIL whenever it samples an ended session. Fixing that belongs in appmixer-cli (connector-verify/index.js, declaredFields() hardcodes required: null for the options form), not in the connector.",
+        "Publishing after this round needed remove + publish of ALL TEN components, not a plain publish: lib.js changed and every component requires it, and `appmixer publish` never refreshes an existing (component, version) snapshot. Verified afterwards that each stored component zip holds exactly one copy of its behavior and carries the new markers (async/sessions, saveFileStream, ITEM_SCHEMA, parseIntegerInput). The TokenError-on-first-start artifact did not appear this time."
+    ],
+    "e2e": {
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "accountId": "6a8da10544249be6241ce1ad",
+        "flows": {
+            "E2E Airtop - Session Lifecycle": {
+                "flowId": "6a6a200b-fa8b-4e16-9ea9-f14d07bcab99",
+                "verdict": "PASSED",
+                "assertions": 6,
+                "failures": 0,
+                "lastRun": "2026-09-03"
+            },
+            "E2E Airtop - Browser Interaction": {
+                "flowId": "7852000a-7df4-46ec-b204-fdaeea8e5362",
+                "verdict": "PASSED",
+                "assertions": 7,
+                "failures": 0,
+                "lastRun": "2026-09-03"
+            }
+        },
+        "verifiedVia": "appmixer e2e run (both flows PASSED first attempt, 0 retries) cross-checked against `appmixer e2e results` \u2014 the runner verdict alone is not enough, the stored per-assert records show 13 PASS / 0 FAIL and no airtop entry in the failed bucket. FindSessions run server-side afterwards reported no running session, so nothing was left billing.",
+        "totalAssertions": 13
+    },
+    "results": {
+        "cliTests": "PASS \u2014 10 of 10 components verified against the live Airtop API (1 required a code fix)",
+        "e2e": "PASS \u2014 2 of 2 flows, 13 assertions, 0 failures (re-run 2026-09-03 after the second review round)",
+        "validator": "0 failures, 1 warning (writable-fields-readable on CreateSession \u2014 deliberate, see notes)",
+        "lint": "clean",
+        "pr": "https://github.com/Appmixer-ai/appmixer-connectors/pull/1228"
+    }
+}

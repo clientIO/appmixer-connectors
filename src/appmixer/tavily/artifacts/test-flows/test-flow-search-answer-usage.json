@@ -1,0 +1,472 @@
+{
+    "name": "E2E Tavily - Search, Answer and Usage",
+    "flow": {
+        "3f1c9e42-5b70-4a18-9c31-0d2e7a6b41f0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "3f1c9e42-5b70-4a18-9c31-0d2e7a6b41f0": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "3f1c9e42-5b70-4a18-9c31-0d2e7a6b41f0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "usagePath",
+                                                "text": "/usage"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7c4e1b95-2d36-4a80-9f12-6b8d5e3c7a41": {
+            "type": "appmixer.tavily.core.GetUsage",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {}
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9e6f3a27-8c51-4d94-b2a7-3f1e0d8c5b62": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "7c4e1b95-2d36-4a80-9f12-6b8d5e3c7a41": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7c4e1b95-2d36-4a80-9f12-6b8d5e3c7a41": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a1b2c3d4-0001-4000-8000-000000000001": {
+                                            "variable": "$.7c4e1b95-2d36-4a80-9f12-6b8d5e3c7a41.out.plan",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a1b2c3d4-0001-4000-8000-000000000001}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1b8d5f60-4a29-4e73-8c05-9d2f6a3b7e14": {
+            "type": "appmixer.tavily.core.FindSearchResults",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {},
+                                    "searchDepth": {},
+                                    "topic": {},
+                                    "maxResults": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "query": "Appmixer embedded iPaaS",
+                                    "searchDepth": "basic",
+                                    "topic": "general",
+                                    "maxResults": 3,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2d9a7c31-5f48-4b16-9e83-0a4c1b6d8f25": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 448,
+            "source": {
+                "in": {
+                    "1b8d5f60-4a29-4e73-8c05-9d2f6a3b7e14": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "1b8d5f60-4a29-4e73-8c05-9d2f6a3b7e14": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a1b2c3d4-0002-4000-8000-000000000002": {
+                                            "variable": "$.1b8d5f60-4a29-4e73-8c05-9d2f6a3b7e14.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a1b2c3d4-0002-4000-8000-000000000002}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://",
+                                                "value": "^https?://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4f0b2e83-7d16-4c59-a731-8e5b9c2a6d37": {
+            "type": "appmixer.tavily.core.AnswerQuestion",
+            "x": 896,
+            "y": 576,
+            "source": {
+                "in": {
+                    "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {},
+                                    "answerDepth": {},
+                                    "searchDepth": {},
+                                    "topic": {},
+                                    "maxResults": {}
+                                },
+                                "lambda": {
+                                    "query": "What is the capital city of Portugal?",
+                                    "answerDepth": "basic",
+                                    "searchDepth": "basic",
+                                    "topic": "general",
+                                    "maxResults": 3
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6a3c8d15-9e27-4f60-b184-2d7f0a5c9e48": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 576,
+            "source": {
+                "in": {
+                    "4f0b2e83-7d16-4c59-a731-8e5b9c2a6d37": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "4f0b2e83-7d16-4c59-a731-8e5b9c2a6d37": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a1b2c3d4-0003-4000-8000-000000000003": {
+                                            "variable": "$.4f0b2e83-7d16-4c59-a731-8e5b9c2a6d37.out.answer",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a1b2c3d4-0003-4000-8000-000000000003}}}",
+                                                "assertion": "regex",
+                                                "regex": "Lisbon",
+                                                "value": "Lisbon"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8c5e0f37-1a49-4b82-9d26-4f9b3e7a1c50": {
+            "type": "appmixer.tavily.core.MakeApiCall",
+            "x": 1104,
+            "y": 704,
+            "source": {
+                "in": {
+                    "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5a2d8c13-6e94-4f27-b8a5-1c3f9d0e2b76": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/usage",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0e7a2b59-3c61-4d05-8f47-6a1d5c9b3e72": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 704,
+            "source": {
+                "in": {
+                    "8c5e0f37-1a49-4b82-9d26-4f9b3e7a1c50": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "8c5e0f37-1a49-4b82-9d26-4f9b3e7a1c50": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a1b2c3d4-0004-4000-8000-000000000004": {
+                                            "variable": "$.8c5e0f37-1a49-4b82-9d26-4f9b3e7a1c50.out.statusCode",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a1b2c3d4-0004-4000-8000-000000000004}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2b9c4d71-5e83-4a27-9061-8c3f7b1e5d94": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 704,
+            "source": {
+                "in": {
+                    "9e6f3a27-8c51-4d94-b2a7-3f1e0d8c5b62": [
+                        "out"
+                    ],
+                    "2d9a7c31-5f48-4b16-9e83-0a4c1b6d8f25": [
+                        "out"
+                    ],
+                    "6a3c8d15-9e27-4f60-b184-2d7f0a5c9e48": [
+                        "out"
+                    ],
+                    "0e7a2b59-3c61-4d05-8f47-6a1d5c9b3e72": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4d1e6f93-7a05-4c49-b283-0e5b9d3f7a16": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 704,
+            "source": {
+                "in": {
+                    "2b9c4d71-5e83-4a27-9061-8c3f7b1e5d94": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "2b9c4d71-5e83-4a27-9061-8c3f7b1e5d94": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a1b2c3d4-0005-4000-8000-000000000005": {
+                                            "variable": "$.2b9c4d71-5e83-4a27-9061-8c3f7b1e5d94.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Tavily - Search, Answer and Usage",
+                                    "result": "{{{a1b2c3d4-0005-4000-8000-000000000005}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -1,0 +1,101 @@
+{
+    "connector": "appmixer.brightdata",
+    "vendor": "appmixer",
+    "module": "brightdata",
+    "mode": "unattended",
+    "budget": {
+        "maxMinutes": 60,
+        "maxFixAttempts": 3
+    },
+    "target": {
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "e2eUser": "test@appmixer.ai",
+        "pushRemote": "origin",
+        "branch": "feature/brightdata-connector",
+        "prRepo": "clientIO/appmixer-connectors",
+        "prBase": "dev"
+    },
+    "steps": {
+        "preflight": "done",
+        "build": "done",
+        "review": "done",
+        "cliTests": "done",
+        "e2e": "done",
+        "ship": "done"
+    },
+    "auth": {
+        "status": "done",
+        "storedAs": "appmixer:brightdata",
+        "tokenValid": true,
+        "customer": "hl_febbc1d1",
+        "verifiedBy": "GET /status -> 200 and GET /zone/get_active_zones -> 200",
+        "zones": {
+            "web_unlocker1": "unblocker (Unlocker API)",
+            "serp_api1": "serp (SERP API)"
+        }
+    },
+    "cliTestResults": {
+        "ListZones": "PASS — live; { result: [], count: 0 } (empty because the account has no zones)",
+        "MakeApiCall": "PASS — live; GET /datasets/list returned HTTP 200",
+        "TriggerDatasetCollection": "PASS — live; returned snapshotId sd_mt8vchh6qim0z7s05 for dataset gd_l1viktl72bvl7bjuj0",
+        "GetSnapshotStatus": "PASS — live; status \"ready\", derived isReady true",
+        "FindSnapshotRecords": "PASS — live; returned the full LinkedIn profile record (outputType first)",
+        "ScrapeUrl": "PASS — live via zone web_unlocker1; HTTP 200, and dataFormat markdown verified converting the page",
+        "FindSearchResults": "PASS — live via zone serp_api1; real Google organic results with rank/title/link"
+    },
+    "notes": [
+        "Zone names 'web_unlocker1' and 'serp_api1' in the E2E flow are CONFIRMED WRONG — the account has no zones at all, so no default-named zone exists either. They must be replaced once zones are provisioned.",
+        "Dataset id 'gd_l1viktl72bvl7bjuj0' is CONFIRMED VALID — it resolves to 'LinkedIn people profiles' in GET /datasets/list (1748 datasets available). The original guess was correct.",
+        "The dataset flow spends real Bright Data credits (one Web Scraper collection) and waits 5 minutes for the snapshot; AfterAll timeout is 600 s. If a collection routinely needs longer, raise the Wait interval rather than the assert.",
+        "FindSnapshotRecords declares no schema-level required inputs on purpose: snapshotId feeds the component's own dynamic outPort source, and the e2e rule 'dynamic-source-static-input' rejects a required source input bound to a modifier. It is still enforced at run time with a CancelError. Flagged for human review.",
+        "Two Bright Data doc pages contradict each other on the TriggerDatasetCollection request body ({\"input\": [...]} vs a plain array); the plain array was chosen from the official trigger page. UNVERIFIED — this is the most likely first-contact failure once the dataset chain is tested.",
+        "Bright Data publishes no single hard rate limit; quota.js uses a conservative 10 requests/second sliding window. Revisit once real 429 behaviour is observed.",
+        "Connector currently lives in a git worktree under .claude/worktrees/; branch feature/brightdata-connector holds all commits.",
+        "eslint must be run with --no-ignore inside that worktree or it exits 0 without linting anything.",
+        "RESOLVED 2026-08-25: the doc contradiction on the TriggerDatasetCollection body is moot — the API accepts BOTH shapes. A direct probe returned 200 with a snapshot_id for the plain array AND for {\"input\":[...]}. A deliberately malformed body returned 400 validation_error with per-field detail, confirming what a real payload rejection looks like. The connector sends the plain array and works.",
+        "The whole async dataset chain is verified end to end: trigger -> snapshotId -> GetSnapshotStatus ready -> FindSnapshotRecords returning real records. The snapshot became ready within seconds, not the 5 minutes the E2E flow waits for.",
+        "TRANSIENT, do not chase: the first TriggerDatasetCollection run failed with 400 \"Customer is not active\" while a direct API call with the same token and body succeeded moments later; an immediate retry of the component then passed. Retry once before diagnosing.",
+        "ScrapeUrl and FindSearchResults now fail with a precise 400 zone \"<name>\" not found, which proves the components build a correct request and the only thing missing is a provisioned zone. GET /status still reports can_make_requests:false / auth_fail_reason:zone_not_found — that flag governs the Web Unlocker and SERP proxy products ONLY; the Datasets API is unaffected by it, as the passing dataset chain shows.",
+        "Zones provisioned 2026-08-25 by the user with the default names, so no flow edits were needed: web_unlocker1 (type unblocker) and serp_api1 (type serp).",
+        "GET /customer/balance returns 403 \"Your API key lacks the required permissions\" — the token is scoped for zone reads and Datasets, not account management. Zones must be created in the control panel, not via API, with this token."
+    ],
+    "results": {
+        "validator": "0 failures, 0 warnings (node scripts/validate.js --connector brightdata) — independently re-verified",
+        "lint": "clean (eslint 8.57.1 with --no-ignore, CRLF warnings excluded) — independently re-verified",
+        "review": "2 findings, both fixed: duplicated POST /request + auth-header construction in ScrapeUrl and FindSearchResults (extracted to lib.zoneRequest / lib.authHeaders), and dynamic-source required inputs bound to live inputs instead of the documented 'dummy' literal.",
+        "cliTests": "PASS — 7 of 7 components verified against the live Bright Data API",
+        "e2eFlows": {
+            "E2E Bright Data - Zones, Scrape, Search and API Call": "generated, appmixer e2e validate passed — NOT run",
+            "E2E Bright Data - Dataset Snapshot Lifecycle": "generated, appmixer e2e validate passed — NOT run"
+        },
+        "e2eValidate": "Validation passed (26 validators, 2 flow files)",
+        "e2eCoverage": "7 of 7 components covered by flow definitions; the connector has no triggers",
+        "pr": "https://github.com/Appmixer-ai/appmixer-connectors/pull/1229",
+        "e2e": "PASS — 2 of 2 flows, 12 assertions, 0 failures"
+    },
+    "fixesApplied": [
+        "E2E dataset flow asserted the snapshot id against regex ^s_ , which can never match: real ids are sd_xxxx, so ^s_ requires an underscore where a d actually is. Corrected to ^sd_.",
+        "E2E dataset flow waited 5 minutes for the snapshot. Measured readiness is a few seconds, so the wait was cut to 1m — the old value risked the runner timeout for no benefit.",
+        "Zone input label/tooltip on ScrapeUrl and FindSearchResults rewritten: Bright Data deprecated \"zone\" as a UI term (the dashboard now says Proxies & Scraping Infrastructure), while the wire parameter is still zone. Label is now \"Zone (Proxy / API name)\"."
+    ],
+    "e2e": {
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "accountId": "6a8dc508ab084961de645b7a",
+        "flows": {
+            "E2E Bright Data - Zones, Scrape, Search and API Call": {
+                "flowId": "758ddc7a-126b-4383-bd03-b3a54d99c053",
+                "verdict": "PASSED",
+                "assertions": 7,
+                "failures": 0
+            },
+            "E2E Bright Data - Dataset Snapshot Lifecycle": {
+                "flowId": "0622bb75-5cc8-4975-94a1-5db207f6e846",
+                "verdict": "PASSED",
+                "assertions": 5,
+                "failures": 0
+            }
+        },
+        "totalAssertions": 12,
+        "verifiedVia": "appmixer e2e results --json (failed[] empty)"
+    }
+}

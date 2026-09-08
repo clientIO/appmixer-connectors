@@ -1,0 +1,169 @@
+{
+    "name": "E2E HubBI - MakeApiCall list target hubs",
+    "type": "automation",
+    "flow": {
+        "7a205352-f70f-42a5-9f4a-4a4ea6649af2": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c2e7535e-76ae-4189-b362-b51eae89ca84": {
+            "type": "appmixer.hubbi.core.MakeApiCall",
+            "x": 320,
+            "y": 16,
+            "source": {
+                "in": {
+                    "7a205352-f70f-42a5-9f4a-4a4ea6649af2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "2.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a205352-f70f-42a5-9f4a-4a4ea6649af2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "method": {},
+                                    "url": {},
+                                    "parameters": {},
+                                    "body": {},
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "method": "GET",
+                                    "url": "/Flows/Home/ListTargetHubs"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ac17cd03-1325-43e0-848f-43c4913805a3": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 16,
+            "source": {
+                "in": {
+                    "c2e7535e-76ae-4189-b362-b51eae89ca84": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "c2e7535e-76ae-4189-b362-b51eae89ca84": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9b1e-status": {
+                                            "variable": "$.c2e7535e-76ae-4189-b362-b51eae89ca84.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "expected": "200",
+                                                "assertion": "equal",
+                                                "field": "{{{9b1e-status}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4769595c-3111-4df8-9621-3830f72c8634": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 900,
+            "y": 16,
+            "source": {
+                "in": {
+                    "ac17cd03-1325-43e0-848f-43c4913805a3": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2cce5e33-8425-494b-a35d-0d81adbef8dd": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1160,
+            "y": 16,
+            "source": {
+                "in": {
+                    "4769595c-3111-4df8-9621-3830f72c8634": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "4769595c-3111-4df8-9621-3830f72c8634": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-afterall": {
+                                            "variable": "$.4769595c-3111-4df8-9621-3830f72c8634.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubBI - MakeApiCall list target hubs",
+                                    "result": "{{{res-afterall}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

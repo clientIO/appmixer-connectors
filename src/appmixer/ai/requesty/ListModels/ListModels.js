@@ -26,16 +26,9 @@ module.exports = {
             );
         }
 
-        const { data } = await context.httpRequest({
-            method: 'GET',
-            url: `${lib.getBaseUrl()}/models`,
-            headers: {
-                accept: 'application/json',
-                Authorization: `Bearer ${context.auth.apiKey}`
-            }
-        });
+        const response = await lib.request(context, 'GET', '/models');
 
-        const items = data?.data ?? [];
+        const items = response?.data ?? [];
 
         return lib.sendArrayOutput({
             context,
@@ -44,7 +37,7 @@ module.exports = {
         });
     },
 
-    // Used by Chat Completion / Create Embedding inspector model dropdowns.
+    // Used by the Send Prompt / Generate Embeddings inspector model dropdowns.
     toSelectArray({ result }) {
         return (result || []).map(model => ({ label: model.id, value: model.id }));
     }

@@ -1,0 +1,294 @@
+{
+    "name": "E2E Deepgram - Transcription Completed Trigger",
+    "description": "End-to-end test for the Transcription Completed polling trigger. Transcribe Audio runs in the same flow and logs a succeeded /v1/listen entry in the project request log, which the trigger picks up on a later poll.",
+    "flow": {
+        "a145b03e-3d7e-4cc5-b97d-b43376e6232d": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d2949997-8500-4b43-9b2c-d30723c2d20e": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 324,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a145b03e-3d7e-4cc5-b97d-b43376e6232d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a145b03e-3d7e-4cc5-b97d-b43376e6232d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "audioUrl",
+                                                "text": "https://dpgr.am/spacewalk.wav"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "9afd79b5-e395-40e9-ada5-8896e4b5ba57": {
+            "type": "appmixer.ai.deepgram.TranscribeAudio",
+            "x": 584,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "d2949997-8500-4b43-9b2c-d30723c2d20e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d2949997-8500-4b43-9b2c-d30723c2d20e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "audioUrl": {
+                                        "eb314dbe-5a75-44f5-992b-828fff5fb66d": {
+                                            "functions": [],
+                                            "variable": "$.d2949997-8500-4b43-9b2c-d30723c2d20e.out.audioUrl"
+                                        }
+                                    },
+                                    "model": {},
+                                    "smartFormat": {},
+                                    "punctuate": {}
+                                },
+                                "lambda": {
+                                    "audioUrl": "{{{eb314dbe-5a75-44f5-992b-828fff5fb66d}}}",
+                                    "model": "nova-3",
+                                    "smartFormat": true,
+                                    "punctuate": true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0efd3f34-b467-4fdc-ab81-326ee6a31b1b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 844,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "9afd79b5-e395-40e9-ada5-8896e4b5ba57": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9afd79b5-e395-40e9-ada5-8896e4b5ba57": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1f535fd1-373e-4490-9e65-96b66d5c03e4": {
+                                            "functions": [],
+                                            "variable": "$.9afd79b5-e395-40e9-ada5-8896e4b5ba57.out.request_id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{1f535fd1-373e-4490-9e65-96b66d5c03e4}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d7833255-fd8e-482f-9184-b12015aaafca": {
+            "type": "appmixer.ai.deepgram.TranscriptionCompleted",
+            "x": 584,
+            "y": 460,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "projectId": "ebeea125-6c93-42c6-8ab9-e822039beade",
+                    "includeResult": false
+                }
+            }
+        },
+        "ff244e1b-fef1-456f-9ada-0d8a604dbfe0": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 844,
+            "y": 460,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "d7833255-fd8e-482f-9184-b12015aaafca": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d7833255-fd8e-482f-9184-b12015aaafca": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f8d19100-2ea9-4398-a006-b5f0fb9f83e3": {
+                                            "functions": [],
+                                            "variable": "$.d7833255-fd8e-482f-9184-b12015aaafca.out.request_id"
+                                        },
+                                        "95b8e517-a229-4ed0-8af5-9defd5104a7f": {
+                                            "functions": [],
+                                            "variable": "$.d7833255-fd8e-482f-9184-b12015aaafca.out.path"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f8d19100-2ea9-4398-a006-b5f0fb9f83e3}}}"
+                                            },
+                                            {
+                                                "assertion": "regex",
+                                                "field": "{{{95b8e517-a229-4ed0-8af5-9defd5104a7f}}}",
+                                                "regex": "/v1/listen"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f5767ab4-0faa-45ec-869c-4a0a326d22bf": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0efd3f34-b467-4fdc-ab81-326ee6a31b1b": [
+                        "out"
+                    ],
+                    "ff244e1b-fef1-456f-9ada-0d8a604dbfe0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 1500
+                }
+            }
+        },
+        "0187f86c-4580-43a4-afc0-09044edfa464": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1364,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f5767ab4-0faa-45ec-869c-4a0a326d22bf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "695d11bf9bd2c7da7fff03f6",
+                    "failedStoreId": "695d11c1c38355dede7fa7a0"
+                },
+                "transform": {
+                    "in": {
+                        "f5767ab4-0faa-45ec-869c-4a0a326d22bf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "f0656e77-920d-4094-95fa-2342514b3ecd": {
+                                            "functions": [],
+                                            "variable": "$.f5767ab4-0faa-45ec-869c-4a0a326d22bf.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Deepgram - Transcription Completed Trigger",
+                                    "result": "{{{f0656e77-920d-4094-95fa-2342514b3ecd}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

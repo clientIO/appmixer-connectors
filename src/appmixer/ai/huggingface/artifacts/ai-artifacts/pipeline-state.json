@@ -1,0 +1,111 @@
+{
+    "connector": "appmixer.ai.huggingface",
+    "vendor": "appmixer",
+    "module": "ai/huggingface",
+    "mode": "build-and-review-only",
+    "budget": {
+        "maxMinutes": 60,
+        "maxFixAttempts": 3
+    },
+    "target": {
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "e2eUser": "test@appmixer.ai",
+        "pushRemote": "origin",
+        "branch": "feature/huggingface-connector",
+        "prRepo": "clientIO/appmixer-connectors",
+        "prBase": "dev"
+    },
+    "steps": {
+        "preflight": "done",
+        "build": "done",
+        "review": "done",
+        "cliTests": "done",
+        "e2e": "done",
+        "ship": "done"
+    },
+    "next": [
+        "appmixer test auth login src/appmixer/ai/huggingface/auth.js -n appmixer:ai:huggingface   # the -n flag is REQUIRED for ai/ connectors: without it the CLI ENOENTs looking for service.json",
+        "appmixer test component ./src/appmixer/ai/huggingface/GetModel -i '{\"in\":{\"modelId\":\"google-bert/bert-base-uncased\"}}'   # cheapest first: Hub API calls cost no inference credits",
+        "then FindModels and MakeApiCall (also Hub-only, free), then the four Inference Providers components (SendPrompt, CreateEmbeddings, ClassifyText, SummarizeText) which DO consume credits, and GenerateImage last (slowest and most expensive)",
+        "cd src/appmixer/ai && appmixer pack huggingface && appmixer publish appmixer.ai.huggingface.zip   # publish TWICE - this instance is known to land only part of a bundle on the first publish",
+        "appmixer e2e import src/appmixer/ai/huggingface/artifacts/test-flows",
+        "appmixer e2e run <flowId>   # then read the ProcessE2EResults payload - the runner reports PASSED without checking asserts"
+    ],
+    "notes": [
+        "This run was explicitly scoped BUILD + REVIEW ONLY by the operator. No credentials existed, so no `appmixer test`, `appmixer publish`, `appmixer e2e import/run`, `appmixer account create`, and no authenticated HTTP call to the Hugging Face API was made. Nothing in this connector has been executed against the live API.",
+        "API surface was researched from current public docs only. Key finding: the router's OpenAI-compatible /v1 surface covers chat completions ONLY - there is NO /v1/embeddings. Embeddings, classification, summarization and text-to-image therefore go through the hf-inference task routes on router.huggingface.co. The legacy api-inference.huggingface.co host is deliberately unused.",
+        "Two response shapes must be unwrapped and are the most likely source of a first-run CLI test failure: text-classification returns [[{label, score}]] (double-nested) and summarization returns [{summary_text}] (single-nested). Both are handled, but neither has been verified against a live response.",
+        "Text-to-image response Content-Type is not documented; GenerateImage accepts any image/* content type and also handles the {data:[{b64_json}]} and {output:[url]} JSON variants used by non-hf-inference providers.",
+        "The `direction` query param on Hub GET /api/models could not be verified against current docs or the current Python client - it is historically supported and harmless if ignored (results would just come back ascending).",
+        "FindModels builds its own query string rather than passing `params` to axios, because the Hub expects `filter` as a REPEATED key and the default axios serializer emits the `filter[]=` bracket form. This was a review finding, fixed before commit.",
+        "E2E validator warning `create-without-cleanup` on CreateEmbeddings is a false positive - an embedding is a computed value, not a persisted resource, so there is nothing to delete.",
+        "E2E validator `component-coverage` warnings in the run output refer to OTHER connectors in the workspace (requesty, voyageai). All 8 huggingface components ARE covered by the two generated flows.",
+        "Assertion values chosen to be deterministic: all-MiniLM-L6-v2 has exactly 384 dimensions; sst-2 returns POSITIVE for the sample sentence; SendPrompt uses temperature 0. If the E2E run later fails on the SendPrompt regex, the likely cause is the model appending punctuation, not a connector defect.",
+        "appmixer test component binds a FIXED port 2300 — two component tests cannot run concurrently; the second dies with EADDRINUSE. Run them sequentially.",
+        "SendPrompt: the router silently remaps meta-llama/Llama-3.1-8B-Instruct to Meta-Llama-3.1-8B-Instruct-Turbo in the response, so never assert equality on the returned model id.",
+        "SendPrompt at temperature 0 is still not word-exact: asked to reply \"PONG\" it answered \"Classic\". The E2E asserts use factual substrings (Lisbon, Eiffel) rather than exact echoes, which is the right call.",
+        "facebook/bart-large-cnn needs a cold start of roughly two minutes on first call; the CLI default 120 s timeout is not enough.",
+        "The upstream remote clientIO/appmixer-connectors redirects to Appmixer-ai/appmixer-connectors — the org was renamed, so PRs land on Appmixer-ai."
+    ],
+    "results": {
+        "validator": "0 failures, 0 warnings — re-verified after the GenerateImage fix",
+        "lint": "clean — re-verified after the fix (eslint --no-ignore)",
+        "review": "8 components audited against the review-connector standards; 7 validator findings and 1 hand-review finding, all fixed; 0 remaining",
+        "cliTests": "PASS — 8 of 8 components verified against the live Hugging Face API (1 required a code fix)",
+        "e2eFlows": {
+            "E2E Hugging Face - Hub Models and API Call": "GENERATED, validator passed, NEVER RUN (covers FindModels, GetModel, MakeApiCall)",
+            "E2E Hugging Face - Inference Tasks": "GENERATED, validator passed, NEVER RUN (covers SendPrompt, SummarizeText, ClassifyText, CreateEmbeddings, GenerateImage)"
+        },
+        "e2eValidate": "Validation passed (26 validators, 2 flow files) — re-verified after the flow rebinding",
+        "e2eCoverage": "8 of 8 components; connector has no triggers",
+        "commit": "dd2cd2c8 on feature/huggingface-connector (build + review); flows and state committed separately",
+        "pr": "https://github.com/Appmixer-ai/appmixer-connectors/pull/1227",
+        "e2e": "PASS — 2 of 2 flows, 13 assertions, 0 failures, verified from the results store"
+    },
+    "auth": {
+        "status": "done",
+        "storedAs": "appmixer:ai:huggingface",
+        "tokenValid": true,
+        "account": "Petr Olivka (petrappmixer)",
+        "verifiedBy": "requestProfileInfo resolved a real identity via GET /api/whoami-v2"
+    },
+    "cliTestResults": {
+        "FindModels": "PASS — live; outputType:first returned one record; filter+author repeated-param serialization verified working",
+        "GetModel": "PASS — live; sentence-transformers/all-MiniLM-L6-v2",
+        "MakeApiCall": "PASS — live; GET /api/whoami-v2 returned HTTP 200",
+        "CreateEmbeddings": "PASS — live; 384 dimensions exactly as predicted, mean-pooling flatten confirmed",
+        "ClassifyText": "PASS — live; [[{label,score}]] unwrapping CONFIRMED; POSITIVE @ 0.99988",
+        "SummarizeText": "PASS — live; [{summary_text}] unwrapping CONFIRMED (needed ~2 min cold start on facebook/bart-large-cnn)",
+        "SendPrompt": "PASS — live; chat completion returned id/answer/finishReason/token counts",
+        "GenerateImage": "PASS after fix — live; 221 KB image saved to file storage via fal-ai provider; the sample output was not kept in the repository"
+    },
+    "fixesApplied": [
+        "GenerateImage routed text-to-image through the legacy hf-inference provider, which no longer serves it: every popular checkpoint answers HTTP 410 \"The requested model is deprecated and no longer supported by provider hf-inference\", and others 400 \"Model not supported\". The router exposes no OpenAI-compatible /v1/images/generations endpoint (404). Fixed by routing through a named Inference Provider: new `provider` input (default fal-ai), URL is {ROUTER_BASE_URL}/{provider}/{model} with the model path NOT repo-encoded so its slashes survive.",
+        "GenerateImage requests responseType arraybuffer, so error bodies surfaced as raw byte arrays (an unreadable list of numbers). Added describeHttpError() to decode the buffer to text; a dead model now reports \"Provider hf-inference cannot serve model X: Model not supported by provider hf-inference\".",
+        "Added the fal.ai {images:[{url}]} response shape (findImageUrl/findImageBase64 now cover images[].url, images[] as string, output[], data[].url, data[].b64_json and image_url).",
+        "Provider-aware request body: hf-inference keeps the {inputs, parameters} transformers shape; every other provider takes the prompt at top level.",
+        "E2E flow test-flow-inference-tasks.json: GenerateImage was bound to black-forest-labs/FLUX.1-schnell with no provider, which would 404 under the new routing. Rebound to fal-ai/flux/schnell + provider fal-ai in config.transform lambda, with a matching modifiers entry."
+    ],
+    "e2e": {
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "accountId": "6a8d9e574d9255f210e134ff",
+        "published": "appmixer pack + appmixer publish (twice)",
+        "flows": {
+            "E2E Hugging Face - Hub Models and API Call": {
+                "flowId": "ff5fbf6d-1edb-47a9-b230-0be30b38adae",
+                "verdict": "PASSED",
+                "assertions": 5,
+                "failures": 0,
+                "evidence": "FindModels regex bert-base-uncased; MakeApiCall 200 + petrappmixer not empty; GetModel id equality + fill-mask not empty"
+            },
+            "E2E Hugging Face - Inference Tasks": {
+                "flowId": "af10765b-a491-4272-9216-f00411cbe297",
+                "verdict": "PASSED",
+                "assertions": 8,
+                "failures": 0,
+                "evidence": "SendPrompt regex Lisbon + 37 tokens; CreateEmbeddings 384 equals 384; SummarizeText regex Eiffel; GenerateImage fileId not empty + image/jpeg matches ^image/; ClassifyText POSITIVE equals POSITIVE"
+            }
+        },
+        "verifiedVia": "appmixer e2e results --json (exit 0, failed[] empty) — not the runner PASSED line alone"
+    }
+}

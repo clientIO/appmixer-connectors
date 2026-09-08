@@ -1,0 +1,446 @@
+{
+    "name": "E2E Bright Data - Dataset Snapshot Lifecycle",
+    "flow": {
+        "426fcbf5-daa0-47f0-987f-161efc4fa258": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6c2f324f-df77-49d5-9524-799bf7ff11c6": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "426fcbf5-daa0-47f0-987f-161efc4fa258": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "426fcbf5-daa0-47f0-987f-161efc4fa258": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "datasetId",
+                                                "text": "gd_l1viktl72bvl7bjuj0"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "collectUrl",
+                                                "text": "https://www.linkedin.com/in/elad-moshe-05a90413/"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6609ea9b-ac67-4091-b3f1-e02981a843f2": {
+            "type": "appmixer.brightdata.core.TriggerDatasetCollection",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6c2f324f-df77-49d5-9524-799bf7ff11c6": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6c2f324f-df77-49d5-9524-799bf7ff11c6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "datasetId": {},
+                                    "input": {},
+                                    "includeErrors": {}
+                                },
+                                "lambda": {
+                                    "datasetId": "gd_l1viktl72bvl7bjuj0",
+                                    "input": "[{\"url\": \"https://www.linkedin.com/in/elad-moshe-05a90413/\"}]",
+                                    "includeErrors": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c383baa4-c20e-46db-b737-f35a17c64b67": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6609ea9b-ac67-4091-b3f1-e02981a843f2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6609ea9b-ac67-4091-b3f1-e02981a843f2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ff9c4e2f-5a96-4390-94b2-707a53c4b718": {
+                                            "variable": "$.6609ea9b-ac67-4091-b3f1-e02981a843f2.out.snapshotId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ff9c4e2f-5a96-4390-94b2-707a53c4b718}}}",
+                                                "assertion": "regex",
+                                                "regex": "^sd_",
+                                                "value": "^sd_"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6bee1a3d-dbcf-425a-8eef-06daca6eaea1": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "6609ea9b-ac67-4091-b3f1-e02981a843f2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6609ea9b-ac67-4091-b3f1-e02981a843f2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7d87e346-2c57-44e8-82f5-ec9e2871fdd2": {
+            "type": "appmixer.brightdata.core.GetSnapshotStatus",
+            "x": 896,
+            "y": 448,
+            "source": {
+                "in": {
+                    "6bee1a3d-dbcf-425a-8eef-06daca6eaea1": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6bee1a3d-dbcf-425a-8eef-06daca6eaea1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "snapshotId": {
+                                        "eb52155f-3eea-4703-9a02-306304fec10c": {
+                                            "variable": "$.6609ea9b-ac67-4091-b3f1-e02981a843f2.out.snapshotId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "snapshotId": "{{{eb52155f-3eea-4703-9a02-306304fec10c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1557cad9-7a96-4fb3-923e-65cfca5a8b8a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 448,
+            "source": {
+                "in": {
+                    "7d87e346-2c57-44e8-82f5-ec9e2871fdd2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7d87e346-2c57-44e8-82f5-ec9e2871fdd2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "d670dfbd-9ff8-4188-a232-07621eb298ef": {
+                                            "variable": "$.7d87e346-2c57-44e8-82f5-ec9e2871fdd2.out.status",
+                                            "functions": []
+                                        },
+                                        "2e63ea87-02ac-4b88-ba06-4060728e4dfd": {
+                                            "variable": "$.7d87e346-2c57-44e8-82f5-ec9e2871fdd2.out.snapshotId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{d670dfbd-9ff8-4188-a232-07621eb298ef}}}",
+                                                "assertion": "equal",
+                                                "expected": "ready"
+                                            },
+                                            {
+                                                "field": "{{{2e63ea87-02ac-4b88-ba06-4060728e4dfd}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7cd55bfa-207c-4e7a-9dcb-9be82534de0f": {
+            "type": "appmixer.brightdata.core.FindSnapshotRecords",
+            "x": 1104,
+            "y": 576,
+            "source": {
+                "in": {
+                    "7d87e346-2c57-44e8-82f5-ec9e2871fdd2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7d87e346-2c57-44e8-82f5-ec9e2871fdd2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "snapshotId": {
+                                        "e52dc95e-6692-4940-bc29-3f421b71fb8d": {
+                                            "variable": "$.7d87e346-2c57-44e8-82f5-ec9e2871fdd2.out.snapshotId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "snapshotId": "{{{e52dc95e-6692-4940-bc29-3f421b71fb8d}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f42076aa-0bdd-46b3-b151-1486b929acde": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 576,
+            "source": {
+                "in": {
+                    "7cd55bfa-207c-4e7a-9dcb-9be82534de0f": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7cd55bfa-207c-4e7a-9dcb-9be82534de0f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1d438ce7-17c3-4689-9c16-32482ceb2985": {
+                                            "variable": "$.7cd55bfa-207c-4e7a-9dcb-9be82534de0f.out.url",
+                                            "functions": []
+                                        },
+                                        "fec8fa97-5adb-4c45-95f0-6e325d1e034a": {
+                                            "variable": "$.7cd55bfa-207c-4e7a-9dcb-9be82534de0f.out.count",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{1d438ce7-17c3-4689-9c16-32482ceb2985}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://",
+                                                "value": "^https?://"
+                                            },
+                                            {
+                                                "field": "{{{fec8fa97-5adb-4c45-95f0-6e325d1e034a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "803d7500-3ab0-4904-b332-37fcf43cf920": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 320,
+            "source": {
+                "in": {
+                    "c383baa4-c20e-46db-b737-f35a17c64b67": [
+                        "out"
+                    ],
+                    "1557cad9-7a96-4fb3-923e-65cfca5a8b8a": [
+                        "out"
+                    ],
+                    "f42076aa-0bdd-46b3-b151-1486b929acde": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb51d1e9-0728-44d8-931c-2dee1554f67c": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 320,
+            "source": {
+                "in": {
+                    "803d7500-3ab0-4904-b332-37fcf43cf920": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "803d7500-3ab0-4904-b332-37fcf43cf920": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "1557cad9-0000-4000-8000-65cfca5a8b8a": {
+                                            "variable": "$.803d7500-3ab0-4904-b332-37fcf43cf920.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Bright Data - Dataset Snapshot Lifecycle",
+                                    "result": "{{{1557cad9-0000-4000-8000-65cfca5a8b8a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}
