@@ -4,7 +4,26 @@ const urlUtil = require('url');
 const qs = require('qs');
 const axios = require('axios');
 const https = require('https');
-const { request: undiciRequest, Agent } = require('undici');
+
+/**
+ * Lazily loads undici. undici evaluates web globals (e.g. `File`) at module load time and therefore
+ * cannot be required on older engine Node versions. Requiring it at the top level made every component
+ * using http-commons fail to load, which broke the installation of the whole connector. Loading it only
+ * on the SSL/TLS code path keeps the connector installable everywhere and turns an install-time crash
+ * into an actionable runtime error.
+ * @return {{ request: Function, Agent: Function }}
+ */
+function requireUndici() {
+
+    try {
+        return require('undici');
+    } catch (error) {
+        throw new Error(
+            'SSL/TLS options require the "undici" library, which could not be loaded on this engine: ' +
+            `${error.message}. Node.js 18.17 or newer is required to use the SSL/TLS options of the HTTP connector.`
+        );
+    }
+}
 
 /**
  * Validates PEM certificate format.
@@ -317,6 +336,8 @@ function hasSslOptions(content) {
  */
 async function buildUndiciAgent(context, certOptions) {
 
+    const { Agent } = requireUndici();
+
     const { caCertificateFileId, clientCertificateFileId, clientKeyFileId, ignoreSsl } = certOptions || {};
 
     const agentOptions = {
@@ -374,6 +395,8 @@ async function buildUndiciAgent(context, certOptions) {
  * @return {Promise<Object>} Response object
  */
 async function sendWithUndici(context, method, options) {
+
+    const { request: undiciRequest } = requireUndici();
 
     const { url, headers: headersProp, body: bodyProp } = options;
     const { caCertificateFileId, clientCertificateFileId, clientKeyFileId, ignoreSsl } = options;
