@@ -121,6 +121,19 @@ describe('google.drive.lib checkMonitoredFiles paging & locking', () => {
         assert.ok(context.log.calledWithMatch({ step: 'unlock-failed' }));
     });
 
+    it('should swallow a failing unlock-failure log instead of throwing out of finally', async () => {
+
+        stubPages(1);
+        lock.unlock.rejects(new Error('lock already released'));
+        context.log.rejects(new Error('log backend down'));
+
+        await lib.checkMonitoredFiles(context, { filter: () => true });
+
+        // One file emitted, page token persisted: the outcome of the run is intact.
+        assert.strictEqual(context.sendJson.callCount, 1);
+        assert.deepStrictEqual(startPageTokens(), ['p1']);
+    });
+
     it('should skip the run when the component lock is already held', async () => {
 
         stubPages(1);
@@ -130,6 +143,36 @@ describe('google.drive.lib checkMonitoredFiles paging & locking', () => {
 
         assert.strictEqual(listStub.callCount, 0);
         assert.ok(context.stateSet.calledWith('hasSkippedMessage', true));
+    });
+
+    it('should rebuild the subfolder list and re-filter the same page when a page reports a new subfolder', async () => {
+
+        // Recursive watch on `root`, cached subfolder list is stale (no `sub`).
+        context.properties = { folder: { id: 'root' }, recursive: true };
+        context.stateGet.withArgs('cachedFolderIds').resolves(['root']);
+
+        // One page: a new subfolder `sub` under root, then a file inside `sub`.
+        const changes = [
+            { changeType: 'file', file: { id: 'sub', mimeType: 'application/vnd.google-apps.folder', parents: ['root'] } },
+            { changeType: 'file', file: { id: 'inner', mimeType: 'text/plain', parents: ['sub'] } }
+        ];
+        listStub = sandbox.stub().resolves({ data: { changes, newStartPageToken: 'p1' } });
+        const filesListStub = sandbox.stub().callsFake(async ({ q }) => ({
+            data: { files: q.startsWith("'root'") ? [{ id: 'sub', mimeType: 'application/vnd.google-apps.folder' }] : [] }
+        }));
+        sandbox.stub(google, 'drive').returns({ changes: { list: listStub }, files: { list: filesListStub } });
+
+        await lib.checkMonitoredFiles(context, { filter: () => true });
+
+        // The page was fetched twice: once against the stale list, once against the rebuilt one.
+        assert.strictEqual(listStub.callCount, 2);
+        assert.ok(context.stateSet.calledWith('cachedFolderIds', ['root', 'sub']));
+        // The file under the brand-new subfolder is emitted instead of being lost.
+        const emittedIds = context.sendJson.getCalls().map(call => call.args[0].googleDriveFileMetadata.id);
+        assert.ok(emittedIds.includes('inner'), `expected 'inner' to be emitted, got ${JSON.stringify(emittedIds)}`);
+        assert.deepStrictEqual(startPageTokens(), ['p1']);
+        // The rebuilt list is fresh, so the cache stays.
+        assert.strictEqual(context.stateUnset.callCount, 0);
     });
 
 });
@@ -220,6 +263,25 @@ describe('google.drive.lib registerWebhook startPageToken handling', () => {
 
         assert.deepStrictEqual(context.lock.firstCall.args[1], { ttl: 60000 });
         assert.strictEqual(lock.unlock.callCount, 1);
+    });
+
+    it('should re-arm the lock before each Drive call so the TTL only has to cover one of them', async () => {
+
+        await lib.registerWebhook(context);
+
+        // First registration: getStartPageToken + changes.watch, one extension before each.
+        assert.strictEqual(lock.extend.callCount, 2);
+        lock.extend.getCalls().forEach(call => assert.strictEqual(call.args[0], 60000));
+        assert.ok(lock.extend.firstCall.calledBefore(getStartPageTokenStub.firstCall));
+    });
+
+    it('should re-arm the lock once on renewal, before changes.watch', async () => {
+
+        context.stateGet.withArgs('startPageToken').resolves('p42');
+
+        await lib.registerWebhook(context);
+
+        assert.strictEqual(lock.extend.callCount, 1);
     });
 
     it('should persist a freshly obtained startPageToken on first registration', async () => {

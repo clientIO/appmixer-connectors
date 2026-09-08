@@ -51,8 +51,20 @@ helper) and is deliberately not a flow node.
   minutes after the provoke), so `$.<createFileFromText>.out…` is not resolvable
   there. Reading `$.<trigger>.out.googleDriveFileMetadata.id` also doubles as a
   proof that the trigger really fired.
+- **The trigger lane is correlated to the file this run created.** The triggers
+  watch the whole drive, so any activity on the E2E account would otherwise
+  reach the trigger's `Assert` and, worse, the cleanup `DeleteFileOrFolder`
+  would hard-delete whatever file the trigger happened to report. A `Condition`
+  sits between the trigger and its `Assert` and passes only events whose
+  `googleDriveFileMetadata.name` matches this flow's naming pattern
+  (`^e2e-drive-new-\d+\.txt$`, `^e2e-drive-updated-\d+-renamed\.txt$`,
+  `^e2e-drive-deleted-\d+\.txt$`); the `Assert` repeats the same regex. Events
+  for other files are dropped at the `Condition`, so nothing downstream ever
+  sees them.
 - **Run the trigger flows one at a time.** All three watch the entire drive, so
-  files created by one flow show up in the others' change feeds.
+  files created by one flow show up in the others' change feeds. The `Condition`
+  keeps such events out of the asserts and cleanup, but every event still costs
+  a `changes.list` round trip on each running trigger.
 - `FindFilesOrFolders` uses `outputType: "firstItem"` and an exact-name query
   scoped to the folder the flow just created, so the result is never empty. The
   `assert-field-on-dynamic-output` warning from `appmixer e2e validate` is

@@ -8,15 +8,17 @@ const uuid = require('uuid');
 // tick()/start() with LockError storms and livelocks on message redelivery.
 const MAX_PAGES_PER_RUN = 20;
 
-// TTL the component lock is acquired and (re)armed with: before every page and periodically
-// while emitting in checkMonitoredFiles(), and for the whole of registerWebhook(). It has to
-// comfortably cover one Drive API call (HTTP_TIMEOUT, no gaxios retries in this googleapis
-// version); the engine default of 20 s does not, and an expired lock lets two runs write
-// `startPageToken` concurrently.
+// TTL the component lock is acquired and (re)armed with: before every Drive API call in
+// registerWebhook() and checkMonitoredFiles(), and whenever the last extension is older than
+// LOCK_REARM_AFTER while emitting. It has to comfortably cover one Drive API call
+// (HTTP_TIMEOUT, no gaxios retries in this googleapis version); the engine default of 20 s
+// does not, and an expired lock lets two runs write `startPageToken` concurrently.
 const LOCK_TTL = 60 * 1000;
 
-// Re-arm the lock every N emitted files so a large batch does not outlive the last extension.
-const LOCK_EXTEND_EVERY_FILES = 20;
+// While emitting files (sendJson + stateSet per file, no timeout on either), re-arm the lock
+// once this much of the TTL has elapsed since the last extension, so that a slow batch can
+// never outlive the lock regardless of how many files it holds.
+const LOCK_REARM_AFTER = LOCK_TTL / 3;
 
 // Hard HTTP timeout for the Google Drive API so a hung call cannot outlive the lock.
 const HTTP_TIMEOUT = 30 * 1000;
@@ -72,24 +74,41 @@ const processedItemsBuffer = function(data = []) {
 };
 
 // Re-arm the component lock. Throws LockLostError when the lock is already gone so that
-// callers abort instead of silently carrying on without mutual exclusion.
-const extendLock = async (lock) => {
+// callers abort instead of silently carrying on without mutual exclusion. `lease` tracks
+// when the lock was last (re)armed so that extendLockIfStale() can re-arm on elapsed time.
+const extendLock = async (lock, lease) => {
 
     try {
         await lock.extend(LOCK_TTL);
     } catch (err) {
         throw new LockLostError(`Cannot extend the Google Drive component lock: ${err.message}`);
     }
+    if (lease) {
+        lease.armedAt = Date.now();
+    }
 };
 
-// Release the lock without ever masking the error that is already propagating.
+// Re-arm only when the last extension is older than LOCK_REARM_AFTER.
+const extendLockIfStale = async (lock, lease) => {
+
+    if (Date.now() - lease.armedAt >= LOCK_REARM_AFTER) {
+        await extendLock(lock, lease);
+    }
+};
+
+// Release the lock without ever masking the error that is already propagating: neither the
+// unlock nor the best-effort log of its failure may throw out of a `finally` block.
 const safeUnlock = async (context, lock) => {
 
     if (!lock) return;
     try {
         await lock.unlock();
     } catch (err) {
-        await context.log({ step: 'unlock-failed', error: err.message });
+        try {
+            await context.log({ step: 'unlock-failed', error: err.message });
+        } catch (logErr) {
+            // Nothing left to report to; the original outcome wins.
+        }
     }
 };
 
@@ -161,7 +180,10 @@ const findFiles = async (context, drive, query, orderBy = 'name asc', fields = '
 const registerWebhook = async (context, { includeRemoved, maxRetryCount } = {}) => {
 
     // registerWebhook() makes up to three Drive calls (channels.stop, getStartPageToken,
-    // changes.watch), so the engine default lock TTL (20 s) is not enough to cover it.
+    // changes.watch) of up to HTTP_TIMEOUT each, so the engine default lock TTL (20 s) is not
+    // enough to cover even one of them. The lock is acquired with LOCK_TTL and re-armed before
+    // every remote call so that the TTL only ever has to cover a single call plus the state
+    // writes that follow the last one.
     const lockOptions = { ttl: LOCK_TTL };
     if (typeof maxRetryCount === 'number') {
         lockOptions.maxRetryCount = maxRetryCount;
@@ -195,6 +217,7 @@ const registerWebhook = async (context, { includeRemoved, maxRetryCount } = {}) 
 
         if (!pageToken) {
             // when triggered for the first time, we have to get the startPageToken
+            await extendLock(lock);
             const { data: token } = await drive.changes.getStartPageToken();
             pageToken = token.startPageToken;
         }
@@ -202,6 +225,7 @@ const registerWebhook = async (context, { includeRemoved, maxRetryCount } = {}) 
         const channelId = uuid.v4();
 
         const expiration = moment().add(1, 'day').valueOf();
+        await extendLock(lock);
         const { data } = await drive.changes.watch({
             includeRemoved: includeRemoved || false,
             pageToken,
@@ -349,12 +373,30 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
     // Normalize fileTypesRestriction to ensure it's always an array
     const normalizedFileTypesRestriction = normalizeMultiselectInput(fileTypesRestriction);
 
-    let folderIds = [];
+    const rootFolderIds = [];
     if (typeof folder === 'string') {
-        folderIds.push(folder);
+        rootFolderIds.push(folder);
     } else if (folder.id) {
-        folderIds.push(folder.id);
+        rootFolderIds.push(folder.id);
     }
+    const watchesSubfolders = rootFolderIds.length > 0 && recursive;
+
+    // Root folder(s) plus, when recursive, every subfolder found under them. The walk is
+    // expensive (one files.list per folder), so the result is cached in state and rebuilt
+    // only when the change feed reports a subfolder being created, moved, trashed or removed.
+    const rebuildFolderIds = async (drive, lock) => {
+        const folderIds = rootFolderIds.slice();
+        for (const folderId of rootFolderIds) {
+            await extendLock(lock);
+            const subfolders = await findSubfolders(context, drive, folderId);
+            for (const subfolder of subfolders) {
+                folderIds.push(subfolder.googleDriveFileMetadata.id);
+            }
+        }
+        await context.log({ step: 'subfolders-cached', count: folderIds.length, folderIds });
+        await context.stateSet('cachedFolderIds', folderIds);
+        return folderIds;
+    };
 
     let lock = null;
     try {
@@ -363,27 +405,15 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
         await context.stateSet('hasSkippedMessage', true);
         return;
     }
+    const lease = { armedAt: Date.now() };
 
     try {
         const { startPageToken, processedFiles = [] } = await context.loadState();
         const drive = getDriveClient(context.auth);
 
-        if (folderIds.length && recursive) {
-            // Check if we have stored all the subfolder IDs.
-            // Recursive option only applies when folder is set.
-            const cachedFolderIds = await context.stateGet('cachedFolderIds');
-            if (cachedFolderIds) {
-                folderIds = cachedFolderIds;
-            } else {
-                for (let folderId of folderIds) {
-                    const subfolders = await findSubfolders(context, drive, folderId);
-                    for (let subfolder of subfolders) {
-                        folderIds.push(subfolder.googleDriveFileMetadata.id);
-                    }
-                }
-                await context.log({ step: 'subfolders-cached', count: folderIds.length, folderIds });
-                await context.stateSet('cachedFolderIds', folderIds);
-            }
+        let folderIds = rootFolderIds;
+        if (watchesSubfolders) {
+            folderIds = await context.stateGet('cachedFolderIds') || await rebuildFolderIds(drive, lock);
         }
 
         await context.stateSet('hasSkippedMessage', false);
@@ -397,9 +427,9 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
 
             // Re-arm the lock before every page so that a slow (or gaxios-retried) API call
             // cannot let the lock expire underneath us.
-            await extendLock(lock);
+            await extendLock(lock, lease);
 
-            const page = await getChangedFilesPage(
+            let page = await getChangedFilesPage(
                 context,
                 drive,
                 filter,
@@ -408,24 +438,41 @@ const checkMonitoredFiles = async function(context, { filter, includeRemoved } =
                 includeRemoved,
                 pageToken);
 
-            if (page.subfolderStructureChanged) {
-                // Force the subfolder list to be rebuilt on the next run.
-                await context.stateUnset('cachedFolderIds');
+            if (page.subfolderStructureChanged && watchesSubfolders) {
+                // The page was filtered against a subfolder list that this very page has made
+                // stale: a file created under a brand-new subfolder that appears earlier on the
+                // same page (or on a later page of this run) would be dropped while the page
+                // token still advances past it - lost for good. Rebuild the list now and
+                // re-filter the same page with it before committing any progress.
+                folderIds = await rebuildFolderIds(drive, lock);
+                await extendLock(lock, lease);
+                page = await getChangedFilesPage(
+                    context,
+                    drive,
+                    filter,
+                    folderIds,
+                    normalizedFileTypesRestriction,
+                    includeRemoved,
+                    pageToken);
+                if (page.subfolderStructureChanged) {
+                    // Still reported after the rebuild (a subfolder trashed or removed on this
+                    // page keeps matching): the fresh list already reflects it for this run,
+                    // but make the next run walk the tree again rather than trust the cache.
+                    await context.stateUnset('cachedFolderIds');
+                }
             }
 
             // The processed-files buffer is grouped by the token the page ended on.
             const group = page.newStartPageToken || page.nextPageToken;
-            let emitted = 0;
             for (const file of page.files) {
                 if (processedFilesSet.has(file.id)) continue;
                 processedFilesSet.add(group, file.id);
                 await context.sendJson(toFileOutput(file), 'out');
                 await context.stateSet('processedFiles', processedFilesSet.export());
-                emitted += 1;
-                if (emitted % LOCK_EXTEND_EVERY_FILES === 0) {
-                    // Emitting a large batch must not outlive the last extension either.
-                    await extendLock(lock);
-                }
+                // Emitting a large batch must not outlive the last extension either. Neither
+                // sendJson() nor stateSet() has a timeout, so re-arm on elapsed time, not on
+                // the number of files emitted.
+                await extendLockIfStale(lock, lease);
             }
 
             // Persist progress after EVERY page. A redelivered webhook message then resumes
