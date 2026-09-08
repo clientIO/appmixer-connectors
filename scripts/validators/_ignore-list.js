@@ -178,6 +178,12 @@ module.exports = [
     {
         validator: 'connector-has-makeapicall',
         messageIncludes: 'no MakeApiCall component',
+        paths: ['appmixer/utils/http/bundle.json'],
+        reason: 'appmixer.utils.http IS the generic "call any endpoint" connector: Get/Post/Put/Patch/Delete take a free-form URL, headers and body and it has no auth module, so there is no credential for a MakeApiCall to attach and nothing it would add.'
+    },
+    {
+        validator: 'connector-has-makeapicall',
+        messageIncludes: 'no MakeApiCall component',
         paths: ['appmixer/evernote/bundle.json'],
         reason: 'Evernote authenticates with OAuth 1.0a request signing (HMAC-SHA1) and a Thrift-based API, not a plain Bearer/API-key REST surface, so a generic header-based MakeApiCall cannot sign arbitrary requests.'
     },
