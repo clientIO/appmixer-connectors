@@ -1,0 +1,143 @@
+{
+    "name": "appmixer.ai.mistral.ExtractDocumentText",
+    "label": "Extract Document Text",
+    "description": "Extracts text (as markdown) from a PDF document or an image using the Mistral Document OCR API.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:ai:mistral"
+    },
+    "quota": {
+        "manager": "appmixer:ai:mistral",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string"
+                    },
+                    "documentUrl": {
+                        "type": "string"
+                    },
+                    "pages": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "file": {
+                        "type": "filepicker",
+                        "index": 1,
+                        "label": "Document File",
+                        "tooltip": "The PDF document or image to extract text from. Either Document File or Document URL is required."
+                    },
+                    "documentUrl": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Document URL",
+                        "tooltip": "Publicly accessible URL of the PDF document or image to extract text from. Used only when no Document File is provided."
+                    },
+                    "pages": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "Pages",
+                        "tooltip": "Specific pages to process, as page numbers or ranges starting from 0. Example: <code>0-4,7</code>. All pages are processed when empty."
+                    },
+                    "model": {
+                        "group": "advanced",
+                        "type": "text",
+                        "index": 4,
+                        "label": "Model",
+                        "tooltip": "ID of the OCR model to use.",
+                        "defaultValue": "mistral-ocr-latest",
+                        "source": {
+                            "url": "/component/appmixer/ai/mistral/ListModels?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListModels#toOcrModelSelectArray"
+                            }
+                        }
+                    }
+                },
+                "groups": {
+                    "advanced": {
+                        "label": "Advanced",
+                        "closed": true,
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Markdown",
+                    "value": "markdown",
+                    "schema": {
+                        "type": "string",
+                        "example": "# Invoice 2024-001\n\nTotal: $1,200.00"
+                    }
+                },
+                {
+                    "label": "Pages",
+                    "value": "pages",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "index": {
+                                    "type": "number",
+                                    "title": "Page Index",
+                                    "example": 0
+                                },
+                                "markdown": {
+                                    "type": "string",
+                                    "title": "Page Markdown",
+                                    "example": "# Invoice 2024-001"
+                                }
+                            }
+                        },
+                        "example": [
+                            {
+                                "index": 0,
+                                "markdown": "# Invoice 2024-001"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "label": "Pages Processed",
+                    "value": "pagesProcessed",
+                    "schema": {
+                        "type": "number",
+                        "example": 2
+                    }
+                },
+                {
+                    "label": "Model",
+                    "value": "model",
+                    "schema": {
+                        "type": "string",
+                        "example": "mistral-ocr-latest"
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyLjUpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZEODAwIi8+PHJlY3QgeD0iOCIgeT0iMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZGRDgwMCIvPjxyZWN0IHg9IjAiIHk9IjEiIHdpZHRoPSI0IiBoZWlnaHQ9IjEiIGZpbGw9IiNGRkFGMDAiLz48cmVjdCB4PSI2IiB5PSIxIiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZBRjAwIi8+PHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEiIGZpbGw9IiNGRjgyMDUiLz48cmVjdCB4PSIwIiB5PSIzIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkE1MDBGIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZBNTAwRiIvPjxyZWN0IHg9IjgiIHk9IjMiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNGQTUwMEYiLz48cmVjdCB4PSIwIiB5PSI0IiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRTEwNTAwIi8+PHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0UxMDUwMCIvPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNFMTA1MDAiLz48L2c+PC9zdmc+"
+}

@@ -1,0 +1,102 @@
+{
+    "name": "appmixer.ai.mistral.DescribeImages",
+    "label": "Describe Images",
+    "description": "Answers a question about the content of one or more images using a vision-capable Mistral model.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:ai:mistral"
+    },
+    "quota": {
+        "manager": "appmixer:ai:mistral",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "prompt": {
+                        "type": "string"
+                    },
+                    "images": {},
+                    "model": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "prompt",
+                    "images"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "prompt": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "Prompt",
+                        "tooltip": "The question to answer about the content of one or more images."
+                    },
+                    "images": {
+                        "type": "expression",
+                        "index": 2,
+                        "label": "Images",
+                        "levels": [
+                            "ADD"
+                        ],
+                        "fields": {
+                            "fileId": {
+                                "type": "filepicker",
+                                "label": "Image File",
+                                "tooltip": "The image file to attach. Only PNG, JPEG, non-animated GIF and WEBP image types are supported.",
+                                "index": 1
+                            }
+                        }
+                    },
+                    "model": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "Model",
+                        "tooltip": "ID of a vision-capable model to use, for example <code>mistral-small-latest</code> or <code>pixtral-large-latest</code>.",
+                        "defaultValue": "mistral-small-latest",
+                        "source": {
+                            "url": "/component/appmixer/ai/mistral/ListModels?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListModels#toVisionModelSelectArray"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Answer",
+                    "value": "answer",
+                    "schema": {
+                        "type": "string",
+                        "example": "The image shows a red vintage car parked in front of a cafe."
+                    }
+                },
+                {
+                    "label": "Prompt",
+                    "value": "prompt",
+                    "schema": {
+                        "type": "string",
+                        "example": "What is in this image?"
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyLjUpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZEODAwIi8+PHJlY3QgeD0iOCIgeT0iMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZGRDgwMCIvPjxyZWN0IHg9IjAiIHk9IjEiIHdpZHRoPSI0IiBoZWlnaHQ9IjEiIGZpbGw9IiNGRkFGMDAiLz48cmVjdCB4PSI2IiB5PSIxIiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZBRjAwIi8+PHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEiIGZpbGw9IiNGRjgyMDUiLz48cmVjdCB4PSIwIiB5PSIzIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkE1MDBGIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZBNTAwRiIvPjxyZWN0IHg9IjgiIHk9IjMiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNGQTUwMEYiLz48cmVjdCB4PSIwIiB5PSI0IiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRTEwNTAwIi8+PHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0UxMDUwMCIvPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNFMTA1MDAiLz48L2c+PC9zdmc+"
+}

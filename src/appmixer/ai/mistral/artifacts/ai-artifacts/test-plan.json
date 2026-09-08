@@ -1,0 +1,316 @@
+{
+    "connector": "ai/mistral",
+    "authModule": "appmixer:ai:mistral",
+    "notes": [
+        "CLI invocation needs -n appmixer:ai:mistral on auth login: the ai/ namespace uses",
+        "module.json and appmixer-cli/src/am-lib.js:159 lstats service.json unguarded.",
+        "",
+        "Ordered cheapest-and-most-informative first. ListModels runs first because it",
+        "provides the live model ids every later step depends on. Steps marked billable:true",
+        "consume Mistral inference credits; all are sized to be trivially small (short",
+        "prompts, one embedding input, a 2-page PDF, a few seconds of audio).",
+        "",
+        "Highest-risk components (spec uncertainty, must be confirmed against live",
+        "responses rather than docs): CreateSpeech (model id, default voice_id, and whether",
+        "the API returns base64 audio_data or a raw binary body) and Moderate (exact",
+        "category key names).",
+        "",
+        "Known CLI harness gaps to expect, NOT connector defects: appmixer-test-component.js",
+        "mocks saveFileStream as Buffer.from(stream) and provides no staticCache/lock. That",
+        "affects CreateSpeech (file output) and the caching path in ListModels; both are",
+        "verified via E2E flows in step 3b instead.",
+        "",
+        "CLI RUN RESULT: 10/10 components pass. Seven real defects were found and fixed, five",
+        "of which only a live call could surface (Moderate category names, the CreateSpeech",
+        "voice parameter, its missing model default, its unusable UUID input, and the thin",
+        "ListModels schema).",
+        "",
+        "Observed rate limits from Mistral response headers: 100 requests/minute and 100000",
+        "tokens/minute. quota.js is set to 60/minute, a deliberate margin below that.",
+        "",
+        "Model dropdowns are now filtered by capability rather than listing all 56 models:",
+        "chat 37, vision 32, ocr 7, transcription 2, speech 2, moderation 1, embedding 4.",
+        "Embedding models are identified by carrying no capability flag at all.",
+        "",
+        "REVIEW FIXES (PR #1218), E2E RE-RUN NEEDED: the documents-and-audio flow now downloads",
+        "the audio and the PDF into file storage first and drives CreateTranscription and",
+        "ExtractDocumentText through a real fileId, so the multipart / base64-data-URI branches",
+        "the CLI harness cannot mock are finally exercised; both downloaded files are removed",
+        "after AfterAll. The chat flow's three deep static-outPort variables were rewritten as",
+        "g_jsonPath modifiers. appmixer e2e validate now passes all 27 validators, but the flows",
+        "have not been executed since."
+    ],
+    "plan": [
+        {
+            "name": "ListModels",
+            "billable": false,
+            "dependsOn": [],
+            "provides": [
+                "chatModelId",
+                "visionModelId",
+                "ocrModelId",
+                "audioModelId",
+                "ttsModelId"
+            ],
+            "completed": true,
+            "input": {
+                "in": {
+                    "outputType": "array"
+                }
+            },
+            "alsoVerify": [
+                "outputType first / object variants",
+                "generateOutputPortOptions returns port options",
+                "toSelectArray transform shape { label, value }"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "56 models returned; array/first/generateOutputPortOptions all verified.",
+                "defectFound": "Records carry 13 fields (capabilities, name, description, max_context_length, aliases, deprecation, deprecation_replacement_model, default_model_temperature, type) but only 4 were declared, making 9 unreachable in the variable picker. Schema expanded to the full record.",
+                "chatModelId": "mistral-small-latest",
+                "visionModelId": "mistral-small-latest",
+                "ocrModelId": "mistral-ocr-latest",
+                "audioModelId": "voxtral-mini-latest",
+                "ttsModelId": "voxtral-mini-tts-latest"
+            }
+        },
+        {
+            "name": "MakeApiCall",
+            "billable": false,
+            "dependsOn": [],
+            "provides": [],
+            "completed": true,
+            "input": {
+                "in": {
+                    "url": "models",
+                    "method": "GET",
+                    "parameters": [],
+                    "headers": []
+                }
+            },
+            "alsoVerify": [
+                "relative path is resolved against https://api.mistral.ai/v1",
+                "absolute https:// url passes through untouched",
+                "Authorization header is injected by lib.requestHeaders"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "GET models -> 200; relative path resolved against the v1 base and the bearer header injected.",
+                "harnessGap": "key-value headers/parameters cannot be exercised here: the CLI rejects the array value because the JSON Schema type is \"string\". That declaration is deliberate and repo-wide (all 159 MakeApiCall components) - scripts/validators/makeapicall-standards.js states declaring \"array\" makes the Designer reject the runtime value. Covered by E2E instead."
+            }
+        },
+        {
+            "name": "GenerateEmbeddings",
+            "billable": true,
+            "dependsOn": [],
+            "provides": [],
+            "completed": true,
+            "input": {
+                "in": {
+                    "text": "Appmixer connector smoke test.",
+                    "model": "mistral-embed"
+                }
+            },
+            "alsoVerify": [
+                "embedding array is returned and non-empty",
+                "usage tokens present"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "1024-dim vector returned for mistral-embed; usage tokens present."
+            }
+        },
+        {
+            "name": "Moderate",
+            "billable": true,
+            "dependsOn": [],
+            "provides": [],
+            "completed": true,
+            "input": {
+                "in": {
+                    "text": "I love building integrations.",
+                    "model": "mistral-moderation-latest"
+                }
+            },
+            "alsoVerify": [
+                "RISK: confirm the nine category keys match the declared outPort options",
+                "computed flagged aggregate is false for benign text",
+                "categoryScores object is populated"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "mistral-moderation-latest resolves to mistral-moderation-2603 even though it is absent from the /v1/models alias list - the initial assumption that it was invalid was wrong.",
+                "defectFound": "Live categories are 11, not the 9 declared: dangerous_and_criminal_content does not exist (the API splits it into dangerous and criminal) and jailbreaking was missing entirely. One declared option was permanently undefined and three real categories unreachable. Options and categoryScores realigned."
+            }
+        },
+        {
+            "name": "SendPrompt",
+            "billable": true,
+            "dependsOn": [
+                "ListModels.chatModelId"
+            ],
+            "provides": [
+                "conversationId"
+            ],
+            "completed": true,
+            "input": {
+                "in": {
+                    "prompt": "Reply with exactly the word: pong",
+                    "model": "mistral-small-latest",
+                    "maxTokens": 10
+                }
+            },
+            "alsoVerify": [
+                "choices collapses to choices[0] so choices.message.content resolves",
+                "second call with the same conversationId carries prior turns",
+                "randomSeed / safePrompt / topP are accepted by the API"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "Returned \"pong\". choices correctly collapsed to choices[0] so choices.message.content resolves; temperature, topP, randomSeed and safePrompt all accepted."
+            }
+        },
+        {
+            "name": "DescribeImages",
+            "billable": true,
+            "dependsOn": [
+                "ListModels.visionModelId"
+            ],
+            "provides": [],
+            "completed": true,
+            "input": {
+                "in": {
+                    "prompt": "What is in this image? Answer in five words.",
+                    "model": "pixtral-12b-2409"
+                }
+            },
+            "alsoVerify": [
+                "RISK: image_url is sent as a plain string (Mistral shape), not OpenAI's nested object",
+                "base64 data URI is accepted",
+                "needs a small PNG on the test instance's file storage"
+            ],
+            "result": {
+                "status": "pass-shape-verified",
+                "note": "The request shape - the real uncertainty - was confirmed by POSTing a generated 32x32 PNG data URI through MakeApiCall: image_url as a PLAIN STRING returns 200, so the Mistral shape (not OpenAI's nested object) is correct. The component itself needs a real fileId because the harness does not mock loadFile/getFileInfo; covered by E2E."
+            }
+        },
+        {
+            "name": "ExtractDocumentText",
+            "billable": true,
+            "dependsOn": [],
+            "provides": [],
+            "completed": true,
+            "input": {
+                "in": {
+                    "documentUrl": "https://arxiv.org/pdf/2310.06825",
+                    "model": "mistral-ocr-latest",
+                    "pages": "0-1"
+                }
+            },
+            "alsoVerify": [
+                "documentUrl branch (no filepicker) works",
+                "parsePages converts \"0-1\" to [0,1]",
+                "joined markdown output and per-page array both populated"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "OCR of the Mistral 7B arXiv PDF via documentUrl; pages \"0-1\" parsed correctly and markdown plus the per-page array both populated."
+            }
+        },
+        {
+            "name": "CreateTranscription",
+            "billable": true,
+            "dependsOn": [
+                "ListModels.audioModelId"
+            ],
+            "provides": [],
+            "completed": true,
+            "input": {
+                "in": {
+                    "fileUrl": "<short public mp3>",
+                    "model": "voxtral-mini-latest"
+                }
+            },
+            "alsoVerify": [
+                "file_url branch avoids the getFileReadStream harness mock",
+                "multipart FormData is built correctly"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "Transcribed the file_url sample accurately with voxtral-mini-latest.",
+                "defectFound": "form-data was unresolvable locally. Not a connector defect - it is declared in package.json exactly as ai/groq does it, and the platform installs connector dependencies; only the CLI harness does not. Installed locally to run the test."
+            }
+        },
+        {
+            "name": "CreateSpeech",
+            "billable": true,
+            "dependsOn": [
+                "ListModels.ttsModelId"
+            ],
+            "provides": [],
+            "completed": true,
+            "input": {
+                "in": {
+                    "text": "Hello from Appmixer.",
+                    "responseFormat": "mp3"
+                }
+            },
+            "alsoVerify": [
+                "RISK: confirm the TTS model id and whether voice_id is required",
+                "RISK: confirm the response is JSON with base64 audio_data, not a raw binary body",
+                "saveFileStream will likely hit the CLI harness Buffer mock - verify via E2E if so"
+            ],
+            "result": {
+                "status": "pass",
+                "note": "Saved a 14255-byte file whose header is 49 44 33 (\"ID3\"), so the base64 audio_data assumption is correct and the output is genuinely playable MP3. saveFileStream is mocked by the harness but accepts a Buffer, so this component was fully testable after all.",
+                "defectFound": "Three real defects, all of which made the component unusable as shipped: (1) it sent voice_id while the documented parameter is voice - the API error is \"Either ref_audio or voice must be provided\"; (2) no default model, so a request with only text returned 400; (3) the voice input was free text requiring a UUID no user could guess. Fixed by switching to voice, defaulting to voxtral-mini-tts-latest, and adding the ListVoices dropdown. Both the slug (en_paul_neutral) and the UUID are accepted by the API; the readable slug is offered."
+            }
+        },
+        {
+            "name": "ListVoices",
+            "billable": false,
+            "dependsOn": [],
+            "provides": [
+                "voiceSlug"
+            ],
+            "completed": true,
+            "input": {
+                "in": {
+                    "outputType": "array"
+                }
+            },
+            "result": {
+                "status": "pass",
+                "note": "New 10th component added during testing. Returns the preset voices from /v1/audio/voices; first/array/generateOutputPortOptions verified."
+            }
+        }
+    ],
+    "e2e": {
+        "instance": "api-dev-automated-00001.dev.appmixer.ai",
+        "accountId": "6a8c20957dfdc2b6f42c5072",
+        "status": "4/4 flows PASSED - 21 assertions, 0 errors, 0 entries in the failed store",
+        "flows": {
+            "E2E Mistral - Models and Voices": "e80a53e3-bf8e-4f5e-950a-288c3c2312dd",
+            "E2E Mistral - Chat Moderation and Embeddings": "a14c2114-9a12-4d62-880e-b0a0779f7280",
+            "E2E Mistral - Documents and Audio": "690b3308-8818-4bd6-a549-487f6145f8a0",
+            "E2E Mistral - Vision and Raw API Call": "706c1f16-afde-47c2-8224-469d427214f1"
+        },
+        "notes": [
+            "The first run of all four flows printed PASSED while two of them recorded ZERO",
+            "assertions. Two authoring bugs caused it, both fixed:",
+            "  1. A regex assertion reads its pattern from the clause field `regex`, not",
+            "     `expected` (utils/test/Assert switches the two on assertion type). With",
+            "     `expected` the pattern is undefined and the assertion matches anything.",
+            "  2. ProcessE2EResults must read `$.<afterAll>.out`. In the two flows with a",
+            "     RemoveFile cleanup after AfterAll it was reading the cleanup component's own",
+            "     output ({fileId}), so the assert roll-up never reached the store.",
+            "",
+            "Import must use --no-validate: the local rule static-outport-deep-path resolves an",
+            "outPort option by its first path segment only, so it wrongly rejects the dotted",
+            "option values this connector declares (choices.message.content,",
+            "categories.jailbreaking). The server offers exactly those paths - it rejected the",
+            "shortened form the rule asked for. Run `appmixer e2e validate` separately; the",
+            "three static-outport-deep-path findings there are that known false positive."
+        ]
+    }
+}
