@@ -1,23 +1,10 @@
 'use strict';
 const moment = require('moment');
-const Promise = require('bluebird');
 
 const commons = require('../../microsoft-commons');
+const delta = require('../../microsoft-delta');
 
-const getLatestChanges = async (deltaLink, accessToken) => {
-
-    const currentPage = await commons.formatError(() => {
-        return commons.get(deltaLink, accessToken);
-    });
-    if (currentPage['@odata.deltaLink']) {
-        return currentPage;
-    }
-
-    const nextPage = await getLatestChanges(currentPage['@odata.nextLink'], accessToken);
-    nextPage.value = currentPage.value.concat(nextPage.value);
-
-    return nextPage;
-};
+const DELTA_PATH = '/me/drive/root/delta';
 
 const registerWebhook = async context => {
 
@@ -34,6 +21,41 @@ const registerWebhook = async context => {
 };
 
 /**
+ * Work through the delta backlog page by page, emitting the new files of each page and
+ * persisting the resume link before moving on to the next one.
+ * @param {Context} context
+ * @return {Promise<void>}
+ */
+const processChanges = async (context) => {
+
+    return delta.runDeltaScan(context, {
+        startLink: (state) => state.deltaLink,
+        onPage: async (files, { state, extend }) => {
+            let emitted = 0;
+            for (const file of files) {
+                const createdDateTime = file.createdDateTime;
+                if (!createdDateTime || !moment(state.lastUpdated).isSameOrBefore(createdDateTime)) continue;
+                await context.sendJson(file, 'file');
+                emitted += 1;
+                if (emitted % delta.LOCK_EXTEND_EVERY_ITEMS === 0) {
+                    // Emitting a large page must not outlive the last lock extension either.
+                    await extend();
+                }
+            }
+        },
+        saveProgress: async (link, { caughtUp }) => {
+            await context.stateSet('deltaLink', link);
+            if (caughtUp) {
+                // `lastUpdated` is the "we have caught up to here" watermark and may only be
+                // advanced once the whole chain is consumed - the pages still to come hold
+                // older files that this cutoff would otherwise filter out.
+                await context.stateSet('lastUpdated', moment().toISOString());
+            }
+        }
+    });
+};
+
+/**
  * Component which triggers whenever a new file is created.
  * @extends {Component}
  */
@@ -42,9 +64,8 @@ module.exports = {
     async start(context) {
 
         const { accessToken } = context.auth;
-        const latest = await getLatestChanges('/me/drive/root/delta?token=latest', accessToken);
         const state = {
-            deltaLink: latest['@odata.deltaLink'],
+            deltaLink: await delta.fetchLatestDeltaLink(DELTA_PATH, accessToken),
             lastUpdated: moment().toISOString()
         };
 
@@ -71,45 +92,11 @@ module.exports = {
 
             const { value } = data;
             if (Array.isArray(value)) {
-                let clientStatesValid = true;
-                value.forEach(v => {
-                    if (v.clientState !== context.componentId) {
-                        // If just one clientState is invalid, we discard the whole batch
-                        clientStatesValid = false;
-                    }
-                });
+                // If just one clientState is invalid, we discard the whole batch.
+                const clientStatesValid = value.every(v => v.clientState === context.componentId);
 
-                const { accessToken } = context.auth;
-
-                let lock = null;
-                try {
-                    lock = await context.lock(context.componentId, { retryDelay: 2000 });
-
-                    const state = await context.loadState();
-                    const deltaLink = state.deltaLink;
-                    const lastUpdated = state.lastUpdated;
-
-                    if (clientStatesValid && deltaLink) {
-                        const latest = await getLatestChanges(deltaLink, accessToken);
-                        state.deltaLink = latest['@odata.deltaLink'];
-
-                        const promises = [];
-
-                        latest.value.forEach(file => {
-                            const createdDateTime = file.createdDateTime;
-                            if (createdDateTime && moment(lastUpdated).isSameOrBefore(createdDateTime)) {
-                                promises.push(context.sendJson(file, 'file'));
-                            }
-                        });
-                        state.lastUpdated = moment().toISOString();
-
-                        promises.push(context.saveState(state));
-                        await Promise.all(promises);
-                    }
-                } finally {
-                    if (lock) {
-                        await lock.unlock();
-                    }
+                if (clientStatesValid) {
+                    await processChanges(context);
                 }
             }
 
@@ -131,13 +118,15 @@ module.exports = {
 
     async test(context) {
 
-        // Flow Test Mode: no webhook fires. Read the full current delta WITHOUT the
-        // baseline deltaLink that start()/receive() use to suppress already-seen items,
-        // then emit the most recently created file. Same getLatestChanges fetch and
-        // identical delta-item shape `receive()` forwards.
+        // Flow Test Mode: no webhook fires. Read the current delta WITHOUT the baseline
+        // deltaLink that start()/receive() use to suppress already-seen items, then emit the
+        // most recently created file. Same delta fetch and identical delta-item shape
+        // `receive()` forwards.
         const { accessToken } = context.auth;
-        const latest = await getLatestChanges('/me/drive/root/delta', accessToken);
-        const files = (latest.value || []).filter(file => file.createdDateTime);
+        const { items } = await delta.fetchDeltaPages(DELTA_PATH, accessToken, {
+            maxPages: delta.TEST_MODE_MAX_PAGES
+        });
+        const files = items.filter(file => file.createdDateTime);
 
         if (!files.length) {
             throw new Error('No files found in OneDrive to use as test data.');
@@ -153,45 +142,45 @@ module.exports = {
     async tick(context) {
 
         const { accessToken } = context.auth;
+        const { webhookId, expiryDate, [delta.SKIPPED_FLAG]: hasSkippedMessage } = await context.loadState();
 
-        let lock;
-        try {
-            lock = await context.lock(context.componentId);
+        if (!webhookId) {
+            // Not subscribed - there is no delta to continue and nothing to renew.
+            return;
+        }
 
-            const state = await context.loadState();
+        if (hasSkippedMessage) {
+            // A notification arrived while we were already processing, or the backlog did not
+            // fit into a single run. Carry on with the rest of it.
+            await processChanges(context);
+        }
 
-            const webhookId = state.webhookId;
-            const expiryDate = state.expiryDate;
+        const renewDate = moment(expiryDate).subtract(3, 'days');
 
-            if (!webhookId) {
-                return;
-            }
-
-            const renewDate = moment(expiryDate).subtract(3, 'days');
-
-            if (moment().isSameOrAfter(renewDate)) {
+        if (moment().isSameOrAfter(renewDate)) {
+            // A contended lock means a receive() is working through a backlog - skip the
+            // renewal and retry on the next tick instead of storming the lock.
+            await delta.withComponentLock(context, { step: 'webhook-renewal-skipped' }, async (lock) => {
                 const body = { expirationDateTime: moment().add(29, 'days').toISOString() };
                 try {
                     const { expirationDateTime } = await commons.formatError(() => {
                         return commons.patch(`/subscriptions/${webhookId}`, accessToken, body);
                     });
 
-                    state.expiryDate = expirationDateTime;
+                    await context.stateSet('expiryDate', expirationDateTime);
                 } catch (err) {
                     if (err?.statusCode === 404) {
+                        // Re-arm the lock: creating a replacement subscription is a second
+                        // Graph round trip and must not run once the TTL has elapsed.
+                        await delta.extendLock(lock);
                         const { id, expirationDateTime } = await registerWebhook(context);
-                        state.webhookId = id;
-                        state.expiryDate = expirationDateTime;
+                        await context.stateSet('webhookId', id);
+                        await context.stateSet('expiryDate', expirationDateTime);
                     } else {
                         throw err;
                     }
                 }
-                await context.saveState(state);
-            }
-        } finally {
-            if (lock) {
-                await lock.unlock();
-            }
+            });
         }
     }
 };

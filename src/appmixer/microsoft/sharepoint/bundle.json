@@ -1,6 +1,6 @@
 {
     "name": "appmixer.microsoft.sharepoint",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "changelog": {
         "1.0.0": [
             "Initial version"
@@ -61,6 +61,14 @@
         ],
         "2.2.0": [
             "Added test() (Flow Test Mode) to the NewFile and UpdatedFile triggers."
+        ],
+        "2.3.0": [
+            "NewFile, UpdatedFile, DeletedFile, WatchLocation: the delta backlog is now processed page by page with the resume link persisted after every page, so a redelivered notification or a late failure no longer replays the whole backlog.",
+            "NewFile, UpdatedFile, DeletedFile, WatchLocation: the component lock is taken with an explicit TTL and extended before every Graph call, and at most 20 delta pages are processed per run - the rest continues on the next tick.",
+            "NewFile, UpdatedFile, DeletedFile: the webhook renewal in tick() no longer retries a contended lock 30 times, which used to throw 'LockError: Exceeded 30 attempts to lock the resource' every minute while a notification was being processed.",
+            "WatchLocation: changes are emitted before the delta link is stored, so a crash replays a page instead of dropping it.",
+            "NewFile, UpdatedFile: a file matching several File Types Restriction prefixes at once is now emitted once instead of once per matching prefix.",
+            "All Microsoft Graph calls made through the legacy request helper now have a 30 s timeout so a hung call cannot hold a component lock indefinitely."
         ]
     }
 }
