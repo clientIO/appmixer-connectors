@@ -1,0 +1,501 @@
+{
+    "name": "E2E AI OpenAI - Structured Output",
+    "type": "automation",
+    "flow": {
+        "637c53d0-0eaa-4033-9ae8-799fe155844f": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {}
+        },
+        "eb499fab-3437-4411-89e3-9ac17b316147": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "637c53d0-0eaa-4033-9ae8-799fe155844f": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "637c53d0-0eaa-4033-9ae8-799fe155844f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "sourceText",
+                                                "text": "Jane Doe is 34 years old and lives in Berlin."
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "moderationText",
+                                                "text": "I want to learn how to bake sourdough bread this weekend."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c229d74b-9de3-418f-a9ff-f54fcdf7b059": {
+            "type": "appmixer.ai.openai.TransformTextToJSON",
+            "x": 480,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "eb499fab-3437-4411-89e3-9ac17b316147": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "eb499fab-3437-4411-89e3-9ac17b316147": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "text": {
+                                        "eac04b78-fd67-4e04-8c80-9715dcf515e7": {
+                                            "variable": "$.eb499fab-3437-4411-89e3-9ac17b316147.out.sourceText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "jsonSchema": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "text": "{{{eac04b78-fd67-4e04-8c80-9715dcf515e7}}}",
+                                    "jsonSchema": "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"number\"},\"city\":{\"type\":\"string\"}},\"required\":[\"name\",\"age\",\"city\"],\"additionalProperties\":false}",
+                                    "model": "gpt-4o-mini"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b4adfb0a-d4a7-4068-8a5a-e8a0bb3c59d4": {
+            "type": "appmixer.ai.openai.VariableExtractor",
+            "x": 480,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "eb499fab-3437-4411-89e3-9ac17b316147": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "eb499fab-3437-4411-89e3-9ac17b316147": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "text": {
+                                        "94de53dc-517b-430f-a9b5-a48180fee55d": {
+                                            "variable": "$.eb499fab-3437-4411-89e3-9ac17b316147.out.sourceText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "model": {},
+                                    "outputVariables": {}
+                                },
+                                "lambda": {
+                                    "text": "{{{94de53dc-517b-430f-a9b5-a48180fee55d}}}",
+                                    "model": "gpt-4o-mini",
+                                    "outputVariables": {
+                                        "ADD": [
+                                            {
+                                                "name": "fullName",
+                                                "dataType": "string"
+                                            },
+                                            {
+                                                "name": "age",
+                                                "dataType": "number"
+                                            },
+                                            {
+                                                "name": "city",
+                                                "dataType": "string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0c8bcdd3-e3c4-4227-a8b3-6f58f706896d": {
+            "type": "appmixer.ai.openai.Moderate",
+            "x": 480,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "eb499fab-3437-4411-89e3-9ac17b316147": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "eb499fab-3437-4411-89e3-9ac17b316147": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "input": {
+                                        "ee1ec4e9-c429-4648-ab9d-f132e212fac4": {
+                                            "variable": "$.eb499fab-3437-4411-89e3-9ac17b316147.out.moderationText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "input": "{{{ee1ec4e9-c429-4648-ab9d-f132e212fac4}}}",
+                                    "model": "omni-moderation-latest"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "3b2aa9f4-5a37-4801-b492-d26067a651e6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c229d74b-9de3-418f-a9ff-f54fcdf7b059": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c229d74b-9de3-418f-a9ff-f54fcdf7b059": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "186c97e8-d198-4cff-a620-9869f355091d": {
+                                            "variable": "$.c229d74b-9de3-418f-a9ff-f54fcdf7b059.out.json",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "28dbed87-ef67-498c-967f-a1061f9ee551": {
+                                            "variable": "$.c229d74b-9de3-418f-a9ff-f54fcdf7b059.out.json",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.city"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "12638914-5fa7-47cb-a12c-d80bc32822a4": {
+                                            "variable": "$.c229d74b-9de3-418f-a9ff-f54fcdf7b059.out.json",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.age"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{186c97e8-d198-4cff-a620-9869f355091d}}}",
+                                                "assertion": "equal",
+                                                "expected": "Jane Doe"
+                                            },
+                                            {
+                                                "field": "{{{28dbed87-ef67-498c-967f-a1061f9ee551}}}",
+                                                "assertion": "equal",
+                                                "expected": "Berlin"
+                                            },
+                                            {
+                                                "field": "{{{12638914-5fa7-47cb-a12c-d80bc32822a4}}}",
+                                                "assertion": "regex",
+                                                "regex": "^34$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "78804f12-da75-40b6-a2d2-11cf592e91af": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b4adfb0a-d4a7-4068-8a5a-e8a0bb3c59d4": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b4adfb0a-d4a7-4068-8a5a-e8a0bb3c59d4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "bd1ef128-2a9b-4f30-9c38-472f3d0c5e40": {
+                                            "variable": "$.b4adfb0a-d4a7-4068-8a5a-e8a0bb3c59d4.out.fullName",
+                                            "functions": []
+                                        },
+                                        "4377fb43-2ce1-4ab7-b9a0-1a09f4b9046a": {
+                                            "variable": "$.b4adfb0a-d4a7-4068-8a5a-e8a0bb3c59d4.out.city",
+                                            "functions": []
+                                        },
+                                        "a56f4c9c-f49c-40fd-a272-3b97e655d453": {
+                                            "variable": "$.b4adfb0a-d4a7-4068-8a5a-e8a0bb3c59d4.out.age",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{bd1ef128-2a9b-4f30-9c38-472f3d0c5e40}}}",
+                                                "assertion": "equal",
+                                                "expected": "Jane Doe"
+                                            },
+                                            {
+                                                "field": "{{{4377fb43-2ce1-4ab7-b9a0-1a09f4b9046a}}}",
+                                                "assertion": "equal",
+                                                "expected": "Berlin"
+                                            },
+                                            {
+                                                "field": "{{{a56f4c9c-f49c-40fd-a272-3b97e655d453}}}",
+                                                "assertion": "regex",
+                                                "regex": "^34$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "3a9614b9-cbaa-4c6b-a055-d231dda395bf": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0c8bcdd3-e3c4-4227-a8b3-6f58f706896d": [
+                        "NotFlagged"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0c8bcdd3-e3c4-4227-a8b3-6f58f706896d": {
+                            "NotFlagged": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9a726ede-263e-4b81-b729-1c93a08e90bc": {
+                                            "variable": "$.0c8bcdd3-e3c4-4227-a8b3-6f58f706896d.NotFlagged.input",
+                                            "functions": []
+                                        },
+                                        "a55fc073-d055-4a42-8723-07478c9fb189": {
+                                            "variable": "$.0c8bcdd3-e3c4-4227-a8b3-6f58f706896d.NotFlagged.moderation",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.flagged"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9a726ede-263e-4b81-b729-1c93a08e90bc}}}",
+                                                "assertion": "equal",
+                                                "expected": "I want to learn how to bake sourdough bread this weekend."
+                                            },
+                                            {
+                                                "field": "{{{a55fc073-d055-4a42-8723-07478c9fb189}}}",
+                                                "assertion": "regex",
+                                                "regex": "^false$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f9b9ca37-2996-4fc1-9ad1-fa7d00e236dd": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3b2aa9f4-5a37-4801-b492-d26067a651e6": [
+                        "out"
+                    ],
+                    "78804f12-da75-40b6-a2d2-11cf592e91af": [
+                        "out"
+                    ],
+                    "3a9614b9-cbaa-4c6b-a055-d231dda395bf": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "326d1fd5-4596-4874-ad40-d7ba3ee9aea9": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f9b9ca37-2996-4fc1-9ad1-fa7d00e236dd": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "f9b9ca37-2996-4fc1-9ad1-fa7d00e236dd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "acf60d3b-16d9-44ff-be8c-ff919260407e": {
+                                            "variable": "$.f9b9ca37-2996-4fc1-9ad1-fa7d00e236dd.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E AI OpenAI - Structured Output",
+                                    "result": "{{{acf60d3b-16d9-44ff-be8c-ff919260407e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
