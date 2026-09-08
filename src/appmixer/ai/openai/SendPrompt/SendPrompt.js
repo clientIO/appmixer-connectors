@@ -21,7 +21,8 @@ module.exports = {
         }
 
         // Only send the sampling parameters the user actually set, otherwise
-        // let the model apply its own defaults.
+        // let the model apply its own defaults. Values bound to flow variables
+        // arrive as strings, so coerce them; anything non-numeric is dropped.
         const sampling = {};
         Object.entries({
             temperature,
@@ -30,8 +31,12 @@ module.exports = {
             frequency_penalty: frequencyPenalty,
             presence_penalty: presencePenalty
         }).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && value !== '') {
-                sampling[key] = value;
+            if (value === undefined || value === null || value === '') {
+                return;
+            }
+            const number = Number(value);
+            if (!Number.isNaN(number)) {
+                sampling[key] = key === 'max_tokens' ? Math.trunc(number) : number;
             }
         });
 
