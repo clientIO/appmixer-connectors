@@ -172,6 +172,35 @@ const buildTestPayload = async (context, { organization, projectNodeId }) => {
     };
 };
 
+/**
+ * The organization hook that already delivers to `url`, or null.
+ * @param {Object} context
+ * @param {string} organization
+ * @param {string} url
+ * @returns {Promise<Object|null>}
+ */
+async function findHookByUrl(context, organization, url) {
+
+    const { data } = await lib.apiRequest(context, `orgs/${organization}/hooks`);
+    return (Array.isArray(data) ? data : []).find(hook => hook.config && hook.config.url === url) || null;
+}
+
+/**
+ * GitHub's own explanation of a failed request (message plus the `errors` details),
+ * falling back to the transport error.
+ * @param {Error} error
+ * @returns {string}
+ */
+function githubErrorMessage(error) {
+
+    const body = error.response && error.response.data;
+    if (!body) return error.message;
+    const details = Array.isArray(body.errors)
+        ? body.errors.map(e => e.message || JSON.stringify(e)).join('; ')
+        : '';
+    return [body.message, details].filter(Boolean).join(' - ') || error.message;
+}
+
 module.exports = {
 
     async start(context) {
@@ -194,16 +223,33 @@ module.exports = {
             config.secret = secret;
         }
 
-        const { data } = await lib.apiRequest(context, `orgs/${organization}/hooks`, {
-            method: 'POST',
-            body: {
-                name: 'web',
-                active: true,
-                // The board event itself; individual actions are filtered in receive().
-                events: ['projects_v2_item'],
-                config
+        const body = {
+            name: 'web',
+            active: true,
+            // The board event itself; individual actions are filtered in receive().
+            events: ['projects_v2_item'],
+            config
+        };
+
+        let data;
+        try {
+            ({ data } = await lib.apiRequest(context, `orgs/${organization}/hooks`, { method: 'POST', body }));
+        } catch (error) {
+            // GitHub allows one hook per URL and answers 422 when an earlier start of this
+            // very component left its hook behind (the flow start aborted before stop()
+            // could run). Adopt that hook instead of failing, refreshing its config so the
+            // secret matches the one stored below.
+            const existing = error.response?.status === 422
+                ? await findHookByUrl(context, organization, config.url)
+                : null;
+            if (!existing) {
+                throw new context.CancelError(`Registering the organization webhook failed: ${githubErrorMessage(error)}`);
             }
-        });
+            ({ data } = await lib.apiRequest(context, `orgs/${organization}/hooks/${existing.id}`, {
+                method: 'PATCH',
+                body: { active: true, events: body.events, config }
+            }));
+        }
 
         return context.saveState({ hookId: data.id, secret });
     },
