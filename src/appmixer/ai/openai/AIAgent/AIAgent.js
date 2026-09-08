@@ -623,8 +623,12 @@ module.exports = {
             throw new context.CancelError('Prompt is required');
         }
 
-
-        const model = context.properties.model;
+        // Model and instructions moved from properties to inPorts in 2.0.0 so that they can be
+        // bound to flow variables. Fall back to the properties for agents configured before that.
+        const model = context.messages.in.content.model || context.properties.model || 'gpt-4o';
+        const instructions = context.messages.in.content.instructions
+            || context.properties.instructions
+            || 'You\'re a helpful assistant.';
         const client = lib.sdk(context);
         let tools = await context.stateGet('tools');
         if (!tools) {
@@ -643,7 +647,7 @@ module.exports = {
         const response = await this.agent(
             context,
             client,
-            context.properties.instructions || 'You\'re a helpful assistant.',
+            instructions,
             model,
             prompt,
             fileId,

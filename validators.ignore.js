@@ -25,6 +25,15 @@ module.exports = [
         reason: 'Published for years with { fileId } on its out port and referenced by existing flows; switching to {} is a breaking change that would need a major bundle bump and a flow migration, which is intentionally deferred.'
     },
     {
+        validator: 'dynamic-outport-item-schema',
+        messageIncludes: 'exports no ITEM_SCHEMA',
+        paths: [
+            'ai/openai/TransformTextToJSON/component.json',
+            'ai/openai/VariableExtractor/component.json'
+        ],
+        reason: 'The out port schema is not a fixed item contract: it is the JSON Schema the user types into the jsonSchema/outputVariables input, echoed back verbatim by getOutputPortOptions. There is no static ITEM_SCHEMA to export — every flow declares a different shape — so verify has nothing to compare against and the title rule has no fixed leaves to check.'
+    },
+    {
         validator: 'find-naming-by-shape',
         messageIncludes: 'has the Find shape',
         paths: ['jira/issues/GetIssueTransitions/component.json'],
