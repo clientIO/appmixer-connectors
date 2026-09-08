@@ -86,7 +86,14 @@ module.exports = {
                         if (err.response?.status === 404) continue;
                         throw err;
                     }
-                    await context.sendJson(eventResponse.data, 'out');
+                    const event = eventResponse.data;
+                    // MS Graph delivers 'updated' notifications for newly created events too
+                    // (Exchange touches the event right after creation). Skip these creation
+                    // echoes so the trigger only fires on genuine updates.
+                    const createdAt = Date.parse(event.createdDateTime);
+                    const modifiedAt = Date.parse(event.lastModifiedDateTime);
+                    if (!isNaN(createdAt) && !isNaN(modifiedAt) && (modifiedAt - createdAt) < 5000) continue;
+                    await context.sendJson(event, 'out');
                 }
             }
 

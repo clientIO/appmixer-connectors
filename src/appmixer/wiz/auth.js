@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('./lib');
+
 module.exports = {
 
     type: 'pwd',
@@ -47,7 +49,8 @@ module.exports = {
                     client_id: context.clientId,
                     client_secret: context.clientSecret
                 },
-                url
+                url,
+                timeout: lib.getRequestTimeout(context)
             });
 
             return {

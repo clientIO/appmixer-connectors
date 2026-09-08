@@ -1,0 +1,186 @@
+{
+    "name": "E2E Strava - Make API Call",
+    "type": "automation",
+    "flow": {
+        "ab4f4743-591f-4ada-ad73-9508bf5ced13": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {}
+        },
+        "27c05ccd-4afb-46a5-a7b9-3e78e551a825": {
+            "type": "appmixer.strava.core.MakeApiCall",
+            "x": 272,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ab4f4743-591f-4ada-ad73-9508bf5ced13": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ab4f4743-591f-4ada-ad73-9508bf5ced13": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/athlete",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c9e71a3a-044b-4271-95c2-419e78eb04dd": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "27c05ccd-4afb-46a5-a7b9-3e78e551a825": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "27c05ccd-4afb-46a5-a7b9-3e78e551a825": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ad95867e-0ad9-463e-af8b-690ff5763c4a": {
+                                            "variable": "$.27c05ccd-4afb-46a5-a7b9-3e78e551a825.out.status",
+                                            "functions": []
+                                        },
+                                        "3f009a13-9a9e-4f78-978e-71a4e82be081": {
+                                            "variable": "$.27c05ccd-4afb-46a5-a7b9-3e78e551a825.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ad95867e-0ad9-463e-af8b-690ff5763c4a}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{3f009a13-9a9e-4f78-978e-71a4e82be081}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a25123c5-b226-4637-aabe-242d07f7a73b": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c9e71a3a-044b-4271-95c2-419e78eb04dd": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            }
+        },
+        "174639d2-9b2a-4ce6-871a-7c8e89b7ba63": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a25123c5-b226-4637-aabe-242d07f7a73b": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "a25123c5-b226-4637-aabe-242d07f7a73b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "51ed9f38-1044-4e53-8e79-f345cb4732aa": {
+                                            "variable": "$.a25123c5-b226-4637-aabe-242d07f7a73b.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Strava - Make API Call",
+                                    "result": "{{{51ed9f38-1044-4e53-8e79-f345cb4732aa}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,5 +1,7 @@
 'use strict';
 
+const { API_BASE_URL } = require('../../constants');
+
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
@@ -27,10 +29,9 @@ module.exports = {
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const baseUrl = 'https://www.strava.com/api/v3';
         const targetUrl = url.startsWith('http://') || url.startsWith('https://')
             ? url
-            : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
+            : `${API_BASE_URL}${url.startsWith('/') ? url : '/' + url}`;
 
         const requestOptions = {
             method,

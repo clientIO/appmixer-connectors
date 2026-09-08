@@ -2,6 +2,7 @@
 'use strict';
 
 const lib = require('../../lib.generated');
+const { API_BASE_URL } = require('../../constants');
 
 const schema = {
     'id': { 'type': 'number', 'title': 'Activity ID' },
@@ -33,7 +34,7 @@ module.exports = {
         // https://developers.strava.com/docs/reference/#api-Activities-getLoggedInAthleteActivities
         const { data } = await context.httpRequest({
             method: 'GET',
-            url: 'https://www.strava.com/api/v3/athlete/activities',
+            url: `${API_BASE_URL}/athlete/activities`,
             headers: {
                 'Authorization': `Bearer ${context.auth.accessToken}`
             },

@@ -1,0 +1,32 @@
+{
+    "connector": "appmixer.posthog",
+    "vendor": "appmixer",
+    "updated": "2026-08-11",
+    "pipeline": {
+        "step1_build": "done",
+        "step2_review": "done",
+        "step3a_test_cli": "done \u2014 retested 2026-08-11 after move to appmixer vendor: 12/12 CLI-testable pass (incl. new MakeApiCall); NewActionEvent not CLI-testable (manual webhook setup)",
+        "step4_publish": "published on dev-automated-00001 (e2e), not yet released",
+        "step3b_test_e2e": "done \u2014 2026-08-11: 4 E2E flows PASSED on dev-automated-00001 (discovery, capture+query, person lifecycle, NewAnnotation trigger provoke); assert error arrays verified empty; fix: lib.js file-output empty CSV broke S3 multipart upload"
+    },
+    "components": [
+        "ListProjects",
+        "CaptureEvent",
+        "IdentifyUser",
+        "FindPersons",
+        "GetPerson",
+        "DeletePerson",
+        "ListCohorts",
+        "ListFeatureFlags",
+        "CreateAnnotation",
+        "RunQuery",
+        "NewAnnotation (polling trigger, has test())",
+        "NewActionEvent (webhook trigger, manual PostHog realtime destination setup)"
+    ],
+    "notes": [
+        "Auth: apiKey type \u2014 host (US/EU cloud or self-hosted) + Personal API key, Bearer token, validated via GET /api/users/@me/.",
+        "CaptureEvent/IdentifyUser fetch the public Project API key (api_token) via GET /api/projects/{id}/ (cached 10 min in lib.getProjectApiToken) and POST to {host}/i/v0/e/.",
+        "ListProjects is the dynamic source for all projectId dropdowns (isSource sentinel, cached via lib.apiCallCached).",
+        "Quota: 240 req/min (resource 'requests'), 120 req/hour for RunQuery (resource 'query')."
+    ]
+}

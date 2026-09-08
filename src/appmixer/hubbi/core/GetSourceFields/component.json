@@ -1,0 +1,83 @@
+{
+    "name": "appmixer.hubbi.core.GetSourceFields",
+    "description": "Return the source field definitions (name, .NET type, required) that a HubBI hub accepts. Used internally.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "2.0.0",
+    "private": true,
+    "auth": {
+        "service": "appmixer:hubbi"
+    },
+    "quota": {
+        "manager": "appmixer:hubbi",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "conversionKey": {
+                        "type": "string"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "conversionKey"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "conversionKey": {
+                        "type": "text",
+                        "label": "Hub",
+                        "index": 0,
+                        "tooltip": "The source hub (conversion key). Pick from the list or type a conversion key by hand.",
+                        "source": {
+                            "url": "/component/appmixer/hubbi/core/ListSourceHubsWithPostData?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/outputType": "array"
+                                },
+                                "transform": "./ListSourceHubsWithPostData#toSelectArray"
+                            }
+                        }
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 1,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/hubbi/core/GetSourceFields?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/conversionKey": "inputs/in/conversionKey",
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iIzBCNUZGRiIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjciIGZpbGw9IiNGRkZGRkYiLz4KICA8Y2lyY2xlIGN4PSIxNCIgY3k9IjE2IiByPSI1IiBmaWxsPSIjRkZGRkZGIi8+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSIxNiIgcj0iNSIgZmlsbD0iI0ZGRkZGRiIvPgogIDxjaXJjbGUgY3g9IjE0IiBjeT0iNDgiIHI9IjUiIGZpbGw9IiNGRkZGRkYiLz4KICA8Y2lyY2xlIGN4PSI1MCIgY3k9IjQ4IiByPSI1IiBmaWxsPSIjRkZGRkZGIi8+CiAgPGcgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+CiAgICA8bGluZSB4MT0iMjciIHkxPSIyNyIgeDI9IjE4IiB5Mj0iMTkiLz4KICAgIDxsaW5lIHgxPSIzNyIgeTE9IjI3IiB4Mj0iNDYiIHkyPSIxOSIvPgogICAgPGxpbmUgeDE9IjI3IiB5MT0iMzciIHgyPSIxOCIgeTI9IjQ1Ii8+CiAgICA8bGluZSB4MT0iMzciIHkxPSIzNyIgeDI9IjQ2IiB5Mj0iNDUiLz4KICA8L2c+Cjwvc3ZnPgo="
+}

@@ -1,6 +1,6 @@
 {
     "name": "appmixer.quickbooks",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "changelog": {
         "1.0.0": [
             "Initial version."
@@ -62,6 +62,12 @@
         ],
         "1.7.0": [
             "Added MakeApiCall component for performing arbitrary authorized API calls to the QuickBooks API."
+        ],
+        "1.8.0": [
+            "Rewrote the NewInvoice, UpdatedInvoice, NewCustomer and UpdatedCustomer triggers to use Appmixer listeners (context.addListener/removeListener) instead of shared service state, so webhook routing works through AuthHub's single shared endpoint. Webhook events are now delivered via context.triggerListeners filtered by realmId.",
+            "Fixed webhook routing when a single payload carries more than one notification for the same company: entities are now merged per realm instead of the first notification being processed twice and the rest dropped. A notification without a dataChangeEvent no longer aborts the whole payload.",
+            "Replaced the trigger output port definitions (dynamic source on the Customer triggers, options arrays on the Invoice triggers) with static JSON Schema including realistic example values, so the variable picker shows sample data for every field.",
+            "Webhook signature verification accepts multiple verifier tokens (webhookVerifierToken as a comma-separated list and/or webhookVerifierTokenSandbox), so the Development (sandbox) and Production sections of the Intuit app can share one endpoint. The invalid-signature debug log no longer dumps the service configuration."
         ]
     }
 }

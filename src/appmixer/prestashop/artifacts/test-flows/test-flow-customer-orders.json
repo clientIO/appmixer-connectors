@@ -1,0 +1,516 @@
+{
+    "name": "E2E PrestaShop - Customer, Orders and Order States",
+    "type": "automation",
+    "notes": {
+        "06ba8019-88ea-5398-af1c-baeb871ad886": {
+            "x": 64,
+            "y": -160,
+            "width": 672,
+            "height": 192,
+            "content": "## ⚠️ Test data assumption\n\nGet Customer and the downstream chain use **customer `2`** — in the PrestaShop demo dataset that is `pub@prestashop.com`, the only customer that owns orders (5 of them). Customer `1` is the GDPR anonymization account and has **no orders** — with it, Find Orders emits to `notFound` and the flow times out.\n\nOn a shop without demo data, change the Customer ID to any customer that has at least one order."
+        }
+    },
+    "flow": {
+        "11e7af8d-4bf0-4ed9-8bf8-282e6cb07902": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1ce8ddfa-4301-4ba7-a5e4-3b5f7c420371": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "11e7af8d-4bf0-4ed9-8bf8-282e6cb07902": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11e7af8d-4bf0-4ed9-8bf8-282e6cb07902": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Name",
+                                                "text": "E2E Customer Orders"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5277690c-a5ba-4e12-9742-ce9c471833fa": {
+            "type": "appmixer.prestashop.core.GetCustomer",
+            "x": 448,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1ce8ddfa-4301-4ba7-a5e4-3b5f7c420371": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1ce8ddfa-4301-4ba7-a5e4-3b5f7c420371": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerId": {}
+                                },
+                                "lambda": {
+                                    "customerId": "2"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5940b4c3-be0c-4d4c-86b6-1fb7d0125169": {
+            "type": "appmixer.prestashop.core.FindOrders",
+            "x": 640,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5277690c-a5ba-4e12-9742-ce9c471833fa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5277690c-a5ba-4e12-9742-ce9c471833fa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerId": {
+                                        "13f18464-699c-4574-b484-1400e034d8d5": {
+                                            "variable": "$.5277690c-a5ba-4e12-9742-ce9c471833fa.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "customerId": "{{{13f18464-699c-4574-b484-1400e034d8d5}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4724389f-48c8-4193-9edf-7584e053e57d": {
+            "type": "appmixer.prestashop.core.GetOrder",
+            "x": 832,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5940b4c3-be0c-4d4c-86b6-1fb7d0125169": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5940b4c3-be0c-4d4c-86b6-1fb7d0125169": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "orderId": {
+                                        "ca5c9f3e-7e14-439c-a292-b7693b0632ae": {
+                                            "variable": "$.5940b4c3-be0c-4d4c-86b6-1fb7d0125169.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "orderId": "{{{ca5c9f3e-7e14-439c-a292-b7693b0632ae}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d2ddcbf0-001c-49ea-b3e3-322f4a1c3732": {
+            "type": "appmixer.prestashop.core.GetOrderStates",
+            "x": 1024,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4724389f-48c8-4193-9edf-7584e053e57d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4724389f-48c8-4193-9edf-7584e053e57d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "orderId": {
+                                        "1e6e85f9-fe95-485e-bb56-b81265f2b67f": {
+                                            "variable": "$.4724389f-48c8-4193-9edf-7584e053e57d.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "orderId": "{{{1e6e85f9-fe95-485e-bb56-b81265f2b67f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "857054f9-ab15-43da-a1c6-e8b220c5cf8a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1216,
+            "y": 64,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5277690c-a5ba-4e12-9742-ce9c471833fa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5277690c-a5ba-4e12-9742-ce9c471833fa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0021d207-c437-49e5-bd52-34101c67982a": {
+                                            "variable": "$.5277690c-a5ba-4e12-9742-ce9c471833fa.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0021d207-c437-49e5-bd52-34101c67982a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a02d0ae0-2ae8-475b-b8e5-ad6f74ac7d52": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1216,
+            "y": 256,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5940b4c3-be0c-4d4c-86b6-1fb7d0125169": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5940b4c3-be0c-4d4c-86b6-1fb7d0125169": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "af21ca07-6c1d-4ff4-82be-3c2753e586a6": {
+                                            "variable": "$.5940b4c3-be0c-4d4c-86b6-1fb7d0125169.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{af21ca07-6c1d-4ff4-82be-3c2753e586a6}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3a8179ef-846f-41dd-bd9a-800c5c744cc3": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1216,
+            "y": 448,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4724389f-48c8-4193-9edf-7584e053e57d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4724389f-48c8-4193-9edf-7584e053e57d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "16caed21-5696-4659-ab5c-b8421e13b363": {
+                                            "variable": "$.4724389f-48c8-4193-9edf-7584e053e57d.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{16caed21-5696-4659-ab5c-b8421e13b363}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "16403dc4-64c8-4952-a449-85f4f4be0cdf": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1216,
+            "y": 640,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d2ddcbf0-001c-49ea-b3e3-322f4a1c3732": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d2ddcbf0-001c-49ea-b3e3-322f4a1c3732": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2dd6fd12-d427-4e66-96e1-6a8d2223823f": {
+                                            "variable": "$.d2ddcbf0-001c-49ea-b3e3-322f4a1c3732.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.order_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{2dd6fd12-d427-4e66-96e1-6a8d2223823f}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ae715850-b61d-4d0e-8a6b-41ba5eebd253": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1408,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "857054f9-ab15-43da-a1c6-e8b220c5cf8a": [
+                        "out"
+                    ],
+                    "a02d0ae0-2ae8-475b-b8e5-ad6f74ac7d52": [
+                        "out"
+                    ],
+                    "3a8179ef-846f-41dd-bd9a-800c5c744cc3": [
+                        "out"
+                    ],
+                    "16403dc4-64c8-4952-a449-85f4f4be0cdf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "031897b7-c7e7-4dfc-bcda-f78edb7846f5": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1600,
+            "y": 320,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "ae715850-b61d-4d0e-8a6b-41ba5eebd253": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "ae715850-b61d-4d0e-8a6b-41ba5eebd253": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a0f97f15-c184-4d45-8083-02ac57fb9009": {
+                                            "variable": "$.ae715850-b61d-4d0e-8a6b-41ba5eebd253.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E PrestaShop - Customer, Orders and Order States",
+                                    "result": "{{{a0f97f15-c184-4d45-8083-02ac57fb9009}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

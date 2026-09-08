@@ -1,0 +1,357 @@
+{
+    "name": "E2E QuickBooks UpdatedInvoice trigger",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "a0846298-72d6-49a1-a7b8-c5191afa47e0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "config": {}
+        },
+        "9f53fa6f-ab4a-49f6-a259-42bcfa3984d8": {
+            "type": "appmixer.quickbooks.accounting.CreateCustomer",
+            "x": 320,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a0846298-72d6-49a1-a7b8-c5191afa47e0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0846298-72d6-49a1-a7b8-c5191afa47e0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "displayName": {
+                                        "v-cust-ts": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "givenName": {},
+                                    "familyName": {},
+                                    "companyName": {},
+                                    "primaryEmailAddrAddress": {},
+                                    "printOnCheckName": {}
+                                },
+                                "lambda": {
+                                    "displayName": "E2E QB Customer {{{v-cust-ts}}}",
+                                    "givenName": "E2E",
+                                    "familyName": "Tester",
+                                    "companyName": "E2E Test Co",
+                                    "primaryEmailAddrAddress": "e2e-customer@appmixer-test.com",
+                                    "printOnCheckName": "E2E Test Co"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d6131058-b0e8-447e-8038-f8da7c13483b": {
+            "type": "appmixer.quickbooks.accounting.CreateInvoice",
+            "x": 576,
+            "y": 320,
+            "version": "1.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "9f53fa6f-ab4a-49f6-a259-42bcfa3984d8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9f53fa6f-ab4a-49f6-a259-42bcfa3984d8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerId": {
+                                        "v-inv-cust": {
+                                            "variable": "$.9f53fa6f-ab4a-49f6-a259-42bcfa3984d8.out.Id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "lineItemsJSON": {}
+                                },
+                                "lambda": {
+                                    "customerId": "{{{v-inv-cust}}}",
+                                    "lineItemsJSON": "[{ \"DetailType\": \"SalesItemLineDetail\", \"Amount\": 50, \"Description\": \"E2E service\", \"SalesItemLineDetail\": { \"Qty\": 1 } }]"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "dc806eba-cb11-4819-8a3d-a95d9f0b86c2": {
+            "type": "appmixer.quickbooks.core.MakeApiCall",
+            "x": 832,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "d6131058-b0e8-447e-8038-f8da7c13483b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d6131058-b0e8-447e-8038-f8da7c13483b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "v-upd-id": {
+                                            "variable": "$.d6131058-b0e8-447e-8038-f8da7c13483b.out.Id",
+                                            "functions": []
+                                        },
+                                        "v-upd-token": {
+                                            "variable": "$.d6131058-b0e8-447e-8038-f8da7c13483b.out.SyncToken",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/invoice",
+                                    "method": "POST",
+                                    "body": "{\"Id\":\"{{{v-upd-id}}}\",\"SyncToken\":\"{{{v-upd-token}}}\",\"sparse\":true,\"PrivateNote\":\"E2E updated note\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "594b3d00-bed6-4ae5-844b-57f6490a5be6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1088,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "dc806eba-cb11-4819-8a3d-a95d9f0b86c2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "dc806eba-cb11-4819-8a3d-a95d9f0b86c2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-34b20375": {
+                                            "variable": "$.dc806eba-cb11-4819-8a3d-a95d9f0b86c2.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.body.Invoice.Id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-34b20375}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "93c767bb-4918-49f0-bd46-ee9752380ab8": {
+            "type": "appmixer.quickbooks.accounting.UpdatedInvoice",
+            "x": 832,
+            "y": 560,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "9feeb799-17b6-4412-b8e5-a19a384a45a9": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1088,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "93c767bb-4918-49f0-bd46-ee9752380ab8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "93c767bb-4918-49f0-bd46-ee9752380ab8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-953c537b": {
+                                            "variable": "$.93c767bb-4918-49f0-bd46-ee9752380ab8.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-953c537b}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "85ddff23-abff-49d8-bbc5-eba283ff904f": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1344,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "594b3d00-bed6-4ae5-844b-57f6490a5be6": [
+                        "out"
+                    ],
+                    "9feeb799-17b6-4412-b8e5-a19a384a45a9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "e21fe09e-e916-4600-954a-ad0140f7bd64": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1600,
+            "y": 560,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "85ddff23-abff-49d8-bbc5-eba283ff904f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "85ddff23-abff-49d8-bbc5-eba283ff904f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {
+                                        "v-test-case": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_flowName"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "result": {
+                                        "v-result-2d697865": {
+                                            "variable": "$.85ddff23-abff-49d8-bbc5-eba283ff904f.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "{{{v-test-case}}}",
+                                    "result": "{{{v-result-2d697865}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

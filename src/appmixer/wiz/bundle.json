@@ -1,6 +1,6 @@
 {
     "name": "appmixer.wiz",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "changelog": {
         "1.0.5": [
             "Initial version."
@@ -40,6 +40,15 @@
         ],
         "1.4.0": [
             "Added MakeApiCall component for performing arbitrary authorized API calls to the Wiz API."
+        ],
+        "1.4.1": [
+            "Upload Enrichment Documents: the pending documents backlog is drained one threshold-sized batch per message, scheduled drains included, so a large backlog is no longer uploaded as a single oversized request; the remainder continues in a follow-up timeout 60 seconds later instead of looping inside a single receive() call.",
+            "Upload Enrichment Documents: a batch is never uploaded twice; it is claimed with a timestamp and only resumed once it is older than the upload lock TTL, i.e. when it is a leftover of an interrupted run.",
+            "Upload Enrichment Documents: warn when the backlog grows past 5000 documents, and fix a crash in the drain scheduling when the component starts with a timeout ID already stored in its state.",
+            "Bounded every long-running operation: capped status polling attempts and interval, capped upload lock configuration, a wall-clock deadline for the whole polling session (statusMaxTotalTime, default and maximum 5 minutes), and a request timeout on all Wiz API calls (requestTimeout, default 60 seconds, maximum 2 minutes).",
+            "Create and Upload Security Scan, Upload Enrichment Documents: report the error Wiz keeps answering with, for example an unknown systemActivity ID, instead of a bare \"Exceeded max attempts\", and fail immediately on authorization errors; both components now share a single status polling implementation.",
+            "Find Cloud Resources: cap the record limit (default 100, maximum 10000), keep the records already collected when a later page comes back empty, and route an empty result to the notFound port.",
+            "Create and Upload Security Scan, Upload Enrichment Documents: log only the status and size of an upload instead of the whole payload, which produced oversized log entries and exposed security findings data."
         ]
     }
 }

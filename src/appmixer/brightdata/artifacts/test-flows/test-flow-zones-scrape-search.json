@@ -1,0 +1,526 @@
+{
+    "name": "E2E Bright Data - Zones, Scrape, Search and API Call",
+    "flow": {
+        "f68e588b-0bb6-4ee2-b6ab-a4fc7bbee66d": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f68e588b-0bb6-4ee2-b6ab-a4fc7bbee66d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "f68e588b-0bb6-4ee2-b6ab-a4fc7bbee66d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "unlockerZone",
+                                                "text": "web_unlocker1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "serpZone",
+                                                "text": "serp_api1"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "targetUrl",
+                                                "text": "https://example.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3adbdb68-8a1a-4973-aad3-5b8044709f52": {
+            "type": "appmixer.brightdata.core.ListZones",
+            "x": 480,
+            "y": 192,
+            "source": {
+                "in": {
+                    "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "12d5f536-94ac-41df-83b7-3610f307e678": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 192,
+            "source": {
+                "in": {
+                    "3adbdb68-8a1a-4973-aad3-5b8044709f52": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "3adbdb68-8a1a-4973-aad3-5b8044709f52": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "415d8da6-f157-4294-967d-a67d0dd8153d": {
+                                            "variable": "$.3adbdb68-8a1a-4973-aad3-5b8044709f52.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{415d8da6-f157-4294-967d-a67d0dd8153d}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9271dd6d-031f-4aa8-9be5-b9c6d5d20acb": {
+            "type": "appmixer.brightdata.core.ScrapeUrl",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "zone": {},
+                                    "url": {},
+                                    "dataFormat": {},
+                                    "httpMethod": {},
+                                    "country": {}
+                                },
+                                "lambda": {
+                                    "zone": "web_unlocker1",
+                                    "url": "https://example.com",
+                                    "dataFormat": "markdown",
+                                    "httpMethod": "GET",
+                                    "country": "us"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0397d557-8da1-4ab6-813e-660419d3ec6c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "9271dd6d-031f-4aa8-9be5-b9c6d5d20acb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9271dd6d-031f-4aa8-9be5-b9c6d5d20acb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a5aad7a0-5110-46f6-8a45-ca3539843498": {
+                                            "variable": "$.9271dd6d-031f-4aa8-9be5-b9c6d5d20acb.out.statusCode",
+                                            "functions": []
+                                        },
+                                        "e8ce3abc-7ae9-4778-bd9b-24ca716bcfe0": {
+                                            "variable": "$.9271dd6d-031f-4aa8-9be5-b9c6d5d20acb.out.content",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a5aad7a0-5110-46f6-8a45-ca3539843498}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "field": "{{{e8ce3abc-7ae9-4778-bd9b-24ca716bcfe0}}}",
+                                                "assertion": "regex",
+                                                "regex": "Example Domain",
+                                                "value": "Example Domain"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "17264a13-75bf-45d7-bd64-24b9034fea5d": {
+            "type": "appmixer.brightdata.core.FindSearchResults",
+            "x": 896,
+            "y": 448,
+            "source": {
+                "in": {
+                    "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "zone": {},
+                                    "query": {},
+                                    "engine": {},
+                                    "country": {},
+                                    "language": {},
+                                    "numResults": {},
+                                    "page": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "zone": "serp_api1",
+                                    "query": "bright data web scraping",
+                                    "engine": "google",
+                                    "country": "us",
+                                    "language": "en",
+                                    "numResults": 10,
+                                    "page": 1,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "928a9e85-69d8-4713-b3b3-ad7cc4adbdef": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 448,
+            "source": {
+                "in": {
+                    "17264a13-75bf-45d7-bd64-24b9034fea5d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "17264a13-75bf-45d7-bd64-24b9034fea5d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a733f8ce-e52e-438d-9909-21c5284ce521": {
+                                            "variable": "$.17264a13-75bf-45d7-bd64-24b9034fea5d.out.link",
+                                            "functions": []
+                                        },
+                                        "306f3823-eb12-4a22-bd7d-7eb78cdd5461": {
+                                            "variable": "$.17264a13-75bf-45d7-bd64-24b9034fea5d.out.title",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a733f8ce-e52e-438d-9909-21c5284ce521}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://",
+                                                "value": "^https?://"
+                                            },
+                                            {
+                                                "field": "{{{306f3823-eb12-4a22-bd7d-7eb78cdd5461}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e1cb870b-a96c-41b6-acf6-7997dae6a7bb": {
+            "type": "appmixer.brightdata.core.MakeApiCall",
+            "x": 1104,
+            "y": 576,
+            "source": {
+                "in": {
+                    "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "26fe95c5-b5a1-4097-ade4-4785ab99e9ce": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/zone/get_active_zones",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c0baf742-a34d-422b-ac76-2dd70581c6b9": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 576,
+            "source": {
+                "in": {
+                    "e1cb870b-a96c-41b6-acf6-7997dae6a7bb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1cb870b-a96c-41b6-acf6-7997dae6a7bb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "06204601-9994-44b6-9716-26471fb58f1a": {
+                                            "variable": "$.e1cb870b-a96c-41b6-acf6-7997dae6a7bb.out.statusCode",
+                                            "functions": []
+                                        },
+                                        "abb54983-a662-445d-a73c-c9d45f576428": {
+                                            "variable": "$.e1cb870b-a96c-41b6-acf6-7997dae6a7bb.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{06204601-9994-44b6-9716-26471fb58f1a}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "field": "{{{abb54983-a662-445d-a73c-c9d45f576428}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fcb82835-5421-4534-b7c4-90d36ecfa191": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 320,
+            "source": {
+                "in": {
+                    "12d5f536-94ac-41df-83b7-3610f307e678": [
+                        "out"
+                    ],
+                    "0397d557-8da1-4ab6-813e-660419d3ec6c": [
+                        "out"
+                    ],
+                    "928a9e85-69d8-4713-b3b3-ad7cc4adbdef": [
+                        "out"
+                    ],
+                    "c0baf742-a34d-422b-ac76-2dd70581c6b9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 240
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "84fa5690-cd3a-431f-9ebe-904591b7f54f": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 320,
+            "source": {
+                "in": {
+                    "fcb82835-5421-4534-b7c4-90d36ecfa191": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "fcb82835-5421-4534-b7c4-90d36ecfa191": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "7c97a129-0d69-469f-a2bd-3bcfcbb53376": {
+                                            "variable": "$.fcb82835-5421-4534-b7c4-90d36ecfa191.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Bright Data - Zones, Scrape, Search and API Call",
+                                    "result": "{{{7c97a129-0d69-469f-a2bd-3bcfcbb53376}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

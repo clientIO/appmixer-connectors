@@ -461,10 +461,21 @@ module.exports = {
 
                 const outputs = await this.callTools(context, message.tool_calls);
                 (outputs || []).forEach((output) => {
+                    // OpenAI requires 'content' to be a string. A tool chain may
+                    // produce no output (nothing mapped to ToolOutput's 'output'
+                    // field), in which case output.output is null/undefined and
+                    // OpenAI rejects the request with
+                    // "Invalid value for 'content': expected a string, got null.".
+                    let content = output.output;
+                    if (content === null || content === undefined) {
+                        content = '';
+                    } else if (typeof content !== 'string') {
+                        content = JSON.stringify(content);
+                    }
                     messages.push({
                         role: 'tool',
                         tool_call_id: output.tool_call_id,
-                        content: output.output
+                        content
                     });
                 });
 
@@ -612,8 +623,12 @@ module.exports = {
             throw new context.CancelError('Prompt is required');
         }
 
-
-        const model = context.properties.model;
+        // Model and instructions moved from properties to inPorts in 2.0.0 so that they can be
+        // bound to flow variables. Fall back to the properties for agents configured before that.
+        const model = context.messages.in.content.model || context.properties.model || 'gpt-4o';
+        const instructions = context.messages.in.content.instructions
+            || context.properties.instructions
+            || 'You\'re a helpful assistant.';
         const client = lib.sdk(context);
         let tools = await context.stateGet('tools');
         if (!tools) {
@@ -632,7 +647,7 @@ module.exports = {
         const response = await this.agent(
             context,
             client,
-            context.properties.instructions || 'You\'re a helpful assistant.',
+            instructions,
             model,
             prompt,
             fileId,

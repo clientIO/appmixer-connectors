@@ -38,7 +38,44 @@ const systemActivityQuery = `query SystemActivity($id: ID!) {
           handled
       }`;
 
+// Upper bounds so a hung Wiz endpoint or a misconfigured connector cannot hold a
+// single receive() call for an unbounded amount of time.
+const DEFAULT_REQUEST_TIMEOUT = 60 * 1000; // 60s
+const MAX_REQUEST_TIMEOUT = 2 * 60 * 1000; // 2 min
+const DEFAULT_STATUS_ATTEMPTS = 20;
+const MAX_STATUS_ATTEMPTS = 60;
+const DEFAULT_STATUS_POLLING_INTERVAL = 3000; // 3s
+const MAX_STATUS_POLLING_INTERVAL = 10 * 1000; // 10s
+// Total wall-clock budget for one getStatus() polling session. The per-knob caps
+// above bound each attempt, but only a joint deadline bounds the whole poll
+// (attempts × (request + sleep)) below the engine's receive() timeout.
+const MAX_STATUS_TOTAL_TIME = 5 * 60 * 1000; // 5 min
+// GraphQL error codes that cannot resolve themselves while we keep polling.
+const PERMANENT_STATUS_ERROR_CODES = ['UNAUTHORIZED', 'FORBIDDEN'];
+
 module.exports = {
+
+    // Resolve a bounded HTTP request timeout. Configurable via `requestTimeout`
+    // (ms) but always capped so no single request can hang receive() indefinitely.
+    getRequestTimeout(context) {
+
+        const configured = parseInt(context?.config?.requestTimeout, 10);
+        if (!configured || configured <= 0) {
+            return DEFAULT_REQUEST_TIMEOUT;
+        }
+        return Math.min(configured, MAX_REQUEST_TIMEOUT);
+    },
+
+    // Wall-clock deadline for a whole getStatus() polling session. Configurable
+    // via `statusMaxTotalTime` (ms) but always capped by MAX_STATUS_TOTAL_TIME.
+    getStatusDeadline(context) {
+
+        const configured = parseInt(context?.config?.statusMaxTotalTime, 10);
+        const total = (!configured || configured <= 0)
+            ? MAX_STATUS_TOTAL_TIME
+            : Math.min(configured, MAX_STATUS_TOTAL_TIME);
+        return Date.now() + total;
+    },
 
     async makeApiCall({ context, method = 'GET', data }) {
 
@@ -51,7 +88,8 @@ module.exports = {
                 'content-type': 'application/json',
                 'authorization': `Bearer ${context.auth.token}`
             },
-            data
+            data,
+            timeout: this.getRequestTimeout(context)
         });
     },
 
@@ -80,9 +118,16 @@ module.exports = {
             data: fileContent, // stream upload is not implemented on the wiz side
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: this.getRequestTimeout(context)
         });
-        await context.log({ stage: 'upload-finished', uploadData: upload.statusCode, fileContent });
+        // Do not log the full fileContent: the upload batch can be megabytes and may
+        // contain security-findings data. Log only its size/shape instead.
+        await context.log({
+            stage: 'upload-finished',
+            uploadData: upload.status,
+            dataSourcesCount: Array.isArray(fileContent?.dataSources) ? fileContent.dataSources.length : undefined
+        });
     },
 
     requestUpload: async function(context, { filename }) {
@@ -107,12 +152,42 @@ module.exports = {
         return data.data.requestSecurityScanUpload.upload;
     },
 
-    getStatus: async function(context, id, attempts = 0) {
+    // Human-readable summary of the GraphQL errors of one status poll. Used both
+    // for the per-attempt log and for the error thrown once the budget is spent —
+    // without it a permanent failure ("Resource not found", a missing API scope)
+    // is indistinguishable from a slow upload.
+    describeStatusErrors(errors) {
 
-        const maxAttempts = parseInt(context.config.statusNumberOfAttempts , 10) || 20;
-        const pollingInterval = parseInt(context.config.statusPollingInterval, 10) || 3000;
+        if (!Array.isArray(errors) || !errors.length) {
+            return null;
+        }
+        return errors.map(error => {
+            const code = error?.extensions?.code;
+            return code ? `${error.message} (${code})` : error?.message;
+        }).filter(Boolean).join('; ');
+    },
 
-        context.log({ stage: 'retrieving-upload-status', systemActivityId: id, attempts, maxAttempts, pollingInterval });
+    getStatus: async function(context, id, options = {}) {
+
+        const { attempts = 0, lastError = null } = options;
+
+        // Both knobs come from connector config; cap them so a large value cannot
+        // turn a single receive() into a tens-of-minutes sleep-poll. A caller can
+        // pass its own (also capped) budget via options.
+        const maxAttempts = Math.min(
+            options.maxAttempts
+                || parseInt(context.config.statusNumberOfAttempts, 10)
+                || DEFAULT_STATUS_ATTEMPTS,
+            MAX_STATUS_ATTEMPTS
+        );
+        const pollingInterval = Math.min(
+            options.pollingInterval
+                || parseInt(context.config.statusPollingInterval, 10)
+                || DEFAULT_STATUS_POLLING_INTERVAL,
+            MAX_STATUS_POLLING_INTERVAL
+        );
+        const deadline = options.deadline || this.getStatusDeadline(context);
+
         const { data } = await this.makeApiCall({
             context,
             method: 'POST',
@@ -124,14 +199,42 @@ module.exports = {
             }
         });
 
+        const errorInfo = this.describeStatusErrors(data?.errors);
+        context.log({
+            stage: 'retrieving-upload-status',
+            systemActivityId: id,
+            attempts,
+            maxAttempts,
+            pollingInterval,
+            error: errorInfo || undefined
+        });
+
+        // Authorization errors never turn into a result by waiting — fail right away
+        // with the service's own message instead of spending the whole poll budget.
+        const permanent = (data?.errors || []).find(
+            error => PERMANENT_STATUS_ERROR_CODES.includes(error?.extensions?.code));
+        if (permanent) {
+            throw new context.CancelError(
+                `Wiz rejected the status query for systemActivity ${id}: ${permanent.message}`);
+        }
+
         if (data.errors || data?.data?.systemActivity?.status === 'IN_PROGRESS') {
-            attempts++;
-            if (attempts <= maxAttempts) {
+            const nextAttempts = attempts + 1;
+            // Retry only while both the attempt budget and the wall-clock deadline
+            // allow it — a slow endpoint must not extend the poll past the deadline.
+            if (nextAttempts < maxAttempts && Date.now() + pollingInterval < deadline) {
                 await new Promise(r => setTimeout(r, pollingInterval));
-                return await this.getStatus(context, id, attempts);
-            } else {
-                throw new context.CancelError(`Exceeded max attempts systemActivity: ${id}`);
+                return await this.getStatus(context, id, {
+                    ...options,
+                    attempts: nextAttempts,
+                    deadline,
+                    lastError: errorInfo || lastError
+                });
             }
+            const reason = errorInfo || lastError;
+            throw new context.CancelError(
+                `Exceeded max attempts or time budget for systemActivity: ${id}`
+                + (reason ? `. Last error from Wiz: ${reason}` : ''));
         }
         return data?.data?.systemActivity || {};
     }

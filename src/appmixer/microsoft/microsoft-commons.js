@@ -89,6 +89,38 @@ module.exports = {
     },
 
     /**
+     * Turn a failed Microsoft Graph request into an Error that carries the Graph
+     * error code, human-readable message and request-id, instead of the bare
+     * `Request failed with status code <n>` that axios throws by default.
+     *
+     * When the response has no parseable Graph error body (e.g. a non-JSON body
+     * or a network error) the original error is returned unchanged, so nothing is
+     * swallowed and no `undefined` leaks into the message.
+     * @param {Error} error - the AxiosError thrown by context.httpRequest
+     * @return {Error}
+     */
+    graphError(error) {
+
+        const graphError = error?.response?.data?.error;
+        if (!graphError || !graphError.code) {
+            return error;
+        }
+
+        const requestId = error.response?.headers?.['request-id'];
+        let message = `Microsoft Graph error ${graphError.code}`;
+        if (graphError.message) {
+            message += `: ${graphError.message}`;
+        }
+        if (requestId) {
+            message += ` (request-id: ${requestId})`;
+        }
+
+        const wrapped = new Error(message);
+        wrapped.cause = error;
+        return wrapped;
+    },
+
+    /**
      * Catch errors from Microsoft API and set the message to something helpful
      * This message will be logged by Logstash and can be inspected on insights
      * @param {Function} asyncFunc

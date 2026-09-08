@@ -17,6 +17,19 @@ Primary integration use cases for Appmixer workflows:
 - Webhook Events: https://developers.strava.com/docs/webhooks/
 
 ## Authentication Method (OAuth 2.0)
+
+> **The app owner needs a paid Strava subscription.** Since Strava's Developer
+> Program Standard Tier change, an API application whose owning athlete has no
+> active Strava subscription is switched to *Inactive*, and **every** v3
+> endpoint answers `403 Forbidden` with
+> `{"resource":"Application","field":"Status","code":"Inactive"}` — including
+> `GET /athlete`, which `requestProfileInfo` calls, so connecting an account
+> fails outright. The OAuth handshake itself still succeeds and a real token is
+> issued, which makes this look like a connector bug; it is not. Fix: give the
+> owning account a subscription and reactivate the app in the API Settings
+> Dashboard (https://www.strava.com/settings/api). There is no free tier.
+> This is what blocks E2E runs on a fresh Strava app.
+
 Strava uses standard OAuth 2.0 with refresh tokens. The authorization response returns an `access_token`, `refresh_token`, `expires_at`, and an embedded `athlete` object.
 
 ### Required Data
@@ -57,6 +70,12 @@ Add `activity:read_all` when private/detailed data is required. Avoid over-scopi
 
 ## Base URL
 `https://www.strava.com/api/v3`
+
+> **Upcoming migration:** Strava is migrating the API base URL to
+> `https://api-v3.strava.com`, available January 4, 2027. The base URL is
+> centralized in `constants.js` (`API_BASE_URL`), so switching hosts once the
+> new one is live is a one-line change. See
+> https://developers.strava.com/docs/changelog/
 
 ## Rate Limiting
 Default (per application):

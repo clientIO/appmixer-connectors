@@ -1,0 +1,562 @@
+{
+    "flow": {
+        "1d9f0a1e-615b-45dd-acb6-3fe688ccc22c": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 320,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "884c9b14-8b0f-48bd-a75c-f4b467b16858": {
+            "type": "appmixer.posthog.core.IdentifyUser",
+            "x": 416,
+            "y": 320,
+            "source": {
+                "in": {
+                    "1d9f0a1e-615b-45dd-acb6-3fe688ccc22c": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "IdentifyUser (under test)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "1d9f0a1e-615b-45dd-acb6-3fe688ccc22c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "distinctId": {
+                                        "92c1e919-a283-4b6a-a265-6ea9fea6598b": {
+                                            "variable": "$.1d9f0a1e-615b-45dd-acb6-3fe688ccc22c.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "244976",
+                                    "distinctId": "e2e-posthog-person-{{{92c1e919-a283-4b6a-a265-6ea9fea6598b}}}",
+                                    "properties": "{\"source\": \"e2e\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7adcd8b0d69cdb741fd08c"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7dd20caf-c42a-4ba5-9336-d27c7c694e43": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 624,
+            "y": 320,
+            "source": {
+                "in": {
+                    "884c9b14-8b0f-48bd-a75c-f4b467b16858": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "884c9b14-8b0f-48bd-a75c-f4b467b16858": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7ffa37fb-7629-479a-a1d8-4fb3745ae503": {
+                                            "variable": "$.884c9b14-8b0f-48bd-a75c-f4b467b16858.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{7ffa37fb-7629-479a-a1d8-4fb3745ae503}}}",
+                                                "expected": "Ok"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e984fa45-7df6-4f32-8d24-19e8c842f2e7": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 832,
+            "y": 448,
+            "source": {
+                "in": {
+                    "7dd20caf-c42a-4ba5-9336-d27c7c694e43": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "Wait (event ingestion)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7dd20caf-c42a-4ba5-9336-d27c7c694e43": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "52b94da7-8523-4cec-9c48-0f0742042359": {
+            "type": "appmixer.posthog.core.MakeApiCall",
+            "x": 1040,
+            "y": 448,
+            "source": {
+                "in": {
+                    "e984fa45-7df6-4f32-8d24-19e8c842f2e7": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "MakeApiCall (under test)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "e984fa45-7df6-4f32-8d24-19e8c842f2e7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "2e5f2632-c615-4dc3-b32e-b75d60e5604a": {
+                                            "variable": "$.1d9f0a1e-615b-45dd-acb6-3fe688ccc22c.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/api/projects/244976/persons/?distinct_id=e2e-posthog-person-{{{2e5f2632-c615-4dc3-b32e-b75d60e5604a}}}",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7adcd8b0d69cdb741fd08c"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "951f591b-13ce-4659-b1be-c11c237d1e06": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1248,
+            "y": 448,
+            "source": {
+                "in": {
+                    "52b94da7-8523-4cec-9c48-0f0742042359": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "52b94da7-8523-4cec-9c48-0f0742042359": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2b016ebf-cf03-4d56-9260-9b1ba6cfec59": {
+                                            "variable": "$.52b94da7-8523-4cec-9c48-0f0742042359.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.results[0].uuid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{2b016ebf-cf03-4d56-9260-9b1ba6cfec59}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f5a6fc92-6378-4cad-b0d3-b0ff6c9a5038": {
+            "type": "appmixer.posthog.core.GetPerson",
+            "x": 1456,
+            "y": 576,
+            "source": {
+                "in": {
+                    "951f591b-13ce-4659-b1be-c11c237d1e06": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "GetPerson (under test)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "951f591b-13ce-4659-b1be-c11c237d1e06": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "personId": {
+                                        "b5e3e2b0-1199-4cf1-b711-3e507d54c99b": {
+                                            "variable": "$.52b94da7-8523-4cec-9c48-0f0742042359.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.results[0].uuid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "244976",
+                                    "personId": "{{{b5e3e2b0-1199-4cf1-b711-3e507d54c99b}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7adcd8b0d69cdb741fd08c"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5b8a151b-f2be-4d20-980d-e6cf7a269e43": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1664,
+            "y": 576,
+            "source": {
+                "in": {
+                    "f5a6fc92-6378-4cad-b0d3-b0ff6c9a5038": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f5a6fc92-6378-4cad-b0d3-b0ff6c9a5038": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e6a03a91-a9d4-4c3f-acc5-a9ba0b6f029d": {
+                                            "variable": "$.f5a6fc92-6378-4cad-b0d3-b0ff6c9a5038.out.uuid",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{e6a03a91-a9d4-4c3f-acc5-a9ba0b6f029d}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cee3f0a3-a873-4b34-8ed2-14590c536fa0": {
+            "type": "appmixer.posthog.core.FindPersons",
+            "x": 1872,
+            "y": 704,
+            "source": {
+                "in": {
+                    "5b8a151b-f2be-4d20-980d-e6cf7a269e43": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "FindPersons (under test)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5b8a151b-f2be-4d20-980d-e6cf7a269e43": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "search": {
+                                        "e23a9638-744a-47f1-a84a-6e2303cb19fb": {
+                                            "variable": "$.1d9f0a1e-615b-45dd-acb6-3fe688ccc22c.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "244976",
+                                    "search": "e2e-posthog-person-{{{e23a9638-744a-47f1-a84a-6e2303cb19fb}}}",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7adcd8b0d69cdb741fd08c"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e90df820-41ce-4b90-9119-261b82a8f2e8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2080,
+            "y": 704,
+            "source": {
+                "in": {
+                    "cee3f0a3-a873-4b34-8ed2-14590c536fa0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cee3f0a3-a873-4b34-8ed2-14590c536fa0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f3cff162-ae73-4e3d-8d71-4240c915b077": {
+                                            "variable": "$.cee3f0a3-a873-4b34-8ed2-14590c536fa0.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f3cff162-ae73-4e3d-8d71-4240c915b077}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cbaab470-b057-4f5a-9c19-b8a6aa57b8b0": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2288,
+            "y": 320,
+            "source": {
+                "in": {
+                    "7dd20caf-c42a-4ba5-9336-d27c7c694e43": [
+                        "out"
+                    ],
+                    "951f591b-13ce-4659-b1be-c11c237d1e06": [
+                        "out"
+                    ],
+                    "5b8a151b-f2be-4d20-980d-e6cf7a269e43": [
+                        "out"
+                    ],
+                    "e90df820-41ce-4b90-9119-261b82a8f2e8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f82db1fc-1b53-46d8-85d0-96841ee0616e": {
+            "type": "appmixer.posthog.core.DeletePerson",
+            "x": 2496,
+            "y": 320,
+            "source": {
+                "in": {
+                    "cbaab470-b057-4f5a-9c19-b8a6aa57b8b0": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "DeletePerson (cleanup, under test)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "cbaab470-b057-4f5a-9c19-b8a6aa57b8b0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "personId": {
+                                        "bc491d3a-b18b-4ae8-8e5e-584a8d12c8ee": {
+                                            "variable": "$.52b94da7-8523-4cec-9c48-0f0742042359.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.results[0].uuid"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "244976",
+                                    "personId": "{{{bc491d3a-b18b-4ae8-8e5e-584a8d12c8ee}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7adcd8b0d69cdb741fd08c"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d4e0cfb7-6954-45ed-af83-64f5d0652997": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2704,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f82db1fc-1b53-46d8-85d0-96841ee0616e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "f82db1fc-1b53-46d8-85d0-96841ee0616e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "3d61327d-1623-497b-9c6f-fc0d01fb0fed": {
+                                            "variable": "$.cbaab470-b057-4f5a-9c19-b8a6aa57b8b0.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E PostHog - Person Lifecycle",
+                                    "result": "{{{3d61327d-1623-497b-9c6f-fc0d01fb0fed}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.0.1"
+        }
+    },
+    "name": "E2E PostHog - Person Lifecycle",
+    "notes": {},
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    }
+}

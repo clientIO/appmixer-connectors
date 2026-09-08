@@ -1,0 +1,311 @@
+{
+    "name": "E2E PrestaShop - Abandoned Cart Trigger",
+    "type": "automation",
+    "notes": {
+        "15b7469a-f5a0-5a81-a6a8-149f256c11f6": {
+            "x": 64,
+            "y": -32,
+            "width": 672,
+            "height": 192,
+            "content": "## ⚠️ Timing — do not remove the Wait step\n\nThe Abandoned Cart trigger polls `/carts` and **baselines the existing carts on its first tick** — only carts that appear later are emitted. The `Wait 1m` step delays the cart creation until after that first tick; without it the provoking cart lands in the baseline and the flow times out.\n\nThe cart is created (POST `/carts`) and cleaned up (DELETE) by the flow itself, so no shop data is assumed."
+        }
+    },
+    "flow": {
+        "ab4d4269-0077-47f7-8610-7d2a60493fdd": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 192,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3d001df9-9d8a-46b2-b7a1-29941fb313ee": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ab4d4269-0077-47f7-8610-7d2a60493fdd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ab4d4269-0077-47f7-8610-7d2a60493fdd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Name",
+                                                "text": "E2E Abandoned Cart"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "375648bd-abf4-4197-9906-c9eb05599515": {
+            "type": "appmixer.prestashop.core.MakeApiCall",
+            "x": 448,
+            "y": 192,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "aaaa1111-2222-3333-4444-555566667777": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aaaa1111-2222-3333-4444-555566667777": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/carts",
+                                    "method": "POST",
+                                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n  <cart>\n    <id_currency>1</id_currency>\n    <id_lang>1</id_lang>\n    <id_customer>1</id_customer>\n  </cart>\n</prestashop>"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c741e4e5-18c0-49c8-ba3a-7f969569db1e": {
+            "type": "appmixer.prestashop.core.AbandonedCart",
+            "x": 448,
+            "y": 400,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6c11efe4-0204-4c93-b8ea-7492ec893f7b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c741e4e5-18c0-49c8-ba3a-7f969569db1e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c741e4e5-18c0-49c8-ba3a-7f969569db1e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f1cca06b-1dc3-4391-8160-85c0ba7ac63d": {
+                                            "variable": "$.c741e4e5-18c0-49c8-ba3a-7f969569db1e.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f1cca06b-1dc3-4391-8160-85c0ba7ac63d}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "85b87774-f9c8-4e61-aeb6-135a4edef2ad": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6c11efe4-0204-4c93-b8ea-7492ec893f7b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6d775aaa-047e-4efe-9883-f65cd74bb536": {
+            "type": "appmixer.prestashop.core.MakeApiCall",
+            "x": 1024,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "85b87774-f9c8-4e61-aeb6-135a4edef2ad": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "85b87774-f9c8-4e61-aeb6-135a4edef2ad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "ea754529-d360-4a86-887b-d4a7f742a7c4": {
+                                            "variable": "$.c741e4e5-18c0-49c8-ba3a-7f969569db1e.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/carts/{{{ea754529-d360-4a86-887b-d4a7f742a7c4}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ade86053-4243-4f01-b008-b9690f75deff": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1216,
+            "y": 400,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "6d775aaa-047e-4efe-9883-f65cd74bb536": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "6d775aaa-047e-4efe-9883-f65cd74bb536": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "37fc4788-64f4-4473-b6cd-5b5af958f515": {
+                                            "variable": "$.85b87774-f9c8-4e61-aeb6-135a4edef2ad.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E PrestaShop - Abandoned Cart Trigger",
+                                    "result": "{{{37fc4788-64f4-4473-b6cd-5b5af958f515}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "aaaa1111-2222-3333-4444-555566667777": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 352,
+            "y": 256,
+            "source": {
+                "in": {
+                    "3d001df9-9d8a-46b2-b7a1-29941fb313ee": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3d001df9-9d8a-46b2-b7a1-29941fb313ee": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('../../lib');
+
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
@@ -40,7 +42,8 @@ module.exports = {
                 'Authorization': `Bearer ${context.auth.token}`,
                 'Content-Type': 'application/json',
                 ...extraHeaders
-            }
+            },
+            timeout: lib.getRequestTimeout(context)
         };
 
         let parsedBody;

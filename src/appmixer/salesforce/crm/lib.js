@@ -1,6 +1,16 @@
 const SalesforceAPI = require('jsforce');
 const pathModule = require('path');
+const crypto = require('crypto');
 const DEFAULT_API_VERSION = '58.0';
+
+/**
+ * Stable cache key for cached dynamic-source (dropdown) calls.
+ * @param {Object} obj - anything JSON-serializable that identifies the call
+ * @return {string}
+ */
+function getSourceCacheKey(obj) {
+    return 'salesforce_source_' + crypto.createHash('sha256').update(JSON.stringify(obj)).digest('hex');
+}
 
 module.exports = {
 
@@ -48,6 +58,57 @@ module.exports = {
     },
 
     Date: SalesforceAPI.Date,
+
+    /**
+     * Fetch all Account records via the jsforce SDK.
+     * @param {Object} context
+     * @return {Promise<Array>}
+     */
+    listAccounts(context) {
+
+        const client = this.getSalesforceAPI(context);
+        return client.sobject('Account').find();
+    },
+
+    /**
+     * Shared cache wrapper for dynamic-source (dropdown) calls, so repeated
+     * inspector openings do not burn the Salesforce request quota. Keyed by
+     * the access token — a token refresh naturally invalidates the cache.
+     * @param {Object} context
+     * @param {Object} params - { resource, ttlConfigKey, fetch }
+     * @return {Promise<*>} the fetch() result, possibly served from cache
+     */
+    async cachedSource(context, { resource, ttlConfigKey, fetch }) {
+
+        const key = getSourceCacheKey({ resource, token: context.auth.accessToken });
+        let lock;
+        try {
+            lock = await context.lock(key);
+            const cached = await context.staticCache.get(key);
+            if (cached) return cached;
+
+            const result = await fetch();
+            const ttl = (ttlConfigKey && context.config[ttlConfigKey]) || (5 * 60 * 1000);
+            await context.staticCache.set(key, result, ttl);
+            return result;
+        } finally {
+            lock?.unlock();
+        }
+    },
+
+    /**
+     * Cached variant of listAccounts for dynamic-source (dropdown) calls.
+     * @param {Object} context
+     * @return {Promise<Array>}
+     */
+    listAccountsCached(context) {
+
+        return this.cachedSource(context, {
+            resource: 'accounts',
+            ttlConfigKey: 'listAccountsCacheTTL',
+            fetch: () => this.listAccounts(context)
+        });
+    },
 
     /**
      * Fetch the single newest record of an sObject via the jsforce SDK, ordered by
@@ -99,12 +160,31 @@ module.exports = {
 
     /**
      * Escape a value so it can be safely embedded in a SOQL string literal.
+     * Backslashes must be escaped first — a trailing backslash in the value
+     * would otherwise escape the literal's closing quote and let the rest of
+     * the query be injected into the string.
      * @param {*} value
      * @return {string}
      */
     escapeSoql(value) {
 
-        return String(value).replace(/'/g, '\\\'');
+        return String(value).replace(/\\/g, '\\\\').replace(/'/g, '\\\'');
+    },
+
+    /**
+     * Escape a value so it can be safely embedded in a SOQL LIKE pattern.
+     * On top of the quote escaping, the LIKE wildcards % (any sequence) and
+     * _ (any single character) must be escaped too, so that user input is
+     * matched literally — the caller then adds its own wildcards around the
+     * escaped value (e.g. `'%' + escapeSoqlLike(v) + '%'` for a contains
+     * match). Note that SOQL only supports LIKE on text fields; using it on
+     * an ID, number or date field makes Salesforce reject the query.
+     * @param {*} value
+     * @return {string}
+     */
+    escapeSoqlLike(value) {
+
+        return this.escapeSoql(value).replace(/([%_])/g, '\\$1');
     },
 
     /**
@@ -158,6 +238,148 @@ module.exports = {
             }
         });
         return record;
+    },
+
+    /**
+     * Standard Contact fields selected by the Get Contacts components. Kept as an
+     * explicit list (instead of FIELDS(ALL)) so the SOQL query is not bound by the
+     * 200 record limit Salesforce imposes on FIELDS(ALL) queries, and so the output
+     * shape stays predictable for the variable picker.
+     */
+    CONTACT_FIELDS: [
+        'Id',
+        'AccountId',
+        'FirstName',
+        'LastName',
+        'Name',
+        'Salutation',
+        'Title',
+        'Department',
+        'Email',
+        'Phone',
+        'MobilePhone',
+        'HomePhone',
+        'Fax',
+        'MailingStreet',
+        'MailingCity',
+        'MailingState',
+        'MailingPostalCode',
+        'MailingCountry',
+        'OwnerId',
+        'LeadSource',
+        'Description',
+        'CreatedDate',
+        'LastModifiedDate'
+    ],
+
+    /**
+     * Run a SOQL query and return every matching record, following Salesforce's
+     * query pagination (nextRecordsUrl) until the whole result set is fetched.
+     * @param {Object} context
+     * @param {string} soql
+     * @return {Promise<Array>}
+     */
+    async queryAll(context, soql) {
+
+        const records = [];
+        let { data } = await this.api.salesForceRq(context, {
+            action: `query?q=${encodeURIComponent(soql)}`
+        });
+        records.push(...((data && data.records) || []));
+
+        // nextRecordsUrl looks like /services/data/vXX.0/query/01g...-2000; rebuild
+        // the action relative to the data service so salesForceRq can reissue it
+        // with the configured API version.
+        while (data && data.done === false && data.nextRecordsUrl) {
+            const action = 'query' + data.nextRecordsUrl.split('/query')[1];
+            ({ data } = await this.api.salesForceRq(context, { action }));
+            records.push(...((data && data.records) || []));
+        }
+
+        return records;
+    },
+
+    /**
+     * Fetch all Campaign records.
+     * @param {Object} context
+     * @return {Promise<Array>}
+     */
+    async listCampaigns(context) {
+
+        const client = this.getSalesforceAPI(context);
+        const records = await client.sobject('Campaign')
+            .find({}, { Id: 1, Name: 1, IsActive: 1, Status: 1, Type: 1, StartDate: 1, EndDate: 1 })
+            .sort({ Name: 1 });
+        // Strip the SDK's `attributes` envelope — it is not part of the declared
+        // output and its JSON (with commas) corrupts the CSV file mode.
+        return (records || []).map(({ attributes, ...rest }) => rest);
+    },
+
+    /**
+     * Cached variant of listCampaigns for dynamic-source (dropdown) calls.
+     * @param {Object} context
+     * @return {Promise<Array>}
+     */
+    listCampaignsCached(context) {
+
+        return this.cachedSource(context, {
+            resource: 'campaigns',
+            ttlConfigKey: 'listCampaignsCacheTTL',
+            fetch: () => this.listCampaigns(context)
+        });
+    },
+
+    /**
+     * Fetch Contact records (with the standard CONTACT_FIELDS) matching an
+     * optional SOQL WHERE clause, newest first, with datetime fields reformatted
+     * to ISO. The caller is responsible for building a safe WHERE clause.
+     * `extraFields` lets a caller add validated field names to the SELECT list
+     * (e.g. the filtered custom field, so its value appears in the output).
+     * @param {Object} context
+     * @param {Object} params - { where, extraFields }
+     * @return {Promise<Array>}
+     */
+    async findContacts(context, { where, extraFields = [] } = {}) {
+
+        const fields = [...this.CONTACT_FIELDS];
+        extraFields.forEach(field => {
+            if (field && !fields.includes(field)) {
+                fields.push(this.assertSafeIdentifier(field, 'field name'));
+            }
+        });
+        let soql = `SELECT ${fields.join(', ')} FROM Contact`;
+        if (where) {
+            soql += ` WHERE ${where}`;
+        }
+        soql += ' ORDER BY LastModifiedDate DESC';
+
+        const records = await this.queryAll(context, soql);
+        // Strip the REST envelope's `attributes` object — it is not part of the
+        // declared output and its JSON (with commas) corrupts the CSV file mode.
+        return records.map(record => {
+            // eslint-disable-next-line no-unused-vars
+            const { attributes, ...rest } = record;
+            return this.formatSalesforceDates(rest);
+        });
+    },
+
+    /**
+     * Emit the output port options for the Get Contacts components based on the
+     * chosen outputType (mirrors the pattern used by Query and ListObjects).
+     * @param {Object} context
+     * @param {string} outputType
+     */
+    getContactOutputPortOptions(context, outputType) {
+
+        if (outputType === 'object') {
+            const output = this.CONTACT_FIELDS.map(field => ({ label: field, value: field }));
+            return context.sendJson(output, 'out');
+        } else if (outputType === 'array') {
+            return context.sendJson([{ label: 'Result', value: 'result' }], 'out');
+        } else {
+            // file
+            return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
+        }
     },
 
     /**

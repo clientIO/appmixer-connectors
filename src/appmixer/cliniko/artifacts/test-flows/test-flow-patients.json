@@ -1,0 +1,627 @@
+{
+    "name": "E2E Cliniko - Patient Lifecycle",
+    "flow": {
+        "8c423a71-bbe6-56ce-944f-5246a1bf4cf3": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "c4c11e69-0010-5810-aefd-8b13703ba520": {
+            "type": "appmixer.cliniko.core.CreatePatient",
+            "x": 272,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "8c423a71-bbe6-56ce-944f-5246a1bf4cf3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8c423a71-bbe6-56ce-944f-5246a1bf4cf3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "firstName": {},
+                                    "lastName": {},
+                                    "email": {},
+                                    "city": {},
+                                    "countryCode": {},
+                                    "notes": {}
+                                },
+                                "lambda": {
+                                    "firstName": "E2E",
+                                    "lastName": "Patient",
+                                    "email": "e2e.patient@appmixer-test.com",
+                                    "city": "Prague",
+                                    "countryCode": "CZ",
+                                    "notes": "Created by an automated end-to-end test."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f23c70b7-b9e3-5b0f-8879-a1aefa52fb03": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "c4c11e69-0010-5810-aefd-8b13703ba520": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c4c11e69-0010-5810-aefd-8b13703ba520": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "3edb8097-f7f1-5923-9664-29a776df62e9": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.id"
+                                        },
+                                        "c1327047-8ab7-55b4-abf3-0d84b3b88aef": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.last_name"
+                                        },
+                                        "26a3c7c1-f2d3-5846-8b5e-bacdbbc1d01c": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.label"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{3edb8097-f7f1-5923-9664-29a776df62e9}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{c1327047-8ab7-55b4-abf3-0d84b3b88aef}}}",
+                                                "expected": "Patient"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{26a3c7c1-f2d3-5846-8b5e-bacdbbc1d01c}}}",
+                                                "expected": "E2E Patient"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ae4ae6ac-5e03-5741-af09-0a96a8a4408e": {
+            "type": "appmixer.cliniko.core.UpdatePatient",
+            "x": 480,
+            "y": 448,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "c4c11e69-0010-5810-aefd-8b13703ba520": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c4c11e69-0010-5810-aefd-8b13703ba520": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patientId": {
+                                        "dfbc6212-5849-5313-96c3-67f796082f7a": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.id"
+                                        }
+                                    },
+                                    "occupation": {}
+                                },
+                                "lambda": {
+                                    "patientId": "{{{dfbc6212-5849-5313-96c3-67f796082f7a}}}",
+                                    "occupation": "Automated Tester"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b32eff34-e46b-5451-8471-f48100837ce8": {
+            "type": "appmixer.cliniko.core.GetPatient",
+            "x": 688,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "ae4ae6ac-5e03-5741-af09-0a96a8a4408e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ae4ae6ac-5e03-5741-af09-0a96a8a4408e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patientId": {
+                                        "483bc28b-a0b2-5f32-9237-539e26cf6b39": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patientId": "{{{483bc28b-a0b2-5f32-9237-539e26cf6b39}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "9352df88-f681-5cf5-9b67-1cf8cbfb61e0": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b32eff34-e46b-5451-8471-f48100837ce8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b32eff34-e46b-5451-8471-f48100837ce8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "16847f0f-b6e8-5e03-bc19-3cef04804aa1": {
+                                            "functions": [],
+                                            "variable": "$.b32eff34-e46b-5451-8471-f48100837ce8.out.occupation"
+                                        },
+                                        "281a77ca-11e3-5f75-9404-b15059edb7e2": {
+                                            "functions": [],
+                                            "variable": "$.b32eff34-e46b-5451-8471-f48100837ce8.out.email"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{16847f0f-b6e8-5e03-bc19-3cef04804aa1}}}",
+                                                "expected": "Automated Tester"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{281a77ca-11e3-5f75-9404-b15059edb7e2}}}",
+                                                "expected": "e2e.patient@appmixer-test.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "56ffd56e-51e1-5f92-a71e-73482d7bf4f9": {
+            "type": "appmixer.cliniko.core.FindPatients",
+            "x": 896,
+            "y": 704,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b32eff34-e46b-5451-8471-f48100837ce8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b32eff34-e46b-5451-8471-f48100837ce8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "email": "e2e.patient@appmixer-test.com",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a9c41afd-26b5-5ae9-bb00-1640eb2d02ab": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 704,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "56ffd56e-51e1-5f92-a71e-73482d7bf4f9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "56ffd56e-51e1-5f92-a71e-73482d7bf4f9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c3626e9f-ab48-53f1-8cc0-d03f0d481079": {
+                                            "functions": [],
+                                            "variable": "$.56ffd56e-51e1-5f92-a71e-73482d7bf4f9.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{c3626e9f-ab48-53f1-8cc0-d03f0d481079}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "21f7ede0-d7d5-5dc7-ad1f-de64d2d97896": {
+            "type": "appmixer.cliniko.core.ArchivePatient",
+            "x": 1104,
+            "y": 832,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "56ffd56e-51e1-5f92-a71e-73482d7bf4f9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "56ffd56e-51e1-5f92-a71e-73482d7bf4f9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patientId": {
+                                        "3cbdb34f-972c-5bb3-ad01-4a1b1d6ce065": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patientId": "{{{3cbdb34f-972c-5bb3-ad01-4a1b1d6ce065}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "5adca98c-b79d-5728-9a2d-e3e819a6d8a0": {
+            "type": "appmixer.cliniko.core.UnarchivePatient",
+            "x": 1312,
+            "y": 960,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "21f7ede0-d7d5-5dc7-ad1f-de64d2d97896": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "21f7ede0-d7d5-5dc7-ad1f-de64d2d97896": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patientId": {
+                                        "ab59a8f7-0931-5828-8fdc-cd3a5e908550": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patientId": "{{{ab59a8f7-0931-5828-8fdc-cd3a5e908550}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "aa73ac59-6beb-5cc8-ae7a-5b7499ab68c2": {
+            "type": "appmixer.cliniko.core.GetPatient",
+            "x": 1520,
+            "y": 1088,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "5adca98c-b79d-5728-9a2d-e3e819a6d8a0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5adca98c-b79d-5728-9a2d-e3e819a6d8a0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patientId": {
+                                        "62963429-1803-547d-a5e3-9b65ea7c502e": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patientId": "{{{62963429-1803-547d-a5e3-9b65ea7c502e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "383029d3-4285-58e4-b2c4-9fa9309c392f": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1728,
+            "y": 1088,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "aa73ac59-6beb-5cc8-ae7a-5b7499ab68c2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aa73ac59-6beb-5cc8-ae7a-5b7499ab68c2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a1bd5221-b631-59eb-a61e-a0c39c8b0d68": {
+                                            "functions": [],
+                                            "variable": "$.aa73ac59-6beb-5cc8-ae7a-5b7499ab68c2.out.id"
+                                        },
+                                        "0b1b33fc-3312-517e-a12e-ddfae3868157": {
+                                            "functions": [],
+                                            "variable": "$.aa73ac59-6beb-5cc8-ae7a-5b7499ab68c2.out.occupation"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{a1bd5221-b631-59eb-a61e-a0c39c8b0d68}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{0b1b33fc-3312-517e-a12e-ddfae3868157}}}",
+                                                "expected": "Automated Tester"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "1f9b7266-bc72-5cb2-89e9-6f0e09710de8": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1936,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f23c70b7-b9e3-5b0f-8879-a1aefa52fb03": [
+                        "out"
+                    ],
+                    "9352df88-f681-5cf5-9b67-1cf8cbfb61e0": [
+                        "out"
+                    ],
+                    "a9c41afd-26b5-5ae9-bb00-1640eb2d02ab": [
+                        "out"
+                    ],
+                    "383029d3-4285-58e4-b2c4-9fa9309c392f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "dddd09a0-3a10-5a4b-bf63-b0e17a1c46bf": {
+            "type": "appmixer.cliniko.core.ArchivePatient",
+            "x": 2144,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "1f9b7266-bc72-5cb2-89e9-6f0e09710de8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1f9b7266-bc72-5cb2-89e9-6f0e09710de8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patientId": {
+                                        "a8de1b64-d2d1-5678-93f0-3caa3b4def96": {
+                                            "functions": [],
+                                            "variable": "$.c4c11e69-0010-5810-aefd-8b13703ba520.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patientId": "{{{a8de1b64-d2d1-5678-93f0-3caa3b4def96}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "5dc0258b-3d7c-534a-b105-a0eeb1f80eaf": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2352,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "dddd09a0-3a10-5a4b-bf63-b0e17a1c46bf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "dddd09a0-3a10-5a4b-bf63-b0e17a1c46bf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d4931583-cdf2-56c1-a659-4cf07eb859be": {
+                                            "functions": [],
+                                            "variable": "$.1f9b7266-bc72-5cb2-89e9-6f0e09710de8.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Cliniko - Patient Lifecycle",
+                                    "result": "{{{d4931583-cdf2-56c1-a659-4cf07eb859be}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,1203 @@
+{
+    "name": "E2E Clickup - task details",
+    "description": "Task read/update plus task tags: CreateTask, GetTask, UpdateTask, AddTaskTag, RemoveTaskTag.",
+    "type": "automation",
+    "notes": {
+        "0189e5cf-97ee-4bc7-abe6-58dcbb3c33d4": {
+            "content": "## \u26a0\ufe0f SetTaskCustomField needs a hand-made custom field\n\nClickUp's public API (v2) cannot create a custom field \u2014 fields exist only if someone adds them in the ClickUp UI. This flow therefore pins a field id that was created by hand:\n\n- **`NewCustomCeckbox`** (type `checkbox`), id `40d53129-306f-480e-b292-604eeffdcc26`\n- on list *Test list 1* (`901506393256`), space *Team Space test appmixer*, workspace *Appmixer App*\n\n### Running this in a different workspace\nAdd a checkbox field to the target list, read its id from `GET /list/<listId>/field`, and update `customFieldId` in the SetVariable node. Without it both SetTaskCustomField steps fail with `Field ID` errors.\n\n### Why a checkbox\nIt is set to `false` first on purpose. ClickUp stores an unchecked box by DROPPING `value` from the task's `custom_fields`, and a truthiness guard in the component would reject `false` outright \u2014 so this step is the regression guard for that bug.",
+            "height": 384,
+            "width": 384,
+            "x": 64,
+            "y": -448
+        }
+    },
+    "flow": {
+        "4e2c2dbe-59ed-490a-8c6b-402ce5e141a2": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 0,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bfd69efd-7a34-4107-912e-bdd8839e21f0": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 0,
+            "source": {
+                "in": {
+                    "4e2c2dbe-59ed-490a-8c6b-402ce5e141a2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4e2c2dbe-59ed-490a-8c6b-402ce5e141a2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "listId",
+                                                "text": "901506393256"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "spaceId",
+                                                "text": "90151198160"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "taskName",
+                                                "text": "E2E Test Task"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "updatedTaskName",
+                                                "text": "E2E Test Task Updated"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "tagName",
+                                                "text": "e2e test tag"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "customFieldId",
+                                                "text": "40d53129-306f-480e-b292-604eeffdcc26"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "6284afa3-3dfb-41fd-9d50-c6910e28ac95": {
+            "type": "appmixer.clickup.core.CreateSpaceTag",
+            "x": 480,
+            "y": 128,
+            "source": {
+                "in": {
+                    "bfd69efd-7a34-4107-912e-bdd8839e21f0": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bfd69efd-7a34-4107-912e-bdd8839e21f0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "spaceId": {
+                                        "4d0a656d-47fe-480e-b9f5-ef34c2a74b92": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.spaceId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {
+                                        "d8f3d4f1-951d-4143-8a02-21bb450d662d": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.tagName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "foregroundColor": {},
+                                    "backgroundColor": {}
+                                },
+                                "lambda": {
+                                    "spaceId": "{{{4d0a656d-47fe-480e-b9f5-ef34c2a74b92}}}",
+                                    "name": "{{{d8f3d4f1-951d-4143-8a02-21bb450d662d}}}",
+                                    "foregroundColor": "#ffffff",
+                                    "backgroundColor": "#e16b16"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "969af093-5045-4408-ab4f-5f152c0bb286": {
+            "type": "appmixer.clickup.core.CreateTask",
+            "x": 688,
+            "y": 256,
+            "source": {
+                "in": {
+                    "6284afa3-3dfb-41fd-9d50-c6910e28ac95": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6284afa3-3dfb-41fd-9d50-c6910e28ac95": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "listId": {
+                                        "1adaf3ca-2a87-4c07-9079-00df0463a24e": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.listId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {
+                                        "96a0b325-fe6b-456e-be44-f730d098a928": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.taskName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "description": {}
+                                },
+                                "lambda": {
+                                    "listId": "{{{1adaf3ca-2a87-4c07-9079-00df0463a24e}}}",
+                                    "name": "{{{96a0b325-fe6b-456e-be44-f730d098a928}}}",
+                                    "description": "Created by the Appmixer E2E suite."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ba05b3ac-abd3-49fe-92e5-24470cf8fdf5": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 256,
+            "source": {
+                "in": {
+                    "969af093-5045-4408-ab4f-5f152c0bb286": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert CreateTask",
+            "config": {
+                "transform": {
+                    "in": {
+                        "969af093-5045-4408-ab4f-5f152c0bb286": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "56e42301-1179-4fbf-86c2-9f01e9d186b5": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{56e42301-1179-4fbf-86c2-9f01e9d186b5}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0882eac4-65e0-479a-8c6b-399cfe775ed6": {
+            "type": "appmixer.clickup.core.GetTask",
+            "x": 896,
+            "y": 384,
+            "source": {
+                "in": {
+                    "969af093-5045-4408-ab4f-5f152c0bb286": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "969af093-5045-4408-ab4f-5f152c0bb286": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "4d1e955c-b0f7-4aa0-b534-8f34d9f607c5": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{4d1e955c-b0f7-4aa0-b534-8f34d9f607c5}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0d813eaf-09ff-4e17-aa72-1669b9e148b3": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 384,
+            "source": {
+                "in": {
+                    "0882eac4-65e0-479a-8c6b-399cfe775ed6": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert GetTask",
+            "config": {
+                "transform": {
+                    "in": {
+                        "0882eac4-65e0-479a-8c6b-399cfe775ed6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1ac78b59-112c-4a71-b32b-0dbc28cf600d": {
+                                            "variable": "$.0882eac4-65e0-479a-8c6b-399cfe775ed6.out.name",
+                                            "functions": []
+                                        },
+                                        "9ef8c7ab-f102-46e8-9bc5-aee2a7eab470": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.taskName",
+                                            "functions": []
+                                        },
+                                        "eb98899e-4043-48d7-b6f5-811a4ff9606d": {
+                                            "variable": "$.0882eac4-65e0-479a-8c6b-399cfe775ed6.out.list",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "db6b3ce0-ce01-4586-b5a3-d8b1a813f0c6": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.listId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{1ac78b59-112c-4a71-b32b-0dbc28cf600d}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{9ef8c7ab-f102-46e8-9bc5-aee2a7eab470}}}"
+                                            },
+                                            {
+                                                "field": "{{{eb98899e-4043-48d7-b6f5-811a4ff9606d}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{db6b3ce0-ce01-4586-b5a3-d8b1a813f0c6}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f207f314-e611-4ae8-a982-2e09cca6c101": {
+            "type": "appmixer.clickup.core.UpdateTask",
+            "x": 1104,
+            "y": 512,
+            "source": {
+                "in": {
+                    "0882eac4-65e0-479a-8c6b-399cfe775ed6": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0882eac4-65e0-479a-8c6b-399cfe775ed6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "50bdcedb-867b-4f85-8bbc-6cec2b78f322": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {
+                                        "4ec47b06-0d29-4d5e-abd6-df74c9577fca": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.updatedTaskName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{50bdcedb-867b-4f85-8bbc-6cec2b78f322}}}",
+                                    "name": "{{{4ec47b06-0d29-4d5e-abd6-df74c9577fca}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c6d38dab-6b9b-4055-a131-d222584895e4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 512,
+            "source": {
+                "in": {
+                    "f207f314-e611-4ae8-a982-2e09cca6c101": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert UpdateTask",
+            "config": {
+                "transform": {
+                    "in": {
+                        "f207f314-e611-4ae8-a982-2e09cca6c101": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c940ee08-f915-42d4-ace1-c6b969982881": {
+                                            "variable": "$.f207f314-e611-4ae8-a982-2e09cca6c101.out.name",
+                                            "functions": []
+                                        },
+                                        "0c4411ff-b90c-4106-b40c-79a3ba7bd713": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.updatedTaskName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c940ee08-f915-42d4-ace1-c6b969982881}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{0c4411ff-b90c-4106-b40c-79a3ba7bd713}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e94afe62-9154-4f6f-940a-58af8cdd2e52": {
+            "type": "appmixer.clickup.core.SetTaskCustomField",
+            "x": 1312,
+            "y": 640,
+            "source": {
+                "in": {
+                    "f207f314-e611-4ae8-a982-2e09cca6c101": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "SetTaskCustomField (false)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "f207f314-e611-4ae8-a982-2e09cca6c101": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "ca432ef5-43fd-4282-9b22-cac031fecc4f": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fieldId": {
+                                        "12638231-09de-4411-994b-f28b025de0b9": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.customFieldId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "taskId": "{{{ca432ef5-43fd-4282-9b22-cac031fecc4f}}}",
+                                    "fieldId": "{{{12638231-09de-4411-994b-f28b025de0b9}}}",
+                                    "value": "false"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "5536c924-9927-4c16-b536-e943f36380a7": {
+            "type": "appmixer.clickup.core.GetTask",
+            "x": 1520,
+            "y": 768,
+            "source": {
+                "in": {
+                    "e94afe62-9154-4f6f-940a-58af8cdd2e52": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "GetTask after unchecking",
+            "config": {
+                "transform": {
+                    "in": {
+                        "e94afe62-9154-4f6f-940a-58af8cdd2e52": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "6c12b39c-07e0-4f3b-b350-415a268dd91f": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{6c12b39c-07e0-4f3b-b350-415a268dd91f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ee9c4d9a-4cb5-475e-aa35-8cc3df1a5f05": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1728,
+            "y": 768,
+            "source": {
+                "in": {
+                    "5536c924-9927-4c16-b536-e943f36380a7": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert SetTaskCustomField false",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5536c924-9927-4c16-b536-e943f36380a7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "bb1324ef-df63-4e79-bbf9-a68fbc0b2f8e": {
+                                            "variable": "$.5536c924-9927-4c16-b536-e943f36380a7.out.custom_fields",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "71b58d57-798f-40f8-bb16-84f168a6de2c": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.customFieldId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{bb1324ef-df63-4e79-bbf9-a68fbc0b2f8e}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{71b58d57-798f-40f8-bb16-84f168a6de2c}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "629940f0-df44-4aef-a4e9-0e532729fe42": {
+            "type": "appmixer.clickup.core.SetTaskCustomField",
+            "x": 1728,
+            "y": 896,
+            "source": {
+                "in": {
+                    "5536c924-9927-4c16-b536-e943f36380a7": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "SetTaskCustomField (true)",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5536c924-9927-4c16-b536-e943f36380a7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "7fff7876-2987-4e62-b5ca-9254c323e9e8": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fieldId": {
+                                        "7717b206-39ae-4b24-8072-7296c67a0a69": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.customFieldId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "taskId": "{{{7fff7876-2987-4e62-b5ca-9254c323e9e8}}}",
+                                    "fieldId": "{{{7717b206-39ae-4b24-8072-7296c67a0a69}}}",
+                                    "value": "true"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "afc759cc-d96c-41b0-bdd3-ed33b8913edb": {
+            "type": "appmixer.clickup.core.GetTask",
+            "x": 1936,
+            "y": 1024,
+            "source": {
+                "in": {
+                    "629940f0-df44-4aef-a4e9-0e532729fe42": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "GetTask after checking",
+            "config": {
+                "transform": {
+                    "in": {
+                        "629940f0-df44-4aef-a4e9-0e532729fe42": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "4b631c69-311f-4736-bc52-4391fc2f448a": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{4b631c69-311f-4736-bc52-4391fc2f448a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "4a0da518-14ef-40f8-b9fa-1be309b0b265": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2144,
+            "y": 1024,
+            "source": {
+                "in": {
+                    "afc759cc-d96c-41b0-bdd3-ed33b8913edb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert SetTaskCustomField true",
+            "config": {
+                "transform": {
+                    "in": {
+                        "afc759cc-d96c-41b0-bdd3-ed33b8913edb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a603c781-9ce5-4505-94f2-395521ccb00c": {
+                                            "variable": "$.afc759cc-d96c-41b0-bdd3-ed33b8913edb.out.custom_fields",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].value"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a603c781-9ce5-4505-94f2-395521ccb00c}}}",
+                                                "assertion": "equal",
+                                                "expected": "true"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b2843d9a-5d69-4792-86b6-5e71c2252434": {
+            "type": "appmixer.clickup.core.AddTaskTag",
+            "x": 2144,
+            "y": 1152,
+            "source": {
+                "in": {
+                    "afc759cc-d96c-41b0-bdd3-ed33b8913edb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "afc759cc-d96c-41b0-bdd3-ed33b8913edb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "cbf3b111-2d9e-4df3-9140-97eb7b5ca994": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "tagName": {
+                                        "907c4602-151d-4e72-91ad-41d87e520104": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.tagName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{cbf3b111-2d9e-4df3-9140-97eb7b5ca994}}}",
+                                    "tagName": "{{{907c4602-151d-4e72-91ad-41d87e520104}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d89c9d58-724f-410e-bfac-c7b7ffec3d0f": {
+            "type": "appmixer.clickup.core.GetTask",
+            "x": 2352,
+            "y": 1280,
+            "source": {
+                "in": {
+                    "b2843d9a-5d69-4792-86b6-5e71c2252434": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "GetTask after AddTaskTag",
+            "config": {
+                "transform": {
+                    "in": {
+                        "b2843d9a-5d69-4792-86b6-5e71c2252434": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "009a3abf-1c79-4eeb-9758-763f5808eb91": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{009a3abf-1c79-4eeb-9758-763f5808eb91}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "738bc3f8-6d06-4299-ad4c-565233d87735": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2560,
+            "y": 1280,
+            "source": {
+                "in": {
+                    "d89c9d58-724f-410e-bfac-c7b7ffec3d0f": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert AddTaskTag",
+            "config": {
+                "transform": {
+                    "in": {
+                        "d89c9d58-724f-410e-bfac-c7b7ffec3d0f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "dc7c8c37-c65b-4274-a2f7-fa4e5dcfb919": {
+                                            "variable": "$.d89c9d58-724f-410e-bfac-c7b7ffec3d0f.out.tags",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "20464b31-c430-4fdd-ab4d-6e983886a0d6": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.tagName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{dc7c8c37-c65b-4274-a2f7-fa4e5dcfb919}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{20464b31-c430-4fdd-ab4d-6e983886a0d6}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "20c59fc4-ce9a-4121-b5f7-8220960aa14f": {
+            "type": "appmixer.clickup.core.RemoveTaskTag",
+            "x": 2560,
+            "y": 1408,
+            "source": {
+                "in": {
+                    "d89c9d58-724f-410e-bfac-c7b7ffec3d0f": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d89c9d58-724f-410e-bfac-c7b7ffec3d0f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "5700ef97-4213-4d8b-8b24-65ce42b213d8": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "tagName": {
+                                        "b4e07463-b0da-48b5-91f2-f1f934c4682b": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.tagName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{5700ef97-4213-4d8b-8b24-65ce42b213d8}}}",
+                                    "tagName": "{{{b4e07463-b0da-48b5-91f2-f1f934c4682b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "658fa3df-5da0-4128-9a96-03c47fcacea3": {
+            "type": "appmixer.clickup.core.GetTask",
+            "x": 2768,
+            "y": 1536,
+            "source": {
+                "in": {
+                    "20c59fc4-ce9a-4121-b5f7-8220960aa14f": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "GetTask after RemoveTaskTag",
+            "config": {
+                "transform": {
+                    "in": {
+                        "20c59fc4-ce9a-4121-b5f7-8220960aa14f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "3e40eb05-618b-4227-a607-6becb5fb36f9": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{3e40eb05-618b-4227-a607-6becb5fb36f9}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "6e30dbd8-1685-48c4-b509-62d21a3c82c8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2976,
+            "y": 1536,
+            "source": {
+                "in": {
+                    "658fa3df-5da0-4128-9a96-03c47fcacea3": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert RemoveTaskTag",
+            "config": {
+                "transform": {
+                    "in": {
+                        "658fa3df-5da0-4128-9a96-03c47fcacea3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b66fc968-cfdd-4851-987e-c86cc8b41f07": {
+                                            "variable": "$.658fa3df-5da0-4128-9a96-03c47fcacea3.out.id",
+                                            "functions": []
+                                        },
+                                        "b671d8bf-986f-4894-9d91-0aa502ce0d7a": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b66fc968-cfdd-4851-987e-c86cc8b41f07}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{b671d8bf-986f-4894-9d91-0aa502ce0d7a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "02476c6c-d074-4cde-9bb3-bc366cf43144": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 3184,
+            "y": 1664,
+            "source": {
+                "in": {
+                    "ba05b3ac-abd3-49fe-92e5-24470cf8fdf5": [
+                        "out"
+                    ],
+                    "0d813eaf-09ff-4e17-aa72-1669b9e148b3": [
+                        "out"
+                    ],
+                    "c6d38dab-6b9b-4055-a131-d222584895e4": [
+                        "out"
+                    ],
+                    "ee9c4d9a-4cb5-475e-aa35-8cc3df1a5f05": [
+                        "out"
+                    ],
+                    "4a0da518-14ef-40f8-b9fa-1be309b0b265": [
+                        "out"
+                    ],
+                    "738bc3f8-6d06-4299-ad4c-565233d87735": [
+                        "out"
+                    ],
+                    "6e30dbd8-1685-48c4-b509-62d21a3c82c8": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "98a03d14-c128-43fd-a9c9-97605801b64c": {
+            "type": "appmixer.clickup.core.DeleteTask",
+            "x": 3392,
+            "y": 1664,
+            "source": {
+                "in": {
+                    "02476c6c-d074-4cde-9bb3-bc366cf43144": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "02476c6c-d074-4cde-9bb3-bc366cf43144": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "49634459-e1ac-4971-a86b-3c5bfc3534ea": {
+                                            "variable": "$.969af093-5045-4408-ab4f-5f152c0bb286.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{49634459-e1ac-4971-a86b-3c5bfc3534ea}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "8f3535ab-ff16-4a6d-8003-a55672faf9fb": {
+            "type": "appmixer.clickup.core.DeleteSpaceTag",
+            "x": 3600,
+            "y": 1664,
+            "source": {
+                "in": {
+                    "98a03d14-c128-43fd-a9c9-97605801b64c": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "98a03d14-c128-43fd-a9c9-97605801b64c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "spaceId": {
+                                        "51160584-5f55-42a9-a322-a961933589b2": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.spaceId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "tagName": {
+                                        "d13c4d70-6958-4c23-b348-da767f8fbf42": {
+                                            "variable": "$.bfd69efd-7a34-4107-912e-bdd8839e21f0.out.tagName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "spaceId": "{{{51160584-5f55-42a9-a322-a961933589b2}}}",
+                                    "tagName": "{{{d13c4d70-6958-4c23-b348-da767f8fbf42}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e49b7916-edf0-4757-a15f-bf1c6af0872f": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 3808,
+            "y": 1664,
+            "source": {
+                "in": {
+                    "8f3535ab-ff16-4a6d-8003-a55672faf9fb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "000000000000000000000000",
+                    "failedStoreId": "000000000000000000000000"
+                },
+                "transform": {
+                    "in": {
+                        "8f3535ab-ff16-4a6d-8003-a55672faf9fb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "daaef692-1c41-4a7f-8444-38002dde6b7e": {
+                                            "variable": "$.02476c6c-d074-4cde-9bb3-bc366cf43144.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Clickup - task details",
+                                    "result": "{{{daaef692-1c41-4a7f-8444-38002dde6b7e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

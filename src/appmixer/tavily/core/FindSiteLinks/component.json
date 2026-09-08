@@ -1,0 +1,183 @@
+{
+    "name": "appmixer.tavily.core.FindSiteLinks",
+    "label": "Map Website",
+    "description": "Map the link structure of a website and return the URLs found, without extracting page content. Returns a maximum of 500 links per call.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:tavily"
+    },
+    "quota": {
+        "manager": "appmixer:tavily",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "instructions": {
+                        "type": "string"
+                    },
+                    "maxDepth": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5
+                    },
+                    "maxBreadth": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 500
+                    },
+                    "maxPages": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 500
+                    },
+                    "selectPaths": {
+                        "type": "string"
+                    },
+                    "excludePaths": {
+                        "type": "string"
+                    },
+                    "selectDomains": {
+                        "type": "string"
+                    },
+                    "excludeDomains": {
+                        "type": "string"
+                    },
+                    "allowExternal": {
+                        "type": "boolean"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "URL",
+                        "tooltip": "The root URL to start from, e.g. <code>https://docs.tavily.com</code>."
+                    },
+                    "instructions": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Instructions",
+                        "tooltip": "Optional natural language guidance for the crawler, e.g. <code>only pages about pricing</code>. Doubles the credit cost."
+                    },
+                    "maxDepth": {
+                        "type": "number",
+                        "index": 3,
+                        "label": "Max Depth",
+                        "defaultValue": 1,
+                        "tooltip": "How many link hops away from the root URL to explore, between 1 and 5."
+                    },
+                    "maxBreadth": {
+                        "type": "number",
+                        "index": 4,
+                        "label": "Max Breadth",
+                        "defaultValue": 20,
+                        "tooltip": "How many links to follow per page level, between 1 and 500."
+                    },
+                    "maxPages": {
+                        "type": "number",
+                        "index": 5,
+                        "label": "Max Pages",
+                        "defaultValue": 50,
+                        "tooltip": "Total number of pages to process before stopping, between 1 and 500."
+                    },
+                    "selectPaths": {
+                        "type": "textarea",
+                        "index": 6,
+                        "label": "Select Paths",
+                        "tooltip": "One regular expression per line. Only URL paths matching one of them are followed, e.g. <code>/documentation/.*</code>. A comma is a legal part of a pattern (<code>a{1,3}</code>), so patterns are separated by newlines, not commas."
+                    },
+                    "excludePaths": {
+                        "type": "textarea",
+                        "index": 7,
+                        "label": "Exclude Paths",
+                        "tooltip": "One regular expression per line. URL paths matching any of them are skipped."
+                    },
+                    "selectDomains": {
+                        "type": "textarea",
+                        "index": 8,
+                        "label": "Select Domains",
+                        "tooltip": "One regular expression per line. Only matching domains are followed, e.g. <code>^docs\\.example\\.com$</code>."
+                    },
+                    "excludeDomains": {
+                        "type": "textarea",
+                        "index": 9,
+                        "label": "Exclude Domains",
+                        "tooltip": "One regular expression per line. Domains matching any of them are skipped."
+                    },
+                    "allowExternal": {
+                        "type": "toggle",
+                        "index": 10,
+                        "label": "Allow External Domains",
+                        "defaultValue": true,
+                        "tooltip": "Whether links pointing outside the root domain may be followed."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 11,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/tavily/core/FindSiteLinks?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/url": "dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NiA2NiIgd2lkdGg9IjY2IiBoZWlnaHQ9IjY2IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlRhdmlseSI+PHBhdGggZmlsbD0iIzFGMUUxRSIgZD0iTTQ4LjQ2MzkgMC41QzU3Ljg1MjcgMC41IDY1LjQ2MzkgOC4xMTExNiA2NS40NjM5IDE3LjVWNDguNUM2NS40NjM5IDU3Ljg4ODggNTcuODUyNyA2NS41IDQ4LjQ2MzkgNjUuNUgxNy40NjM5QzguMDc1MDMgNjUuNSAwLjQ2Mzg2OCA1Ny44ODg4IDAuNDYzODY3IDQ4LjVWMTcuNUMwLjQ2Mzg2NyA4LjExMTE2IDguMDc1MDMgMC41IDE3LjQ2MzkgMC41SDQ4LjQ2MzlaTTI4LjE0ODUgMzYuMzU0NUMyNy43OTY1IDM2LjM1NDYgMjcuNDQ3NSAzNi40MjM3IDI3LjEyMjEgMzYuNTU4NkMyNi43OTY4IDM2LjY5MzYgMjYuNTAwMSAzNi44OTIxIDI2LjI1MSAzNy4xNDE2TDIxLjEyNSA0Mi4yNzkzTDE5Ljc2MjcgNDAuOTE0MUMxOC43NjE3IDM5LjkxMTUgMTcuMDQ4NyA0MC40MDc2IDE2LjczNzMgNDEuNzkyTDE0Ljc5NTkgNTAuNDE0MUMxNC43Mjc5IDUwLjcxMDUgMTQuNzM1MSA1MS4wMjA0IDE0LjgxOTQgNTEuMzEyNUMxNC45MDMzIDUxLjYwMzYgMTUuMDYxMiA1MS44NjkzIDE1LjI3NTQgNTIuMDgzQzE1LjQ4OSA1Mi4yOTg4IDE1Ljc1MjcgNTIuNDU4NCAxNi4wNDQgNTIuNTQzQzE2LjMzNTUgNTIuNjI3NSAxNi42NDQ2IDUyLjYzNjUgMTYuOTQwNSA1Mi41Njg0TDI1LjU0NSA1MC42MjIxQzI2LjkyNTUgNTAuMzA5OSAyNy40MjA5IDQ4LjU5MyAyNi40MiA0Ny41ODk4TDI1LjA1NzcgNDYuMjI0NkwzMC4xODQ2IDQxLjA4ODlDMzAuNjg3NyA0MC41ODQ0IDMwLjk2OTggMzkuODk4NyAzMC45Njk4IDM5LjE4NTVDMzAuOTY5NiAzOC40NzI2IDMwLjY4NzQgMzcuNzg4NSAzMC4xODQ2IDM3LjI4NDJMMzAuMTE2MiAzNy4yMTQ4TDMwLjA0NjkgMzcuMTQxNkMyOS43OTc3IDM2Ljg5MiAyOS41MDE0IDM2LjY5MzggMjkuMTc1OCAzNi41NTg2QzI4Ljg1MDQgMzYuNDIzNSAyOC41MDA4IDM2LjM1NDUgMjguMTQ4NSAzNi4zNTQ1Wk00Ni42Mzk3IDMzLjExNzJDNDUuNDQyNCAzMi4zNTk0IDQzLjg4MyAzMy4yMjI1IDQzLjg4MjggMzQuNjQxNlYzNi41NzAzSDMyLjg5ODVDMzMuMjY1NCAzNy4yNzM0IDMzLjQ3NDYgMzguMDczNSAzMy40NzQ2IDM4LjkyMTlDMzMuNDc0NSA0MC4xNDgzIDMzLjAzOTcgNDEuMjczOCAzMi4zMTc0IDQyLjE1MTRINDMuODgxOVY0NC4wODAxQzQzLjg4MjEgNDUuNDk5MiA0NS40NDI1IDQ2LjM2MTUgNDYuNjM5NyA0NS42MDM1TDU0LjA5NzcgNDAuODg0OEM1NC42NTU1IDQwLjUzIDU0LjkzNDUgMzkuOTQ0MyA1NC45MzQ2IDM5LjM1OTRDNTQuOTMzOCAzOC43NzUyIDU0LjY1NDcgMzguMTkwMyA1NC4wOTU3IDM3LjgzNjlMNDYuNjM5NyAzMy4xMTcyWk0yOC40MTQxIDEyLjVDMjguMTEwNSAxMi40OTg3IDI3LjgxMDkgMTIuNTc0OSAyNy41NDUgMTIuNzIxN0MyNy4yNzg4IDEyLjg2ODYgMjcuMDUzNiAxMy4wODI1IDI2Ljg5MjYgMTMuMzQwOEwyMi4xODM2IDIwLjgxMjVDMjEuNDI3IDIyLjAxMjIgMjIuMjg3MSAyMy41NzY3IDIzLjcwMzIgMjMuNTc3MUgyNS42Mjg5VjM0LjY3NzdDMjYuNDI3OCAzNC4xNTAzIDI3LjM4NDkgMzMuODQyOSAyOC40MTMxIDMzLjg0MjhDMjkuNDQxNyAzMy44NDI5IDMwLjM5ODIgMzQuMTUxIDMxLjE5NzMgMzQuNjc4N1YyMy41NzcxSDMzLjEyNDFDMzQuNTQwMiAyMy41NzcgMzUuMzk5OCAyMi4wMTMxIDM0LjY0NDYgMjAuODEyNUwyOS45MzM2IDEzLjM0MDhDMjkuNTc5OSAxMi43ODE0IDI4Ljk5NzIgMTIuNTAwNyAyOC40MTQxIDEyLjVaIi8+PC9zdmc+"
+}

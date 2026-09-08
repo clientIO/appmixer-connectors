@@ -1,0 +1,181 @@
+{
+    "name": "E2E tl;dv - New Meeting Trigger",
+    "flow": {
+        "2e1bffba-228c-4750-ac33-e43f2e6081ee": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ab05a55d-5bec-463f-827a-61219c0eadfc": {
+            "type": "appmixer.tldv.core.ImportMeeting",
+            "x": 256,
+            "y": 480,
+            "source": {
+                "in": {
+                    "2e1bffba-228c-4750-ac33-e43f2e6081ee": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "2e1bffba-228c-4750-ac33-e43f2e6081ee": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {},
+                                    "url": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E tl;dv trigger provoke",
+                                    "url": "https://download.samplelib.com/mp3/sample-3s.mp3"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6ee3531a-84c0-47b6-b071-68a95184ab37": {
+            "type": "appmixer.tldv.core.NewMeeting",
+            "x": 256,
+            "y": 176,
+            "source": {},
+            "version": "1.0.0",
+            "config": {
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc9ef857-1e8b-4df9-9800-2c0d618e456e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 176,
+            "source": {
+                "in": {
+                    "6ee3531a-84c0-47b6-b071-68a95184ab37": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6ee3531a-84c0-47b6-b071-68a95184ab37": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-6ee3531a": {
+                                            "functions": [],
+                                            "variable": "$.6ee3531a-84c0-47b6-b071-68a95184ab37.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0-6ee3531a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f84c97ff-1672-45f4-835d-f342c6d48cf6": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 320,
+            "source": {
+                "in": {
+                    "cc9ef857-1e8b-4df9-9800-2c0d618e456e": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "362cd09d-37c1-4a88-93be-4b8fe9ec7244": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1024,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f84c97ff-1672-45f4-835d-f342c6d48cf6": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "f84c97ff-1672-45f4-835d-f342c6d48cf6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "f45a2310-49e2-4e4c-b328-21556437a12c": {
+                                            "variable": "$.f84c97ff-1672-45f4-835d-f342c6d48cf6.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E tl;dv - New Meeting Trigger",
+                                    "result": "{{{f45a2310-49e2-4e4c-b328-21556437a12c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

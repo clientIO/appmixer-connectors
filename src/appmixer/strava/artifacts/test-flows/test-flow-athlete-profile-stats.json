@@ -1,0 +1,257 @@
+{
+    "name": "E2E Strava - Athlete Profile and Stats",
+    "type": "automation",
+    "flow": {
+        "2b3099ca-d67e-4358-b510-91e556d82437": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {}
+        },
+        "20077154-74c1-4f37-864e-7b37678d65e4": {
+            "type": "appmixer.strava.core.GetLoggedInAthlete",
+            "x": 272,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2b3099ca-d67e-4358-b510-91e556d82437": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5fdbb139-7dd0-4fa6-9559-15754084f594": {
+            "type": "appmixer.strava.core.GetAthleteStats",
+            "x": 480,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "20077154-74c1-4f37-864e-7b37678d65e4": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "20077154-74c1-4f37-864e-7b37678d65e4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "athleteId": {
+                                        "7552345c-96f0-4ca8-a7f1-96aad3a70dc9": {
+                                            "variable": "$.20077154-74c1-4f37-864e-7b37678d65e4.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "athleteId": "{{{7552345c-96f0-4ca8-a7f1-96aad3a70dc9}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "346f4436-111b-4cf9-8525-e82b7393ca41": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "20077154-74c1-4f37-864e-7b37678d65e4": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "20077154-74c1-4f37-864e-7b37678d65e4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "3263b5f1-d4b5-4f08-9436-d592053ea84f": {
+                                            "variable": "$.20077154-74c1-4f37-864e-7b37678d65e4.out.id",
+                                            "functions": []
+                                        },
+                                        "e0eb4c66-0afb-40b4-9ac3-4b61bda8ec74": {
+                                            "variable": "$.20077154-74c1-4f37-864e-7b37678d65e4.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{3263b5f1-d4b5-4f08-9436-d592053ea84f}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{e0eb4c66-0afb-40b4-9ac3-4b61bda8ec74}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d454c36e-c09f-4f47-aad9-f5b3874aaf5a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5fdbb139-7dd0-4fa6-9559-15754084f594": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5fdbb139-7dd0-4fa6-9559-15754084f594": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7625175d-df93-42a2-b240-78adbd840822": {
+                                            "variable": "$.5fdbb139-7dd0-4fa6-9559-15754084f594.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.all_run_totals.count"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7625175d-df93-42a2-b240-78adbd840822}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "607f51fe-e05f-40c4-8969-4dcdf85756d0": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "346f4436-111b-4cf9-8525-e82b7393ca41": [
+                        "out"
+                    ],
+                    "d454c36e-c09f-4f47-aad9-f5b3874aaf5a": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            }
+        },
+        "a975a876-825d-4cb7-bcf6-d5e2f8c5248b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "607f51fe-e05f-40c4-8969-4dcdf85756d0": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "607f51fe-e05f-40c4-8969-4dcdf85756d0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "88f9f80b-2599-4314-a82d-a0950c8993d9": {
+                                            "variable": "$.607f51fe-e05f-40c4-8969-4dcdf85756d0.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Strava - Athlete Profile and Stats",
+                                    "result": "{{{88f9f80b-2599-4314-a82d-a0950c8993d9}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
