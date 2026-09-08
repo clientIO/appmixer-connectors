@@ -34,9 +34,33 @@ module.exports = {
             'crm.schemas.deals.write',
             'sales-email-read'
         ],
+
+        optionalScope: [
+            'crm.objects.custom.read',
+            'crm.objects.leads.read',
+            'crm.objects.leads.write'
+        ],
+
         scopeDelimiter: ' ',
 
-        authUrl: 'https://app.hubspot.com/oauth/authorize',
+        authUrl: context => {
+
+            const { scopeDelimiter, optionalScope } = module.exports.definition;
+
+            const params = new URLSearchParams({
+                client_id: context.clientId,
+                redirect_uri: context.callbackUrl,
+                scope: context.scope.join(scopeDelimiter),
+                state: context.ticket,
+                response_type: 'code'
+            });
+
+            if (optionalScope && optionalScope.length > 0) {
+                params.set('optional_scope', optionalScope.join(scopeDelimiter));
+            }
+
+            return 'https://app.hubspot.com/oauth/authorize?' + params.toString();
+        },
 
         requestAccessToken: 'https://api.hubapi.com/oauth/v1/token',
 
