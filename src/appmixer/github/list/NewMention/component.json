@@ -1,8 +1,8 @@
 {
-    "name": "appmixer.github.list.NewRelease",
+    "name": "appmixer.github.list.NewMention",
     "author": "Appmixer <info@appmixer.com>",
     "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo=",
-    "description": "Triggers when a new release is done in your repository.",
+    "description": "Triggers whenever the authenticated user is mentioned in an issue, pull request, or comment on GitHub. Optionally filter by one or more repositories.",
     "private": false,
     "tick": true,
     "auth": {
@@ -22,6 +22,32 @@
             "userId": "{{userId}}"
         }
     },
+    "properties": {
+        "schema": {
+            "properties": {
+                "repositories": {
+                    "type": "string"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "repositories": {
+                    "type": "text",
+                    "group": "config",
+                    "label": "Repositories",
+                    "index": 1,
+                    "tooltip": "Optional. One or more repositories to watch for mentions, in `owner/repo` format, separated by commas (e.g. `octocat/Hello-World, octocat/Spoon-Knife`). Leave empty to watch mentions across all repositories."
+                }
+            },
+            "groups": {
+                "config": {
+                    "label": "Configuration",
+                    "index": 1
+                }
+            }
+        }
+    },
     "outPorts": [
         {
             "name": "out",
@@ -35,114 +61,94 @@
                     }
                 },
                 {
-                    "label": "HTML URL",
-                    "value": "html_url",
+                    "label": "Reason",
+                    "value": "reason",
                     "schema": {
                         "type": "string",
-                        "example": "https://github.com/octocat/Hello-World/issues/1"
+                        "example": "mention"
                     }
                 },
                 {
-                    "label": "Author Login",
-                    "value": "author.login",
+                    "label": "Subject Title",
+                    "value": "subject.title",
                     "schema": {
                         "type": "string",
-                        "example": "octocat"
+                        "example": "Found a bug"
                     }
                 },
                 {
-                    "label": "Author ID",
-                    "value": "author.id",
+                    "label": "Subject URL",
+                    "value": "subject.url",
+                    "schema": {
+                        "type": "string",
+                        "example": "https://api.github.com/repos/octocat/Hello-World/issues/1"
+                    }
+                },
+                {
+                    "label": "Subject Type",
+                    "value": "subject.type",
+                    "schema": {
+                        "type": "string",
+                        "example": "Issue"
+                    }
+                },
+                {
+                    "label": "Subject Latest Comment URL",
+                    "value": "subject.latest_comment_url",
+                    "schema": {
+                        "type": "string",
+                        "example": "https://api.github.com/repos/octocat/Hello-World/issues/comments/1"
+                    }
+                },
+                {
+                    "label": "Repository Full Name",
+                    "value": "repository.full_name",
+                    "schema": {
+                        "type": "string",
+                        "example": "octocat/Hello-World"
+                    }
+                },
+                {
+                    "label": "Repository ID",
+                    "value": "repository.id",
                     "schema": {
                         "type": "integer",
-                        "example": 583231
+                        "example": 1296269
                     }
                 },
                 {
-                    "label": "Author Avatar URL",
-                    "value": "author.avatar_url",
+                    "label": "Repository HTML URL",
+                    "value": "repository.html_url",
                     "schema": {
                         "type": "string",
-                        "example": "https://github.com/images/error/octocat_happy.gif"
+                        "example": "https://github.com/octocat/Hello-World"
                     }
                 },
                 {
-                    "label": "Tag Name",
-                    "value": "tag_name",
+                    "label": "URL",
+                    "value": "url",
                     "schema": {
                         "type": "string",
-                        "example": "v1.0.0"
+                        "example": "https://api.github.com/repos/octocat/Hello-World/issues/1"
                     }
                 },
                 {
-                    "label": "Name",
-                    "value": "name",
-                    "schema": {
-                        "type": "string",
-                        "example": "Hello-World"
-                    }
-                },
-                {
-                    "label": "Body",
-                    "value": "body",
-                    "schema": {
-                        "type": "string",
-                        "example": "I'm having a problem with this."
-                    }
-                },
-                {
-                    "label": "Created At",
-                    "value": "created_at",
+                    "label": "Updated At",
+                    "value": "updated_at",
                     "schema": {
                         "type": "string",
                         "example": "2024-01-15T10:30:00Z"
                     }
                 },
                 {
-                    "label": "Published At",
-                    "value": "published_at",
+                    "label": "Unread",
+                    "value": "unread",
                     "schema": {
-                        "type": "string",
-                        "example": "2024-01-15T10:30:00Z"
+                        "type": "boolean",
+                        "example": true
                     }
                 }
             ]
         }
-    ],
-    "properties": {
-        "schema": {
-            "properties": {
-                "repositoryId": {
-                    "type": "string",
-                    "pattern": "[^/]+[/][^/]+"
-                }
-            },
-            "required": [
-                "repositoryId"
-            ]
-        },
-        "inspector": {
-            "inputs": {
-                "repositoryId": {
-                    "type": "text",
-                    "group": "config",
-                    "label": "Repository",
-                    "index": 1,
-                    "tooltip": "Enter the repository in `owner/repo` format (e.g. `octocat/Hello-World`). You can also pick from the dynamically loaded list of your repositories.",
-                    "source": {
-                        "url": "/component/appmixer/github/list/ListRepos?outPort=repositories",
-                        "data": {
-                            "transform": "./transformers#reposToSelectArray"
-                        }
-                    }
-                }
-            },
-            "groups": {
-                "config": {
-                    "label": "Configuration",
-                    "index": 1
-                }
-            }
-        }
-    }
+    ]
 }
