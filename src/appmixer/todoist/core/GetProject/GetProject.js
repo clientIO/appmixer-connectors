@@ -14,6 +14,8 @@ module.exports = {
 
         const project = await lib.apiRequest(context, `/projects/${projectId}`);
 
+
+        console.log(JSON.stringify(project));
         return context.sendJson(project, 'out');
     }
 };
