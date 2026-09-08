@@ -145,6 +145,45 @@ describe('google.drive.lib checkMonitoredFiles paging & locking', () => {
         assert.ok(context.stateSet.calledWith('hasSkippedMessage', true));
     });
 
+    it('should remember processed ids across many pages so a re-listed file is not emitted again', async () => {
+
+        // 30 pages, one file each, then the file from page 0 shows up again on the last page
+        // (Drive re-lists a fresh file with a bumped version a few minutes after creation).
+        const TOTAL = 30;
+        listStub = sandbox.stub().callsFake(async ({ pageToken }) => {
+            const page = parseInt(pageToken.slice(1), 10);
+            const isLast = page === TOTAL - 1;
+            const changes = [{ changeType: 'file', file: { id: `f${page}`, mimeType: 'text/plain' } }];
+            if (isLast) changes.push({ changeType: 'file', file: { id: 'f0', mimeType: 'text/plain', version: 2 } });
+            return { data: { changes, [isLast ? 'newStartPageToken' : 'nextPageToken']: `p${page + 1}` } };
+        });
+        sandbox.stub(google, 'drive').returns({ changes: { list: listStub } });
+
+        // Two invocations because of the page cap; the second one loads the state the first left.
+        let processed = [];
+        context.stateSet.callsFake(async (key, value) => { if (key === 'processedFiles') processed = value; });
+        context.loadState.callsFake(async () => ({ startPageToken: startPageTokens().pop() || 'p0', processedFiles: processed }));
+        await lib.checkMonitoredFiles(context, { filter: () => true });
+        await lib.checkMonitoredFiles(context, { filter: () => true });
+
+        const emittedIds = context.sendJson.getCalls().map(call => call.args[0].googleDriveFileMetadata.id);
+        assert.strictEqual(emittedIds.length, TOTAL);
+        assert.strictEqual(emittedIds.filter(id => id === 'f0').length, 1);
+    });
+
+    it('should drop the oldest page groups once the processed-id buffer exceeds its cap', () => {
+
+        const buffer = lib.processedItemsBuffer([]);
+        for (let page = 0; page < 12; page++) {
+            for (let i = 0; i < 1000; i++) buffer.add(`p${page}`, `f${page}-${i}`);
+        }
+        const kept = buffer.export();
+        assert.strictEqual(kept.length, 5);
+        assert.strictEqual(kept[0].group, 'p7');
+        assert.ok(lib.processedItemsBuffer(kept).has('f11-999'));
+        assert.ok(!lib.processedItemsBuffer(kept).has('f6-0'));
+    });
+
     it('should rebuild the subfolder list and re-filter the same page when a page reports a new subfolder', async () => {
 
         // Recursive watch on `root`, cached subfolder list is stale (no `sub`).

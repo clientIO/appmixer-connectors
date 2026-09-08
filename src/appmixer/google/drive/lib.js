@@ -50,9 +50,16 @@ let defaultExportFormats = {
     }
 };
 
+// Drive lists the same file in the change feed several times after it is created: the file
+// comes back with an incremented `version` (thumbnail/indexing/post-processing) roughly 30 s
+// and 3 min later while createdTime == modifiedTime still holds, so isNewFileOrFolder()
+// matches again. The buffer must therefore remember an id for well beyond one webhook or one
+// page, or the file is emitted again. Groups are the page tokens the ids arrived on; the
+// oldest groups are dropped once the buffer holds more than MAX_PROCESSED_IDS ids in total.
+const MAX_PROCESSED_IDS = 5000;
+
 const processedItemsBuffer = function(data = []) {
 
-    const MAX_GROUP_COUNT = 3;
     return {
         has(id) {
             return data.find(group => group.ids[id]);
@@ -68,7 +75,16 @@ const processedItemsBuffer = function(data = []) {
             }
         },
         export() {
-            return data.slice(-MAX_GROUP_COUNT);
+            // Keep the newest groups whose ids fit into MAX_PROCESSED_IDS, always at least one.
+            let total = 0;
+            let start = data.length;
+            while (start > 0) {
+                const size = Object.keys(data[start - 1].ids).length;
+                if (total + size > MAX_PROCESSED_IDS && start < data.length) break;
+                total += size;
+                start -= 1;
+            }
+            return data.slice(start);
         }
     };
 };
