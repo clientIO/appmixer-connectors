@@ -1,10 +1,12 @@
 'use strict';
 
+const crypto = require('crypto');
 const pathModule = require('path');
 
 const API_BASE_URL = 'https://api.groq.com';
 const API_PATH_PREFIX = '/openai/v1';
 const DEFAULT_PREFIX = 'groq-objects-export';
+const DEFAULT_LIST_CACHE_TTL = 2 * 60 * 1000; // 120 s
 
 module.exports = {
 
@@ -103,6 +105,40 @@ module.exports = {
         }
 
         return context.httpRequest(options);
+    },
+
+    /**
+     * `request` with a per-account response cache, for inspector (dynamic source)
+     * calls only. Opening a component inspector fires one source call per dropdown
+     * at once; the lock lets the first caller fill the cache while the rest wait and
+     * read it, so the API sees one request per burst instead of the whole burst.
+     * The key hashes the URL together with the API key so entries are never shared
+     * across accounts. TTL comes from `context.config.listCacheTTL` (default 120 s).
+     * @param {object} args same as `request`
+     * @returns {Promise<object>} `{ data }` — the (possibly cached) response body
+     */
+    async requestCached(args) {
+
+        const { context, path, url, params = null } = args;
+        const key = crypto.createHash('sha256')
+            .update(JSON.stringify({ url: url || path, params, token: context.auth.apiKey }))
+            .digest('hex');
+
+        let lock;
+        try {
+            lock = await context.lock(key);
+
+            const cached = await context.staticCache.get(key);
+            if (cached) {
+                return { data: cached };
+            }
+
+            const { data } = await this.request(args);
+            await context.staticCache.set(key, data, context.config.listCacheTTL || DEFAULT_LIST_CACHE_TTL);
+            return { data };
+        } finally {
+            lock?.unlock();
+        }
     },
 
     /**

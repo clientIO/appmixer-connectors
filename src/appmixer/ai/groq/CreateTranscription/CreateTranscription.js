@@ -23,8 +23,9 @@ module.exports = {
             throw new context.CancelError('File is required!');
         }
 
-        const fileStream = await context.getFileReadStream(file);
+        // Resolve the metadata first so a missing file fails before a stream is opened.
         const fileInfo = await context.getFileInfo(file);
+        const fileStream = await context.getFileReadStream(file);
 
         const form = new FormData();
         form.append('model', model);
@@ -36,15 +37,22 @@ module.exports = {
 
         if (language) form.append('language', language);
         if (prompt) form.append('prompt', prompt);
-        if (temperature !== undefined) form.append('temperature', temperature.toString());
+        if (temperature !== undefined && temperature !== null) form.append('temperature', String(temperature));
 
-        const { data } = await lib.request({
-            context,
-            method: 'POST',
-            path: '/audio/transcriptions',
-            headers: form.getHeaders(),
-            data: form
-        });
+        let data;
+        try {
+            ({ data } = await lib.request({
+                context,
+                method: 'POST',
+                path: '/audio/transcriptions',
+                headers: form.getHeaders(),
+                data: form
+            }));
+        } catch (error) {
+            // A failed upload must not leave the file read stream (and its descriptor) open.
+            fileStream.destroy();
+            throw error;
+        }
 
         return context.sendJson(data, 'out');
     }
