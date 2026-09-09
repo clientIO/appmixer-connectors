@@ -19,6 +19,12 @@
 
 module.exports = [
     {
+        validator: 'delete-returns-empty',
+        messageIncludes: 'must return an empty object',
+        paths: ['google/drive/DeleteFileOrFolder/component.json'],
+        reason: 'Published for years with { fileId } on its out port and referenced by existing flows; switching to {} is a breaking change that would need a major bundle bump and a flow migration, which is intentionally deferred.'
+    },
+    {
         validator: 'dynamic-outport-item-schema',
         messageIncludes: 'exports no ITEM_SCHEMA',
         paths: [

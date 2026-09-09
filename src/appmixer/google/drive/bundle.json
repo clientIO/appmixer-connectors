@@ -1,6 +1,6 @@
 {
     "name": "appmixer.google.drive",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "engine": ">=6.1",
     "changelog": {
         "1.0.0": [
@@ -88,6 +88,19 @@
         ],
         "2.4.0": [
             "Added MakeApiCall component for performing arbitrary authorized API calls to the Google Drive API."
+        ],
+        "2.4.1": [
+            "NewFileOrFolder, UpdatedFileOrFolder, DeletedFileOrFolder: fixed a lock livelock which could produce a storm of 'Exceeded 30 attempts to lock the resource' errors and receive timeouts when a large change backlog was being processed.",
+            "NewFileOrFolder, UpdatedFileOrFolder, DeletedFileOrFolder: the change backlog is now processed in bounded batches with the page token persisted after every page, so a redelivered message resumes instead of restarting.",
+            "NewFileOrFolder, UpdatedFileOrFolder, DeletedFileOrFolder: webhook channel renewal from the trigger tick no longer retries a contended lock, holds the lock for the whole re-registration and no longer rewrites the stored page token; Google Drive API calls now have an HTTP timeout.",
+            "NewFileOrFolder, UpdatedFileOrFolder, DeletedFileOrFolder: with Recursive enabled, a file created under a subfolder that appeared in the same batch of changes was silently skipped; the subfolder list is now rebuilt and the batch re-checked before it is marked as processed.",
+            "NewFileOrFolder, UpdatedFileOrFolder, DeletedFileOrFolder: a freshly created file that Google Drive lists again in the change feed a few minutes later (same modifiedTime, higher version) was emitted a second time; the trigger now remembers the last 5000 processed files instead of the last three batches.",
+            "GetFileMetadata: fixed a missing typeof check which made the component fail with 'Missing required parameters: fileId' whenever the file ID was passed as a plain string (a variable) instead of being chosen in the Google Picker.",
+            "UpdateFileOrFolder: the file ID input is now declared required.",
+            "CopyFile, MoveFileOrFolder, DownloadFile, GetFileMetadata, DeleteFileOrFolder, CreateFileFromText, UpdateFileOrFolder, AddFileOrFolderPermission: a missing required input now fails with a clear 'is required' error instead of an opaque Google API error.",
+            "All components: realistic example values on every output port, so the designer variable picker shows previews.",
+            "FindFilesOrFolders: output item schema exported for tooling; the output port options source no longer requires authentication.",
+            "DeleteFileOrFolder: the declared googleDriveFileId output is now actually emitted (the component only ever sent fileId, so the designer variable resolved to nothing); fileId is still sent as well."
         ]
     }
 }

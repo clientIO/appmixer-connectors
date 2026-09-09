@@ -20,6 +20,10 @@ module.exports = {
             conversionTargetAppsScript
         } = context.messages.in.content;
 
+        if (!fileId) {
+            throw new context.CancelError('File ID is required!');
+        }
+
         const { data: metadata } = await drive.files.get({
             fileId: typeof fileId === 'string' ? fileId : fileId.id,
             fields: '*'
