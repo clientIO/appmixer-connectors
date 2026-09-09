@@ -67,6 +67,96 @@ describe('utils.timers.SchedulerTrigger', () => {
                 assert.equal(nextRun.toISOString(), '2025-05-02T16:25:00.000Z', '');
             });
 
+            it('schedule job on every selected day of the month, not just the earliest one', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['1', '15'],
+                    time: '09:00'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-01T09:00:00.000Z', '1st run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-15T09:00:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-06-01T09:00:00.000Z', '3rd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-06-15T09:00:00.000Z', '4th run');
+            });
+
+            it('schedule job on selected days that are not sorted', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['28', '5'],
+                    time: '16:25'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-28T16:25:00.000Z', '1st run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-05T16:25:00.000Z', '2nd run');
+            });
+
+            it('schedule job on numeric days mixed with the last day of the month', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['15', 'last day of the month'],
+                    time: '16:25'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z', '1st run - end of April');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-15T16:25:00.000Z', '2nd run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-31T16:25:00.000Z', '3rd run - end of May');
+            });
+
+            it('schedule job on multiple days provided as a comma-separated string', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: '1, 15',
+                    time: '09:00'
+                };
+
+                let nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-05-01T09:00:00.000Z', '1st run');
+
+                nextRun = scheduleTrigger.getNextRun(context, { now: NOW, previousDate: nextRun.toISOString() });
+                assert.equal(nextRun.toISOString(), '2025-05-15T09:00:00.000Z', '2nd run');
+            });
+
+            it('reject a day of the month that does not exist in every month', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: ['31'],
+                    time: '16:25'
+                };
+
+                assert.throws(
+                    () => scheduleTrigger.getNextRun(context, { now: NOW }),
+                    /Invalid Days of Month value '31'/
+                );
+            });
+
+            // The inspector renders the schedule preview from partial properties, so an empty
+            // selection has to stay a "nothing to schedule" rather than an error.
+            it('report no next run when no day of the month is selected', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: [],
+                    time: '16:25'
+                };
+
+                assert.equal(scheduleTrigger.getNextRun(context, { now: NOW }), null);
+            });
+
             it('schedule job on the 15th of the month with a start time in the future', async () => {
                 context.properties = {
                     scheduleType: 'months',

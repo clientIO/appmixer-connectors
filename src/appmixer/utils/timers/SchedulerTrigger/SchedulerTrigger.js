@@ -7,6 +7,29 @@ const isValidTimezone = (timezone) => {
     return !!moment.tz.zone(timezone);
 };
 
+const LAST_DAY_OF_MONTH = 'last day of the month';
+
+// The inspector offers 'last day of the month' plus '1'-'28' only; 29-31 are left out because they
+// do not exist in every month. The properties schema cannot express that (the field is
+// `["array", "string"]` so that modifiers keep working), so a value coming from an API client or an
+// imported flow reaches us unvalidated. moment's set('date', 31) would silently overflow into the
+// next month (April 31 -> May 1), turning the schedule into a drifting one, so reject it loudly.
+const parseDayOfMonth = (day, context) => {
+
+    if (day === LAST_DAY_OF_MONTH) {
+        return LAST_DAY_OF_MONTH;
+    }
+
+    const parsed = Number(String(day).trim());
+    if (!Number.isInteger(parsed) || parsed < 1 || parsed > 28) {
+        throw new context.CancelError(
+            `Invalid Days of Month value '${day}'. Use a day between 1 and 28, or '${LAST_DAY_OF_MONTH}'.`
+        );
+    }
+
+    return parsed;
+};
+
 /**
  * @extend {Component}
  */
@@ -127,19 +150,27 @@ module.exports = {
                 nextRun = daysOfWeekMoments.find(day => day.isAfter(baseDate)) || daysOfWeekMoments[0].add(1, 'week');
                 break;
             case 'months':
-                const isLastDay = normalizedDaysOfMonth.includes('last day of the month');
-                nextRun = baseDate.clone().set('date', isLastDay ? baseDate.daysInMonth() : Math.min(...normalizedDaysOfMonth)).set({
-                    hour,
-                    minute,
-                    second: 0,
-                    millisecond: 0
-                });
+                // One candidate per selected day, the same way the `weeks` branch does it for days of
+                // the week, so that every ticked day fires and not just the earliest one. 'last day of
+                // the month' is one more candidate, resolved against the length of the month it lands
+                // in instead of short-circuiting the rest of the selection.
+                const daysOfMonthMoments = month => normalizedDaysOfMonth
+                    .map(day => parseDayOfMonth(day, context))
+                    .map(day => month.clone().set({
+                        date: day === LAST_DAY_OF_MONTH ? month.daysInMonth() : day,
+                        hour, minute, second: 0, millisecond: 0
+                    }))
+                    .sort((a, b) => a.diff(b));
 
-                if (nextRun.isSameOrBefore(baseDate)) {
-                    nextRun.add(1, 'month');
-                    if (isLastDay) {
-                        nextRun.set('date', nextRun.daysInMonth());
-                    }
+                // Nearest candidate after the base date, or else the earliest one next month.
+                nextRun = daysOfMonthMoments(baseDate).find(day => day.isAfter(baseDate))
+                    || daysOfMonthMoments(baseDate.clone().startOf('month').add(1, 'month'))[0];
+
+                if (!nextRun) {
+                    // No day selected. The schema requires daysOfMonth for this schedule type, but the
+                    // inspector calls getNextRun() with partial properties while the user is still
+                    // configuring, so this has to stay a "nothing to schedule" and not an error.
+                    return null;
                 }
                 break;
             default:
