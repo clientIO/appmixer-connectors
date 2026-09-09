@@ -1,0 +1,337 @@
+{
+    "name": "E2E Utils Timers - Scheduler days of month",
+    "description": "End-to-end test for appmixer.utils.timers.SchedulerTrigger - three sourceless Scheduler triggers with a 'Days of Month' schedule fire immediately at flow start and each asserts that the computed next run lands on one of the SELECTED days at the configured time. Covers a plain multi-day selection, 'last day of the month' on its own, and numeric days mixed with 'last day of the month'.",
+    "type": "automation",
+    "flow": {
+        "b0463db0-0749-4e72-94d6-4ce5f56d9f04": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "On Start",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4f4ee19e-4253-402b-a5ea-3e39e9f0810d": {
+            "type": "appmixer.utils.timers.SchedulerTrigger",
+            "label": "Scheduler 1st and 15th",
+            "x": 64,
+            "y": 144,
+            "source": {},
+            "config": {
+                "properties": {
+                    "scheduleType": "months",
+                    "daysOfMonth": [
+                        "1",
+                        "15"
+                    ],
+                    "time": "09:00",
+                    "timezone": "GMT",
+                    "immediate": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "687b6bbd-d00b-4989-b305-41d7807d3d5c": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert 1st or 15th at 09:00 GMT",
+            "x": 272,
+            "y": 144,
+            "source": {
+                "in": {
+                    "4f4ee19e-4253-402b-a5ea-3e39e9f0810d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4f4ee19e-4253-402b-a5ea-3e39e9f0810d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-next-date-multi": {
+                                            "variable": "$.4f4ee19e-4253-402b-a5ea-3e39e9f0810d.out.nextDateGMT",
+                                            "functions": []
+                                        },
+                                        "ref-timezone-multi": {
+                                            "variable": "$.4f4ee19e-4253-402b-a5ea-3e39e9f0810d.out.timezone",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-next-date-multi}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-(01|15)T09:00:00\\.000Z$",
+                                                "label": "Next run falls on one of the two selected days of the month, at the configured time"
+                                            },
+                                            {
+                                                "field": "{{{ref-timezone-multi}}}",
+                                                "assertion": "equal",
+                                                "expected": "GMT",
+                                                "label": "Scheduler reports the configured timezone"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "93e55652-90fd-4a62-aa12-d0002277a395": {
+            "type": "appmixer.utils.timers.SchedulerTrigger",
+            "label": "Scheduler last day of the month",
+            "x": 64,
+            "y": 272,
+            "source": {},
+            "config": {
+                "properties": {
+                    "scheduleType": "months",
+                    "daysOfMonth": [
+                        "last day of the month"
+                    ],
+                    "time": "23:30",
+                    "timezone": "GMT",
+                    "immediate": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d618e310-f1a9-4e29-a108-745cf5696e23": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert month end at 23:30 GMT",
+            "x": 272,
+            "y": 272,
+            "source": {
+                "in": {
+                    "93e55652-90fd-4a62-aa12-d0002277a395": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "93e55652-90fd-4a62-aa12-d0002277a395": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-next-date-last-day": {
+                                            "variable": "$.93e55652-90fd-4a62-aa12-d0002277a395.out.nextDateGMT",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-next-date-last-day}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-(28|29|30|31)T23:30:00\\.000Z$",
+                                                "label": "Next run is resolved against the real length of the month it lands in"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0e57c434-4c56-4d4b-ae06-95ba88b80d83": {
+            "type": "appmixer.utils.timers.SchedulerTrigger",
+            "label": "Scheduler numeric days plus month end",
+            "x": 64,
+            "y": 400,
+            "source": {},
+            "config": {
+                "properties": {
+                    "scheduleType": "months",
+                    "daysOfMonth": [
+                        "5",
+                        "15",
+                        "25",
+                        "last day of the month"
+                    ],
+                    "time": "12:00",
+                    "timezone": "GMT",
+                    "immediate": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7d9c29de-948d-41e3-b074-52b1498d63f5": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert 5th, 15th, 25th or month end at 12:00 GMT",
+            "x": 272,
+            "y": 400,
+            "source": {
+                "in": {
+                    "0e57c434-4c56-4d4b-ae06-95ba88b80d83": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0e57c434-4c56-4d4b-ae06-95ba88b80d83": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-next-date-mixed": {
+                                            "variable": "$.0e57c434-4c56-4d4b-ae06-95ba88b80d83.out.nextDateGMT",
+                                            "functions": []
+                                        },
+                                        "ref-next-date-local-mixed": {
+                                            "variable": "$.0e57c434-4c56-4d4b-ae06-95ba88b80d83.out.nextDateLocal",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-next-date-mixed}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-(05|15|25|28|29|30|31)T12:00:00\\.000Z$",
+                                                "label": "'last day of the month' does not swallow the numeric days it is combined with"
+                                            },
+                                            {
+                                                "field": "{{{ref-next-date-local-mixed}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-(05|15|25|28|29|30|31)T12:00:00\\.000$",
+                                                "label": "Localized next run matches the GMT one for a GMT schedule"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1396c642-f41e-42fd-9d87-a8b22ad7dad5": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "After All",
+            "x": 480,
+            "y": 272,
+            "source": {
+                "in": {
+                    "b0463db0-0749-4e72-94d6-4ce5f56d9f04": [
+                        "out"
+                    ],
+                    "687b6bbd-d00b-4989-b305-41d7807d3d5c": [
+                        "out"
+                    ],
+                    "d618e310-f1a9-4e29-a108-745cf5696e23": [
+                        "out"
+                    ],
+                    "7d9c29de-948d-41e3-b074-52b1498d63f5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cd40dfc3-93c2-44cb-b2e5-c8af99a7fa33": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "Process E2E Results",
+            "x": 688,
+            "y": 272,
+            "source": {
+                "in": {
+                    "1396c642-f41e-42fd-9d87-a8b22ad7dad5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "1396c642-f41e-42fd-9d87-a8b22ad7dad5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "ref-result-days-of-month": {
+                                            "variable": "$.1396c642-f41e-42fd-9d87-a8b22ad7dad5.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Utils Timers - Scheduler days of month",
+                                    "result": "{{{ref-result-days-of-month}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "ce0068c5-f4f8-48e1-95fa-b9a0e0f6394c": {
+            "x": 64,
+            "y": 512,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ How this flow fires\n\nThe three Scheduler triggers are **sourceless** and all carry `Trigger immediately = true`. That is what makes the flow finish in seconds instead of waiting for the real monthly schedule: `start()` emits one payload at flow start with the computed `Next Date GMT`, then arms the real timeout (which nobody waits for).\n\n**Do not turn `Trigger immediately` off** — the triggers would emit nothing and the flow would hang until the AfterAll timeout.\n\nThe assertions are deliberately **date-independent**: they check that the next run lands on one of the days that are actually ticked in `Days of Month`, at the configured time. Before the fix for issue #2846 the whole selection collapsed to the earliest day (or to the month end as soon as 'last day of the month' was picked), so any regression back to that behaviour shows up as a day outside the selected set.\n\nNo account and no tenant data are required."
+        }
+    }
+}
