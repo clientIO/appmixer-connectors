@@ -23,17 +23,28 @@ module.exports = {
         await context.log({ step: 'tools', tools });
         await context.stateSet('tools', tools);
 
+        const webhook = context.getWebhookUrl();
         await context.service.stateAddToSet(`mcpgateways:user:${context.userId}`, {
             flowId: context.flowId,
             componentId: context.componentId,
             tools,
-            webhook: context.getWebhookUrl()
+            webhook
         });
-        return context.callAppmixer({
+        await context.callAppmixer({
             endPoint: '/plugins/appmixer/ai/mcptools/gateways',
             method: 'POST',
             body: {}
         });
+
+        // Announce the registered gateway once per flow start. The tool call URL is
+        // only known at runtime, so this is what lets the rest of the flow reach it:
+        // publish it (chat, email, a data store) or call it, as the E2E flow does.
+        return context.sendJson({
+            webhook,
+            componentId: context.componentId,
+            flowId: context.flowId,
+            tools
+        }, 'out');
     },
 
     stop: async function(context) {

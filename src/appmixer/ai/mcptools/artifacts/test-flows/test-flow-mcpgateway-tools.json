@@ -1,0 +1,437 @@
+{
+    "name": "E2E MCPGateway - tool port",
+    "description": "MCPGateway announces its webhook on the 'out' port; the flow calls two tools through it (EchoTool with a model-defined parameter, GreetTool with a static value) exactly the way the MCP Server would, and asserts the component output that comes back.",
+    "customFields": {
+        "category": "E2E_test_flow"
+    },
+    "flow": {
+        "00000000-0000-4000-8000-000000000000": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 16,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "11111111-1111-4111-8111-111111111111": {
+            "type": "appmixer.ai.mcptools.MCPGateway",
+            "label": "MCPGateway",
+            "x": 208,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "config": {}
+        },
+        "22222222-2222-4222-8222-222222222222": {
+            "type": "appmixer.utils.controls.MockValue",
+            "label": "EchoTool",
+            "x": 416,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "11111111-1111-4111-8111-111111111111": [
+                        "tool"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11111111-1111-4111-8111-111111111111": {
+                            "tool": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {
+                                        "p": {
+                                            "variable": "$.11111111-1111-4111-8111-111111111111.tool.modelDefinedParameter",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "value": "{{{p}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "33333333-3333-4333-8333-333333333333": {
+            "type": "appmixer.utils.controls.MockValue",
+            "label": "GreetTool",
+            "x": 416,
+            "y": 704,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "11111111-1111-4111-8111-111111111111": [
+                        "tool"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11111111-1111-4111-8111-111111111111": {
+                            "tool": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "value": "Hello, Appmixer!"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "44444444-4444-4444-8444-444444444444": {
+            "type": "appmixer.utils.http.Post",
+            "label": "Call EchoTool",
+            "x": 416,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "11111111-1111-4111-8111-111111111111": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11111111-1111-4111-8111-111111111111": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "hook": {
+                                            "variable": "$.11111111-1111-4111-8111-111111111111.out.webhook",
+                                            "functions": []
+                                        }
+                                    },
+                                    "body": {},
+                                    "bodyType": {},
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{hook}}}",
+                                    "bodyType": "raw",
+                                    "headers": "{\"Content-Type\":\"application/json\"}",
+                                    "body": "{\"function\": {\"name\": \"5dt2k2VpULJERBT3YV2bW7_EchoTool\", \"arguments\": {\"value\": \"hello world\"}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "55555555-5555-4555-8555-555555555555": {
+            "type": "appmixer.utils.http.Post",
+            "label": "Call GreetTool",
+            "x": 416,
+            "y": 448,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "11111111-1111-4111-8111-111111111111": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11111111-1111-4111-8111-111111111111": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "hook": {
+                                            "variable": "$.11111111-1111-4111-8111-111111111111.out.webhook",
+                                            "functions": []
+                                        }
+                                    },
+                                    "body": {},
+                                    "bodyType": {},
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{hook}}}",
+                                    "bodyType": "raw",
+                                    "headers": "{\"Content-Type\":\"application/json\"}",
+                                    "body": "{\"function\": {\"name\": \"7jGwZxT7QmPXG9Bky8Bv5g_GreetTool\", \"arguments\": {}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "66666666-6666-4666-8666-666666666666": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 624,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "44444444-4444-4444-8444-444444444444": [
+                        "response"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "44444444-4444-4444-8444-444444444444": {
+                            "response": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "outvalue": {
+                                            "variable": "$.44444444-4444-4444-8444-444444444444.response.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.out.outvalue"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{outvalue}}}",
+                                                "expected": "hello world"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "77777777-7777-4777-8777-777777777777": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 624,
+            "y": 448,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "55555555-5555-4555-8555-555555555555": [
+                        "response"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "55555555-5555-4555-8555-555555555555": {
+                            "response": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "outvalue": {
+                                            "variable": "$.55555555-5555-4555-8555-555555555555.response.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.out.outvalue"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{outvalue}}}",
+                                                "expected": "Hello, Appmixer!"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "88888888-8888-4888-8888-888888888888": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "66666666-6666-4666-8666-666666666666": [
+                        "out"
+                    ],
+                    "77777777-7777-4777-8777-777777777777": [
+                        "out"
+                    ],
+                    "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "99999999-9999-4999-8999-999999999999": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1040,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "88888888-8888-4888-8888-888888888888": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "88888888-8888-4888-8888-888888888888": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "r": {
+                                            "variable": "$.88888888-8888-4888-8888-888888888888.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E MCPGateway - tool port",
+                                    "result": "{{{r}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 416,
+            "y": 192,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "11111111-1111-4111-8111-111111111111": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11111111-1111-4111-8111-111111111111": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "hook": {
+                                            "variable": "$.11111111-1111-4111-8111-111111111111.out.webhook",
+                                            "functions": []
+                                        },
+                                        "cid": {
+                                            "variable": "$.11111111-1111-4111-8111-111111111111.out.componentId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "regex",
+                                                "field": "{{{hook}}}",
+                                                "regex": "^https?://.+/flows/.+/components/"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{cid}}}",
+                                                "expected": "11111111-1111-4111-8111-111111111111"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
