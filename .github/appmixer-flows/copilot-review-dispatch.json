@@ -1,0 +1,72 @@
+{
+    "name": "CI - Copilot review -> repository_dispatch",
+    "flow": {
+        "c1000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.github.list.NewReview",
+            "version": "1.0.0",
+            "label": "Copilot review submitted",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "Appmixer-ai/appmixer-connectors",
+                    "state": "any",
+                    "author": "copilot",
+                    "authorType": "bots"
+                }
+            },
+            "x": 208,
+            "y": 128
+        },
+        "c1000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.github.list.RepositoryDispatch",
+            "version": "1.0.0",
+            "label": "Start the responder workflow",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "c1000000-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c1000000-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {},
+                                    "eventType": {},
+                                    "clientPayload": {
+                                        "d2000000-0000-4000-8000-000000000001": {
+                                            "variable": "$.c1000000-0000-4000-8000-000000000001.out.pull_request_number",
+                                            "functions": []
+                                        },
+                                        "d2000000-0000-4000-8000-000000000002": {
+                                            "variable": "$.c1000000-0000-4000-8000-000000000001.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "repositoryId": "Appmixer-ai/appmixer-connectors",
+                                    "eventType": "copilot-review",
+                                    "clientPayload": "{\"pr_number\": \"{{{d2000000-0000-4000-8000-000000000001}}}\", \"review_id\": \"{{{d2000000-0000-4000-8000-000000000002}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 400,
+            "y": 128
+        }
+    }
+}
