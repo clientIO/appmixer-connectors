@@ -33,6 +33,9 @@ module.exports = {
         if (!ContactID) {
             throw new context.CancelError('Contact ID is required.');
         }
+        if (!LineItems) {
+            throw new context.CancelError('Line Items is required.');
+        }
 
         const purchaseOrder = {
             Contact: { ContactID },
