@@ -16,6 +16,11 @@ const HERE = __dirname;
 const TRIGGER_FLOW = 'stress-flow-drive-trigger-under-test.json';
 const PROVOKER_FLOW = 'stress-flow-drive-burst-provoker.json';
 
+// Flow identity on the instance, the same shape the E2E tooling uses (customFields.connector
+// is the canonical connector ref, customFields.name is the flow name) with its own category, so
+// stress flows are findable but never land in an E2E listing, store or report.
+const STRESS_CATEGORY = 'Stress_test_flow';
+
 // The Drive change channel needs a moment after the flow starts before changes reach it.
 const CHANNEL_WARMUP_MS = 60 * 1000;
 // The provoker deletes its folder five minutes after the last file; that delete is the signal
@@ -26,7 +31,7 @@ const POLL_INTERVAL_MS = 20 * 1000;
 const START_ATTEMPTS = 4;
 
 const parseArgs = (argv) => {
-    const args = { files: 300, delay: 200, keep: false, account: null, cleanupWait: null };
+    const args = { files: 300, delay: 200, keep: false, account: null, cleanupWait: null, connector: null };
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (arg === '--keep') args.keep = true;
@@ -34,6 +39,7 @@ const parseArgs = (argv) => {
         else if (arg === '--files') args.files = parseInt(argv[++i], 10);
         else if (arg === '--delay') args.delay = parseInt(argv[++i], 10);
         else if (arg === '--cleanup-wait') args.cleanupWait = argv[++i];
+        else if (arg === '--connector') args.connector = argv[++i];
         else throw new Error(`Unknown argument: ${arg}`);
     }
     if (!args.account) throw new Error('Missing --account <accountId>. Use an appmixer:google:drive account.');
@@ -130,7 +136,32 @@ const accountComponentIds = (flow, manifests) => {
         .map(([id]) => id);
 };
 
-const createFlow = (file) => {
+// The canonical connector ref of the connector these flows belong to, derived from where this
+// script sits: <repo>/src/appmixer/<vendor>[/<module>]/artifacts/stress-flows -> appmixer:vendor.
+const connectorRef = () => {
+    const parts = HERE.split(path.sep);
+    const root = parts.lastIndexOf('appmixer');
+    const artifacts = parts.lastIndexOf('artifacts');
+    if (root < 0 || artifacts < 0 || artifacts <= root) {
+        throw new Error(`Cannot derive the connector ref from ${HERE}; pass --connector <ref>.`);
+    }
+    return ['appmixer', ...parts.slice(root + 1, artifacts)].join(':');
+};
+
+const stampIdentity = (flow, ref) => {
+    flow.customFields = Object.assign({}, flow.customFields, {
+        category: STRESS_CATEGORY,
+        connector: ref,
+        name: flow.name
+    });
+    return flow;
+};
+
+// Every run uploads its own copy of the two flows and removes them again at the end, so there is
+// no lookup of a previous run's flows: `appmixer flow ls` only returns the first hundred flows
+// on the instance and has no way to filter by customFields, so a `--keep` leftover cannot be
+// found again reliably. Keep a run only when you intend to look at it and remove it by hand.
+const uploadFlow = (file) => {
     const out = cli(['flow', 'create', file]);
     const match = out.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/);
     if (!match) throw new Error(`Could not read the flow id out of:\n${out}`);
@@ -218,17 +249,20 @@ const main = async () => {
 
     log(`instance: ${cli(['url']).trim()}`);
 
+    const ref = args.connector || connectorRef();
     const sources = {
         trigger: JSON.parse(fs.readFileSync(path.join(HERE, TRIGGER_FLOW), 'utf8')),
         provoker: JSON.parse(fs.readFileSync(path.join(HERE, PROVOKER_FLOW), 'utf8'))
     };
     const manifests = readManifests(Object.values(sources));
+    log(`uploading the ${ref} stress flows as category ${STRESS_CATEGORY}`);
 
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'drive-stress-'));
     const flows = {};
     for (const [key, file] of [['trigger', TRIGGER_FLOW], ['provoker', PROVOKER_FLOW]]) {
         const flow = randomizeIds(sources[key]);
         pinVersions(flow, manifests);
+        stampIdentity(flow, ref);
         if (key === 'provoker') patchProvoker(flow, args);
         const target = path.join(tmp, file);
         fs.writeFileSync(target, JSON.stringify(flow, null, 4));
@@ -241,11 +275,11 @@ const main = async () => {
     const startedAt = now();
 
     try {
-        triggerFlowId = createFlow(flows.trigger.file);
-        provokerFlowId = createFlow(flows.provoker.file);
+        triggerFlowId = uploadFlow(flows.trigger.file);
+        provokerFlowId = uploadFlow(flows.provoker.file);
         cli(['auth', 'bind-account', args.account, ...flows.trigger.accountComponents]);
         cli(['auth', 'bind-account', args.account, ...flows.provoker.accountComponents]);
-        log(`created trigger ${triggerFlowId} and provoker ${provokerFlowId}`);
+        log(`uploaded trigger ${triggerFlowId} and provoker ${provokerFlowId}`);
 
         await startFlow(triggerFlowId, 'the trigger under test');
         log(`waiting ${CHANNEL_WARMUP_MS / 1000}s for the Drive change channel`);

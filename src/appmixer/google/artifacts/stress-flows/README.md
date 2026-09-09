@@ -50,25 +50,42 @@ Options:
 - `--cleanup-wait <interval>` — how long the provoker waits before it deletes its folder,
   default `5m`. Only shorten it (`1m`) to smoke-test the harness itself: below three minutes the
   files are gone before Drive re-lists them, and the duplicate check stops meaning anything.
+- `--connector <ref>` — the connector ref stamped on the uploaded flows, by default derived from
+  this directory's path (`appmixer:google`).
 
 Exit code is `0` for a pass and `1` for a fail, so it can be wired into a release check.
 
 ## How this relates to the E2E tooling
 
-It does not overlap with it, on purpose. These flows live in `artifacts/stress-flows/`, not in
-`artifacts/test-flows/`, so `appmixer e2e import|validate|export` never picks them up — those
-commands resolve `artifacts/test-flows` — and the runner creates them with `appmixer flow create`
-rather than `appmixer e2e import`, so they never get the `customFields.category = E2E_test_flow`
-identity. They therefore stay out of `appmixer e2e list`, out of the E2E result stores and out
-of the E2E report, whether or not a run finishes cleanly.
+The runner owns the upload, so nothing about these flows goes through the E2E path. They live in
+`artifacts/stress-flows/`, not in `artifacts/test-flows/`, which is the directory
+`appmixer e2e import|validate|export` resolves, and `run.js` uploads them itself with
+`appmixer flow create` (or `flow update`, see below) rather than `appmixer e2e import`.
 
-The one thing the runner has to do for itself as a result is what `e2e import` would otherwise
-have done: pin each component to the version the instance actually serves (`appmixer component
-ls -m <module> --json`) and bind the account to every component whose manifest declares one
-(`appmixer auth bind-account`). Both matter — a flow that asks for a version the instance does
-not have fails to start with `No compatible version ...`, and one that asks for a stale
-registry row (the placeholder `1.0.0` the committed E2E flows carry) fails with
-`Missing component.json ...`, which is why the files here are re-pinned before every run.
+They still get a flow identity on the instance, in the same shape the E2E tooling uses, with
+its own category:
+
+- `customFields.category` — `Stress_test_flow` instead of `E2E_test_flow`. This is the only
+  difference, and it is what keeps them out of `appmixer e2e list`, out of the E2E result stores
+  and out of the E2E report even when a run is interrupted.
+- `customFields.connector` — the canonical connector ref, `appmixer:google`, derived from where
+  this directory sits in the repo. Override with `--connector` if you move the files.
+- `customFields.name` — the flow name, same as E2E.
+
+Uploading them itself means the runner also has to do the two things `e2e import` would
+otherwise have done. It pins every component to the version the instance serves
+(`appmixer component ls -m <module> --json`) and binds the account to every component whose
+manifest declares an auth service (`appmixer auth bind-account`). The pinning is not optional:
+the engine resolves a flow node by (type, version) when the flow starts, so a version the
+instance does not have fails with `No compatible version ...`, and the placeholder `1.0.0` that
+committed flow files carry resolves to a stale registry row and fails with
+`Missing component.json ...` — while the flow you read back always shows the normalised version,
+which makes it a confusing failure to diagnose.
+
+Each run uploads its own copy and removes it again at the end, so there is no lookup of an
+earlier run's flows: `appmixer flow ls` returns only the first hundred flows on the instance and
+cannot filter by `customFields`, so a `--keep` leftover cannot be found again reliably. Note the
+ids the runner prints if you keep a run, and remove them with `appmixer flow remove <flowId>`.
 
 ## What the run does
 
@@ -110,7 +127,8 @@ registry row (the placeholder `1.0.0` the committed E2E flows carry) fails with
   components were removed first, because the module is extracted into a path that carries the
   *module* version. If the report shows behaviour the current code cannot produce, bump
   `module.json` and republish before believing it.
-- The two flows exist on the instance only while the run lasts and carry no E2E identity, so a
-  crashed run leaves at most two stopped flows named `Stress Google Drive - ...` behind. Delete
-  them with `appmixer flow remove <flowId>`; the Drive folder they created is deleted by the
-  provoker itself five minutes after the last file, whether or not the runner is still watching.
+- The two flows exist on the instance only while the run lasts, so a crashed or kept run leaves
+  at most two stopped flows named `Stress Google Drive - ...` behind, tagged
+  `customFields.category = Stress_test_flow`. Remove them with `appmixer flow remove <flowId>`
+  using the ids the runner printed. The Drive folder they created is deleted by the provoker
+  itself five minutes after the last file, whether or not the runner is still watching.
