@@ -20,6 +20,18 @@
 module.exports = [
     {
         validator: 'delete-returns-empty',
+        messageIncludes: 'Delete component must return an empty object',
+        paths: ['github/list/DeleteBranch/component.json'],
+        reason: 'Legacy published component (since 2.0.0) whose out port declares the deleted branch name and existing flows read it. Emptying the output would be a breaking change for a component this PR only touches for the free-text branch input; same precedent as google.drive DeleteFileOrFolder.'
+    },
+    {
+        validator: 'find-naming-by-shape',
+        messageIncludes: 'has the Find shape',
+        paths: ['github/list/ListPullRequests/component.json'],
+        reason: 'Legacy published component (since 2.0.0) whose only Find-like trait is the optional state filter; FindPullRequest already exists next to it. Renaming it would break every flow that references appmixer.github.list.ListPullRequests and needs a major bundle bump, which is intentionally deferred. The file is touched in 3.2.0 only for the free-text repositoryId input and output examples.'
+    },
+    {
+        validator: 'delete-returns-empty',
         messageIncludes: 'must return an empty object',
         paths: ['google/drive/DeleteFileOrFolder/component.json'],
         reason: 'Published for years with { fileId } on its out port and referenced by existing flows; switching to {} is a breaking change that would need a major bundle bump and a flow migration, which is intentionally deferred.'

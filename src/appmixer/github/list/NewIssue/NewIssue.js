@@ -21,6 +21,13 @@ function processIssues(knownIssues, actualIssues, newIssues, issue) {
  * Component which triggers whenever new issue is created.
  * @extends {Component}
  */
+/**
+ * Maximum number of IDs to retain in context.state.known.
+ * getNewItems() replaces (not accumulates) known each tick, so this cap only
+ * fires if a single tick returns an unusually large page of results.
+ */
+const MAX_KNOWN = 500;
+
 module.exports = {
 
     async tick(context) {
@@ -49,7 +56,9 @@ module.exports = {
             }));
         }
 
-        await context.saveState({ known: Array.from(actual) });
+        const knownArr = Array.from(actual);
+        const trimmedKnown = knownArr.length > MAX_KNOWN ? knownArr.slice(knownArr.length - MAX_KNOWN) : knownArr;
+        await context.saveState({ known: trimmedKnown });
     },
 
     async test(context) {

@@ -6,11 +6,38 @@ const lib = require('../../lib');
  * @extends {Component}
  */
 // https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests
+const ITEM_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'id': {
+            'type': 'string',
+            'title': 'Pull Request ID'
+        },
+        'title': {
+            'type': 'string',
+            'title': 'Title'
+        },
+        'state': {
+            'type': 'string',
+            'title': 'State'
+        },
+        'url': {
+            'type': 'string',
+            'title': 'URL'
+        }
+    }
+};
+
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { repositoryId, state, outputType } = context.messages.in.content;
+        if (!repositoryId) {
+            throw new context.CancelError('Repository is required!');
+        }
 
         if (generateOutputPortOptions) {
             return this.getOutputPortOptions(context, outputType);
@@ -94,25 +121,5 @@ module.exports = {
         }
     },
 
-    prSchema: {
-        'type': 'object',
-        'properties': {
-            'id': {
-                'type': 'string',
-                'title': 'Pull Request ID'
-            },
-            'title': {
-                'type': 'string',
-                'title': 'Title'
-            },
-            'state': {
-                'type': 'string',
-                'title': 'State'
-            },
-            'url': {
-                'type': 'string',
-                'title': 'URL'
-            }
-        }
-    }
+    prSchema: ITEM_SCHEMA
 };

@@ -5,11 +5,41 @@ const lib = require('../../lib');
  * Component for fetching list of pull requests from repository
  * @extends {Component}
  */
+const ITEM_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'id': {
+            'type': 'string',
+            'title': 'Pull Request ID'
+        },
+        'title': {
+            'type': 'string',
+            'title': 'Title'
+        },
+        'state': {
+            'type': 'string',
+            'title': 'State'
+        },
+        'url': {
+            'type': 'string',
+            'title': 'URL'
+        }
+    }
+};
+
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
         const generateOutputPortOptions = context.properties.generateOutputPortOptions;
         const { repositoryId, state = 'all', outputType, title = '', labels = [] } = context.messages.in.content;
+        if (!repositoryId) {
+            throw new context.CancelError('Repository is required!');
+        }
+        if (!outputType) {
+            throw new context.CancelError('Output type is required!');
+        }
 
         // Normalize multiselect fields
         const normalizedLabels = labels ? lib.normalizeMultiselectInput(labels, context, 'Labels') : [];
@@ -102,25 +132,5 @@ module.exports = {
         }
     },
 
-    prSchema: {
-        'type': 'object',
-        'properties': {
-            'id': {
-                'type': 'string',
-                'title': 'Pull Request ID'
-            },
-            'title': {
-                'type': 'string',
-                'title': 'Title'
-            },
-            'state': {
-                'type': 'string',
-                'title': 'State'
-            },
-            'url': {
-                'type': 'string',
-                'title': 'URL'
-            }
-        }
-    }
+    prSchema: ITEM_SCHEMA
 };

@@ -1,0 +1,277 @@
+{
+    "name": "appmixer.github.project.OnProjectItemChanged",
+    "label": "On Project Item Changed",
+    "description": "Triggers when a card on an organization's Projects (v2) board changes. Registers an organization webhook for the projects_v2_item event and emits the payload including the changed field value.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "webhook": true,
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "admin:org_hook",
+            "read:org",
+            "read:project",
+            "repo"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "organization": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": [
+                        "array",
+                        "string"
+                    ]
+                },
+                "projectNodeId": {
+                    "type": "string"
+                },
+                "verifySignature": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "organization"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "organization": {
+                    "type": "text",
+                    "group": "config",
+                    "label": "Organization",
+                    "index": 1,
+                    "tooltip": "Login of the organization that owns the board. Registering the webhook needs organization admin rights (the 'admin:org_hook' scope)."
+                },
+                "events": {
+                    "type": "multiselect",
+                    "group": "config",
+                    "label": "Actions",
+                    "index": 2,
+                    "defaultValue": [
+                        "edited"
+                    ],
+                    "options": [
+                        {
+                            "label": "Created",
+                            "value": "created"
+                        },
+                        {
+                            "label": "Edited",
+                            "value": "edited"
+                        },
+                        {
+                            "label": "Deleted",
+                            "value": "deleted"
+                        },
+                        {
+                            "label": "Archived",
+                            "value": "archived"
+                        },
+                        {
+                            "label": "Restored",
+                            "value": "restored"
+                        },
+                        {
+                            "label": "Reordered",
+                            "value": "reordered"
+                        },
+                        {
+                            "label": "Converted",
+                            "value": "converted"
+                        }
+                    ],
+                    "tooltip": "Which projects_v2_item actions to emit. Defaults to 'Edited', which is what a Status change on the board produces."
+                },
+                "projectNodeId": {
+                    "type": "text",
+                    "group": "config",
+                    "label": "Project Node ID",
+                    "index": 3,
+                    "tooltip": "Optional. Emit only events of this board, for example 'PVT_kwDOAA12oc4AGXUu'. Leave empty to watch every board of the organization."
+                },
+                "verifySignature": {
+                    "type": "toggle",
+                    "group": "config",
+                    "label": "Verify Webhook Signature",
+                    "index": 4,
+                    "tooltip": "Register the webhook with a secret and drop deliveries whose X-Hub-Signature-256 header does not match. The digest is computed over a re-serialization of the parsed body, so leave this off unless you need it."
+                }
+            },
+            "groups": {
+                "config": {
+                    "label": "Configuration",
+                    "index": 1
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "title": "Action",
+                        "example": "edited"
+                    },
+                    "projects_v2_item": {
+                        "type": "object",
+                        "title": "Project Item",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "title": "Project Item.ID",
+                                "example": 78901234
+                            },
+                            "node_id": {
+                                "type": "string",
+                                "title": "Project Item.Node ID",
+                                "example": "PVTI_lADOAA12oc4AGXUuzgbi8fA"
+                            },
+                            "project_node_id": {
+                                "type": "string",
+                                "title": "Project Item.Project Node ID",
+                                "example": "PVT_kwDOAA12oc4AGXUu"
+                            },
+                            "content_node_id": {
+                                "type": "string",
+                                "title": "Project Item.Content Node ID",
+                                "example": "I_kwDOAA12oc6abcde"
+                            },
+                            "content_type": {
+                                "type": "string",
+                                "title": "Project Item.Content Type",
+                                "example": "Issue"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "title": "Project Item.Created At",
+                                "example": "2026-09-01T08:14:02Z"
+                            },
+                            "updated_at": {
+                                "type": "string",
+                                "title": "Project Item.Updated At",
+                                "example": "2026-09-04T11:27:45Z"
+                            },
+                            "archived_at": {
+                                "type": "string",
+                                "title": "Project Item.Archived At",
+                                "example": ""
+                            },
+                            "creator_login": {
+                                "type": "string",
+                                "title": "Project Item.Creator Login",
+                                "example": "octocat"
+                            }
+                        }
+                    },
+                    "changes": {
+                        "type": "object",
+                        "title": "Changes",
+                        "properties": {
+                            "field_value": {
+                                "type": "object",
+                                "title": "Changes.Field Value",
+                                "properties": {
+                                    "field_node_id": {
+                                        "type": "string",
+                                        "title": "Changes.Field Value.Field Node ID",
+                                        "example": "PVTSSF_lADOAA12oc4AGXUuzgnEbCE"
+                                    },
+                                    "field_name": {
+                                        "type": "string",
+                                        "title": "Changes.Field Value.Field Name",
+                                        "example": "Status"
+                                    },
+                                    "field_type": {
+                                        "type": "string",
+                                        "title": "Changes.Field Value.Field Type",
+                                        "example": "single_select"
+                                    },
+                                    "from": {
+                                        "type": "string",
+                                        "title": "Changes.Field Value.From",
+                                        "example": "Todo"
+                                    },
+                                    "to": {
+                                        "type": "string",
+                                        "title": "Changes.Field Value.To",
+                                        "example": "In Progress"
+                                    },
+                                    "from_option_id": {
+                                        "type": "string",
+                                        "title": "Changes.Field Value.From Option ID",
+                                        "example": "f75ad846"
+                                    },
+                                    "to_option_id": {
+                                        "type": "string",
+                                        "title": "Changes.Field Value.To Option ID",
+                                        "example": "47fc9ee4"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "sender": {
+                        "type": "object",
+                        "title": "Sender",
+                        "properties": {
+                            "login": {
+                                "type": "string",
+                                "title": "Sender.Login",
+                                "example": "octocat"
+                            },
+                            "id": {
+                                "type": "integer",
+                                "title": "Sender.ID",
+                                "example": 583231
+                            },
+                            "type": {
+                                "type": "string",
+                                "title": "Sender.Type",
+                                "example": "User"
+                            }
+                        }
+                    },
+                    "organization": {
+                        "type": "object",
+                        "title": "Organization",
+                        "properties": {
+                            "login": {
+                                "type": "string",
+                                "title": "Organization.Login",
+                                "example": "Appmixer-ai"
+                            },
+                            "id": {
+                                "type": "integer",
+                                "title": "Organization.ID",
+                                "example": 121455
+                            },
+                            "node_id": {
+                                "type": "string",
+                                "title": "Organization.Node ID",
+                                "example": "O_kgDOAA12oQ"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo="
+}

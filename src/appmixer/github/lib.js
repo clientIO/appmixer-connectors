@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const pathModule = require('path');
 
 const DEFAULT_PREFIX = 'github-objects-export';
@@ -96,6 +97,69 @@ module.exports = {
             : (data && Array.isArray(data.items) ? data.items : []);
 
         return records.length ? records[0] : null;
+    },
+
+    /**
+     * Run a query or mutation against the GitHub GraphQL API (the only way to reach
+     * Projects v2). GraphQL answers with HTTP 200 even for errors, so the `errors`
+     * array is turned into a CancelError here — every caller gets the same handling.
+     *
+     * @param {Object} context
+     * @param {String} query GraphQL document
+     * @param {Object} [variables]
+     * @returns {Promise<Object>} the `data` object of the GraphQL response
+     */
+    async graphqlRequest(context, query, variables = {}) {
+
+        const { data } = await context.httpRequest({
+            method: 'POST',
+            url: 'https://api.github.com/graphql',
+            headers: {
+                'Authorization': `Bearer ${context.accessToken || context.auth?.accessToken}`,
+                'Content-Type': 'application/json',
+                'User-Agent': 'Appmixer GitHub Connector'
+            },
+            data: { query, variables }
+        });
+
+        if (data.errors) {
+            const message = data.errors.map(error => error.message).filter(Boolean).join('; ');
+            throw new context.CancelError(message || JSON.stringify(data.errors));
+        }
+
+        return data.data;
+    },
+
+    /**
+     * Verify the `X-Hub-Signature-256` header GitHub sends with every delivery of a
+     * webhook that was registered with a secret.
+     *
+     * Note: components only see the *parsed* body, so the digest is computed over a
+     * re-serialization of it. That matches GitHub's compact JSON for ordinary
+     * payloads but is not byte-exact in every case, which is why signature checking
+     * is opt-in on the trigger rather than always-on.
+     *
+     * @param {Object} options
+     * @param {Object|String|Buffer} options.payload webhook body
+     * @param {String} options.signatureHeader value of the X-Hub-Signature-256 header
+     * @param {String} options.secret secret the webhook was registered with
+     * @returns {Boolean}
+     */
+    verifyWebhookSignature({ payload, signatureHeader, secret }) {
+
+        if (!signatureHeader || !secret) return false;
+
+        const body = Buffer.isBuffer(payload)
+            ? payload
+            : Buffer.from(typeof payload === 'string' ? payload : JSON.stringify(payload), 'utf8');
+        const expected = `sha256=${crypto.createHmac('sha256', secret).update(body).digest('hex')}`;
+
+        try {
+            return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+        } catch (err) {
+            // Different lengths — timingSafeEqual throws instead of returning false.
+            return false;
+        }
     },
 
     /**
