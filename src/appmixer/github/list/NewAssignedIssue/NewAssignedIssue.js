@@ -46,6 +46,18 @@ async function assignedIssuesRequest(context, repositoryId) {
 }
 
 /**
+ * Both `GET /issues` and `GET /repos/{owner}/{repo}/issues` return pull requests
+ * alongside issues (PRs carry a `pull_request` field). This trigger fires only for
+ * issues, so PRs are filtered out before diffing/emitting.
+ * @param {Array<Object>} items
+ * @returns {Array<Object>}
+ */
+function excludePullRequests(items) {
+
+    return (items || []).filter(item => !item.pull_request);
+}
+
+/**
  * Component which triggers whenever a new issue is assigned to the authenticated user.
  * @extends {Component}
  */
@@ -57,9 +69,10 @@ module.exports = {
         const { action, params } = await assignedIssuesRequest(context, repositoryId);
 
         const res = await lib.apiRequest(context, action, { params });
+        const issues = excludePullRequests(res.data);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-        const { diff, actual } = lib.getNewItems(known, res.data, 'id');
+        const { diff, actual } = lib.getNewItems(known, issues, 'id');
 
         if (diff.length) {
             await Promise.all(diff.map(issue => context.sendJson(issue, 'out')));
@@ -73,9 +86,11 @@ module.exports = {
         const { repositoryId } = context.properties;
         const { action, params } = await assignedIssuesRequest(context, repositoryId);
 
-        const issue = await lib.fetchLatest(context, action, {
+        const res = await lib.apiRequest(context, action, {
             params: { ...params, sort: 'created', direction: 'desc' }
         });
+        // Same PR filtering as tick() so Flow Test Mode never emits a pull request.
+        const [issue] = excludePullRequests(res.data);
         if (!issue) {
             throw new Error('No open issues assigned to you to use as test data.');
         }

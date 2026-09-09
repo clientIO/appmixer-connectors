@@ -175,6 +175,11 @@ module.exports = {
         } else if (valueType === 'date') {
 
             const date = toDateOnly(value);
+            // toDateOnly() falls back to the raw input when it can't parse; reject that here
+            // so an unparseable date fails with an actionable error instead of a GraphQL one.
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                throw new context.CancelError(`Value '${value}' is not a valid date.`);
+            }
             fieldValue = { date };
             expected = date;
 

@@ -68,13 +68,19 @@ module.exports = {
 
         const repoFilter = parseRepoFilter(context.properties.repositories);
 
+        // Snapshot the next window's lower bound BEFORE issuing the request. Any mention
+        // that arrives while we page through the results is >= nextSince, so it is picked
+        // up on the following tick instead of being skipped by an advanced `since`.
+        const nextSince = nowIso();
+
         // since — server-side date filter: only notifications updated after the flow started.
-        // GitHub expects YYYY-MM-DDTHH:MM:SSZ (no milliseconds).
-        const res = await lib.apiRequest(context, 'notifications', {
+        // GitHub expects YYYY-MM-DDTHH:MM:SSZ (no milliseconds). /notifications is paginated,
+        // so fetch every page to avoid missing mentions when >100 notifications updated in the window.
+        const notifications = await lib.apiRequestPaginated(context, 'notifications', {
             params: { all: true, since: context.state.since }
         });
 
-        const mentions = filterMentions(res.data, repoFilter);
+        const mentions = filterMentions(notifications, repoFilter);
 
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         const { diff, actual } = lib.getNewItems(known, mentions, 'id');
@@ -83,11 +89,11 @@ module.exports = {
             await Promise.all(diff.map(notification => context.sendJson(notification, 'out')));
         }
 
-        // Advance the since window to now so the next tick only fetches what's new.
-        // Trim known to MAX_KNOWN as a defensive cap (getNewItems already replaces — not
-        // accumulates — the set each tick, but we guard against unexpectedly large pages).
+        // Advance the since window (snapshotted before the fetch) so the next tick only fetches
+        // what's new. Trim known to MAX_KNOWN as a defensive cap (getNewItems already replaces —
+        // not accumulates — the set each tick, but we guard against unexpectedly large pages).
         const trimmedKnown = actual.length > MAX_KNOWN ? actual.slice(actual.length - MAX_KNOWN) : actual;
-        await context.saveState({ known: trimmedKnown, since: nowIso() });
+        await context.saveState({ known: trimmedKnown, since: nextSince });
     },
 
     async test(context) {
