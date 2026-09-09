@@ -7,6 +7,14 @@ module.exports = {
 
         const { messageId, attachmentId } = context.messages.in.content;
 
+        if (!messageId) {
+            throw new context.CancelError('Message ID is required!');
+        }
+
+        if (!attachmentId) {
+            throw new context.CancelError('Attachment ID is required!');
+        }
+
         const attachmentUrl = `/me/messages/${messageId}/attachments/${attachmentId}`;
         const attachmentResponse = await makeRequest(context, { path: attachmentUrl, method: 'GET' });
 
