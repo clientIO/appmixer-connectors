@@ -31,6 +31,11 @@ module.exports = [
         reason: 'Legacy published component (since 2.0.0) whose only Find-like trait is the optional state filter; FindPullRequest already exists next to it. Renaming it would break every flow that references appmixer.github.list.ListPullRequests and needs a major bundle bump, which is intentionally deferred. The file is touched in 3.2.0 only for the free-text repositoryId input and output examples.'
     },
     {
+        messageIncludes: 'must return an empty object',
+        paths: ['google/drive/DeleteFileOrFolder/component.json'],
+        reason: 'Published for years with { fileId } on its out port and referenced by existing flows; switching to {} is a breaking change that would need a major bundle bump and a flow migration, which is intentionally deferred.'
+    },
+    {
         validator: 'dynamic-outport-item-schema',
         messageIncludes: 'exports no ITEM_SCHEMA',
         paths: [
