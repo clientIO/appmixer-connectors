@@ -11,9 +11,16 @@ const { sendArrayOutput } = require('../../microsoft-commons');
 // these guarantees the binary `contentBytes` (a fileAttachment-specific property)
 // is never returned, which avoids Appmixer's max message size exception on emails
 // with large attachments. Use the DownloadAttachment component to get content.
+// `required` is deliberately only the two fields EVERY attachment subtype
+// carries. The other four are declared on Graph's base `attachment` resource,
+// but only fileAttachment has been observed returning all of them —
+// referenceAttachment (a link to OneDrive/SharePoint) commonly reports a null
+// contentType. `required` drives FAIL vs WARN in `appmixer connector verify`,
+// so listing a field here that some subtype legitimately omits turns a healthy
+// message into a failed check.
 const ITEM_SCHEMA = {
     type: 'object',
-    required: ['id', 'name', 'contentType', 'size', 'isInline', 'lastModifiedDateTime'],
+    required: ['id', 'name'],
     properties: {
         id: { type: 'string', title: 'Attachment ID', example: 'AAMkAGI2...=' },
         name: { type: 'string', title: 'Name', example: 'invoice.pdf' },
@@ -22,6 +29,7 @@ const ITEM_SCHEMA = {
         isInline: { type: 'boolean', title: 'Is Inline', example: false },
         lastModifiedDateTime: {
             type: 'string',
+            format: 'date-time',
             title: 'Last Modified Date Time',
             example: '2026-09-09T08:15:30Z'
         }
