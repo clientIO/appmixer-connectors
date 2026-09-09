@@ -163,6 +163,100 @@ module.exports = {
     },
 
     /**
+     * Current UTC time as an ISO 8601 string without milliseconds
+     * (YYYY-MM-DDTHH:MM:SSZ) — the format GitHub's `since` query parameter expects.
+     * @returns {String}
+     */
+    nowIso() {
+        return new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+    },
+
+    /**
+     * Merge the IDs seen on this tick into the ones already known, newest last, capped
+     * at `max` entries (oldest dropped first).
+     *
+     * Unlike `getNewItems()`, which *replaces* the known set every tick, this one
+     * *accumulates*. Comment triggers need that: GitHub's `since` filters on
+     * last-updated, not created, so an old comment that someone edits re-enters the
+     * window long after it has fallen out of the previous tick's page. Remembering only
+     * the current page would re-fire it.
+     *
+     * @param {Array} [previousKnown] IDs stored on the previous tick
+     * @param {Array} [currentIds] IDs seen on this tick
+     * @param {Number} [max] cap on the stored set
+     * @returns {Array<String>}
+     */
+    mergeKnownIds(previousKnown = [], currentIds = [], max = 500) {
+
+        const merged = [];
+        const seen = new Set();
+
+        for (const id of [...(previousKnown || []), ...(currentIds || [])]) {
+            const key = String(id);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            merged.push(key);
+        }
+
+        return merged.length > max ? merged.slice(merged.length - max) : merged;
+    },
+
+    /**
+     * Case-insensitive *substring* match of an author login against a comma-separated
+     * filter, e.g. `copilot, dependabot`. An empty filter matches everything.
+     *
+     * Substring rather than equality on purpose: the same actor is reported under a
+     * different login on every GitHub API surface. Copilot is `Copilot` over REST,
+     * `copilot-pull-request-reviewer` over GraphQL and `copilot-pull-request-reviewer[bot]`
+     * in webhook payloads — an exact-match filter would silently match nothing.
+     *
+     * @param {String} [login] the `user.login` of the item
+     * @param {String} [filter] comma-separated logins or fragments of logins
+     * @returns {Boolean}
+     */
+    matchesAuthor(login, filter) {
+
+        if (!filter) return true;
+
+        const wanted = filter.split(',').map(part => part.trim().toLowerCase()).filter(Boolean);
+        if (!wanted.length) return true;
+
+        const actual = (login || '').toLowerCase();
+        return wanted.some(part => actual.includes(part));
+    },
+
+    /**
+     * Match an item's author against a bots/humans switch.
+     *
+     * GitHub marks app accounts with `user.type = 'Bot'`, but not consistently across
+     * endpoints, so a trailing `[bot]` in the login counts as well.
+     *
+     * @param {Object} [user] the `user` object of the item
+     * @param {String} [authorType] one of `any`, `bots`, `humans`
+     * @returns {Boolean}
+     */
+    matchesAuthorType(user, authorType) {
+
+        if (!authorType || authorType === 'any') return true;
+
+        const isBot = user?.type === 'Bot' || /\[bot\]$/i.test(user?.login || '');
+        return authorType === 'bots' ? isBot : !isBot;
+    },
+
+    /**
+     * Tell apart the two things GitHub calls an "issue comment". The repo-wide
+     * `/issues/comments` endpoint returns conversation comments on issues *and* on pull
+     * requests, and nothing in the payload says which: `issue_url` uses `/issues/` for
+     * both. Only `html_url` distinguishes them, by containing `/pull/`.
+     *
+     * @param {Object} comment an item of `/repos/{owner}/{repo}/issues/comments`
+     * @returns {Boolean}
+     */
+    isPullRequestComment(comment) {
+        return /\/pull\//.test(comment?.html_url || '');
+    },
+
+    /**
      * Process items to find newly added.
      * @param knowItems
      * @param {Set} actualItems

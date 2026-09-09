@@ -1,7 +1,7 @@
 {
-    "name": "appmixer.github.list.ListComments",
-    "label": "List Comments",
-    "description": "List the conversation comments of an issue or a pull request. Useful for finding a 'sticky' comment by an HTML marker before updating it. These are not the inline comments on the diff (use Find Review Comments) nor comments on a commit.",
+    "name": "appmixer.github.list.FindReviewComments",
+    "label": "Find Review Comments",
+    "description": "Search the inline review comments of a repository — the ones anchored to a line of a pull request diff. Give a pull request number to search a single pull request, or leave it empty to search the whole repository. Optionally filter by author login and by bots vs. humans.",
     "author": "Appmixer <info@appmixer.com>",
     "version": "1.0.0",
     "private": false,
@@ -29,8 +29,23 @@
                         "type": "string",
                         "pattern": "[^/]+[/][^/]+"
                     },
-                    "issueNumber": {
+                    "pullRequestNumber": {
                         "type": "string"
+                    },
+                    "author": {
+                        "type": "string"
+                    },
+                    "authorType": {
+                        "type": "string",
+                        "enum": [
+                            "any",
+                            "bots",
+                            "humans"
+                        ]
+                    },
+                    "since": {
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "outputType": {
                         "type": "string",
@@ -43,8 +58,7 @@
                     }
                 },
                 "required": [
-                    "repositoryId",
-                    "issueNumber"
+                    "repositoryId"
                 ]
             },
             "inspector": {
@@ -53,24 +67,57 @@
                         "type": "text",
                         "label": "Repository",
                         "index": 1,
+                        "tooltip": "Enter the repository in `owner/repo` format (e.g. `octocat/Hello-World`). You can also pick from the dynamically loaded list of your repositories.",
                         "source": {
                             "url": "/component/appmixer/github/list/ListRepos?outPort=repositories",
                             "data": {
                                 "transform": "./transformers#reposToSelectArray"
                             }
-                        },
-                        "tooltip": "The repository the issue lives in, in the 'owner/repo' form."
+                        }
                     },
-                    "issueNumber": {
+                    "pullRequestNumber": {
                         "type": "text",
-                        "label": "Issue Number",
+                        "label": "Pull Request Number",
                         "index": 2,
-                        "tooltip": "The number of the issue or pull request whose comments to list."
+                        "tooltip": "Optional. Search only this pull request (e.g. `1259`), in which case every comment is returned. Leave empty to search the whole repository, which returns the 100 most recently updated review comments."
+                    },
+                    "author": {
+                        "type": "text",
+                        "label": "Author",
+                        "index": 3,
+                        "tooltip": "Optional. Comma-separated author logins, matched case-insensitively as substrings (e.g. `copilot, dependabot`). Substring matching is intentional: the same actor is reported under a different login on every GitHub API surface, so `copilot` matches `Copilot` and `copilot-pull-request-reviewer` alike."
+                    },
+                    "authorType": {
+                        "type": "select",
+                        "label": "Author Type",
+                        "index": 4,
+                        "defaultValue": "any",
+                        "tooltip": "Restrict to comments written by bot accounts (code review bots, apps) or by human accounts.",
+                        "options": [
+                            {
+                                "label": "Anyone",
+                                "value": "any"
+                            },
+                            {
+                                "label": "Bots only",
+                                "value": "bots"
+                            },
+                            {
+                                "label": "Humans only",
+                                "value": "humans"
+                            }
+                        ]
+                    },
+                    "since": {
+                        "type": "date-time",
+                        "label": "Updated Since",
+                        "index": 5,
+                        "tooltip": "Optional. Only comments updated at or after this moment. Note that GitHub filters on last-updated, not created, so an old comment that was edited recently is included."
                     },
                     "outputType": {
                         "type": "select",
                         "label": "Output Type",
-                        "index": 3,
+                        "index": 6,
                         "defaultValue": "array",
                         "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
                         "options": [
@@ -100,15 +147,32 @@
         {
             "name": "out",
             "source": {
-                "url": "/component/appmixer/github/list/ListComments?outPort=out&ignoreAuth=true",
+                "url": "/component/appmixer/github/list/FindReviewComments?outPort=out&ignoreAuth=true",
                 "data": {
                     "properties": {
                         "generateOutputPortOptions": true
                     },
                     "messages": {
                         "in/outputType": "inputs/in/outputType",
-                        "in/repositoryId": "dummy/dummy",
-                        "in/issueNumber": "1"
+                        "in/repositoryId": "dummy/dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "repositoryId": {
+                        "type": "string",
+                        "title": "Repository",
+                        "example": "Appmixer-ai/appmixer-connectors"
+                    },
+                    "pullRequestNumber": {
+                        "type": "string",
+                        "title": "Pull Request Number",
+                        "example": "1259"
                     }
                 }
             }
