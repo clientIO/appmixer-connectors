@@ -26,7 +26,7 @@ const POLL_INTERVAL_MS = 20 * 1000;
 const START_ATTEMPTS = 4;
 
 const parseArgs = (argv) => {
-    const args = { files: 300, delay: 200, keep: false, connectorsDir: null, account: null, cleanupWait: null };
+    const args = { files: 300, delay: 200, keep: false, account: null, cleanupWait: null };
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (arg === '--keep') args.keep = true;
@@ -34,7 +34,6 @@ const parseArgs = (argv) => {
         else if (arg === '--files') args.files = parseInt(argv[++i], 10);
         else if (arg === '--delay') args.delay = parseInt(argv[++i], 10);
         else if (arg === '--cleanup-wait') args.cleanupWait = argv[++i];
-        else if (arg === '--connectors-dir') args.connectorsDir = argv[++i];
         else throw new Error(`Unknown argument: ${arg}`);
     }
     if (!args.account) throw new Error('Missing --account <accountId>. Use an appmixer:google:drive account.');
@@ -64,11 +63,9 @@ const log = (message) => {
 // Fresh component ids per run: the component id is the key of the engine lock the trigger
 // takes, so two runs sharing ids would share a lock and measure each other.
 const randomizeIds = (flow) => {
-    const map = new Map();
-    for (const id of Object.keys(flow.flow)) map.set(id, crypto.randomUUID());
     let json = JSON.stringify(flow);
-    for (const [from, to] of map) json = json.split(from).join(to);
-    return { flow: JSON.parse(json), ids: map };
+    for (const id of Object.keys(flow.flow)) json = json.split(id).join(crypto.randomUUID());
+    return JSON.parse(json);
 };
 
 const patchProvoker = (flow, { files, delay, cleanupWait }) => {
@@ -98,10 +95,43 @@ const patchProvoker = (flow, { files, delay, cleanupWait }) => {
     return flow;
 };
 
-const importFlow = (file, account, connectorsDir) => {
-    const args = ['e2e', 'import', file, '-c', 'google', '-a', account, '--no-validate'];
-    if (connectorsDir) args.push('--connectors-dir', connectorsDir);
-    const out = cli(args);
+// Component manifests of every module the flows use, keyed by component type. The engine
+// resolves a flow node by (type, version): a version the instance does not have fails the
+// start with "No compatible version", and one that resolves to a stale registry row fails it
+// with "Missing component.json". The files on disk carry the versions of the code in this
+// repo, so they are re-pinned to what the instance actually serves before the flow is created.
+const readManifests = (flows) => {
+    const types = new Set();
+    for (const flow of flows) {
+        for (const component of Object.values(flow.flow)) types.add(component.type);
+    }
+    const modules = new Set([...types].map(type => type.split('.').slice(0, 3).join('.')));
+    const manifests = new Map();
+    for (const module of modules) {
+        const listed = JSON.parse(cli(['component', 'ls', '-m', module, '--json']));
+        for (const manifest of listed) manifests.set(manifest.name, manifest);
+    }
+    const missing = [...types].filter(type => !manifests.has(type));
+    if (missing.length) throw new Error(`Not published on this instance: ${missing.join(', ')}`);
+    return manifests;
+};
+
+const pinVersions = (flow, manifests) => {
+    for (const component of Object.values(flow.flow)) {
+        component.version = manifests.get(component.type).version || '1.0.0';
+    }
+    return flow;
+};
+
+// Every component whose manifest declares an auth service needs the account bound to it.
+const accountComponentIds = (flow, manifests) => {
+    return Object.entries(flow.flow)
+        .filter(([, component]) => manifests.get(component.type).auth)
+        .map(([id]) => id);
+};
+
+const createFlow = (file) => {
+    const out = cli(['flow', 'create', file]);
     const match = out.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/);
     if (!match) throw new Error(`Could not read the flow id out of:\n${out}`);
     return match[1];
@@ -188,15 +218,21 @@ const main = async () => {
 
     log(`instance: ${cli(['url']).trim()}`);
 
+    const sources = {
+        trigger: JSON.parse(fs.readFileSync(path.join(HERE, TRIGGER_FLOW), 'utf8')),
+        provoker: JSON.parse(fs.readFileSync(path.join(HERE, PROVOKER_FLOW), 'utf8'))
+    };
+    const manifests = readManifests(Object.values(sources));
+
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'drive-stress-'));
     const flows = {};
     for (const [key, file] of [['trigger', TRIGGER_FLOW], ['provoker', PROVOKER_FLOW]]) {
-        const source = JSON.parse(fs.readFileSync(path.join(HERE, file), 'utf8'));
-        const { flow, ids } = randomizeIds(source);
+        const flow = randomizeIds(sources[key]);
+        pinVersions(flow, manifests);
         if (key === 'provoker') patchProvoker(flow, args);
         const target = path.join(tmp, file);
         fs.writeFileSync(target, JSON.stringify(flow, null, 4));
-        flows[key] = { file: target, ids };
+        flows[key] = { file: target, accountComponents: accountComponentIds(flow, manifests) };
     }
 
     let triggerFlowId = null;
@@ -205,9 +241,11 @@ const main = async () => {
     const startedAt = now();
 
     try {
-        triggerFlowId = importFlow(flows.trigger.file, args.account, args.connectorsDir);
-        provokerFlowId = importFlow(flows.provoker.file, args.account, args.connectorsDir);
-        log(`imported trigger ${triggerFlowId} and provoker ${provokerFlowId}`);
+        triggerFlowId = createFlow(flows.trigger.file);
+        provokerFlowId = createFlow(flows.provoker.file);
+        cli(['auth', 'bind-account', args.account, ...flows.trigger.accountComponents]);
+        cli(['auth', 'bind-account', args.account, ...flows.provoker.accountComponents]);
+        log(`created trigger ${triggerFlowId} and provoker ${provokerFlowId}`);
 
         await startFlow(triggerFlowId, 'the trigger under test');
         log(`waiting ${CHANNEL_WARMUP_MS / 1000}s for the Drive change channel`);

@@ -50,15 +50,31 @@ Options:
 - `--cleanup-wait <interval>` — how long the provoker waits before it deletes its folder,
   default `5m`. Only shorten it (`1m`) to smoke-test the harness itself: below three minutes the
   files are gone before Drive re-lists them, and the duplicate check stops meaning anything.
-- `--connectors-dir <dir>` — pass the worktree root when you run this from a git worktree, so
-  the CLI resolves `component.json` from the code under test rather than from the main checkout.
 
 Exit code is `0` for a pass and `1` for a fail, so it can be wired into a release check.
 
+## How this relates to the E2E tooling
+
+It does not overlap with it, on purpose. These flows live in `artifacts/stress-flows/`, not in
+`artifacts/test-flows/`, so `appmixer e2e import|validate|export` never picks them up — those
+commands resolve `artifacts/test-flows` — and the runner creates them with `appmixer flow create`
+rather than `appmixer e2e import`, so they never get the `customFields.category = E2E_test_flow`
+identity. They therefore stay out of `appmixer e2e list`, out of the E2E result stores and out
+of the E2E report, whether or not a run finishes cleanly.
+
+The one thing the runner has to do for itself as a result is what `e2e import` would otherwise
+have done: pin each component to the version the instance actually serves (`appmixer component
+ls -m <module> --json`) and bind the account to every component whose manifest declares one
+(`appmixer auth bind-account`). Both matter — a flow that asks for a version the instance does
+not have fails to start with `No compatible version ...`, and one that asks for a stale
+registry row (the placeholder `1.0.0` the committed E2E flows carry) fails with
+`Missing component.json ...`, which is why the files here are re-pinned before every run.
+
 ## What the run does
 
-1. Imports both flows under fresh component ids. Fresh ids matter: the component id is the key
-   of the engine lock the trigger takes, so two runs sharing ids would contend for one lock.
+1. Creates both flows under fresh component ids, with the component versions the instance
+   serves and the account bound. Fresh ids matter: the component id is the key of the engine
+   lock the trigger takes, so two runs sharing ids would contend for one lock.
 2. Starts the trigger flow and waits a minute for the Drive change channel to be live.
 3. Starts the provoker: `OnStart → SetVariable → CreateFolder → Each → CreateFileFromText`,
    `n` files into one `stress-burst-<timestamp>` folder.
@@ -94,6 +110,7 @@ Exit code is `0` for a pass and `1` for a fail, so it can be wired into a releas
   components were removed first, because the module is extracted into a path that carries the
   *module* version. If the report shows behaviour the current code cannot produce, bump
   `module.json` and republish before believing it.
-- While the flows exist they are tagged as E2E flows (that is what `appmixer e2e import` does,
-  and it is also what binds the account), so they show up in `appmixer e2e list -c google` for
-  the duration of the run. The runner removes them again at the end.
+- The two flows exist on the instance only while the run lasts and carry no E2E identity, so a
+  crashed run leaves at most two stopped flows named `Stress Google Drive - ...` behind. Delete
+  them with `appmixer flow remove <flowId>`; the Drive folder they created is deleted by the
+  provoker itself five minutes after the last file, whether or not the runner is still watching.
