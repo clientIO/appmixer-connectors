@@ -20,6 +20,23 @@ function pullRequestNumberOf(comment) {
 }
 
 /**
+ * Add the pull request number to the emitted comment, the way NewReview does.
+ *
+ * The raw payload carries only `pull_request_url`, yet ReplyToReviewComment and
+ * CreateReviewComment both take `pullRequestNumber` as a required input — so without
+ * this the obvious flow (react to a review comment, answer in its thread) would have to
+ * slice the number out of a URL in a lambda.
+ *
+ * @param {Object} comment
+ * @returns {Object}
+ */
+function withPullRequestNumber(comment) {
+
+    const number = parseInt(pullRequestNumberOf(comment), 10);
+    return { ...comment, pull_request_number: Number.isFinite(number) ? number : null };
+}
+
+/**
  * Apply the trigger's optional filters. None of them can be pushed to the server:
  * the review-comments endpoint has no author parameter, and the search API that does
  * is eventually consistent, which makes it the wrong tool for a trigger.
@@ -90,7 +107,7 @@ module.exports = {
             .filter(comment => !known.has(String(comment.id)));
 
         if (fresh.length) {
-            await Promise.all(fresh.map(comment => context.sendJson(comment, 'out')));
+            await Promise.all(fresh.map(comment => context.sendJson(withPullRequestNumber(comment), 'out')));
         }
 
         // Remember every ID on the page, not just the emitted ones — a comment that the
@@ -110,6 +127,6 @@ module.exports = {
         if (!comment) {
             throw new Error('No recent pull request review comments to use as test data.');
         }
-        return context.sendJson(comment, 'out');
+        return context.sendJson(withPullRequestNumber(comment), 'out');
     }
 };

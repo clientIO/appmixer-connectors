@@ -65,7 +65,12 @@ module.exports = {
 
     async receive(context) {
 
-        const { repositoryId, pullRequestNumber, outputType = 'array' } = context.messages.in.content;
+        const {
+            repositoryId,
+            pullRequestNumber,
+            resolvedState = 'any',
+            outputType = 'array'
+        } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
             return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Review Threads' });
@@ -107,7 +112,13 @@ module.exports = {
             cursor = pageInfo?.endCursor;
         }
 
-        const records = nodes.map(thread => {
+        const wanted = nodes.filter(thread => {
+            if (resolvedState === 'resolved') return thread.isResolved === true;
+            if (resolvedState === 'unresolved') return thread.isResolved === false;
+            return true;
+        });
+
+        const records = wanted.map(thread => {
             const firstComment = thread.comments?.nodes?.[0];
             return {
                 id: thread.id,

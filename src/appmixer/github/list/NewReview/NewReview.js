@@ -16,6 +16,12 @@ const MAX_KNOWN = 500;
 const MAX_PULL_REQUESTS = 30;
 
 /**
+ * How many pull requests `test()` looks at. Smaller than the tick's cap: Flow Test Mode
+ * only needs one representative review and should answer quickly.
+ */
+const TEST_PULL_REQUESTS = 10;
+
+/**
  * A review that was never submitted has no `submitted_at` and state `PENDING` — it is a
  * draft only its author can see, so it is not an event.
  * @param {Object} review
@@ -45,9 +51,17 @@ function filterReviews(reviews, { state = 'any', author, authorType }, since) {
 }
 
 /**
- * The pull requests a tick should inspect: the one the trigger is pinned to, or the open
- * ones touched since the last tick (submitting a review bumps the pull request's
+ * The pull requests a tick should inspect: the one the trigger is pinned to, or the ones
+ * touched since the last tick (submitting a review bumps the pull request's
  * `updated_at`), newest first and capped at MAX_PULL_REQUESTS.
+ *
+ * `state: 'all'` rather than `'open'` on purpose. Approving a pull request and merging it
+ * is the single most common review event, and the merge happens within seconds — with an
+ * open-only listing that review is gone from the scan window before the next tick reaches
+ * it, and `since` has already advanced past it, so it is lost for good rather than late.
+ * Closed pull requests sort by `updated_at` like any other, so this costs no extra
+ * request and does not push open ones out of the cap.
+ *
  * @param {Object} context
  * @param {String} repositoryId
  * @param {String} [pullRequestNumber]
@@ -61,7 +75,7 @@ async function pullRequestsToScan(context, repositoryId, pullRequestNumber, sinc
     }
 
     const { data } = await lib.apiRequest(context, `repos/${repositoryId}/pulls`, {
-        params: { state: 'open', sort: 'updated', direction: 'desc' }
+        params: { state: 'all', sort: 'updated', direction: 'desc' }
     });
 
     const pullRequests = Array.isArray(data) ? data : [];
@@ -144,7 +158,9 @@ module.exports = {
         // Only the handful of most recently touched pull requests — one request each, and
         // a repository whose ten newest pull requests have no matching review will not
         // have one further down either.
-        for (const number of numbers.slice(0, 10)) {
+        const scanned = numbers.slice(0, TEST_PULL_REQUESTS);
+
+        for (const number of scanned) {
             const { data } = await lib.apiRequest(context, `repos/${repositoryId}/pulls/${number}/reviews`);
             const matching = filterReviews(Array.isArray(data) ? data : [], context.properties);
             if (matching.length) {
@@ -154,6 +170,19 @@ module.exports = {
             }
         }
 
-        throw new Error('No recent pull request reviews to use as test data.');
+        // Say what was searched. A filter that matches nothing inside the window while
+        // matching reviews exist further back otherwise reads as a broken trigger.
+        const filters = [
+            context.properties.state && context.properties.state !== 'any' && `state ${context.properties.state}`,
+            context.properties.author && `author matching '${context.properties.author}'`,
+            context.properties.authorType && context.properties.authorType !== 'any' && context.properties.authorType
+        ].filter(Boolean).join(', ');
+
+        throw new Error(
+            `No pull request review to use as test data in the ${scanned.length} most recently ` +
+            `updated pull request(s) of ${repositoryId}` +
+            (filters ? ` matching ${filters}` : '') +
+            '. Matching reviews further back are not searched — pin the trigger to a pull request number to test against it.'
+        );
     }
 };

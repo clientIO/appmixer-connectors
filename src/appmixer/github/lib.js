@@ -206,9 +206,12 @@ module.exports = {
      * filter, e.g. `copilot, dependabot`. An empty filter matches everything.
      *
      * Substring rather than equality on purpose: the same actor is reported under a
-     * different login on every GitHub API surface. Copilot is `Copilot` over REST,
-     * `copilot-pull-request-reviewer` over GraphQL and `copilot-pull-request-reviewer[bot]`
-     * in webhook payloads — an exact-match filter would silently match nothing.
+     * different login per endpoint — and the disagreement is not merely REST vs GraphQL,
+     * the two REST endpoints differ from each other. One account, user id 175728472:
+     * `Copilot` on `/repos/{o}/{r}/pulls/comments`,
+     * `copilot-pull-request-reviewer[bot]` on `/repos/{o}/{r}/pulls/{n}/reviews`, and
+     * `copilot-pull-request-reviewer` in GraphQL. An exact-match filter would silently
+     * match nothing as soon as the user took the login from a different endpoint.
      *
      * @param {String} [login] the `user.login` of the item
      * @param {String} [filter] comma-separated logins or fragments of logins

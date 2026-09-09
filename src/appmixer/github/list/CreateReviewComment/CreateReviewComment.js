@@ -3,8 +3,9 @@
 const lib = require('../../lib');
 
 /**
- * Component for creating an inline review comment on a line of a pull request diff —
- * the counterpart of Submit Review, which comments on the pull request as a whole.
+ * Component for creating a review comment on a pull request — anchored to a line of the
+ * diff, or to a whole file. The counterpart of Submit Review, which comments on the pull
+ * request as a whole.
  * @extends {Component}
  */
 module.exports = {
@@ -16,6 +17,7 @@ module.exports = {
             pullRequestNumber,
             body,
             path,
+            subjectType = 'line',
             line,
             side = 'RIGHT',
             startLine,
@@ -35,8 +37,8 @@ module.exports = {
         if (!path) {
             throw new context.CancelError('File Path is required!');
         }
-        if (!line) {
-            throw new context.CancelError('Line is required!');
+        if (subjectType !== 'file' && !line) {
+            throw new context.CancelError('Line is required when commenting on a line of the diff!');
         }
 
         // GitHub anchors the comment to a specific commit and rejects the request without
@@ -56,16 +58,19 @@ module.exports = {
             }
         }
 
-        const comment = {
-            body,
-            commit_id: commit,
-            path,
-            line: Number(line),
-            side
-        };
-        if (startLine) {
-            comment.start_line = Number(startLine);
-            comment.start_side = startSide || side;
+        const comment = { body, commit_id: commit, path };
+
+        if (subjectType === 'file') {
+            // A file-level comment carries no position at all; sending one alongside
+            // subject_type: 'file' is what GitHub rejects.
+            comment.subject_type = 'file';
+        } else {
+            comment.line = Number(line);
+            comment.side = side;
+            if (startLine) {
+                comment.start_line = Number(startLine);
+                comment.start_side = startSide || side;
+            }
         }
 
         const { data } = await lib.apiRequest(

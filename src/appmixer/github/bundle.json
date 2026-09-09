@@ -21,7 +21,7 @@
             "Added output examples to component schemas."
         ],
         "3.0.0": [
-            "(breaking change) MakeApiCall: headers and parameters changed to key-value array inputs (body remains textarea/JSON to support nested structures) per standard #1459 \u2014 existing flows that used the old string/textarea headers or parameters must be updated"
+            "(breaking change) MakeApiCall: headers and parameters changed to key-value array inputs (body remains textarea/JSON to support nested structures) per standard #1459 — existing flows that used the old string/textarea headers or parameters must be updated"
         ],
         "3.1.0": [
             "Added test() (Flow Test Mode) to all triggers: NewStargazer, NewCommitComment, NewTeam, NewOrganization, NewMilestone, NewNotification, NewBranch, NewWatcher, NewRelease, NewRepository, NewCollaborator, NewGist, NewReviewRequest, NewPullRequest, NewIssue, NewGlobalEvent, NewCommit, NewLabel, NewEvent."
@@ -37,10 +37,11 @@
         ],
         "3.3.0": [
             "Added pull request comment triggers: NewPullRequestReviewComment (inline comments on the diff, repository-wide, with pull request / author / bots-vs-humans filters), NewIssueComment (conversation comments on pull requests and issues, with a 'comment on' filter because GitHub's repository-wide payload does not say which of the two it is) and NewReview (a submitted review with its state, the only way to catch an approval that carries a body but no inline comments).",
-            "Added pull request review actions: ReplyToReviewComment (reply inside a review thread), CreateReviewComment (inline comment on a line of the diff), FindReviewComments and ListReviews.",
-            "Added GraphQL review thread components: ListReviewThreads (thread ID, isResolved, isOutdated, path) plus ResolveReviewThread and UnresolveReviewThread. Thread resolution has no REST equivalent.",
-            "Author filters match logins case-insensitively as substrings: the same actor has a different login on each GitHub API surface (Copilot is 'Copilot' over REST but 'copilot-pull-request-reviewer' over GraphQL), so an exact-match filter would silently match nothing.",
-            "Clarified the descriptions of CreateComment, ListComments, UpdateComment, SubmitReview and NewCommitComment so the three unrelated things GitHub calls a 'comment' (issue, review and commit comments) can be told apart."
+            "Added pull request review actions: ReplyToReviewComment (reply inside a review thread), CreateReviewComment (comment on a line of the diff or on a whole file), FindReviewComments and ListReviews.",
+            "Added GraphQL review thread components: ListReviewThreads (thread ID, isResolved, isOutdated, path, filterable by resolved state) plus ResolveReviewThread and UnresolveReviewThread. Thread resolution has no REST equivalent.",
+            "Author filters match logins case-insensitively as substrings: one account is reported under a different login per endpoint, and the two REST endpoints disagree with each other - Copilot's reviewer (user id 175728472) is 'Copilot' on /pulls/comments, 'copilot-pull-request-reviewer[bot]' on /pulls/{n}/reviews and 'copilot-pull-request-reviewer' in GraphQL, so an exact-match filter would silently match nothing.",
+            "Clarified the descriptions of CreateComment, ListComments, UpdateComment, SubmitReview and NewCommitComment so the three unrelated things GitHub calls a 'comment' (issue, review and commit comments) can be told apart.",
+            "NewReview scans recently updated pull requests in any state, not only open ones: approving a pull request and merging it is the most common review event, and an open-only scan lost that review for good because the pull request left the window before the next tick. NewPullRequestReviewComment now emits pull_request_number alongside the raw payload, so its output feeds ReplyToReviewComment and CreateReviewComment directly."
         ]
     }
 }
