@@ -1,0 +1,447 @@
+{
+    "name": "E2E AI OpenAI - Embeddings",
+    "type": "automation",
+    "flow": {
+        "60033faa-b59b-4bc3-907a-8c5cc58549d9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {}
+        },
+        "afcac755-d900-4422-aa40-c502c78f12e8": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "60033faa-b59b-4bc3-907a-8c5cc58549d9": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "60033faa-b59b-4bc3-907a-8c5cc58549d9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "embeddingText",
+                                                "text": "Appmixer is an embedded integration platform. It lets product teams add native integrations to their SaaS application without building each connector from scratch. Flows are composed of components that pass messages to each other over typed ports."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ae9c3db8-d3ff-495f-9e0e-410778ebd2c3": {
+            "type": "appmixer.ai.openai.GenerateEmbeddings",
+            "x": 480,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "afcac755-d900-4422-aa40-c502c78f12e8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "afcac755-d900-4422-aa40-c502c78f12e8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "text": {
+                                        "46136267-7e45-4a82-91a8-2a2441bdb8ed": {
+                                            "variable": "$.afcac755-d900-4422-aa40-c502c78f12e8.out.embeddingText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "model": {},
+                                    "chunkSize": {},
+                                    "chunkOverlap": {}
+                                },
+                                "lambda": {
+                                    "text": "{{{46136267-7e45-4a82-91a8-2a2441bdb8ed}}}",
+                                    "model": "text-embedding-3-small",
+                                    "chunkSize": 100,
+                                    "chunkOverlap": 20
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0a0704de-bbc9-4d9f-b996-5094b31db4ca": {
+            "type": "appmixer.utils.files.SaveFile",
+            "x": 480,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "afcac755-d900-4422-aa40-c502c78f12e8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "afcac755-d900-4422-aa40-c502c78f12e8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filename": {},
+                                    "mimetype": {},
+                                    "content": {
+                                        "3404f732-c4df-4216-92ec-a04e0b703641": {
+                                            "variable": "$.afcac755-d900-4422-aa40-c502c78f12e8.out.embeddingText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "contentEncoding": {}
+                                },
+                                "lambda": {
+                                    "filename": "openai-e2e-embeddings.txt",
+                                    "mimetype": "text/plain",
+                                    "content": "{{{3404f732-c4df-4216-92ec-a04e0b703641}}}",
+                                    "contentEncoding": "utf8"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "cd43a704-3215-4e82-b38a-15f21e50a61c": {
+            "type": "appmixer.ai.openai.GenerateEmbeddingsFromFile",
+            "x": 688,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0a0704de-bbc9-4d9f-b996-5094b31db4ca": [
+                        "file"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0a0704de-bbc9-4d9f-b996-5094b31db4ca": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "8fa32bb6-33d9-44e5-b2bd-df769364e9cf": {
+                                            "variable": "$.0a0704de-bbc9-4d9f-b996-5094b31db4ca.file.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "model": {},
+                                    "chunkSize": {},
+                                    "chunkOverlap": {}
+                                },
+                                "lambda": {
+                                    "fileId": "{{{8fa32bb6-33d9-44e5-b2bd-df769364e9cf}}}",
+                                    "model": "text-embedding-3-small",
+                                    "chunkSize": 100,
+                                    "chunkOverlap": 20
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e747090f-08e6-4184-9941-bc9d03048200": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ae9c3db8-d3ff-495f-9e0e-410778ebd2c3": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ae9c3db8-d3ff-495f-9e0e-410778ebd2c3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e98dcfd9-68a4-446f-817f-5ce3915d0524": {
+                                            "variable": "$.ae9c3db8-d3ff-495f-9e0e-410778ebd2c3.out.embeddings",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "c19723c1-b274-4ee3-942a-9d2a0a3fcf24": {
+                                            "variable": "$.ae9c3db8-d3ff-495f-9e0e-410778ebd2c3.out.embeddings",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].index"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "57e03965-0a22-472a-98e6-59d44c5d9d0a": {
+                                            "variable": "$.ae9c3db8-d3ff-495f-9e0e-410778ebd2c3.out.firstVector",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{e98dcfd9-68a4-446f-817f-5ce3915d0524}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{c19723c1-b274-4ee3-942a-9d2a0a3fcf24}}}",
+                                                "assertion": "regex",
+                                                "regex": "^0$"
+                                            },
+                                            {
+                                                "field": "{{{57e03965-0a22-472a-98e6-59d44c5d9d0a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b6aef9f5-d93f-42f6-95ad-f7339a8e9eba": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cd43a704-3215-4e82-b38a-15f21e50a61c": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cd43a704-3215-4e82-b38a-15f21e50a61c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "fcbbf149-6d34-4e21-a7e5-87f72fea21ec": {
+                                            "variable": "$.cd43a704-3215-4e82-b38a-15f21e50a61c.out.embeddings",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "70358c62-7455-4caa-ad57-91573ae92b8c": {
+                                            "variable": "$.cd43a704-3215-4e82-b38a-15f21e50a61c.out.firstVector",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{fcbbf149-6d34-4e21-a7e5-87f72fea21ec}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{70358c62-7455-4caa-ad57-91573ae92b8c}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f29ffa54-7cbb-4af7-88e5-7c837d71f815": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e747090f-08e6-4184-9941-bc9d03048200": [
+                        "out"
+                    ],
+                    "b6aef9f5-d93f-42f6-95ad-f7339a8e9eba": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "46231056-1dfd-4cc8-9162-c13bd9a1b313": {
+            "type": "appmixer.utils.files.RemoveFile",
+            "x": 1312,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f29ffa54-7cbb-4af7-88e5-7c837d71f815": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f29ffa54-7cbb-4af7-88e5-7c837d71f815": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "77c7d625-365d-45fa-8ff4-f5794ec31088": {
+                                            "variable": "$.0a0704de-bbc9-4d9f-b996-5094b31db4ca.file.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{77c7d625-365d-45fa-8ff4-f5794ec31088}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f024c6ef-5530-4ffc-a449-60fe5ddf2f55": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "46231056-1dfd-4cc8-9162-c13bd9a1b313": [
+                        "deleted"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "46231056-1dfd-4cc8-9162-c13bd9a1b313": {
+                            "deleted": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "8caf3297-0f7b-45b4-8613-82cc553c7cb5": {
+                                            "variable": "$.f29ffa54-7cbb-4af7-88e5-7c837d71f815.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E AI OpenAI - Embeddings",
+                                    "result": "{{{8caf3297-0f7b-45b4-8613-82cc553c7cb5}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

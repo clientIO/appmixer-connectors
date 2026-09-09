@@ -1,0 +1,619 @@
+{
+    "name": "E2E AI OpenAI - Media",
+    "type": "automation",
+    "flow": {
+        "f8024efb-b6dd-40ed-a79c-5cb4213e33bd": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {}
+        },
+        "c5ae294c-9089-4e86-a7e2-68c22d459124": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f8024efb-b6dd-40ed-a79c-5cb4213e33bd": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f8024efb-b6dd-40ed-a79c-5cb4213e33bd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "imagePrompt",
+                                                "text": "A single red bicycle leaning against a plain brick wall, photograph."
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "speechText",
+                                                "text": "Appmixer end to end test of the OpenAI speech endpoint."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c20ad126-f379-4e0e-a296-9c6059f625a8": {
+            "type": "appmixer.ai.openai.GenerateImage",
+            "x": 480,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c5ae294c-9089-4e86-a7e2-68c22d459124": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c5ae294c-9089-4e86-a7e2-68c22d459124": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "prompt": {
+                                        "59ccc9d6-1e90-4176-9148-229999794e25": {
+                                            "variable": "$.c5ae294c-9089-4e86-a7e2-68c22d459124.out.imagePrompt",
+                                            "functions": []
+                                        }
+                                    },
+                                    "size": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "prompt": "{{{59ccc9d6-1e90-4176-9148-229999794e25}}}",
+                                    "size": "1024x1024",
+                                    "model": "gpt-image-1-mini"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "56eddf71-1932-426c-952f-d9263415275f": {
+            "type": "appmixer.ai.openai.DescribeImages",
+            "x": 688,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c20ad126-f379-4e0e-a296-9c6059f625a8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c20ad126-f379-4e0e-a296-9c6059f625a8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "prompt": {},
+                                    "images": {
+                                        "8e03b4d1-091d-4847-a28b-c6ab122926fb": {
+                                            "variable": "$.c20ad126-f379-4e0e-a296-9c6059f625a8.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "prompt": "What single object is in this image? Answer with one word.",
+                                    "images": {
+                                        "ADD": [
+                                            {
+                                                "fileId": "{{{8e03b4d1-091d-4847-a28b-c6ab122926fb}}}"
+                                            }
+                                        ]
+                                    },
+                                    "model": "gpt-4o-mini"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "223c60b2-f4d9-4047-912f-480b424225b8": {
+            "type": "appmixer.ai.openai.CreateSpeech",
+            "x": 480,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c5ae294c-9089-4e86-a7e2-68c22d459124": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c5ae294c-9089-4e86-a7e2-68c22d459124": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "input": {
+                                        "27359286-8cc8-4c35-b928-86e5881564b7": {
+                                            "variable": "$.c5ae294c-9089-4e86-a7e2-68c22d459124.out.speechText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "voice": {},
+                                    "responseFormat": {},
+                                    "speed": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "input": "{{{27359286-8cc8-4c35-b928-86e5881564b7}}}",
+                                    "voice": "alloy",
+                                    "responseFormat": "mp3",
+                                    "speed": 1,
+                                    "model": "tts-1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f828db09-56c5-4b71-9c8d-ef53bfd79c03": {
+            "type": "appmixer.ai.openai.CreateTranscription",
+            "x": 688,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "223c60b2-f4d9-4047-912f-480b424225b8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "223c60b2-f4d9-4047-912f-480b424225b8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "30d535ab-0765-426a-afae-f2aa220a77f4": {
+                                            "variable": "$.223c60b2-f4d9-4047-912f-480b424225b8.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "responseFormat": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "fileId": "{{{30d535ab-0765-426a-afae-f2aa220a77f4}}}",
+                                    "responseFormat": "text",
+                                    "model": "whisper-1"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "08de8066-714f-40d3-8917-01d5785b4902": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c20ad126-f379-4e0e-a296-9c6059f625a8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c20ad126-f379-4e0e-a296-9c6059f625a8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "356f426e-9e5d-49f3-af42-4f0694833bd1": {
+                                            "variable": "$.c20ad126-f379-4e0e-a296-9c6059f625a8.out.fileId",
+                                            "functions": []
+                                        },
+                                        "52c53e68-3cb7-426e-8b17-738434537622": {
+                                            "variable": "$.c20ad126-f379-4e0e-a296-9c6059f625a8.out.size",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{356f426e-9e5d-49f3-af42-4f0694833bd1}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{52c53e68-3cb7-426e-8b17-738434537622}}}",
+                                                "assertion": "equal",
+                                                "expected": "1024x1024"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "3cfe0ee9-c831-4827-8e16-b5ef111ab48b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "56eddf71-1932-426c-952f-d9263415275f": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "56eddf71-1932-426c-952f-d9263415275f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ac85f12f-4846-4731-91cc-988a0584cf5a": {
+                                            "variable": "$.56eddf71-1932-426c-952f-d9263415275f.out.answer",
+                                            "functions": []
+                                        },
+                                        "eb834383-c07f-447c-8212-9a4c618f50f1": {
+                                            "variable": "$.56eddf71-1932-426c-952f-d9263415275f.out.prompt",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ac85f12f-4846-4731-91cc-988a0584cf5a}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{eb834383-c07f-447c-8212-9a4c618f50f1}}}",
+                                                "assertion": "equal",
+                                                "expected": "What single object is in this image? Answer with one word."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ad2c3a4b-4781-4380-a5a2-cbcbdf13ecb0": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 432,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "223c60b2-f4d9-4047-912f-480b424225b8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "223c60b2-f4d9-4047-912f-480b424225b8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0d84c97c-166c-4b14-8cd0-358d50983139": {
+                                            "variable": "$.223c60b2-f4d9-4047-912f-480b424225b8.out.fileId",
+                                            "functions": []
+                                        },
+                                        "7634e503-a648-42be-87a6-5decba376e2d": {
+                                            "variable": "$.223c60b2-f4d9-4047-912f-480b424225b8.out.fileSize",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0d84c97c-166c-4b14-8cd0-358d50983139}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{7634e503-a648-42be-87a6-5decba376e2d}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b713a587-e762-4a8f-be35-adaf51a614fc": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f828db09-56c5-4b71-9c8d-ef53bfd79c03": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f828db09-56c5-4b71-9c8d-ef53bfd79c03": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "8b161808-072d-4277-aae0-001e01fdc821": {
+                                            "variable": "$.f828db09-56c5-4b71-9c8d-ef53bfd79c03.out.text",
+                                            "functions": []
+                                        },
+                                        "0c834362-612f-46b1-b976-1ba452f75d66": {
+                                            "variable": "$.f828db09-56c5-4b71-9c8d-ef53bfd79c03.out.text",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{8b161808-072d-4277-aae0-001e01fdc821}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{0c834362-612f-46b1-b976-1ba452f75d66}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Aa]pp[Mm]ixer"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "fe34aafa-28ae-4c1b-8536-f5858b12caa2": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "08de8066-714f-40d3-8917-01d5785b4902": [
+                        "out"
+                    ],
+                    "3cfe0ee9-c831-4827-8e16-b5ef111ab48b": [
+                        "out"
+                    ],
+                    "ad2c3a4b-4781-4380-a5a2-cbcbdf13ecb0": [
+                        "out"
+                    ],
+                    "b713a587-e762-4a8f-be35-adaf51a614fc": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "aaf63603-9db0-4d4f-af58-e3ff344172b3": {
+            "type": "appmixer.utils.files.RemoveFile",
+            "x": 1312,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "fe34aafa-28ae-4c1b-8536-f5858b12caa2": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fe34aafa-28ae-4c1b-8536-f5858b12caa2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "607dc432-f4e4-4da3-8926-de5e939c26d7": {
+                                            "variable": "$.c20ad126-f379-4e0e-a296-9c6059f625a8.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{607dc432-f4e4-4da3-8926-de5e939c26d7}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "2b7216b6-19fa-4708-bc27-7ed054466e50": {
+            "type": "appmixer.utils.files.RemoveFile",
+            "x": 1520,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "aaf63603-9db0-4d4f-af58-e3ff344172b3": [
+                        "deleted"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aaf63603-9db0-4d4f-af58-e3ff344172b3": {
+                            "deleted": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "aecb77d9-5cfe-4dbb-a975-a01220f893ce": {
+                                            "variable": "$.223c60b2-f4d9-4047-912f-480b424225b8.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{aecb77d9-5cfe-4dbb-a975-a01220f893ce}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c5e8e22e-9d61-4fe0-811c-883de505cbfa": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2b7216b6-19fa-4708-bc27-7ed054466e50": [
+                        "deleted"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "2b7216b6-19fa-4708-bc27-7ed054466e50": {
+                            "deleted": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "1bada570-361e-4791-a06c-7923f11f6458": {
+                                            "variable": "$.fe34aafa-28ae-4c1b-8536-f5858b12caa2.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E AI OpenAI - Media",
+                                    "result": "{{{1bada570-361e-4791-a06c-7923f11f6458}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -156,6 +156,11 @@ async function startHttpsTestServer(options = {}) {
                 url,
                 close: () => {
                     return new Promise((resolveClose) => {
+                        // Node < 19 does not close idle keep-alive connections on close(),
+                        // so the undici agent's pooled sockets would keep the server alive.
+                        if (typeof server.closeAllConnections === 'function') {
+                            server.closeAllConnections();
+                        }
                         server.close(resolveClose);
                     });
                 }

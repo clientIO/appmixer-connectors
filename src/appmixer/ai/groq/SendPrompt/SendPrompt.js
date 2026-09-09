@@ -1,12 +1,21 @@
 'use strict';
 
+const lib = require('../lib');
+
+// Rough word-count stand-in for real token accounting; only used to decide when
+// to trim the stored conversation history.
+const APPROX_TOKEN_LIMIT = 4000;
+const countTokens = messages => messages.reduce((sum, msg) => sum + msg.content.split(' ').length, 0);
+
 module.exports = {
-    receive: async function(context) {
+
+    async receive(context) {
+
         const {
-            conversationId,
-            instructions,
             prompt,
+            instructions,
             model,
+            conversationId,
             frequencyPenalty,
             maxCompletionTokens,
             presencePenalty,
@@ -14,12 +23,11 @@ module.exports = {
             topP
         } = context.messages.in.content;
 
-        // Validate required inputs
-        if (!model) {
-            throw new context.CancelError('Model is required!');
-        }
         if (!prompt) {
             throw new context.CancelError('Prompt is required!');
+        }
+        if (!model) {
+            throw new context.CancelError('Model is required!');
         }
 
         let messages = [];
@@ -30,7 +38,7 @@ module.exports = {
         }
 
         // Load previous conversation history
-        let stateMessages = [];
+        let stateMessages = null;
         if (conversationId) {
             stateMessages = await context.flow.stateGet(conversationId);
             if (stateMessages?.messages) {
@@ -41,63 +49,59 @@ module.exports = {
         // Add current user prompt
         messages.push({ role: 'user', content: prompt });
 
-        // Prepare request to Groq
-        const req = {
-            method: 'POST',
-            url: 'https://api.groq.com/openai/v1/chat/completions',
-            headers: {
-                accept: 'application/json',
-                'content-type': 'application/json',
-                Authorization: `Bearer ${context.auth.apiKey}`
-            },
-            data: {
-                model,
-                messages,
-                frequency_penalty: frequencyPenalty,
-                presence_penalty: presencePenalty,
-                temperature: temperature,
-                top_p: topP,
-                ...(maxCompletionTokens !== undefined ? { max_completion_tokens: maxCompletionTokens } : {})
-            }
+        const data = {
+            model,
+            messages,
+            frequency_penalty: frequencyPenalty,
+            presence_penalty: presencePenalty,
+            temperature,
+            top_p: topP,
+            max_completion_tokens: maxCompletionTokens
         };
 
-        await context.log({ step: 'Making request', req });
+        // Remove undefined optional parameters.
+        Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
 
-        const { data } = await context.httpRequest(req);
-        const assistantReply = data?.choices?.[0]?.message?.content || '[No reply generated]';
+        await context.log({ step: 'Making request', model, messageCount: messages.length });
+
+        // https://console.groq.com/docs/api-reference#chat-create
+        const { data: response } = await lib.request({
+            context,
+            method: 'POST',
+            path: '/chat/completions',
+            data
+        });
+
+        const choice = response.choices?.[0];
+        const answer = choice?.message?.content || '[No reply generated]';
 
         const newMessages = [
             { role: 'user', content: prompt },
-            { role: 'assistant', content: assistantReply }
+            { role: 'assistant', content: answer }
         ];
-
-        // Count tokens for new messages
-        const newTokens = newMessages.reduce((sum, msg) => sum + msg.content.split(' ').length, 0);
 
         // Update conversation state
         if (conversationId) {
-            let totalTokens = newTokens;
             const existingMessages = stateMessages?.messages || [];
+            let totalTokens = countTokens(newMessages) + countTokens(existingMessages);
 
-            totalTokens += existingMessages.reduce((sum, msg) => sum + msg.content.split(' ').length, 0);
-
-            // Trim if token limit exceeded (4k tokens)
-            while (totalTokens > 4000 && existingMessages.length > 0) {
+            // Trim the oldest turns once the approximate limit is exceeded.
+            while (totalTokens > APPROX_TOKEN_LIMIT && existingMessages.length > 0) {
                 const removed = existingMessages.shift();
                 totalTokens -= removed.content.split(' ').length;
             }
 
-            const updatedMessages = existingMessages.concat(newMessages);
-            await context.flow.stateSet(conversationId, { messages: updatedMessages });
+            await context.flow.stateSet(conversationId, { messages: existingMessages.concat(newMessages) });
         }
 
-        // Format output for connector
-        const outputData = {
-            ...data,
-            choices: data.choices?.[0]
-        };
-
-        await context.log({ step: 'Response', outputData });
-        return context.sendJson(outputData, 'out');
+        return context.sendJson({
+            answer,
+            prompt,
+            id: response.id,
+            model: response.model,
+            created: response.created,
+            finishReason: choice?.finish_reason,
+            usage: response.usage
+        }, 'out');
     }
 };
