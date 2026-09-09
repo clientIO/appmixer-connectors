@@ -49,7 +49,10 @@ Preconditions the flows assume on the connected account:
 - `E2E GitHub - Project Board`: a user-owned board of the connected account
   (`project` scope for `UpdateProjectItemField`).
 - `E2E GitHub - On Project Item Changed Trigger`: `admin:org_hook` + `read:org`
-  + `project` on an organization the account administers, and an organization
-  board whose title contains `Appmixer E2E` with at least one item whose
-  `Status` is not the first option (the flow moves it to the first option and
-  the cleanup moves it back).
+  + `project` on an organization the account owns (the OAuth app must be
+  granted in the organization's third-party access policy), and an
+  organization board whose title contains `Appmixer E2E` with a `Backlog`
+  Status option and at least one item. The flow parks the item in the second
+  Status option, moves it to `Backlog`, asserts the `edited` delivery, and the
+  cleanup moves it back; a Condition on `changes.field_value.to == Backlog`
+  keeps the cleanup's own delivery from re-triggering the harness.
