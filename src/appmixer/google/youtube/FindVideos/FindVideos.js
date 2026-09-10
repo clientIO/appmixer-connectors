@@ -88,10 +88,7 @@ module.exports = {
             return context.sendJson({ items: videos }, 'out');
         }
 
-        // Headers come from the first record, so an empty result has no shape to
-        // describe — write a header-less CSV rather than throwing on
-        // Object.keys(undefined).
-        const headers = videos.length ? Object.keys(videos[0]) : [];
+        const headers = Object.keys(videos[0]);
         const csvRows = [headers.join(',')];
 
         for (const video of videos) {
