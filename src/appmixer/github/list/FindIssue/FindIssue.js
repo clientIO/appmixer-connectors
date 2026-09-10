@@ -9,20 +9,24 @@ const ITEM_SCHEMA = {
     'type': 'object',
     'properties': {
         'id': {
-            'type': 'string',
-            'title': 'Issue ID'
+            'type': 'integer',
+            'title': 'Issue ID',
+            'example': 3412345678
         },
         'title': {
             'type': 'string',
-            'title': 'Title'
+            'title': 'Title',
+            'example': 'Login page returns 500 after password reset'
         },
         'state': {
             'type': 'string',
-            'title': 'State'
+            'title': 'State',
+            'example': 'open'
         },
         'url': {
             'type': 'string',
-            'title': 'URL'
+            'title': 'URL',
+            'example': 'https://api.github.com/repos/octo-org/octo-repo/issues/1347'
         }
     }
 };
