@@ -12,13 +12,15 @@ Copilot submits a review in this repo, which starts
 
 ### Why it exists
 
-The responder's original entry point is a `pull_request_review` event. That run
-is raised by the **Copilot bot**, which is not a repo collaborator, on a PR whose
-head lives in the **apx-vero fork** — so it falls under *Fork pull request
-workflows from outside collaborators* and sits on "Approve and run" until a
-maintainer clicks it. The `workflow_run` child inherits `actor=Copilot` and is
-gated too. Every blocked run this repo has had was raised by `Copilot`; nothing
-else is ever gated.
+The responder used to start from a `pull_request_review` event, captured by a
+separate trigger workflow and handed over through `workflow_run`. That run is
+raised by the **Copilot bot**, which is not a repo collaborator, on a PR whose
+head lives in the **apx-vero fork** — so it fell under *Fork pull request
+workflows from outside collaborators* and sat on "Approve and run" until a
+maintainer clicked it; the `workflow_run` child inherited `actor=Copilot` and was
+gated too. Every blocked run this repo ever had was raised by `Copilot`. The
+trigger workflow and the `workflow_run` hop are removed; this flow is the only
+automatic entry point, and `workflow_dispatch` remains for manual runs.
 
 `repository_dispatch` runs are raised by the **dispatching token's owner**, always
 run on the default branch and always receive secrets, so they are never gated.
@@ -55,7 +57,23 @@ so in its log, which is cheaper than an extra lookup per review here.
   requires it. `apx-vero` only has `triage`, so bind a writer's account.
 - The connector must be published at **github 3.3.0 or newer**; New Review and
   the `pull_request_number` field on its output landed there.
-- Import with the account bound, then start it.
+- Import with the account bound, then start it. The flow carries designer
+  notes that repeat the points below next to the components they concern.
+
+### When it breaks
+
+- **Dispatch fails with 403 "OAuth App access restrictions".** The
+  `Appmixer-ai` org has no grant for the Appmixer GitHub OAuth app (client
+  `1c0ed414fe35895cb5ce`) — reads of the public repo still work, which is why
+  the trigger looks healthy. An org owner approves the app; then the account
+  must be **re-authorized** in Appmixer, because the old token does not pick up
+  the grant. Re-authorizing stops flows bound to the account — start this one
+  again.
+- **Failed dispatches** land in the instance's dead-letter queue
+  (`storeUnprocessed`). Retry them only while the flow is running: a retry
+  delivered to a stopped flow leaves the queue and is lost.
+- **Manual fallback:** run the responder from the Actions tab
+  (`workflow_dispatch`) with a PR number, and optionally a review id.
 
 ### Duplicates
 
