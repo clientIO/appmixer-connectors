@@ -132,6 +132,19 @@ describe('utils.timers.SchedulerTrigger', () => {
                 assert.equal(nextRun.toISOString(), '2025-05-15T09:00:00.000Z', '2nd run');
             });
 
+            // Array-form values arrive untrimmed (normalizeMultiselectInput trims only the
+            // comma-separated string form), so parseDayOfMonth must trim before matching the sentinel.
+            it('accept an untrimmed last-day sentinel in array form', async () => {
+                context.properties = {
+                    scheduleType: 'months',
+                    daysOfMonth: [' last day of the month '],
+                    time: '16:25'
+                };
+
+                const nextRun = scheduleTrigger.getNextRun(context, { now: NOW });
+                assert.equal(nextRun.toISOString(), '2025-04-30T16:25:00.000Z');
+            });
+
             it('reject a day of the month that does not exist in every month', async () => {
                 context.properties = {
                     scheduleType: 'months',

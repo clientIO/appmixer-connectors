@@ -16,11 +16,16 @@ const LAST_DAY_OF_MONTH = 'last day of the month';
 // next month (April 31 -> May 1), turning the schedule into a drifting one, so reject it loudly.
 const parseDayOfMonth = (day, context) => {
 
-    if (day === LAST_DAY_OF_MONTH) {
+    // normalizeMultiselectInput() trims the comma-separated string form per item but returns arrays
+    // as-is, so an API/imported flow can hand us untrimmed values like ' last day of the month '.
+    // Trim here so both the sentinel and numeric branches accept the same values regardless of form.
+    const trimmed = String(day).trim();
+
+    if (trimmed === LAST_DAY_OF_MONTH) {
         return LAST_DAY_OF_MONTH;
     }
 
-    const parsed = Number(String(day).trim());
+    const parsed = Number(trimmed);
     if (!Number.isInteger(parsed) || parsed < 1 || parsed > 28) {
         throw new context.CancelError(
             `Invalid Days of Month value '${day}'. Use a day between 1 and 28, or '${LAST_DAY_OF_MONTH}'.`
