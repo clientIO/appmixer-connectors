@@ -1,0 +1,319 @@
+{
+    "name": "E2E Utils Timers - Scheduler schedule types",
+    "description": "End-to-end test for appmixer.utils.timers.SchedulerTrigger - regression cover for the schedule types that are NOT 'Days of Month': Daily, Days of Week and Custom Interval. Each sourceless Scheduler fires immediately at flow start and asserts the shape and the time-of-day of the computed next run.",
+    "type": "automation",
+    "flow": {
+        "496f5f69-f009-49e3-8f24-09c92b93b7d1": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "On Start",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1d740201-51e0-4b7b-be1b-e822c28bd461": {
+            "type": "appmixer.utils.timers.SchedulerTrigger",
+            "label": "Scheduler daily",
+            "x": 64,
+            "y": 144,
+            "source": {},
+            "config": {
+                "properties": {
+                    "scheduleType": "days",
+                    "time": "07:45",
+                    "timezone": "GMT",
+                    "immediate": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "08308601-5fe9-4274-80b4-7efbeaf5c101": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert daily run at 07:45 GMT",
+            "x": 272,
+            "y": 144,
+            "source": {
+                "in": {
+                    "1d740201-51e0-4b7b-be1b-e822c28bd461": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1d740201-51e0-4b7b-be1b-e822c28bd461": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-next-date-daily": {
+                                            "variable": "$.1d740201-51e0-4b7b-be1b-e822c28bd461.out.nextDateGMT",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-next-date-daily}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T07:45:00\\.000Z$",
+                                                "label": "Daily schedule keeps the configured time of day"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2ff7a6d4-99af-47a9-9b64-d3c0c2b0cb57": {
+            "type": "appmixer.utils.timers.SchedulerTrigger",
+            "label": "Scheduler days of week",
+            "x": 64,
+            "y": 272,
+            "source": {},
+            "config": {
+                "properties": {
+                    "scheduleType": "weeks",
+                    "daysOfWeek": [
+                        "monday",
+                        "thursday"
+                    ],
+                    "time": "18:20",
+                    "timezone": "GMT",
+                    "immediate": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "459b434b-a3e6-4857-aa1e-b79470f7e6d8": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert weekly run at 18:20 GMT",
+            "x": 272,
+            "y": 272,
+            "source": {
+                "in": {
+                    "2ff7a6d4-99af-47a9-9b64-d3c0c2b0cb57": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2ff7a6d4-99af-47a9-9b64-d3c0c2b0cb57": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-next-date-weekly": {
+                                            "variable": "$.2ff7a6d4-99af-47a9-9b64-d3c0c2b0cb57.out.nextDateGMT",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-next-date-weekly}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T18:20:00\\.000Z$",
+                                                "label": "Days of Week schedule keeps the configured time of day"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "37070e81-d9b3-451a-8443-e23bef038c81": {
+            "type": "appmixer.utils.timers.SchedulerTrigger",
+            "label": "Scheduler custom interval",
+            "x": 64,
+            "y": 400,
+            "source": {},
+            "config": {
+                "properties": {
+                    "scheduleType": "custom",
+                    "customIntervalUnit": "hours",
+                    "customIntervalValue": 6,
+                    "timezone": "GMT",
+                    "immediate": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cb806bba-bd65-4275-825d-04f0ad5ad2fd": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert custom interval run",
+            "x": 272,
+            "y": 400,
+            "source": {
+                "in": {
+                    "37070e81-d9b3-451a-8443-e23bef038c81": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "37070e81-d9b3-451a-8443-e23bef038c81": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ref-next-date-custom": {
+                                            "variable": "$.37070e81-d9b3-451a-8443-e23bef038c81.out.nextDateGMT",
+                                            "functions": []
+                                        },
+                                        "ref-timezone-custom": {
+                                            "variable": "$.37070e81-d9b3-451a-8443-e23bef038c81.out.timezone",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ref-next-date-custom}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$",
+                                                "label": "Custom interval schedule emits a well-formed next run timestamp"
+                                            },
+                                            {
+                                                "field": "{{{ref-timezone-custom}}}",
+                                                "assertion": "equal",
+                                                "expected": "GMT",
+                                                "label": "Scheduler reports the configured timezone"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b5c20b4a-58c5-4a8c-a9b7-6f3cb4f4ef9f": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "After All",
+            "x": 480,
+            "y": 272,
+            "source": {
+                "in": {
+                    "496f5f69-f009-49e3-8f24-09c92b93b7d1": [
+                        "out"
+                    ],
+                    "08308601-5fe9-4274-80b4-7efbeaf5c101": [
+                        "out"
+                    ],
+                    "459b434b-a3e6-4857-aa1e-b79470f7e6d8": [
+                        "out"
+                    ],
+                    "cb806bba-bd65-4275-825d-04f0ad5ad2fd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7b75f328-d5fb-458f-b237-b5f4825de9d0": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "Process E2E Results",
+            "x": 688,
+            "y": 272,
+            "source": {
+                "in": {
+                    "b5c20b4a-58c5-4a8c-a9b7-6f3cb4f4ef9f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "b5c20b4a-58c5-4a8c-a9b7-6f3cb4f4ef9f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "ref-result-schedule-types": {
+                                            "variable": "$.b5c20b4a-58c5-4a8c-a9b7-6f3cb4f4ef9f.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Utils Timers - Scheduler schedule types",
+                                    "result": "{{{ref-result-schedule-types}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "fbfc3251-1a40-4a69-a11a-6bf720a58fea": {
+            "x": 64,
+            "y": 512,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ How this flow fires\n\nThe three Scheduler triggers are **sourceless** and all carry `Trigger immediately = true`, so each emits one payload with the computed `Next Date GMT` at flow start and the flow finishes in seconds instead of waiting for the real schedule.\n\n**Do not turn `Trigger immediately` off** — the triggers would emit nothing and the flow would hang until the AfterAll timeout.\n\nThis flow is the companion of *E2E Utils Timers - Scheduler days of month*: it guards the Daily / Days of Week / Custom Interval branches of `getNextRun()` that the Days of Month fix (issue #2846) sits next to. Assertions are date-independent — they check the shape of the timestamp and the configured time of day, never a specific date.\n\nNo account and no tenant data are required."
+        }
+    }
+}
