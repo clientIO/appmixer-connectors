@@ -1,12 +1,23 @@
 {
     "fixtures": {
-        "messageId": { "from": "mail/ListEmails", "path": "id", "inputs": { "outputType": "email" } }
+        "messageId": { "from": "mail/ListEmails", "path": "id", "inputs": { "outputType": "email" } },
+        "attachmentMessageId": {
+            "from": "mail/MakeApiCall",
+            "path": "body.value.0.id",
+            "inputs": { "url": "/me/messages?$filter=hasAttachments%20eq%20true&$top=1&$select=id", "method": "GET" }
+        },
+        "attachmentId": {
+            "from": "mail/GetAttachments",
+            "path": "id",
+            "inputs": { "messageId": "{attachmentMessageId}", "outputType": "attachment" }
+        }
     },
     "read": [
         { "component": "ListFolders" },
         { "component": "ListCategories" },
         { "component": "mail/ListEmails", "inputs": { "outputType": "email" } },
         { "component": "mail/GetEmail", "inputs": { "messageId": "{messageId}" } },
+        { "component": "mail/GetAttachments", "inputs": { "messageId": "{attachmentMessageId}", "outputType": "attachment" } },
         { "component": "mail/NewEmail" },
         { "component": "mail/UpdatedEmail" },
         { "component": "mail/DeletedEmail" }
