@@ -9,20 +9,24 @@ const ITEM_SCHEMA = {
     'type': 'object',
     'properties': {
         'id': {
-            'type': 'string',
-            'title': 'Pull Request ID'
+            'type': 'integer',
+            'title': 'Pull Request ID',
+            'example': 3398765432
         },
         'title': {
             'type': 'string',
-            'title': 'Title'
+            'title': 'Title',
+            'example': 'Fix race condition in session refresh'
         },
         'state': {
             'type': 'string',
-            'title': 'State'
+            'title': 'State',
+            'example': 'open'
         },
         'url': {
             'type': 'string',
-            'title': 'URL'
+            'title': 'URL',
+            'example': 'https://api.github.com/repos/octo-org/octo-repo/issues/1352'
         }
     }
 };
