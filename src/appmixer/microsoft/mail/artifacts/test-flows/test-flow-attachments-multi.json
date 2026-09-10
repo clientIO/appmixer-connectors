@@ -1,0 +1,712 @@
+{
+    "flow": {
+        "2b20abf1-6066-40fc-afad-8d56519b4433": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 0,
+            "y": 0,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4c2dba97-70a0-458e-aed1-444995f3fae9": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 240,
+            "y": 0,
+            "source": {
+                "in": {
+                    "2b20abf1-6066-40fc-afad-8d56519b4433": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "2b20abf1-6066-40fc-afad-8d56519b4433": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "recipient",
+                                                "text": "e2e-test@appmixer.ai"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "subject",
+                                                "text": "E2E Attachments Multi Test"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b7333172-2fe6-4129-b671-a7362584d679": {
+            "type": "appmixer.microsoft.mail.CreateDraft",
+            "x": 480,
+            "y": 0,
+            "source": {
+                "in": {
+                    "4c2dba97-70a0-458e-aed1-444995f3fae9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4c2dba97-70a0-458e-aed1-444995f3fae9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "toRecipients": {
+                                        "ed82da0f-7f04-4976-ad7c-987a78104e40": {
+                                            "variable": "$.4c2dba97-70a0-458e-aed1-444995f3fae9.out.recipient",
+                                            "functions": []
+                                        }
+                                    },
+                                    "subject": {
+                                        "cf91872c-a6f2-429a-a180-0b485fdc5216": {
+                                            "variable": "$.4c2dba97-70a0-458e-aed1-444995f3fae9.out.subject",
+                                            "functions": []
+                                        }
+                                    },
+                                    "content": {},
+                                    "contentType": {}
+                                },
+                                "lambda": {
+                                    "toRecipients": "{{{ed82da0f-7f04-4976-ad7c-987a78104e40}}}",
+                                    "subject": "{{{cf91872c-a6f2-429a-a180-0b485fdc5216}}}",
+                                    "content": "This draft is created by an Appmixer E2E test to verify attachment fan-out and array output.",
+                                    "contentType": "Text"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5df0a031-64eb-4baf-8095-e91a71f9678d": {
+            "type": "appmixer.microsoft.mail.MakeApiCall",
+            "x": 720,
+            "y": 0,
+            "source": {
+                "in": {
+                    "b7333172-2fe6-4129-b671-a7362584d679": [
+                        "email"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b7333172-2fe6-4129-b671-a7362584d679": {
+                            "email": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "e2f3974d-0945-49c1-9194-79a541bd53a7": {
+                                            "variable": "$.b7333172-2fe6-4129-b671-a7362584d679.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "me/messages/{{{e2f3974d-0945-49c1-9194-79a541bd53a7}}}/attachments",
+                                    "method": "POST",
+                                    "body": "{\"@odata.type\": \"#microsoft.graph.fileAttachment\", \"name\": \"e2e-a.txt\", \"contentType\": \"text/plain\", \"contentBytes\": \"QUFB\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "59a29574-2478-456b-98d6-5877bc1afda5": {
+            "type": "appmixer.microsoft.mail.MakeApiCall",
+            "x": 960,
+            "y": 0,
+            "source": {
+                "in": {
+                    "5df0a031-64eb-4baf-8095-e91a71f9678d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5df0a031-64eb-4baf-8095-e91a71f9678d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "d138ebfd-352c-457f-bb0a-ca81af76af1b": {
+                                            "variable": "$.b7333172-2fe6-4129-b671-a7362584d679.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "me/messages/{{{d138ebfd-352c-457f-bb0a-ca81af76af1b}}}/attachments",
+                                    "method": "POST",
+                                    "body": "{\"@odata.type\": \"#microsoft.graph.fileAttachment\", \"name\": \"e2e-b.txt\", \"contentType\": \"text/plain\", \"contentBytes\": \"QkJCQg==\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f85d2cdd-3625-49e2-8018-b409dc897a4d": {
+            "type": "appmixer.microsoft.mail.MakeApiCall",
+            "x": 1200,
+            "y": 0,
+            "source": {
+                "in": {
+                    "59a29574-2478-456b-98d6-5877bc1afda5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "59a29574-2478-456b-98d6-5877bc1afda5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "a71497a9-e377-4900-a158-8f210c3cca9c": {
+                                            "variable": "$.b7333172-2fe6-4129-b671-a7362584d679.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "me/messages/{{{a71497a9-e377-4900-a158-8f210c3cca9c}}}/attachments",
+                                    "method": "POST",
+                                    "body": "{\"@odata.type\": \"#microsoft.graph.fileAttachment\", \"name\": \"e2e-c.txt\", \"contentType\": \"text/plain\", \"contentBytes\": \"Q0NDQ0M=\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "65484b22-7d41-4af4-9b2a-021c4336593e": {
+            "type": "appmixer.microsoft.mail.GetAttachments",
+            "x": 1440,
+            "y": 200,
+            "source": {
+                "in": {
+                    "f85d2cdd-3625-49e2-8018-b409dc897a4d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f85d2cdd-3625-49e2-8018-b409dc897a4d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "messageId": {
+                                        "17b72514-a0ac-4f85-bb95-998d8268397e": {
+                                            "variable": "$.b7333172-2fe6-4129-b671-a7362584d679.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "messageId": "{{{17b72514-a0ac-4f85-bb95-998d8268397e}}}",
+                                    "outputType": "attachments"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "eab97332-82b6-494e-88b2-a590c73caec2": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 0,
+            "source": {
+                "in": {
+                    "65484b22-7d41-4af4-9b2a-021c4336593e": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "65484b22-7d41-4af4-9b2a-021c4336593e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a6ed5227-fa4c-41d1-bd7c-c383662fb99a": {
+                                            "variable": "$.65484b22-7d41-4af4-9b2a-021c4336593e.out.count",
+                                            "functions": []
+                                        },
+                                        "e2719a1a-a5c9-4b0d-b9cf-21fe6deecb1f": {
+                                            "variable": "$.65484b22-7d41-4af4-9b2a-021c4336593e.out.result",
+                                            "functions": []
+                                        },
+                                        "fe4e882f-c21a-4267-ac0b-bc4f6346100e": {
+                                            "variable": "$.65484b22-7d41-4af4-9b2a-021c4336593e.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{a6ed5227-fa4c-41d1-bd7c-c383662fb99a}}}",
+                                                "expected": 3
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{e2719a1a-a5c9-4b0d-b9cf-21fe6deecb1f}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{fe4e882f-c21a-4267-ac0b-bc4f6346100e}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2a5803d7-9f19-42ba-87f1-35998d886ba8": {
+            "type": "appmixer.utils.controls.Each",
+            "x": 1680,
+            "y": 200,
+            "source": {
+                "in": {
+                    "65484b22-7d41-4af4-9b2a-021c4336593e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "65484b22-7d41-4af4-9b2a-021c4336593e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "list": {
+                                        "031d2afc-96c8-40c9-a691-5d8afd88c2b0": {
+                                            "variable": "$.65484b22-7d41-4af4-9b2a-021c4336593e.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "list": "{{{031d2afc-96c8-40c9-a691-5d8afd88c2b0}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "730a928c-6df8-4431-b116-2013c158c600": {
+            "type": "appmixer.microsoft.mail.DownloadAttachment",
+            "x": 1920,
+            "y": 200,
+            "source": {
+                "in": {
+                    "2a5803d7-9f19-42ba-87f1-35998d886ba8": [
+                        "item"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2a5803d7-9f19-42ba-87f1-35998d886ba8": {
+                            "item": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "messageId": {
+                                        "753cc20d-9203-426d-b1bd-fd9994c4c029": {
+                                            "variable": "$.b7333172-2fe6-4129-b671-a7362584d679.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "attachmentId": {
+                                        "524f52a3-1c14-462d-9529-3dc0f3ac5f59": {
+                                            "variable": "$.2a5803d7-9f19-42ba-87f1-35998d886ba8.item.value.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "messageId": "{{{753cc20d-9203-426d-b1bd-fd9994c4c029}}}",
+                                    "attachmentId": "{{{524f52a3-1c14-462d-9529-3dc0f3ac5f59}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "15b044ee-7a0b-4bad-9cb6-680ea535f646": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2160,
+            "y": 200,
+            "source": {
+                "in": {
+                    "730a928c-6df8-4431-b116-2013c158c600": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "730a928c-6df8-4431-b116-2013c158c600": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6172ed29-101b-4a45-9b48-a04f42e6b27a": {
+                                            "variable": "$.730a928c-6df8-4431-b116-2013c158c600.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{6172ed29-101b-4a45-9b48-a04f42e6b27a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e9dc64b2-8102-48b5-810f-cbf24966e9b0": {
+            "type": "appmixer.microsoft.mail.GetAttachments",
+            "x": 1440,
+            "y": 400,
+            "source": {
+                "in": {
+                    "f85d2cdd-3625-49e2-8018-b409dc897a4d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f85d2cdd-3625-49e2-8018-b409dc897a4d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "messageId": {
+                                        "4c9d61b7-5310-4266-afd1-f47c36ba90c5": {
+                                            "variable": "$.b7333172-2fe6-4129-b671-a7362584d679.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "messageId": "{{{4c9d61b7-5310-4266-afd1-f47c36ba90c5}}}",
+                                    "outputType": "attachment"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ff5179be-e2b0-47bd-bce7-896f0fdfb018": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1680,
+            "y": 400,
+            "source": {
+                "in": {
+                    "e9dc64b2-8102-48b5-810f-cbf24966e9b0": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "e9dc64b2-8102-48b5-810f-cbf24966e9b0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7d4e66fa-9986-4e6c-8de2-6cd3a2ba02d5": {
+                                            "variable": "$.e9dc64b2-8102-48b5-810f-cbf24966e9b0.out.name",
+                                            "functions": []
+                                        },
+                                        "20fb17ba-6824-4f6c-bb90-7528a91db1b5": {
+                                            "variable": "$.e9dc64b2-8102-48b5-810f-cbf24966e9b0.out.count",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{7d4e66fa-9986-4e6c-8de2-6cd3a2ba02d5}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{20fb17ba-6824-4f6c-bb90-7528a91db1b5}}}",
+                                                "expected": 3
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0e7039e-c43f-4ccb-a781-8b26ce9dd213": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2400,
+            "y": 0,
+            "source": {
+                "in": {
+                    "eab97332-82b6-494e-88b2-a590c73caec2": [
+                        "out"
+                    ],
+                    "15b044ee-7a0b-4bad-9cb6-680ea535f646": [
+                        "out"
+                    ],
+                    "ff5179be-e2b0-47bd-bce7-896f0fdfb018": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "32bed78a-d3f3-458b-a22e-b7d76e901ac3": {
+            "type": "appmixer.microsoft.mail.MakeApiCall",
+            "x": 2640,
+            "y": 0,
+            "source": {
+                "in": {
+                    "a0e7039e-c43f-4ccb-a781-8b26ce9dd213": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0e7039e-c43f-4ccb-a781-8b26ce9dd213": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "bdc2986c-81be-429b-9c0d-4ff81aadedd1": {
+                                            "variable": "$.b7333172-2fe6-4129-b671-a7362584d679.email.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "me/messages/{{{bdc2986c-81be-429b-9c0d-4ff81aadedd1}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a466fd9b97d4609b92a5f6a"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "84bb4239-463c-4a5d-803e-a3ac18d927ef": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2880,
+            "y": 0,
+            "source": {
+                "in": {
+                    "32bed78a-d3f3-458b-a22e-b7d76e901ac3": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "32bed78a-d3f3-458b-a22e-b7d76e901ac3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a02b91d9-31d9-4464-90b3-805a88a83fe3": {
+                                            "variable": "$.a0e7039e-c43f-4ccb-a781-8b26ce9dd213.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Microsoft Mail - Attachments Multi",
+                                    "result": "{{{a02b91d9-31d9-4464-90b3-805a88a83fe3}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Microsoft Mail - Attachments Multi",
+    "type": "automation",
+    "notes": {}
+}
