@@ -1,0 +1,182 @@
+{
+    "name": "appmixer.github.list.FindReviewComments",
+    "label": "Find Review Comments",
+    "description": "Search the inline review comments of a repository — the ones anchored to a line of a pull request diff. Give a pull request number to search a single pull request, or leave it empty to search the whole repository. Optionally filter by author login and by bots vs. humans.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "public_repo",
+            "repo"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "repositoryId": {
+                        "type": "string",
+                        "pattern": "[^/]+[/][^/]+"
+                    },
+                    "pullRequestNumber": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "type": "string"
+                    },
+                    "authorType": {
+                        "type": "string",
+                        "enum": [
+                            "any",
+                            "bots",
+                            "humans"
+                        ]
+                    },
+                    "since": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "outputType": {
+                        "type": "string",
+                        "enum": [
+                            "array",
+                            "first",
+                            "object",
+                            "file"
+                        ]
+                    }
+                },
+                "required": [
+                    "repositoryId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "repositoryId": {
+                        "type": "text",
+                        "label": "Repository",
+                        "index": 1,
+                        "tooltip": "Enter the repository in `owner/repo` format (e.g. `octocat/Hello-World`). You can also pick from the dynamically loaded list of your repositories.",
+                        "source": {
+                            "url": "/component/appmixer/github/list/ListRepos?outPort=repositories",
+                            "data": {
+                                "transform": "./transformers#reposToSelectArray"
+                            }
+                        }
+                    },
+                    "pullRequestNumber": {
+                        "type": "text",
+                        "label": "Pull Request Number",
+                        "index": 2,
+                        "tooltip": "Optional. Search only this pull request (e.g. `1259`), in which case every comment is returned. Leave empty to search the whole repository, which returns the 100 most recently updated review comments."
+                    },
+                    "author": {
+                        "type": "text",
+                        "label": "Author",
+                        "index": 3,
+                        "tooltip": "Optional. Comma-separated author logins, matched case-insensitively as substrings (e.g. `copilot, dependabot`). Substring matching is intentional: the same actor is reported under a different login on every GitHub API surface, so `copilot` matches `Copilot` and `copilot-pull-request-reviewer` alike."
+                    },
+                    "authorType": {
+                        "type": "select",
+                        "label": "Author Type",
+                        "index": 4,
+                        "defaultValue": "any",
+                        "tooltip": "Restrict to comments written by bot accounts (code review bots, apps) or by human accounts.",
+                        "options": [
+                            {
+                                "label": "Anyone",
+                                "value": "any"
+                            },
+                            {
+                                "label": "Bots only",
+                                "value": "bots"
+                            },
+                            {
+                                "label": "Humans only",
+                                "value": "humans"
+                            }
+                        ]
+                    },
+                    "since": {
+                        "type": "date-time",
+                        "label": "Updated Since",
+                        "index": 5,
+                        "tooltip": "Optional. Only comments updated at or after this moment. Note that GitHub filters on last-updated, not created, so an old comment that was edited recently is included."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 6,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/github/list/FindReviewComments?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/repositoryId": "dummy/dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "repositoryId": {
+                        "type": "string",
+                        "title": "Repository",
+                        "example": "Appmixer-ai/appmixer-connectors"
+                    },
+                    "pullRequestNumber": {
+                        "type": "string",
+                        "title": "Pull Request Number",
+                        "example": "1259"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo="
+}

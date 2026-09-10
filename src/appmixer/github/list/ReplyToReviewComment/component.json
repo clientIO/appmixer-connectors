@@ -1,0 +1,157 @@
+{
+    "name": "appmixer.github.list.ReplyToReviewComment",
+    "label": "Reply To Review Comment",
+    "description": "Post a reply inside an existing pull request review thread, under the review comment given by its ID. Use this to answer a reviewer (or a code review bot) on the exact line they commented on, instead of adding a new comment to the pull request conversation.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "public_repo",
+            "repo"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "repositoryId": {
+                        "type": "string",
+                        "pattern": "[^/]+[/][^/]+"
+                    },
+                    "pullRequestNumber": {
+                        "type": "string"
+                    },
+                    "commentId": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "repositoryId",
+                    "pullRequestNumber",
+                    "commentId",
+                    "body"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "repositoryId": {
+                        "type": "text",
+                        "label": "Repository",
+                        "index": 1,
+                        "tooltip": "Enter the repository in `owner/repo` format (e.g. `octocat/Hello-World`). You can also pick from the dynamically loaded list of your repositories.",
+                        "source": {
+                            "url": "/component/appmixer/github/list/ListRepos?outPort=repositories",
+                            "data": {
+                                "transform": "./transformers#reposToSelectArray"
+                            }
+                        }
+                    },
+                    "pullRequestNumber": {
+                        "type": "text",
+                        "label": "Pull Request Number",
+                        "index": 2,
+                        "tooltip": "The number of the pull request the thread belongs to (e.g. `1259`)."
+                    },
+                    "commentId": {
+                        "type": "text",
+                        "label": "Comment ID",
+                        "index": 3,
+                        "tooltip": "The ID of the review comment to answer, as emitted by the New Pull Request Review Comment trigger or by Find Review Comments. Any comment of the thread works — the reply is appended to that thread."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "label": "Body",
+                        "index": 4,
+                        "tooltip": "The Markdown text of the reply."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "ID",
+                        "example": 2384759400
+                    },
+                    "node_id": {
+                        "type": "string",
+                        "title": "Node ID",
+                        "example": "PRRC_kwDOAA12oc6abcde"
+                    },
+                    "body": {
+                        "type": "string",
+                        "title": "Body",
+                        "example": "Good catch — fixed in 6dcb09b."
+                    },
+                    "html_url": {
+                        "type": "string",
+                        "title": "HTML URL",
+                        "example": "https://github.com/Appmixer-ai/appmixer-connectors/pull/1259#discussion_r2384759400"
+                    },
+                    "pull_request_url": {
+                        "type": "string",
+                        "title": "Pull Request URL",
+                        "example": "https://api.github.com/repos/Appmixer-ai/appmixer-connectors/pulls/1259"
+                    },
+                    "in_reply_to_id": {
+                        "type": "integer",
+                        "title": "In Reply To ID",
+                        "example": 2384759211
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Path",
+                        "example": "src/appmixer/github/lib.js"
+                    },
+                    "line": {
+                        "type": "integer",
+                        "title": "Line",
+                        "example": 42
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At",
+                        "example": "2026-09-09T12:04:11Z"
+                    },
+                    "user": {
+                        "type": "object",
+                        "title": "User",
+                        "properties": {
+                            "login": {
+                                "type": "string",
+                                "title": "User.Login",
+                                "example": "octocat"
+                            },
+                            "id": {
+                                "type": "integer",
+                                "title": "User.ID",
+                                "example": 583231
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo="
+}

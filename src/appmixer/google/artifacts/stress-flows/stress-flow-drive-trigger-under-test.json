@@ -1,0 +1,70 @@
+{
+    "name": "Stress Google Drive - NewFileOrFolder under load",
+    "description": "The trigger under test. Watches the WHOLE drive (no folder), so run it alone on the account. Downstream SetVariable only records the emitted file id, so the run logs show exactly what the trigger emitted. Companion of stress-flow-drive-burst-provoker.json - see README.md.",
+    "flow": {
+        "5ac0e7bc-087e-5791-8c26-fbd7f08e8bcc": {
+            "type": "appmixer.google.drive.NewFileOrFolder",
+            "x": 64,
+            "y": 16,
+            "version": "2.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "NewFileOrFolder (whole drive)",
+            "config": {
+                "properties": {
+                    "recursive": false
+                }
+            }
+        },
+        "c1d75789-b6f5-58a4-b695-bf1388042952": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Sink (records the emitted file id)",
+            "source": {
+                "in": {
+                    "5ac0e7bc-087e-5791-8c26-fbd7f08e8bcc": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5ac0e7bc-087e-5791-8c26-fbd7f08e8bcc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "22e8deed-e208-592f-93bb-67b57d3bda43": {
+                                            "variable": "$.5ac0e7bc-087e-5791-8c26-fbd7f08e8bcc.out.googleDriveFileMetadata.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "emittedFileName",
+                                                "text": "{{{22e8deed-e208-592f-93bb-67b57d3bda43}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

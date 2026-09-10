@@ -1,6 +1,6 @@
 {
     "name": "appmixer.microsoft.mail",
-    "version": "2.0.1",
+    "version": "2.2.1",
     "changelog": {
         "1.0.0": [
             "Initial version."
@@ -55,6 +55,19 @@
         ],
         "2.0.1": [
             "Failed Microsoft Graph requests now surface the Graph error code, message and request-id instead of only the bare HTTP status code."
+        ],
+        "2.1.0": [
+            "Get Attachments Metadata: the 'All attachments at once' output type now works. It previously sent a bare array that downstream components resolved to nothing, so any field mapped from it stayed empty. It now sends a Result array of the attachments together with their Items Count. Flows already using this output type have to re-pick the value from the variable picker (Result / Items Count).",
+            "Get Attachments Metadata: the 'One attachment at a time' output type now adds Current Item Index and Items Count to every emitted attachment, so a downstream branch can tell the attachments of one message apart.",
+            "Download Attachment: a missing Message ID or Attachment ID now fails with a clear message instead of a raw Microsoft Graph error.",
+            "List Emails: no longer fails on an empty mailbox — every output type used to throw while building the CSV header from the first record, even when no CSV was being produced.",
+            "List Emails: an unrecognized Output Type now reports an error instead of silently sending nothing, which left the branch below the component quietly unexecuted."
+        ],
+        "2.2.0": [
+            "Get Attachments Metadata: the attachment's OData type is now available on the output. Microsoft Graph always returns it, but it was not declared, so flows could not read it. Only a file attachment can be downloaded — a reference attachment (a link to OneDrive or SharePoint) has no downloadable content — so a flow can now check the type before calling Download Attachment instead of failing there."
+        ],
+        "2.2.1": [
+            "Added output schemas with examples to NewEmail, UpdatedEmail, DeletedEmail, ListCategories, ListFolders and UpdateCategory."
         ]
     }
 }

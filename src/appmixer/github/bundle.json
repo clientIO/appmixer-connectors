@@ -1,6 +1,6 @@
 {
     "name": "appmixer.github",
-    "version": "3.1.0",
+    "version": "3.3.2",
     "changelog": {
         "1.0.3": [
             "Removed 'None' empty string value from ListAssignees, ListLabels and ListMilestones."
@@ -21,10 +21,33 @@
             "Added output examples to component schemas."
         ],
         "3.0.0": [
-            "(breaking change) MakeApiCall: headers and parameters changed to key-value array inputs (body remains textarea/JSON to support nested structures) per standard #1459 \u2014 existing flows that used the old string/textarea headers or parameters must be updated"
+            "(breaking change) MakeApiCall: headers and parameters changed to key-value array inputs (body remains textarea/JSON to support nested structures) per standard #1459 — existing flows that used the old string/textarea headers or parameters must be updated"
         ],
         "3.1.0": [
             "Added test() (Flow Test Mode) to all triggers: NewStargazer, NewCommitComment, NewTeam, NewOrganization, NewMilestone, NewNotification, NewBranch, NewWatcher, NewRelease, NewRepository, NewCollaborator, NewGist, NewReviewRequest, NewPullRequest, NewIssue, NewGlobalEvent, NewCommit, NewLabel, NewEvent."
+        ],
+        "3.2.0": [
+            "Added Projects (v2) board-driven workflow components: project/OnProjectItemChanged (organization webhook trigger for projects_v2_item), project/GetNodeById, project/UpdateProjectItemField, list/RepositoryDispatch, list/UpdateComment and list/ListComments. The new components declare the 'project' and 'admin:org_hook' scopes; existing components and their scopes are unchanged.",
+            "Added NewAssignedIssue trigger: fires when a new issue is assigned to the authenticated user (optionally scoped to a repository).",
+            "Added NewMention trigger: fires when the authenticated user is mentioned in an issue, pull request or comment (optionally filtered by repositories).",
+            "Repository inputs (repositoryId) in all 30 components are now free-text in owner/repo format with the dynamically loaded repository list kept as typeahead suggestions, so any accessible repository can be used, not only the user's own.",
+            "Added output examples and schemas to output port options across all components.",
+            "Polling triggers now cap the stored known-IDs state at 500 entries.",
+            "Raised the requests-projects quota (GraphQL, Projects v2) from 5 to 60 calls per minute; the old limit was exhausted by the designer's schema calls alone."
+        ],
+        "3.3.0": [
+            "Added pull request comment triggers: NewPullRequestReviewComment (inline comments on the diff, repository-wide, with pull request / author / bots-vs-humans filters), NewIssueComment (conversation comments on pull requests and issues, with a 'comment on' filter because GitHub's repository-wide payload does not say which of the two it is) and NewReview (a submitted review with its state, the only way to catch an approval that carries a body but no inline comments).",
+            "Added pull request review actions: ReplyToReviewComment (reply inside a review thread), CreateReviewComment (comment on a line of the diff or on a whole file), FindReviewComments and ListReviews.",
+            "Added GraphQL review thread components: ListReviewThreads (thread ID, isResolved, isOutdated, path, filterable by resolved state) plus ResolveReviewThread and UnresolveReviewThread. Thread resolution has no REST equivalent.",
+            "Author filters match logins case-insensitively as substrings: one account is reported under a different login per endpoint, and the two REST endpoints disagree with each other - Copilot's reviewer (user id 175728472) is 'Copilot' on /pulls/comments, 'copilot-pull-request-reviewer[bot]' on /pulls/{n}/reviews and 'copilot-pull-request-reviewer' in GraphQL, so an exact-match filter would silently match nothing.",
+            "Clarified the descriptions of CreateComment, ListComments, UpdateComment, SubmitReview and NewCommitComment so the three unrelated things GitHub calls a 'comment' (issue, review and commit comments) can be told apart.",
+            "NewReview scans recently updated pull requests in any state, not only open ones: approving a pull request and merging it is the most common review event, and an open-only scan lost that review for good because the pull request left the window before the next tick. NewPullRequestReviewComment now emits pull_request_number alongside the raw payload, so its output feeds ReplyToReviewComment and CreateReviewComment directly."
+        ],
+        "3.3.1": [
+            "Fixed a crash when a Find/List component saved an EMPTY result set to a CSV file — the header row was built from the first record without checking there was one, so a search that legitimately matched nothing failed the flow instead of writing an empty file."
+        ],
+        "3.3.2": [
+            "Added missing output examples to GetProject, GetProjectItem, FindIssue, FindPullRequest and ListPullRequests. The item ID emitted by FindIssue, FindPullRequest and ListPullRequests is now declared as an integer, which is what GitHub returns."
         ]
     }
 }

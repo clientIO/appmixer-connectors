@@ -9,6 +9,12 @@ module.exports = {
 
     async receive(context) {
         const { repositoryId, pullRequest, commitId = '', body = '', event = 'PENDING' } = context.messages.in.content;
+        if (!repositoryId) {
+            throw new context.CancelError('Repository is required!');
+        }
+        if (!pullRequest) {
+            throw new context.CancelError('Pull request is required!');
+        }
 
         let review = {};
         if (commitId) review.commit_id = commitId;

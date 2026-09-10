@@ -1,0 +1,95 @@
+{
+    "name": "CI - Copilot review -> repository_dispatch",
+    "flow": {
+        "c1000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.github.list.NewReview",
+            "version": "1.0.0",
+            "label": "Copilot review submitted",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "Appmixer-ai/appmixer-connectors",
+                    "state": "any",
+                    "author": "copilot",
+                    "authorType": "bots"
+                }
+            },
+            "x": 208,
+            "y": 128
+        },
+        "c1000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.github.list.RepositoryDispatch",
+            "version": "1.0.0",
+            "label": "Start the responder workflow",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "c1000000-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c1000000-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {},
+                                    "eventType": {},
+                                    "clientPayload": {
+                                        "d2000000-0000-4000-8000-000000000001": {
+                                            "variable": "$.c1000000-0000-4000-8000-000000000001.out.pull_request_number",
+                                            "functions": []
+                                        },
+                                        "d2000000-0000-4000-8000-000000000002": {
+                                            "variable": "$.c1000000-0000-4000-8000-000000000001.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "repositoryId": "Appmixer-ai/appmixer-connectors",
+                                    "eventType": "copilot-review",
+                                    "clientPayload": "{\"pr_number\": \"{{{d2000000-0000-4000-8000-000000000001}}}\", \"review_id\": \"{{{d2000000-0000-4000-8000-000000000002}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 400,
+            "y": 128
+        }
+    },
+    "notes": {
+        "e3000000-0000-4000-8000-000000000001": {
+            "x": 144,
+            "y": -272,
+            "width": 560,
+            "height": 336,
+            "content": "## Copilot review -> Claude responder\n\nStarts `.github/workflows/claude-copilot-responder.yml` in `Appmixer-ai/appmixer-connectors` whenever GitHub Copilot submits a review.\n\n**Why this flow exists.** A `pull_request_review` run raised by the Copilot bot on a PR from the apx-vero fork is gated by GitHub (*fork PR workflows from outside collaborators*) and waits on \"Approve and run\". A `repository_dispatch` run is raised by the token owner, runs on the default branch and is never gated.\n\n**Source of truth:** `.github/appmixer-flows/copilot-review-dispatch.json` and its README in the connectors repo. Edit there, then re-import."
+        },
+        "e3000000-0000-4000-8000-000000000002": {
+            "x": 144,
+            "y": 240,
+            "width": 240,
+            "height": 336,
+            "content": "### Trigger: New Review\n\nOne event per **review**, not per inline comment — Copilot's single review holds many comments, and the responder works per review.\n\nAuthor `copilot` is a substring match: the same account is `copilot-pull-request-reviewer[bot]` here, `Copilot` on review comments. `bots` keeps humans out.\n\nScans PRs in **any** state, so approve-then-merge is not lost."
+        },
+        "e3000000-0000-4000-8000-000000000003": {
+            "x": 400,
+            "y": 240,
+            "width": 304,
+            "height": 336,
+            "content": "### Dispatch: `copilot-review`\n\nPayload `{pr_number, review_id}` — the workflow accepts numeric ids only.\n\n**Account needs push** to the repo (bound: vtalas). apx-vero has only triage.\n\n**403 \"OAuth App access restrictions\"** = the Appmixer-ai org revoked the grant for the Appmixer GitHub app (client `1c0ed414fe35895cb5ce`). Re-grant, then **re-authorize** the account — that stops this flow, start it again.\n\nFailures land in the dead-letter queue. Retry only while the flow is **running** — a retry into a stopped flow is lost."
+        }
+    }
+}
