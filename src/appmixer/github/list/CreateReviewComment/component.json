@@ -1,0 +1,295 @@
+{
+    "name": "appmixer.github.list.CreateReviewComment",
+    "label": "Create Review Comment",
+    "description": "Add an inline review comment to a line of a pull request diff. This is the line-anchored counterpart of Submit Review, which comments on the pull request as a whole, and of Create Comment, which posts to the pull request conversation. When no Commit SHA is given, the head commit of the pull request is used.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "public_repo",
+            "repo"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "repositoryId": {
+                        "type": "string",
+                        "pattern": "[^/]+[/][^/]+"
+                    },
+                    "pullRequestNumber": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "subjectType": {
+                        "type": "string",
+                        "enum": [
+                            "line",
+                            "file"
+                        ]
+                    },
+                    "line": {
+                        "type": "string"
+                    },
+                    "side": {
+                        "type": "string",
+                        "enum": [
+                            "RIGHT",
+                            "LEFT"
+                        ]
+                    },
+                    "startLine": {
+                        "type": "string"
+                    },
+                    "startSide": {
+                        "type": "string",
+                        "enum": [
+                            "RIGHT",
+                            "LEFT"
+                        ]
+                    },
+                    "commitId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "repositoryId",
+                    "pullRequestNumber",
+                    "body",
+                    "path"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "repositoryId": {
+                        "type": "text",
+                        "label": "Repository",
+                        "index": 1,
+                        "tooltip": "Enter the repository in `owner/repo` format (e.g. `octocat/Hello-World`). You can also pick from the dynamically loaded list of your repositories.",
+                        "source": {
+                            "url": "/component/appmixer/github/list/ListRepos?outPort=repositories",
+                            "data": {
+                                "transform": "./transformers#reposToSelectArray"
+                            }
+                        }
+                    },
+                    "pullRequestNumber": {
+                        "type": "text",
+                        "label": "Pull Request Number",
+                        "index": 2,
+                        "tooltip": "The number of the pull request to comment on (e.g. `1259`)."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "label": "Body",
+                        "index": 3,
+                        "tooltip": "The Markdown text of the review comment."
+                    },
+                    "path": {
+                        "type": "text",
+                        "label": "File Path",
+                        "index": 4,
+                        "tooltip": "Path of the file to comment on, relative to the repository root (e.g. `src/lib/index.js`). The file must be part of the pull request diff."
+                    },
+                    "subjectType": {
+                        "type": "select",
+                        "label": "Comment On",
+                        "index": 5,
+                        "defaultValue": "line",
+                        "tooltip": "Anchor the comment to a line of the diff, or to the file as a whole.",
+                        "options": [
+                            {
+                                "label": "A line of the diff",
+                                "value": "line"
+                            },
+                            {
+                                "label": "The whole file",
+                                "value": "file"
+                            }
+                        ]
+                    },
+                    "line": {
+                        "type": "text",
+                        "label": "Line",
+                        "index": 6,
+                        "tooltip": "The line of the file the comment applies to, as numbered in the diff on the chosen side.",
+                        "when": {
+                            "eq": {
+                                "./subjectType": "line"
+                            }
+                        }
+                    },
+                    "side": {
+                        "type": "select",
+                        "label": "Side",
+                        "index": 7,
+                        "defaultValue": "RIGHT",
+                        "tooltip": "Which side of the diff the line is on: RIGHT for the new version (added or unchanged lines), LEFT for the old one (deleted lines).",
+                        "options": [
+                            {
+                                "label": "Right (new version)",
+                                "value": "RIGHT"
+                            },
+                            {
+                                "label": "Left (old version)",
+                                "value": "LEFT"
+                            }
+                        ],
+                        "when": {
+                            "eq": {
+                                "./subjectType": "line"
+                            }
+                        }
+                    },
+                    "startLine": {
+                        "type": "text",
+                        "label": "Start Line",
+                        "index": 8,
+                        "tooltip": "Optional. First line of a multi-line comment; the Line input is then the last line of the range. Leave empty to comment on a single line.",
+                        "when": {
+                            "eq": {
+                                "./subjectType": "line"
+                            }
+                        }
+                    },
+                    "startSide": {
+                        "type": "select",
+                        "label": "Start Side",
+                        "index": 9,
+                        "tooltip": "Optional. Side of the diff the start line is on. Defaults to the Side value.",
+                        "options": [
+                            {
+                                "label": "Right (new version)",
+                                "value": "RIGHT"
+                            },
+                            {
+                                "label": "Left (old version)",
+                                "value": "LEFT"
+                            }
+                        ],
+                        "when": {
+                            "eq": {
+                                "./subjectType": "line"
+                            }
+                        }
+                    },
+                    "commitId": {
+                        "type": "text",
+                        "label": "Commit SHA",
+                        "index": 10,
+                        "tooltip": "Optional. The SHA of the commit to anchor the comment to. Leave empty to use the head commit of the pull request."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "ID",
+                        "example": 2384759211
+                    },
+                    "node_id": {
+                        "type": "string",
+                        "title": "Node ID",
+                        "example": "PRRC_kwDOAA12oc6abcde"
+                    },
+                    "body": {
+                        "type": "string",
+                        "title": "Body",
+                        "example": "This loop can be replaced by a single map()."
+                    },
+                    "html_url": {
+                        "type": "string",
+                        "title": "HTML URL",
+                        "example": "https://github.com/Appmixer-ai/appmixer-connectors/pull/1259#discussion_r2384759211"
+                    },
+                    "pull_request_url": {
+                        "type": "string",
+                        "title": "Pull Request URL",
+                        "example": "https://api.github.com/repos/Appmixer-ai/appmixer-connectors/pulls/1259"
+                    },
+                    "path": {
+                        "type": "string",
+                        "title": "Path",
+                        "example": "src/appmixer/github/lib.js"
+                    },
+                    "line": {
+                        "type": "integer",
+                        "title": "Line",
+                        "example": 42
+                    },
+                    "side": {
+                        "type": "string",
+                        "title": "Side",
+                        "example": "RIGHT"
+                    },
+                    "start_line": {
+                        "type": "integer",
+                        "title": "Start Line",
+                        "example": 38
+                    },
+                    "start_side": {
+                        "type": "string",
+                        "title": "Start Side",
+                        "example": "RIGHT"
+                    },
+                    "commit_id": {
+                        "type": "string",
+                        "title": "Commit ID",
+                        "example": "6dcb09b5b57875f334f61aebed695e2e4193db5e"
+                    },
+                    "diff_hunk": {
+                        "type": "string",
+                        "title": "Diff Hunk",
+                        "example": "@@ -38,7 +38,7 @@ module.exports = {\n-    const items = [];"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At",
+                        "example": "2026-09-09T12:04:11Z"
+                    },
+                    "user": {
+                        "type": "object",
+                        "title": "User",
+                        "properties": {
+                            "login": {
+                                "type": "string",
+                                "title": "User.Login",
+                                "example": "octocat"
+                            },
+                            "id": {
+                                "type": "integer",
+                                "title": "User.ID",
+                                "example": 583231
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo="
+}
