@@ -81,3 +81,41 @@ A retry, or a manual dispatch on top of an automatic one, can hand the same
 review over twice. The responder's Resolve step is idempotent: it skips a review
 for which its own summary comment already exists with a timestamp after the
 review's `submitted_at`. Worst case is one extra ~15 s no-op run.
+
+## apx-vero-mention-dispatch.json
+
+Fires a `repository_dispatch` event of type `apx-vero-mention` when a person
+mentions `@apx-vero` on a PR — in the conversation, inline on a line of the
+diff, or in a review body — which starts
+`.github/workflows/claude-mention-responder.yml`.
+
+It replaces `claude-pr-author.yml` (#1153, removed in #1169), which listened to
+the comment and review events directly. Two of those three events run without
+secrets on PRs from forks, and apx-vero's PRs always come from its fork.
+
+### Shape
+
+Three independent chains, one per kind of mention:
+
+- `GitHub / New Issue Comment` (pull requests only, people only) → `Condition`
+  → `Repository Dispatch` with `{"kind": "issue_comment", "id": …, "pr_number": ""}`
+- `GitHub / New Pull Request Review Comment` (people only) → `Condition` →
+  `Repository Dispatch` with `{"kind": "review_comment", "id": …, "pr_number": …}`
+- `GitHub / New Review` (people only) → `Condition` → `Repository Dispatch`
+  with `{"kind": "review", "id": …, "pr_number": …}`
+
+Each `Condition` requires the text to contain `@apx-vero` and the author not to
+be apx-vero. It reads `input` / `operator` / `value`; the `field` / `expected`
+keys some older flows use are ignored by the component, which then lets
+everything through.
+
+The payload carries ids only. The workflow fetches the mention from the API,
+re-checks every gate, and answers once: each reply ends with an
+`<!-- apx-vero-mention:<kind>:<id> -->` marker that turns a repeated dispatch
+into a no-op.
+
+### Setup
+
+Same account and connector requirements as the Copilot flow above — a GitHub
+account with push access bound to all six GitHub components, github 3.3.0 or
+newer.
