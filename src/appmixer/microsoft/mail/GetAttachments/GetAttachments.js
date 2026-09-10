@@ -32,13 +32,31 @@ const ITEM_SCHEMA = {
             format: 'date-time',
             title: 'Last Modified Date Time',
             example: '2026-09-09T08:15:30Z'
+        },
+        // Graph returns these two OData annotations whether or not they are
+        // $selected. Declaring them is what makes the attachment's subtype
+        // reachable from a flow: only a fileAttachment can be downloaded, since
+        // /$value does not exist for a referenceAttachment (a link to OneDrive or
+        // SharePoint), so a flow needs to branch on this before calling Download
+        // Attachment. Neither is `required` — mediaContentType is
+        // fileAttachment-specific.
+        '@odata.type': {
+            type: 'string',
+            title: 'Attachment Type',
+            example: '#microsoft.graph.fileAttachment'
+        },
+        '@odata.mediaContentType': {
+            type: 'string',
+            title: 'Media Content Type',
+            example: 'text/plain'
         }
     }
 };
 
 // Derived from the schema so the $select projection and the declared output
-// contract cannot drift apart.
-const METADATA_FIELDS = Object.keys(ITEM_SCHEMA.properties);
+// contract cannot drift apart. The OData annotations are excluded: they are not
+// selectable properties, and Graph returns them regardless.
+const METADATA_FIELDS = Object.keys(ITEM_SCHEMA.properties).filter(field => !field.startsWith('@'));
 
 /**
  * Out-port variable-picker options for the selected outputType. Matches what
@@ -63,7 +81,9 @@ function buildOutputPortOptions(outputType) {
     }
 
     // One at a time: the record fields, plus the position of this record in the run.
-    const fields = METADATA_FIELDS.map(key => {
+    // Every declared property, not just the $select-able ones — the OData
+    // annotations are emitted too and a flow has to be able to reach them.
+    const fields = Object.keys(ITEM_SCHEMA.properties).map(key => {
         const { title, ...schema } = ITEM_SCHEMA.properties[key];
         return { label: title, value: key, schema };
     });
