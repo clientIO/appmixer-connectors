@@ -9,6 +9,13 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.note.content.title) {
+            throw new context.CancelError('Note title is required!');
+        }
+        if (!context.messages.note.content.content) {
+            throw new context.CancelError('Note body is required!');
+        }
+
         let note = context.messages.note.content;
         let { notebookGuid } = context.properties;
         let title = note['title'].replace(/\t/g, ' ').replace(/\n/g, ' ').trim();
