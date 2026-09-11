@@ -9,6 +9,10 @@ module.exports = {
         let dbx = new Dropbox({
             accessToken: context.auth.accessToken
         });
+        if (!context.messages.file.content.fileId) {
+            throw new context.CancelError('Dropbox File ID is required!');
+        }
+
         const { result: file } = await dbx.filesGetMetadata({
             path: context.messages.file.content.fileId
         });

@@ -4,6 +4,13 @@ const emailCommons = require('../lib');
 module.exports = {
 
     async receive(context) {
+        if (!context.messages.in.content.messageId) {
+            throw new context.CancelError('Email Message ID is required!');
+        }
+        if (!context.messages.in.content.attachmentId) {
+            throw new context.CancelError('Attachment ID is required!');
+        }
+
         const { messageId, attachmentId, fileName } = context.messages.in.content;
         const endpoint = `/users/me/messages/${messageId}/attachments/${attachmentId}`;
         const attachment = await emailCommons.callEndpoint(context, endpoint, {

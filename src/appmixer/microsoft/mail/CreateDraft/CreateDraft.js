@@ -58,6 +58,13 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.toRecipients) {
+            throw new context.CancelError('To is required!');
+        }
+        if (!context.messages.in.content.content) {
+            throw new context.CancelError('Content is required!');
+        }
+
         const { attachments = {} } = context.messages.in.content;
         const mailAttachments = await getMailAttachments(context, attachments);
 
