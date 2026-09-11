@@ -9,6 +9,13 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.note.content.noteId) {
+            throw new context.CancelError('Note GUID is required!');
+        }
+        if (!context.messages.note.content.tag) {
+            throw new context.CancelError('Tag GUID is required!');
+        }
+
         let { noteId, tag } = context.messages.note.content;
         let client = commons.getEvernoteAPI(context.auth.accessToken).getNoteStore();
 

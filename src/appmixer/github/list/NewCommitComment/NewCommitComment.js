@@ -5,6 +5,13 @@ const lib = require('../../lib');
  * Component which triggers whenever new comment on a commit is created
  * @extends {Component}
  */
+/**
+ * Maximum number of IDs to retain in context.state.known.
+ * getNewItems() replaces (not accumulates) known each tick, so this cap only
+ * fires if a single tick returns an unusually large page of results.
+ */
+const MAX_KNOWN = 500;
+
 module.exports = {
 
     async tick(context) {
@@ -23,7 +30,8 @@ module.exports = {
 
             }));
         }
-        await context.saveState({ known: actual });
+        const trimmedKnown = actual.length > MAX_KNOWN ? actual.slice(actual.length - MAX_KNOWN) : actual;
+        await context.saveState({ known: trimmedKnown });
     },
 
     async test(context) {

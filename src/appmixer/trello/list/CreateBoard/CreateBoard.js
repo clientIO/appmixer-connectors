@@ -9,6 +9,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.name) {
+            throw new context.CancelError('Board Name is required!');
+        }
+
         let boardInfo = context.messages.in.content;
         const { data: newBoard } = await context.httpRequest({
             headers: { 'Content-Type': 'application/json' },

@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const pathModule = require('path');
 
 const DEFAULT_PREFIX = 'github-objects-export';
@@ -96,6 +97,166 @@ module.exports = {
             : (data && Array.isArray(data.items) ? data.items : []);
 
         return records.length ? records[0] : null;
+    },
+
+    /**
+     * Run a query or mutation against the GitHub GraphQL API (the only way to reach
+     * Projects v2). GraphQL answers with HTTP 200 even for errors, so the `errors`
+     * array is turned into a CancelError here — every caller gets the same handling.
+     *
+     * @param {Object} context
+     * @param {String} query GraphQL document
+     * @param {Object} [variables]
+     * @returns {Promise<Object>} the `data` object of the GraphQL response
+     */
+    async graphqlRequest(context, query, variables = {}) {
+
+        const { data } = await context.httpRequest({
+            method: 'POST',
+            url: 'https://api.github.com/graphql',
+            headers: {
+                'Authorization': `Bearer ${context.accessToken || context.auth?.accessToken}`,
+                'Content-Type': 'application/json',
+                'User-Agent': 'Appmixer GitHub Connector'
+            },
+            data: { query, variables }
+        });
+
+        if (data.errors) {
+            const message = data.errors.map(error => error.message).filter(Boolean).join('; ');
+            throw new context.CancelError(message || JSON.stringify(data.errors));
+        }
+
+        return data.data;
+    },
+
+    /**
+     * Verify the `X-Hub-Signature-256` header GitHub sends with every delivery of a
+     * webhook that was registered with a secret.
+     *
+     * Note: components only see the *parsed* body, so the digest is computed over a
+     * re-serialization of it. That matches GitHub's compact JSON for ordinary
+     * payloads but is not byte-exact in every case, which is why signature checking
+     * is opt-in on the trigger rather than always-on.
+     *
+     * @param {Object} options
+     * @param {Object|String|Buffer} options.payload webhook body
+     * @param {String} options.signatureHeader value of the X-Hub-Signature-256 header
+     * @param {String} options.secret secret the webhook was registered with
+     * @returns {Boolean}
+     */
+    verifyWebhookSignature({ payload, signatureHeader, secret }) {
+
+        if (!signatureHeader || !secret) return false;
+
+        const body = Buffer.isBuffer(payload)
+            ? payload
+            : Buffer.from(typeof payload === 'string' ? payload : JSON.stringify(payload), 'utf8');
+        const expected = `sha256=${crypto.createHmac('sha256', secret).update(body).digest('hex')}`;
+
+        try {
+            return crypto.timingSafeEqual(Buffer.from(signatureHeader), Buffer.from(expected));
+        } catch (err) {
+            // Different lengths — timingSafeEqual throws instead of returning false.
+            return false;
+        }
+    },
+
+    /**
+     * Current UTC time as an ISO 8601 string without milliseconds
+     * (YYYY-MM-DDTHH:MM:SSZ) — the format GitHub's `since` query parameter expects.
+     * @returns {String}
+     */
+    nowIso() {
+        return new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
+    },
+
+    /**
+     * Merge the IDs seen on this tick into the ones already known, newest last, capped
+     * at `max` entries (oldest dropped first).
+     *
+     * Unlike `getNewItems()`, which *replaces* the known set every tick, this one
+     * *accumulates*. Comment triggers need that: GitHub's `since` filters on
+     * last-updated, not created, so an old comment that someone edits re-enters the
+     * window long after it has fallen out of the previous tick's page. Remembering only
+     * the current page would re-fire it.
+     *
+     * @param {Array} [previousKnown] IDs stored on the previous tick
+     * @param {Array} [currentIds] IDs seen on this tick
+     * @param {Number} [max] cap on the stored set
+     * @returns {Array<String>}
+     */
+    mergeKnownIds(previousKnown = [], currentIds = [], max = 500) {
+
+        const merged = [];
+        const seen = new Set();
+
+        for (const id of [...(previousKnown || []), ...(currentIds || [])]) {
+            const key = String(id);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            merged.push(key);
+        }
+
+        return merged.length > max ? merged.slice(merged.length - max) : merged;
+    },
+
+    /**
+     * Case-insensitive *substring* match of an author login against a comma-separated
+     * filter, e.g. `copilot, dependabot`. An empty filter matches everything.
+     *
+     * Substring rather than equality on purpose: the same actor is reported under a
+     * different login per endpoint — and the disagreement is not merely REST vs GraphQL,
+     * the two REST endpoints differ from each other. One account, user id 175728472:
+     * `Copilot` on `/repos/{o}/{r}/pulls/comments`,
+     * `copilot-pull-request-reviewer[bot]` on `/repos/{o}/{r}/pulls/{n}/reviews`, and
+     * `copilot-pull-request-reviewer` in GraphQL. An exact-match filter would silently
+     * match nothing as soon as the user took the login from a different endpoint.
+     *
+     * @param {String} [login] the `user.login` of the item
+     * @param {String} [filter] comma-separated logins or fragments of logins
+     * @returns {Boolean}
+     */
+    matchesAuthor(login, filter) {
+
+        if (!filter) return true;
+
+        const wanted = filter.split(',').map(part => part.trim().toLowerCase()).filter(Boolean);
+        if (!wanted.length) return true;
+
+        const actual = (login || '').toLowerCase();
+        return wanted.some(part => actual.includes(part));
+    },
+
+    /**
+     * Match an item's author against a bots/humans switch.
+     *
+     * GitHub marks app accounts with `user.type = 'Bot'`, but not consistently across
+     * endpoints, so a trailing `[bot]` in the login counts as well.
+     *
+     * @param {Object} [user] the `user` object of the item
+     * @param {String} [authorType] one of `any`, `bots`, `humans`
+     * @returns {Boolean}
+     */
+    matchesAuthorType(user, authorType) {
+
+        if (!authorType || authorType === 'any') return true;
+
+        const isBot = user?.type === 'Bot' || /\[bot\]$/i.test(user?.login || '');
+        return authorType === 'bots' ? isBot : !isBot;
+    },
+
+    /**
+     * Tell apart the two things GitHub calls an "issue comment". The repo-wide
+     * `/issues/comments` endpoint returns conversation comments on issues *and* on pull
+     * requests, and nothing in the payload says which: `issue_url` uses `/issues/` for
+     * both. Only `html_url` distinguishes them, by containing `/pull/`.
+     *
+     * @param {Object} comment an item of `/repos/{owner}/{repo}/issues/comments`
+     * @returns {Boolean}
+     */
+    isPullRequestComment(comment) {
+        return /\/pull\//.test(comment?.html_url || '');
     },
 
     /**
@@ -239,6 +400,10 @@ module.exports = {
  * @returns {string}
  */
 const toCsv = (array) => {
+    if (!array || array.length === 0) {
+        return '';
+    }
+
     const headers = Object.keys(array[0]);
 
     return [

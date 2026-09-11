@@ -14,16 +14,31 @@ name: Claude Copilot Responder (auto-address Copilot review)
 #   * the PR is OPEN,
 #   * the review is NOT a plain "approved" with no comments (nothing to do).
 #
-# TWO-PHASE TRIGGER: `pull_request_review` events on fork PRs run WITHOUT
-# repository secrets (GitHub's fork hardening), and apx-vero PRs always come
-# from the apx-vero fork — so this workflow cannot listen to the review event
-# directly. Instead, claude-copilot-trigger.yml (unprivileged) captures the
-# event and uploads {pr_number, review_id} as an artifact; THIS workflow runs
-# on `workflow_run` (which does get secrets), reads that artifact, and strictly
-# re-verifies everything against the live API before doing anything. The
-# artifact content is treated as untrusted: only numeric ids are accepted, and
-# the Resolve step independently confirms the PR author, fork owner and that
-# the review really is Copilot's.
+# ENTRY POINT: `repository_dispatch` of type `copilot-review`, carrying
+# {pr_number, review_id}. An Appmixer flow
+# (.github/appmixer-flows/copilot-review-dispatch.json) watches the repo for
+# newly submitted Copilot reviews and fires it. repository_dispatch runs are
+# raised by the dispatching token's owner (a writer), always run on the default
+# branch and always get secrets — so nothing gates them.
+#
+# WHY NOT THE REVIEW EVENT ITSELF: a `pull_request_review` run is raised by the
+# Copilot bot, which is not a repo collaborator, on a PR whose head is in the
+# apx-vero fork — GitHub runs it without secrets and holds it on "Approve and
+# run" ("Fork pull request workflows from outside collaborators"). The earlier
+# design worked around the missing secrets with an unprivileged trigger
+# workflow that uploaded {pr_number, review_id} as an artifact for a
+# `workflow_run` hop, but the `workflow_run` child inherits actor=Copilot and
+# was gated too, so every run waited for a human. That trigger workflow and the
+# workflow_run hop are gone.
+#
+# The client_payload is UNTRUSTED — anyone with push access can send a
+# repository_dispatch: only numeric ids are accepted, and the Resolve step
+# independently confirms the PR author, fork owner and that the review really
+# is Copilot's.
+#
+# Because a retry or a manual dispatch can hand the same review over twice, the
+# Resolve step is idempotent: it skips a review this workflow has already
+# answered (our own summary comment posted after the review's submitted_at).
 #
 # LOOP NOTE: if your repo is configured to make Copilot auto-review on every
 # push, our push can trigger a fresh Copilot review -> a fresh run here. That is
@@ -37,9 +52,8 @@ name: Claude Copilot Responder (auto-address Copilot review)
 # Copilot review.
 
 on:
-  workflow_run:
-    workflows: ["Claude Copilot Trigger"]
-    types: [completed]
+  repository_dispatch:
+    types: [copilot-review]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -51,14 +65,12 @@ on:
 
 jobs:
   resolve-event:
-    # Normalise the two entry points into {proceed, number, review_id}. For
-    # workflow_run, download the trigger's artifact; if the trigger's gate job
-    # was skipped there is no artifact and we no-op. Artifact content is
-    # UNTRUSTED — accept numeric ids only; everything else is re-verified
-    # against the live API in the address-copilot job.
+    # Normalise the two entry points into {proceed, number, review_id}. The
+    # repository_dispatch client_payload (anyone with push access can send one)
+    # and the manual inputs are UNTRUSTED: accept numeric ids only; everything
+    # else is re-verified against the live API in the address-copilot job.
     runs-on: ubuntu-latest
-    permissions:
-      actions: read          # download the trigger run's artifact
+    permissions: {}          # reads nothing — this job only normalises inputs
     outputs:
       proceed: ${{ steps.ev.outputs.proceed }}
       number: ${{ steps.ev.outputs.number }}
@@ -67,33 +79,27 @@ jobs:
       - name: Resolve event source
         id: ev
         env:
-          GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
-          REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
           DISP_NUM: ${{ github.event.inputs.pr_number }}
           DISP_REVIEW: ${{ github.event.inputs.review_id }}
+          RD_NUM: ${{ github.event.client_payload.pr_number }}
+          RD_REVIEW: ${{ github.event.client_payload.review_id }}
         run: |
           set -euo pipefail
           PROCEED=true; NUM=""; REVIEW_ID=""
 
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             NUM="$DISP_NUM"; REVIEW_ID="${DISP_REVIEW:-}"
+          elif [ "$EVENT_NAME" = "repository_dispatch" ]; then
+            # Sent by the Appmixer flow. Untrusted — the numeric check below
+            # is what makes it safe to pass on.
+            NUM="${RD_NUM:-}"; REVIEW_ID="${RD_REVIEW:-}"
           else
-            AID=$(gh api "repos/$REPO/actions/runs/$RUN_ID/artifacts" \
-              --jq '.artifacts[] | select(.name == "copilot-review-event") | .id' | head -n1)
-            if [ -z "$AID" ]; then
-              echo "Trigger run $RUN_ID produced no copilot-review-event artifact (gate skipped) — nothing to do."
-              PROCEED=false
-            else
-              gh api "repos/$REPO/actions/artifacts/$AID/zip" > /tmp/event.zip
-              unzip -o /tmp/event.zip -d /tmp/copilot-event
-              NUM=$(jq -r '.pr_number // ""' /tmp/copilot-event/event.json)
-              REVIEW_ID=$(jq -r '.review_id // ""' /tmp/copilot-event/event.json)
-            fi
+            echo "Unexpected event '$EVENT_NAME' — nothing to do."
+            PROCEED=false
           fi
 
-          # Numeric ids only — the artifact (and dispatch input) is untrusted.
+          # Numeric ids only — the dispatch payload and the inputs are untrusted.
           if [ "$PROCEED" = "true" ]; then
             case "$NUM" in
               ''|*[!0-9]*) echo "Invalid PR number '$NUM' — skipping."; PROCEED=false ;;
@@ -185,12 +191,32 @@ jobs:
           if [ "$PROCEED" = "true" ]; then
             # Strictly verify the review really is Copilot's (bot user).
             gh api "repos/$REPO/pulls/$NUM/reviews/$REVIEW_ID" \
-              --jq '{id, state, body, login:(.user.login // ""), type:(.user.type // "")}' \
+              --jq '{id, state, body, submitted_at, login:(.user.login // ""), type:(.user.type // "")}' \
               > /tmp/review.json
             R_LOGIN=$(jq -r '.login | ascii_downcase' /tmp/review.json)
             R_TYPE=$(jq -r '.type'  /tmp/review.json)
             case "$R_LOGIN" in *copilot*) : ;; *) echo "Review $REVIEW_ID author '$R_LOGIN' is not Copilot — skipping."; PROCEED=false ;; esac
             if [ "$R_TYPE" != "Bot" ]; then echo "Review $REVIEW_ID author is not a Bot (type=$R_TYPE) — skipping."; PROCEED=false; fi
+          fi
+
+          # IDEMPOTENCY: a poller can hand us the same review twice (overlapping
+          # windows, a retry, a manual dispatch on top of an automatic one). Our
+          # own summary comment is the marker: if one was posted AFTER this
+          # review was submitted, the review is already handled.
+          if [ "$PROCEED" = "true" ]; then
+            SUBMITTED=$(jq -r '.submitted_at // ""' /tmp/review.json)
+            if [ -n "$SUBMITTED" ]; then
+              gh api --paginate "repos/$REPO/issues/$NUM/comments" > /tmp/issue-comments.json
+              ANSWERED=$(jq -s --arg t "$SUBMITTED" '
+                [ .[][]
+                  | select(.created_at > $t)
+                  | select((.body // "") | test("^🤖 (\\*\\*Copilot review addressed|Addressed the Copilot review)"))
+                ] | length' /tmp/issue-comments.json)
+              if [ "$ANSWERED" -gt 0 ]; then
+                echo "Review $REVIEW_ID on PR #$NUM was already addressed ($ANSWERED summary comment(s) after $SUBMITTED) — skipping."
+                PROCEED=false
+              fi
+            fi
           fi
 
           if [ "$PROCEED" = "true" ]; then

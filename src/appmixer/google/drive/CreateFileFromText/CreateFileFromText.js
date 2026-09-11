@@ -11,6 +11,10 @@ module.exports = {
         const drive = google.drive({ version: 'v3', auth });
         let { fileName, folder, replace, convertToDocument, content } = context.messages.in.content;
 
+        if (!fileName) {
+            throw new context.CancelError('File name is required!');
+        }
+
         let contentType;
 
         contentType = mime.lookup(fileName) || 'text/plain';

@@ -19,6 +19,33 @@
 
 module.exports = [
     {
+        validator: 'delete-returns-empty',
+        messageIncludes: 'Delete component must return an empty object',
+        paths: ['github/list/DeleteBranch/component.json'],
+        reason: 'Legacy published component (since 2.0.0) whose out port declares the deleted branch name and existing flows read it. Emptying the output would be a breaking change for a component this PR only touches for the free-text branch input; same precedent as google.drive DeleteFileOrFolder.'
+    },
+    {
+        validator: 'find-naming-by-shape',
+        messageIncludes: 'has the Find shape',
+        paths: ['github/list/ListPullRequests/component.json'],
+        reason: 'Legacy published component (since 2.0.0) whose only Find-like trait is the optional state filter; FindPullRequest already exists next to it. Renaming it would break every flow that references appmixer.github.list.ListPullRequests and needs a major bundle bump, which is intentionally deferred. The file is touched in 3.2.0 only for the free-text repositoryId input and output examples.'
+    },
+    {
+        validator: 'delete-returns-empty',
+        messageIncludes: 'must return an empty object',
+        paths: ['google/drive/DeleteFileOrFolder/component.json'],
+        reason: 'Published for years with { fileId } on its out port and referenced by existing flows; switching to {} is a breaking change that would need a major bundle bump and a flow migration, which is intentionally deferred.'
+    },
+    {
+        validator: 'dynamic-outport-item-schema',
+        messageIncludes: 'exports no ITEM_SCHEMA',
+        paths: [
+            'ai/openai/TransformTextToJSON/component.json',
+            'ai/openai/VariableExtractor/component.json'
+        ],
+        reason: 'The out port schema is not a fixed item contract: it is the JSON Schema the user types into the jsonSchema/outputVariables input, echoed back verbatim by getOutputPortOptions. There is no static ITEM_SCHEMA to export — every flow declares a different shape — so verify has nothing to compare against and the title rule has no fixed leaves to check.'
+    },
+    {
         validator: 'find-naming-by-shape',
         messageIncludes: 'has the Find shape',
         paths: ['jira/issues/GetIssueTransitions/component.json'],
@@ -175,6 +202,12 @@ module.exports = [
             'appmixer/system/bundle.json'
         ],
         reason: 'Internal/utility connectors (flow control, converters, storage, engine events) with no external service or stored credentials — there is no third-party API to call. utils/test is the E2E-flow harness module (Assert, AfterAll, ProcessE2EResults) and talks only to the engine and the internal stores.'
+    },
+    {
+        validator: 'connector-has-makeapicall',
+        messageIncludes: 'no MakeApiCall component',
+        paths: ['appmixer/utils/http/bundle.json'],
+        reason: 'appmixer.utils.http IS the generic "call any endpoint" connector: Get/Post/Put/Patch/Delete take a free-form URL, headers and body and it has no auth module, so there is no credential for a MakeApiCall to attach and nothing it would add.'
     },
     {
         validator: 'connector-has-makeapicall',

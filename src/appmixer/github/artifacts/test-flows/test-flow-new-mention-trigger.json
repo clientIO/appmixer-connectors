@@ -1,0 +1,285 @@
+{
+    "name": "E2E GitHub - New Mention Trigger",
+    "flow": {
+        "660635a8-807c-5c7b-85f2-dc6c24e1be75": {
+            "type": "appmixer.github.list.NewMention",
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "repositories": "apx-vero/appmixer-test"
+                }
+            },
+            "x": 208,
+            "y": 128
+        },
+        "4f33eeaa-98d4-5d37-adbc-4ac682bb05d0": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "660635a8-807c-5c7b-85f2-dc6c24e1be75": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "660635a8-807c-5c7b-85f2-dc6c24e1be75": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "aebf11d2-33ef-5f96-bc10-1ea69664e1fc": {
+                                            "variable": "$.660635a8-807c-5c7b-85f2-dc6c24e1be75.out.reason",
+                                            "functions": []
+                                        },
+                                        "516133bc-b448-5f3c-af86-70f924e3ddcd": {
+                                            "variable": "$.660635a8-807c-5c7b-85f2-dc6c24e1be75.out.subject.title",
+                                            "functions": []
+                                        },
+                                        "89fcafe9-8b6a-532c-a70a-26583f4d6b2d": {
+                                            "variable": "$.660635a8-807c-5c7b-85f2-dc6c24e1be75.out.repository.full_name",
+                                            "functions": []
+                                        },
+                                        "556b1e93-9634-5a0c-bb54-87513df32e7b": {
+                                            "variable": "$.660635a8-807c-5c7b-85f2-dc6c24e1be75.out.subject.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{aebf11d2-33ef-5f96-bc10-1ea69664e1fc}}}",
+                                                "expected": "mention"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{516133bc-b448-5f3c-af86-70f924e3ddcd}}}",
+                                                "expected": "E2E NewMention probe"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{89fcafe9-8b6a-532c-a70a-26583f4d6b2d}}}",
+                                                "expected": "apx-vero/appmixer-test"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{556b1e93-9634-5a0c-bb54-87513df32e7b}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 416,
+            "y": 128
+        },
+        "46253789-d421-5f66-ab94-39de1148d4d8": {
+            "type": "appmixer.utils.test.AfterAll",
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "4f33eeaa-98d4-5d37-adbc-4ac682bb05d0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "x": 624,
+            "y": 128
+        },
+        "17eef00f-7f76-52a1-a577-c94d510b2df3": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "46253789-d421-5f66-ab94-39de1148d4d8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "46253789-d421-5f66-ab94-39de1148d4d8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "cef14eec-7bb2-560e-b394-f3e35af1e053": {
+                                            "variable": "$.660635a8-807c-5c7b-85f2-dc6c24e1be75.out.subject.url",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{cef14eec-7bb2-560e-b394-f3e35af1e053}}}",
+                                    "method": "PATCH",
+                                    "body": "{\"state\": \"closed\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 832,
+            "y": 128
+        },
+        "eca4f159-3ecb-5bb1-a4e8-0ad9efcf60b6": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "17eef00f-7f76-52a1-a577-c94d510b2df3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "17eef00f-7f76-52a1-a577-c94d510b2df3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "017ab1db-1844-55f1-9814-44bf2979c42a": {
+                                            "variable": "$.46253789-d421-5f66-ab94-39de1148d4d8.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E GitHub - New Mention Trigger",
+                                    "result": "{{{017ab1db-1844-55f1-9814-44bf2979c42a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 1040,
+            "y": 128
+        },
+        "3c985a7e-0cac-5f88-bc8c-9806ce220b1a": {
+            "type": "appmixer.utils.controls.OnStart",
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "x": 208,
+            "y": 256
+        },
+        "7dd3ad14-ea6f-55ac-915a-76dbd9711f35": {
+            "type": "appmixer.utils.timers.Wait",
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "3c985a7e-0cac-5f88-bc8c-9806ce220b1a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3c985a7e-0cac-5f88-bc8c-9806ce220b1a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 416,
+            "y": 256
+        },
+        "071a8589-3bff-522f-ae08-760acf3fa6f5": {
+            "type": "appmixer.github.list.CreateIssue",
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "issue": {
+                    "7dd3ad14-ea6f-55ac-915a-76dbd9711f35": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "apx-vero/appmixer-test"
+                },
+                "transform": {
+                    "issue": {
+                        "7dd3ad14-ea6f-55ac-915a-76dbd9711f35": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "title": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "title": "E2E NewMention probe",
+                                    "body": "Opened by the Appmixer end-to-end test flow. GitHub never notifies an account about its own mentions, so a SECOND account has to comment `@apx-vero` on this issue while the flow runs; the flow closes it afterwards."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 624,
+            "y": 256
+        }
+    }
+}

@@ -118,14 +118,47 @@ module.exports = {
      */
     async registerWebhook(context, webhookId, secretToken) {
 
-        return this.apiRequest(context, 'setWebhook', {
-            url: this.getWebhookUrl(context, webhookId),
+        const url = this.getWebhookUrl(context, webhookId);
+
+        // Telegram rate-limits setWebhook (roughly one call per second per bot). Two flows
+        // of the same bot starting together - the E2E suite does exactly that - made the
+        // second setWebhook fail with 429 and that flow never started. When a sibling has
+        // already put the identical registration in place there is nothing to write, so
+        // read first. The secret token is derived from the bot token, so the same URL
+        // implies the same secret.
+        try {
+            const info = await this.apiRequest(context, 'getWebhookInfo');
+            const registered = info && info.url === url
+                && sameSet(info.allowed_updates, ALLOWED_UPDATES);
+
+            if (registered) {
+                return info;
+            }
+        } catch (error) {
+            // A failed read only costs us the shortcut - fall through to setWebhook.
+        }
+
+        const payload = {
+            url,
             secret_token: secretToken,
             allowed_updates: ALLOWED_UPDATES,
             // Keep whatever queued up while the flow was stopped - dropping it would lose
             // messages a user sent in the meantime.
             drop_pending_updates: false
-        });
+        };
+
+        for (let attempt = 0; ; attempt++) {
+            try {
+                return await this.apiRequest(context, 'setWebhook', payload);
+            } catch (error) {
+                if (error.status !== 429 || attempt >= 3) {
+                    throw error;
+                }
+                // Telegram says how long to wait; cap it so a flow start never hangs for long.
+                const seconds = Math.min(Number(error.retryAfter) || 1, 5);
+                await new Promise((resolve) => setTimeout(resolve, seconds * 1000 + 200));
+            }
+        }
     },
 
     /**
@@ -401,6 +434,25 @@ module.exports = {
             return context.sendJson([{ label: 'File ID', value: 'fileId' }], 'out');
         }
     }
+};
+
+/**
+ * Order-insensitive comparison of two string lists (Telegram echoes allowed_updates back
+ * in its own order).
+ * @param {Array<string>} a
+ * @param {Array<string>} b
+ * @returns {boolean}
+ */
+const sameSet = (a, b) => {
+
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
+        return false;
+    }
+
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+
+    return sortedA.every((item, index) => item === sortedB[index]);
 };
 
 /**

@@ -10,6 +10,10 @@ module.exports = {
         const drive = google.drive({ version: 'v3', auth });
         let { fileId, destinationFolder } = context.messages.in.content;
 
+        if (!fileId) {
+            throw new context.CancelError('File ID is required!');
+        }
+
         const normalizedFileId = typeof fileId === 'string' ? fileId : fileId.id;
 
         let folderId;

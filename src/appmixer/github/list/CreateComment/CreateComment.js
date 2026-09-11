@@ -9,6 +9,12 @@ module.exports = {
 
     async receive(context) {
         let { repositoryId, issue, body } = context.messages.in.content;
+        if (!repositoryId) {
+            throw new context.CancelError('Repository is required!');
+        }
+        if (!issue) {
+            throw new context.CancelError('Issue is required!');
+        }
 
         const requestBody = { body: body };
 

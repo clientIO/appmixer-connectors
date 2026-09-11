@@ -7,6 +7,13 @@ module.exports = {
 
         let { accountSID, authenticationToken } = context.auth;
         let client = twilio(accountSID, authenticationToken);
+        if (!context.messages.message.content.from) {
+            throw new context.CancelError('From number is required!');
+        }
+        if (!context.messages.message.content.to) {
+            throw new context.CancelError('To number is required!');
+        }
+
         let message = context.messages.message.content;
 
         return client.messages.create({

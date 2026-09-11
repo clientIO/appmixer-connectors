@@ -9,6 +9,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.envelopeId) {
+            throw new context.CancelError(' Envelope ID is required!');
+        }
+
         const { envelopeId, include } = context.messages.in.content;
 
         // Normalize the multiselect field

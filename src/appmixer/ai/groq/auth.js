@@ -1,5 +1,7 @@
 'use strict';
 
+const lib = require('./lib');
+
 module.exports = {
     type: 'apiKey',
 
@@ -31,7 +33,7 @@ module.exports = {
 
         async validate(context) {
             return await context.httpRequest({
-                url: 'https://api.groq.com/openai/v1/models',
+                url: `${lib.getBaseUrl()}/models`,
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${context.apiKey}`
