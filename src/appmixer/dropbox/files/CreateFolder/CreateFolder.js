@@ -9,6 +9,10 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.folder.content.path) {
+            throw new context.CancelError('Path is required!');
+        }
+
         let params = {
             path: context.messages.folder.content.path,
             autorename: context.messages.folder.content.autorename

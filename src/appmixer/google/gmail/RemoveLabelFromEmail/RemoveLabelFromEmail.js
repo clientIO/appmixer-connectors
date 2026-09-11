@@ -2,6 +2,13 @@
 const commons = require('../lib');
 module.exports = {
     async receive(context) {
+        if (!context.messages.in.content.emailId) {
+            throw new context.CancelError('Email Message ID is required!');
+        }
+        if ([undefined, null, ''].includes(context.messages.in.content.labels)) {
+            throw new context.CancelError('Labels is required!');
+        }
+
         const {
             emailId,
             labels: { AND: labels }
