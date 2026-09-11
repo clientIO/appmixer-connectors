@@ -127,18 +127,16 @@ and `ANTHROPIC_API_KEY` secrets — the integration only covers the Appmixer hal
 
 ## Publishing as integrations
 
-Both flows carry a `wizard` and are published on dev-automated-00001 as
-integration templates in the category (and Automation Hub tab)
-**appmixer-sanity-hub** — the appmixer-sanity app's `/automation-hub` page
-opens on it:
+Both flows carry a `wizard` and a `description` and are published on
+dev-automated-00001 as integration templates in the category
+**appmixer-sanity-hub**, which the appmixer-sanity app's `/automation-hub` page
+opens on. Publish or re-publish one with the appmixer-sanity script, pointed at
+that instance (run from an appmixer-sanity checkout):
 
-1. `POST /flows` with the JSON plus `"type": "integration-draft"` and
-   `"categories": [<appmixer-sanity-hub category id>]` — the editable draft.
-2. `POST /flows/<draftId>/clone` with
-   `{"projection": "-sharedWith", "setOriginFlowId": true, "additional": {"type": "integration-template", "sharedWith": [{"scope": "user", "permissions": ["read"]}]}}`
-   — the published template, visible to every user of the instance. `additional`
-   takes only `type` and `sharedWith` (anything else is a 400), so set the
-   category afterwards with `PUT /flows/<templateId>` `{"categories": [...]}`.
-3. Users activate it from the Automation Hub; after changing the template,
-   `appmixer integration update-instances <templateId>` moves every instance to
-   the new revision.
+```bash
+node --env-file=.env scripts/publish-integration.js <path>/copilot-review-dispatch.json --dry-run
+```
+
+How to turn another flow into an integration — the JSON format, wizard fields,
+publishing, activating and retiring the old flow:
+[appmixer-sanity CLAUDE.md → Migrating a flow to an integration](https://github.com/vtalas/appmixer-sanity/blob/main/CLAUDE.md#migrating-a-flow-to-an-integration).
