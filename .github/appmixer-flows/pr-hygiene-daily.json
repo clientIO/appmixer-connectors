@@ -1,0 +1,331 @@
+{
+    "name": "CI - PR hygiene: daily check -> Slack",
+    "description": "Every weekday at 8:00 (Prague) posts to Slack the open, non-draft pull requests in Appmixer-ai/appmixer-connectors that have no linked issue and are not in the project, and the project items added in the last two days that carry no appmixer:… or non-connector-task label.",
+    "flow": {
+        "d1000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.utils.timers.SchedulerTrigger",
+            "version": "1.1.0",
+            "x": 0,
+            "y": 0,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "properties": {
+                    "scheduleType": "weeks",
+                    "daysOfWeek": [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday"
+                    ],
+                    "time": "08:00",
+                    "timezone": "Europe/Prague",
+                    "immediate": false
+                }
+            }
+        },
+        "d1000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "version": "1.0.0",
+            "x": 192,
+            "y": 0,
+            "source": {
+                "in": {
+                    "d1000000-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d1000000-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/graphql",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"query { search(query: \\\"repo:Appmixer-ai/appmixer-connectors is:pr is:open draft:false\\\", type: ISSUE, first: 100) { nodes { ... on PullRequest { number title url author { login } createdAt closingIssuesReferences(first: 1) { totalCount } } } } }\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d1000000-0000-4000-8000-000000000003": {
+            "type": "appmixer.github.project.FindProjectItems",
+            "version": "1.0.0",
+            "x": 384,
+            "y": 0,
+            "source": {
+                "in": {
+                    "d1000000-0000-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d1000000-0000-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "projectId": "PVT_kwDODXokv84BFM6_",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d1000000-0000-4000-8000-000000000004": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "version": "1.0.0",
+            "x": 576,
+            "y": 0,
+            "source": {
+                "in": {
+                    "d1000000-0000-4000-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d1000000-0000-4000-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "d1000000-0000-4000-8000-00000000aa01": {
+                                            "variable": "$.d1000000-0000-4000-8000-000000000002.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data.search.nodes"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "d1000000-0000-4000-8000-00000000aa02": {
+                                            "variable": "$.d1000000-0000-4000-8000-000000000003.out.result",
+                                            "functions": []
+                                        }
+                                    },
+                                    "code": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "prs",
+                                                "text": "{{{d1000000-0000-4000-8000-00000000aa01}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "items",
+                                                "text": "{{{d1000000-0000-4000-8000-00000000aa02}}}"
+                                            }
+                                        ]
+                                    },
+                                    "code": "(function () {\n    const parse = (v) => (typeof v === 'string' ? JSON.parse(v) : v) || [];\n    const prs = parse($data.prs);\n    const items = parse($data.items);\n    const inProject = new Set(items.map(i => i && i.content && i.content.url).filter(Boolean));\n    const l1 = prs.filter(p => p && p.number\n        && !(p.closingIssuesReferences && p.closingIssuesReferences.totalCount)\n        && !inProject.has(p.url));\n    const since = Date.now() - 2 * 24 * 3600 * 1000;\n    const labelled = (labels) => (labels || []).some(l => String(l).indexOf('appmixer:') === 0 || l === 'non-connector-task');\n    const l2 = items.filter(i => i && i.content && i.content.url\n        && i.createdAt && Date.parse(i.createdAt) >= since\n        && !labelled(i.content.labels));\n    const lines = [];\n    if (l1.length) {\n        lines.push('*Open pull requests with no linked issue that are not in the project* (' + l1.length + ')');\n        l1.forEach(p => lines.push('• <' + p.url + '|#' + p.number + '> ' + p.title + ' — ' + (p.author ? p.author.login : '?')));\n    }\n    if (l2.length) {\n        if (lines.length) lines.push('');\n        lines.push('*Project items added in the last 2 days without a connector label* (' + l2.length + ')');\n        lines.push('_Add `appmixer:<connector>` or `non-connector-task`._');\n        l2.forEach(i => lines.push('• <' + i.content.url + '|' + (i.content.title || i.id) + '>'));\n    }\n    return { hasFindings: lines.length > 0, prsChecked: prs.length, itemsChecked: items.length,\n             level1: l1.length, level2: l2.length, text: lines.join('\\n') };\n})();"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d1000000-0000-4000-8000-000000000005": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "x": 768,
+            "y": 0,
+            "source": {
+                "in": {
+                    "d1000000-0000-4000-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d1000000-0000-4000-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "d1000000-0000-4000-8000-00000000aa03": {
+                                            "variable": "$.d1000000-0000-4000-8000-000000000004.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.hasFindings"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{d1000000-0000-4000-8000-00000000aa03}}}",
+                                                        "operator": "=",
+                                                        "value": "true"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d1000000-0000-4000-8000-000000000006": {
+            "type": "appmixer.slack.list.SendChannelMessage",
+            "version": "1.1.0",
+            "x": 960,
+            "y": 0,
+            "source": {
+                "in": {
+                    "d1000000-0000-4000-8000-000000000005": [
+                        "true"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d1000000-0000-4000-8000-000000000005": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channelId": {},
+                                    "text": {
+                                        "d1000000-0000-4000-8000-00000000aa04": {
+                                            "variable": "$.d1000000-0000-4000-8000-000000000004.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "channelId": "",
+                                    "text": "{{{d1000000-0000-4000-8000-00000000aa04}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "notes": {
+        "d1000000-0000-4000-8000-00000000ff01": {
+            "x": 0,
+            "y": 160,
+            "width": 520,
+            "height": 220,
+            "content": "**PR hygiene — daily check (Mon–Fri 8:00 Prague)**\n\n1. Every open, non-draft PR must link an issue or be in the @appmixer-connectors project.\n2. Every project item **added in the last 2 days** must carry an `appmixer:<connector>` label or `non-connector-task`. The 2-day window keeps historical items out of the report.\n\nNothing is posted when both lists are empty."
+        }
+    },
+    "wizard": {
+        "fields": [
+            {
+                "type": "account",
+                "label": "GitHub account",
+                "tooltip": "Reads pull requests in Appmixer-ai/appmixer-connectors and the @appmixer-connectors project. Needs access to both repositories and to the project (read:project).",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "d1000000-0000-4000-8000-000000000002",
+                        "d1000000-0000-4000-8000-000000000003"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "account",
+                "label": "Slack account",
+                "tooltip": "Posts the warnings. It has to be a member of the channel below.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:slack",
+                    "components": [
+                        "d1000000-0000-4000-8000-000000000006"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "Slack channel",
+                "tooltip": "Where the warnings go.",
+                "placeholder": "",
+                "source": "d1000000-0000-4000-8000-000000000006.config.transform.in.d1000000-0000-4000-8000-000000000005.true.lambda.channelId",
+                "attrs": {},
+                "options": {}
+            }
+        ]
+    }
+}

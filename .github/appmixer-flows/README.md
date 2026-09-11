@@ -81,3 +81,65 @@ A retry, or a manual dispatch on top of an automatic one, can hand the same
 review over twice. The responder's Resolve step is idempotent: it skips a review
 for which its own summary comment already exists with a timestamp after the
 review's `submitted_at`. Worst case is one extra ~15 s no-op run.
+
+## pr-hygiene-new-pr.json and pr-hygiene-daily.json
+
+Two integrations that keep pull requests and the
+[@appmixer-connectors project](https://github.com/orgs/Appmixer-ai/projects/7)
+tidy. They only **warn in Slack** — nothing on a pull request is changed.
+
+The rules:
+
+1. Every pull request either **links an issue** (a closing keyword in its
+   description, e.g. `Fixes Appmixer-ai/appmixer-components#N`) or **is itself in
+   the project**. A PR whose description says enough on its own does not need an
+   issue — but then it goes into the project.
+2. Every project item carries a **connector label** — `appmixer:<connector>`,
+   one per `bundle.json`, e.g. `appmixer:microsoft:mail` — or
+   `non-connector-task`.
+
+### Shape
+
+- **New pull request** — `New Pull Request` → `Wait 1h` → a GraphQL
+  `resource(url:)` lookup of the PR (draft, state, linked issues) → `Find
+  Project Items` → `Code Block` → `Condition` → Slack. The hour gives the author
+  time to link an issue or add the PR to the project. Drafts are skipped; the
+  daily check picks them up once they are ready.
+- **Daily check** — Monday to Friday, 8:00 Europe/Prague. Lists the open,
+  non-draft PRs breaking rule 1 and the project items breaking rule 2, in one
+  message. Rule 2 only looks at items **added in the last two days** (the item's
+  own `createdAt`, returned by `Find Project Items` since github 3.4.0), so the
+  hundreds of older unlabelled items never flood the channel. Nothing is posted
+  when both lists are empty.
+
+Linked issues are read through GraphQL with the bound account rather than by
+parsing the PR description: the issues live in the private
+`appmixer-components` repo, and the account can see it.
+
+### Setup
+
+The wizard asks for three things:
+
+- **GitHub account** — needs `repo` and **`read:project`**. Without the project
+  scope `Find Project Items` fails at start with *"Access token not found …
+  Calling factory init"*; re-authorize the account from that component.
+- **Slack account** — must be a member of the channel.
+- **Slack channel** — where the warnings go.
+
+Then start it from the Automation Hub (`/automation-hub` → Use → Start
+automation).
+
+### Publishing
+
+Both files are Automation Hub templates, published with appmixer-sanity's
+script (its CLAUDE.md, *Migrating a flow to an integration*), from an
+appmixer-sanity checkout whose `.env` points at dev-automated-00001:
+
+```bash
+node --env-file=.env scripts/publish-integration.js <path>/pr-hygiene-new-pr.json --dry-run
+node --env-file=.env scripts/publish-integration.js <path>/pr-hygiene-new-pr.json
+```
+
+It matches the template by `name`, so re-running it updates in place. Running
+instances stay on their revision until
+`appmixer integration update-instances <template id>` moves them.
