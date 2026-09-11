@@ -6,6 +6,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.name) {
+            throw new context.CancelError('Full Name is required!');
+        }
+
         const content = context.messages.in.content;
 
         const body = trimUndefined({
