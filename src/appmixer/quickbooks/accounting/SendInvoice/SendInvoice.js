@@ -6,6 +6,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.invoiceId) {
+            throw new context.CancelError('Invoice ID is required!');
+        }
+
         const { invoiceId } = context.messages.in.content;
 
         const options = {

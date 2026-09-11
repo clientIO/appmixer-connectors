@@ -6,6 +6,16 @@ module.exports = {
 
     async receive(context) {
 
+        if ([undefined, null, ''].includes(context.messages.in.content.entityId)) {
+            throw new context.CancelError('Entity ID is required!');
+        }
+        if (!context.messages.in.content.entityType) {
+            throw new context.CancelError('Entity Type is required!');
+        }
+        if (!context.messages.in.content.attachment) {
+            throw new context.CancelError('Attachment is required!');
+        }
+
         const {
             entityId,
             minorVersion,
