@@ -21,6 +21,7 @@
 //
 // See 08-best-practices.md ("OAuth Scope Changes are Breaking Changes").
 
+const fs = require('fs');
 const path = require('path');
 
 const { readJson, getFileAtRef, parseVersion } = require('./_shared');
@@ -40,13 +41,26 @@ function getScopes(component) {
     return Array.isArray(scope) ? scope.filter((s) => typeof s === 'string') : [];
 }
 
-function connectorRoot(componentPath) {
+// The bundle.json that versions a component: the nearest one above the component folder, up to
+// the vendor directory. Modular connectors (microsoft, google, ...) keep one bundle.json per
+// module (src/appmixer/microsoft/sharepoint/bundle.json), not one per vendor.
+function findBundlePath(componentPath) {
 
     // .../src/appmixer/<vendor>/.../<Component>/component.json
     const parts = componentPath.split(path.sep);
     const idx = parts.lastIndexOf('appmixer');
     if (idx < 0 || idx + 1 >= parts.length) return null;
-    return parts.slice(0, idx + 2).join(path.sep);
+    const vendorRoot = parts.slice(0, idx + 2).join(path.sep);
+
+    let dir = path.dirname(path.dirname(componentPath));
+    while (dir.startsWith(vendorRoot)) {
+        const candidate = path.join(dir, 'bundle.json');
+        if (fs.existsSync(candidate)) return candidate;
+        if (dir === vendorRoot) break;
+        dir = path.dirname(dir);
+    }
+    // Nothing found: point at the vendor-level file so the missing bundle is reported.
+    return path.join(vendorRoot, 'bundle.json');
 }
 
 function latestChangelogEntries(bundle) {
@@ -109,10 +123,9 @@ function validateComponent(context, componentPath) {
     const added = newScopes.filter((s) => !oldScopes.includes(s));
     if (added.length === 0) return;
 
-    const root = connectorRoot(componentPath);
-    if (!root) return;
+    const bundlePath = findBundlePath(componentPath);
+    if (!bundlePath) return;
 
-    const bundlePath = path.join(root, 'bundle.json');
     const bundleRel = relativePath(bundlePath);
 
     let newBundle;
