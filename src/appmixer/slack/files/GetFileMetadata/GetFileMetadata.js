@@ -6,6 +6,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.file) {
+            throw new context.CancelError('Slack File ID is required!');
+        }
+
         const { file } = context.messages.in.content;
 
         // Initialize Slack Web API client
