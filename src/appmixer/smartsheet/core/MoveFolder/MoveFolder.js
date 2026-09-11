@@ -6,6 +6,13 @@ module.exports = {
 
     receive: async function(context) {
 
+        if ([undefined, null, ''].includes(context.messages.in.content.folderId)) {
+            throw new context.CancelError('Folder Id is required!');
+        }
+        if (!context.messages.in.content.destinationType) {
+            throw new context.CancelError('Destination Type is required!');
+        }
+
         const { data } = await this.httpRequest(context);
 
         return context.sendJson(data, 'out');
