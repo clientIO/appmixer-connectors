@@ -17,15 +17,26 @@ const getFileTypesRestriction = (context) => {
         lib.normalizeMultiselectInput(fileTypesRestriction, context, 'File Types Restriction') : [];
 };
 
+/**
+ * A file counts as updated when it existed before the "created since" cutoff (any change to it
+ * is an update), or when it was created after the cutoff but has been modified since it was
+ * created - e.g. a file created while the previous delta chain was being read and edited later.
+ * A brand-new, unmodified file is left to NewFile.
+ * @param {Object} file Graph driveItem from the delta
+ * @param {string} lastUpdated
+ * @return {boolean}
+ */
 const isUpdatedFile = (file, lastUpdated) => {
 
     const isFile = Object.keys(file).includes('file');
     const isDeleted = Object.keys(file).includes('deleted');
-    const createdDateTime = file.createdDateTime;
-    return !!(
-        isFile && createdDateTime && !isDeleted &&
-        new Date(lastUpdated) > new Date(createdDateTime)
-    );
+    const { createdDateTime, lastModifiedDateTime } = file;
+    if (!isFile || isDeleted || !createdDateTime) {
+        return false;
+    }
+    const created = new Date(createdDateTime);
+    return new Date(lastUpdated) > created ||
+        (!!lastModifiedDateTime && new Date(lastModifiedDateTime) > created);
 };
 
 const matchesFileTypes = (file, fileTypesRestriction) => {
@@ -62,17 +73,14 @@ const processChanges = async (context) => {
 
     return delta.runDeltaScan(context, {
         startLink: (state) => state.deltaLink,
+        baseline: () => delta.fetchLatestDeltaLink(getDeltaPath(context), context.auth.accessToken),
         onPage: async (files, { state, extend }) => {
-            let emitted = 0;
             for (const file of files) {
                 if (!isUpdatedFile(file, state.lastUpdated)) continue;
                 if (!matchesFileTypes(file, fileTypesRestriction)) continue;
                 await context.sendJson(file, 'file');
-                emitted += 1;
-                if (emitted % delta.LOCK_EXTEND_EVERY_ITEMS === 0) {
-                    // Emitting a large page must not outlive the last lock extension either.
-                    await extend();
-                }
+                // Emitting a large page must not outlive the last lock extension either.
+                await extend();
             }
         },
         saveProgress: async (link, { caughtUp, watermark }) => {
@@ -82,8 +90,48 @@ const processChanges = async (context) => {
                 // advanced once the whole chain is consumed - the pages still to come hold
                 // files this cutoff would otherwise misclassify. It is when the chain was
                 // started, not "now", so a file created while it was being read is not
-                // reported as an update on the next round.
+                // reported as an update on the next round just for showing up late.
                 await context.stateSet('lastUpdated', watermark);
+            }
+        }
+    });
+};
+
+/**
+ * Renew the Graph subscription three days before it expires, re-creating it when Graph no
+ * longer knows about it.
+ * @param {Context} context
+ * @param {string} webhookId
+ * @param {string} expiryDate
+ * @return {Promise<void>}
+ */
+const renewSubscription = async (context, webhookId, expiryDate) => {
+
+    const renewDate = new Date(expiryDate).setDate(new Date(expiryDate).getDate() - 3);
+    if (new Date() < new Date(renewDate)) {
+        return;
+    }
+
+    // A contended lock means a receive() is working through a backlog - skip the renewal and
+    // retry on the next tick instead of storming the lock.
+    await delta.withComponentLock(context, { step: 'webhook-renewal-skipped' }, async (lock) => {
+        const body = { expirationDateTime: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString() };
+        try {
+            const { expirationDateTime } = await commons.formatError(() => {
+                return commons.patch(`/subscriptions/${webhookId}`, context.auth.accessToken, body);
+            });
+
+            await context.stateSet('expiryDate', expirationDateTime);
+        } catch (err) {
+            if (err?.statusCode === 404) {
+                // Re-arm the lock: creating a replacement subscription is a second Graph
+                // round trip and must not run once the TTL has elapsed.
+                await delta.extendLock(lock);
+                const { id, expirationDateTime } = await registerWebhook(context);
+                await context.stateSet('webhookId', id);
+                await context.stateSet('expiryDate', expirationDateTime);
+            } else {
+                throw err;
             }
         }
     });
@@ -179,7 +227,6 @@ module.exports = {
 
     async tick(context) {
 
-        const { accessToken } = context.auth;
         const { webhookId, expiryDate, [delta.SKIPPED_FLAG]: hasSkippedMessage } = await context.loadState();
 
         if (!webhookId) {
@@ -187,38 +234,22 @@ module.exports = {
             return;
         }
 
+        let scanError = null;
         if (hasSkippedMessage) {
             // A notification arrived while we were already processing, or the backlog did not
-            // fit into a single run. Carry on with the rest of it.
-            await processChanges(context);
+            // fit into a single run. Carry on with the rest of it - but never at the price of
+            // the renewal: a failing scan must not let the subscription expire.
+            try {
+                await processChanges(context);
+            } catch (err) {
+                scanError = err;
+            }
         }
 
-        const renewDate = new Date(expiryDate).setDate(new Date(expiryDate).getDate() - 3);
+        await renewSubscription(context, webhookId, expiryDate);
 
-        if (new Date() >= new Date(renewDate)) {
-            // A contended lock means a receive() is working through a backlog - skip the
-            // renewal and retry on the next tick instead of storming the lock.
-            await delta.withComponentLock(context, { step: 'webhook-renewal-skipped' }, async (lock) => {
-                const body = { expirationDateTime: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString() };
-                try {
-                    const { expirationDateTime } = await commons.formatError(() => {
-                        return commons.patch(`/subscriptions/${webhookId}`, accessToken, body);
-                    });
-
-                    await context.stateSet('expiryDate', expirationDateTime);
-                } catch (err) {
-                    if (err?.statusCode === 404) {
-                        // Re-arm the lock: creating a replacement subscription is a second
-                        // Graph round trip and must not run once the TTL has elapsed.
-                        await delta.extendLock(lock);
-                        const { id, expirationDateTime } = await registerWebhook(context);
-                        await context.stateSet('webhookId', id);
-                        await context.stateSet('expiryDate', expirationDateTime);
-                    } else {
-                        throw err;
-                    }
-                }
-            });
+        if (scanError) {
+            throw scanError;
         }
     }
 };

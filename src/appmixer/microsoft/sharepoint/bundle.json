@@ -69,9 +69,9 @@
             "WatchLocation: changes are emitted before the delta link is stored, so a crash replays a page instead of dropping it.",
             "NewFile, UpdatedFile: a file matching several File Types Restriction prefixes at once is now emitted once instead of once per matching prefix.",
             "All Microsoft Graph calls made through the legacy request helper now have a 30 s timeout so a hung call cannot hold a component lock indefinitely.",
-            "NewFile, UpdatedFile: the 'created since' cutoff now advances to when the delta chain was started rather than when it was finished, so a file created while a backlog was being processed is no longer skipped (NewFile) or reported as an update (UpdatedFile).",
-            "NewFile, UpdatedFile, DeletedFile: a failure part-way through a backlog is retried on the next tick instead of waiting for the next change notification.",
-            "Output examples for every output field of CreateFolder, DeletedFile, DownloadFile, GetFile, ListDrives, ListSites, MoveFileOrFolder, NewFile, UpdatedFile, UploadFile and WatchLocation (whose File System Info schema declared its fields incorrectly).",
+            "NewFile, UpdatedFile: the 'created since' cutoff now advances to when the delta chain was started rather than when it was finished, so a file created while a backlog was being processed is no longer skipped. NewFile remembers the files it emitted recently so such a file does not fire twice; UpdatedFile also reports a file created after the cutoff once it has been modified.",
+            "NewFile, UpdatedFile, DeletedFile, WatchLocation: an expired delta link (410 resyncRequired) is replaced by a fresh baseline, with the gap logged, instead of failing on every notification. A transient failure part-way through a backlog is retried on the next tick, and the subscription renewal in tick() runs even when that retry fails.",
+            "Output examples for every output field of CreateFolder, DeletedFile, DownloadFile, GetFile, ListDrives, ListSites, MoveFileOrFolder, NewFile, UpdatedFile, UploadFile and WatchLocation; WatchLocation's output schema declared its nested fields as label/value pairs and its leaves without types.",
             "CreateFolder, GetFile, ListDrives: a missing required input is reported as a clear error instead of a failed Graph call."
         ]
     }

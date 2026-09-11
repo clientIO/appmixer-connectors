@@ -294,6 +294,73 @@ describe('microsoft-delta runDeltaScan paging & locking', () => {
         assert.strictEqual(getStub.callCount, 0);
         assert.strictEqual(lock.unlock.callCount, 1);
     });
+
+    it('should replace an expired delta link with a fresh baseline instead of failing forever', async () => {
+
+        const gone = new Error('410 - Resync required');
+        gone.statusCode = 410;
+        getStub = sandbox.stub(commons, 'get').rejects(gone);
+        const baseline = sandbox.stub().resolves('fresh');
+        const progress = [];
+
+        await scan({
+            baseline,
+            saveProgress: async (link, { caughtUp }) => progress.push({ link, caughtUp })
+        });
+
+        assert.deepStrictEqual(progress, [{ link: 'fresh', caughtUp: true }]);
+        assert.ok(context.log.calledWithMatch({ step: 'delta-resync' }));
+        // Not a backlog: there is nothing for tick() to come back for.
+        assert.ok(!context.stateSet.calledWith(delta.SKIPPED_FLAG, true));
+        assert.strictEqual(lock.unlock.callCount, 1);
+    });
+
+    it('should not make tick() retry a permanent Graph error every minute', async () => {
+
+        const forbidden = new Error('403 - Access denied');
+        forbidden.statusCode = 403;
+        sandbox.stub(commons, 'get').rejects(forbidden);
+
+        await assert.rejects(() => scan(), /Access denied/);
+
+        assert.ok(!context.stateSet.calledWith(delta.SKIPPED_FLAG, true));
+        assert.strictEqual(lock.unlock.callCount, 1);
+    });
+
+    it('should re-arm the lock on elapsed time while a page is being emitted', async () => {
+
+        const clock = sandbox.useFakeTimers(new Date('2026-03-01T00:00:00.000Z'));
+        getStub = sandbox.stub(commons, 'get').resolves({
+            value: [1, 2, 3, 4, 5].map(i => ({ id: `f${i}` })),
+            '@odata.deltaLink': 'd'
+        });
+
+        await scan({
+            onPage: async (items, { extend }) => {
+                for (const item of items) {
+                    await context.sendJson(item, 'file');
+                    // Every emission takes half the re-arm interval.
+                    clock.tick(delta.LOCK_REARM_AFTER / 2);
+                    await extend();
+                }
+            }
+        });
+
+        // Before and after the Graph call, then after every second emission.
+        assert.strictEqual(lock.extend.callCount, 4);
+    });
+
+    it('should store the chain start before the first mid-chain link', async () => {
+
+        stubPages(2);
+
+        await scan();
+
+        const calls = context.stateSet.getCalls();
+        const chainIndex = calls.findIndex(call => call.args[0] === delta.CHAIN_STARTED_KEY);
+        const linkIndex = calls.findIndex(call => call.args[0] === 'deltaLink');
+        assert.ok(chainIndex !== -1 && chainIndex < linkIndex);
+    });
 });
 
 describe('microsoft-delta withComponentLock', () => {
@@ -447,5 +514,37 @@ describe('microsoft-delta baseline & eager fetching', () => {
 
         assert.deepStrictEqual(items.map(i => i.id), ['a', 'b']);
         assert.strictEqual(deltaLink, 'd');
+    });
+});
+
+describe('microsoft-delta createEmittedIds', () => {
+
+    it('should remember emitted ids and persist them only when something changed', async () => {
+
+        const context = { stateSet: sinon.stub().resolves() };
+        const ids = delta.createEmittedIds({ [delta.EMITTED_IDS_KEY]: ['a'] });
+
+        assert.strictEqual(ids.has('a'), true);
+        await ids.persist(context);
+        assert.strictEqual(context.stateSet.callCount, 0);
+
+        ids.add('b');
+        ids.add('b');
+        await ids.persist(context);
+        assert.deepStrictEqual(context.stateSet.firstCall.args, [delta.EMITTED_IDS_KEY, ['a', 'b']]);
+    });
+
+    it('should stay bounded', async () => {
+
+        const context = { stateSet: sinon.stub().resolves() };
+        const ids = delta.createEmittedIds({});
+        for (let i = 0; i < delta.MAX_EMITTED_IDS + 10; i++) {
+            ids.add(`id-${i}`);
+        }
+        await ids.persist(context);
+
+        const persisted = context.stateSet.firstCall.args[1];
+        assert.strictEqual(persisted.length, delta.MAX_EMITTED_IDS);
+        assert.strictEqual(persisted[persisted.length - 1], `id-${delta.MAX_EMITTED_IDS + 9}`);
     });
 });

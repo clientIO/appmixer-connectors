@@ -8,14 +8,14 @@ const commons = require('./microsoft-commons');
 // it, which starves tick()/start() with LockError storms and livelocks on redelivery.
 const MAX_PAGES_PER_RUN = 20;
 
-// TTL the component lock is (re)armed with before every page and periodically while emitting.
-// It has to comfortably cover one `delta` call including the HTTP timeout in
-// microsoft-commons, otherwise the lock silently expires mid-run and a concurrent run can
-// write state over it.
+// TTL the component lock is (re)armed with around every Graph call and while emitting. It has
+// to comfortably cover one `delta` call including the HTTP timeout in microsoft-commons,
+// otherwise the lock silently expires mid-run and a concurrent run can write state over it.
 const LOCK_TTL = 60 * 1000;
 
-// Re-arm the lock every N emitted items so a large page does not outlive the last extension.
-const LOCK_EXTEND_EVERY_ITEMS = 20;
+// While a page is being emitted the lock is re-armed once the last extension is older than
+// this. Time based on purpose: how long N emissions take depends on the engine, not on N.
+const LOCK_REARM_AFTER = LOCK_TTL / 3;
 
 // Page cap for the read-only Flow Test Mode enumeration. test() walks the delta chain from the
 // beginning (it deliberately has no baseline link to resume from), so it needs a lot more
@@ -24,12 +24,17 @@ const LOCK_EXTEND_EVERY_ITEMS = 20;
 const TEST_MODE_MAX_PAGES = 100;
 
 // State flag telling tick() that there is more of the delta backlog to work through, either
-// because this run hit MAX_PAGES_PER_RUN, could not get the component lock, or failed.
+// because this run hit MAX_PAGES_PER_RUN, could not get the component lock, or failed on
+// something worth retrying.
 const SKIPPED_FLAG = 'hasSkippedMessage';
 
 // State key holding when the delta chain that is currently being consumed was started. It is
 // carried across capped continuations and cleared once the chain is drained.
 const CHAIN_STARTED_KEY = 'deltaChainStartedAt';
+
+// State key and size of the memory of recently emitted item ids (see createEmittedIds()).
+const EMITTED_IDS_KEY = 'recentFileIds';
+const MAX_EMITTED_IDS = 1000;
 
 /**
  * Raised when the component lock could no longer be extended. Processing must stop rather than
@@ -51,17 +56,56 @@ const isLockContentionError = (err) => {
 };
 
 /**
+ * Graph answers `410 Gone` (`resyncRequired`) once a stored delta link is no longer valid.
+ * @param {Error} err
+ * @return {boolean}
+ */
+const isResyncRequired = (err) => err?.statusCode === 410;
+
+/**
+ * Whether a failed delta scan is worth retrying from the next tick(): network failures and
+ * timeouts (no status), throttling and Graph-side errors. Any other 4xx - a revoked
+ * permission, a deleted drive - would fail the very same way every minute.
+ * @param {Error} err
+ * @return {boolean}
+ */
+const isTransientError = (err) => {
+
+    const status = err?.statusCode;
+    return !status || status === 408 || status === 429 || status >= 500;
+};
+
+/**
  * Re-arm the component lock. Throws LockLostError when the lock is already gone so that
- * callers abort instead of silently carrying on without mutual exclusion.
+ * callers abort instead of silently carrying on without mutual exclusion. `lease` tracks when
+ * the lock was last (re)armed so that extendLockIfStale() can re-arm on elapsed time.
  * @param {Object} lock
+ * @param {Object} [lease]
  * @return {Promise<void>}
  */
-const extendLock = async (lock) => {
+const extendLock = async (lock, lease) => {
 
     try {
         await lock.extend(LOCK_TTL);
     } catch (err) {
         throw new LockLostError(`Cannot extend the Microsoft component lock: ${err.message}`);
+    }
+    if (lease) {
+        lease.armedAt = Date.now();
+    }
+};
+
+/**
+ * Re-arm the lock only when the last extension is older than LOCK_REARM_AFTER. Cheap enough to
+ * call after every single emission.
+ * @param {Object} lock
+ * @param {Object} lease
+ * @return {Promise<void>}
+ */
+const extendLockIfStale = async (lock, lease) => {
+
+    if (Date.now() - lease.armedAt >= LOCK_REARM_AFTER) {
+        await extendLock(lock, lease);
     }
 };
 
@@ -121,6 +165,40 @@ const withComponentLock = async (context, { maxRetryCount = 0, step = 'lock-skip
         await safeUnlock(context, lock);
     }
     return true;
+};
+
+/**
+ * Bounded memory of recently emitted item ids, kept in component state.
+ *
+ * A trigger's "created since" watermark is taken when a delta chain starts, so an item created
+ * while the chain was being read is still newer than it on the next round - which keeps it from
+ * being lost when Graph only reports it then. When Graph had already returned it in that chain
+ * and reports it again (SharePoint post-processes uploads), this memory keeps it from being
+ * emitted twice. It also dedupes a page that is replayed after a crash.
+ * @param {Object} state Component state as loaded at the start of the scan.
+ * @param {string} [key]
+ * @return {{ has: function(string): boolean, add: function(string): void, persist: function(Object): Promise<void> }}
+ */
+const createEmittedIds = (state, key = EMITTED_IDS_KEY) => {
+
+    const ids = Array.isArray(state[key]) ? state[key].slice(-MAX_EMITTED_IDS) : [];
+    const known = new Set(ids);
+    let dirty = false;
+
+    return {
+        has: (id) => known.has(id),
+        add: (id) => {
+            if (!id || known.has(id)) return;
+            known.add(id);
+            ids.push(id);
+            dirty = true;
+        },
+        persist: async (context) => {
+            if (!dirty) return;
+            dirty = false;
+            await context.stateSet(key, ids.slice(-MAX_EMITTED_IDS));
+        }
+    };
 };
 
 /**
@@ -195,26 +273,35 @@ const fetchLatestDeltaLink = async (deltaPath, accessToken) => {
  *
  * `saveProgress` receives a `watermark` together with `caughtUp`: the moment the chain being
  * consumed was started, taken BEFORE its first page was fetched and carried across capped
- * continuations. A trigger that advances a "created after" cutoff once the chain is drained
+ * continuations. A trigger that advances a "created since" cutoff once the chain is drained
  * must use it rather than the current time - anything created while the chain was being read
- * is then still newer than the cutoff on the next round, instead of being silently dropped as
- * "already seen" (or, for UpdatedFile, misreported as an update).
+ * is then still newer than the cutoff on the next round instead of being silently dropped.
+ *
+ * Failures: a lost lock stops the run and leaves the rest to tick(). An expired delta link
+ * (410) is replaced by a fresh baseline from `baseline()` - replaying the whole drive would be
+ * worse than the gap, which is logged. Transient errors ask tick() to come back; anything else
+ * is re-thrown without that, so a permanent error does not fail again every single minute.
  *
  * @param {Object} context
  * @param {Object} options
  * @param {Function} options.startLink async (state) => string|undefined - the link to resume from
- * @param {Function} options.onPage async (items, { state, extend }) => void - emits one page
+ * @param {Function} options.onPage async (items, { state, extend }) => void - emits one page;
+ *   `extend()` is cheap (re-arms the lock only when due) and is meant to be called after
+ *   every emission
  * @param {Function} options.saveProgress async (link, { state, caughtUp, watermark }) => void
+ * @param {Function} [options.baseline] async () => string - a fresh deltaLink (`?token=latest`)
  * @return {Promise<void>}
  */
-const runDeltaScan = async (context, { startLink, onPage, saveProgress }) => {
+const runDeltaScan = async (context, { startLink, onPage, saveProgress, baseline }) => {
 
     const { accessToken } = context.auth;
 
     const ran = await withComponentLock(context, { step: 'delta-scan-skipped' }, async (lock) => {
 
+        const lease = { armedAt: Date.now() };
+        const extend = () => extendLock(lock, lease);
+        const extendIfStale = () => extendLockIfStale(lock, lease);
         const state = await context.loadState();
-        const extend = () => extendLock(lock);
 
         // Cleared up front, never at the end: a run that gets skipped WHILE we are working
         // writes its own `true` here, and clearing afterwards would drop that notification.
@@ -236,21 +323,26 @@ const runDeltaScan = async (context, { startLink, onPage, saveProgress }) => {
                 const page = await fetchDeltaPage(link, accessToken);
 
                 // ...and again right after it: the call itself may have used up most of the
-                // TTL, and the page is about to be emitted and persisted.
+                // TTL, and the page is about to be emitted.
                 await extend();
 
-                await onPage(page.items, { state, extend });
+                await onPage(page.items, { state, extend: extendIfStale });
+
+                // Emitting may have taken a while. Never persist progress without the lock:
+                // another run that took an expired lock over may already be further ahead.
+                await extendIfStale();
 
                 link = page.nextLink;
                 const resumeLink = link || page.deltaLink;
                 if (resumeLink) {
-                    await saveProgress(resumeLink, { state, caughtUp: !link, watermark });
                     if (link && !chainStartedAt) {
-                        // The chain continues beyond this page: remember when it started so
-                        // that a capped continuation keeps the same watermark.
+                        // Stored BEFORE the mid-chain link, so a continuation can never find
+                        // that link without the watermark of the chain it belongs to.
                         chainStartedAt = watermark;
                         await context.stateSet(CHAIN_STARTED_KEY, chainStartedAt);
-                    } else if (!link && chainStartedAt) {
+                    }
+                    await saveProgress(resumeLink, { state, caughtUp: !link, watermark });
+                    if (!link && chainStartedAt) {
                         chainStartedAt = null;
                         await context.stateSet(CHAIN_STARTED_KEY, null);
                     }
@@ -271,14 +363,29 @@ const runDeltaScan = async (context, { startLink, onPage, saveProgress }) => {
                 }
             }
         } catch (err) {
-            // Progress up to the last persisted page is durable either way, so make sure tick()
-            // comes back for the rest. Without this, a failure in a tick()-driven continuation
-            // would strand the backlog: there is no webhook redelivery to set the flag again.
-            await context.stateSet(SKIPPED_FLAG, true);
-            if (!(err instanceof LockLostError)) {
-                throw err;
+            if (err instanceof LockLostError) {
+                // Progress is durable, so simply stop here and let the next tick() pick it up.
+                await context.log({ step: 'lock-lost', error: err.message });
+                await context.stateSet(SKIPPED_FLAG, true);
+                return;
             }
-            await context.log({ step: 'lock-lost', error: err.message });
+            if (isResyncRequired(err) && baseline) {
+                await context.log({ step: 'delta-resync', error: err.message });
+                const resyncedAt = new Date().toISOString();
+                const fresh = await baseline();
+                await saveProgress(fresh, { state, caughtUp: true, watermark: resyncedAt });
+                if (chainStartedAt) {
+                    await context.stateSet(CHAIN_STARTED_KEY, null);
+                }
+                return;
+            }
+            if (isTransientError(err)) {
+                // Progress up to the last persisted page is durable, so make sure tick() comes
+                // back for the rest. Without this, a failure in a tick()-driven continuation
+                // would strand the backlog: there is no webhook redelivery to set the flag.
+                await context.stateSet(SKIPPED_FLAG, true);
+            }
+            throw err;
         }
     });
 
@@ -293,14 +400,20 @@ module.exports = {
     MAX_PAGES_PER_RUN,
     TEST_MODE_MAX_PAGES,
     LOCK_TTL,
-    LOCK_EXTEND_EVERY_ITEMS,
+    LOCK_REARM_AFTER,
     SKIPPED_FLAG,
     CHAIN_STARTED_KEY,
+    EMITTED_IDS_KEY,
+    MAX_EMITTED_IDS,
     LockLostError,
     isLockContentionError,
+    isResyncRequired,
+    isTransientError,
     extendLock,
+    extendLockIfStale,
     safeUnlock,
     withComponentLock,
+    createEmittedIds,
     fetchDeltaPage,
     fetchDeltaPages,
     fetchLatestDeltaLink,

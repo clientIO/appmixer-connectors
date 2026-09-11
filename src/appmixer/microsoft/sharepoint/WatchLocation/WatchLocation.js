@@ -71,6 +71,7 @@ module.exports = {
 
         return delta.runDeltaScan(context, {
             startLink: async (state) => state.deltaLink || await getBaselineDeltaLink(context),
+            baseline: () => getBaselineDeltaLink(context),
             onPage: async (items) => {
                 const changes = processDelta(items);
                 if (changes.length) {

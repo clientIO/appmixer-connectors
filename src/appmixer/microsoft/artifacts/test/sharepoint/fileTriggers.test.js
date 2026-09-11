@@ -122,6 +122,39 @@ describe('Microsoft delta file triggers', () => {
             assert.deepStrictEqual(emittedIds(), ['doc']);
         });
 
+        it('should not emit a file it has already emitted', async () => {
+
+            context.loadState.resolves({
+                deltaLink: 'p0',
+                lastUpdated: LAST_UPDATED,
+                [delta.EMITTED_IDS_KEY]: ['new-1']
+            });
+            stubChain([file('new-1')], [file('new-2')]);
+            context.messages = webhookMessage();
+
+            await NewFile.receive(context);
+
+            assert.deepStrictEqual(emittedIds(), ['new-2']);
+            assert.ok(context.stateSet.calledWith(delta.EMITTED_IDS_KEY, ['new-1', 'new-2']));
+        });
+
+        it('should renew the subscription even when continuing the backlog fails', async () => {
+
+            sandbox.stub(commons, 'get').rejects(new Error('503 - Service unavailable'));
+            const patchStub = sandbox.stub(commons, 'patch').resolves({ expirationDateTime: 'e2' });
+            context.loadState.resolves({
+                deltaLink: 'p0',
+                webhookId: 'w1',
+                expiryDate: '2020-01-01T00:00:00.000Z',
+                [delta.SKIPPED_FLAG]: true
+            });
+
+            await assert.rejects(() => NewFile.tick(context), /Service unavailable/);
+
+            assert.strictEqual(patchStub.callCount, 1);
+            assert.ok(context.stateSet.calledWith('expiryDate', 'e2'));
+        });
+
         it('should discard the batch when a clientState does not match', async () => {
 
             const getStub = stubChain([file('new-1')], []);
@@ -259,6 +292,27 @@ describe('Microsoft delta file triggers', () => {
 
             assert.deepStrictEqual(emittedIds(), ['updated-1', 'updated-2']);
             assert.deepStrictEqual(savedLinks(), ['p1', 'd']);
+        });
+
+        it('should report the first update of a file created while the previous chain was read', async () => {
+
+            // The previous chain started at 10:00; both files were created after that.
+            context.loadState.resolves({ deltaLink: 'p0', lastUpdated: '2026-03-01T10:00:00.000Z' });
+            stubChain([
+                file('edited-later', {
+                    createdDateTime: '2026-03-01T10:02:00.000Z',
+                    lastModifiedDateTime: '2026-03-01T11:00:00.000Z'
+                }),
+                file('just-created', {
+                    createdDateTime: '2026-03-01T10:03:00.000Z',
+                    lastModifiedDateTime: '2026-03-01T10:03:00.000Z'
+                })
+            ], []);
+            context.messages = webhookMessage();
+
+            await UpdatedFile.receive(context);
+
+            assert.deepStrictEqual(emittedIds(), ['edited-later']);
         });
     });
 
