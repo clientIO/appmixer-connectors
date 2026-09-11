@@ -5,6 +5,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.billId) {
+            throw new context.CancelError('Bill ID is required!');
+        }
+
         const {
             billId,
             minorVersion

@@ -3,6 +3,13 @@ const lib = require('../../lib');
 
 module.exports = {
     async receive(context) {
+        if (!context.messages.in.content.parentId) {
+            throw new context.CancelError('Parent Page ID is required!');
+        }
+        if (!context.messages.in.content.title) {
+            throw new context.CancelError('Title is required!');
+        }
+
         const { parentId, content, coverUrl, title, emoji } = context.messages.in.content;
 
         // Construct the data payload for the Notion API

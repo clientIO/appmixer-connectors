@@ -10,6 +10,13 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.content.content.noteId) {
+            throw new context.CancelError('Note is required!');
+        }
+        if (!context.messages.content.content.noteContent) {
+            throw new context.CancelError('Append content is required!');
+        }
+
         let noteContent = context.messages.content.content;
         let noteId = noteContent.noteId;
         delete noteContent.noteId;
