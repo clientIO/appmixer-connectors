@@ -65,7 +65,7 @@ const schemas = {
 
     case: {
         id: { type: 'string', title: 'ID', example: '4876876000000624001' },
-        Case_Number: { type: 'integer', title: 'Case Number', example: 1042 },
+        Case_Number: { type: 'string', title: 'Case Number', example: '4876876000000624004' },
         Subject: { type: 'string', title: 'Subject', example: 'Printer stops after 20 pages' },
         Status: { type: 'string', title: 'Status', example: 'Closed' },
         Priority: { type: 'string', title: 'Priority', example: 'High' },
