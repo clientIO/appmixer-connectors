@@ -24,14 +24,31 @@ const LOCK_EXTEND_EVERY_ITEMS = 20;
 const TEST_MODE_MAX_PAGES = 100;
 
 // State flag telling tick() that there is more of the delta backlog to work through, either
-// because this run hit MAX_PAGES_PER_RUN or because it could not get the component lock.
+// because this run hit MAX_PAGES_PER_RUN, could not get the component lock, or failed.
 const SKIPPED_FLAG = 'hasSkippedMessage';
+
+// State key holding when the delta chain that is currently being consumed was started. It is
+// carried across capped continuations and cleared once the chain is drained.
+const CHAIN_STARTED_KEY = 'deltaChainStartedAt';
 
 /**
  * Raised when the component lock could no longer be extended. Processing must stop rather than
  * continue unprotected - progress is durable, so the next tick() resumes where we left off.
  */
 class LockLostError extends Error {}
+
+/**
+ * Whether a failed `context.lock()` means that somebody else holds the lock, as opposed to the
+ * lock itself being broken (e.g. the lock store being unreachable). The engine lock is
+ * Redlock based and gives up on a held resource with
+ * `LockError: Exceeded <n> attempts to lock the resource`.
+ * @param {Error} err
+ * @return {boolean}
+ */
+const isLockContentionError = (err) => {
+
+    return err?.name === 'LockError' || /attempts to lock the resource/i.test(err?.message || '');
+};
 
 /**
  * Re-arm the component lock. Throws LockLostError when the lock is already gone so that
@@ -49,7 +66,8 @@ const extendLock = async (lock) => {
 };
 
 /**
- * Release the lock without ever masking the error that is already propagating.
+ * Release the lock without ever masking the error that is already propagating: neither the
+ * unlock nor the best-effort log of its failure may throw out of a `finally` block.
  * @param {Object} context
  * @param {Object} lock
  * @return {Promise<void>}
@@ -60,17 +78,23 @@ const safeUnlock = async (context, lock) => {
     try {
         await lock.unlock();
     } catch (err) {
-        await context.log({ step: 'unlock-failed', error: err.message });
+        try {
+            await context.log({ step: 'unlock-failed', error: err.message });
+        } catch (logErr) {
+            // Nothing left to report to; the original outcome wins.
+        }
     }
 };
 
 /**
  * Run `fn` under the component lock with an explicit TTL.
  *
- * Returns false without running `fn` when the lock could not be acquired. With the default
+ * Returns false without running `fn` when the lock is held by somebody else. With the default
  * `maxRetryCount: 0` a contended lock is skipped immediately instead of burning the engine
  * default of 30 retries and throwing `LockError: Exceeded 30 attempts to lock the resource`
- * on every single tick while a receive() works through a backlog.
+ * on every single tick while a receive() works through a backlog. Any other failure to take
+ * the lock is re-thrown: reporting it as "somebody else is on it" would hide a broken lock
+ * behind a component that silently never does any work.
  * @param {Object} context
  * @param {Object} [options]
  * @param {number} [options.maxRetryCount=0]
@@ -84,6 +108,9 @@ const withComponentLock = async (context, { maxRetryCount = 0, step = 'lock-skip
     try {
         lock = await context.lock(context.componentId, { maxRetryCount, ttl: LOCK_TTL });
     } catch (err) {
+        if (!isLockContentionError(err)) {
+            throw err;
+        }
         await context.log({ step, reason: err.message });
         return false;
     }
@@ -166,11 +193,18 @@ const fetchLatestDeltaLink = async (deltaPath, accessToken) => {
  * a redelivered webhook notification or a crashed run resumes where it stopped rather than
  * replaying the whole backlog from the original deltaLink.
  *
+ * `saveProgress` receives a `watermark` together with `caughtUp`: the moment the chain being
+ * consumed was started, taken BEFORE its first page was fetched and carried across capped
+ * continuations. A trigger that advances a "created after" cutoff once the chain is drained
+ * must use it rather than the current time - anything created while the chain was being read
+ * is then still newer than the cutoff on the next round, instead of being silently dropped as
+ * "already seen" (or, for UpdatedFile, misreported as an update).
+ *
  * @param {Object} context
  * @param {Object} options
  * @param {Function} options.startLink async (state) => string|undefined - the link to resume from
  * @param {Function} options.onPage async (items, { state, extend }) => void - emits one page
- * @param {Function} options.saveProgress async (link, { state, caughtUp }) => void
+ * @param {Function} options.saveProgress async (link, { state, caughtUp, watermark }) => void
  * @return {Promise<void>}
  */
 const runDeltaScan = async (context, { startLink, onPage, saveProgress }) => {
@@ -186,6 +220,9 @@ const runDeltaScan = async (context, { startLink, onPage, saveProgress }) => {
         // writes its own `true` here, and clearing afterwards would drop that notification.
         await context.stateSet(SKIPPED_FLAG, false);
 
+        let chainStartedAt = state[CHAIN_STARTED_KEY];
+        const watermark = chainStartedAt || new Date().toISOString();
+
         try {
             let link = await startLink(state);
             let pages = 0;
@@ -193,17 +230,30 @@ const runDeltaScan = async (context, { startLink, onPage, saveProgress }) => {
             while (link) {
 
                 // Re-arm the lock before every call so a slow Graph response cannot let the
-                // lock expire underneath us.
+                // lock expire underneath us...
                 await extend();
 
                 const page = await fetchDeltaPage(link, accessToken);
+
+                // ...and again right after it: the call itself may have used up most of the
+                // TTL, and the page is about to be emitted and persisted.
+                await extend();
 
                 await onPage(page.items, { state, extend });
 
                 link = page.nextLink;
                 const resumeLink = link || page.deltaLink;
                 if (resumeLink) {
-                    await saveProgress(resumeLink, { state, caughtUp: !link });
+                    await saveProgress(resumeLink, { state, caughtUp: !link, watermark });
+                    if (link && !chainStartedAt) {
+                        // The chain continues beyond this page: remember when it started so
+                        // that a capped continuation keeps the same watermark.
+                        chainStartedAt = watermark;
+                        await context.stateSet(CHAIN_STARTED_KEY, chainStartedAt);
+                    } else if (!link && chainStartedAt) {
+                        chainStartedAt = null;
+                        await context.stateSet(CHAIN_STARTED_KEY, null);
+                    }
                 } else {
                     // Graph always returns one of the two links. Without either there is
                     // nothing to resume from, so the stored link still points at the page we
@@ -221,12 +271,14 @@ const runDeltaScan = async (context, { startLink, onPage, saveProgress }) => {
                 }
             }
         } catch (err) {
+            // Progress up to the last persisted page is durable either way, so make sure tick()
+            // comes back for the rest. Without this, a failure in a tick()-driven continuation
+            // would strand the backlog: there is no webhook redelivery to set the flag again.
+            await context.stateSet(SKIPPED_FLAG, true);
             if (!(err instanceof LockLostError)) {
                 throw err;
             }
-            // Progress is durable, so simply stop here and let the next tick() pick it up.
             await context.log({ step: 'lock-lost', error: err.message });
-            await context.stateSet(SKIPPED_FLAG, true);
         }
     });
 
@@ -243,7 +295,9 @@ module.exports = {
     LOCK_TTL,
     LOCK_EXTEND_EVERY_ITEMS,
     SKIPPED_FLAG,
+    CHAIN_STARTED_KEY,
     LockLostError,
+    isLockContentionError,
     extendLock,
     safeUnlock,
     withComponentLock,

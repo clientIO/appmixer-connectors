@@ -137,14 +137,69 @@ describe('microsoft-delta runDeltaScan paging & locking', () => {
         assert.deepStrictEqual(savedLinks(), []);
     });
 
-    it('should extend the lock before every page with a realistic TTL', async () => {
+    it('should extend the lock before and right after every Graph call', async () => {
 
         stubPages(3);
 
         await scan();
 
-        assert.strictEqual(lock.extend.callCount, 3);
+        // Before each call (the call must not outlive the lock) and right after it (the call may
+        // have used up most of the TTL, and the page is about to be emitted and persisted).
+        assert.strictEqual(lock.extend.callCount, 6);
         lock.extend.getCalls().forEach(call => assert.strictEqual(call.args[0], delta.LOCK_TTL));
+        assert.ok(lock.extend.getCall(0).calledBefore(getStub.getCall(0)));
+        assert.ok(getStub.getCall(0).calledBefore(lock.extend.getCall(1)));
+        assert.ok(lock.extend.getCall(1).calledBefore(context.sendJson.getCall(0)));
+    });
+
+    it('should hand saveProgress a watermark taken before the first page was fetched', async () => {
+
+        const startedAt = '2026-03-01T00:00:00.000Z';
+        const clock = sandbox.useFakeTimers(new Date(startedAt));
+        stubPages(2);
+        // Emitting takes a while: anything created meanwhile must still be newer than the mark.
+        context.sendJson.callsFake(async () => clock.tick(60 * 1000));
+        const progress = [];
+
+        await scan({
+            saveProgress: async (link, { caughtUp, watermark }) => {
+                progress.push({ caughtUp, watermark });
+                await context.stateSet('deltaLink', link);
+            }
+        });
+
+        assert.deepStrictEqual(progress, [
+            { caughtUp: false, watermark: startedAt },
+            { caughtUp: true, watermark: startedAt }
+        ]);
+        // Remembered while the chain was open, dropped once it was drained.
+        assert.ok(context.stateSet.calledWith(delta.CHAIN_STARTED_KEY, startedAt));
+        assert.ok(context.stateSet.calledWith(delta.CHAIN_STARTED_KEY, null));
+    });
+
+    it('should remember when a deferred chain was started', async () => {
+
+        stubPages(1000);
+
+        await scan();
+
+        const starts = context.stateSet.getCalls().filter(call => call.args[0] === delta.CHAIN_STARTED_KEY);
+        assert.strictEqual(starts.length, 1);
+        assert.ok(starts[0].args[1]);
+    });
+
+    it('should carry the watermark of a deferred chain into its continuation', async () => {
+
+        const chainStartedAt = '2026-02-01T00:00:00.000Z';
+        stubPages(1);
+        context.loadState.resolves({ deltaLink: 'p0', [delta.CHAIN_STARTED_KEY]: chainStartedAt });
+        const watermarks = [];
+
+        await scan({ saveProgress: async (link, { watermark }) => watermarks.push(watermark) });
+
+        assert.deepStrictEqual(watermarks, [chainStartedAt]);
+        // The chain is drained now, so the next one starts a watermark of its own.
+        assert.ok(context.stateSet.calledWith(delta.CHAIN_STARTED_KEY, null));
     });
 
     it('should stop at the page cap and flag the rest of the backlog for the next tick', async () => {
@@ -162,14 +217,31 @@ describe('microsoft-delta runDeltaScan paging & locking', () => {
     it('should abort instead of paging on unprotected when the lock cannot be extended', async () => {
 
         stubPages(1000);
+        // Extension #2 is the re-arm before the second page.
+        lock.extend.onCall(2).rejects(new Error('lock expired'));
+
+        await scan();
+
+        assert.strictEqual(getStub.callCount, 1);
+        assert.deepStrictEqual(savedLinks(), ['p1']);
+        assert.ok(context.log.calledWithMatch({ step: 'lock-lost' }));
+        assert.ok(context.stateSet.calledWith(delta.SKIPPED_FLAG, true));
+        assert.strictEqual(lock.unlock.callCount, 1);
+    });
+
+    it('should not emit a fetched page once the lock turns out to be lost', async () => {
+
+        stubPages(1000);
+        // Extension #1 is the re-arm right after the first Graph call.
         lock.extend.onCall(1).rejects(new Error('lock expired'));
 
         await scan();
 
         assert.strictEqual(getStub.callCount, 1);
+        assert.strictEqual(context.sendJson.callCount, 0);
+        assert.deepStrictEqual(savedLinks(), []);
         assert.ok(context.log.calledWithMatch({ step: 'lock-lost' }));
         assert.ok(context.stateSet.calledWith(delta.SKIPPED_FLAG, true));
-        assert.strictEqual(lock.unlock.callCount, 1);
     });
 
     it('should skip the run and ask tick() to come back when the lock is already held', async () => {
@@ -195,11 +267,20 @@ describe('microsoft-delta runDeltaScan paging & locking', () => {
         assert.strictEqual(context.sendJson.callCount, 1);
     });
 
-    it('should release the lock and propagate a real Graph failure', async () => {
+    it('should release the lock, ask tick() to come back and propagate a real Graph failure', async () => {
 
-        sandbox.stub(commons, 'get').rejects(new Error('500 - Graph exploded'));
+        stubPages(3);
+        getStub.withArgs('p1').rejects(new Error('500 - Graph exploded'));
 
         await assert.rejects(() => scan(), /Graph exploded/);
+
+        // The first page stays done; the flag makes tick() retry the rest even when this run
+        // was itself a tick() continuation that no webhook redelivery would ever re-arm.
+        assert.deepStrictEqual(savedLinks(), ['p1']);
+        const flagWrites = context.stateSet.getCalls()
+            .filter(call => call.args[0] === delta.SKIPPED_FLAG)
+            .map(call => call.args[1]);
+        assert.deepStrictEqual(flagWrites, [false, true]);
         assert.strictEqual(lock.unlock.callCount, 1);
     });
 
@@ -246,6 +327,27 @@ describe('microsoft-delta withComponentLock', () => {
         assert.strictEqual(fn.callCount, 0);
         assert.deepStrictEqual(context.lock.firstCall.args[1], { maxRetryCount: 0, ttl: delta.LOCK_TTL });
         assert.ok(context.log.calledWithMatch({ step: 'webhook-renewal-skipped' }));
+    });
+
+    it('should propagate a lock failure that is not contention', async () => {
+
+        context.lock.rejects(new Error('connect ECONNREFUSED 127.0.0.1:6379'));
+        const fn = sandbox.stub().resolves();
+
+        await assert.rejects(() => delta.withComponentLock(context, {}, fn), /ECONNREFUSED/);
+        assert.strictEqual(fn.callCount, 0);
+    });
+
+    it('should recognise the engine lock contention error', () => {
+
+        const lockError = new Error('Exceeded 0 attempts to lock the resource "c1".');
+        const named = new Error('resource busy');
+        named.name = 'LockError';
+
+        assert.strictEqual(delta.isLockContentionError(lockError), true);
+        assert.strictEqual(delta.isLockContentionError(named), true);
+        assert.strictEqual(delta.isLockContentionError(new Error('connect ECONNREFUSED')), false);
+        assert.strictEqual(delta.isLockContentionError(undefined), false);
     });
 
     it('should run the work and always release the lock', async () => {

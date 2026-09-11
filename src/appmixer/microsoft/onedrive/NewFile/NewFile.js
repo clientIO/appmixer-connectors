@@ -43,13 +43,15 @@ const processChanges = async (context) => {
                 }
             }
         },
-        saveProgress: async (link, { caughtUp }) => {
+        saveProgress: async (link, { caughtUp, watermark }) => {
             await context.stateSet('deltaLink', link);
             if (caughtUp) {
                 // `lastUpdated` is the "we have caught up to here" watermark and may only be
                 // advanced once the whole chain is consumed - the pages still to come hold
-                // older files that this cutoff would otherwise filter out.
-                await context.stateSet('lastUpdated', moment().toISOString());
+                // older files that this cutoff would otherwise filter out. It is when the chain
+                // was started, not "now", so a file created while it was being read is still
+                // new on the next round.
+                await context.stateSet('lastUpdated', watermark);
             }
         }
     });

@@ -52,10 +52,10 @@ const processChanges = async (context) => {
                 }
             }
         },
-        saveProgress: async (link, { caughtUp }) => {
+        saveProgress: async (link, { caughtUp, watermark }) => {
             await context.stateSet('deltaLink', link);
             if (caughtUp) {
-                await context.stateSet('lastUpdated', new Date().toISOString());
+                await context.stateSet('lastUpdated', watermark);
             }
         }
     });

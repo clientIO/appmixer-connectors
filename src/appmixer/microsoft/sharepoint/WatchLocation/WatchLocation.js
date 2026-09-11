@@ -7,9 +7,11 @@ const STATUS = {
 };
 
 /**
- * filter delta to return only modified or new files.
- * delta endpoint returns all changes, including deleted files, however, for the deleted files we don't have useful information -
- * it returns only location where the file has been deleted from + file ID
+ * Keep the file items of a delta page (folders and other items without a `file` facet are
+ * dropped) and classify each one: `new` when it was never modified after it was created,
+ * `modified` otherwise. Items without both timestamps - typically deleted files, for which the
+ * delta endpoint returns little more than the ID and the location they were deleted from -
+ * are kept with `status` left undefined.
  * @param deltaValues
  * @returns {*}
  */
@@ -69,10 +71,9 @@ module.exports = {
 
         return delta.runDeltaScan(context, {
             startLink: async (state) => state.deltaLink || await getBaselineDeltaLink(context),
-            onPage: async (items, { extend }) => {
+            onPage: async (items) => {
                 const changes = processDelta(items);
                 if (changes.length) {
-                    await extend();
                     await context.sendArray(changes, 'out');
                 }
             },

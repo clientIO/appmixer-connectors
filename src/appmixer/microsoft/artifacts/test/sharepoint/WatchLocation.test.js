@@ -82,7 +82,10 @@ describe('Microsoft SharePoint WatchLocation', () => {
         assert.deepStrictEqual(context.sendArray.firstCall.args[0].map(c => c.status), ['new']);
         assert.deepStrictEqual(context.sendArray.secondCall.args[0].map(c => c.status), ['modified']);
         // Emitting before saving means a crash replays a page instead of dropping it.
-        sinon.assert.callOrder(context.sendArray, context.stateSet);
+        const linkWrites = context.stateSet.getCalls().filter(call => call.args[0] === 'deltaLink');
+        assert.ok(context.sendArray.getCall(0).calledBefore(linkWrites[0]));
+        assert.ok(linkWrites[0].calledBefore(context.sendArray.getCall(1)));
+        assert.ok(context.sendArray.getCall(1).calledBefore(linkWrites[1]));
         assert.deepStrictEqual(savedLinks(), ['p1', 'd']);
         assert.strictEqual(lock.unlock.callCount, 1);
     });

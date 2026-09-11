@@ -94,15 +94,21 @@ describe('Microsoft delta file triggers', () => {
             assert.strictEqual(context.response.callCount, 1);
         });
 
-        it('should advance the lastUpdated watermark only once the chain is drained', async () => {
+        it('should advance the watermark once the chain is drained, to when the chain was started', async () => {
 
+            const startedAt = '2026-03-01T00:00:00.000Z';
+            const clock = sandbox.useFakeTimers(new Date(startedAt));
             stubChain([file('new-1')], [file('new-2')]);
+            // Emitting takes a while - a file created meanwhile must still be new next round.
+            context.sendJson.callsFake(async () => clock.tick(60 * 1000));
             context.messages = webhookMessage();
 
             await NewFile.receive(context);
 
-            const watermarks = context.stateSet.getCalls().filter(call => call.args[0] === 'lastUpdated');
-            assert.strictEqual(watermarks.length, 1);
+            const watermarks = context.stateSet.getCalls()
+                .filter(call => call.args[0] === 'lastUpdated')
+                .map(call => call.args[1]);
+            assert.deepStrictEqual(watermarks, [startedAt]);
         });
 
         it('should honour the fileTypesRestriction without emitting a file twice', async () => {
@@ -314,6 +320,19 @@ describe('Microsoft delta file triggers', () => {
 
             assert.strictEqual(getStub.firstCall.args[0], '/me/drive/root/delta?token=latest');
             assert.strictEqual(context.saveState.firstCall.args[0].deltaLink, 'baseline');
+        });
+
+        it('should advance the watermark to when the chain was started', async () => {
+
+            const startedAt = '2026-03-01T00:00:00.000Z';
+            const clock = sandbox.useFakeTimers(new Date(startedAt));
+            stubChain([file('new-1')], [file('new-2')]);
+            context.sendJson.callsFake(async () => clock.tick(60 * 1000));
+            context.messages = webhookMessage();
+
+            await OneDriveNewFile.receive(context);
+
+            assert.ok(context.stateSet.calledWith('lastUpdated', startedAt));
         });
     });
 });
