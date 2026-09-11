@@ -3,30 +3,39 @@ const ZohoNotifiable = require('../../ZohoNotifiable');
 const lib = require('../lib');
 
 const DEFAULT_CLOSED_STATUS = 'Closed';
-// Zoho only reports that a case was edited, not what changed, so an already reported case is
-// remembered for a week to avoid re-firing on every later edit of the same closed case.
-const DEDUPLICATION_TTL = 7 * 24 * 60 * 60 * 1000;
+// Zoho only reports that a case was edited, not what changed. The last seen Status of every edited
+// case is therefore remembered, and the trigger fires only on a transition into the closed status:
+// later edits of an already closed case stay silent, while a reopened case that is closed again
+// fires again.
+const STATUS_TTL = 30 * 24 * 60 * 60 * 1000;
 
 class CaseClosed extends ZohoNotifiable {
 
     async receive(context) {
 
         const closedStatus = context.properties.closedStatus || DEFAULT_CLOSED_STATUS;
-        const { ids } = context.messages.webhook.content.data;
+        const { ids = [] } = context.messages.webhook.content.data || {};
+        if (!ids.length) {
+            return;
+        }
         const records = await this.makeZohoClient(context).getRecords('Cases', {
             params: { ids: ids.join(',') }
         });
 
         for (const record of records) {
-            if (record.Status !== closedStatus) {
-                continue;
+            const cacheKey = `case-closed-status-${context.componentId}-${record.id}`;
+            // Two Cases.edit deliveries for the same case can arrive concurrently; without the lock
+            // both would read the old status and emit the same closure twice.
+            const lock = await context.lock(cacheKey);
+            try {
+                const previousStatus = await context.staticCache.get(cacheKey);
+                await context.staticCache.set(cacheKey, record.Status ?? null, STATUS_TTL);
+                if (record.Status === closedStatus && previousStatus !== closedStatus) {
+                    await context.sendJson(record, 'out');
+                }
+            } finally {
+                await lock.unlock();
             }
-            const cacheKey = `case-closed-${context.componentId}-${record.id}`;
-            if (await context.staticCache.get(cacheKey)) {
-                continue;
-            }
-            await context.staticCache.set(cacheKey, true, DEDUPLICATION_TTL);
-            await context.sendJson(record, 'out');
         }
     }
 
@@ -34,13 +43,13 @@ class CaseClosed extends ZohoNotifiable {
 
         const closedStatus = context.properties.closedStatus || DEFAULT_CLOSED_STATUS;
         const criteria = `(Status:equals:${lib.escapeCriteriaValue(closedStatus)})`;
-        const records = await this.makeZohoClient(context).search('Cases', { criteria });
+        const record = await lib.searchFirst(this.makeZohoClient(context), 'Cases', { criteria });
 
-        if (!records.length) {
+        if (!record) {
             throw new context.CancelError(`No cases with the status "${closedStatus}" found to use as test data.`);
         }
 
-        return context.sendJson(records[0], 'out');
+        return context.sendJson(record, 'out');
     }
 }
 

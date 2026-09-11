@@ -168,10 +168,21 @@ module.exports = {
         return String(value).replace(/([(),\\])/g, '\\$1');
     },
 
-    /** Formats a date as the plain `YYYY-MM-DD` Zoho uses for Date (not DateTime) fields. */
+    /**
+     * Formats a date as the plain `YYYY-MM-DD` Zoho uses for Date (not DateTime) fields.
+     * A string keeps the calendar day it was written with: the date-time inspector sends the
+     * user's local midnight with an offset (2026-09-14T00:00:00+02:00), and converting that to UTC
+     * first would shift the filter to the previous day.
+     */
     formatDate(date) {
 
-        return moment(date).utc().format('YYYY-MM-DD');
+        if (typeof date === 'string') {
+            const parsed = moment.parseZone(date, moment.ISO_8601);
+            if (parsed.isValid()) {
+                return parsed.format('YYYY-MM-DD');
+            }
+        }
+        return moment.utc(date).format('YYYY-MM-DD');
     },
 
     /** Formats a date as the ISO 8601 with offset form Zoho uses for DateTime fields. */
@@ -180,16 +191,57 @@ module.exports = {
         return moment(date).utc().format('YYYY-MM-DDTHH:mm:ss[+00:00]');
     },
 
-    /** Start of the current day in UTC. Triggers compare Zoho Date fields against this. */
-    startOfToday() {
+    /**
+     * The current calendar day in the given IANA time zone, returned as UTC midnight of that day so
+     * formatDate() yields the local date. Zoho Date fields (Due_Date, ...) carry no time zone and
+     * follow the organization's calendar, so "today" must not be the UTC day: for a UTC-7 user the
+     * UTC day flips at 17:00 local time. Falls back to UTC when the zone is missing or unknown.
+     * @param {string} [timeZone] e.g. 'America/Los_Angeles'
+     */
+    startOfToday(timeZone) {
 
-        return moment.utc().startOf('day').toDate();
+        let today = moment.utc().format('YYYY-MM-DD');
+        if (timeZone) {
+            try {
+                // en-CA formats as YYYY-MM-DD.
+                today = new Intl.DateTimeFormat('en-CA', {
+                    timeZone, year: 'numeric', month: '2-digit', day: '2-digit'
+                }).format(new Date());
+            } catch (err) {
+                // Unknown time zone id - keep the UTC day.
+            }
+        }
+        return moment.utc(today, 'YYYY-MM-DD').toDate();
     },
 
-    /** Shifts a date by whole days. Negative values move into the past. */
+    /**
+     * First record matching a search, reading a single page (per_page=1). The triggers' test() needs
+     * one sample that matches the same criteria as tick(), without paging through the module.
+     * @param {ZohoClient} client
+     * @param {string} moduleName
+     * @param {Object} params Search params (`criteria`, `fields`, ...).
+     * @returns {Promise<Object|null>}
+     */
+    async searchFirst(client, moduleName, params) {
+
+        // eslint-disable-next-line camelcase
+        const response = await client.request('GET', client.path(`/${moduleName}/search`), { params: { ...params, per_page: 1 } });
+        return Array.isArray(response?.data) ? response.data[0] : null;
+    },
+
+    /** Time zone of the connected Zoho user (users API `time_zone`, stored in the account profile). */
+    userTimeZone(context) {
+
+        return context.profileInfo?.time_zone;
+    },
+
+    /**
+     * Shifts a date by whole days. Negative values move into the past. A plain `YYYY-MM-DD` string
+     * is read as UTC midnight, matching startOfToday().
+     */
     addDays(date, days) {
 
-        return moment(date).utc().add(days, 'days').toDate();
+        return moment.utc(date).add(days, 'days').toDate();
     },
 
     async sendArrayOutput({ context, outputPortName = 'out', outputType = 'array', records = [] }) {
@@ -262,21 +314,21 @@ module.exports = {
     }
 };
 
+// Every cell is quoted so values containing commas, quotes or newlines (descriptions, addresses,
+// JSON of lookup fields) cannot shift columns or rows. Cells are read by header, not by position,
+// because Zoho omits empty fields per record.
 const toCsv = (array) => {
 
-    if (!array.length) {
+    if (!array || !array.length) {
         return '';
     }
     const headers = Object.keys(array[0]);
+    const escapeCell = (value) => {
+        const text = value !== null && typeof value === 'object' ? JSON.stringify(value) : String(value ?? '');
+        return `"${text.replace(/"/g, '""')}"`;
+    };
     return [
-        headers.join(','),
-        ...array.map(items => {
-            return Object.values(items).map(property => {
-                if (typeof property === 'object') {
-                    return JSON.stringify(property);
-                }
-                return property;
-            }).join(',');
-        })
+        headers.map(escapeCell).join(','),
+        ...array.map(item => headers.map(header => escapeCell(item[header])).join(','))
     ].join('\n');
 };

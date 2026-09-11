@@ -2,17 +2,27 @@
 const ZohoClient = require('../../ZohoClient');
 const lib = require('../lib');
 
+// The out port is dynamic (outputType), so the item contract is exported for the offline tooling
+// (`appmixer connector verify`, outport-nested-title-prefix).
+const ITEM_SCHEMA = {
+    type: 'object',
+    properties: lib.schemas.appointment,
+    required: ['id']
+};
+
 /**
  * Find appointments matching the given criteria.
  */
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
         const { appointmentName, status, startTimeFrom, startTimeTo, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, lib.schemas.appointment, {
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, {
                 label: 'Appointments',
                 value: 'result'
             });
