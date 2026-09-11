@@ -7,6 +7,13 @@ module.exports = {
     receive: async function(context) {
 
         const { data } = await this.httpRequest(context);
+        if ([undefined, null, ''].includes(context.messages.in.content.sheetId)) {
+            throw new context.CancelError('Sheet Id is required!');
+        }
+        if ([undefined, null, ''].includes(context.messages.in.content.rowId)) {
+            throw new context.CancelError('Row Id is required!');
+        }
+
         const columns = await context.componentStaticCall('appmixer.smartsheet.core.ListColumnsOnSheet', 'out', {
             messages: { in: { sheetId: context.messages.in.content.sheetId } },
             transform: './ListColumnsOnSheet#columnsToSelectArray'
