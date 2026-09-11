@@ -5,13 +5,14 @@ module.exports = {
 
     async receive(context) {
 
-        const { teamId, channelId, content } = context.messages.in.content;
+        const { teamId, channelId, content, contentType = 'text' } = context.messages.in.content;
         const { accessToken } = context.auth;
         const response = await request({
             method: 'POST',
             url: 'https://graph.microsoft.com/v1.0/teams/' + teamId + '/channels/' + channelId + '/messages',
             body: {
                 body: {
+                    contentType: contentType,
                     content: content
                 }
             },
