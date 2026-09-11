@@ -1,0 +1,442 @@
+{
+    "name": "E2E Microsoft SharePoint - Updated File Trigger",
+    "description": "Uploads a file into a dedicated SharePoint folder, renames it a few minutes later and asserts the Updated File delta trigger emits the change.",
+    "type": "automation",
+    "flow": {
+        "e150d9d1-c640-41ca-a72c-a531234e1d91": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9cc3995d-90c5-41c4-a0ad-d416c0677322": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 400,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e150d9d1-c640-41ca-a72c-a531234e1d91": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e150d9d1-c640-41ca-a72c-a531234e1d91": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d07280d5-bfa0-4e17-8cd1-a127affaa67c": {
+            "type": "appmixer.utils.files.SaveFile",
+            "x": 700,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9cc3995d-90c5-41c4-a0ad-d416c0677322": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9cc3995d-90c5-41c4-a0ad-d416c0677322": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filename": {
+                                        "ec14aa77-caef-4426-b763-4d250e395da8": {
+                                            "variable": "$.e150d9d1-c640-41ca-a72c-a531234e1d91.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_formatDate",
+                                                    "params": [
+                                                        {
+                                                            "value": "YYYYMMDD-HHmmss"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "mimetype": {},
+                                    "content": {},
+                                    "contentEncoding": {}
+                                },
+                                "lambda": {
+                                    "filename": "e2e-sharepoint-updatedfile-{{{ec14aa77-caef-4426-b763-4d250e395da8}}}.txt",
+                                    "mimetype": "text/plain",
+                                    "content": "Appmixer E2E fixture for the SharePoint Updated File delta trigger.",
+                                    "contentEncoding": "utf8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7fa16fd9-54ac-4c73-a444-aa3aedffb9f1": {
+            "type": "appmixer.microsoft.sharepoint.UploadFile",
+            "x": 1000,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d07280d5-bfa0-4e17-8cd1-a127affaa67c": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d07280d5-bfa0-4e17-8cd1-a127affaa67c": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "siteId": {},
+                                    "driveId": {},
+                                    "parentPath": {},
+                                    "fileId": {
+                                        "4872b3fc-adee-4943-af20-f1ceb1923b7e": {
+                                            "variable": "$.d07280d5-bfa0-4e17-8cd1-a127affaa67c.file.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileName": {
+                                        "3c460984-6036-47ce-931f-28e62fa1477f": {
+                                            "variable": "$.d07280d5-bfa0-4e17-8cd1-a127affaa67c.file.filename",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "siteId": "appmixer.sharepoint.com,143e1507-a38a-4a41-87da-29794c81011b,a851d241-aeab-43b5-8426-dc8cc87e9351",
+                                    "driveId": "b!BxU-FIqjQUqH2il5TIEBG0HSUairrrVDhCbcjMh-k1HpggReNXwPS6zVg-Y8qiuC",
+                                    "parentPath": "E2E-Delta-Triggers/UpdatedFile",
+                                    "fileId": "{{{4872b3fc-adee-4943-af20-f1ceb1923b7e}}}",
+                                    "fileName": "{{{3c460984-6036-47ce-931f-28e62fa1477f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "08403961-d67a-451e-a4bc-0ce07d7f0f41": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 1300,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7fa16fd9-54ac-4c73-a444-aa3aedffb9f1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7fa16fd9-54ac-4c73-a444-aa3aedffb9f1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "3m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "91932bf2-87a7-44ce-8606-136e816137df": {
+            "type": "appmixer.microsoft.sharepoint.MakeApiCall",
+            "x": 1600,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "08403961-d67a-451e-a4bc-0ce07d7f0f41": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "08403961-d67a-451e-a4bc-0ce07d7f0f41": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "ddaf240d-a9b2-41ad-b897-32c895882e6d": {
+                                            "variable": "$.7fa16fd9-54ac-4c73-a444-aa3aedffb9f1.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {
+                                        "7a39bca0-a745-4964-ad28-ae19e5d1918d": {
+                                            "variable": "$.e150d9d1-c640-41ca-a72c-a531234e1d91.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_formatDate",
+                                                    "params": [
+                                                        {
+                                                            "value": "YYYYMMDD-HHmmss"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/drives/b!BxU-FIqjQUqH2il5TIEBG0HSUairrrVDhCbcjMh-k1HpggReNXwPS6zVg-Y8qiuC/items/{{{ddaf240d-a9b2-41ad-b897-32c895882e6d}}}",
+                                    "method": "PATCH",
+                                    "body": "{\"name\": \"e2e-sharepoint-updatedfile-{{{7a39bca0-a745-4964-ad28-ae19e5d1918d}}}-updated.txt\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "88baf497-d91f-45a9-90aa-5d94cb5bceb2": {
+            "type": "appmixer.microsoft.sharepoint.UpdatedFile",
+            "x": 100,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "siteId": "appmixer.sharepoint.com,143e1507-a38a-4a41-87da-29794c81011b,a851d241-aeab-43b5-8426-dc8cc87e9351",
+                    "driveId": "b!BxU-FIqjQUqH2il5TIEBG0HSUairrrVDhCbcjMh-k1HpggReNXwPS6zVg-Y8qiuC",
+                    "parentPath": "E2E-Delta-Triggers/UpdatedFile",
+                    "fileTypesRestriction": [
+                        "text/"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0565d2ef-5c6a-4246-8e8d-65a79d9004ae": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 400,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "88baf497-d91f-45a9-90aa-5d94cb5bceb2": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "88baf497-d91f-45a9-90aa-5d94cb5bceb2": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "cc4bca6b-cb48-40e8-b5d6-7841721d510b": {
+                                            "variable": "$.88baf497-d91f-45a9-90aa-5d94cb5bceb2.file.id",
+                                            "functions": []
+                                        },
+                                        "9b0704a5-7039-4cf4-8c3c-cc4e438c6727": {
+                                            "variable": "$.88baf497-d91f-45a9-90aa-5d94cb5bceb2.file.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{cc4bca6b-cb48-40e8-b5d6-7841721d510b}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{9b0704a5-7039-4cf4-8c3c-cc4e438c6727}}}",
+                                                "assertion": "regex",
+                                                "regex": "^e2e-sharepoint-updatedfile-"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0ecc2c70-7c38-494d-b992-7e6b0f9aaf0c": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 700,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0565d2ef-5c6a-4246-8e8d-65a79d9004ae": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 720
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ce751378-aa05-4b47-8faa-e45d7299a1c5": {
+            "type": "appmixer.microsoft.sharepoint.MakeApiCall",
+            "x": 1000,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0ecc2c70-7c38-494d-b992-7e6b0f9aaf0c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0ecc2c70-7c38-494d-b992-7e6b0f9aaf0c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "ff54f486-7cc9-4d82-99ff-2de239005586": {
+                                            "variable": "$.88baf497-d91f-45a9-90aa-5d94cb5bceb2.file.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/drives/b!BxU-FIqjQUqH2il5TIEBG0HSUairrrVDhCbcjMh-k1HpggReNXwPS6zVg-Y8qiuC/items/{{{ff54f486-7cc9-4d82-99ff-2de239005586}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1f578f34-899d-4c7a-b7ed-0427478da08e": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1300,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ce751378-aa05-4b47-8faa-e45d7299a1c5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ce751378-aa05-4b47-8faa-e45d7299a1c5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "4de7ba37-34e9-4850-8413-a088480614ff": {
+                                            "variable": "$.0ecc2c70-7c38-494d-b992-7e6b0f9aaf0c.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Microsoft SharePoint - Updated File Trigger",
+                                    "result": "{{{4de7ba37-34e9-4850-8413-a088480614ff}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "8590746d-9edd-46b7-b976-f05cd35a7bed": {
+            "x": 64,
+            "y": 640,
+            "width": 900,
+            "height": 260,
+            "content": "## ⚠️ Test data assumption\n\nBoth lanes are scoped to `E2E-Delta-Triggers/UpdatedFile` in the **Documents** library of the **Stg Appmixer QA**\nSharePoint site. Create that folder with `appmixer.microsoft.sharepoint.CreateFolder`\n(parent path `E2E-Delta-Triggers`) on a fresh tenant.\n\nTiming is load-bearing and the Waits must not be removed:\n- `Wait 1m` lets the Graph subscription propagate before the file is created.\n- `Wait 3m` lets the trigger consume the *creation* delta and advance its `lastUpdated`\n  watermark. `UpdatedFile` only emits files whose `createdDateTime` is older than that\n  watermark, so renaming too early emits nothing and the flow times out.\n\nCleanup deletes the item id the trigger reported — nothing else may write text files into\nthat folder while the flow runs.\n\nThe account needs `Files.Read.All`, `Sites.Read.All`, `Subscription.Read.All` (trigger),\n`Files.ReadWrite.All` (upload) and `Sites.ReadWrite.All` (Make API Call)."
+        }
+    }
+}

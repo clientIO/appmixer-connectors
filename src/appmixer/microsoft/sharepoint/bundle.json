@@ -1,6 +1,6 @@
 {
     "name": "appmixer.microsoft.sharepoint",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "changelog": {
         "1.0.0": [
             "Initial version"
@@ -61,6 +61,18 @@
         ],
         "2.2.0": [
             "Added test() (Flow Test Mode) to the NewFile and UpdatedFile triggers."
+        ],
+        "2.3.0": [
+            "NewFile, UpdatedFile, DeletedFile, WatchLocation: the delta backlog is now processed page by page with the resume link persisted after every page, so a redelivered notification or a late failure no longer replays the whole backlog.",
+            "NewFile, UpdatedFile, DeletedFile, WatchLocation: the component lock is taken with an explicit TTL and extended before every Graph call, and at most 20 delta pages are processed per run - the rest continues on the next tick.",
+            "NewFile, UpdatedFile, DeletedFile: the webhook renewal in tick() no longer retries a contended lock 30 times, which used to throw 'LockError: Exceeded 30 attempts to lock the resource' every minute while a notification was being processed.",
+            "WatchLocation: changes are emitted before the delta link is stored, so a crash replays a page instead of dropping it.",
+            "NewFile, UpdatedFile: a file matching several File Types Restriction prefixes at once is now emitted once instead of once per matching prefix.",
+            "All Microsoft Graph calls made through the legacy request helper now have a 30 s timeout so a hung call cannot hold a component lock indefinitely.",
+            "NewFile, UpdatedFile: the 'created since' cutoff now advances to when the delta chain was started rather than when it was finished, so a file created while a backlog was being processed is no longer skipped. NewFile remembers the files it emitted recently so such a file does not fire twice; UpdatedFile also reports a file created after the cutoff once it has been modified.",
+            "NewFile, UpdatedFile, DeletedFile, WatchLocation: an expired delta link (410 resyncRequired) is replaced by a fresh baseline, with the gap logged, instead of failing on every notification. A transient failure part-way through a backlog is retried on the next tick, and the subscription renewal in tick() runs even when that retry fails.",
+            "Output examples for every output field of CreateFolder, DeletedFile, DownloadFile, GetFile, ListDrives, ListSites, MoveFileOrFolder, NewFile, UpdatedFile, UploadFile and WatchLocation; WatchLocation's output schema declared its nested fields as label/value pairs and its leaves without types.",
+            "CreateFolder, GetFile, ListDrives: a missing required input is reported as a clear error instead of a failed Graph call."
         ]
     }
 }

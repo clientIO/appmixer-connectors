@@ -1,19 +1,18 @@
 'use strict';
 const commons = require('../../microsoft-commons');
+const delta = require('../../microsoft-delta');
 
-const getLatestChanges = async (deltaLink, accessToken) => {
+const getDeltaPath = (context) => {
 
-    const currentPage = await commons.formatError(() => {
-        return commons.get(deltaLink, accessToken);
-    });
-    if (currentPage['@odata.deltaLink']) {
-        return currentPage;
-    }
+    const { driveId, parentPath } = context.properties;
+    const path = parentPath ? `:/${parentPath}:` : '';
+    return `/drives/${driveId}/root${path}/delta`;
+};
 
-    const nextPage = await getLatestChanges(currentPage['@odata.nextLink'], accessToken);
-    nextPage.value = currentPage.value.concat(nextPage.value);
+const isDeletedFile = (file) => {
 
-    return nextPage;
+    const keys = Object.keys(file);
+    return keys.includes('file') && keys.includes('deleted');
 };
 
 const registerWebhook = async (context) => {
@@ -31,17 +30,83 @@ const registerWebhook = async (context) => {
     });
 };
 
+/**
+ * Work through the delta backlog page by page, emitting the deleted files of each page and
+ * persisting the resume link before moving on to the next one.
+ * @param {Context} context
+ * @return {Promise<void>}
+ */
+const processChanges = async (context) => {
+
+    return delta.runDeltaScan(context, {
+        startLink: (state) => state.deltaLink,
+        baseline: () => delta.fetchLatestDeltaLink(getDeltaPath(context), context.auth.accessToken),
+        onPage: async (files, { extend }) => {
+            for (const file of files) {
+                if (!isDeletedFile(file)) continue;
+                await context.sendJson(file, 'file');
+                // Emitting a large page must not outlive the last lock extension either.
+                await extend();
+            }
+        },
+        saveProgress: async (link, { caughtUp, watermark }) => {
+            await context.stateSet('deltaLink', link);
+            if (caughtUp) {
+                await context.stateSet('lastUpdated', watermark);
+            }
+        }
+    });
+};
+
+/**
+ * Renew the Graph subscription three days before it expires, re-creating it when Graph no
+ * longer knows about it.
+ * @param {Context} context
+ * @param {string} webhookId
+ * @param {string} expiryDate
+ * @return {Promise<void>}
+ */
+const renewSubscription = async (context, webhookId, expiryDate) => {
+
+    const renewDate = new Date(expiryDate).setDate(new Date(expiryDate).getDate() - 3);
+    if (new Date() < new Date(renewDate)) {
+        return;
+    }
+
+    // A contended lock means a receive() is working through a backlog - skip the renewal and
+    // retry on the next tick instead of storming the lock.
+    await delta.withComponentLock(context, { step: 'webhook-renewal-skipped' }, async (lock) => {
+        const body = { expirationDateTime: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString() };
+        try {
+            const { expirationDateTime } = await commons.formatError(() => {
+                return commons.patch(`/subscriptions/${webhookId}`, context.auth.accessToken, body);
+            });
+
+            await context.stateSet('expiryDate', expirationDateTime);
+        } catch (err) {
+            if (err?.statusCode === 404) {
+                // Re-arm the lock: creating a replacement subscription is a second Graph
+                // round trip and must not run once the TTL has elapsed.
+                await delta.extendLock(lock);
+                const { id, expirationDateTime } = await registerWebhook(context);
+                await context.stateSet('webhookId', id);
+                await context.stateSet('expiryDate', expirationDateTime);
+            } else {
+                throw err;
+            }
+        }
+    });
+};
+
 module.exports = {
 
     async start(context) {
 
         const { accessToken } = context.auth;
-        const { driveId, parentPath } = context.properties;
-        const path = parentPath ? `:/${parentPath}:` : '';
-        const latest = await getLatestChanges(`/drives/${driveId}/root${path}/delta?token=latest`, accessToken);
-        context.log({ step: 'deletedLatest', latest });
+        const deltaLink = await delta.fetchLatestDeltaLink(getDeltaPath(context), accessToken);
+        await context.log({ step: 'deletedLatest', deltaLink });
         const state = {
-            deltaLink: latest['@odata.deltaLink'],
+            deltaLink,
             lastUpdated: new Date().toISOString()
         };
 
@@ -68,45 +133,11 @@ module.exports = {
 
             const { value } = data;
             if (Array.isArray(value)) {
-                let clientStatesValid = true;
-                value.forEach((v) => {
-                    if (v.clientState !== context.componentId) {
-                        // If just one clientState is invalid, we discard the whole batch
-                        clientStatesValid = false;
-                    }
-                });
+                // If just one clientState is invalid, we discard the whole batch.
+                const clientStatesValid = value.every(v => v.clientState === context.componentId);
 
-                const { accessToken } = context.auth;
-
-                let lock = null;
-                try {
-                    lock = await context.lock(context.componentId, { retryDelay: 2000 });
-
-                    const state = await context.loadState();
-                    const deltaLink = state.deltaLink;
-
-                    if (clientStatesValid && deltaLink) {
-                        const latest = await getLatestChanges(deltaLink, accessToken);
-                        state.deltaLink = latest['@odata.deltaLink'];
-
-                        const promises = [];
-
-                        latest.value.forEach((file) => {
-                            const isFile = Object.keys(file).includes('file');
-                            const isDeleted = Object.keys(file).includes('deleted');
-                            if (isFile && isDeleted) {
-                                promises.push(context.sendJson(file, 'file'));
-                            }
-                        });
-                        state.lastUpdated = new Date().toISOString();
-
-                        promises.push(context.saveState(state));
-                        await Promise.all(promises);
-                    }
-                } finally {
-                    if (lock) {
-                        await lock.unlock();
-                    }
+                if (clientStatesValid) {
+                    await processChanges(context);
                 }
             }
 
@@ -128,46 +159,29 @@ module.exports = {
 
     async tick(context) {
 
-        const { accessToken } = context.auth;
+        const { webhookId, expiryDate, [delta.SKIPPED_FLAG]: hasSkippedMessage } = await context.loadState();
 
-        let lock;
-        try {
-            lock = await context.lock(context.componentId);
+        if (!webhookId) {
+            // Not subscribed - there is no delta to continue and nothing to renew.
+            return;
+        }
 
-            const state = await context.loadState();
-
-            const webhookId = state.webhookId;
-            const expiryDate = state.expiryDate;
-
-            if (!webhookId) {
-                return;
+        let scanError = null;
+        if (hasSkippedMessage) {
+            // A notification arrived while we were already processing, or the backlog did not
+            // fit into a single run. Carry on with the rest of it - but never at the price of
+            // the renewal: a failing scan must not let the subscription expire.
+            try {
+                await processChanges(context);
+            } catch (err) {
+                scanError = err;
             }
+        }
 
-            const renewDate = new Date(expiryDate).setDate(new Date(expiryDate).getDate() - 3);
+        await renewSubscription(context, webhookId, expiryDate);
 
-            if (new Date() >= new Date(renewDate)) {
-                const body = { expirationDateTime: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString() };
-                try {
-                    const { expirationDateTime } = await commons.formatError(() => {
-                        return commons.patch(`/subscriptions/${webhookId}`, accessToken, body);
-                    });
-
-                    state.expiryDate = expirationDateTime;
-                } catch (err) {
-                    if (err?.statusCode === 404) {
-                        const { id, expirationDateTime } = await registerWebhook(context);
-                        state.webhookId = id;
-                        state.expiryDate = expirationDateTime;
-                    } else {
-                        throw err;
-                    }
-                }
-                await context.saveState(state);
-            }
-        } finally {
-            if (lock) {
-                await lock.unlock();
-            }
+        if (scanError) {
+            throw scanError;
         }
     }
 };
