@@ -128,13 +128,17 @@ and `ANTHROPIC_API_KEY` secrets — the integration only covers the Appmixer hal
 ## Publishing as integrations
 
 Both flows carry a `wizard` and are published on dev-automated-00001 as
-integration templates in the Automation Hub tab **GitHub / CI**:
+integration templates in the category (and Automation Hub tab)
+**appmixer-sanity-hub** — the appmixer-sanity app's `/automation-hub` page
+opens on it:
 
 1. `POST /flows` with the JSON plus `"type": "integration-draft"` and
-   `"categories": [<GitHub / CI category id>]` — the editable draft.
+   `"categories": [<appmixer-sanity-hub category id>]` — the editable draft.
 2. `POST /flows/<draftId>/clone` with
-   `{"projection": "-sharedWith", "setOriginFlowId": true, "additional": {"type": "integration-template", "sharedWith": [{"scope": "user", "permissions": ["read"]}], "categories": [...]}}`
-   — the published template, visible to every user of the instance.
+   `{"projection": "-sharedWith", "setOriginFlowId": true, "additional": {"type": "integration-template", "sharedWith": [{"scope": "user", "permissions": ["read"]}]}}`
+   — the published template, visible to every user of the instance. `additional`
+   takes only `type` and `sharedWith` (anything else is a 400), so set the
+   category afterwards with `PUT /flows/<templateId>` `{"categories": [...]}`.
 3. Users activate it from the Automation Hub; after changing the template,
    `appmixer integration update-instances <templateId>` moves every instance to
    the new revision.
