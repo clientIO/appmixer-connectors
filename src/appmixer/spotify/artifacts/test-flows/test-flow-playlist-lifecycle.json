@@ -1,0 +1,648 @@
+{
+    "name": "E2E Spotify - playlist lifecycle",
+    "description": "End-to-end test for the Spotify connector - creates a playlist, finds a track, replaces and appends playlist items, lists playlists and items, then deletes the playlist.",
+    "type": "automation",
+    "notes": {
+        "d8bbcf05-216c-4240-bce3-c4f9dfbe1fe4": {
+            "x": 64,
+            "y": 880,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ Test data assumption\n\nThis flow provokes all of its own data: **Create Playlist** makes a private playlist named `E2E Spotify Lifecycle <OnStart time>` and **Delete Playlist** removes it again after `AfterAll`, so nothing has to pre-exist on the tenant.\n\nTwo things must hold on the connected account:\n\n1. **Find Tracks** searches the live Spotify catalogue for `The Beatles` / `Hey Jude` with `minScore 0.5`. If Spotify returns no match the component emits on `notFound` and the chain stalls until the `AfterAll` timeout.\n2. The Spotify app is likely in **Development Mode**: it serves at most 5 users, each added by hand in the app's User Management, and stops working when the app owner's Spotify Premium subscription lapses. A 403 on every component means the E2E account is not on that list."
+        }
+    },
+    "flow": {
+        "84b6cee1-db2a-47ae-ae9d-3ea290e73ca0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "On Start",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "9812d342-d791-4fc4-8d2c-722c5c896928": {
+            "type": "appmixer.spotify.core.CreatePlaylist",
+            "label": "Create Playlist",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "84b6cee1-db2a-47ae-ae9d-3ea290e73ca0": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "84b6cee1-db2a-47ae-ae9d-3ea290e73ca0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "a0a950ea-2341-43a2-a08d-74660f0b4ee3": {
+                                            "variable": "$.84b6cee1-db2a-47ae-ae9d-3ea290e73ca0.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "description": {},
+                                    "public": {},
+                                    "collaborative": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Spotify Lifecycle {{{a0a950ea-2341-43a2-a08d-74660f0b4ee3}}}",
+                                    "description": "Appmixer E2E test playlist - created and deleted by the same flow run.",
+                                    "public": false,
+                                    "collaborative": false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "0026bfbf-897a-4caa-ba5e-fe9fac5ba5c4": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Create Playlist",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9812d342-d791-4fc4-8d2c-722c5c896928": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9812d342-d791-4fc4-8d2c-722c5c896928": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2c1e2ef1-69fe-4fd4-9955-d6d7180aac28": {
+                                            "variable": "$.9812d342-d791-4fc4-8d2c-722c5c896928.out.id",
+                                            "functions": []
+                                        },
+                                        "10e88048-415c-4828-a0ac-2f37c1223caf": {
+                                            "variable": "$.9812d342-d791-4fc4-8d2c-722c5c896928.out.uri",
+                                            "functions": []
+                                        },
+                                        "a012346c-67d6-40db-960d-8d50f39bf7ef": {
+                                            "variable": "$.9812d342-d791-4fc4-8d2c-722c5c896928.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{2c1e2ef1-69fe-4fd4-9955-d6d7180aac28}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[A-Za-z0-9]{22}$"
+                                            },
+                                            {
+                                                "field": "{{{10e88048-415c-4828-a0ac-2f37c1223caf}}}",
+                                                "assertion": "regex",
+                                                "regex": "^spotify:playlist:[A-Za-z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{a012346c-67d6-40db-960d-8d50f39bf7ef}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E Spotify Lifecycle "
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "ef4a090c-26aa-4664-9746-1baa5ed673df": {
+            "type": "appmixer.spotify.core.FindTracks",
+            "label": "Find Tracks",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9812d342-d791-4fc4-8d2c-722c5c896928": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9812d342-d791-4fc4-8d2c-722c5c896928": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "artist": {},
+                                    "title": {},
+                                    "minScore": {},
+                                    "maxResults": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "artist": "The Beatles",
+                                    "title": "Hey Jude",
+                                    "minScore": 0.5,
+                                    "maxResults": 10,
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "b98bd635-d15e-4bac-be6c-ab8d07fa0d0d": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Find Tracks",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ef4a090c-26aa-4664-9746-1baa5ed673df": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ef4a090c-26aa-4664-9746-1baa5ed673df": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b52b1004-ab92-471b-bd97-2e90b1eeb9c3": {
+                                            "variable": "$.ef4a090c-26aa-4664-9746-1baa5ed673df.out.count",
+                                            "functions": []
+                                        },
+                                        "f32d2e3a-cb31-42d3-b237-004b1819ab90": {
+                                            "variable": "$.ef4a090c-26aa-4664-9746-1baa5ed673df.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [{ "value": "$[0].uri" }]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b52b1004-ab92-471b-bd97-2e90b1eeb9c3}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{f32d2e3a-cb31-42d3-b237-004b1819ab90}}}",
+                                                "assertion": "regex",
+                                                "regex": "^spotify:track:[A-Za-z0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "4b948c47-2263-4fb4-b155-b3dac55f6c08": {
+            "type": "appmixer.spotify.core.ReplacePlaylistItems",
+            "label": "Replace Playlist Items",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ef4a090c-26aa-4664-9746-1baa5ed673df": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ef4a090c-26aa-4664-9746-1baa5ed673df": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "playlistId": {
+                                        "b20a927c-c33c-471e-bb1a-7cefd23795af": {
+                                            "variable": "$.9812d342-d791-4fc4-8d2c-722c5c896928.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "uris": {
+                                        "dc155be9-0b19-4637-aa4f-9ac03ba3423e": {
+                                            "variable": "$.ef4a090c-26aa-4664-9746-1baa5ed673df.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [{ "value": "$[0].uri" }]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "playlistId": "{{{b20a927c-c33c-471e-bb1a-7cefd23795af}}}",
+                                    "uris": "{{{dc155be9-0b19-4637-aa4f-9ac03ba3423e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "0a2828a5-85ed-4467-8d08-8acb221dd131": {
+            "type": "appmixer.spotify.core.ListPlaylistItems",
+            "label": "List Playlist Items",
+            "x": 1312,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4b948c47-2263-4fb4-b155-b3dac55f6c08": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4b948c47-2263-4fb4-b155-b3dac55f6c08": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "playlistId": {
+                                        "c0c656a7-2831-4174-99be-a77c7d524bbb": {
+                                            "variable": "$.9812d342-d791-4fc4-8d2c-722c5c896928.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "playlistId": "{{{c0c656a7-2831-4174-99be-a77c7d524bbb}}}",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "8b4c5d46-23cb-4a49-a647-a49184c62986": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Replaced Playlist Items",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0a2828a5-85ed-4467-8d08-8acb221dd131": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0a2828a5-85ed-4467-8d08-8acb221dd131": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c5aa6b85-c71f-42ff-9881-f418e9e755e4": {
+                                            "variable": "$.0a2828a5-85ed-4467-8d08-8acb221dd131.out.count",
+                                            "functions": []
+                                        },
+                                        "d143d46d-40d4-4c4e-a80e-15fa5d630daf": {
+                                            "variable": "$.0a2828a5-85ed-4467-8d08-8acb221dd131.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [{ "value": "$[0].uri" }]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c5aa6b85-c71f-42ff-9881-f418e9e755e4}}}",
+                                                "assertion": "equal",
+                                                "expected": "1"
+                                            },
+                                            {
+                                                "field": "{{{d143d46d-40d4-4c4e-a80e-15fa5d630daf}}}",
+                                                "assertion": "regex",
+                                                "regex": "^spotify:track:[A-Za-z0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "f6821c2f-098b-44d5-9bad-8a372b88ee78": {
+            "type": "appmixer.spotify.core.AddItemsToPlaylist",
+            "label": "Add Items To Playlist",
+            "x": 1728,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0a2828a5-85ed-4467-8d08-8acb221dd131": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0a2828a5-85ed-4467-8d08-8acb221dd131": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "playlistId": {
+                                        "5c34bc09-8a92-4a0c-9c5a-cd388603b3ee": {
+                                            "variable": "$.9812d342-d791-4fc4-8d2c-722c5c896928.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "uris": {
+                                        "725992ba-7a7c-4e27-9659-1b84d8735797": {
+                                            "variable": "$.ef4a090c-26aa-4664-9746-1baa5ed673df.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [{ "value": "$[0].uri" }]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "position": {},
+                                    "skipDuplicates": {}
+                                },
+                                "lambda": {
+                                    "playlistId": "{{{5c34bc09-8a92-4a0c-9c5a-cd388603b3ee}}}",
+                                    "uris": "{{{725992ba-7a7c-4e27-9659-1b84d8735797}}}",
+                                    "position": 0,
+                                    "skipDuplicates": false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "930d0d08-ebad-4753-8e43-dad7ab63826d": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Add Items To Playlist",
+            "x": 1936,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f6821c2f-098b-44d5-9bad-8a372b88ee78": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6821c2f-098b-44d5-9bad-8a372b88ee78": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "526fad36-6b69-478e-926d-7e85d8393de9": {
+                                            "variable": "$.f6821c2f-098b-44d5-9bad-8a372b88ee78.out.added",
+                                            "functions": []
+                                        },
+                                        "43773265-95b7-4bb4-8ca4-f801c0ba2c5a": {
+                                            "variable": "$.f6821c2f-098b-44d5-9bad-8a372b88ee78.out.snapshotId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{526fad36-6b69-478e-926d-7e85d8393de9}}}",
+                                                "assertion": "equal",
+                                                "expected": "1"
+                                            },
+                                            {
+                                                "field": "{{{43773265-95b7-4bb4-8ca4-f801c0ba2c5a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "3e9cd145-cfd3-4892-8b06-b0a91d5a42a3": {
+            "type": "appmixer.spotify.core.ListPlaylists",
+            "label": "List Playlists",
+            "x": 2144,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f6821c2f-098b-44d5-9bad-8a372b88ee78": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6821c2f-098b-44d5-9bad-8a372b88ee78": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "16c01c2a-bdaf-415c-94e6-318c5df1eb59": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert List Playlists",
+            "x": 2352,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3e9cd145-cfd3-4892-8b06-b0a91d5a42a3": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3e9cd145-cfd3-4892-8b06-b0a91d5a42a3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c682a8f6-d7ea-454d-bff1-339849c89fb7": {
+                                            "variable": "$.3e9cd145-cfd3-4892-8b06-b0a91d5a42a3.out.count",
+                                            "functions": []
+                                        },
+                                        "0fa4e8ce-0e82-4ed6-b9de-56503bd7e8bb": {
+                                            "variable": "$.3e9cd145-cfd3-4892-8b06-b0a91d5a42a3.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [{ "value": "$[0].id" }]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c682a8f6-d7ea-454d-bff1-339849c89fb7}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{0fa4e8ce-0e82-4ed6-b9de-56503bd7e8bb}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[A-Za-z0-9]{22}$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "3ccbe69b-d125-438b-b051-7ea71ee519ec": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "After All",
+            "x": 2560,
+            "y": 784,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0026bfbf-897a-4caa-ba5e-fe9fac5ba5c4": ["out"],
+                    "b98bd635-d15e-4bac-be6c-ab8d07fa0d0d": ["out"],
+                    "8b4c5d46-23cb-4a49-a647-a49184c62986": ["out"],
+                    "930d0d08-ebad-4753-8e43-dad7ab63826d": ["out"],
+                    "16c01c2a-bdaf-415c-94e6-318c5df1eb59": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "0e5dc5a2-d566-4cfb-99f7-aab247e52cfb": {
+            "type": "appmixer.spotify.core.DeletePlaylist",
+            "label": "Delete Playlist",
+            "x": 2768,
+            "y": 784,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3ccbe69b-d125-438b-b051-7ea71ee519ec": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3ccbe69b-d125-438b-b051-7ea71ee519ec": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "playlistId": {
+                                        "a37b1225-c715-4e75-8124-483173a63c6c": {
+                                            "variable": "$.9812d342-d791-4fc4-8d2c-722c5c896928.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "playlistId": "{{{a37b1225-c715-4e75-8124-483173a63c6c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "1a9f17c8-dee1-473c-98f6-628cf4775870": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "Process E2E Results",
+            "x": 2976,
+            "y": 784,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "0e5dc5a2-d566-4cfb-99f7-aab247e52cfb": ["out"]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "0e5dc5a2-d566-4cfb-99f7-aab247e52cfb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "6e0ee566-16a7-496a-b466-ecdf16cebdd6": {
+                                            "variable": "$.3ccbe69b-d125-438b-b051-7ea71ee519ec.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Spotify - playlist lifecycle",
+                                    "result": "{{{6e0ee566-16a7-496a-b466-ecdf16cebdd6}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

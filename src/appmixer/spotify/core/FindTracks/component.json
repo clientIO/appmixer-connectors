@@ -1,0 +1,165 @@
+{
+    "name": "appmixer.spotify.core.FindTracks",
+    "label": "Find Tracks",
+    "description": "Search the Spotify catalogue for tracks and score how well each result matches the requested artist and title. Built for hand-typed tracklists: typos, \"ft\"/\"+\" collaborators and \"/four tet rmx\" version suffixes still match. Results below the minimum score leave through the Not Found port.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:spotify"
+    },
+    "quota": {
+        "manager": "appmixer:spotify",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string"
+                    },
+                    "artist": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "minScore": {
+                        "type": "number"
+                    },
+                    "maxResults": {
+                        "type": "integer"
+                    },
+                    "market": {
+                        "type": "string"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "artist": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Artist",
+                        "tooltip": "The performing artist, as written in your source. Collaborators may be separated by <code>ft</code>, <code>feat.</code>, <code>&amp;</code>, <code>+</code>, <code>,</code> or <code>x</code> - only the first one is matched. Fill Artist and Title together to get match scoring."
+                    },
+                    "title": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Title",
+                        "tooltip": "The song title. A version suffix such as <code>/four tet rmx</code>, <code>(Radio Edit)</code> or <code>- Live</code> is understood and matched separately from the song itself."
+                    },
+                    "query": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "Search Query",
+                        "tooltip": "Free-text search, used when Artist and Title are not both filled in. With free text the score compares the whole query against the candidate, so the structured fields give better matches."
+                    },
+                    "minScore": {
+                        "type": "number",
+                        "index": 4,
+                        "label": "Minimum Match Score",
+                        "defaultValue": 0.75,
+                        "tooltip": "Between 0 and 1. Results scoring below this are dropped; when nothing is left, the input is emitted on the Not Found port. 0.75 accepts a typo or two, 0.9 is close to exact."
+                    },
+                    "maxResults": {
+                        "type": "number",
+                        "index": 5,
+                        "label": "Maximum Results",
+                        "defaultValue": 10,
+                        "tooltip": "How many candidates to score, 1 to 50. Spotify serves 10 per page, so 50 costs five API calls against the rolling rate-limit window."
+                    },
+                    "market": {
+                        "type": "text",
+                        "index": 6,
+                        "label": "Market",
+                        "tooltip": "Optional ISO 3166-1 alpha-2 country code (e.g. <code>CZ</code>) to restrict results to tracks available in that market."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "index": 7,
+                        "label": "Output Type",
+                        "defaultValue": "first",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, first item only, one item at a time, or stream the items to a file. Building a playlist from a tracklist usually wants \"First Item Only\" - the best-scoring match.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/spotify/core/FindTracks?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "title": "Search Query",
+                        "example": "calibre low hangong"
+                    },
+                    "artist": {
+                        "type": "string",
+                        "title": "Artist",
+                        "example": "calibre"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "example": "low hangong"
+                    },
+                    "minScore": {
+                        "type": "number",
+                        "title": "Minimum Match Score",
+                        "example": 0.75
+                    },
+                    "candidates": {
+                        "type": "integer",
+                        "title": "Candidates Scored",
+                        "example": 10
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBmaWxsPSIjMUVENzYwIiBkPSJNMTIgMEM1LjQgMCAwIDUuNCAwIDEyczUuNCAxMiAxMiAxMiAxMi01LjQgMTItMTJTMTguNjYgMCAxMiAwem01LjUyMSAxNy4zNGMtLjI0LjM1OS0uNjYuNDgtMS4wMjEuMjQtMi44Mi0xLjc0LTYuMzYtMi4xMDEtMTAuNTYxLTEuMTQxLS40MTguMTIyLS43NzktLjE3OS0uODk5LS41MzktLjEyLS40MjEuMTgtLjc4LjU0LS45IDQuNTYtMS4wMjEgOC41Mi0uNiAxMS42NCAxLjMyLjQyLjE4LjQ3OS42NTkuMzAxIDEuMDJ6bTEuNDQtMy4zYy0uMzAxLjQyLS44NDEuNi0xLjI2Mi4zLTMuMjM5LTEuOTgtOC4xNTktMi41OC0xMS45MzktMS4zOC0uNDc5LjEyLTEuMDItLjEyLTEuMTQtLjYtLjEyLS40OC4xMi0xLjAyMS42LTEuMTQxQzkuNiA5LjkgMTUgMTAuNTYxIDE4LjcyIDEyLjg0Yy4zNjEuMTgxLjU0Ljc4LjI0MSAxLjJ6bS4xMi0zLjM2QzE1LjI0IDguNCA4LjgyIDguMTYgNS4xNiA5LjMwMWMtLjYuMTc5LTEuMi0uMTgxLTEuMzgtLjcyMS0uMTgtLjYwMS4xOC0xLjIuNzItMS4zODEgNC4yNi0xLjI2IDExLjI4LTEuMDIgMTUuNzIxIDEuNjIxLjUzOS4zLjcxOSAxLjAyLjQxOSAxLjU2LS4yOTkuNDIxLTEuMDIuNTk5LTEuNTU5LjN6Ii8+PC9zdmc+Cg=="
+}
