@@ -85,8 +85,8 @@ review's `submitted_at`. Worst case is one extra ~15 s no-op run.
 ## apx-vero-mention-dispatch.json
 
 Fires a `repository_dispatch` event of type `apx-vero-mention` when a person
-mentions `@apx-vero` on a PR — in the conversation, inline on a line of the
-diff, or in a review body — which starts
+mentions the bot on a PR — in the conversation, inline on a line of the diff,
+or in a review body — which starts
 `.github/workflows/claude-mention-responder.yml`.
 
 It replaces `claude-pr-author.yml` (#1153, removed in #1169), which listened to
@@ -95,27 +95,46 @@ secrets on PRs from forks, and apx-vero's PRs always come from its fork.
 
 ### Shape
 
-Three independent chains, one per kind of mention:
+- `GitHub / New Mention` — the notifications of the account bound to it,
+  reason `mention`, limited to the watched repositories.
+- `Condition` — the notification is about a pull request
+  (`subject.type = PullRequest`). It reads `input` / `operator` / `value`; the
+  `field` / `expected` keys some older flows use are ignored by the component,
+  which then lets everything through.
+- `GitHub / Repository Dispatch` — into the repository the mention came from
+  (`repository.full_name`), with `{"pr_url": "<subject.url>"}`.
 
-- `GitHub / New Issue Comment` (pull requests only, people only) → `Condition`
-  → `Repository Dispatch` with `{"kind": "issue_comment", "id": …, "pr_number": ""}`
-- `GitHub / New Pull Request Review Comment` (people only) → `Condition` →
-  `Repository Dispatch` with `{"kind": "review_comment", "id": …, "pr_number": …}`
-- `GitHub / New Review` (people only) → `Condition` → `Repository Dispatch`
-  with `{"kind": "review", "id": …, "pr_number": …}`
+GitHub keeps one notification per PR thread, so the payload only says "something
+on this PR mentions the bot". The workflow validates that `pr_url` is a pull
+request of its own repository, then sweeps the PR for every mention with no
+reply yet and answers each once. Every reply ends with an
+`<!-- apx-vero-mention:<kind>:<id> -->` marker, which is what "answered" means;
+a repeated dispatch finds nothing pending and stops.
 
-Each `Condition` requires the text to contain `@apx-vero` and the author not to
-be apx-vero. It reads `input` / `operator` / `value`; the `field` / `expected`
-keys some older flows use are ignored by the component, which then lets
-everything through.
+### Accounts
 
-The payload carries ids only. The workflow fetches the mention from the API,
-re-checks every gate, and answers once: each reply ends with an
-`<!-- apx-vero-mention:<kind>:<id> -->` marker that turns a repeated dispatch
-into a no-op.
+- **New Mention** reads the notifications of the account it is bound to, so
+  bind the **bot** (apx-vero). Its own comments never notify it, which also
+  rules out reply loops.
+- **Repository Dispatch** needs **push** to the repository — bind a writer.
 
 ### Setup
 
-Same account and connector requirements as the Copilot flow above — a GitHub
-account with push access bound to all six GitHub components, github 3.3.0 or
-newer.
+Published as an integration template (see below); the wizard asks for the two
+accounts and the repositories to watch. Each watched repository needs
+`claude-mention-responder.yml` on its default branch and the `VERO_GH_TOKEN`
+and `ANTHROPIC_API_KEY` secrets — the integration only covers the Appmixer half.
+
+## Publishing as integrations
+
+Both flows carry a `wizard` and are published on dev-automated-00001 as
+integration templates in the Automation Hub tab **GitHub / CI**:
+
+1. `POST /flows` with the JSON plus `"type": "integration-draft"` and
+   `"categories": [<GitHub / CI category id>]` — the editable draft.
+2. `POST /flows/<draftId>/clone` with
+   `{"projection": "-sharedWith", "setOriginFlowId": true, "additional": {"type": "integration-template", "sharedWith": [{"scope": "user", "permissions": ["read"]}], "categories": [...]}}`
+   — the published template, visible to every user of the instance.
+3. Users activate it from the Automation Hub; after changing the template,
+   `appmixer integration update-instances <templateId>` moves every instance to
+   the new revision.
