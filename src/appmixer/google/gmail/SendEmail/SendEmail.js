@@ -3,6 +3,10 @@ const emailCommons = require('../lib');
 
 module.exports = {
     async receive(context) {
+        if (!context.messages.in.content.to) {
+            throw new context.CancelError('To is required!');
+        }
+
         const {
             from = context.profileInfo.email,
             sender,
