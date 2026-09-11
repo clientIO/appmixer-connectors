@@ -41,7 +41,10 @@ module.exports = {
 
         scopeDelimiter: ',',
 
-        authUrl: 'https://accounts.zoho.com/oauth/v2/auth?access_type=offline',
+        // Zoho issues a refresh token only on the user's first consent to the client. Without
+        // prompt=consent, reconnecting an account (or connecting a second one for the same Zoho
+        // user) yields an access token only, and the account stops working after an hour.
+        authUrl: 'https://accounts.zoho.com/oauth/v2/auth?access_type=offline&prompt=consent',
 
         processRedirectionCallback: async params => {
 
