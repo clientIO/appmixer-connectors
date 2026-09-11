@@ -55,19 +55,15 @@ module.exports = {
             throw new Error('No deal available to use as test data.');
         }
 
-        // tick() emits a checkListForChanges 'changed' entry. With includeOldData that entry
-        // carries the new record under `item` and the previous one under `oldItem`. There is
-        // no real prior version in Test Mode, so reuse the same deal for both sides and the
-        // same observedFieldsMapping tick() uses to keep the shape identical.
+        // tick() emits a checkListForChanges 'changed' entry: the new record under `item` and,
+        // under `oldItem`, what was stored for it in state — the observedFieldsMapping output
+        // ({ dealId, dealUpdateTime }), not the whole previous deal. Mirror that shape.
         const deal = typeof first.toObject === 'function' ? first.toObject() : first;
-        const mapped = observedFieldsMapping(deal);
 
         return context.sendJson({
-            id: deal.id,
-            state: 'changed',
             item: deal,
-            oldItem: deal,
-            ...mapped
+            oldItem: observedFieldsMapping(deal),
+            state: 'changed'
         }, 'deal');
     }
 };
