@@ -81,3 +81,62 @@ A retry, or a manual dispatch on top of an automatic one, can hand the same
 review over twice. The responder's Resolve step is idempotent: it skips a review
 for which its own summary comment already exists with a timestamp after the
 review's `submitted_at`. Worst case is one extra ~15 s no-op run.
+
+## apx-vero-mention-dispatch.json
+
+Fires a `repository_dispatch` event of type `apx-vero-mention` when a person
+mentions the bot on a PR — in the conversation, inline on a line of the diff,
+or in a review body — which starts
+`.github/workflows/claude-mention-responder.yml`.
+
+It replaces `claude-pr-author.yml` (#1153, removed in #1169), which listened to
+the comment and review events directly. Two of those three events run without
+secrets on PRs from forks, and apx-vero's PRs always come from its fork.
+
+### Shape
+
+- `GitHub / New Mention` — the notifications of the account bound to it,
+  reason `mention`, limited to the watched repositories.
+- `Condition` — the notification is about a pull request
+  (`subject.type = PullRequest`). It reads `input` / `operator` / `value`; the
+  `field` / `expected` keys some older flows use are ignored by the component,
+  which then lets everything through.
+- `GitHub / Repository Dispatch` — into the repository the mention came from
+  (`repository.full_name`), with `{"pr_url": "<subject.url>"}`.
+
+GitHub keeps one notification per PR thread, so the payload only says "something
+on this PR mentions the bot". The workflow validates that `pr_url` is a pull
+request of its own repository, then sweeps the PR for every mention with no
+reply yet and answers each once. Every reply ends with an
+`<!-- apx-vero-mention:<kind>:<id> -->` marker, which is what "answered" means;
+a repeated dispatch finds nothing pending and stops.
+
+### Accounts
+
+- **New Mention** reads the notifications of the account it is bound to, so
+  bind the **bot** (apx-vero). Its own comments never notify it, which also
+  rules out reply loops.
+- **Repository Dispatch** needs **push** to the repository — bind a writer.
+
+### Setup
+
+Published as an integration template (see below); the wizard asks for the two
+accounts and the repositories to watch. Each watched repository needs
+`claude-mention-responder.yml` on its default branch and the `VERO_GH_TOKEN`
+and `ANTHROPIC_API_KEY` secrets — the integration only covers the Appmixer half.
+
+## Publishing as integrations
+
+Both flows carry a `wizard` and a `description` and are published on
+dev-automated-00001 as integration templates in the category
+**appmixer-sanity-hub**, which the appmixer-sanity app's `/automation-hub` page
+opens on. Publish or re-publish one with the appmixer-sanity script, pointed at
+that instance (run from an appmixer-sanity checkout):
+
+```bash
+node --env-file=.env scripts/publish-integration.js <path>/copilot-review-dispatch.json --dry-run
+```
+
+How to turn another flow into an integration — the JSON format, wizard fields,
+publishing, activating and retiring the old flow:
+[appmixer-sanity CLAUDE.md → Migrating a flow to an integration](https://github.com/vtalas/appmixer-sanity/blob/main/CLAUDE.md#migrating-a-flow-to-an-integration).

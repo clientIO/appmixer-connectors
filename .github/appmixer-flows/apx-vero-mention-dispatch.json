@@ -1,0 +1,180 @@
+{
+    "name": "CI - @apx-vero mention -> repository_dispatch",
+    "description": "When someone mentions @apx-vero on a pull request, starts the Claude mention responder workflow (repository_dispatch `apx-vero-mention`), which replies and pushes fixes.",
+    "flow": {
+        "a2000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.github.list.NewMention",
+            "version": "1.0.0",
+            "label": "@apx-vero mentioned",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "properties": {
+                    "repositories": "Appmixer-ai/appmixer-connectors"
+                }
+            },
+            "x": 208,
+            "y": 128
+        },
+        "a2000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "label": "On a pull request",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "a2000000-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a2000000-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b2000000-0000-4000-8000-000000000001": {
+                                            "variable": "$.a2000000-0000-4000-8000-000000000001.out.subject.type",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{b2000000-0000-4000-8000-000000000001}}}",
+                                                        "operator": "=",
+                                                        "value": "PullRequest"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 400,
+            "y": 128
+        },
+        "a2000000-0000-4000-8000-000000000003": {
+            "type": "appmixer.github.list.RepositoryDispatch",
+            "version": "1.0.0",
+            "label": "Start the mention responder",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "a2000000-0000-4000-8000-000000000002": [
+                        "true"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a2000000-0000-4000-8000-000000000002": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "b2000000-0000-4000-8000-000000000003": {
+                                            "variable": "$.a2000000-0000-4000-8000-000000000001.out.repository.full_name",
+                                            "functions": []
+                                        }
+                                    },
+                                    "eventType": {},
+                                    "clientPayload": {
+                                        "b2000000-0000-4000-8000-000000000002": {
+                                            "variable": "$.a2000000-0000-4000-8000-000000000001.out.subject.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{b2000000-0000-4000-8000-000000000003}}}",
+                                    "eventType": "apx-vero-mention",
+                                    "clientPayload": "{\"pr_url\": \"{{{b2000000-0000-4000-8000-000000000002}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 592,
+            "y": 128
+        }
+    },
+    "notes": {
+        "e2000000-0000-4000-8000-000000000001": {
+            "x": 144,
+            "y": -256,
+            "width": 560,
+            "height": 320,
+            "content": "## @apx-vero mention -> Claude mention responder\n\nStarts `.github/workflows/claude-mention-responder.yml` when a person mentions the bot on a PR — in the conversation, inline on a diff line, or in a review body.\n\nA GitHub notification is one per PR thread, so the payload is only `{pr_url}`: the workflow sweeps that PR for every mention with no reply yet and answers each once.\n\n**Source of truth:** `.github/appmixer-flows/apx-vero-mention-dispatch.json` in the connectors repo."
+        },
+        "e2000000-0000-4000-8000-000000000002": {
+            "x": 144,
+            "y": 256,
+            "width": 560,
+            "height": 272,
+            "content": "### Two accounts\n\n**New Mention** reads the notifications of the account it is bound to, so bind the **bot** (apx-vero) — its own mentions never notify it, which also rules out loops.\n\n**Repository Dispatch** needs **push** to the repository; bind a writer. The target repository is the one the mention came from (`repository.full_name`).\n\n403 \"OAuth App access restrictions\" = the org has no grant for the Appmixer GitHub app; after granting, re-authorize the account."
+        }
+    },
+    "wizard": {
+        "fields": [
+            {
+                "type": "account",
+                "label": "Bot account (the one people mention)",
+                "tooltip": "Its notifications are read to find mentions. Bind the bot, e.g. apx-vero.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "a2000000-0000-4000-8000-000000000001"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "account",
+                "label": "GitHub account with push access",
+                "tooltip": "Sends the repository_dispatch event, which requires push access to the repository.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "a2000000-0000-4000-8000-000000000003"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "Repositories to watch",
+                "tooltip": "owner/repo, comma-separated. Each needs .github/workflows/claude-mention-responder.yml on its default branch.",
+                "placeholder": "Appmixer-ai/appmixer-connectors",
+                "source": "a2000000-0000-4000-8000-000000000001.config.properties.repositories",
+                "attrs": {},
+                "options": {}
+            }
+        ]
+    }
+}
