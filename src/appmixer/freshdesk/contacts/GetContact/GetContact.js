@@ -6,6 +6,10 @@ module.exports = {
 
     async receive(context) {
 
+        if ([undefined, null, ''].includes(context.messages.in.content.contactId)) {
+            throw new context.CancelError('Contact ID is required!');
+        }
+
         const { contactId } = context.messages.in.content;
 
         let data;
