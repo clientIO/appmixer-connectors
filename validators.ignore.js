@@ -331,6 +331,17 @@ module.exports = [
         reason: 'The limit input is a long-published part of these components and existing flows set it. Removing it is a breaking change deferred to a future major version. Surfaced now only because the 4.8.0 quality pass touched these files.'
     },
     {
+        validator: 'find-list-no-pagination',
+        paths: [
+            'microsoft/sharepoint/ListSites/component.json',
+            'microsoft/onedrive/ListDrives/component.json',
+            'microsoft/onedrive/ListGroups/component.json',
+            'microsoft/onedrive/ListSites/component.json',
+            'microsoft/onedrive/ListUsers/component.json'
+        ],
+        reason: 'The limit input is a long-published part of these components (they also feed the site/drive/group/user pickers of the other SharePoint and OneDrive components) and existing flows set it. Removing it is a breaking change deferred to a future major version. Surfaced now only because sharepoint 2.3.0 / onedrive 1.5.0 add output examples to these files.'
+    },
+    {
         validator: 'delete-returns-empty',
         paths: ['postgres/db/DeleteRow/component.json'],
         reason: 'Pre-existing published component: DeleteRow deletes by WHERE filter (potentially many rows) and returns { rowCount }, declared as an outPort option that existing flows map. Switching to the standard empty-object return is a breaking output change deferred to a future major version.'
