@@ -1,0 +1,361 @@
+{
+    "name": "CI - PR hygiene: new pull request -> Slack",
+    "description": "Warns in Slack when a pull request opened in Appmixer-ai/appmixer-connectors is, an hour later, still neither linked to an issue nor added to the @appmixer-connectors project.",
+    "flow": {
+        "e1000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.github.list.NewPullRequest",
+            "version": "1.0.0",
+            "x": 0,
+            "y": 0,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "Appmixer-ai/appmixer-connectors"
+                }
+            }
+        },
+        "e1000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.utils.timers.Wait",
+            "version": "1.0.0",
+            "x": 192,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e1000000-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1h"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e1000000-0000-4000-8000-000000000003": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "version": "1.0.0",
+            "x": 384,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e1000000-0000-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "e1000000-0000-4000-8000-00000000aa01": {
+                                            "variable": "$.e1000000-0000-4000-8000-000000000001.out.html_url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/graphql",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"query { resource(url: \\\"{{{e1000000-0000-4000-8000-00000000aa01}}}\\\") { ... on PullRequest { number title url isDraft state author { login } closingIssuesReferences(first: 1) { totalCount } } } }\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e1000000-0000-4000-8000-000000000004": {
+            "type": "appmixer.github.project.FindProjectItems",
+            "version": "1.0.0",
+            "x": 576,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e1000000-0000-4000-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-4000-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "projectId": "PVT_kwDODXokv84BFM6_",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e1000000-0000-4000-8000-000000000005": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "version": "1.0.0",
+            "x": 768,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e1000000-0000-4000-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-4000-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "e1000000-0000-4000-8000-00000000aa02": {
+                                            "variable": "$.e1000000-0000-4000-8000-000000000003.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data.resource"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "e1000000-0000-4000-8000-00000000aa03": {
+                                            "variable": "$.e1000000-0000-4000-8000-000000000004.out.result",
+                                            "functions": []
+                                        }
+                                    },
+                                    "code": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "pr",
+                                                "text": "{{{e1000000-0000-4000-8000-00000000aa02}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "items",
+                                                "text": "{{{e1000000-0000-4000-8000-00000000aa03}}}"
+                                            }
+                                        ]
+                                    },
+                                    "code": "(function () {\n    const parse = (v) => (typeof v === 'string' ? JSON.parse(v) : v);\n    const pr = parse($data.pr) || {};\n    const items = parse($data.items) || [];\n    if (!pr.number || pr.isDraft || pr.state !== 'OPEN') {\n        return { warn: false, reason: 'draft, closed or not found' };\n    }\n    const linked = !!(pr.closingIssuesReferences && pr.closingIssuesReferences.totalCount);\n    const inProject = items.some(i => i && i.content && i.content.url === pr.url);\n    if (linked || inProject) {\n        return { warn: false, reason: linked ? 'has a linked issue' : 'is in the project' };\n    }\n    return {\n        warn: true,\n        text: ':warning: <' + pr.url + '|#' + pr.number + ' ' + pr.title + '> by ' + (pr.author ? pr.author.login : '?')\n            + ' has no linked issue and is not in the project. Link an issue in the description'\n            + ' (`Fixes Appmixer-ai/appmixer-components#…`) or add the PR to the @appmixer-connectors project.'\n    };\n})();"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e1000000-0000-4000-8000-000000000006": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "x": 960,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e1000000-0000-4000-8000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-4000-8000-000000000005": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e1000000-0000-4000-8000-00000000aa04": {
+                                            "variable": "$.e1000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.warn"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{e1000000-0000-4000-8000-00000000aa04}}}",
+                                                        "operator": "=",
+                                                        "value": "true"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e1000000-0000-4000-8000-000000000007": {
+            "type": "appmixer.slack.list.SendChannelMessage",
+            "version": "1.1.0",
+            "x": 1152,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e1000000-0000-4000-8000-000000000006": [
+                        "true"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-4000-8000-000000000006": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channelId": {},
+                                    "text": {
+                                        "e1000000-0000-4000-8000-00000000aa05": {
+                                            "variable": "$.e1000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "channelId": "",
+                                    "text": "{{{e1000000-0000-4000-8000-00000000aa05}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "notes": {
+        "e1000000-0000-4000-8000-00000000ff01": {
+            "x": 0,
+            "y": 160,
+            "width": 520,
+            "height": 220,
+            "content": "**PR hygiene — new pull request**\n\nEvery pull request must either **link an issue** (a `Fixes Appmixer-ai/appmixer-components#N` keyword in its description) or **be in the @appmixer-connectors project**. The check runs an hour after the PR opens, so the author has time to do either. Drafts are skipped — the daily check picks them up once ready."
+        }
+    },
+    "wizard": {
+        "fields": [
+            {
+                "type": "account",
+                "label": "GitHub account",
+                "tooltip": "Reads pull requests in Appmixer-ai/appmixer-connectors and the @appmixer-connectors project. Needs access to both repositories and to the project (read:project).",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "e1000000-0000-4000-8000-000000000001",
+                        "e1000000-0000-4000-8000-000000000003",
+                        "e1000000-0000-4000-8000-000000000004"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "account",
+                "label": "Slack account",
+                "tooltip": "Posts the warnings. It has to be a member of the channel below.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:slack",
+                    "components": [
+                        "e1000000-0000-4000-8000-000000000007"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "Slack channel",
+                "tooltip": "Where the warnings go.",
+                "placeholder": "",
+                "source": "e1000000-0000-4000-8000-000000000007.config.transform.in.e1000000-0000-4000-8000-000000000006.true.lambda.channelId",
+                "attrs": {},
+                "options": {}
+            }
+        ]
+    }
+}
