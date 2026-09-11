@@ -7,6 +7,22 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.pipelineId) {
+            throw new context.CancelError('Pipeline is required!');
+        }
+        if (!context.messages.in.content.name) {
+            throw new context.CancelError('Opportunity Name is required!');
+        }
+        if (!context.messages.in.content.pipelineStageId) {
+            throw new context.CancelError('Pipeline Stage ID is required!');
+        }
+        if (!context.messages.in.content.status) {
+            throw new context.CancelError('Status is required!');
+        }
+        if (!context.messages.in.content.contactId) {
+            throw new context.CancelError('Contact ID is required!');
+        }
+
         const {
             pipelineId,
             locationId,
