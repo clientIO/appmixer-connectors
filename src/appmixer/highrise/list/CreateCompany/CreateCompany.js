@@ -91,6 +91,10 @@ module.exports = {
     receive(context) {
 
         let { companyId, visibleTo } = context.properties;
+        if (!context.messages.company.content.name) {
+            throw new context.CancelError('Company name is required!');
+        }
+
         let companyInfo = context.messages.company.content;
         const options = { userAgent: context.auth.userAgent };
         let client = commons.getHighriseAPI(companyId, context.auth.accessToken, options);
