@@ -1,12 +1,12 @@
 {
     "name": "E2E Zoho - appointments",
-    "description": "End-to-end test for Zoho CRM appointments \u2014 finds an appointment, declines it and accepts it again.",
+    "description": "End-to-end test for Zoho CRM appointments — creates two appointments for the seeded contact and service (Appmixer E2E service), declines the first, accepts the second, finds it, then deletes both. Zoho refuses to change a cancelled appointment, so decline and accept run on separate records.",
     "type": "automation",
     "flow": {
         "034ecf2f-dd39-4ed2-afc2-8d5435bd81aa": {
             "type": "appmixer.utils.controls.OnStart",
-            "x": 64,
-            "y": 16,
+            "x": 336,
+            "y": 320,
             "version": "1.0.0",
             "errorHandling": {
                 "autoRetry": false,
@@ -14,11 +14,10 @@
             },
             "source": {}
         },
-        "0f4b91b3-946c-4eb5-bc64-698ce944bde4": {
-            "type": "appmixer.zoho.crm.FindAppointments",
-            "x": 272,
-            "y": 16,
-            "version": "1.0.0",
+        "7d1f3a52-5c2e-4b8e-9a61-2f0c4d9e8a11": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "x": 528,
+            "y": 320,
             "errorHandling": {
                 "autoRetry": false,
                 "onError": "stopFlow"
@@ -37,29 +36,10 @@
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "startTimeTo": {
-                                        "v-start-to": {
-                                            "variable": "$.034ecf2f-dd39-4ed2-afc2-8d5435bd81aa.out.started",
-                                            "functions": [
-                                                {
-                                                    "name": "g_now"
-                                                },
-                                                {
-                                                    "name": "g_addTimeSpan",
-                                                    "hashParams": {
-                                                        "days": {
-                                                            "value": 3650
-                                                        }
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    "outputType": {}
+                                    "code": {}
                                 },
                                 "lambda": {
-                                    "startTimeTo": "{{{v-start-to}}}",
-                                    "outputType": "first"
+                                    "code": "(() => { const d = new Date(Date.now() + 24 * 3600 * 1000); d.setUTCHours(6 + Math.floor(Math.random() * 10), Math.random() < 0.5 ? 0 : 30, 0, 0); return d.toISOString().replace(/\\.\\d{3}Z$/, '+00:00'); })()"
                                 }
                             }
                         }
@@ -67,10 +47,10 @@
                 }
             }
         },
-        "e3b46ffb-42a2-4730-b952-cbff4e686aad": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 480,
-            "y": 16,
+        "a4c2e8b1-3f5d-4e7a-8c9b-1d2e3f4a5b61": {
+            "type": "appmixer.zoho.crm.MakeApiCall",
+            "x": 720,
+            "y": 320,
             "version": "1.0.0",
             "errorHandling": {
                 "autoRetry": false,
@@ -78,7 +58,7 @@
             },
             "source": {
                 "in": {
-                    "0f4b91b3-946c-4eb5-bc64-698ce944bde4": [
+                    "7d1f3a52-5c2e-4b8e-9a61-2f0c4d9e8a11": [
                         "out"
                     ]
                 }
@@ -86,34 +66,23 @@
             "config": {
                 "transform": {
                     "in": {
-                        "0f4b91b3-946c-4eb5-bc64-698ce944bde4": {
+                        "7d1f3a52-5c2e-4b8e-9a61-2f0c4d9e8a11": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "expression": {
-                                        "a-appt-id": {
-                                            "variable": "$.0f4b91b3-946c-4eb5-bc64-698ce944bde4.out.id",
-                                            "functions": []
-                                        },
-                                        "a-appt-name": {
-                                            "variable": "$.0f4b91b3-946c-4eb5-bc64-698ce944bde4.out.Appointment_Name",
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "v-start-a": {
+                                            "variable": "$.7d1f3a52-5c2e-4b8e-9a61-2f0c4d9e8a11.out.result",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "field": "{{{a-appt-id}}}",
-                                                "assertion": "notEmpty"
-                                            },
-                                            {
-                                                "field": "{{{a-appt-name}}}",
-                                                "assertion": "notEmpty"
-                                            }
-                                        ]
-                                    }
+                                    "url": "/crm/v8/Appointments__s",
+                                    "method": "POST",
+                                    "body": "{\"data\":[{\"Appointment_Name\":\"Appmixer E2E decline\",\"Appointment_For\":{\"module\":{\"api_name\":\"Contacts\"},\"id\":\"918492000000533812\"},\"Service_Name\":{\"id\":\"918492000000690001\"},\"Owner\":\"918492000000516001\",\"Location\":\"Business Address\",\"Appointment_Start_Time\":\"{{{v-start-a}}}\"}]}"
                                 }
                             }
                         }
@@ -123,8 +92,8 @@
         },
         "b1052d7f-fcb2-4957-8551-d0a3041a74a7": {
             "type": "appmixer.zoho.crm.AcceptDeclineAppointment",
-            "x": 480,
-            "y": 144,
+            "x": 912,
+            "y": 320,
             "version": "1.0.0",
             "errorHandling": {
                 "autoRetry": false,
@@ -132,7 +101,7 @@
             },
             "source": {
                 "in": {
-                    "0f4b91b3-946c-4eb5-bc64-698ce944bde4": [
+                    "a4c2e8b1-3f5d-4e7a-8c9b-1d2e3f4a5b61": [
                         "out"
                     ]
                 }
@@ -140,14 +109,23 @@
             "config": {
                 "transform": {
                     "in": {
-                        "0f4b91b3-946c-4eb5-bc64-698ce944bde4": {
+                        "a4c2e8b1-3f5d-4e7a-8c9b-1d2e3f4a5b61": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "appointmentId": {
                                         "v-decline-id": {
-                                            "variable": "$.0f4b91b3-946c-4eb5-bc64-698ce944bde4.out.id",
-                                            "functions": []
+                                            "variable": "$.a4c2e8b1-3f5d-4e7a-8c9b-1d2e3f4a5b61.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data[0].details.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     },
                                     "decision": {},
@@ -168,8 +146,8 @@
         },
         "529c9af8-f7a9-4413-ba5b-8062c985ee84": {
             "type": "appmixer.utils.test.Assert",
-            "x": 688,
-            "y": 144,
+            "x": 1104,
+            "y": 448,
             "version": "1.0.0",
             "errorHandling": {
                 "autoRetry": false,
@@ -221,11 +199,10 @@
                 }
             }
         },
-        "1e1106e7-a095-44d6-bc17-8ee3ada47156": {
-            "type": "appmixer.zoho.crm.AcceptDeclineAppointment",
-            "x": 688,
-            "y": 272,
-            "version": "1.0.0",
+        "5e9b7c3d-2a1f-4d6e-8b7c-9a0b1c2d3e72": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "x": 1104,
+            "y": 320,
             "errorHandling": {
                 "autoRetry": false,
                 "onError": "stopFlow"
@@ -244,10 +221,96 @@
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
+                                    "code": {}
+                                },
+                                "lambda": {
+                                    "code": "(() => { const d = new Date(Date.now() + 2 * 24 * 3600 * 1000); d.setUTCHours(6 + Math.floor(Math.random() * 10), Math.random() < 0.5 ? 0 : 30, 0, 0); return d.toISOString().replace(/\\.\\d{3}Z$/, '+00:00'); })()"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c8d7e6f5-4b3a-4291-8f7e-6d5c4b3a2983": {
+            "type": "appmixer.zoho.crm.MakeApiCall",
+            "x": 1296,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "5e9b7c3d-2a1f-4d6e-8b7c-9a0b1c2d3e72": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5e9b7c3d-2a1f-4d6e-8b7c-9a0b1c2d3e72": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "v-start-b": {
+                                            "variable": "$.5e9b7c3d-2a1f-4d6e-8b7c-9a0b1c2d3e72.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/crm/v8/Appointments__s",
+                                    "method": "POST",
+                                    "body": "{\"data\":[{\"Appointment_Name\":\"Appmixer E2E accept\",\"Appointment_For\":{\"module\":{\"api_name\":\"Contacts\"},\"id\":\"918492000000533812\"},\"Service_Name\":{\"id\":\"918492000000690001\"},\"Owner\":\"918492000000516001\",\"Location\":\"Business Address\",\"Appointment_Start_Time\":\"{{{v-start-b}}}\"}]}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "1e1106e7-a095-44d6-bc17-8ee3ada47156": {
+            "type": "appmixer.zoho.crm.AcceptDeclineAppointment",
+            "x": 1488,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "c8d7e6f5-4b3a-4291-8f7e-6d5c4b3a2983": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c8d7e6f5-4b3a-4291-8f7e-6d5c4b3a2983": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
                                     "appointmentId": {
                                         "v-accept-id": {
-                                            "variable": "$.b1052d7f-fcb2-4957-8551-d0a3041a74a7.out.id",
-                                            "functions": []
+                                            "variable": "$.c8d7e6f5-4b3a-4291-8f7e-6d5c4b3a2983.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data[0].details.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     },
                                     "decision": {}
@@ -264,8 +327,8 @@
         },
         "b4702b19-564a-4a01-b114-c28cdb26d1c6": {
             "type": "appmixer.utils.test.Assert",
-            "x": 896,
-            "y": 272,
+            "x": 1680,
+            "y": 448,
             "version": "1.0.0",
             "errorHandling": {
                 "autoRetry": false,
@@ -317,10 +380,10 @@
                 }
             }
         },
-        "c966dd7e-6bde-41d7-91ef-8bac1c8f2813": {
-            "type": "appmixer.utils.test.AfterAll",
-            "x": 1104,
-            "y": 144,
+        "0f4b91b3-946c-4eb5-bc64-698ce944bde4": {
+            "type": "appmixer.zoho.crm.FindAppointments",
+            "x": 1680,
+            "y": 320,
             "version": "1.0.0",
             "errorHandling": {
                 "autoRetry": false,
@@ -328,13 +391,107 @@
             },
             "source": {
                 "in": {
-                    "e3b46ffb-42a2-4730-b952-cbff4e686aad": [
+                    "1e1106e7-a095-44d6-bc17-8ee3ada47156": [
                         "out"
-                    ],
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1e1106e7-a095-44d6-bc17-8ee3ada47156": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "appointmentName": {},
+                                    "status": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "appointmentName": "Appmixer E2E accept",
+                                    "status": "Scheduled",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e3b46ffb-42a2-4730-b952-cbff4e686aad": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1872,
+            "y": 448,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0f4b91b3-946c-4eb5-bc64-698ce944bde4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0f4b91b3-946c-4eb5-bc64-698ce944bde4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-find-name": {
+                                            "variable": "$.0f4b91b3-946c-4eb5-bc64-698ce944bde4.out.Appointment_Name",
+                                            "functions": []
+                                        },
+                                        "a-find-status": {
+                                            "variable": "$.0f4b91b3-946c-4eb5-bc64-698ce944bde4.out.Status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-find-name}}}",
+                                                "assertion": "equal",
+                                                "expected": "Appmixer E2E accept"
+                                            },
+                                            {
+                                                "field": "{{{a-find-status}}}",
+                                                "assertion": "equal",
+                                                "expected": "Scheduled"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c966dd7e-6bde-41d7-91ef-8bac1c8f2813": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2064,
+            "y": 448,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
                     "529c9af8-f7a9-4413-ba5b-8062c985ee84": [
                         "out"
                     ],
                     "b4702b19-564a-4a01-b114-c28cdb26d1c6": [
+                        "out"
+                    ],
+                    "e3b46ffb-42a2-4730-b952-cbff4e686aad": [
                         "out"
                     ]
                 }
@@ -345,10 +502,10 @@
                 }
             }
         },
-        "6a661ddf-1ccf-410f-a807-71e9b4fe4126": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1312,
-            "y": 144,
+        "f1e2d3c4-b5a6-4978-8a6b-5c4d3e2f1a94": {
+            "type": "appmixer.zoho.crm.MakeApiCall",
+            "x": 2256,
+            "y": 448,
             "version": "1.0.0",
             "errorHandling": {
                 "autoRetry": false,
@@ -365,6 +522,69 @@
                 "transform": {
                     "in": {
                         "c966dd7e-6bde-41d7-91ef-8bac1c8f2813": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "v-cleanup-a": {
+                                            "variable": "$.a4c2e8b1-3f5d-4e7a-8c9b-1d2e3f4a5b61.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data[0].details.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "v-cleanup-b": {
+                                            "variable": "$.c8d7e6f5-4b3a-4291-8f7e-6d5c4b3a2983.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data[0].details.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/crm/v8/Appointments__s?ids={{{v-cleanup-a}}},{{{v-cleanup-b}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "6a661ddf-1ccf-410f-a807-71e9b4fe4126": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2448,
+            "y": 448,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f1e2d3c4-b5a6-4978-8a6b-5c4d3e2f1a94": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1e2d3c4-b5a6-4978-8a6b-5c4d3e2f1a94": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
