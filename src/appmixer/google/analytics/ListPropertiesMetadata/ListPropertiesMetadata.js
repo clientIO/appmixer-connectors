@@ -17,7 +17,7 @@ module.exports = {
             if (context.properties.variableFetch) {
                 return context.sendJson({ dimensions: [], metrics: [] }, 'out');
             }
-            context.log({ stage: 'Error', err });
+            context.log({ stage: 'Error', err: error });
             throw new Error('Property ID must be filled');
         }
 
