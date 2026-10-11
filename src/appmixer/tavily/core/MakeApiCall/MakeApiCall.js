@@ -4,17 +4,28 @@ const lib = require('../../lib');
 
 // Convert Appmixer key-value inspector rows into a plain object.
 function kvToObject(rows) {
-    if (!Array.isArray(rows)) {
-        return {};
-    }
-    const result = {};
-    for (const row of rows) {
-        if (!row || typeof row.key !== 'string' || !row.key) {
-            continue;
+    // The Designer's key-value field sends its rows as a JSON object string
+    // ('{"Accept":"application/json"}'); a plain object and an array of
+    // {key, value} rows are accepted too.
+    let input = rows;
+    if (typeof input === 'string') {
+        if (!input.trim()) return {};
+        try {
+            input = JSON.parse(input);
+        } catch (e) {
+            throw new Error('Request Headers and Query Parameters must be a JSON object of key-value pairs.');
         }
-        result[row.key] = row.value;
     }
-    return result;
+    if (!input || typeof input !== 'object') return {};
+    const entries = Array.isArray(input)
+        ? input.filter(row => row && typeof row === 'object').map(row => [row.key, row.value])
+        : Object.entries(input);
+    const out = {};
+    for (const [key, val] of entries) {
+        if (typeof key !== 'string' || key.length === 0) continue;
+        out[key] = val;
+    }
+    return out;
 }
 
 module.exports = {

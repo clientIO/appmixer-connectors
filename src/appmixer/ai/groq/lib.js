@@ -147,15 +147,28 @@ module.exports = {
      * @returns {object}
      */
     keyValueToObject(rows) {
-
-        if (!Array.isArray(rows)) return {};
-
-        return rows.reduce((res, row) => {
-            if (row && typeof row === 'object' && typeof row.key === 'string' && row.key.length) {
-                res[row.key] = row.value;
+        // The Designer's key-value field sends its rows as a JSON object string
+        // ('{"Accept":"application/json"}'); a plain object and an array of
+        // {key, value} rows are accepted too.
+        let input = rows;
+        if (typeof input === 'string') {
+            if (!input.trim()) return {};
+            try {
+                input = JSON.parse(input);
+            } catch (e) {
+                throw new Error('Request Headers and Query Parameters must be a JSON object of key-value pairs.');
             }
-            return res;
-        }, {});
+        }
+        if (!input || typeof input !== 'object') return {};
+        const entries = Array.isArray(input)
+            ? input.filter(row => row && typeof row === 'object').map(row => [row.key, row.value])
+            : Object.entries(input);
+        const out = {};
+        for (const [key, val] of entries) {
+            if (typeof key !== 'string' || key.length === 0) continue;
+            out[key] = val;
+        }
+        return out;
     },
 
     async sendArrayOutput({

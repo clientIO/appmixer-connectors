@@ -1,23 +1,26 @@
 'use strict';
 
 function kvToObj(arr) {
-    // The designer serializes key-value grids as a JSON string.
-    if (typeof arr === 'string') {
-        const trimmed = arr.trim();
-        if (!trimmed.length) return {};
+    // The Designer's key-value field sends its rows as a JSON object string
+    // ('{"Accept":"application/json"}'); a plain object and an array of
+    // {key, value} rows are accepted too.
+    let input = arr;
+    if (typeof input === 'string') {
+        if (!input.trim()) return {};
         try {
-            arr = JSON.parse(trimmed);
+            input = JSON.parse(input);
         } catch (e) {
-            return {};
+            throw new Error('Request Headers and Query Parameters must be a JSON object of key-value pairs.');
         }
     }
-    if (!arr || !Array.isArray(arr)) return {};
+    if (!input || typeof input !== 'object') return {};
+    const entries = Array.isArray(input)
+        ? input.filter(row => row && typeof row === 'object').map(row => [row.key, row.value])
+        : Object.entries(input);
     const out = {};
-    for (const row of arr) {
-        if (!row || typeof row !== 'object') continue;
-        const key = row.key;
+    for (const [key, val] of entries) {
         if (typeof key !== 'string' || key.length === 0) continue;
-        out[key] = row.value;
+        out[key] = val;
     }
     return out;
 }
