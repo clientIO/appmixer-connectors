@@ -27,6 +27,6 @@ module.exports = {
             taskId: taskId,
             workflowId: workflowId,
             workflowStageId: workflowStageId
-        }, 'task');
+        }, 'workflowStage');
     }
 };
