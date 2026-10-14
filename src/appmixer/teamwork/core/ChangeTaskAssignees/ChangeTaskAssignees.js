@@ -4,21 +4,23 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    receive: async function (context) {
-        let { taskId, operation, selectedType, userIds = [], teamIds = [], companyIds = [] } = context.messages.in.content;
+    receive: async function(context) {
+        let {
+            taskId, operation, selectedType, userIds = [], teamIds = [], companyIds = []
+        } = context.messages.in.content;
 
         let q = {};
 
         let resp = await lib.callAPI(
             context,
-            "GET",
+            'GET',
             `/projects/api/v3/tasks/${taskId}.json`,
             null,
-            q,
-        )
+            q
+        );
 
         if (!resp.task) {
-            throw new Error(`Task not found`);
+            throw new Error('Task not found');
         }
 
         const { assigneeUserIds, assigneeTeamIds, assigneeCompanyIds, createdByUserId } = resp.task;
@@ -28,12 +30,12 @@ module.exports = {
         if (['add', 'reassign'].includes(operation)) {
             const taskPeopleResp = await lib.callAPI(
                 context,
-                "GET",
+                'GET',
                 `/tasks/${taskId}/people.json`,
                 null,
                 {
-                    onlyInPrivacy: true,
-                },
+                    onlyInPrivacy: true
+                }
             );
 
             const taskPeople = taskPeopleResp.people;
@@ -73,18 +75,18 @@ module.exports = {
                 // Add the users already assigned to the task so they are not removed.
                 if (selectedType === 'task-creator') {
                     taskAssignees.userIds = Array.from(
-                        new Set([createdByUserId, ...(assigneeUserIds || [])]),
+                        new Set([createdByUserId, ...(assigneeUserIds || [])])
                     );
                 } else {
                     taskAssignees.userIds = Array.from(
-                        new Set([...userIds, ...(assigneeUserIds || [])]),
+                        new Set([...userIds, ...(assigneeUserIds || [])])
                     );
                 }
                 taskAssignees.teamIds = Array.from(
-                    new Set([...teamIds, ...(assigneeTeamIds || [])]),
+                    new Set([...teamIds, ...(assigneeTeamIds || [])])
                 );
                 taskAssignees.companyIds = Array.from(
-                    new Set([...companyIds, ...(assigneeCompanyIds || [])]),
+                    new Set([...companyIds, ...(assigneeCompanyIds || [])])
                 );
             }
         } else {
@@ -100,11 +102,11 @@ module.exports = {
             } else {
                 if (selectedType === 'task-creator') {
                     taskAssignees.userIds = assigneeUserIds.filter(
-                        (id) => (parseInt(id, 10)) !== parseInt(createdByUserId, 10),
+                        (id) => (parseInt(id, 10)) !== parseInt(createdByUserId, 10)
                     );
                 } else if (userIds.length) {
                     taskAssignees.userIds = assigneeUserIds.filter(
-                        (id) => !userIds.includes(id.toString()),
+                        (id) => !userIds.includes(id.toString())
                     );
                 } else {
                     taskAssignees.userIds = assigneeUserIds;
@@ -112,7 +114,7 @@ module.exports = {
 
                 if (teamIds.length) {
                     taskAssignees.teamIds = assigneeTeamIds.filter(
-                        (id) => !teamIds.includes(id.toString()),
+                        (id) => !teamIds.includes(id.toString())
                     );
                 } else if (assigneeTeamIds) {
                     taskAssignees.teamIds = assigneeTeamIds;
@@ -120,7 +122,7 @@ module.exports = {
 
                 if (companyIds.length) {
                     taskAssignees.companyIds = assigneeCompanyIds.filter(
-                        (id) => !companyIds.includes(id.toString()),
+                        (id) => !companyIds.includes(id.toString())
                     );
                 } else if (assigneeCompanyIds) {
                     taskAssignees.companyIds = assigneeCompanyIds;
@@ -131,7 +133,7 @@ module.exports = {
         let responsiblePartyIds = [];
         const taskInfo = {
             id: taskId,
-            notify: false,
+            notify: false
         };
 
         if (taskAssignees.userIds?.length) {
@@ -152,12 +154,12 @@ module.exports = {
 
         await lib.callAPI(
             context,
-            "PUT",
+            'PUT',
             `/tasks/${taskId}.json`,
             {
-                "todo-item": taskInfo,
-            },
-        )
+                'todo-item': taskInfo
+            }
+        );
 
         context.sendJson({
             taskId: taskId,
@@ -166,7 +168,7 @@ module.exports = {
             selectedType: selectedType,
             userIds: userIds,
             teamIds: teamIds,
-            companyIds: companyIds,
+            companyIds: companyIds
         }, 'assignees');
     }
-}
+};

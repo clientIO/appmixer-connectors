@@ -4,7 +4,7 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    receive: async function (context) {
+    receive: async function(context) {
         let { taskId, operation, tagIds } = context.messages.in.content;
 
         let q = {};
@@ -14,14 +14,14 @@ module.exports = {
 
         let resp = await lib.callAPI(
             context,
-            "GET",
+            'GET',
             `/projects/api/v3/tasks/${taskId}.json`,
             null,
-            q,
-        )
+            q
+        );
 
         if (!resp.task) {
-            throw new Error(`Task not found`);
+            throw new Error('Task not found');
         }
 
         const taskTagIds = resp.task.tagIds;
@@ -47,18 +47,18 @@ module.exports = {
 
         await lib.callAPI(
             context,
-            "PUT",
+            'PUT',
             `/tasks/${taskId}/tags.json`,
             {
-                "tagIds": updatedTagIds.join(',')
+                'tagIds': updatedTagIds.join(',')
             },
             { replaceExistingTags: replaceExistingTags }
-        )
+        );
 
         context.sendJson({
             taskId: taskId,
             tagIds: updatedTagIds,
-            operation: operation,
+            operation: operation
         }, 'task');
     }
-}
+};
