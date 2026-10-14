@@ -10,7 +10,7 @@ module.exports = {
         try {
             let peopleResp = await lib.callAPI(
                 context,
-                "GET",
+                'GET',
                 '/projects/api/v3/people.json',
                 null,
                 { page: 1, pageSize: 500 }
@@ -28,7 +28,7 @@ module.exports = {
 
             let teamsResp = await lib.callAPI(
                 context,
-                "GET",
+                'GET',
                 '/teams.json',
                 null,
                 {
@@ -50,7 +50,7 @@ module.exports = {
 
             let companiesResp = await lib.callAPI(
                 context,
-                "GET",
+                'GET',
                 '/projects/api/v3/companies.json',
                 null,
                 { page: 1, pageSize: 500 }
@@ -77,7 +77,7 @@ module.exports = {
         if (data && Array.isArray(data.assignees)) {
             data.assignees.forEach(assignee => {
                 let typeLabel = assignee.type === 'user' ? 'User' :
-                               assignee.type === 'team' ? 'Team' : 'Company';
+                    assignee.type === 'team' ? 'Team' : 'Company';
                 transformed.push({
                     label: `${assignee.name} (${typeLabel})`,
                     value: `${assignee.type}-${assignee.id}`
@@ -87,4 +87,4 @@ module.exports = {
         return transformed;
     }
 
-}
+};

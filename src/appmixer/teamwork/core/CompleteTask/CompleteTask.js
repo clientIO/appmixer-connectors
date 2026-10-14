@@ -8,12 +8,12 @@ module.exports = {
         let { taskId } = context.messages.in.content;
 
         await lib.callAPI(
-            context, 
-            "PUT",
+            context,
+            'PUT',
             `/tasks/${taskId}/complete.json`,
-            null,
-        )
+            null
+        );
 
-        context.sendJson({id: taskId}, 'task');
+        context.sendJson({ id: taskId }, 'task');
     }
-}
+};

@@ -5,15 +5,15 @@ const lib = require('../../lib');
 module.exports = {
 
     receive: async function(context) {
-        let { 
-            searchTerm, 
-            startDate, 
-            priority, 
-            endDate, 
-            orderMode, 
-            orderBy, 
-            page, 
-            pageSize, 
+        let {
+            searchTerm,
+            startDate,
+            priority,
+            endDate,
+            orderMode,
+            orderBy,
+            page,
+            pageSize,
             tasklistId,
             responsiblePartyIds,
             createdByUserIds,
@@ -21,7 +21,7 @@ module.exports = {
             tagIds,
             customfields
         } = context.messages.in.content;
-        let q = {}
+        let q = {};
 
         q.searchTerm = searchTerm;
         q.startDate = startDate;
@@ -33,7 +33,7 @@ module.exports = {
         if (responsiblePartyIds) {
             q.responsiblePartyIds = responsiblePartyIds.join(',');
         }
-        if (createdByUserIds){
+        if (createdByUserIds) {
             q.createdByUserIds = createdByUserIds.join(',');
         }
         if (tagIds) {
@@ -57,16 +57,16 @@ module.exports = {
             }
         }
 
-        if (page > 0|| pageSize > 0) {
+        if (page > 0 || pageSize > 0) {
             q.page = page;
             q.pageSize = pageSize;
 
             let resp = await lib.callAPI(
                 context,
-                "GET",
+                'GET',
                 `/projects/api/v3/tasklists/${tasklistId}/tasks.json`,
                 null,
-                q,
+                q
             );
 
             return context.sendJson(resp, 'tasks');
@@ -81,10 +81,10 @@ module.exports = {
 
                     let resp = await lib.callAPI(
                         context,
-                        "GET",
+                        'GET',
                         `/projects/api/v3/tasklists/${tasklistId}/tasks.json`,
                         null,
-                        q,
+                        q
                     );
 
                     if (resp && Array.isArray(resp.tasks)) {
@@ -104,7 +104,7 @@ module.exports = {
         }
     },
 
-    toInspector: function(data){
+    toInspector: function(data) {
         let transformed = [];
         if (data && Array.isArray(data.tasks)) {
             data.tasks.forEach(project => {
@@ -116,5 +116,5 @@ module.exports = {
         }
 
         return transformed;
-    } 
-}
+    }
+};

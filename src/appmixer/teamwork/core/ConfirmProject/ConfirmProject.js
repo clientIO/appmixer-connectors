@@ -8,12 +8,12 @@ module.exports = {
         let { projectId } = context.messages.in.content;
 
         await lib.callAPI(
-            context, 
-            "PUT",
+            context,
+            'PUT',
             `/projects/api/v3/projects/tentative/${projectId}/convert.json`,
-            null,
-        )
+            null
+        );
 
-        context.sendJson({id: projectId}, 'project');
+        context.sendJson({ id: projectId }, 'project');
     }
-}
+};

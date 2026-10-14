@@ -6,7 +6,7 @@ module.exports = {
 
     receive: async function(context) {
         let { searchTerm } = context.messages.in.content;
-        let q = {}
+        let q = {};
         if (searchTerm !== null && searchTerm !== undefined) {
             q.searchTerm = searchTerm;
         }
@@ -23,7 +23,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     `/projects/api/v3/projects/${projectId}/tasklists.json`,
                     null,
                     q
@@ -45,7 +45,7 @@ module.exports = {
         return context.sendJson({ tasklists: allTasklists }, 'tasklists');
     },
 
-    toInspector: function(data){
+    toInspector: function(data) {
         let transformed = [];
 
         if (data && Array.isArray(data.tasklists)) {
@@ -60,4 +60,4 @@ module.exports = {
         return transformed;
     }
 
-}
+};

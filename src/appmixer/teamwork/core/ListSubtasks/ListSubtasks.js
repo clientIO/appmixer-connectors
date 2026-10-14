@@ -5,15 +5,15 @@ const lib = require('../../lib');
 module.exports = {
 
     receive: async function(context) {
-        let { 
-            searchTerm, 
-            startDate, 
-            priority, 
-            endDate, 
-            orderMode, 
-            orderBy, 
-            page, 
-            pageSize, 
+        let {
+            searchTerm,
+            startDate,
+            priority,
+            endDate,
+            orderMode,
+            orderBy,
+            page,
+            pageSize,
             projectIds,
             responsiblePartyIds,
             createdByUserIds,
@@ -22,7 +22,7 @@ module.exports = {
             customfields,
             parentTaskId
         } = context.messages.in.content;
-        let q = {}
+        let q = {};
 
         q.searchTerm = searchTerm;
         q.startDate = startDate;
@@ -39,7 +39,7 @@ module.exports = {
         if (responsiblePartyIds) {
             q.responsiblePartyIds = responsiblePartyIds.join(',');
         }
-        if (createdByUserIds){
+        if (createdByUserIds) {
             q.createdByUserIds = createdByUserIds.join(',');
         }
         if (tagIds) {
@@ -64,13 +64,13 @@ module.exports = {
         }
 
         let resp = await lib.callAPI(
-            context, 
-            "GET",
+            context,
+            'GET',
             `/projects/api/v3/tasks/${parentTaskId}/subtasks.json`,
             null,
-            q,
-        )
+            q
+        );
 
         return context.sendJson(resp, 'tasks');
     }
-}
+};
