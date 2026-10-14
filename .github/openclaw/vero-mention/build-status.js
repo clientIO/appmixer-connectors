@@ -61,6 +61,8 @@ const SESSION_AGE_MS = 8 * 24 * 3600 * 1000;
 const SESSION_LIMIT = 30;
 const LIVE_PREFIX = 'agent:vero:hook:vero:gh:';
 const PROMPT = /apx-vero mention on PR #(\d+)/;
+// The gateway writes the run name the transform returned into the prompt: "Task: <name>"
+const TASK = /^Task: (.+)$/m;
 
 const archivedTranscripts = () => {
     let files;
@@ -122,7 +124,7 @@ const liveTranscripts = () => {
 };
 
 const text = (m) => typeof m?.content === 'string' ? m.content : (Array.isArray(m?.content) ? m.content : []).filter((c) => c.type === 'text').map((c) => c.text).join('\n');
-const isPrompt = (e) => e.type === 'message' && e.message?.role === 'user' && PROMPT.test(text(e.message));
+const isPrompt = (e) => e.type === 'message' && e.message?.role === 'user' && (TASK.test(text(e.message)) || PROMPT.test(text(e.message)));
 
 // One entry per hook run: a transcript is split at every hook prompt, so a persistent session yields
 // one turn per mention. An isolated session has a single prompt; a session without one is not ours.
@@ -136,7 +138,9 @@ const turnsOf = (entries) => {
 };
 
 const describeTurn = (entries) => {
-    const pr = text(entries[0].message).match(PROMPT)[1];
+    const prompt = text(entries[0].message);
+    const pr = (prompt.match(PROMPT) || prompt.match(/PR #(\d+)/) || [])[1] || null;
+    const task = (prompt.match(TASK) || [])[1]?.trim() || null;
     const assistant = entries.filter((e) => e.type === 'message' && e.message?.role === 'assistant').map((e) => e.message);
     const steps = assistant.flatMap((m) => (m.content || []).filter((c) => c.type === 'toolCall').map((c) => c.arguments?.title || c.name));
     const last = assistant.length ? text(assistant[assistant.length - 1]).trim() : '';
@@ -144,7 +148,8 @@ const describeTurn = (entries) => {
     const startedAt = entries[0]?.timestamp || null;
     const endedAt = entries[entries.length - 1]?.timestamp || null;
     return {
-        pr: Number(pr),
+        pr: pr ? Number(pr) : null,
+        task,
         startedAt,
         endedAt,
         durationSec: startedAt && endedAt ? Math.round((Date.parse(endedAt) - Date.parse(startedAt)) / 1000) : null,
@@ -268,11 +273,28 @@ const describeHook = (m) => {
         model: m.model || null,
         transform: module,
         description: header.join(' ').replace(/\s+/g, ' ').trim() || null,
+        // The run name the transform gives the gateway, with its ${…} parts as wildcards — what
+        // "Task:" in a run's prompt has to match for the run to belong to this hook
+        taskPattern: (() => {
+            const name = (source.match(/\bname:\s*`([^`]*)`/) || source.match(/\bname:\s*'([^']*)'/) || [])[1];
+            return name
+                ? '^' + name.split(/\$\{[^}]*\}/).map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('.+?') + '$'
+                : null;
+        })(),
         sessionMode: field('sessionMode'),
         sessionKey: (source.match(/sessionKey:\s*`([^`]*)`/) || [])[1] || field('sessionKey'),
         timeoutSeconds: Number((source.match(/timeoutSeconds:\s*(\d+)/) || [])[1]) || null
     };
 };
+
+const hooks = (config.hooks?.enabled ? config.hooks.mappings || [] : []).map(describeHook);
+// A run with a transcript is matched by its task name; one without (rejected before the agent
+// started) by the model the mapping asks for, when that names a single hook.
+for (const run of hookRuns) {
+    const byTask = run.task ? hooks.find((h) => h.taskPattern && new RegExp(h.taskPattern).test(run.task)) : null;
+    const byModel = hooks.filter((h) => h.model && run.model && (h.model === run.model || h.model.endsWith('/' + run.model)));
+    run.hookId = byTask?.id || (byModel.length === 1 ? byModel[0].id : null);
+}
 
 const status = {
     generatedAt: new Date().toISOString(),
@@ -284,7 +306,7 @@ const status = {
     update: latest ? { latest, available: Boolean(version && latest !== version) } : null,
     agents,
     publicHost,
-    hooks: (config.hooks?.enabled ? config.hooks.mappings || [] : []).map(describeHook),
+    hooks,
     hookRuns,
     mentionResponder: {
         shadow,
