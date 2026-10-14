@@ -7,6 +7,11 @@ module.exports = {
     receive: async function (context) {
         let { taskId, operation, selectedType, userIds = [], teamIds = [], companyIds = [] } = context.messages.in.content;
 
+        // Ids arrive as strings from the inspector but as numbers from variables — compare as strings.
+        userIds = [].concat(userIds || []).map(String);
+        teamIds = [].concat(teamIds || []).map(String);
+        companyIds = [].concat(companyIds || []).map(String);
+
         let q = {};
 
         let resp = await lib.callAPI(
