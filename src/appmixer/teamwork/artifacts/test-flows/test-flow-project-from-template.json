@@ -1,8 +1,8 @@
 {
     "name": "E2E Teamwork - project from template",
-    "description": "ListProjectTemplates → CreateProjectFromTemplate; deletes the project.",
+    "description": "ListProjectTemplates (coverage) → fresh project → CreateProjectFromTemplate clones it (the clone endpoint accepts any project id); deletes both projects.",
     "flow": {
-        "1ae54311-c91e-4626-81e5-aa56de46176b": {
+        "ee154176-388d-4db4-ab07-335e374fb3b8": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
             "y": 16,
@@ -14,14 +14,14 @@
                 "onError": "stopFlow"
             }
         },
-        "d42370c1-c1e0-4acd-beee-707f4ccf0b51": {
+        "4f87f5f9-8ed9-4136-9161-28b5bd569597": {
             "type": "appmixer.teamwork.core.ListProjectTemplates",
             "x": 272,
             "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "1ae54311-c91e-4626-81e5-aa56de46176b": [
+                    "ee154176-388d-4db4-ab07-335e374fb3b8": [
                         "out"
                     ]
                 }
@@ -29,7 +29,7 @@
             "config": {
                 "transform": {
                     "in": {
-                        "1ae54311-c91e-4626-81e5-aa56de46176b": {
+                        "ee154176-388d-4db4-ab07-335e374fb3b8": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {},
@@ -44,14 +44,14 @@
                 "onError": "stopFlow"
             }
         },
-        "26800106-453f-4d34-9298-f62ff811c6ee": {
+        "af01fdb8-3dcf-4b4a-9dc5-bdbd762f65c8": {
             "type": "appmixer.utils.test.Assert",
             "x": 480,
             "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "d42370c1-c1e0-4acd-beee-707f4ccf0b51": [
+                    "4f87f5f9-8ed9-4136-9161-28b5bd569597": [
                         "projects"
                     ]
                 }
@@ -59,19 +59,19 @@
             "config": {
                 "transform": {
                     "in": {
-                        "d42370c1-c1e0-4acd-beee-707f4ccf0b51": {
+                        "4f87f5f9-8ed9-4136-9161-28b5bd569597": {
                             "projects": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "61691b01-0e0d-46bf-8bec-46f45e0d104e": {
-                                            "variable": "$.d42370c1-c1e0-4acd-beee-707f4ccf0b51.projects.projects",
+                                        "cb59c965-7f1a-4161-8cf2-a7581b217dee": {
+                                            "variable": "$.4f87f5f9-8ed9-4136-9161-28b5bd569597.projects.projects",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
                                                     "params": [
                                                         {
-                                                            "value": "$[0].id"
+                                                            "value": "$.length"
                                                         }
                                                     ]
                                                 }
@@ -83,7 +83,145 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "field": "{{{61691b01-0e0d-46bf-8bec-46f45e0d104e}}}",
+                                                "field": "{{{cb59c965-7f1a-4161-8cf2-a7581b217dee}}}",
+                                                "assertion": "regex",
+                                                "regex": "^\\d+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cd2b578f-7bca-4d44-9843-d6172036d249": {
+            "type": "appmixer.teamwork.core.ListCompanies",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "af01fdb8-3dcf-4b4a-9dc5-bdbd762f65c8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "af01fdb8-3dcf-4b4a-9dc5-bdbd762f65c8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "searchTerm": {}
+                                },
+                                "lambda": {
+                                    "searchTerm": ""
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "49ec4d10-f995-4b74-bb9b-5ce4fa0aa029": {
+            "type": "appmixer.teamwork.core.CreateProject",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cd2b578f-7bca-4d44-9843-d6172036d249": [
+                        "companies"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cd2b578f-7bca-4d44-9843-d6172036d249": {
+                            "companies": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "edb02623-0c85-41aa-80a5-bc1f17489f33": {
+                                            "variable": "$.ee154176-388d-4db4-ab07-335e374fb3b8.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "companyId": {
+                                        "8144e5b5-245f-4e50-b681-13ef30c2bb01": {
+                                            "variable": "$.cd2b578f-7bca-4d44-9843-d6172036d249.companies.companies",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "tentative": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Clone source {{{edb02623-0c85-41aa-80a5-bc1f17489f33}}}",
+                                    "companyId": "{{{8144e5b5-245f-4e50-b681-13ef30c2bb01}}}",
+                                    "tentative": false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "997374fc-0b73-4423-8167-bd75a3396531": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "49ec4d10-f995-4b74-bb9b-5ce4fa0aa029": [
+                        "project"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "49ec4d10-f995-4b74-bb9b-5ce4fa0aa029": {
+                            "project": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "683131af-7796-4f1a-8284-cda8d8bd801c": {
+                                            "variable": "$.49ec4d10-f995-4b74-bb9b-5ce4fa0aa029.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{683131af-7796-4f1a-8284-cda8d8bd801c}}}",
                                                 "assertion": "notEmpty"
                                             }
                                         ]
@@ -99,14 +237,14 @@
                 "onError": "stopFlow"
             }
         },
-        "fab0e082-6a22-4b0f-8f5f-e14a1f78d732": {
+        "a8312d80-61f2-4d89-a367-ebd02118daa5": {
             "type": "appmixer.teamwork.core.CreateProjectFromTemplate",
-            "x": 688,
-            "y": 144,
+            "x": 1312,
+            "y": 400,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "26800106-453f-4d34-9298-f62ff811c6ee": [
+                    "997374fc-0b73-4423-8167-bd75a3396531": [
                         "out"
                     ]
                 }
@@ -114,35 +252,26 @@
             "config": {
                 "transform": {
                     "in": {
-                        "26800106-453f-4d34-9298-f62ff811c6ee": {
+                        "997374fc-0b73-4423-8167-bd75a3396531": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "templateId": {
-                                        "97361d0d-d1e6-4f81-b170-c9f0f6cd0936": {
-                                            "variable": "$.d42370c1-c1e0-4acd-beee-707f4ccf0b51.projects.projects",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$[0].id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                        "519423ab-07b2-42b4-a5bf-cdd71c898090": {
+                                            "variable": "$.49ec4d10-f995-4b74-bb9b-5ce4fa0aa029.project.id",
+                                            "functions": []
                                         }
                                     },
                                     "cloneProjectName": {
-                                        "90aeb115-a657-46cc-9f26-859560225587": {
-                                            "variable": "$.1ae54311-c91e-4626-81e5-aa56de46176b.out.started",
+                                        "22b6763f-cf77-4535-a742-2e8da44db44d": {
+                                            "variable": "$.ee154176-388d-4db4-ab07-335e374fb3b8.out.started",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "templateId": "{{{97361d0d-d1e6-4f81-b170-c9f0f6cd0936}}}",
-                                    "cloneProjectName": "E2E Template {{{90aeb115-a657-46cc-9f26-859560225587}}}"
+                                    "templateId": "{{{519423ab-07b2-42b4-a5bf-cdd71c898090}}}",
+                                    "cloneProjectName": "E2E Template {{{22b6763f-cf77-4535-a742-2e8da44db44d}}}"
                                 }
                             }
                         }
@@ -154,14 +283,14 @@
                 "onError": "stopFlow"
             }
         },
-        "d61d19dd-93b6-4ae2-9ee6-e910b224406a": {
+        "f64c91bc-a6a6-4c58-b848-85b4e4860562": {
             "type": "appmixer.utils.test.Assert",
-            "x": 896,
-            "y": 144,
+            "x": 1520,
+            "y": 400,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "fab0e082-6a22-4b0f-8f5f-e14a1f78d732": [
+                    "a8312d80-61f2-4d89-a367-ebd02118daa5": [
                         "project"
                     ]
                 }
@@ -169,13 +298,13 @@
             "config": {
                 "transform": {
                     "in": {
-                        "fab0e082-6a22-4b0f-8f5f-e14a1f78d732": {
+                        "a8312d80-61f2-4d89-a367-ebd02118daa5": {
                             "project": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "8d6df8cd-78d6-44c9-b382-962d846e0dbb": {
-                                            "variable": "$.fab0e082-6a22-4b0f-8f5f-e14a1f78d732.project.project",
+                                        "3567becd-80c6-4cfe-9fb4-186506df6b19": {
+                                            "variable": "$.a8312d80-61f2-4d89-a367-ebd02118daa5.project.project",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
@@ -193,7 +322,7 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "field": "{{{8d6df8cd-78d6-44c9-b382-962d846e0dbb}}}",
+                                                "field": "{{{3567becd-80c6-4cfe-9fb4-186506df6b19}}}",
                                                 "assertion": "notEmpty"
                                             }
                                         ]
@@ -209,17 +338,20 @@
                 "onError": "stopFlow"
             }
         },
-        "3c33dbd8-b024-4940-b63b-26b98112a6fa": {
+        "2fefa9b5-2aad-4fac-a478-99377cc27471": {
             "type": "appmixer.utils.test.AfterAll",
-            "x": 1104,
-            "y": 144,
+            "x": 1728,
+            "y": 400,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "26800106-453f-4d34-9298-f62ff811c6ee": [
+                    "af01fdb8-3dcf-4b4a-9dc5-bdbd762f65c8": [
                         "out"
                     ],
-                    "d61d19dd-93b6-4ae2-9ee6-e910b224406a": [
+                    "997374fc-0b73-4423-8167-bd75a3396531": [
+                        "out"
+                    ],
+                    "f64c91bc-a6a6-4c58-b848-85b4e4860562": [
                         "out"
                     ]
                 }
@@ -234,14 +366,14 @@
                 "onError": "stopFlow"
             }
         },
-        "3a432449-fa59-4d2c-8d3f-4037f65f5f13": {
+        "4e86c90f-5bc4-4769-8b58-d4a2b782ff04": {
             "type": "appmixer.teamwork.core.MakeApiCall",
-            "x": 1312,
-            "y": 144,
+            "x": 1936,
+            "y": 400,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "3c33dbd8-b024-4940-b63b-26b98112a6fa": [
+                    "2fefa9b5-2aad-4fac-a478-99377cc27471": [
                         "out"
                     ]
                 }
@@ -249,13 +381,13 @@
             "config": {
                 "transform": {
                     "in": {
-                        "3c33dbd8-b024-4940-b63b-26b98112a6fa": {
+                        "2fefa9b5-2aad-4fac-a478-99377cc27471": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "url": {
-                                        "abc60dc6-1ed5-4ede-a113-8c431c35caac": {
-                                            "variable": "$.fab0e082-6a22-4b0f-8f5f-e14a1f78d732.project.project",
+                                        "b9bc8621-8dcd-4ce0-a104-73268d8d356d": {
+                                            "variable": "$.a8312d80-61f2-4d89-a367-ebd02118daa5.project.project",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
@@ -271,7 +403,7 @@
                                     "method": {}
                                 },
                                 "lambda": {
-                                    "url": "/projects/{{{abc60dc6-1ed5-4ede-a113-8c431c35caac}}}.json",
+                                    "url": "/projects/{{{b9bc8621-8dcd-4ce0-a104-73268d8d356d}}}.json",
                                     "method": "DELETE"
                                 }
                             }
@@ -284,14 +416,55 @@
                 "onError": "stopFlow"
             }
         },
-        "6a50f12a-af81-46df-933c-0ce181a33ac7": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1520,
-            "y": 144,
+        "22236890-2cdf-4775-a65f-537675b1614c": {
+            "type": "appmixer.teamwork.core.MakeApiCall",
+            "x": 2144,
+            "y": 400,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "3a432449-fa59-4d2c-8d3f-4037f65f5f13": [
+                    "4e86c90f-5bc4-4769-8b58-d4a2b782ff04": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4e86c90f-5bc4-4769-8b58-d4a2b782ff04": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "0fb9c37f-871b-4917-8e27-39cb324553cb": {
+                                            "variable": "$.49ec4d10-f995-4b74-bb9b-5ce4fa0aa029.project.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/projects/{{{0fb9c37f-871b-4917-8e27-39cb324553cb}}}.json",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9ecdffcf-05df-4d61-b071-d268420f5540": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2352,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "22236890-2cdf-4775-a65f-537675b1614c": [
                         "out"
                     ]
                 }
@@ -303,15 +476,15 @@
                 },
                 "transform": {
                     "in": {
-                        "3a432449-fa59-4d2c-8d3f-4037f65f5f13": {
+                        "22236890-2cdf-4775-a65f-537675b1614c": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "recipients": {},
                                     "testCase": {},
                                     "result": {
-                                        "48ead15e-b69a-480c-8e41-fc6711e80fc7": {
-                                            "variable": "$.3c33dbd8-b024-4940-b63b-26b98112a6fa.out",
+                                        "88bd1a63-a281-42e6-8e42-68402d707500": {
+                                            "variable": "$.2fefa9b5-2aad-4fac-a478-99377cc27471.out",
                                             "functions": []
                                         }
                                     }
@@ -319,7 +492,7 @@
                                 "lambda": {
                                     "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Teamwork - project from template",
-                                    "result": "{{{48ead15e-b69a-480c-8e41-fc6711e80fc7}}}"
+                                    "result": "{{{88bd1a63-a281-42e6-8e42-68402d707500}}}"
                                 }
                             }
                         }
@@ -333,12 +506,12 @@
         }
     },
     "notes": {
-        "66ec8617-80c5-46a7-b9b6-f0325ab04eb4": {
+        "e9222088-3f5a-4096-872d-eb3c4718d50b": {
             "x": 64,
-            "y": 400,
+            "y": 656,
             "width": 736,
             "height": 224,
-            "content": "## ⚠️ Test data assumption\n\nListProjectTemplates needs at least one **project template** on the site (Projects → Templates → create one named e.g. \"E2E template\"). appmixer2.eu had none on 2026-10-14, so the first Assert fails with \"expected undefined to exist\" until a template exists."
+            "content": "## ℹ️ Works without a template\n\nCreateProjectFromTemplate calls `POST /projects/{id}/clone.json`, which clones ANY project, so the flow creates a small source project and clones it — no project template needed (the Free plan has none; appmixer2.eu returned [] on 2026-10-14). ListProjectTemplates is only asserted to return a list. On a site with templates you can point templateId at `$[0].id` of ListProjectTemplates instead."
         }
     }
 }
