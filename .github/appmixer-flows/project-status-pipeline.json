@@ -525,7 +525,7 @@
             "y": -288,
             "width": 640,
             "height": 352,
-            "content": "## Project status → pipeline\n\nThe dispatcher of the status-driven connector pipeline (Appmixer-ai/appmixer-components#2890, step 1 in #2916).\n\n`On Project Item Changed` is an **organization webhook** (`projects_v2_item`, action `edited`) — registering it needs the `admin:org_hook` scope, so bind an org owner. `Status changed` keeps only moves of the Status field.\n\n`Resolve the item` is one GraphQL call on the card's content node; `Pipeline event` turns it into `{issue?, pr?, connector, branch, status, from, runId}` — an issue is linked to its PR through the closing keyword, a PR card looks up no issue, the connector comes from the `appmixer:<x>` label. `runId` is deterministic (card, target status, `updated_at`), so a redelivery is recognised.\n\n**Source of truth:** `.github/appmixer-flows/project-status-pipeline.json` in the connectors repo."
+            "content": "## Project status → pipeline\n\nThe dispatcher of the status-driven connector pipeline (Appmixer-ai/appmixer-components#2890, step 1 in #2916).\n\n`On Project Item Changed` receives `projects_v2_item` deliveries (action `edited`) through the GitHub connector's endpoint `/plugins/appmixer/github/events`, at which an organization owner points one organization webhook (github connector README). The bound account needs only `read:org` and `read:project`. `Status changed` keeps only moves of the Status field.\n\n`Resolve the item` is one GraphQL call on the card's content node; `Pipeline event` turns it into `{issue?, pr?, connector, branch, status, from, runId}` — an issue is linked to its PR through the closing keyword, a PR card looks up no issue, the connector comes from the `appmixer:<x>` label. `runId` is deterministic (card, target status, `updated_at`), so a redelivery is recognised.\n\n**Source of truth:** `.github/appmixer-flows/project-status-pipeline.json` in the connectors repo."
         },
         "f3000000-0000-4000-8000-000000000002": {
             "x": 1104,
@@ -539,8 +539,8 @@
         "fields": [
             {
                 "type": "account",
-                "label": "GitHub account (organization owner)",
-                "tooltip": "Registers the organization webhook for project changes (needs admin:org_hook), reads the items and writes the comment. Bind an owner of the organization.",
+                "label": "GitHub account",
+                "tooltip": "Reads the cards and their issues or pull requests and writes the pipeline comment (read:org, read:project, repo). The organization webhook that feeds the trigger is set up once by an organization owner on the connector endpoint — see the github connector README.",
                 "placeholder": "",
                 "attrs": {
                     "service": "appmixer:github",

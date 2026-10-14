@@ -139,9 +139,11 @@ on this flow; this version starts nothing else.
 
 ### Shape
 
-- `GitHub / On Project Item Changed` — an **organization webhook** for `projects_v2_item`,
-  action `edited`, limited to project 7 (`PVT_kwDODXokv84BFM6_`). Registering it needs the
-  `admin:org_hook` scope, so the bound account must be an owner of the organization.
+- `GitHub / On Project Item Changed` — `projects_v2_item` deliveries, action `edited`, limited to
+  project 7 (`PVT_kwDODXokv84BFM6_`). They arrive through the GitHub connector's endpoint
+  `/plugins/appmixer/github/events`, at which an organization owner points one organization
+  webhook once (github connector README, "Setting up the organization webhook"); the bound
+  account needs no admin scope.
 - `Condition` — the changed field is Status.
 - `GitHub / Make API Call` — one GraphQL call on the card's content node: issue or pull request,
   labels, and for an issue the pull requests that close it.
@@ -157,15 +159,15 @@ on this flow; this version starts nothing else.
 
 ### Setup
 
-Published as an integration template; the wizard asks for the GitHub account (organization
-owner — the consent includes `admin:org_hook`), the organization and the project node id. The
-webhook is registered when the instance starts and removed when it stops.
+Published as an integration template; the wizard asks for the GitHub account (`read:org`,
+`read:project`, `repo`), the organization and the project node id. The organization webhook
+exists independently of the instance.
 
 ### When it breaks
 
-- **"Registering the organization webhook failed: Not Found"** at start — the account's token
-  lacks `admin:org_hook` (or the user is not an org owner). Re-authorize the account from the
-  `On Project Item Changed` component.
+- **No deliveries at all** — the organization webhook is missing, points elsewhere, or its secret
+  differs from the connector's `webhookSecret` (the endpoint answers 401; GitHub shows it in the
+  webhook's Recent Deliveries).
 - **A move with no comment** — look at the instance's runs on `/ops`: `Resolved` is false for
   draft issues, `New run` is false for a redelivery.
 
