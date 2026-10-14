@@ -20,17 +20,35 @@ appmixer test component src/appmixer/github/list/UpdateComment -i '{"in":{"repos
 
 ## Board-driven workflows (Projects v2)
 
-`project/OnProjectItemChanged` registers an **organization** webhook
-(`POST /orgs/{org}/hooks`) for the `projects_v2_item` event and removes it again in
-`stop()`. That needs organization admin rights — an OAuth token or PAT with
-`admin:org_hook`, or a GitHub App installed on the organization. The event does not
-carry the repository, so consumers resolve `Content Node ID` through
-`project/GetNodeById`.
+`project/OnProjectItemChanged` emits `projects_v2_item` events of an organization's boards. GitHub
+delivers them only through an **organization webhook**, and only an organization owner can manage
+those, so the connector does not register anything itself. The webhook is set up once per
+organization, by an owner, and every flow with the trigger subscribes to it through the
+connector's plugin (`plugin.js` + `routes.js`, the same listener pattern as Slack).
 
-Signature verification is opt-in (`Verify Webhook Signature`). Components only see
-the parsed webhook body, so the `X-Hub-Signature-256` digest has to be recomputed
-over a re-serialization of it, which is not byte-exact for every payload. Leave the
-toggle off unless the deliveries in your setup verify reliably.
+### Setting up the organization webhook (once, by an organization owner)
+
+1. Give the connector a secret: Backoffice → Connector Configuration → `appmixer:github` →
+   `webhookSecret` (any long random string), or
+   `appmixer service-config set appmixer:github -u -d '{"webhookSecret": "<secret>"}'`
+   (`-u` keeps `clientId` / `clientSecret`).
+2. On GitHub: Organization → Settings → Webhooks → Add webhook:
+   - Payload URL: `<API_BASE>/plugins/appmixer/github/events`
+     (for example `https://api.acme.appmixer.cloud/plugins/appmixer/github/events`)
+   - Content type: `application/json`
+   - Secret: the same `webhookSecret`
+   - Events: *Let me select individual events* → **Project v2 items** only
+3. Save. GitHub sends a `ping`, which the endpoint answers with 200; the delivery log of the
+   webhook shows it.
+
+One webhook serves every flow on the instance. The endpoint drops deliveries whose
+`X-Hub-Signature-256` does not match (401) and routes `projects_v2_item` to the triggers whose
+organization, board (`Project Node ID`, optional) and actions match. The account bound to the
+trigger needs only `read:org` and `read:project` — they serve Flow Test Mode, which reads the
+newest card of the board; it can be any member of the organization.
+
+The event does not carry the repository, so consumers resolve `Content Node ID` through
+`project/GetNodeById`.
 
 For loop detection, note the login Appmixer writes with: with OAuth/PAT that is the
 owner of the connected account (so a human's `sender.login` on board events is
@@ -48,9 +66,9 @@ Preconditions the flows assume on the connected account:
   `@<connected login>` on the probe issue the flow opens; the flow closes it afterwards.
 - `E2E GitHub - Project Board`: a user-owned board of the connected account
   (`project` scope for `UpdateProjectItemField`).
-- `E2E GitHub - On Project Item Changed Trigger`: `admin:org_hook` + `read:org`
-  + `project` on an organization the account owns (the OAuth app must be
-  granted in the organization's third-party access policy), and an
+- `E2E GitHub - On Project Item Changed Trigger`: an organization webhook of the
+  organization pointing at the instance's `/plugins/appmixer/github/events` with the
+  configured `webhookSecret` (see above), `read:org` + `project` on the account, and an
   organization board whose title contains `Appmixer E2E` with a `Backlog`
   Status option and at least one item. The flow parks the item in the second
   Status option, moves it to `Backlog`, asserts the `edited` delivery, and the
