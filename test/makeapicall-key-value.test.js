@@ -22,13 +22,15 @@ const EXTRA_INPUTS = { baseUrl: 'https://kv-test.example.com', tenantId: 'kv-tes
 const PROFILE_INFO = {
     accounts: [{ base_uri: 'https://kv-test.example.com', account_id: 'kv-test', is_default: true }],
     apiUrl: 'https://api.atlassian.com/ex/jira/kv-test',
-    region: 'us'
+    region: 'us',
+    accountURL: 'https://kv-test.example.com'
 };
 
 // Any auth or config field reads as a placeholder: a URL for *Url/*Uri/*Domain fields, a token otherwise.
 const auth = new Proxy({}, {
     get: (target, prop) => {
         if (typeof prop !== 'string') return undefined;
+        if (prop === 'profileInfo') return PROFILE_INFO;
         return /(url|uri|domain)$/i.test(prop) ? 'https://kv-test.example.com' : 'kv-test';
     }
 });
