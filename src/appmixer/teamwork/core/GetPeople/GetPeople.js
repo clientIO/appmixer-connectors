@@ -6,9 +6,9 @@ module.exports = {
 
     receive: async function(context) {
         let { people } = context.messages.in.content;
-        let q = {}
+        let q = {};
 
-        q.ids = people
+        q.ids = people;
 
         let allPeople = [];
         let page = 1;
@@ -21,7 +21,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     '/projects/api/v3/people.json',
                     null,
                     q
@@ -43,7 +43,7 @@ module.exports = {
         return context.sendJson({ people: allPeople }, 'people');
     },
 
-    toInspector: function(data){
+    toInspector: function(data) {
         let transformed = [];
         if (Array.isArray(data.people)) {
             data.people.forEach(person => {
@@ -57,4 +57,4 @@ module.exports = {
         return transformed;
     }
 
-}
+};

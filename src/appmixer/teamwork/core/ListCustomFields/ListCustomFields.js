@@ -4,7 +4,7 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    receive: async function (context) {
+    receive: async function(context) {
         let { searchTerm, entity, onlyTextAndNumber } = context.messages.in.content || {};
         let q = {};
         if (searchTerm !== null && searchTerm !== undefined) {
@@ -25,7 +25,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     '/projects/api/v3/customfields.json',
                     null,
                     q
@@ -68,7 +68,7 @@ module.exports = {
         return context.sendJson({ customfields: allCustomfields }, 'customfields');
     },
 
-    toInspector: function (data) {
+    toInspector: function(data) {
         const transformed = [];
         if (!data || !Array.isArray(data.customfields)) {
             return transformed;
@@ -80,7 +80,7 @@ module.exports = {
             'date': 'Date',
             'url': 'URL',
             'dropdown': 'Dropdown',
-            'status': 'Status',
+            'status': 'Status'
         };
         data.customfields.forEach((customfield) => {
             if (customfield.projectId) {
@@ -96,7 +96,7 @@ module.exports = {
         return transformed;
     },
 
-    optionsToInspector: function (data) {
+    optionsToInspector: function(data) {
         if (!data || !Array.isArray(data.options)) {
             return [];
         }
@@ -105,4 +105,4 @@ module.exports = {
             value: opt.value != null ? String(opt.value) : ''
         }));
     }
-}
+};

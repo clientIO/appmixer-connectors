@@ -1,44 +1,44 @@
-"use strict";
+'use strict';
 
-const lib = require("../../lib");
+const lib = require('../../lib');
 
 module.exports = {
-    receive: async function (context) {
-        let { 
-            companyId, 
-            name, 
-            people, 
+    receive: async function(context) {
+        let {
+            companyId,
+            name,
+            people,
             tentative,
             customfields
         } = context.messages.in.content;
 
-        let url = "/projects.json"
+        let url = '/projects.json';
         if (tentative) {
-            url = "/projects/tentative.json"
+            url = '/projects/tentative.json';
         }
 
         // Teamwork API expects people as a comma-separated string of IDs
-        let peopleIds = "";
-        if (people != null && people !== "") {
-            peopleIds = Array.isArray(people) ? people.join(",") : String(people);
+        let peopleIds = '';
+        if (people != null && people !== '') {
+            peopleIds = Array.isArray(people) ? people.join(',') : String(people);
         }
 
         let body = {
             project: {
-                description: "",
+                description: '',
                 companyId: companyId,
                 name: name,
-                tagIds: "",
-                "grant-access-to": "0",
+                tagIds: '',
+                'grant-access-to': '0',
                 private: false,
-                "category-id": 0,
+                'category-id': 0,
                 people: peopleIds,
                 projectOwnerId: 0,
                 customFields: [],
                 isBillable: true,
-                projectType: "normal",
-            },
-        }
+                projectType: 'normal'
+            }
+        };
 
         // Add custom fields if they're set
         if (customfields?.AND?.length > 0) {
@@ -54,16 +54,16 @@ module.exports = {
                     cf.value = parseInt(cf.value, 10);
                 }
                 sanitizedCustomFields.push({
-                    "customFieldId": Number(id),
-                    "value": cf.value
-                })
+                    'customFieldId': Number(id),
+                    'value': cf.value
+                });
             }
 
-            body.project.customFields = sanitizedCustomFields
+            body.project.customFields = sanitizedCustomFields;
         }
 
-        let resp = await lib.callAPI(context, "POST", url, body);
+        let resp = await lib.callAPI(context, 'POST', url, body);
 
-        context.sendJson(resp, "project");
-    },
+        context.sendJson(resp, 'project');
+    }
 };

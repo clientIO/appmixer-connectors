@@ -6,8 +6,8 @@ module.exports = {
 
     receive: async function(context) {
         let {
-            name, 
-            description, 
+            name,
+            description,
             tasklistId,
             assignees,
             priority,
@@ -28,21 +28,21 @@ module.exports = {
         }
 
         let body = {
-            "task":{
-                "name":name,
-                "description":description,
-                "tasklistId":tasklistId,
-                "assignees":{
-                    "userIds":assignees
+            'task':{
+                'name':name,
+                'description':description,
+                'tasklistId':tasklistId,
+                'assignees':{
+                    'userIds':assignees
                 },
-                "priority":priority,
-                "startAt":startDate,
-                "dueAt":endDate,
-                "tagIds":tagIds,
-                "estimatedMinutes":estimatedMinutes,
-                "parentTaskId": Number(parentTaskId),
+                'priority':priority,
+                'startAt':startDate,
+                'dueAt':endDate,
+                'tagIds':tagIds,
+                'estimatedMinutes':estimatedMinutes,
+                'parentTaskId': Number(parentTaskId)
             }
-        }
+        };
 
         // Add custom fields if they're set
         if (customfields?.AND?.length > 0) {
@@ -58,23 +58,23 @@ module.exports = {
                     cf.value = parseInt(cf.value, 10);
                 }
                 sanitizedCustomFields.push({
-                    "customfieldId": Number(id),
-                    "value": cf.value
-                })
+                    'customfieldId': Number(id),
+                    'value': cf.value
+                });
             }
 
-            body.task.customfields = sanitizedCustomFields
+            body.task.customfields = sanitizedCustomFields;
         }
 
 
         let resp = await lib.callAPI(
-            context, 
-            "POST",
+            context,
+            'POST',
             `/projects/api/v3/tasklists/${tasklistId}/tasks.json`,
             body,
             null
-        )
+        );
 
         context.sendJson(resp, 'task');
     }
-}
+};

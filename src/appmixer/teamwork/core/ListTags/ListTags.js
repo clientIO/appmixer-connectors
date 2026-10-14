@@ -6,7 +6,7 @@ module.exports = {
 
     receive: async function(context) {
         let { searchTerm } = context.messages.in.content;
-        let q = {}
+        let q = {};
         if (searchTerm !== null && searchTerm !== undefined) {
             q.searchTerm = searchTerm;
         }
@@ -22,7 +22,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     '/projects/api/v3/tags.json',
                     null,
                     q
@@ -44,7 +44,7 @@ module.exports = {
         return context.sendJson({ tags: allTags }, 'tags');
     },
 
-    toInspector: function(data){
+    toInspector: function(data) {
         let transformed = [];
         if (data && Array.isArray(data.tags)) {
             data.tags.forEach(tag => {
@@ -57,4 +57,4 @@ module.exports = {
 
         return transformed;
     }
-}
+};

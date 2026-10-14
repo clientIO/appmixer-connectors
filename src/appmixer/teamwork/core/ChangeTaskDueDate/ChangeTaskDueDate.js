@@ -56,13 +56,13 @@ function readTaskDateField(task, dateField) {
     if (task[dateField ] != null && String(task[dateField]).trim() !== '') {
         return task[dateField];
     }
-    
+
     return '';
 }
 
 module.exports = {
 
-    receive: async function (context) {
+    receive: async function(context) {
         const {
             taskId,
             dateOption,

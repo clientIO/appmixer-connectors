@@ -12,7 +12,7 @@ const DAYS_OF_WEEK = {
     WEDNESDAY: 3,
     THURSDAY: 4,
     FRIDAY: 5,
-    SATURDAY: 6,
+    SATURDAY: 6
 };
 
 function toNullIfEmpty(v) {
@@ -66,7 +66,7 @@ function computeTaskStartOrDueDateForAction({
     type,
     value,
     offset,
-    excludeDays,
+    excludeDays
 }, task) {
     let date;
 
@@ -153,13 +153,13 @@ function computeTaskStartOrDueDateForAction({
                 return findNextAvailableDay(
                     availableDays,
                     day === 6 ? 0 : day + 1,
-                    diff + 1,
+                    diff + 1
                 );
             };
 
             const { diff } = findNextAvailableDay(
                 excludeableDays.filter((d) => excludeDays.includes(d) === false),
-                date.getDay(),
+                date.getDay()
             );
 
             date = addDays(date, diff);
@@ -172,8 +172,11 @@ function computeTaskStartOrDueDateForAction({
 
 module.exports = {
 
-    receive: async function (context) {
-        let { taskId, customFieldId, checkboxValue, numberValue, dropdownValue, textValue, dateOption, dateValue, dateDays, taskDateOffset, taskDateOffsetUnit, taskDateOffsetDirection, skipWeekends } = context.messages.in.content;
+    receive: async function(context) {
+        let {
+            taskId, customFieldId, checkboxValue, numberValue, dropdownValue, textValue, dateOption, dateValue,
+            dateDays, taskDateOffset, taskDateOffsetUnit, taskDateOffsetDirection, skipWeekends
+        } = context.messages.in.content;
         let taskCustomField;
         let customFieldValue;
 
@@ -188,13 +191,13 @@ module.exports = {
 
         let resp = await lib.callAPI(
             context,
-            "GET",
+            'GET',
             `/projects/api/v3/tasks/${taskId}/customfields.json`,
             null,
             {
-                "CustomFieldIDs": id.toString(),
+                'CustomFieldIDs': id.toString()
             }
-        )
+        );
 
         if (resp.customfieldTasks.length) {
             taskCustomField = resp.customfieldTasks[0];
@@ -230,26 +233,26 @@ module.exports = {
                 } else if (dateOption === 'choose-date' && dateValue) {
                     dateParams = { type: 'date', value: dateValue };
                 } else if (dateOption === 'on-trigger-date') {
-                    dateParams = { type: 'relative', value: 'currentDate', excludeDays: skipWeekends === true ? [DAYS_OF_WEEK.SATURDAY, DAYS_OF_WEEK.SUNDAY] : [], };
+                    dateParams = { type: 'relative', value: 'currentDate', excludeDays: skipWeekends === true ? [DAYS_OF_WEEK.SATURDAY, DAYS_OF_WEEK.SUNDAY] : [] };
                 } else if (dateOption === 'days-after-trigger-date' && dateDays != null) {
                     const days = parseInt(dateDays, 10) || 1;
                     dateParams = {
                         type: 'relative',
                         value: 'currentDate',
                         offset: { minutes: days * MINS_PER_DAY, when: 'after' },
-                        excludeDays: skipWeekends === true ? [DAYS_OF_WEEK.SATURDAY, DAYS_OF_WEEK.SUNDAY] : [],
+                        excludeDays: skipWeekends === true ? [DAYS_OF_WEEK.SATURDAY, DAYS_OF_WEEK.SUNDAY] : []
                     };
                 } else if (dateOption === 'start-date-from-task' || dateOption === 'due-date-from-task' || dateOption === 'custom-field-value-from-task') {
                     const selectionToValueMap = {
                         'start-date-from-task': 'startDate',
                         'due-date-from-task': 'dueDate',
-                        'custom-field-value-from-task': 'relativeToCustomField',
+                        'custom-field-value-from-task': 'relativeToCustomField'
                     };
 
                     dateParams = {
                         type: 'relative',
                         value: selectionToValueMap[dateOption],
-                        excludeDays: skipWeekends === true ? [DAYS_OF_WEEK.SATURDAY, DAYS_OF_WEEK.SUNDAY] : [],
+                        excludeDays: skipWeekends === true ? [DAYS_OF_WEEK.SATURDAY, DAYS_OF_WEEK.SUNDAY] : []
                     };
 
                     if (taskDateOffset) {
@@ -257,7 +260,7 @@ module.exports = {
 
                         dateParams.offset = {
                             minutes,
-                            when: taskDateOffsetDirection,
+                            when: taskDateOffsetDirection
                         };
                     }
                 }
@@ -277,19 +280,19 @@ module.exports = {
 
                     let resp = await lib.callAPI(
                         context,
-                        "GET",
+                        'GET',
                         `/projects/api/v3/tasks/${taskId}.json`,
                         null,
-                        {},
-                    )
+                        {}
+                    );
 
                     if (!resp.task) {
-                        throw new Error(`Task not found`);
+                        throw new Error('Task not found');
                     }
 
                     const dateValueToSet = dateParams.value != null
                         ? computeTaskStartOrDueDateForAction(
-                            dateParamsToProcess, resp.task,
+                            dateParamsToProcess, resp.task
                         ) : null;
 
                     customFieldValue = dateValueToSet;
@@ -304,20 +307,20 @@ module.exports = {
         if (!taskCustomField) {
             await lib.callAPI(
                 context,
-                "POST",
+                'POST',
                 `/projects/api/v3/tasks/${taskId}/customfields.json`,
                 {
                     customfieldTask: {
                         customfieldId: id,
-                        value: customFieldValue,
-                    },
+                        value: customFieldValue
+                    }
                 },
                 null
             );
         } else if (customFieldValue == null) {
             await lib.callAPI(
                 context,
-                "DELETE",
+                'DELETE',
                 `/projects/api/v3/tasks/${taskId}/customfields/${taskCustomField.id}.json`,
                 null,
                 null
@@ -325,14 +328,14 @@ module.exports = {
         } else {
             await lib.callAPI(
                 context,
-                "PATCH",
+                'PATCH',
                 `/projects/api/v3/tasks/${taskId}/customfields/${taskCustomField.id}.json`,
                 {
                     customfieldTask: {
                         taskCustomFieldId: taskCustomField.id, // task custom field id
                         customfieldId: id, // generic custom field id
-                        value: customFieldValue,
-                    },
+                        value: customFieldValue
+                    }
                 },
                 null
             );
@@ -342,8 +345,8 @@ module.exports = {
             taskId: taskId,
             taskCustomFieldId: taskCustomField?.id || null,
             customFieldId: customFieldId,
-            customFieldValue: customFieldValue,
+            customFieldValue: customFieldValue
         }, 'task');
-    },
+    }
 
 };

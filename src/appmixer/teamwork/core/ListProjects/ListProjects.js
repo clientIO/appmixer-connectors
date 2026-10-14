@@ -5,13 +5,13 @@ const lib = require('../../lib');
 module.exports = {
 
     receive: async function(context) {
-        let { 
-          searchTerm, 
-          companyIds, 
-          customfields, 
-          includeTentativeProjects,
+        let {
+            searchTerm,
+            companyIds,
+            customfields,
+            includeTentativeProjects
         } = context.messages.in.content;
-        let q = {}
+        let q = {};
         q.searchTerm = searchTerm;
 
         if (companyIds) {
@@ -50,7 +50,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     '/projects/api/v3/projects.json',
                     null,
                     q
@@ -72,7 +72,7 @@ module.exports = {
         return context.sendJson({ projects: allProjects }, 'projects');
     },
 
-    toInspector: function(data){
+    toInspector: function(data) {
         let transformed = [];
         if (data && Array.isArray(data.projects)) {
             data.projects.forEach(project => {
@@ -85,4 +85,4 @@ module.exports = {
 
         return transformed;
     }
-}
+};
