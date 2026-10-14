@@ -222,6 +222,58 @@ const runs = runDirs.map((dir) => {
 
 const disk = sh('df', ['-h', '--output=used,size,pcent', '/']).split('\n')[1] || '';
 
+// The hooks as the outside sees them: public URL (nginx exposes one location per hook), agent,
+// model, and what the transform module does — its header comment, and the session mode, timeout
+// and session key it returns. The Operations page pairs each hook with the Appmixer integration
+// instance whose HTTP component posts to its URL.
+const NGINX_SITE = '/etc/nginx/sites-enabled/openclaw-webhooks';
+const TRANSFORMS = '/root/.openclaw/hooks/transforms';
+const publicHost = (() => {
+    try {
+        return (fs.readFileSync(NGINX_SITE, 'utf8').match(/server_name\s+([^;\s]+)/) || [])[1] || null;
+    } catch {
+        return null;
+    }
+})();
+const exposedPaths = (() => {
+    try {
+        return [...fs.readFileSync(NGINX_SITE, 'utf8').matchAll(/location\s*=\s*(\/\S+)/g)].map((m) => m[1]);
+    } catch {
+        return [];
+    }
+})();
+const describeHook = (m) => {
+    const hookPath = `${config.hooks?.path || '/hooks'}/${m.match?.path || ''}`;
+    const module = m.transform?.module || null;
+    let source = '';
+    try {
+        source = module ? fs.readFileSync(path.join(TRANSFORMS, module), 'utf8') : '';
+    } catch { /* no transform file */ }
+    // The header comment, up to the first blank comment line or code
+    const header = [];
+    for (const line of source.split('\n')) {
+        if (!line.startsWith('//')) break;
+        const text = line.replace(/^\/\/\s?/, '');
+        if (!text.trim()) break;
+        header.push(text);
+    }
+    const field = (name) => (source.match(new RegExp(`${name}:\\s*'([^']*)'`)) || [])[1] || null;
+    return {
+        id: m.id,
+        path: m.match?.path || null,
+        url: publicHost ? `https://${publicHost}${hookPath}` : hookPath,
+        exposed: exposedPaths.includes(hookPath),
+        action: m.action || 'agent',
+        agentId: m.agentId || null,
+        model: m.model || null,
+        transform: module,
+        description: header.join(' ').replace(/\s+/g, ' ').trim() || null,
+        sessionMode: field('sessionMode'),
+        sessionKey: (source.match(/sessionKey:\s*`([^`]*)`/) || [])[1] || field('sessionKey'),
+        timeoutSeconds: Number((source.match(/timeoutSeconds:\s*(\d+)/) || [])[1]) || null
+    };
+};
+
 const status = {
     generatedAt: new Date().toISOString(),
     host: os.hostname(),
@@ -231,9 +283,8 @@ const status = {
     gateway: { active: sh('systemctl', ['--user', 'is-active', 'openclaw-gateway']) === 'active' },
     update: latest ? { latest, available: Boolean(version && latest !== version) } : null,
     agents,
-    hooks: (config.hooks?.enabled ? config.hooks.mappings || [] : []).map((m) => ({
-        id: m.id, path: m.match?.path || null, agentId: m.agentId || null, model: m.model || null
-    })),
+    publicHost,
+    hooks: (config.hooks?.enabled ? config.hooks.mappings || [] : []).map(describeHook),
     hookRuns,
     mentionResponder: {
         shadow,
