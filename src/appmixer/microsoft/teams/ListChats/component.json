@@ -1,0 +1,87 @@
+{
+    "name": "appmixer.microsoft.teams.ListChats",
+    "author": "Appmixer <info@appmixer.com>",
+    "label": "List Chats",
+    "description": "Lists the chats the signed-in user is part of, 50 per request.",
+    "auth": {
+        "service": "appmixer:microsoft",
+        "scope": [
+            "Chat.ReadBasic"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:microsoft:teams",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "isSource": {
+                        "type": "boolean"
+                    },
+                    "outputType": {
+                        "type": "string",
+                        "enum": [
+                            "first",
+                            "array",
+                            "object",
+                            "file"
+                        ]
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 1,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, first item only, one item at a time, or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/microsoft/teams/ListChats?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMTkgMTE5Ij48cGF0aCBmaWxsPSIjNDg1QkQ1IiBkPSJNODQgNDloMjJhMyAzIDAgMCAxIDMgM3YyMWExNiAxNiAwIDAgMS0zMiAwVjQ5eiIvPjxjaXJjbGUgZmlsbD0iIzM0NDBBMCIgY3g9Ijk0LjI1IiBjeT0iMjkuNiIgcj0iOS43NSIvPjxwYXRoIGZpbGw9IiM2RDgxRkYiIGQ9Ik00MCA0OWg0NGEyIDIgMCAwIDEgMiAydjQwYTI2IDI2IDAgMCAxLTQ4IDBWNTFhMiAyIDAgMCAxIDItMnoiLz48Y2lyY2xlIGZpbGw9IiM1MTYxQ0IiIGN4PSI2MS43NSIgY3k9IjI3LjI1IiByPSIxNC43NSIvPjxyZWN0IGZpbGw9IiMyRDM5OUEiIHg9IjkuOSIgeT0iMzQuNSIgd2lkdGg9IjQ5LjUiIGhlaWdodD0iNTAiIHJ4PSIzIi8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjMgNDdoMjAuNXY0LjZoLTcuNHYyMWgtNS41di0yMWgtNy42eiIvPjwvc3ZnPg=="
+}

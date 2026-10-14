@@ -1,6 +1,6 @@
 {
     "name": "appmixer.microsoft.teams",
-    "version": "1.3.1",
+    "version": "2.1.0",
     "changelog": {
         "1.0.0": [
             "Initial version"
@@ -26,6 +26,25 @@
         ],
         "1.3.1": [
             "Failed Microsoft Graph requests now surface the Graph error code, message and request-id instead of only the bare HTTP status code."
+        ],
+        "2.0.0": [
+            "(breaking change) ListChannelMessages: the 'Limit' input was removed. The component now pages through every root message of the channel internally (50 per request).",
+            "(breaking change) ListChannelMessages: the Output Type values changed from 'item' / 'items' / 'file' to the standard 'first' (First Item Only), 'array' (All items at once), 'object' (One item at a time) and 'file' (Store to CSV file). The default is now 'All items at once' instead of 'Save to file'. With 'All items at once' the messages are in 'result' (was 'messages') next to 'count'.",
+            "(breaking change) ListTeams and ListChannels: new Output Type input. The default 'All items at once' outputs '{ result, count }' instead of a bare array.",
+            "(breaking change) The Team and Channel inputs of ListChannels, ListChannelMessages and SendChannelMessage are now text fields with suggestions instead of dropdowns, so an ID can also be typed or mapped. SendChannelMessage now requires Content.",
+            "ListChannelMessages: fixed the output being sent twice with 'All at once', and fixed the CSV file, which did not escape values with commas, quotes, line breaks or nested objects.",
+            "ListChannelMessages and SendChannelMessage: the output schema now types From, Body, Channel Identity, Attachments, Mentions and Reactions as objects and arrays with their nested fields, with example values.",
+            "Team and channel suggestions are cached for two minutes, so opening an inspector no longer triggers a burst of Microsoft Graph calls.",
+            "All components use the shared Graph client: team and channel IDs are URL-encoded in request paths, throttled (429) requests are retried honouring Retry-After, and every component is rate-limited per user by the new Teams quota.",
+            "New SVG icon."
+        ],
+        "2.1.0": [
+            "SendChannelMessage: new optional 'Reply To Message ID' input posts the message as a reply to an existing message instead of starting a new conversation.",
+            "SendChannelMessage: new optional 'Content Type' (Text/HTML), 'Subject' and 'Importance' inputs. Use HTML for rich text and clickable links; Microsoft Teams does not support Markdown.",
+            "Added 'SendChatMessage' component. Sends a message to an existing chat, or starts one with the given recipients: one recipient reuses the existing one-on-one chat, several create a group chat.",
+            "Added 'AddReaction' and 'RemoveReaction' components for reacting to a message in a channel, a channel reply or a chat with a Unicode emoji.",
+            "Added 'ListChats' component listing the chats the user is part of, 50 per request.",
+            "Added 'NewChatMessage' trigger. It subscribes to Microsoft Graph change notifications for one chat or for every chat of the user, renews the subscription automatically and can skip the user's own messages so a flow that posts to the same chat does not trigger itself."
         ]
     }
 }

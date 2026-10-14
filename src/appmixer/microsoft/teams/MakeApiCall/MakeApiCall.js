@@ -1,5 +1,7 @@
 'use strict';
 
+const { graphError } = require('../../microsoft-commons');
+
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
@@ -55,7 +57,12 @@ module.exports = {
             requestOptions.params = queryParams;
         }
 
-        const response = await context.httpRequest(requestOptions);
+        let response;
+        try {
+            response = await context.httpRequest(requestOptions);
+        } catch (error) {
+            throw graphError(error);
+        }
 
         await context.sendJson({
             status: response.status,

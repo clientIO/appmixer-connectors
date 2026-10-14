@@ -1,0 +1,94 @@
+{
+    "plan": [
+        {
+            "name": "teams/ListTeams",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "E2E flow on the dev instance + live source call",
+                "note": "returned real teams; assert on the team ID passed; dynamic schema returns result + count with examples"
+            }
+        },
+        {
+            "name": "teams/ListChannels",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "E2E flow on the dev instance + live source call with a real teamId",
+                "note": "returned 7 channels; assert on the channel ID passed; IDs with ':' and '@' are encoded correctly in the path"
+            }
+        },
+        {
+            "name": "teams/SendChannelMessage",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "E2E flow on the dev instance",
+                "note": "posted message 1789559004402; needed a re-consent of the account including the ChannelMessage.Send scope. Phase B added replyToMessageId, contentType, subject and importance; the reply path passed live in the extended channel E2E flow on 2026-09-21"
+            }
+        },
+        {
+            "name": "teams/ListChannelMessages",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "E2E flow on the dev instance + live call with outputType first",
+                "note": "read back the message sent by the flow as result[0]; from/body are objects and dates are date-time, as the fixed schema declares"
+            }
+        },
+        {
+            "name": "teams/MakeApiCall",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "live call on the dev instance, once an account consented to all four Teams scopes at once",
+                "note": "GET /me/joinedTeams returned 200 with the Graph payload; an invalid team ID returns 'Microsoft Graph error BadRequest: teamId needs to be a valid GUID. (request-id: ...)', which confirms the graphError wrapping"
+            }
+        },
+        {
+            "name": "teams/ListChats",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "E2E flow \"E2E Microsoft Teams - Chat Messaging\" on the dev instance (2026-09-21)",
+                "note": "returned the user chats and the assert on result[0].id passed. The tenant also returns ghost meeting chats (chatType unknownFutureValue, dates 0001-01-01) that cannot be posted to, so the E2E flow no longer picks a chat from this list. Still open: whether the inspector source gets $expand=members under Chat.ReadBasic or uses the plain-listing fallback"
+            }
+        },
+        {
+            "name": "teams/SendChatMessage",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "E2E flow \"E2E Microsoft Teams - Chat Messaging\" on the dev instance (2026-09-21)",
+                "note": "the recipients branch passed live: one recipient (testadmin@appmixer.onmicrosoft.com) created, then on later runs reused, the one-on-one chat and the message was posted; assert on id and chatId passed. The chatId branch posts with the same request, only without creating the chat first; posting to a ghost meeting chat returns 403 InsufficientPrivileges from Graph"
+            }
+        },
+        {
+            "name": "teams/AddReaction",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "both E2E flows on the dev instance (2026-09-21)",
+                "note": "reacted with a thumbs-up to a channel message (channel flow) and to a chat message (chat flow); Graph returned 204"
+            }
+        },
+        {
+            "name": "teams/RemoveReaction",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "both E2E flows on the dev instance (2026-09-21)",
+                "note": "removed the reaction AddReaction left, in a channel and in a chat; Graph returned 204"
+            }
+        },
+        {
+            "name": "teams/NewChatMessage",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "how": "temporary trigger flows on the dev instance (2026-09-21), subscriptions inspected with MakeApiCall GET /subscriptions",
+                "note": "start() created a chatMessage subscription with changeType created, the lifecycle URL set and expiration start + 4320 minutes, which Graph accepted. A message from another user (test admin bunny) fired the trigger within about a second, with ignoreOwnMessages on and off. The user own message fired only the flow with ignoreOwnMessages off; the default flow skipped it. A message edited afterwards (reactions) was emitted once. stop() deleted the subscription. Left running overnight (about 15.5 hours, until 2026-09-22 07:07 UTC): the subscription stayed active with its original expiry and no errors were logged; Graph sent no lifecycle event in that time. Not verified live: renewal (fires 5 minutes before the 72-hour expiry) and lifecycle events (sent by Graph on its own schedule); both are unit tested"
+            }
+        }
+    ]
+}

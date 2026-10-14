@@ -1,0 +1,503 @@
+{
+    "name": "appmixer.microsoft.teams.SendChatMessage",
+    "author": "Appmixer <info@appmixer.com>",
+    "label": "Send Chat Message",
+    "description": "Sends a message to a Microsoft Teams chat as the signed-in user, either to an existing chat or to a new chat with the given recipients.",
+    "auth": {
+        "service": "appmixer:microsoft",
+        "scope": [
+            "Chat.Create",
+            "ChatMessage.Send"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:microsoft:teams",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "chatId": {
+                        "type": "string"
+                    },
+                    "recipients": {
+                        "type": [
+                            "array",
+                            "string"
+                        ]
+                    },
+                    "topic": {
+                        "type": "string"
+                    },
+                    "content": {
+                        "type": "string"
+                    },
+                    "contentType": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "html"
+                        ]
+                    },
+                    "importance": {
+                        "type": "string",
+                        "enum": [
+                            "normal",
+                            "high",
+                            "urgent"
+                        ]
+                    }
+                },
+                "required": [
+                    "content"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "chatId": {
+                        "type": "text",
+                        "label": "Chat",
+                        "index": 1,
+                        "tooltip": "Pick an existing chat, or enter a Chat ID directly. Leave empty to start a chat with the Recipients below.",
+                        "source": {
+                            "url": "/component/appmixer/microsoft/teams/ListChats?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/outputType": "array",
+                                    "in/isSource": true
+                                },
+                                "transform": "./ListChats#toSelectArray"
+                            }
+                        }
+                    },
+                    "recipients": {
+                        "type": "text",
+                        "label": "Recipients",
+                        "index": 2,
+                        "tooltip": "Used only when Chat is empty. One or more user IDs or email addresses (user principal names), separated by commas. One recipient opens the existing one-on-one chat; several create a group chat."
+                    },
+                    "topic": {
+                        "type": "text",
+                        "label": "Topic",
+                        "index": 3,
+                        "tooltip": "Optional title of a newly created group chat. Microsoft Teams ignores it for one-on-one chats and for an existing Chat."
+                    },
+                    "content": {
+                        "type": "textarea",
+                        "label": "Content",
+                        "index": 4,
+                        "tooltip": "Required. The text of the message. Set Content Type to HTML to send rich text, for example a clickable link <code>&lt;a href=\"https://example.com\"&gt;Example&lt;/a&gt;</code>. Microsoft Teams does not support Markdown."
+                    },
+                    "contentType": {
+                        "type": "select",
+                        "label": "Content Type",
+                        "index": 5,
+                        "defaultValue": "text",
+                        "tooltip": "The format of Content. Use HTML for rich text and clickable links.",
+                        "options": [
+                            {
+                                "label": "Text",
+                                "value": "text"
+                            },
+                            {
+                                "label": "HTML",
+                                "value": "html"
+                            }
+                        ]
+                    },
+                    "importance": {
+                        "type": "select",
+                        "label": "Importance",
+                        "index": 6,
+                        "defaultValue": "normal",
+                        "tooltip": "Optional. High and Urgent mark the message in Microsoft Teams; Urgent repeats the notification every 2 minutes for 20 minutes.",
+                        "options": [
+                            {
+                                "label": "Normal",
+                                "value": "normal"
+                            },
+                            {
+                                "label": "High",
+                                "value": "high"
+                            },
+                            {
+                                "label": "Urgent",
+                                "value": "urgent"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "messageType",
+                    "createdDateTime",
+                    "body"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Message ID",
+                        "example": "1616990032035"
+                    },
+                    "replyToId": {
+                        "type": "string",
+                        "title": "Reply To ID",
+                        "example": "1616989510408"
+                    },
+                    "etag": {
+                        "type": "string",
+                        "title": "ETag",
+                        "example": "1616990032035"
+                    },
+                    "messageType": {
+                        "type": "string",
+                        "title": "Message Type",
+                        "example": "message"
+                    },
+                    "createdDateTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created Date Time",
+                        "example": "2026-09-15T08:30:00.035Z"
+                    },
+                    "lastModifiedDateTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Last Modified Date Time",
+                        "example": "2026-09-15T08:30:00.035Z"
+                    },
+                    "lastEditedDateTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Last Edited Date Time",
+                        "example": "2026-09-15T08:45:12.401Z"
+                    },
+                    "deletedDateTime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Deleted Date Time",
+                        "example": "2026-09-15T09:00:00.000Z"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "title": "Subject",
+                        "example": "Quarterly results"
+                    },
+                    "summary": {
+                        "type": "string",
+                        "title": "Summary",
+                        "example": "Summary of the quarterly results"
+                    },
+                    "chatId": {
+                        "type": "string",
+                        "title": "Chat ID",
+                        "example": "19:2da4c29f6d7041eca70b638b43d45437@thread.v2"
+                    },
+                    "importance": {
+                        "type": "string",
+                        "title": "Importance",
+                        "example": "normal"
+                    },
+                    "locale": {
+                        "type": "string",
+                        "title": "Locale",
+                        "example": "en-us"
+                    },
+                    "webUrl": {
+                        "type": "string",
+                        "title": "Web URL",
+                        "example": "https://teams.microsoft.com/l/message/19%3A4a95f7d8db4c4e7fae857bcebe0623e6%40thread.tacv2/1616990032035"
+                    },
+                    "channelIdentity": {
+                        "type": "object",
+                        "title": "Channel Identity",
+                        "properties": {
+                            "teamId": {
+                                "type": "string",
+                                "title": "Channel Identity.Team ID",
+                                "example": "fbe2bf47-16c8-47cf-b4a5-4b9b187c508b"
+                            },
+                            "channelId": {
+                                "type": "string",
+                                "title": "Channel Identity.Channel ID",
+                                "example": "19:4a95f7d8db4c4e7fae857bcebe0623e6@thread.tacv2"
+                            }
+                        }
+                    },
+                    "from": {
+                        "type": "object",
+                        "title": "From",
+                        "properties": {
+                            "user": {
+                                "type": "object",
+                                "title": "From.User",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string",
+                                        "title": "From.User.ID",
+                                        "example": "8ea0e38b-efb3-4757-924a-5f94061cf8c2"
+                                    },
+                                    "displayName": {
+                                        "type": "string",
+                                        "title": "From.User.Display Name",
+                                        "example": "Robin Kline"
+                                    },
+                                    "userIdentityType": {
+                                        "type": "string",
+                                        "title": "From.User.Identity Type",
+                                        "example": "aadUser"
+                                    }
+                                }
+                            },
+                            "application": {
+                                "type": "object",
+                                "title": "From.Application",
+                                "required": [
+                                    "id"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string",
+                                        "title": "From.Application.ID",
+                                        "example": "28b4ee7f-4d35-4a28-9bd0-4e9a3f0cd0a8"
+                                    },
+                                    "displayName": {
+                                        "type": "string",
+                                        "title": "From.Application.Display Name",
+                                        "example": "Appmixer"
+                                    },
+                                    "applicationIdentityType": {
+                                        "type": "string",
+                                        "title": "From.Application.Identity Type",
+                                        "example": "bot"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "body": {
+                        "type": "object",
+                        "title": "Body",
+                        "required": [
+                            "contentType",
+                            "content"
+                        ],
+                        "properties": {
+                            "contentType": {
+                                "type": "string",
+                                "title": "Body.Content Type",
+                                "example": "html"
+                            },
+                            "content": {
+                                "type": "string",
+                                "title": "Body.Content",
+                                "example": "<p>Hello World</p>"
+                            }
+                        }
+                    },
+                    "attachments": {
+                        "type": "array",
+                        "title": "Attachments",
+                        "example": [
+                            {
+                                "id": "153fa47d-18c9-4179-be08-9879815a9f90",
+                                "contentType": "reference",
+                                "contentUrl": "https://contoso.sharepoint.com/sites/Team/Shared%20Documents/General/report.docx",
+                                "name": "report.docx"
+                            }
+                        ],
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "title": "ID",
+                                    "example": "153fa47d-18c9-4179-be08-9879815a9f90"
+                                },
+                                "contentType": {
+                                    "type": "string",
+                                    "title": "Content Type",
+                                    "example": "reference"
+                                },
+                                "contentUrl": {
+                                    "type": "string",
+                                    "title": "Content URL",
+                                    "example": "https://contoso.sharepoint.com/sites/Team/Shared%20Documents/General/report.docx"
+                                },
+                                "content": {
+                                    "type": "string",
+                                    "title": "Content",
+                                    "example": ""
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "title": "Name",
+                                    "example": "report.docx"
+                                },
+                                "thumbnailUrl": {
+                                    "type": "string",
+                                    "title": "Thumbnail URL",
+                                    "example": ""
+                                },
+                                "teamsAppId": {
+                                    "type": "string",
+                                    "title": "Teams App ID",
+                                    "example": ""
+                                }
+                            }
+                        }
+                    },
+                    "mentions": {
+                        "type": "array",
+                        "title": "Mentions",
+                        "example": [
+                            {
+                                "id": 0,
+                                "mentionText": "Robin Kline",
+                                "mentioned": {
+                                    "user": {
+                                        "id": "8ea0e38b-efb3-4757-924a-5f94061cf8c2",
+                                        "displayName": "Robin Kline",
+                                        "userIdentityType": "aadUser"
+                                    }
+                                }
+                            }
+                        ],
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "title": "ID",
+                                    "example": 0
+                                },
+                                "mentionText": {
+                                    "type": "string",
+                                    "title": "Mention Text",
+                                    "example": "Robin Kline"
+                                },
+                                "mentioned": {
+                                    "type": "object",
+                                    "title": "Mentioned",
+                                    "properties": {
+                                        "user": {
+                                            "type": "object",
+                                            "title": "Mentioned.User",
+                                            "required": [
+                                                "id"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "title": "Mentioned.User.ID",
+                                                    "example": "8ea0e38b-efb3-4757-924a-5f94061cf8c2"
+                                                },
+                                                "displayName": {
+                                                    "type": "string",
+                                                    "title": "Mentioned.User.Display Name",
+                                                    "example": "Robin Kline"
+                                                },
+                                                "userIdentityType": {
+                                                    "type": "string",
+                                                    "title": "Mentioned.User.Identity Type",
+                                                    "example": "aadUser"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "reactions": {
+                        "type": "array",
+                        "title": "Reactions",
+                        "example": [
+                            {
+                                "reactionType": "👍",
+                                "displayName": "Like",
+                                "createdDateTime": "2026-09-15T08:31:07.000Z",
+                                "user": {
+                                    "user": {
+                                        "id": "8ea0e38b-efb3-4757-924a-5f94061cf8c2",
+                                        "displayName": "Robin Kline",
+                                        "userIdentityType": "aadUser"
+                                    }
+                                }
+                            }
+                        ],
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "reactionType": {
+                                    "type": "string",
+                                    "title": "Reaction Type",
+                                    "example": "👍"
+                                },
+                                "displayName": {
+                                    "type": "string",
+                                    "title": "Display Name",
+                                    "example": "Like"
+                                },
+                                "createdDateTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "title": "Created Date Time",
+                                    "example": "2026-09-15T08:31:07.000Z"
+                                },
+                                "user": {
+                                    "type": "object",
+                                    "title": "User",
+                                    "properties": {
+                                        "user": {
+                                            "type": "object",
+                                            "title": "User.User",
+                                            "required": [
+                                                "id"
+                                            ],
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "title": "User.User.ID",
+                                                    "example": "8ea0e38b-efb3-4757-924a-5f94061cf8c2"
+                                                },
+                                                "displayName": {
+                                                    "type": "string",
+                                                    "title": "User.User.Display Name",
+                                                    "example": "Robin Kline"
+                                                },
+                                                "userIdentityType": {
+                                                    "type": "string",
+                                                    "title": "User.User.Identity Type",
+                                                    "example": "aadUser"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMTkgMTE5Ij48cGF0aCBmaWxsPSIjNDg1QkQ1IiBkPSJNODQgNDloMjJhMyAzIDAgMCAxIDMgM3YyMWExNiAxNiAwIDAgMS0zMiAwVjQ5eiIvPjxjaXJjbGUgZmlsbD0iIzM0NDBBMCIgY3g9Ijk0LjI1IiBjeT0iMjkuNiIgcj0iOS43NSIvPjxwYXRoIGZpbGw9IiM2RDgxRkYiIGQ9Ik00MCA0OWg0NGEyIDIgMCAwIDEgMiAydjQwYTI2IDI2IDAgMCAxLTQ4IDBWNTFhMiAyIDAgMCAxIDItMnoiLz48Y2lyY2xlIGZpbGw9IiM1MTYxQ0IiIGN4PSI2MS43NSIgY3k9IjI3LjI1IiByPSIxNC43NSIvPjxyZWN0IGZpbGw9IiMyRDM5OUEiIHg9IjkuOSIgeT0iMzQuNSIgd2lkdGg9IjQ5LjUiIGhlaWdodD0iNTAiIHJ4PSIzIi8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjMgNDdoMjAuNXY0LjZoLTcuNHYyMWgtNS41di0yMWgtNy42eiIvPjwvc3ZnPg=="
+}

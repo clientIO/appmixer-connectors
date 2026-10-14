@@ -1,0 +1,174 @@
+{
+    "name": "appmixer.microsoft.teams.AddReaction",
+    "author": "Appmixer <info@appmixer.com>",
+    "label": "Add Reaction",
+    "description": "Adds an emoji reaction to a message in a team channel or in a chat, as the signed-in user.",
+    "auth": {
+        "service": "appmixer:microsoft",
+        "scope": [
+            "ChannelMessage.Send",
+            "ChatMessage.Send"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:microsoft:teams",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "enum": [
+                            "channel",
+                            "chat"
+                        ]
+                    },
+                    "teamId": {
+                        "type": "string"
+                    },
+                    "channelId": {
+                        "type": "string"
+                    },
+                    "chatId": {
+                        "type": "string"
+                    },
+                    "messageId": {
+                        "type": "string"
+                    },
+                    "parentMessageId": {
+                        "type": "string"
+                    },
+                    "reactionType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "messageId",
+                    "reactionType"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "location": {
+                        "type": "select",
+                        "label": "Location",
+                        "index": 1,
+                        "defaultValue": "channel",
+                        "tooltip": "Whether the message is in a team channel or in a chat.",
+                        "options": [
+                            {
+                                "label": "Channel",
+                                "value": "channel"
+                            },
+                            {
+                                "label": "Chat",
+                                "value": "chat"
+                            }
+                        ]
+                    },
+                    "teamId": {
+                        "type": "text",
+                        "label": "Team",
+                        "index": 2,
+                        "tooltip": "Required for a channel message. Pick a team, or enter a Team ID directly.",
+                        "when": {
+                            "eq": {
+                                "./location": "channel"
+                            }
+                        },
+                        "source": {
+                            "url": "/component/appmixer/microsoft/teams/ListTeams?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/outputType": "array",
+                                    "in/isSource": true
+                                },
+                                "transform": "./ListTeams#toSelectArray"
+                            }
+                        }
+                    },
+                    "channelId": {
+                        "type": "text",
+                        "label": "Channel",
+                        "index": 3,
+                        "tooltip": "Required for a channel message. Pick a channel of the selected team, or enter a Channel ID directly.",
+                        "when": {
+                            "eq": {
+                                "./location": "channel"
+                            }
+                        },
+                        "source": {
+                            "url": "/component/appmixer/microsoft/teams/ListChannels?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/teamId": "inputs/in/teamId",
+                                    "in/outputType": "array",
+                                    "in/isSource": true
+                                },
+                                "transform": "./ListChannels#toSelectArray"
+                            }
+                        }
+                    },
+                    "chatId": {
+                        "type": "text",
+                        "label": "Chat",
+                        "index": 4,
+                        "tooltip": "Required for a chat message. Pick a chat, or enter a Chat ID directly.",
+                        "when": {
+                            "eq": {
+                                "./location": "chat"
+                            }
+                        },
+                        "source": {
+                            "url": "/component/appmixer/microsoft/teams/ListChats?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in/outputType": "array",
+                                    "in/isSource": true
+                                },
+                                "transform": "./ListChats#toSelectArray"
+                            }
+                        }
+                    },
+                    "messageId": {
+                        "type": "text",
+                        "label": "Message ID",
+                        "index": 5,
+                        "tooltip": "Required. The ID of the message to react to, for example <code>1616990032035</code>."
+                    },
+                    "parentMessageId": {
+                        "type": "text",
+                        "label": "Parent Message ID",
+                        "index": 6,
+                        "tooltip": "Optional. Set this when reacting to a reply in a channel: the ID of the message the reply belongs to.",
+                        "when": {
+                            "eq": {
+                                "./location": "channel"
+                            }
+                        }
+                    },
+                    "reactionType": {
+                        "type": "text",
+                        "label": "Reaction",
+                        "index": 7,
+                        "defaultValue": "👍",
+                        "tooltip": "Required. The reaction as a Unicode emoji, for example 👍 ❤️ 😂 😮 😢 😠 🎉."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMTkgMTE5Ij48cGF0aCBmaWxsPSIjNDg1QkQ1IiBkPSJNODQgNDloMjJhMyAzIDAgMCAxIDMgM3YyMWExNiAxNiAwIDAgMS0zMiAwVjQ5eiIvPjxjaXJjbGUgZmlsbD0iIzM0NDBBMCIgY3g9Ijk0LjI1IiBjeT0iMjkuNiIgcj0iOS43NSIvPjxwYXRoIGZpbGw9IiM2RDgxRkYiIGQ9Ik00MCA0OWg0NGEyIDIgMCAwIDEgMiAydjQwYTI2IDI2IDAgMCAxLTQ4IDBWNTFhMiAyIDAgMCAxIDItMnoiLz48Y2lyY2xlIGZpbGw9IiM1MTYxQ0IiIGN4PSI2MS43NSIgY3k9IjI3LjI1IiByPSIxNC43NSIvPjxyZWN0IGZpbGw9IiMyRDM5OUEiIHg9IjkuOSIgeT0iMzQuNSIgd2lkdGg9IjQ5LjUiIGhlaWdodD0iNTAiIHJ4PSIzIi8+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTI0LjMgNDdoMjAuNXY0LjZoLTcuNHYyMWgtNS41di0yMWgtNy42eiIvPjwvc3ZnPg=="
+}
