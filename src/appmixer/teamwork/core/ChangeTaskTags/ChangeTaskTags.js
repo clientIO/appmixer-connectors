@@ -57,7 +57,7 @@ module.exports = {
 
         context.sendJson({
             taskId: taskId,
-            tagIds: updatedTagIds,
+            tags: updatedTagIds,
             operation: operation
         }, 'tags');
     }

@@ -69,14 +69,19 @@ module.exports = {
             throw new context.CancelError('HTTP Method is required!');
         }
 
+        // Drop any user-supplied Authorization header (any case) so the call always uses the connected account.
+        const extraHeaders = Object.fromEntries(
+            Object.entries(kvToObj(headers)).filter(([name]) => name.toLowerCase() !== 'authorization')
+        );
+
         const request = {
             method,
             url: resolveApiUrl(context, url),
             headers: {
-                'Authorization': `Bearer ${context.auth.accessToken}`,
                 'X-Teamwork-Product': 'appmixer',
                 'Content-Type': 'application/json',
-                ...kvToObj(headers)
+                ...extraHeaders,
+                'Authorization': `Bearer ${context.auth.accessToken}`
             }
         };
 

@@ -78,20 +78,21 @@ module.exports = {
                 } else { taskAssignees.companyIds = []; }
             } else {
                 // Add the users already assigned to the task so they are not removed.
+                // Normalize to strings so the Set dedupes "42" and 42.
                 if (selectedType === 'task-creator') {
                     taskAssignees.userIds = Array.from(
-                        new Set([createdByUserId, ...(assigneeUserIds || [])])
+                        new Set([createdByUserId, ...(assigneeUserIds || [])].map(String))
                     );
                 } else {
                     taskAssignees.userIds = Array.from(
-                        new Set([...userIds, ...(assigneeUserIds || [])])
+                        new Set([...userIds, ...(assigneeUserIds || []).map(String)])
                     );
                 }
                 taskAssignees.teamIds = Array.from(
-                    new Set([...teamIds, ...(assigneeTeamIds || [])])
+                    new Set([...teamIds, ...(assigneeTeamIds || []).map(String)])
                 );
                 taskAssignees.companyIds = Array.from(
-                    new Set([...companyIds, ...(assigneeCompanyIds || [])])
+                    new Set([...companyIds, ...(assigneeCompanyIds || []).map(String)])
                 );
             }
         } else {
