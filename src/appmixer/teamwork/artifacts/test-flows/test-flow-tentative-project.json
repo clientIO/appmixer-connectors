@@ -1,0 +1,367 @@
+{
+    "name": "E2E Teamwork - tentative project",
+    "description": "CreateProject with tentative=true → ConfirmProject; deletes the project.",
+    "flow": {
+        "d503860c-5688-4436-af79-f9179d71b70d": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f7ea3a69-47c2-4477-9a36-253d077b547c": {
+            "type": "appmixer.teamwork.core.ListCompanies",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d503860c-5688-4436-af79-f9179d71b70d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d503860c-5688-4436-af79-f9179d71b70d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "searchTerm": {}
+                                },
+                                "lambda": {
+                                    "searchTerm": ""
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "78d12514-0a6e-449e-b87a-70d61fc990a3": {
+            "type": "appmixer.teamwork.core.CreateProject",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f7ea3a69-47c2-4477-9a36-253d077b547c": [
+                        "companies"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f7ea3a69-47c2-4477-9a36-253d077b547c": {
+                            "companies": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "7b6947a4-fd7b-4ed4-8328-00b2ccfa24f2": {
+                                            "variable": "$.d503860c-5688-4436-af79-f9179d71b70d.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "companyId": {
+                                        "8ca2a3b9-ff6b-46e9-8db5-ce271decf34c": {
+                                            "variable": "$.f7ea3a69-47c2-4477-9a36-253d077b547c.companies.companies",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "tentative": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Tentative {{{7b6947a4-fd7b-4ed4-8328-00b2ccfa24f2}}}",
+                                    "companyId": "{{{8ca2a3b9-ff6b-46e9-8db5-ce271decf34c}}}",
+                                    "tentative": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "583394cb-86db-4fd2-a32c-146b6f06dc8c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "78d12514-0a6e-449e-b87a-70d61fc990a3": [
+                        "project"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "78d12514-0a6e-449e-b87a-70d61fc990a3": {
+                            "project": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1faa2dea-f490-4e61-96b9-30961a288920": {
+                                            "variable": "$.78d12514-0a6e-449e-b87a-70d61fc990a3.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{1faa2dea-f490-4e61-96b9-30961a288920}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4d9312e7-fd3f-4062-978b-d3955d824eaa": {
+            "type": "appmixer.teamwork.core.ConfirmProject",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "583394cb-86db-4fd2-a32c-146b6f06dc8c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "583394cb-86db-4fd2-a32c-146b6f06dc8c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "projectId": {
+                                        "ca946fa3-deb0-452e-a094-fe8b3bafb43f": {
+                                            "variable": "$.78d12514-0a6e-449e-b87a-70d61fc990a3.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "{{{ca946fa3-deb0-452e-a094-fe8b3bafb43f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f396b0a4-4ccd-4723-9fcf-63806b5809f5": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4d9312e7-fd3f-4062-978b-d3955d824eaa": [
+                        "project"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4d9312e7-fd3f-4062-978b-d3955d824eaa": {
+                            "project": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a5aa6c0c-918e-4fe2-af67-2fe9dbeaa8b0": {
+                                            "variable": "$.4d9312e7-fd3f-4062-978b-d3955d824eaa.project.id",
+                                            "functions": []
+                                        },
+                                        "e69c9a29-b659-4204-9eef-a0041ef9904a": {
+                                            "variable": "$.78d12514-0a6e-449e-b87a-70d61fc990a3.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a5aa6c0c-918e-4fe2-af67-2fe9dbeaa8b0}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{e69c9a29-b659-4204-9eef-a0041ef9904a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "40a5c58e-a3e9-4e91-ba3f-b22d280fe3b3": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "583394cb-86db-4fd2-a32c-146b6f06dc8c": [
+                        "out"
+                    ],
+                    "f396b0a4-4ccd-4723-9fcf-63806b5809f5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8a5f9146-d5cf-48e3-bbdc-3c12af290a7b": {
+            "type": "appmixer.teamwork.core.MakeApiCall",
+            "x": 1520,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "40a5c58e-a3e9-4e91-ba3f-b22d280fe3b3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "40a5c58e-a3e9-4e91-ba3f-b22d280fe3b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "8b2450a4-5acb-4d65-9e43-349d87507380": {
+                                            "variable": "$.78d12514-0a6e-449e-b87a-70d61fc990a3.project.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/projects/{{{8b2450a4-5acb-4d65-9e43-349d87507380}}}.json",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1b3b9d54-a6cb-4987-8c50-aa146367c318": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8a5f9146-d5cf-48e3-bbdc-3c12af290a7b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "8a5f9146-d5cf-48e3-bbdc-3c12af290a7b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "5a5f91b1-c6a8-485d-8b3b-3430b1e95463": {
+                                            "variable": "$.40a5c58e-a3e9-4e91-ba3f-b22d280fe3b3.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Teamwork - tentative project",
+                                    "result": "{{{5a5f91b1-c6a8-485d-8b3b-3430b1e95463}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "b600c4c7-4b52-4223-9474-8e9291264947": {
+            "x": 64,
+            "y": 528,
+            "width": 736,
+            "height": 224,
+            "content": "## ⚠️ Plan-gated\n\nTentative projects are not available on the Teamwork **Free** plan — the API answers 422 \"You have reached the limit of 0 tentative projects on your price plan\" (seen on appmixer2.eu, 2026-10-14). This flow passes only on a trial/paid site. Expected failure on Free, not a flow problem."
+        }
+    }
+}

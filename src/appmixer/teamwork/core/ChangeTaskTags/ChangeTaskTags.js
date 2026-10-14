@@ -59,6 +59,6 @@ module.exports = {
             taskId: taskId,
             tagIds: updatedTagIds,
             operation: operation,
-        }, 'task');
+        }, 'tags');
     }
 }

@@ -22,6 +22,6 @@ module.exports = {
         context.sendJson({
             taskId: taskId,
             body: body
-        }, 'task');
+        }, 'comment');
     }
 }
