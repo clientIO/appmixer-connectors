@@ -1,11 +1,11 @@
 'use strict';
 const { getBaseUrl } = require('../../commons');
 
-function kvToObj(arr) {
+function kvToObj(value) {
     // The Designer's key-value field sends its rows as a JSON object string
     // ('{"Accept":"application/json"}'); a plain object and an array of
     // {key, value} rows are accepted too.
-    let input = arr;
+    let input = value;
     if (typeof input === 'string') {
         if (!input.trim()) return {};
         try {

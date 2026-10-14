@@ -285,14 +285,14 @@ module.exports = {
 
     /**
      * Turn the designer's key-value inspector rows into a plain object.
-     * @param {array} rows
+     * @param {string|object|array} value
      * @returns {object}
      */
-    keyValueToObject(rows) {
+    keyValueToObject(value) {
         // The Designer's key-value field sends its rows as a JSON object string
         // ('{"Accept":"application/json"}'); a plain object and an array of
         // {key, value} rows are accepted too.
-        let input = rows;
+        let input = value;
         if (typeof input === 'string') {
             if (!input.trim()) return {};
             try {

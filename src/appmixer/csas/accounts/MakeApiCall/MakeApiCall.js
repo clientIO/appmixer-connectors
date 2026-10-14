@@ -5,11 +5,11 @@ const lib = require('../../lib');
 const SENSITIVE_HEADERS = ['authorization', 'web-api-key', 'cookie', 'set-cookie'];
 
 // Convert Appmixer key-value inspector rows ([{ key, value }]) into a plain object.
-function kvToObject(rows) {
+function kvToObject(value) {
     // The Designer's key-value field sends its rows as a JSON object string
     // ('{"Accept":"application/json"}'); a plain object and an array of
     // {key, value} rows are accepted too.
-    let input = rows;
+    let input = value;
     if (typeof input === 'string') {
         if (!input.trim()) return {};
         try {

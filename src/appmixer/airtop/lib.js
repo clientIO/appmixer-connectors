@@ -256,15 +256,15 @@ module.exports = {
      * drop the user's headers or query parameters and run the call anyway, turning a
      * filtered request into an unfiltered one that still reports success.
      * @param {object} context
-     * @param {array|object|string} rows
+     * @param {string|object|array} value
      * @param {string} label
      * @returns {object}
      */
-    keyValueToObject(context, rows, label) {
+    keyValueToObject(context, value, label) {
         // The Designer's key-value field sends its rows as a JSON object string
         // ('{"Accept":"application/json"}'); a plain object and an array of
         // {key, value} rows are accepted too.
-        let input = rows;
+        let input = value;
         if (typeof input === 'string') {
             if (!input.trim()) return {};
             try {
