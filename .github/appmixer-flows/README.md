@@ -127,6 +127,48 @@ Published as an integration template (see below); the wizard asks for the bot
 account, the repositories to watch and the hook headers. The other half lives
 on the OpenClaw host — see `.github/openclaw/vero-mention/README.md`.
 
+## project-status-pipeline.json
+
+The dispatcher of the status-driven connector pipeline
+([appmixer-components#2890](https://github.com/Appmixer-ai/appmixer-components/issues/2890),
+step 1 in [#2916](https://github.com/Appmixer-ai/appmixer-components/issues/2916)). A Status
+change of a card on the [@appmixer-connectors](https://github.com/orgs/Appmixer-ai/projects/7)
+project is resolved to the card's issue, pull request, connector and branch and recorded in one
+comment on the item. The pipeline stages (Testing, Review, Doc&Verification, Needs input) will hang
+on this flow; this version starts nothing else.
+
+### Shape
+
+- `GitHub / On Project Item Changed` — an **organization webhook** for `projects_v2_item`,
+  action `edited`, limited to project 7 (`PVT_kwDODXokv84BFM6_`). Registering it needs the
+  `admin:org_hook` scope, so the bound account must be an owner of the organization.
+- `Condition` — the changed field is Status.
+- `GitHub / Make API Call` — one GraphQL call on the card's content node: issue or pull request,
+  labels, and for an issue the pull requests that close it.
+- `Code Block` (Pipeline event) — `{issue?, pr?, connector, branch, status, from, runId}`. An
+  issue card is linked to its PR through the closing keyword (an open one first); a PR card looks
+  up no issue; the connector comes from the `appmixer:<x>` label. `runId` is the card, the
+  target status and the card's `updated_at`, so a webhook redelivery produces the same id. A
+  draft issue ends here (`ok: false`).
+- `Make API Call` (comments) → `Code Block` (Pipeline comment) → `Condition` → `Make API
+  Call` (write) — finds the item's comment carrying `<!-- pipeline: {...} -->`, stops on a run
+  id already in it, otherwise creates or edits the comment with the status history. The comment
+  goes to the issue when the card is an issue, else to the PR.
+
+### Setup
+
+Published as an integration template; the wizard asks for the GitHub account (organization
+owner — the consent includes `admin:org_hook`), the organization and the project node id. The
+webhook is registered when the instance starts and removed when it stops.
+
+### When it breaks
+
+- **"Registering the organization webhook failed: Not Found"** at start — the account's token
+  lacks `admin:org_hook` (or the user is not an org owner). Re-authorize the account from the
+  `On Project Item Changed` component.
+- **A move with no comment** — look at the instance's runs on `/ops`: `Resolved` is false for
+  draft issues, `New run` is false for a redelivery.
+
 ## Publishing as integrations
 
 Both flows carry a `wizard` and a `description` and are published on
