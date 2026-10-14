@@ -192,7 +192,7 @@ const runDirs = (() => {
         return [];
     }
 })();
-const runs = runDirs.map((dir) => {
+const allRuns = runDirs.map((dir) => {
     const [, pr, date, time] = dir.match(/^(\d+)-(\d{8})-(\d{6})$/);
     const at = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6)}T${time.slice(0, 2)}:${time.slice(2, 4)}:${time.slice(4)}Z`;
     const base = path.join(RESPONDER, 'runs', dir);
@@ -223,7 +223,8 @@ const runs = runDirs.map((dir) => {
             body: String(r.body || '').replace(/<!--.*?-->/gs, '').trim().slice(0, 600)
         }))
     };
-}).sort((a, b) => b.at.localeCompare(a.at)).slice(0, RECENT_RUNS);
+}).sort((a, b) => b.at.localeCompare(a.at));
+const runs = allRuns.slice(0, RECENT_RUNS);
 
 const disk = sh('df', ['-h', '--output=used,size,pcent', '/']).split('\n')[1] || '';
 
@@ -294,6 +295,27 @@ for (const run of hookRuns) {
     const byTask = run.task ? hooks.find((h) => h.taskPattern && new RegExp(h.taskPattern).test(run.task)) : null;
     const byModel = hooks.filter((h) => h.model && run.model && (h.model === run.model || h.model.endsWith('/' + run.model)));
     run.hookId = byTask?.id || (byModel.length === 1 ? byModel[0].id : null);
+}
+
+// The responder's runs that happened inside a hook run's turn: one per resolve.sh call, so a turn
+// can hold several (the agent reruns resolve.sh; every extra call finds nothing pending). They are
+// the script's view of the same event — what it found on the PR and what it posted.
+const SLACK_MS = 5000;
+for (const run of hookRuns) {
+    run.responder = [];
+    if (!run.startedAt || !run.endedAt) continue;
+    const from = Date.parse(run.startedAt) - SLACK_MS;
+    const to = Date.parse(run.endedAt) + SLACK_MS;
+    for (const r of allRuns) {
+        const at = Date.parse(r.at);
+        if (at < from || at > to || r.hookRunAt) continue;
+        r.hookRunAt = run.at;
+        run.responder.push({
+            at: r.at, status: r.status, reason: r.reason, mentions: r.mentions.length,
+            code_changed: r.code_changed, durationMs: r.durationMs, replies: r.replies
+        });
+    }
+    run.responder.sort((a, b) => a.at.localeCompare(b.at));
 }
 
 const status = {
