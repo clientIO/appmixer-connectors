@@ -1,26 +1,29 @@
 'use strict';
-const request = require('request-promise');
+
+const { makeRequest } = require('../commons');
 
 module.exports = {
 
     async receive(context) {
 
         const { teamId, channelId, content } = context.messages.in.content;
-        const { accessToken } = context.auth;
-        const response = await request({
+
+        if (!teamId) {
+            throw new context.CancelError('Team is required!');
+        }
+        if (!channelId) {
+            throw new context.CancelError('Channel is required!');
+        }
+        if (!content) {
+            throw new context.CancelError('Content is required!');
+        }
+
+        const { data } = await makeRequest(context, {
             method: 'POST',
-            url: 'https://graph.microsoft.com/v1.0/teams/' + teamId + '/channels/' + channelId + '/messages',
-            body: {
-                body: {
-                    content: content
-                }
-            },
-            auth: { bearer: accessToken },
-            headers: { 'Accept': 'application/json' },
-            json: true
+            path: `/teams/${encodeURIComponent(teamId)}/channels/${encodeURIComponent(channelId)}/messages`,
+            data: { body: { content } }
         });
 
-        return context.sendJson(response, 'out');
+        return context.sendJson(data, 'out');
     }
 };
-
