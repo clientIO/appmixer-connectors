@@ -1,0 +1,835 @@
+{
+    "name": "E2E Teamwork - companies and projects",
+    "description": "CreateCompany → CreateProject → ListProjects/ListCompanies verify → tentative project → ConfirmProject; cleanup through MakeApiCall (no Delete components in the connector).",
+    "flow": {
+        "55c25fba-99be-499b-8de3-c3a926854c9f": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "485461b8-950b-4fc1-8e18-6c0f8cdb4761": {
+            "type": "appmixer.teamwork.core.CreateCompany",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "55c25fba-99be-499b-8de3-c3a926854c9f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "55c25fba-99be-499b-8de3-c3a926854c9f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "db08ec56-cefb-4913-864c-8f33b5a35dd7": {
+                                            "variable": "$.55c25fba-99be-499b-8de3-c3a926854c9f.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "website": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Company {{{db08ec56-cefb-4913-864c-8f33b5a35dd7}}}",
+                                    "website": "https://example.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "14108238-7b94-4d34-8a05-c57d95198b9d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "485461b8-950b-4fc1-8e18-6c0f8cdb4761": [
+                        "company"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "485461b8-950b-4fc1-8e18-6c0f8cdb4761": {
+                            "company": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6b1f5a6d-f2d2-4bff-bdf5-db98eb5c0386": {
+                                            "variable": "$.485461b8-950b-4fc1-8e18-6c0f8cdb4761.company.company",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6b1f5a6d-f2d2-4bff-bdf5-db98eb5c0386}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "82724053-dd9e-492d-846c-6d5dbe7669f5": {
+            "type": "appmixer.teamwork.core.CreateProject",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "14108238-7b94-4d34-8a05-c57d95198b9d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "14108238-7b94-4d34-8a05-c57d95198b9d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "fdad0a5f-d6da-42ee-9081-12b9b717f464": {
+                                            "variable": "$.55c25fba-99be-499b-8de3-c3a926854c9f.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "companyId": {
+                                        "ae73e0f5-d51c-4c93-91f5-e1c518e715b5": {
+                                            "variable": "$.485461b8-950b-4fc1-8e18-6c0f8cdb4761.company.company",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "tentative": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Project {{{fdad0a5f-d6da-42ee-9081-12b9b717f464}}}",
+                                    "companyId": "{{{ae73e0f5-d51c-4c93-91f5-e1c518e715b5}}}",
+                                    "tentative": false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e578ae4b-a27c-4ae4-9a99-408c3a3cba35": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "82724053-dd9e-492d-846c-6d5dbe7669f5": [
+                        "project"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "82724053-dd9e-492d-846c-6d5dbe7669f5": {
+                            "project": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "99f2ad54-0064-48f4-b06d-c1dc8051ef2a": {
+                                            "variable": "$.82724053-dd9e-492d-846c-6d5dbe7669f5.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{99f2ad54-0064-48f4-b06d-c1dc8051ef2a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4a63bd97-6773-454c-955d-956b3b3c1c3d": {
+            "type": "appmixer.teamwork.core.ListProjects",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e578ae4b-a27c-4ae4-9a99-408c3a3cba35": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e578ae4b-a27c-4ae4-9a99-408c3a3cba35": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "searchTerm": {
+                                        "b4231922-828f-4fce-a80a-022b284c46cf": {
+                                            "variable": "$.55c25fba-99be-499b-8de3-c3a926854c9f.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "includeTentativeProjects": {}
+                                },
+                                "lambda": {
+                                    "searchTerm": "E2E Project {{{b4231922-828f-4fce-a80a-022b284c46cf}}}",
+                                    "includeTentativeProjects": false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3b916ebd-0f7a-460c-a970-ce5934c8ba56": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4a63bd97-6773-454c-955d-956b3b3c1c3d": [
+                        "projects"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4a63bd97-6773-454c-955d-956b3b3c1c3d": {
+                            "projects": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "11333f1d-2994-43ad-a6c9-3513a7447339": {
+                                            "variable": "$.4a63bd97-6773-454c-955d-956b3b3c1c3d.projects.projects",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "14dd9949-8f57-4d9f-93e5-1d8c523db85a": {
+                                            "variable": "$.82724053-dd9e-492d-846c-6d5dbe7669f5.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{11333f1d-2994-43ad-a6c9-3513a7447339}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{14dd9949-8f57-4d9f-93e5-1d8c523db85a}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "571a2154-b73c-40c2-b1f5-d7c8312aeafe": {
+            "type": "appmixer.teamwork.core.ListCompanies",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3b916ebd-0f7a-460c-a970-ce5934c8ba56": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3b916ebd-0f7a-460c-a970-ce5934c8ba56": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "searchTerm": {
+                                        "b3363d89-1447-42fc-97a1-a658d5faa0fa": {
+                                            "variable": "$.55c25fba-99be-499b-8de3-c3a926854c9f.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "searchTerm": "E2E Company {{{b3363d89-1447-42fc-97a1-a658d5faa0fa}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d8507660-7a0c-4b93-b4c0-09383e534db6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1728,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "571a2154-b73c-40c2-b1f5-d7c8312aeafe": [
+                        "companies"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "571a2154-b73c-40c2-b1f5-d7c8312aeafe": {
+                            "companies": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7deca764-1b95-4a38-88c9-4b4317c20953": {
+                                            "variable": "$.571a2154-b73c-40c2-b1f5-d7c8312aeafe.companies.companies",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "4e44c173-c30c-47ba-b219-dd9e4a6d0693": {
+                                            "variable": "$.485461b8-950b-4fc1-8e18-6c0f8cdb4761.company.company",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7deca764-1b95-4a38-88c9-4b4317c20953}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{4e44c173-c30c-47ba-b219-dd9e4a6d0693}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "69b90d72-346b-4f57-8a54-5af4eadde382": {
+            "type": "appmixer.teamwork.core.CreateProject",
+            "x": 1936,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d8507660-7a0c-4b93-b4c0-09383e534db6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d8507660-7a0c-4b93-b4c0-09383e534db6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "f19da6b9-3ee0-4841-adc4-a828b5d54c89": {
+                                            "variable": "$.55c25fba-99be-499b-8de3-c3a926854c9f.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "companyId": {
+                                        "e736f5a5-15c6-4eec-b4de-f9d6c451d6a8": {
+                                            "variable": "$.485461b8-950b-4fc1-8e18-6c0f8cdb4761.company.company",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "tentative": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Tentative {{{f19da6b9-3ee0-4841-adc4-a828b5d54c89}}}",
+                                    "companyId": "{{{e736f5a5-15c6-4eec-b4de-f9d6c451d6a8}}}",
+                                    "tentative": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "08378dfb-0a0c-4664-b0b6-5a5375af945d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2144,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "69b90d72-346b-4f57-8a54-5af4eadde382": [
+                        "project"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "69b90d72-346b-4f57-8a54-5af4eadde382": {
+                            "project": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ef49ffda-0a37-4a8f-aa08-554c442793c7": {
+                                            "variable": "$.69b90d72-346b-4f57-8a54-5af4eadde382.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ef49ffda-0a37-4a8f-aa08-554c442793c7}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "58b8cfa7-3adc-4b49-819e-c450e6dd04f6": {
+            "type": "appmixer.teamwork.core.ConfirmProject",
+            "x": 2352,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "08378dfb-0a0c-4664-b0b6-5a5375af945d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "08378dfb-0a0c-4664-b0b6-5a5375af945d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "projectId": {
+                                        "55740bd6-db77-4d43-8198-44e78ba375d3": {
+                                            "variable": "$.69b90d72-346b-4f57-8a54-5af4eadde382.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "{{{55740bd6-db77-4d43-8198-44e78ba375d3}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9b0ef5e2-c7f0-46d7-8cbc-17db8fc2d087": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2560,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "58b8cfa7-3adc-4b49-819e-c450e6dd04f6": [
+                        "project"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "58b8cfa7-3adc-4b49-819e-c450e6dd04f6": {
+                            "project": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c6c55631-e007-4c1d-a212-2f1710d4c281": {
+                                            "variable": "$.58b8cfa7-3adc-4b49-819e-c450e6dd04f6.project.id",
+                                            "functions": []
+                                        },
+                                        "5addc764-bb45-493c-ad1c-6ec3b5ee9492": {
+                                            "variable": "$.69b90d72-346b-4f57-8a54-5af4eadde382.project.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c6c55631-e007-4c1d-a212-2f1710d4c281}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{5addc764-bb45-493c-ad1c-6ec3b5ee9492}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b64e6faa-d19e-423f-9d30-37bade384086": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2768,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "14108238-7b94-4d34-8a05-c57d95198b9d": [
+                        "out"
+                    ],
+                    "e578ae4b-a27c-4ae4-9a99-408c3a3cba35": [
+                        "out"
+                    ],
+                    "3b916ebd-0f7a-460c-a970-ce5934c8ba56": [
+                        "out"
+                    ],
+                    "d8507660-7a0c-4b93-b4c0-09383e534db6": [
+                        "out"
+                    ],
+                    "08378dfb-0a0c-4664-b0b6-5a5375af945d": [
+                        "out"
+                    ],
+                    "9b0ef5e2-c7f0-46d7-8cbc-17db8fc2d087": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 240
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "01462e85-5a0e-4994-aeb2-4288ff03313e": {
+            "type": "appmixer.teamwork.core.MakeApiCall",
+            "x": 2976,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b64e6faa-d19e-423f-9d30-37bade384086": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b64e6faa-d19e-423f-9d30-37bade384086": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "e8ad1301-ce1b-432b-b4c8-a1dd68eaf1dd": {
+                                            "variable": "$.82724053-dd9e-492d-846c-6d5dbe7669f5.project.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/projects/{{{e8ad1301-ce1b-432b-b4c8-a1dd68eaf1dd}}}.json",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f121bfb4-ae9c-4203-b916-071741bf844d": {
+            "type": "appmixer.teamwork.core.MakeApiCall",
+            "x": 3184,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "01462e85-5a0e-4994-aeb2-4288ff03313e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "01462e85-5a0e-4994-aeb2-4288ff03313e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "6c9c3230-f84b-4496-a0c9-421633c1c222": {
+                                            "variable": "$.69b90d72-346b-4f57-8a54-5af4eadde382.project.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/projects/{{{6c9c3230-f84b-4496-a0c9-421633c1c222}}}.json",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b718f308-770e-4b91-a51c-35294ebc7315": {
+            "type": "appmixer.teamwork.core.MakeApiCall",
+            "x": 3392,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f121bfb4-ae9c-4203-b916-071741bf844d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f121bfb4-ae9c-4203-b916-071741bf844d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "150a2ccf-537e-415e-bc49-88c3475f63d4": {
+                                            "variable": "$.485461b8-950b-4fc1-8e18-6c0f8cdb4761.company.company",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/companies/{{{150a2ccf-537e-415e-bc49-88c3475f63d4}}}.json",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b5775bad-97c0-4314-af9d-4af18656f3ad": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 3600,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b718f308-770e-4b91-a51c-35294ebc7315": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "b718f308-770e-4b91-a51c-35294ebc7315": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "03c91ee8-f0ed-4f17-b1b9-c5c188a83747": {
+                                            "variable": "$.b64e6faa-d19e-423f-9d30-37bade384086.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Teamwork - companies and projects",
+                                    "result": "{{{03c91ee8-f0ed-4f17-b1b9-c5c188a83747}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}
