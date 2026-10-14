@@ -1,5 +1,3 @@
-const querystring = require('querystring');
-
 /**
  * Builds a valid URL by combining base URL, path, and query parameters
  * @param {string} baseURL - The base URL (with or without trailing slash)
@@ -29,7 +27,7 @@ function buildURL(baseURL, path, query) {
         const filteredQuery = Object.fromEntries(
             Object.entries(query).filter(([_, v]) => v !== undefined)
         );
-        
+
         if (Object.keys(filteredQuery).length > 0) {
             const searchParams = new URLSearchParams(filteredQuery);
             fullUrl += '?' + searchParams.toString();
@@ -41,7 +39,7 @@ function buildURL(baseURL, path, query) {
 
 module.exports = {
     buildURL,
-    
+
     async callAPI(context, method, url, body, query) {
         const fullUrl = buildURL(
             context.auth.profileInfo.accountURL,
@@ -57,7 +55,7 @@ module.exports = {
                 'X-Teamwork-Product': 'appmixer'
             },
             json: true
-        }
+        };
 
         if (body !== null && body !== undefined) {
             req.data = body;
@@ -65,7 +63,7 @@ module.exports = {
 
         const resp = await context.httpRequest(req);
 
-        return resp.data
+        return resp.data;
     }
-}
+};
 

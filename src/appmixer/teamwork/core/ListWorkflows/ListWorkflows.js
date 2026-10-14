@@ -4,13 +4,13 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    receive: async function (context) {
+    receive: async function(context) {
         let {
-            searchTerm,
+            searchTerm
         } = context.messages.in.content;
         let q = {
             include: ['projects']
-        }
+        };
         q.searchTerm = searchTerm;
 
         let allWorkflows = [];
@@ -25,7 +25,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     '/projects/api/v3/workflows.json',
                     null,
                     q
@@ -50,7 +50,7 @@ module.exports = {
         return context.sendJson({ workflows: allWorkflows, projects: allProjects }, 'workflows');
     },
 
-    toInspector: function (data) {
+    toInspector: function(data) {
         let transformed = [];
         // Convert { 'projectId1': {...}, 'projectId2': {...} } to [ {...}, {...} ]
         const projectsRaw = data.projects;
@@ -70,7 +70,9 @@ module.exports = {
                 let label = `${workflow.name} - (${length} ${length === 1 ? 'project' : 'projects'})`;
                 if (workflow.projectSpecific && workflow.projectIds && workflow.projectIds.length > 0) {
                     const firstProjectId = workflow.projectIds[0];
-                    const workflowProject = projectsArray.find(project => parseInt(project.id, 10) === parseInt(firstProjectId, 10));
+                    const workflowProject = projectsArray.find(
+                        project => parseInt(project.id, 10) === parseInt(firstProjectId, 10)
+                    );
                     if (workflowProject && workflowProject.name) {
                         label = `${workflowProject.name} - (Project specific)`;
                     }
@@ -84,4 +86,4 @@ module.exports = {
 
         return transformed;
     }
-}
+};

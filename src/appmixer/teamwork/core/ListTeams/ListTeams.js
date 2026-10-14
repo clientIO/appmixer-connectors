@@ -4,13 +4,13 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    receive: async function (context) {
+    receive: async function(context) {
         let { searchTerm } = context.messages.in.content;
         let q = {
             includeCompanyTeams: true,
             includeSubteams: true,
-            onlyGlobalTeamsWithProjectMembers: false,
-        }
+            onlyGlobalTeamsWithProjectMembers: false
+        };
 
         if (searchTerm !== null && searchTerm !== undefined) {
             q.searchTerm = searchTerm;
@@ -28,7 +28,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     '/teams.json',
                     null,
                     q
@@ -50,7 +50,7 @@ module.exports = {
         return context.sendJson({ teams: allTeams }, 'teams');
     },
 
-    toInspector: function (data) {
+    toInspector: function(data) {
         let transformed = [];
         if (Array.isArray(data.teams)) {
             data.teams.forEach(team => {
@@ -63,4 +63,4 @@ module.exports = {
 
         return transformed;
     }
-}
+};

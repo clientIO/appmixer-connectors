@@ -4,11 +4,11 @@ const lib = require('../../lib');
 
 module.exports = {
 
-    receive: async function (context) {
+    receive: async function(context) {
         let {
             searchTerm,
             workflow,
-            workflowId,
+            workflowId
         } = context.messages.in.content;
         // Workflow ID: from direct workflowId, or from workflow select (value = id)
         const id = workflowId ?? workflow?.workflowId ?? workflow?.value;
@@ -32,7 +32,7 @@ module.exports = {
 
                 let resp = await lib.callAPI(
                     context,
-                    "GET",
+                    'GET',
                     `/projects/api/v3/workflows/${resolvedWorkflowId}/stages.json`,
                     null,
                     q
@@ -54,16 +54,16 @@ module.exports = {
         return context.sendJson({ workflowStages: allWorkflowStages }, 'workflowStages');
     },
 
-    toInspector: function (data) {
+    toInspector: function(data) {
         let transformed = [
             {
-                label: "Any",
-                value: "any"
+                label: 'Any',
+                value: 'any'
             },
             {
-                label: "Backlog",
-                value: '0',
-            },
+                label: 'Backlog',
+                value: '0'
+            }
         ];
         const stages = data?.workflowStages ?? data?.stages;
         if (stages && Array.isArray(stages)) {
@@ -77,4 +77,4 @@ module.exports = {
 
         return transformed;
     }
-}
+};

@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 
-const lib = require("../../lib");
+const lib = require('../../lib');
 
 module.exports = {
-    receive: async function (context) {
-        let { 
+    receive: async function(context) {
+        let {
             name,
             emailOne,
             phone,
@@ -19,7 +19,7 @@ module.exports = {
         } = context.messages.in.content;
 
         // Use V3 API endpoint for company creation
-        let url = "/projects/api/v3/companies.json";
+        let url = '/projects/api/v3/companies.json';
 
         // Build the company object - JSON.stringify will omit undefined fields automatically
         let companyData = {
@@ -56,22 +56,22 @@ module.exports = {
                     cf.value = parseInt(cf.value, 10);
                 }
                 sanitizedCustomFields.push({
-                    "customFieldId": Number(id),
-                    "value": cf.value
+                    'customFieldId': Number(id),
+                    'value': cf.value
                 });
             }
 
             body.company.customFields = sanitizedCustomFields;
         }
 
-        let resp = await lib.callAPI(context, "POST", url, body);
+        let resp = await lib.callAPI(context, 'POST', url, body);
 
         // V3 API consistently returns: { company: { id, name, phone, ... } }
         if (!resp.company || !resp.company.id) {
-            throw new Error("Company creation failed or no ID returned from API");
+            throw new Error('Company creation failed or no ID returned from API');
         }
 
         // Send the full response to match CreateTask pattern
-        context.sendJson(resp, "company");
-    },
+        context.sendJson(resp, 'company');
+    }
 };

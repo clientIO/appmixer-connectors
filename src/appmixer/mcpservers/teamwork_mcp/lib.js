@@ -6,8 +6,8 @@ const { StreamableHTTPClientTransport } = require('@modelcontextprotocol/sdk/cli
 module.exports = {
     mcpCall: async (context, env, method, args) => {
         const clientName = `mcp-client:${context.flowId}:${context.componentId}:${Math.random().toString(36).substring(7)}`;
-        const client = new Client( {name: clientName, version: "1.0.0" });
-        const url = new URL("https://mcp.ai.teamwork.com");
+        const client = new Client( { name: clientName, version: '1.0.0' });
+        const url = new URL('https://mcp.ai.teamwork.com');
 
         const transport = new StreamableHTTPClientTransport(
             url,

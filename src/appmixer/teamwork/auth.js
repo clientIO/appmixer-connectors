@@ -35,8 +35,8 @@ module.exports = {
 
                 accountURL = response.data.installation['apiEndPoint'];
                 return {
-                    accessToken: response.data['access_token'],
-                }
+                    accessToken: response.data['access_token']
+                };
             },
 
             requestProfileInfo: async context => {
@@ -51,7 +51,7 @@ module.exports = {
                 return {
                     emailAddress: response.data.person['email-address'],
                     accountURL: accountURL
-                }
+                };
             },
 
             validateAccessToken: async context => {
@@ -64,7 +64,7 @@ module.exports = {
                     json: true
                 });
 
-                return response
+                return response;
             }
         };
     }
