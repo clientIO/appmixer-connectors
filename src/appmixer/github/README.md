@@ -41,6 +41,12 @@ connector's plugin (`plugin.js` + `routes.js`, the same listener pattern as Slac
 3. Save. GitHub sends a `ping`, which the endpoint answers with 200; the delivery log of the
    webhook shows it.
 
+**Instances that authenticate GitHub through an Auth Hub:** the trigger's listener registers on
+the hub, not on the instance, so the organization webhook has to point at the **hub's** endpoint
+(`https://<auth-hub>/plugins/appmixer/github/events`), the connector has to be installed on the hub
+and the `webhookSecret` set in the hub's `appmixer:github` service config. The hub relays each
+delivery to the subscribed triggers of every connected instance.
+
 One webhook serves every flow on the instance. The endpoint drops deliveries whose
 `X-Hub-Signature-256` does not match (401) and routes `projects_v2_item` to the triggers whose
 organization, board (`Project Node ID`, optional) and actions match. The account bound to the
