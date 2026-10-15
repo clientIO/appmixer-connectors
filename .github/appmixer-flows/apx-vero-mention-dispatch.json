@@ -1,6 +1,6 @@
 {
-    "name": "CI - @apx-vero mention -> repository_dispatch",
-    "description": "When someone mentions @apx-vero on a pull request, starts the vero-mention-responder workflow (repository_dispatch `apx-vero-mention`), which replies and pushes fixes.",
+    "name": "CI - @apx-vero mention -> OpenClaw vero agent",
+    "description": "When someone mentions @apx-vero on a pull request, starts the vero agent on the OpenClaw gateway, which answers every unanswered mention and updates the PR where asked.",
     "flow": {
         "a2000000-0000-4000-8000-000000000001": {
             "type": "appmixer.github.list.NewMention",
@@ -70,14 +70,11 @@
             "x": 400,
             "y": 128
         },
-        "a2000000-0000-4000-8000-000000000003": {
-            "type": "appmixer.github.list.RepositoryDispatch",
-            "version": "1.0.0",
-            "label": "Start the mention responder",
-            "errorHandling": {
-                "autoRetry": true,
-                "onError": "storeUnprocessed"
-            },
+        "a2000000-0000-4000-8000-000000000004": {
+            "type": "appmixer.utils.http.Post",
+            "label": "Notify the OpenClaw vero agent",
+            "x": 592,
+            "y": 128,
             "source": {
                 "in": {
                     "a2000000-0000-4000-8000-000000000002": [
@@ -92,32 +89,27 @@
                             "true": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "repositoryId": {
-                                        "b2000000-0000-4000-8000-000000000003": {
-                                            "variable": "$.a2000000-0000-4000-8000-000000000001.out.repository.full_name",
-                                            "functions": []
-                                        }
-                                    },
-                                    "eventType": {},
-                                    "clientPayload": {
-                                        "b2000000-0000-4000-8000-000000000002": {
+                                    "url": {},
+                                    "headers": {},
+                                    "bodyType": {},
+                                    "body": {
+                                        "b2000000-0000-4000-8000-000000000004": {
                                             "variable": "$.a2000000-0000-4000-8000-000000000001.out.subject.url",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "repositoryId": "{{{b2000000-0000-4000-8000-000000000003}}}",
-                                    "eventType": "apx-vero-mention",
-                                    "clientPayload": "{\"pr_url\": \"{{{b2000000-0000-4000-8000-000000000002}}}\"}"
+                                    "url": "https://91-99-144-37.nip.io/hooks/vero-mention",
+                                    "headers": "{\"Content-Type\": \"application/json\", \"Authorization\": \"Bearer <OPENCLAW_HOOK_TOKEN>\"}",
+                                    "bodyType": "raw",
+                                    "body": "{\"pr_url\": \"{{{b2000000-0000-4000-8000-000000000004}}}\"}"
                                 }
                             }
                         }
                     }
                 }
-            },
-            "x": 592,
-            "y": 128
+            }
         }
     },
     "notes": {
@@ -126,14 +118,14 @@
             "y": -256,
             "width": 560,
             "height": 320,
-            "content": "## @apx-vero mention -> vero-mention-responder\n\nStarts `.github/workflows/vero-mention-responder.yml` when a person mentions the bot on a PR — in the conversation, inline on a diff line, or in a review body.\n\nA GitHub notification is one per PR thread, so the payload is only `{pr_url}`: the workflow sweeps that PR for every mention with no reply yet and answers each once.\n\n**Source of truth:** `.github/appmixer-flows/apx-vero-mention-dispatch.json` in the connectors repo."
+            "content": "## @apx-vero mention -> OpenClaw vero agent\n\nCalls the `vero-mention` hook of the OpenClaw gateway when a person mentions the bot on a PR — in the conversation, inline on a diff line, or in a review body. The `vero` agent then runs the responder (`.github/openclaw/vero-mention/` in the connectors repo).\n\nA GitHub notification is one per PR thread, so the payload is only `{pr_url}`: the responder sweeps that PR for every mention with no reply yet and answers each once.\n\n**Source of truth:** `.github/appmixer-flows/apx-vero-mention-dispatch.json` in the connectors repo."
         },
         "e2000000-0000-4000-8000-000000000002": {
             "x": 144,
             "y": 256,
             "width": 560,
             "height": 272,
-            "content": "### Two accounts\n\n**New Mention** reads the notifications of the account it is bound to, so bind the **bot** (apx-vero) — its own mentions never notify it, which also rules out loops.\n\n**Repository Dispatch** needs **push** to the repository; bind a writer. The target repository is the one the mention came from (`repository.full_name`).\n\n403 \"OAuth App access restrictions\" = the org has no grant for the Appmixer GitHub app; after granting, re-authorize the account."
+            "content": "### Account and hook token\n\n**New Mention** reads the notifications of the account it is bound to, so bind the **bot** (apx-vero) — its own mentions never notify it, which also rules out loops.\n\n**HTTP Post** carries the gateway hook token in its headers (wizard field \"OpenClaw hook headers\"). A 401 from the hook = wrong or rotated token; a 403 `proxy_attribution_required` = the gateway lost `trustedProxies`."
         }
     },
     "wizard": {
@@ -153,25 +145,20 @@
                 "options": {}
             },
             {
-                "type": "account",
-                "label": "GitHub account with push access",
-                "tooltip": "Sends the repository_dispatch event, which requires push access to the repository.",
-                "placeholder": "",
-                "attrs": {
-                    "service": "appmixer:github",
-                    "components": [
-                        "a2000000-0000-4000-8000-000000000003"
-                    ],
-                    "sharedAccountId": null
-                },
+                "type": "inspectorField",
+                "label": "Repositories to watch",
+                "tooltip": "owner/repo, comma-separated. The OpenClaw hook only accepts pull requests of Appmixer-ai/appmixer-connectors; add a repository to its transform before watching it here.",
+                "placeholder": "Appmixer-ai/appmixer-connectors",
+                "source": "a2000000-0000-4000-8000-000000000001.config.properties.repositories",
+                "attrs": {},
                 "options": {}
             },
             {
                 "type": "inspectorField",
-                "label": "Repositories to watch",
-                "tooltip": "owner/repo, comma-separated. Each needs .github/workflows/vero-mention-responder.yml on its default branch.",
-                "placeholder": "Appmixer-ai/appmixer-connectors",
-                "source": "a2000000-0000-4000-8000-000000000001.config.properties.repositories",
+                "label": "OpenClaw hook headers",
+                "tooltip": "Headers for the call to the OpenClaw vero agent. Replace <OPENCLAW_HOOK_TOKEN> with hooks.token of the gateway (root-only file /root/backups/hook-token.txt on the host).",
+                "placeholder": "",
+                "source": "a2000000-0000-4000-8000-000000000004.config.transform.in.a2000000-0000-4000-8000-000000000002.true.lambda.headers",
                 "attrs": {},
                 "options": {}
             }

@@ -1,0 +1,305 @@
+{
+    "name": "E2E Telegram User - new channel post trigger",
+    "flow": {
+        "aca7ff77-3137-4977-914e-25921634cb04": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 352,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "69addcbf-b21a-4738-add8-39401c1f434d": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 352,
+            "source": {
+                "in": {
+                    "aca7ff77-3137-4977-914e-25921634cb04": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aca7ff77-3137-4977-914e-25921634cb04": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "04644e27-af40-4142-9d46-1390b0e9597c": {
+            "type": "appmixer.telegram.core.SendMessage",
+            "x": 480,
+            "y": 352,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "69addcbf-b21a-4738-add8-39401c1f434d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "69addcbf-b21a-4738-add8-39401c1f434d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "text": {
+                                        "922d8830-4762-412c-bef0-5c51d8449cd3": {
+                                            "variable": "$.aca7ff77-3137-4977-914e-25921634cb04.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "chatId": "@appmixerE2Evladimir",
+                                    "text": "E2E NewChannelPost {{{922d8830-4762-412c-bef0-5c51d8449cd3}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "36ca0e84-d11e-4b30-a735-ebf9fac786bf": {
+            "type": "appmixer.telegram.user.NewChannelPost",
+            "x": 64,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "channels": "@appmixerE2Evladimir"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2fe23693-5643-4c9f-b363-3189f4ec4804": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "36ca0e84-d11e-4b30-a735-ebf9fac786bf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "36ca0e84-d11e-4b30-a735-ebf9fac786bf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "bfcad1bd-0d81-4c39-a07f-13080204cf53": {
+                                            "variable": "$.36ca0e84-d11e-4b30-a735-ebf9fac786bf.out.id",
+                                            "functions": []
+                                        },
+                                        "dd3aa36e-4ca8-4e81-b769-d21af96e175c": {
+                                            "variable": "$.36ca0e84-d11e-4b30-a735-ebf9fac786bf.out.text",
+                                            "functions": []
+                                        },
+                                        "d4e71f03-2adb-4ab1-954b-9e6cd21898c3": {
+                                            "variable": "$.36ca0e84-d11e-4b30-a735-ebf9fac786bf.out.channel_title",
+                                            "functions": []
+                                        },
+                                        "ae406dda-04f7-4071-a0d9-4da60b320328": {
+                                            "variable": "$.36ca0e84-d11e-4b30-a735-ebf9fac786bf.out.url",
+                                            "functions": []
+                                        },
+                                        "ec2bb96c-20b4-474a-be99-5494f5bf467b": {
+                                            "variable": "$.36ca0e84-d11e-4b30-a735-ebf9fac786bf.out.date",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{bfcad1bd-0d81-4c39-a07f-13080204cf53}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{dd3aa36e-4ca8-4e81-b769-d21af96e175c}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E NewChannelPost \\S+"
+                                            },
+                                            {
+                                                "field": "{{{d4e71f03-2adb-4ab1-954b-9e6cd21898c3}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{ae406dda-04f7-4071-a0d9-4da60b320328}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https://t\\.me/appmixerE2Evladimir/\\d+$"
+                                            },
+                                            {
+                                                "field": "{{{ec2bb96c-20b4-474a-be99-5494f5bf467b}}}",
+                                                "assertion": "regex",
+                                                "regex": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d19f9481-e80b-4702-ad14-bd336b9da77f": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2fe23693-5643-4c9f-b363-3189f4ec4804": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c8596c20-4a8e-49a6-99a4-85326fbc6cf8": {
+            "type": "appmixer.telegram.core.DeleteMessage",
+            "x": 688,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d19f9481-e80b-4702-ad14-bd336b9da77f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d19f9481-e80b-4702-ad14-bd336b9da77f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "messageId": {
+                                        "413c5e41-e83e-4152-bf83-182ff835ce66": {
+                                            "variable": "$.36ca0e84-d11e-4b30-a735-ebf9fac786bf.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "chatId": "@appmixerE2Evladimir",
+                                    "messageId": "{{{413c5e41-e83e-4152-bf83-182ff835ce66}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "52dc9902-9e0e-4be5-a63f-23c94a419b46": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c8596c20-4a8e-49a6-99a4-85326fbc6cf8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "695d11bf9bd2c7da7fff03f6",
+                    "failedStoreId": "695d11c1c38355dede7fa7a0"
+                },
+                "transform": {
+                    "in": {
+                        "c8596c20-4a8e-49a6-99a4-85326fbc6cf8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "536d19cc-5512-4602-ad83-59767ed597a2": {
+                                            "variable": "$.d19f9481-e80b-4702-ad14-bd336b9da77f.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Telegram User - new channel post trigger",
+                                    "result": "{{{536d19cc-5512-4602-ad83-59767ed597a2}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "c27833cf-7032-4593-870c-f80706b24058": {
+            "x": 64,
+            "y": 32,
+            "width": 832,
+            "height": 288,
+            "content": "## ⚠️ Test data assumption\n\nThe flow provokes its own post: the **bot** publishes it, the **user account** reads it.\n\n- Public channel `@appmixerE2Evladimir` must exist and `@appmixer_test_bot` must be one of its administrators with the *Post messages* and *Delete messages* rights. On another tenant, create a public channel, add your bot as an administrator and replace the username in SendMessage, NewChannelPost, the Assert and DeleteMessage.\n- Two accounts: a **Telegram** bot account (SendMessage, DeleteMessage) and a **Telegram User** account (NewChannelPost).\n- **Do not remove the Wait.** Flow start records the newest post as the trigger's baseline; a post published before that is never emitted.\n- The cleanup deletes the post by the ID the trigger emitted, so it also proves the trigger fired."
+        }
+    }
+}

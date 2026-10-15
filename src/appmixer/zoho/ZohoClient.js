@@ -7,6 +7,14 @@ const { resolveApiDomain } = require('./endpoints');
 // Methods whose requests never carry a body.
 const BODYLESS_METHODS = new Set(['GET', 'HEAD', 'DELETE']);
 
+// Zoho refuses a module the connected organization cannot use without saying which one or why.
+const MODULE_ERROR_HINTS = {
+    INVALID_MODULE: 'The module is not available in the connected Zoho CRM organization (not in its edition, ' +
+        'or disabled), or the name is not a module API name (e.g. "Sales_Orders", not "Sales Orders").',
+    NO_PERMISSION: 'The module is not available in the connected Zoho CRM organization (not in its edition), ' +
+        'or the profile of the connected Zoho user has no permission for it.'
+};
+
 class ZohoClient {
 
     /**
@@ -267,11 +275,13 @@ class ZohoClient {
             .then(response => response.data)
             .catch(e => {
                 if (e.response?.data) {
-                    if (Array.isArray(e.response.data)) {
-                        const errorData = e.response.data[0];
-                        throw errorData;
+                    const errorData = Array.isArray(e.response.data) ? e.response.data[0] : e.response.data;
+                    const hint = MODULE_ERROR_HINTS[errorData?.code];
+                    // NO_PERMISSION is also used for other refusals; only the one about a module is explained.
+                    if (hint && /module/i.test(errorData.message)) {
+                        throw { ...errorData, message: `${errorData.message} (${method} ${url}). ${hint}` };
                     }
-                    throw e.response.data;
+                    throw errorData;
                 }
                 throw e;
             });

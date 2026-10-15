@@ -84,14 +84,16 @@ review's `submitted_at`. Worst case is one extra ~15 s no-op run.
 
 ## apx-vero-mention-dispatch.json
 
-Fires a `repository_dispatch` event of type `apx-vero-mention` when a person
-mentions the bot on a PR — in the conversation, inline on a line of the diff,
-or in a review body — which starts
-`.github/workflows/vero-mention-responder.yml`.
+Calls the OpenClaw gateway's `vero-mention` hook when a person mentions the
+bot on a PR — in the conversation, inline on a line of the diff, or in a
+review body. The `vero` agent on the gateway then runs the responder in
+`.github/openclaw/vero-mention/` (its README has the whole path).
 
 It replaces `claude-pr-author.yml` (#1153, removed in #1169), which listened to
 the comment and review events directly. Two of those three events run without
-secrets on PRs from forks, and apx-vero's PRs always come from its fork.
+secrets on PRs from forks, and apx-vero's PRs always come from its fork. Until
+2026-10-07 the flow fired a `repository_dispatch` into the Actions workflow
+`vero-mention-responder.yml`, which is removed; the hook is the only path.
 
 ### Shape
 
@@ -101,29 +103,29 @@ secrets on PRs from forks, and apx-vero's PRs always come from its fork.
   (`subject.type = PullRequest`). It reads `input` / `operator` / `value`; the
   `field` / `expected` keys some older flows use are ignored by the component,
   which then lets everything through.
-- `GitHub / Repository Dispatch` — into the repository the mention came from
-  (`repository.full_name`), with `{"pr_url": "<subject.url>"}`.
+- `HTTP Post` — `{"pr_url": "<subject.url>"}` to
+  `https://91-99-144-37.nip.io/hooks/vero-mention`, with the hook token as
+  `Authorization: Bearer …`. The wizard asks for the headers, which carry the
+  token; the file keeps the `<OPENCLAW_HOOK_TOKEN>` placeholder.
 
 GitHub keeps one notification per PR thread, so the payload only says "something
-on this PR mentions the bot". The workflow validates that `pr_url` is a pull
-request of its own repository, then sweeps the PR for every mention with no
-reply yet and answers each once. Every reply ends with an
+on this PR mentions the bot". The hook accepts only a pull request of
+`Appmixer-ai/appmixer-connectors`; the responder then sweeps the PR for every
+mention with no reply yet and answers each once. Every reply ends with an
 `<!-- apx-vero-mention:<kind>:<id> -->` marker, which is what "answered" means;
-a repeated dispatch finds nothing pending and stops.
+a repeated call finds nothing pending and stops.
 
 ### Accounts
 
 - **New Mention** reads the notifications of the account it is bound to, so
   bind the **bot** (apx-vero). Its own comments never notify it, which also
-  rules out reply loops.
-- **Repository Dispatch** needs **push** to the repository — bind a writer.
+  rules out reply loops. No second account: the hook needs no GitHub access.
 
 ### Setup
 
-Published as an integration template (see below); the wizard asks for the two
-accounts and the repositories to watch. Each watched repository needs
-`vero-mention-responder.yml` on its default branch and the `VERO_GH_TOKEN`
-and `ANTHROPIC_API_KEY` secrets — the integration only covers the Appmixer half.
+Published as an integration template (see below); the wizard asks for the bot
+account, the repositories to watch and the hook headers. The other half lives
+on the OpenClaw host — see `.github/openclaw/vero-mention/README.md`.
 
 ## Publishing as integrations
 

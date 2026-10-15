@@ -1,0 +1,474 @@
+{
+    "name": "E2E Xero - Make API Call (tenant, headers, query parameters)",
+    "type": "automation",
+    "description": "Make API Call sends to the organisation chosen in Tenant, and sends the Request Headers and Query Parameters set in the Designer (key-value fields stored as a JSON object string).",
+    "flow": {
+        "e937473c-d68a-4704-a428-4afbfe4a9be0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0407296e-7eb0-4503-bea9-ddc63f054978": {
+            "type": "appmixer.xero.accounting.ListTenants",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e937473c-d68a-4704-a428-4afbfe4a9be0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e937473c-d68a-4704-a428-4afbfe4a9be0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "items"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "List Tenants"
+        },
+        "133d87c1-60d9-470d-9849-0a7d3772c614": {
+            "type": "appmixer.xero.core.MakeApiCall",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0407296e-7eb0-4503-bea9-ddc63f054978": [
+                        "tenants"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0407296e-7eb0-4503-bea9-ddc63f054978": {
+                            "tenants": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "tenantId": {
+                                        "e8ff0490-f8cb-45d4-9f60-cfe003425ff2": {
+                                            "variable": "$.0407296e-7eb0-4503-bea9-ddc63f054978.tenants.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].tenantId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/api.xro/2.0/Organisation",
+                                    "method": "GET",
+                                    "tenantId": "{{{e8ff0490-f8cb-45d4-9f60-cfe003425ff2}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Make API Call - Tenant input"
+        },
+        "04ffbb64-264b-4433-9498-d9a1c8447113": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "133d87c1-60d9-470d-9849-0a7d3772c614": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "133d87c1-60d9-470d-9849-0a7d3772c614": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "d47363a5-8478-4aed-948a-139052f1191d": {
+                                            "variable": "$.133d87c1-60d9-470d-9849-0a7d3772c614.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Organisations[0].Name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "451aac46-471c-4a2c-b8e3-f782f27ea164": {
+                                            "variable": "$.0407296e-7eb0-4503-bea9-ddc63f054978.tenants.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].tenantName"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{d47363a5-8478-4aed-948a-139052f1191d}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{451aac46-471c-4a2c-b8e3-f782f27ea164}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert called the chosen organisation"
+        },
+        "d259d150-d72c-4bde-9762-3ef1342c0201": {
+            "type": "appmixer.xero.core.MakeApiCall",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0407296e-7eb0-4503-bea9-ddc63f054978": [
+                        "tenants"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0407296e-7eb0-4503-bea9-ddc63f054978": {
+                            "tenants": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "headers": {
+                                        "b0ad801e-2fc3-43d5-a5a3-3b64f7fa2dbf": {
+                                            "variable": "$.0407296e-7eb0-4503-bea9-ddc63f054978.tenants.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].tenantId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/api.xro/2.0/Organisation",
+                                    "method": "GET",
+                                    "headers": "{\"xero-tenant-id\":\"{{{b0ad801e-2fc3-43d5-a5a3-3b64f7fa2dbf}}}\",\"Accept\":\"application/xml\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Make API Call - Request Headers"
+        },
+        "ef045fb9-f2ab-4e93-b431-0a8b83bfabbb": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d259d150-d72c-4bde-9762-3ef1342c0201": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d259d150-d72c-4bde-9762-3ef1342c0201": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ac865f91-cf21-43e0-912b-3b4e12cbe313": {
+                                            "variable": "$.d259d150-d72c-4bde-9762-3ef1342c0201.out.body",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ac865f91-cf21-43e0-912b-3b4e12cbe313}}}",
+                                                "assertion": "regex",
+                                                "regex": "^\\s*<Response"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert Accept header honoured (XML body)"
+        },
+        "6603d600-eb15-472d-90f0-3d1cc0710e2f": {
+            "type": "appmixer.xero.core.MakeApiCall",
+            "x": 896,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0407296e-7eb0-4503-bea9-ddc63f054978": [
+                        "tenants"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0407296e-7eb0-4503-bea9-ddc63f054978": {
+                            "tenants": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "parameters": {},
+                                    "tenantId": {
+                                        "6fd36f75-2a30-42c9-96aa-ae61f89755cd": {
+                                            "variable": "$.0407296e-7eb0-4503-bea9-ddc63f054978.tenants.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].tenantId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/api.xro/2.0/Accounts",
+                                    "method": "GET",
+                                    "tenantId": "{{{6fd36f75-2a30-42c9-96aa-ae61f89755cd}}}",
+                                    "parameters": "{\"where\": \"Code==\\\"400\\\"\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Make API Call - Query Parameters"
+        },
+        "276e9283-e09c-467b-8549-4165a46a8f68": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6603d600-eb15-472d-90f0-3d1cc0710e2f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6603d600-eb15-472d-90f0-3d1cc0710e2f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "af8a9d16-c751-4aa9-9ea3-93196d78ed5c": {
+                                            "variable": "$.6603d600-eb15-472d-90f0-3d1cc0710e2f.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Accounts[0].Code"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{af8a9d16-c751-4aa9-9ea3-93196d78ed5c}}}",
+                                                "assertion": "equal",
+                                                "expected": "400"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Assert where filter applied"
+        },
+        "ea8b2d8b-f4af-4113-a785-5063349d30c1": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1312,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "04ffbb64-264b-4433-9498-d9a1c8447113": [
+                        "out"
+                    ],
+                    "ef045fb9-f2ab-4e93-b431-0a8b83bfabbb": [
+                        "out"
+                    ],
+                    "276e9283-e09c-467b-8549-4165a46a8f68": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d28fecba-ff70-419e-999e-d1bedf2ad363": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ea8b2d8b-f4af-4113-a785-5063349d30c1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ea8b2d8b-f4af-4113-a785-5063349d30c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "44a6a86c-d57d-4f04-b1ce-ef41876d7a0d": {
+                                            "variable": "$.ea8b2d8b-f4af-4113-a785-5063349d30c1.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Xero - Make API Call (tenant, headers, query parameters)",
+                                    "result": "{{{44a6a86c-d57d-4f04-b1ce-ef41876d7a0d}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "d8e3d929-5333-4226-b639-7554369fe01d": {
+            "x": 64,
+            "y": 160,
+            "width": 384,
+            "height": 224,
+            "content": "## Test data assumption\n\nThe query-parameter lane filters Accounts with `where Code==\"400\"` and expects the first account to be **400 (Advertising)**, part of Xero's default chart of accounts. Unfiltered, Xero lists accounts by code, so 400 is never first (200 Sales is) \u2014 a dropped parameter fails the assertion. On an organisation without account 400, use another code that exists and is not the lowest.\n\nThe header lane sends `Accept: application/xml`; Xero then answers in XML, which proves the headers reach the API."
+        }
+    }
+}
