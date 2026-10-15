@@ -143,7 +143,9 @@ on this flow; this version starts nothing else.
   project 7 (`PVT_kwDODXokv84BFM6_`). They arrive through the GitHub connector's endpoint
   `/plugins/appmixer/github/events`, at which an organization owner points one organization
   webhook once (github connector README, "Setting up the organization webhook"); the bound
-  account needs no admin scope.
+  account needs no admin scope. dev-automated-00001 authenticates GitHub through the QA Auth
+  Hub, so the webhook points at the hub: `https://auth-hub.dev.appmixer.ai/plugins/appmixer/github/events`
+  (the listener of an Auth Hub-backed service registers on the hub, which relays to the instance).
 - `Condition` — the changed field is Status.
 - `GitHub / Make API Call` — one GraphQL call on the card's content node: issue or pull request,
   labels, and for an issue the pull requests that close it.
