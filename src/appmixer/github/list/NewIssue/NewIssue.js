@@ -55,7 +55,11 @@ module.exports = {
         // When the matching issues do not fit on the page, one of them leaving the results
         // (closed, label removed) pulls an older issue onto it. That issue is unseen but not
         // new: it is no newer than the oldest issue the previous tick read (the floor).
-        const { floor } = context.state;
+        let { floor } = context.state;
+        if (known && floor === undefined) {
+            // State saved before the floor existed: nothing older than the newest known issue is new.
+            floor = res.data.items.find(issue => known.has(issue.id))?.created_at;
+        }
         const newIssues = Array.from(diff).filter(issue => !floor || issue.created_at > floor);
 
         if (newIssues.length) {

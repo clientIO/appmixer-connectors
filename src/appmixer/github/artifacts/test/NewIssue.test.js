@@ -63,6 +63,21 @@ describe('github NewIssue', () => {
         assert.deepStrictEqual(context.sent, []);
     });
 
+    it('does not emit an old issue on the first tick after an upgrade from state without a floor', async () => {
+
+        const issues = createIssues(250);
+        const context = createContext(issues);
+        context.state = { known: issues.slice(150).map(issue => issue.id) };
+
+        // Two closed, one created: issue 150 moves onto the page next to the new 251.
+        issues[249].state = 'closed';
+        issues[248].state = 'closed';
+        issues.push({ id: 251, state: 'open', created_at: '2026-02-01T00:00:00.000Z' });
+        await NewIssue.tick(context);
+
+        assert.deepStrictEqual(context.sent, [251]);
+    });
+
     it('emits an older issue that starts to match when all matching issues fit on the page', async () => {
 
         const issues = createIssues(5);
