@@ -52,7 +52,7 @@ async function appmixerEnv() {
     const res = await fetch(appmixer.apiUrl + '/user/auth', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ username: appmixer.username, password: appmixer.password }) });
     if (!res.ok) throw new Error('Appmixer login failed: ' + res.status);
     const { token } = await res.json();
-    return { ...process.env, APPMIXER_TOKEN: token, APPMIXER_API_URL: appmixer.apiUrl + '/', APPMIXER_NO_BANNER: '1' };
+    return { ...process.env, APPMIXER_TOKEN: token, APPMIXER_API_URL: appmixer.apiUrl + '/', APPMIXER_SKILL_UI_URL: appmixer.uiUrl, APPMIXER_NO_BANNER: '1' };
 }
 
 function run(cmd, args, opts = {}) {
