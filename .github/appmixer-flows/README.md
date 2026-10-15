@@ -134,8 +134,8 @@ The dispatcher of the status-driven connector pipeline
 step 1 in [#2916](https://github.com/Appmixer-ai/appmixer-components/issues/2916)). A Status
 change of a card on the [@appmixer-connectors](https://github.com/orgs/Appmixer-ai/projects/7)
 project is resolved to the card's issue, pull request, connector and branch and recorded in one
-comment on the item. The pipeline stages (Testing, Review, Doc&Verification, Needs input) will hang
-on this flow; this version starts nothing else.
+comment on the item. A card moved to **Testing** with a pull request also starts the Testing stage on
+the OpenClaw host (`/hooks/vero-testing`, see `.github/openclaw/vero-testing/README.md`).
 
 ### Shape
 
@@ -172,6 +172,27 @@ exists independently of the instance.
   webhook's Recent Deliveries).
 - **A move with no comment** — look at the instance's runs on `/ops`: `Resolved` is false for
   draft issues, `New run` is false for a redelivery.
+
+## pipeline-stage-result.json
+
+Counterpart of the dispatcher for the pipeline stages that run elsewhere. The Testing runner on the
+OpenClaw host (`.github/openclaw/vero-testing/`) posts its result to this integration's webhook
+(`WebhookTrigger`; the URL lives root-only on the host and is the credential).
+
+### Shape
+
+`Webhook Trigger` → `Code Block` (validates the payload, picks the next status: Testing passed →
+Review, failed → In Progress, blocked → stays) → `Condition` → `Make API Call` (the item's comments) →
+`Code Block` (rewrites the pipeline comment with the same renderer as the dispatcher) → `Make API Call`
+(write) → `Condition` (a next status) → `Update Project Item Field` (Status).
+
+The card moves only after the comment is written, so the dispatcher, which records the move, reads a
+comment that already carries the result.
+
+### Setup
+
+The wizard asks for one GitHub account: the dispatcher's (it has to edit the comment the dispatcher
+created) with `repo` and `project`.
 
 ## Publishing as integrations
 

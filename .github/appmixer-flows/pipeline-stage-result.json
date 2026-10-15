@@ -1,0 +1,508 @@
+{
+    "name": "CI - pipeline stage result",
+    "description": "Receives the result of a stage of the status-driven pipeline (Testing) from the runner on the OpenClaw host, writes it into the pipeline comment of the item and moves the card: passed to Review, failed back to In Progress.",
+    "flow": {
+        "e4000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.utils.http.WebhookTrigger",
+            "version": "1.0.0",
+            "label": "Stage result",
+            "config": {
+                "properties": {
+                    "immediateResponse": true
+                }
+            },
+            "x": 208,
+            "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "version": "1.0.0",
+            "label": "Check the result",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000001": [
+                        "request"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000001": {
+                            "request": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "b4000000-0000-4000-8000-00000000bb01": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000001.request.data",
+                                            "functions": []
+                                        }
+                                    },
+                                    "code": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "data",
+                                                "text": "{{{b4000000-0000-4000-8000-00000000bb01}}}"
+                                            }
+                                        ]
+                                    },
+                                    "code": "// Validates the stage result the runner posted and decides where the card goes next.\nJSON.stringify((function () {\n    const parse = (x) => (typeof x === 'string' && x ? JSON.parse(x) : (x || null));\n    const d = parse($data.data) || {};\n    const NEXT = { Testing: { passed: 'Review', failed: 'In Progress', blocked: '' } };\n    const ok = /^PVTI_[A-Za-z0-9_-]+$/.test(d.itemNodeId || '') && /^PVT_[A-Za-z0-9_-]+$/.test(d.projectNodeId || '')\n        && /^PVTSSF_[A-Za-z0-9_-]+$/.test(d.statusFieldId || '') && /^Appmixer-ai\\/[A-Za-z0-9_.-]+#\\d+$/.test(d.target || '')\n        && NEXT[d.stage] && ['passed', 'failed', 'blocked'].indexOf(d.result) >= 0;\n    if (!ok) return { ok: false, reason: 'malformed stage result' };\n    const repo = d.target.split('#')[0];\n    const number = d.target.split('#')[1];\n    return {\n        ok: true,\n        stage: d.stage,\n        result: d.result,\n        summary: String(d.summary || '').slice(0, 1000),\n        report: String(d.report || '').slice(0, 20000),\n        nextStatus: NEXT[d.stage][d.result],\n        itemNodeId: d.itemNodeId,\n        projectNodeId: d.projectNodeId,\n        statusFieldId: d.statusFieldId,\n        repo,\n        number,\n        commentsUrl: '/repos/' + repo + '/issues/' + number + '/comments?per_page=100',\n        at: String(d.at || new Date().toISOString())\n    };\n})())"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 400,
+            "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000003": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "label": "Valid",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b4000000-0000-4000-8000-00000000bb02": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.ok"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{b4000000-0000-4000-8000-00000000bb02}}}",
+                                                        "operator": "=",
+                                                        "value": "true"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 592,
+            "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000004": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "version": "1.0.0",
+            "label": "Comments on the item",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000003": [
+                        "true"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000003": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "b4000000-0000-4000-8000-00000000bb03": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.commentsUrl"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{b4000000-0000-4000-8000-00000000bb03}}}",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 784,
+            "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000005": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "version": "1.0.0",
+            "label": "Pipeline comment",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "b4000000-0000-4000-8000-00000000bb04": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": []
+                                        },
+                                        "b4000000-0000-4000-8000-00000000bb05": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000004.out.body",
+                                            "functions": []
+                                        }
+                                    },
+                                    "code": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "result",
+                                                "text": "{{{b4000000-0000-4000-8000-00000000bb04}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "comments",
+                                                "text": "{{{b4000000-0000-4000-8000-00000000bb05}}}"
+                                            }
+                                        ]
+                                    },
+                                    "code": "// Writes the stage result into the item's pipeline comment (or creates one).\nJSON.stringify((function () {\n    const parse = (x) => (typeof x === 'string' && x ? JSON.parse(x) : (x || null));\n\n    const RENDER = function (state, lastRun) {\n        const row = (r) => '- ' + String(r.at).slice(0, 16).replace('T', ' ') + ' UTC · ' + (r.from || '—') + ' → **' + r.to + '** (' + r.by + ')';\n        const icon = { passed: '✅', failed: '❌', blocked: '⏸️', running: '⏳' };\n        const stages = Object.keys(state.stages || {}).map((name) => {\n            const s = state.stages[name];\n            return ['', '### ' + name + ' ' + (icon[s.result] || '') + ' ' + s.result + ' · ' + String(s.at).slice(0, 16).replace('T', ' ') + ' UTC',\n                '', s.summary || '', s.report ? '\\n' + s.report : ''].join('\\n');\n        });\n        // \"--\" never reaches the HTML comment, so a report cannot close the state block early\n        const json = JSON.stringify(state).replace(/--/g, '\\\\u002d\\\\u002d');\n        return [\n            '🤖 **Pipeline** — status moves of this card on the ' + (state.organization || 'organization') + ' project board',\n            '',\n            state.runs.map(row).join('\\n'),\n            stages.join('\\n'),\n            '',\n            'Connector: ' + (state.connector || '—') + ' · PR: ' + (state.pr || '—') + (lastRun ? ' · last run `' + lastRun + '`' : ''),\n            '',\n            '<!-- pipeline: ' + json + ' -->'\n        ].join('\\n');\n    };\n    const READ_STATE = function (comments) {\n        const existing = (comments || []).filter((c) => typeof c.body === 'string' && c.body.indexOf('<!-- pipeline: ') >= 0)[0];\n        let state = { runs: [], stages: {} };\n        if (existing) {\n            const m = existing.body.match(/<!-- pipeline: (\\{[\\s\\S]*?\\}) -->/);\n            if (m) { try { state = JSON.parse(m[1]); } catch (e) { state = { runs: [], stages: {} }; } }\n        }\n        if (!Array.isArray(state.runs)) state.runs = [];\n        if (!state.stages || typeof state.stages !== 'object') state.stages = {};\n        return { existing, state };\n    };\n\n    const r = parse($data.result) || {};\n    const { existing, state } = READ_STATE(parse($data.comments) || []);\n    state.stages[r.stage] = { result: r.result, summary: r.summary, report: r.report, at: r.at };\n    const body = RENDER(state, '');\n    return existing\n        ? { method: 'PATCH', url: '/repos/' + r.repo + '/issues/comments/' + existing.id, body: JSON.stringify({ body }) }\n        : { method: 'POST', url: '/repos/' + r.repo + '/issues/' + r.number + '/comments', body: JSON.stringify({ body }) };\n})())"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 976,
+            "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000006": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "version": "1.0.0",
+            "label": "Write the pipeline comment",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000005": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "b4000000-0000-4000-8000-00000000bb06": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.url"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {
+                                        "b4000000-0000-4000-8000-00000000bb07": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.method"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "body": {
+                                        "b4000000-0000-4000-8000-00000000bb08": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.body"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "{{{b4000000-0000-4000-8000-00000000bb06}}}",
+                                    "method": "{{{b4000000-0000-4000-8000-00000000bb07}}}",
+                                    "body": "{{{b4000000-0000-4000-8000-00000000bb08}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 1168,
+            "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000007": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "label": "Move the card",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000006": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000006": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b4000000-0000-4000-8000-00000000bb09": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.nextStatus"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{b4000000-0000-4000-8000-00000000bb09}}}",
+                                                        "operator": "notEmpty"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 1360,
+            "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000008": {
+            "type": "appmixer.github.project.UpdateProjectItemField",
+            "version": "1.0.0",
+            "label": "Set the next status",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000007": [
+                        "true"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000007": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "projectId": {
+                                        "b4000000-0000-4000-8000-00000000bb10": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.projectNodeId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "itemId": {
+                                        "b4000000-0000-4000-8000-00000000bb11": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.itemNodeId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "fieldId": {
+                                        "b4000000-0000-4000-8000-00000000bb12": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.statusFieldId"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "valueType": {},
+                                    "value": {
+                                        "b4000000-0000-4000-8000-00000000bb13": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.nextStatus"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "{{{b4000000-0000-4000-8000-00000000bb10}}}",
+                                    "itemId": "{{{b4000000-0000-4000-8000-00000000bb11}}}",
+                                    "fieldId": "{{{b4000000-0000-4000-8000-00000000bb12}}}",
+                                    "valueType": "single_select",
+                                    "value": "{{{b4000000-0000-4000-8000-00000000bb13}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 1552,
+            "y": 128
+        }
+    },
+    "notes": {
+        "f4000000-0000-4000-8000-000000000001": {
+            "x": 144,
+            "y": -256,
+            "width": 640,
+            "height": 300,
+            "content": "## Pipeline stage result\n\nCounterpart of `CI - project status -> pipeline` (Appmixer-ai/appmixer-components#2890). The Testing runner on the OpenClaw host (`.github/openclaw/vero-testing/testing.mjs`) posts its result to this flow's webhook URL, which lives root-only on the host (`/root/.openclaw/pipeline/callback.json`) — the URL is the credential.\n\n`Check the result` validates the payload and picks the next status (Testing: passed → Review, failed → In Progress, blocked → stays). The comment is rewritten with the same renderer the dispatcher uses, so neither loses what the other wrote; the card moves only after the comment is written.\n\n**Source of truth:** `.github/appmixer-flows/pipeline-stage-result.json` in the connectors repo."
+        }
+    },
+    "wizard": {
+        "fields": [
+            {
+                "type": "account",
+                "label": "GitHub account",
+                "tooltip": "Writes the pipeline comment (repo) and moves the card on the project (project). Use the account of the dispatcher, so it can edit the comment the dispatcher created.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "e4000000-0000-4000-8000-000000000004",
+                        "e4000000-0000-4000-8000-000000000006",
+                        "e4000000-0000-4000-8000-000000000008"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            }
+        ]
+    }
+}
