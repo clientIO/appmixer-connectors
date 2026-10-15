@@ -195,7 +195,7 @@ async function main() {
                 const line = (r.out.match(/^RESULT \| (\w+) \| ([^|]+)\|/m) || []);
                 const passed = r.code === 0 && line[1] === 'PASSED';
                 if (!passed) allPassed = false;
-                const why = passed ? '' : ' — ' + ((r.out.match(/"reason":\s*"([^"]+)"/) || r.out.match(/\[ERROR\]:\s*(.+)/) || [, r.code === null ? 'timed out' : `exit ${r.code}`])[1]).slice(0, 160);
+                const why = passed ? '' : ' — ' + ((r.out.match(/"message":\s*"([^"]+)"/) || r.out.match(/\[ERROR\]:\s*(.+)/) || r.out.match(/"reason":\s*"([^"]+)"/) || [, r.code === null ? 'timed out' : `exit ${r.code}`])[1]).slice(0, 160);
                 lines.push(`- ${passed ? '✅' : '❌'} [${(line[2] || f.name).trim()}](${appmixer.uiUrl}/designer/${f.flowId})${why}`);
             }
         });
