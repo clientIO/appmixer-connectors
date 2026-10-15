@@ -1,0 +1,239 @@
+{
+	"name": "appmixer.teamwork.core.ListTasks",
+	"auth": {
+		"service": "appmixer:teamwork"
+	},
+	"author": "hugh.marron@teamwork.com",
+	"description": "List tasks in Teamwork.com",
+	"private": false,
+	"version": "1.0.0",
+	"inPorts": [
+		{
+			"name": "in",
+			"schema": {
+				"type": "object",
+				"properties": {
+					"searchTerm": { "type": "string" },
+					"startDate": { "type": "string" },
+					"endDate": { "type": "string" },
+					"priority": { "type": "string" },
+					"orderMode": { "type": "string" },
+					"orderBy": { "type": "string" },
+					"page": { "type": "integer" },
+					"pageSize": { "type": "integer" },
+					"projectIds": { "type": "array" },
+					"responsiblePartyIds": { "type": "array" },
+					"createdByUserIds": { "type": "array" },
+					"includeSubtasks": { "type": "boolean" },
+					"tagIds": { "type": "array" },
+                    			"customfields": { "type":  "object" }
+				}
+			},
+			"inspector": {
+				"inputs": {
+					"searchTerm": {
+						"index": 0,
+						"type": "text",
+						"label": "Search Term"
+					},
+					"startDate": {
+						"index": 1,
+						"type": "date-time",
+						"label": "Start Date",
+						"config": {
+							"format": "YYYY-MM-DD"
+						}
+					},
+					"endDate": {
+						"index": 2,
+						"type": "date-time",
+						"label": "End Date",
+						"config": {
+							"format": "YYYY-MM-DD"
+						}
+					},
+					"priority": {
+						"index": 3,
+						"type": "select",
+						"label": "Priority",
+						"options": [
+							{"content": "High", "value": "high"},
+							{"content": "Medium", "value": "medium"},
+							{"content": "Low", "value": "low"}
+						]
+					},
+					"orderMode": {
+						"index": 4,
+						"type": "select",
+						"label": "Order Mode",
+						"options": [
+							{"content": "Ascending", "value": "asc"},
+							{"content": "Descending", "value": "desc"}
+						]
+					},
+					"orderBy": {
+						"index": 5,
+						"type": "select",
+						"label": "Order By",
+						"options": [
+							{"content": "Start Date", "value": "startdate"},
+							{"content": "Created At", "value": "createdat"},
+							{"content": "Priority", "value": "priority"},
+							{"content": "Project", "value": "project"},
+							{"content": "Flattened Task List", "value": "flattenedtasklist"},
+							{"content": "Company", "value": "company"},
+							{"content": "Manual", "value": "manual"},
+							{"content": "Active", "value": "active"},
+							{"content": "Completed At", "value": "completedat"},
+							{"content": "Due Start Date", "value": "duestartdate"},
+							{"content": "All Dates", "value": "alldates"},
+							{"content": "Task List Name", "value": "tasklistname"},
+							{"content": "Task List Display Order", "value": "tasklistdisplayorder"},
+							{"content": "Task List ID", "value": "tasklistid"},
+							{"content": "Due Date", "value": "duedate"},
+							{"content": "Updated At", "value": "updatedat"},
+							{"content": "Task Name", "value": "taskname"},
+							{"content": "Created By", "value": "createdby"},
+							{"content": "Completed By", "value": "completedby"},
+							{"content": "Assigned To", "value": "assignedto"},
+							{"content": "Task Status", "value": "taskstatus"},
+							{"content": "Task Due Date", "value": "taskduedate"},
+							{"content": "Custom Field", "value": "customfield"},
+							{"content": "Estimated Time", "value": "estimatedtime"},
+							{"content": "Board Column", "value": "boardcolumn"},
+							{"content": "Task Group ID", "value": "taskgroupid"},
+							{"content": "Task Group Name", "value": "taskgroupname"},
+							{"content": "Task Group", "value": "taskgroup"},
+							{"content": "Display Order", "value": "displayorder"},
+							{"content": "Project Manual", "value": "projectmanual"},
+							{"content": "Stage Display Order", "value": "stagedisplayorder"},
+							{"content": "Stage", "value": "stage"}
+						]
+					},
+					"page": {
+						"index": 6,
+						"type": "number",
+						"label": "Page",
+						"min": 1
+					},
+					"pageSize": {
+						"index": 7,
+						"type": "number",
+						"label": "Page Size",
+						"min": 1
+					},
+					"projectIds": {
+						"index": 8,
+						"type": "multiselect",
+						"label": "Projects",
+						"min": 0,
+						"source": {
+							"url": "/component/appmixer/teamwork/core/ListProjects?outPort=projects",
+							"data": {
+								"transform": "ListProjects#toInspector"
+							}
+						}
+
+					},
+					"responsiblePartyIds": {
+						"index": 9,
+						"type": "multiselect",
+						"label": "Assignees",
+						"min": 0,
+						"source": {
+							"url": "/component/appmixer/teamwork/core/ListPeople?outPort=people",
+							"data": {
+								"transform": "ListPeople#toInspector"
+							}
+						}
+					},
+					"createdByUserIds": {
+						"index": 10,
+						"type": "multiselect",
+						"label": "Created By",
+						"min": 0,
+						"source": {
+							"url": "/component/appmixer/teamwork/core/ListPeople?outPort=people",
+							"data": {
+								"transform": "ListPeople#toInspector"
+							}
+						}
+					},
+					"includeSubtasks": {
+						"index": 11,
+						"type": "toggle",
+						"label": "Include Subtasks",
+						"defaultValue": false
+					},
+					"tagIds": {
+						"index": 12,
+						"type": "multiselect",
+						"label": "Tags",
+						"source": {
+							"url": "/component/appmixer/teamwork/core/ListTags?outPort=tags",
+							"data": {
+								"transform": "ListTags#toInspector"
+							}
+						}
+					},
+					"customfields": {
+						"type": "expression",
+						"label": "Custom Fields",
+						"index": 13,
+						"levels": ["AND"],
+						"fields": {
+							"name": {
+								"type": "select",
+								"label": "Field",
+								"index": 1,
+								"source": {
+									"url": "/component/appmixer/teamwork/core/ListCustomFields?outPort=customfields",
+									"data": {
+										"messages": {
+											"in/entity": "task",
+											"in/onlyTextAndNumber": true
+										},
+										"transform": "./ListCustomFields#toInspector"
+									}
+								}
+							},
+							"value": {
+								"type": "text",
+								"label": "Value",
+								"index": 2
+							}
+						}
+					}
+				}
+			}
+		}
+	],
+	"outPorts": [
+		{
+			"name": "tasks",
+			"options": [
+				{
+					"label": "Tasks",
+					"value": "tasks",
+					"schema": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"id": { "type": "number", "title": "ID" },
+								"name": { "type": "string", "title": "Name" },
+								"description": { "type": "string", "title": "Description" },
+								"priority": { "type": "string", "title": "Priority" },
+								"tagIds": { "type": "array", "title": "Tag IDs" },
+								"estimateMinutes": { "type": "number", "title": "Estimated Minutes" },
+								"tasklistId": { "type": "number", "title": "Task List ID" }
+							}
+						}
+					}
+				}
+			]
+		}
+	],
+	"icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTIiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MiA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjI2LjI4NTciIGN5PSIyNSIgcng9IjI1LjcxNDMiIHJ5PSIyNSIgZmlsbD0iIzFEMUMzOSIvPgo8cGF0aCBkPSJNMjcuNzA5OSAyMC44NzQ2QzI5LjA4MzEgMjAuODc0NiAyOS44NzM3IDIwLjE0NjMgMjkuODczNyAxOC44OTIyQzI5Ljg3MzcgMTcuNzE4OSAyOS4wNDE1IDE2LjkwOTggMjcuNzUxNSAxNi45MDk4SDI0LjYzMDVWMTQuNjg0N0MyNC42MzA1IDEzLjA2NjQgMjMuNDIzNyAxMi4yMTY4IDIyLjI1ODYgMTIuMjE2OEMyMS4wOTM0IDEyLjIxNjggMTkuODg2NyAxMy4wNjY0IDE5Ljg4NjcgMTQuNjg0N1YzMC4xMzkyQzE5Ljg4NjcgMzMuODYxMiAyMS40MjYzIDM1LjUyIDI0LjgzODYgMzUuNTJDMjYuNjY5NSAzNS41MiAyNy43NTE1IDM1LjA3NDkgMjguNTQyMSAzNC41ODk1QzI5LjEyNDcgMzQuMjY1OCAyOS4zNzQ0IDMzLjU3OCAyOS4zNzQ0IDMzLjA1MjFDMjkuMzc0NCAzMi4wNDA3IDI4LjcwODYgMzAuOTQ4MyAyNy43MDk5IDMwLjk0ODNDMjcuNTg1IDMwLjk0ODMgMjcuNDE4NiAzMC45ODg4IDI3LjI5MzcgMzEuMDI5MkMyNy4yNTIxIDMxLjA2OTcgMjcuMTY4OSAzMS4wNjk3IDI3LjEyNzMgMzEuMTEwMkMyNi44Nzc2IDMxLjIzMTUgMjYuNTAzMSAzMS4zOTM0IDI2LjAwMzcgMzEuMzkzNEMyNS4zNzk1IDMxLjM5MzQgMjQuNjcyMSAzMS4xOTExIDI0LjY3MjEgMjkuNTMyM1YyMC44NzQ2SDI3LjcwOTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMzcuODYzIDI3LjM4ODdDMzUuNTc0MyAyNy4zODg3IDMzLjcwMTcgMjkuMjA5MiAzMy43MDE3IDMxLjQzNDRDMzMuNzAxNyAzMy42NTk1IDM1LjU3NDMgMzUuNDggMzcuODYzIDM1LjQ4QzQwLjE1MTcgMzUuNDggNDIuMDI0MyAzMy42NTk1IDQyLjAyNDMgMzEuNDM0NEM0Mi4wMjQzIDI5LjE2ODggNDAuMTUxNyAyNy4zODg3IDM3Ljg2MyAyNy4zODg3WiIgZmlsbD0iI0ZGMjJCMSIvPgo8L3N2Zz4K"
+}
+	
