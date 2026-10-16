@@ -2,8 +2,26 @@
 
 const lib = require('../../lib');
 
-// Convert Appmixer key-value inspector rows into a plain object.
+// Convert Appmixer key-value inspector rows into a plain object. The rows arrive as an
+// array from the inspector, but a mapped or hand-written value arrives as its JSON
+// string (`[{"key":"limit","value":"1"}]`), and a plain `{ "limit": "1" }` object is
+// accepted too - silently dropping either would send the request without them.
 function kvToObject(rows) {
+
+    if (typeof rows === 'string') {
+        if (!rows.trim()) {
+            return {};
+        }
+        try {
+            rows = JSON.parse(rows);
+        } catch (error) {
+            return {};
+        }
+    }
+
+    if (rows && typeof rows === 'object' && !Array.isArray(rows)) {
+        return { ...rows };
+    }
 
     if (!Array.isArray(rows)) {
         return {};

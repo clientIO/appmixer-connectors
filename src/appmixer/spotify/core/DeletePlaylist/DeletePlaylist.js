@@ -18,10 +18,12 @@ module.exports = {
         // from the owner's library, which is the closest thing and what the Spotify
         // clients themselves call "Delete". It replaced
         // `DELETE /v1/playlists/{id}/followers` in the February 2026 migration.
+        // The endpoint takes the item as a `uris` query parameter (comma-separated
+        // Spotify URIs), not as a JSON body.
         await lib.apiRequest(context, {
             method: 'DELETE',
             path: '/me/library',
-            data: { ids: [`spotify:playlist:${id}`] }
+            params: { uris: `spotify:playlist:${id}` }
         });
 
         return context.sendJson({}, 'out');
