@@ -30,3 +30,9 @@ branch, and the card goes back to **Testing**, which runs the E2E flows again on
 `/root/.openclaw/workspace-vero/pipeline-fix/` (`resolve.mjs`, `finish.mjs`, `INSTRUCTIONS.md`, `amx`,
 `runs/<pr>-<time>/`); transform `/root/.openclaw/hooks/transforms/vero-fix.mjs`; mapping `vero-fix` in
 `/root/.openclaw/openclaw.json`; nginx `location = /hooks/vero-fix`.
+
+## Known limits
+
+- `amx test component` asks for `appmixer login`: the CLI's component test runner does not take the
+  token from `APPMIXER_TOKEN`, so vero verifies a fix with a mocked context and leaves the live check
+  to the Testing run after the push. `amx e2e run` / `amx logs` work.
