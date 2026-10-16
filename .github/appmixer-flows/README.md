@@ -237,6 +237,10 @@ URL of `pipeline-stage-result.json`. The dispatcher's wizard then gets this inte
 (`Pre-release flow URL`). Both URLs are credentials. The Claude agent needs `ai.claude` 1.3.0 (the
 `tool` port).
 
+Publish the template only once `ai.claude` 1.3.0 is installed on the instance: saving a flow drops the
+links to an out port the installed component does not have, so the tools end up unconnected and the
+agent starts with no tools (its log says `component-tools` count 0).
+
 ## Publishing as integrations
 
 Both flows carry a `wizard` and a `description` and are published on
