@@ -288,4 +288,40 @@ describe('ai/claude AIAgent - tools port (ToolStart)', () => {
         assert.deepStrictEqual(toolsCall.toolCalls[0], { componentId: 'ts1', args: { city: 'Prague' }, id: 'tu-1:corr-1', name: 'function_ts1' });
         assert.deepStrictEqual(requests[1].messages.at(-1).content, [{ type: 'tool_result', tool_use_id: 'tu-1', content: '22 °C, sunny' }]);
     });
+
+    it('should remove a ToolOutput that came after its call had timed out', async () => {
+
+        const context = toolPortContext();
+        context.flowDescriptor = {
+            [AGENT_ID]: { type: 'appmixer.ai.claude.AIAgent' },
+            ts1: {
+                type: 'appmixer.ai.agenttools.ToolStart',
+                source: { in: { [AGENT_ID]: ['tools'] } },
+                config: { properties: { description: 'Weather in a city' } }
+            }
+        };
+        const requests = anthropic(context, [
+            { content: [{ type: 'tool_use', id: 'tu-1', name: 'function_ts1', input: {} }], stop_reason: 'tool_use', usage },
+            { content: [{ type: 'text', text: 'No weather.' }], stop_reason: 'end_turn', usage },
+            { content: [{ type: 'text', text: 'Hi.' }], stop_reason: 'end_turn', usage }
+        ]);
+        context.sendJson = sinon.stub().resolves();
+        await AIAgent.start(context);
+
+        const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
+        try {
+            const run = AIAgent.receive(context);
+            await clock.tickAsync(61 * 1000);
+            await run;
+        } finally {
+            clock.restore();
+        }
+        assert.strictEqual(requests[1].messages.at(-1).content[0].is_error, true);
+
+        // The ToolOutput comes late, the next message of the agent removes it.
+        await context.flow.stateSet('tu-1:corr-1', { output: '22 °C' });
+        await AIAgent.receive(context);
+        assert.strictEqual(await context.flow.stateGet('tu-1:corr-1'), undefined);
+        assert.deepStrictEqual(await context.stateGet('lateToolOutputs'), []);
+    });
 });

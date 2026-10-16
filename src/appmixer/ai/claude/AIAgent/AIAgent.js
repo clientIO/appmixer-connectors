@@ -5,6 +5,8 @@ const componentTool = require('../tool');
 
 const COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT = 60 * 1000;  // 60 seconds
 const COLLECT_TOOL_OUTPUTS_POLL_INTERVAL = 1 * 1000;  // 1 second
+// How long a timed-out ToolStart call is remembered, so that its late ToolOutput can be removed from the flow state.
+const LATE_TOOL_OUTPUT_TTL = 60 * 60 * 1000;  // 1 hour
 // Room for extended thinking: newer models spend part of max_tokens on thinking before they answer.
 const DEFAULT_MAX_TOKENS = 8192;
 // The Claude 3 models (not 3.5 / 3.7) answer at most 4096 tokens and refuse a higher max_tokens.
@@ -77,6 +79,7 @@ module.exports = {
             ({ functionDeclarations, componentToolDefs } = await this.collectTools(context));
         }
         const tools = functionDeclarations.concat(componentToolDefs.map(toAnthropicTool));
+        await this.removeLateToolOutputs(context);
         let system = instructions || 'You are a helpful assistant. If you detect you cannot use any tool, always reply directly as if no tools were given to you.';
         let messages = threadId ? await context.stateGet(`history:${threadId}`) || [] : [];
         messages.push({ role: 'user', content: prompt });
@@ -185,6 +188,27 @@ module.exports = {
             await new Promise((resolve) => setTimeout(resolve, COLLECT_TOOL_OUTPUTS_POLL_INTERVAL));
         }
         await context.log({ step: 'no-tool-output', call });
+        // Its ToolOutput can still come and would stay in the flow state: remember the key.
+        const late = await context.stateGet('lateToolOutputs') || [];
+        await context.stateSet('lateToolOutputs', late.concat({ id: call.id, at: Date.now() }));
         return undefined;
+    },
+
+    /** Removes the ToolOutput results that came after their call had timed out. */
+    removeLateToolOutputs: async function(context) {
+
+        const late = await context.stateGet('lateToolOutputs');
+        if (!late?.length) {
+            return;
+        }
+        const waiting = [];
+        for (const call of late) {
+            if (await context.flow.stateGet(call.id)) {
+                await context.flow.stateUnset(call.id);
+            } else if (Date.now() - call.at < LATE_TOOL_OUTPUT_TTL) {
+                waiting.push(call);
+            }
+        }
+        await context.stateSet('lateToolOutputs', waiting);
     }
 };
