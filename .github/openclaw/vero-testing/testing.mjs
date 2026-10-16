@@ -315,6 +315,7 @@ async function main() {
                 return;
             }
             for (const f of flows) {
+                const flowStarted = new Date(Date.now() - 5000).toISOString();
                 const r = run('appmixer', ['e2e', 'run', f.flowId, '--fix'], { env: cliEnv, cwd: worktree, timeout: FLOW_TIMEOUT_MS });
                 writeFileSync(path.join(runDir, `${ref}.${f.flowId}.run.log`), r.out);
                 const line = (r.out.match(/^RESULT \| (\w+) \| ([^|]+)\|/m) || []);
@@ -325,7 +326,14 @@ async function main() {
                     // answer (no credit, revoked key) is in the engine log of the flow
                     const logs = run('appmixer', ['logs', '--flow-id', f.flowId, '-q', 'severity:error', '--json'], { env: cliEnv, cwd: worktree, timeout: 120000 });
                     writeFileSync(path.join(runDir, `${ref}.${f.flowId}.engine.log`), logs.out.slice(0, 2000000));
-                    problem = environmentProblem(logs.out, ref);
+                    // Only this run: the flow keeps the errors of earlier runs (e.g. another account)
+                    let recent = '';
+                    try {
+                        const j = JSON.parse(logs.out.slice(Math.min(...['[', '{'].map((c) => logs.out.indexOf(c)).filter((i) => i >= 0))));
+                        recent = JSON.stringify((Array.isArray(j) ? j : (j.hits || [])).map((h) => h._source || h)
+                            .filter((h) => String(h['@timestamp'] || h.gridTimestamp || '') >= flowStarted));
+                    } catch { recent = ''; }
+                    problem = environmentProblem(recent, ref);
                 }
                 if (!passed) allPassed = false;
                 if (problem) blockers.add(problem);
