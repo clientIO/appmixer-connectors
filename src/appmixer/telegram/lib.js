@@ -386,7 +386,7 @@ module.exports = {
             const componentName = context.flowDescriptor[context.componentId].label || context.componentId;
             const fileName = `${context.config.outputFilePrefix || DEFAULT_PREFIX}-${componentName}.csv`;
             const savedFile = await context.saveFileStream(pathModule.normalize(fileName), buffer);
-            await context.log('info', 'File was saved', { fileName, fileId: savedFile.fileId });
+            await context.log({ step: 'File was saved', fileName, fileId: savedFile.fileId });
             await context.sendJson({ fileId: savedFile.fileId }, outputPortName);
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
@@ -468,14 +468,24 @@ const toCsv = (array) => {
     const headers = Object.keys(array[0]);
 
     return [
-        headers.join(','),
-        ...array.map(items => {
-            return Object.values(items).map(property => {
-                if (typeof property === 'object') {
-                    return JSON.stringify(property);
-                }
-                return property;
-            }).join(',');
-        })
+        headers.map(csvCell).join(','),
+        ...array.map(item => headers.map(header => csvCell(item[header])).join(','))
     ].join('\n');
+};
+
+/**
+ * One CSV field (RFC 4180): a value with a comma, a quote or a line break is quoted and
+ * its quotes are doubled. Empty for null and undefined, JSON for objects and arrays.
+ * @param {*} value
+ * @returns {string}
+ */
+const csvCell = (value) => {
+
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };

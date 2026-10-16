@@ -1,216 +1,188 @@
 const assert = require('assert');
-const CreateDiscountCode = require('../../discounts/CreateDiscountCode/CreateDiscountCode');
-const GetDiscountCode = require('../../discounts/GetDiscountCode/GetDiscountCode');
+const lib = require('../../lib');
+const gqlDiscounts = require('../../gql-discounts');
+const ITEM_SCHEMAS = require('../../item-schema-discounts.json');
 
-class CancelError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'CancelError';
+class CancelError extends Error {}
+
+// A DiscountCodeNode as discountCodeBasicCreate / codeDiscountNodeByCode return
+// it on the GraphQL Admin API 2026-10 (recorded on the QA store).
+const NODE = {
+    id: 'gid://shopify/DiscountCodeNode/2382143062097',
+    codeDiscount: {
+        discountType: 'DiscountCodeBasic',
+        title: 'gql4-probe discount',
+        status: 'ACTIVE',
+        startsAt: '2026-10-05T08:23:12Z',
+        endsAt: '2026-11-04T08:23:12Z',
+        usageLimit: 10,
+        appliesOncePerCustomer: false,
+        asyncUsageCount: 0,
+        createdAt: '2026-10-05T08:23:13Z',
+        updatedAt: '2026-10-05T08:23:13Z',
+        combinesWith: { orderDiscounts: false, productDiscounts: false, shippingDiscounts: false },
+        codes: { nodes: [{ id: 'gid://shopify/DiscountRedeemCode/34881968013393', code: 'GQL4PROBE', asyncUsageCount: 0, createdAt: '2026-10-05T08:23:13Z' }] },
+        summary: '15% off one-time purchase products • Minimum purchase of $50.00',
+        customerGets: { value: { percentage: 0.15 } },
+        minimumRequirement: { greaterThanOrEqualToSubtotal: { amount: '50.0', currencyCode: 'USD' } }
     }
+};
+
+const DELETED = () => ({ discountCodeDelete: { deletedCodeDiscountId: NODE.id, userErrors: [] } });
+
+function mockRun(handler) {
+
+    const calls = [];
+    const run = async (query, variables) => {
+        calls.push({ query, variables });
+        return handler(query, variables, calls.length - 1);
+    };
+    return { run, calls };
 }
 
-// Minimal component context: records every Admin API call and every emitted
-// message, and answers requests from the supplied handler.
+// Component context whose GraphQL calls go to `handler` (lib.runner is stubbed).
 function mockContext(content, handler) {
 
+    const { run, calls } = mockRun(handler);
     const context = {
         auth: { store: 'test-store', accessToken: 'shpat_test' },
         messages: { in: { content } },
         CancelError,
-        requests: [],
+        calls,
         sent: [],
-        async httpRequest(options) {
-            context.requests.push(options);
-            return handler(options, context.requests.length - 1);
-        },
         async sendJson(payload, port) {
             context.sent.push({ payload, port });
         }
     };
-
+    lib.runner = () => run;
     return context;
 }
 
-function notFoundError() {
+describe('Shopify discounts (GraphQL)', () => {
 
-    const error = new Error('Not Found');
-    error.response = { status: 404, statusText: 'Not Found', headers: {} };
-    return error;
-}
+    const originalRunner = lib.runner;
+    afterEach(() => {
+        lib.runner = originalRunner;
+    });
 
-const DISCOUNT_CODE = { id: 7, code: 'SUMMER15', 'price_rule_id': 42, 'usage_count': 3 };
-const PRICE_RULE = { id: 42, title: 'Summer sale 15%', 'value_type': 'percentage', value: '-15.0' };
+    describe('gql-discounts', () => {
 
-// lib.js spaces Admin API calls 500ms apart to stay under the Shopify rate
-// limit, so a few mocked calls in a row outlast mocha's default timeout.
-describe('Shopify discounts', function() {
-
-    this.timeout(15000);
-
-    describe('CreateDiscountCode', () => {
-
-        it('should create the price rule with a negative value and attach the code to it', async () => {
-
-            const context = mockContext({
-                valueType: 'percentage',
-                value: 15,
-                code: ' SUMMER15 ',
-                endsAt: '2026-12-31T23:59:59Z',
-                usageLimit: 100,
-                oncePerCustomer: true,
-                prerequisiteSubtotalRange: 50
-            }, (options, index) => {
-                if (index === 0) {
-                    return { data: { 'price_rule': { id: 42, ...options.data['price_rule'] } }, headers: {} };
-                }
-                return { data: { 'discount_code': { id: 7, code: 'SUMMER15', 'price_rule_id': 42, 'usage_count': 0 } }, headers: {} };
-            });
-
-            await CreateDiscountCode.receive(context);
-
-            const priceRule = context.requests[0].data['price_rule'];
-            assert.strictEqual(context.requests[0].method, 'POST');
-            assert.ok(context.requests[0].url.endsWith('/price_rules.json'));
-            assert.strictEqual(priceRule.value, '-15');
-            assert.strictEqual(priceRule['value_type'], 'percentage');
-            assert.strictEqual(priceRule['target_type'], 'line_item');
-            assert.strictEqual(priceRule['target_selection'], 'all');
-            assert.strictEqual(priceRule['customer_selection'], 'all');
-            assert.strictEqual(priceRule.title, 'SUMMER15');
-            assert.strictEqual(priceRule['ends_at'], '2026-12-31T23:59:59Z');
-            assert.strictEqual(priceRule['usage_limit'], 100);
-            assert.strictEqual(priceRule['once_per_customer'], true);
-            assert.deepStrictEqual(priceRule['prerequisite_subtotal_range'], { 'greater_than_or_equal_to': '50' });
-            assert.ok(priceRule['starts_at'], 'starts_at defaults to the current time');
-
-            // The code hangs off the price rule that was just created.
-            assert.ok(context.requests[1].url.endsWith('/price_rules/42/discount_codes.json'));
-            assert.deepStrictEqual(context.requests[1].data, { 'discount_code': { code: 'SUMMER15' } });
-
-            assert.strictEqual(context.sent.length, 1);
-            assert.strictEqual(context.sent[0].port, 'out');
-            assert.strictEqual(context.sent[0].payload.code, 'SUMMER15');
-            assert.strictEqual(context.sent[0].payload['price_rule'].id, 42);
+        it('should lift codeDiscount to the top level and flatten codes', () => {
+            const discount = gqlDiscounts.flatten(NODE);
+            assert.strictEqual(discount.id, NODE.id);
+            assert.strictEqual(discount.discountType, 'DiscountCodeBasic');
+            assert.strictEqual(discount.title, 'gql4-probe discount');
+            assert.deepStrictEqual(discount.codes, NODE.codeDiscount.codes.nodes);
+            assert.strictEqual(discount.codeDiscount, undefined);
+            assert.strictEqual(gqlDiscounts.flatten(null), null);
         });
 
-        it('should generate a code when none is given', async () => {
-
-            const context = mockContext({ valueType: 'fixed_amount', value: 5 }, (options, index) => {
-                if (index === 0) {
-                    return { data: { 'price_rule': { id: 42, ...options.data['price_rule'] } }, headers: {} };
-                }
-                return { data: { 'discount_code': { id: 7, ...options.data['discount_code'] } }, headers: {} };
+        it('should build a percentage DiscountCodeBasicInput', () => {
+            const input = gqlDiscounts.basicCodeInput({
+                code: 'SUMMER15', valueType: 'percentage', value: 7.1, usageLimit: '10',
+                minimumSubtotal: 50, endsAt: '2026-11-01T00:00:00Z', appliesOncePerCustomer: true,
+                startsAt: '2026-10-01T00:00:00Z'
             });
-
-            await CreateDiscountCode.receive(context);
-
-            const generated = context.requests[1].data['discount_code'].code;
-            // Unambiguous alphabet only — no I, O, 0 or 1.
-            assert.match(generated, /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/);
-            // The price rule is titled after the generated code.
-            assert.strictEqual(context.requests[0].data['price_rule'].title, generated);
-            assert.strictEqual(context.sent[0].payload.code, generated);
+            assert.deepStrictEqual(input, {
+                title: 'SUMMER15',
+                code: 'SUMMER15',
+                startsAt: '2026-10-01T00:00:00Z',
+                appliesOncePerCustomer: true,
+                context: { all: 'ALL' },
+                customerGets: { items: { all: true }, value: { percentage: 0.071 } },
+                endsAt: '2026-11-01T00:00:00Z',
+                usageLimit: 10,
+                minimumRequirement: { subtotal: { greaterThanOrEqualToSubtotal: '50' } }
+            });
         });
 
-        it('should remove the price rule again when the code is refused', async () => {
-
-            const context = mockContext({ valueType: 'percentage', value: 15, code: 'TAKEN' }, (options, index) => {
-                if (index === 0) {
-                    return { data: { 'price_rule': { id: 42, ...options.data['price_rule'] } }, headers: {} };
-                }
-                if (index === 1) {
-                    const error = new Error('Unprocessable Entity');
-                    error.response = { status: 422, statusText: 'Unprocessable Entity', headers: {} };
-                    throw error;
-                }
-                return { data: {}, headers: {} };
-            });
-
-            await assert.rejects(CreateDiscountCode.receive(context), error => error.statusCode === 422);
-
-            assert.strictEqual(context.requests.length, 3);
-            assert.strictEqual(context.requests[2].method, 'DELETE');
-            assert.ok(context.requests[2].url.endsWith('/price_rules/42.json'));
-            assert.strictEqual(context.sent.length, 0);
+        it('should build a fixed amount input without optional terms', () => {
+            const input = gqlDiscounts.basicCodeInput({ code: 'TENOFF', title: 'Ten off', valueType: 'fixedAmount', value: 10 });
+            assert.deepStrictEqual(input.customerGets.value, { discountAmount: { amount: '10', appliesOnEachItem: false } });
+            assert.strictEqual(input.title, 'Ten off');
+            assert.ok(input.startsAt);
+            assert.strictEqual(input.endsAt, undefined);
+            assert.strictEqual(input.usageLimit, undefined);
+            assert.strictEqual(input.minimumRequirement, undefined);
         });
 
-        it('should reject a missing or out-of-range value', async () => {
+        it('should turn userErrors into a 422', async () => {
+            const { run } = mockRun(() => ({
+                discountCodeBasicCreate: { codeDiscountNode: null, userErrors: [{ field: ['code'], message: 'Code must be unique.' }] }
+            }));
+            await assert.rejects(
+                gqlDiscounts(run).createBasicCode({ code: 'DUP', valueType: 'percentage', value: 10 }),
+                err => err.statusCode === 422 && /must be unique/.test(err.message)
+            );
+        });
 
-            const failing = () => assert.fail('no request expected');
-
-            await assert.rejects(
-                CreateDiscountCode.receive(mockContext({ valueType: 'percentage' }, failing)),
-                /Discount Value is required/
-            );
-            await assert.rejects(
-                CreateDiscountCode.receive(mockContext({ valueType: 'percentage', value: 120 }, failing)),
-                /percentage discount cannot be greater than 100/
-            );
-            await assert.rejects(
-                CreateDiscountCode.receive(mockContext({ valueType: 'percentage', value: 0 }, failing)),
-                /must be a non-zero number/
-            );
-            await assert.rejects(
-                CreateDiscountCode.receive(mockContext({ value: 10 }, failing)),
-                /Discount Type is required/
-            );
+        it('should delete by gid built from a numeric id', async () => {
+            const { run, calls } = mockRun(DELETED);
+            await gqlDiscounts(run).delete('2382143062097');
+            assert.deepStrictEqual(calls[0].variables, { id: NODE.id });
         });
     });
 
-    describe('GetDiscountCode', () => {
+    describe('components', () => {
 
-        it('should return the code together with the terms of its price rule', async () => {
+        it('CreateDiscountCode should generate a code when none is given and emit the discount', async () => {
+            const context = mockContext({ valueType: 'percentage', value: 15 }, () => ({
+                discountCodeBasicCreate: { codeDiscountNode: NODE, userErrors: [] }
+            }));
+            await require('../../discounts/CreateDiscountCode/CreateDiscountCode').receive(context);
 
-            const context = mockContext({ code: 'SUMMER15' }, (options, index) => {
-                if (index === 0) {
-                    assert.ok(options.url.endsWith('/discount_codes/lookup.json'));
-                    assert.deepStrictEqual(options.params, { code: 'SUMMER15' });
-                    return { data: { 'discount_code': DISCOUNT_CODE }, headers: {} };
-                }
-                assert.ok(options.url.endsWith('/price_rules/42.json'));
-                return { data: { 'price_rule': PRICE_RULE }, headers: {} };
-            });
-
-            await GetDiscountCode.receive(context);
-
-            assert.deepStrictEqual(context.sent[0], {
-                port: 'out',
-                payload: { ...DISCOUNT_CODE, 'price_rule': PRICE_RULE }
-            });
+            const input = context.calls[0].variables.input;
+            assert.match(input.code, /^[A-HJ-NP-Z2-9]{8}$/);
+            assert.strictEqual(input.title, input.code);
+            assert.deepStrictEqual(input.customerGets.value, { percentage: 0.15 });
+            assert.strictEqual(context.sent[0].port, 'out');
+            assert.deepStrictEqual(context.sent[0].payload, gqlDiscounts.flatten(NODE));
         });
 
-        it('should resolve the lookup redirect by hand when the client did not follow it', async () => {
+        it('CreateDiscountCode should reject a percentage over 100 and a zero value', async () => {
+            const component = require('../../discounts/CreateDiscountCode/CreateDiscountCode');
+            await assert.rejects(component.receive(mockContext({ valueType: 'percentage', value: 120 }, () => ({}))), CancelError);
+            await assert.rejects(component.receive(mockContext({ valueType: 'fixedAmount', value: 0 }, () => ({}))), CancelError);
+        });
 
-            const context = mockContext({ code: 'SUMMER15' }, (options, index) => {
-                if (index === 0) {
-                    return {
-                        data: {},
-                        headers: { location: 'https://test-store.myshopify.com/admin/api/2024-04/price_rules/42/discount_codes/7.json' }
-                    };
-                }
-                if (index === 1) {
-                    assert.ok(options.url.endsWith('/price_rules/42/discount_codes/7.json'));
-                    return { data: { 'discount_code': DISCOUNT_CODE }, headers: {} };
-                }
-                return { data: { 'price_rule': PRICE_RULE }, headers: {} };
+        it('GetDiscountCode should emit the discount or cancel when the code does not exist', async () => {
+            const component = require('../../discounts/GetDiscountCode/GetDiscountCode');
+            const found = mockContext({ code: ' gql4probe ' }, () => ({ codeDiscountNodeByCode: NODE }));
+            await component.receive(found);
+            assert.deepStrictEqual(found.calls[0].variables, { code: 'gql4probe' });
+            assert.strictEqual(found.sent[0].payload.codes[0].code, 'GQL4PROBE');
+
+            const missing = mockContext({ code: 'NOPE' }, () => ({ codeDiscountNodeByCode: null }));
+            await assert.rejects(component.receive(missing), CancelError);
+        });
+
+        it('DeleteDiscountCode should emit an empty object', async () => {
+            const context = mockContext({ id: NODE.id }, DELETED);
+            await require('../../discounts/DeleteDiscountCode/DeleteDiscountCode').receive(context);
+            assert.deepStrictEqual(context.sent, [{ payload: {}, port: 'out' }]);
+        });
+    });
+
+    describe('output schema', () => {
+
+        const schema = ITEM_SCHEMAS.discountCode;
+
+        it('should require only declared properties', () => {
+            for (const key of schema.required) {
+                assert.ok(schema.properties[key], key);
+            }
+        });
+
+        it('should declare every field of the emitted discount', () => {
+            const discount = gqlDiscounts.flatten(NODE);
+            assert.deepStrictEqual(Object.keys(discount).sort(), Object.keys(schema.properties).sort());
+        });
+
+        for (const name of ['CreateDiscountCode', 'GetDiscountCode']) {
+            it(`should give ${name} the discount item schema`, () => {
+                const port = require(`../../discounts/${name}/component.json`).outPorts.find(p => p.name === 'out');
+                assert.deepStrictEqual(port.schema, schema);
             });
-
-            await GetDiscountCode.receive(context);
-
-            assert.strictEqual(context.requests.length, 3);
-            assert.strictEqual(context.sent[0].payload.id, 7);
-        });
-
-        it('should cancel on an unknown code and on a missing input', async () => {
-
-            await assert.rejects(
-                GetDiscountCode.receive(mockContext({ code: 'NOPE' }, () => Promise.reject(notFoundError()))),
-                /Discount code NOPE was not found/
-            );
-            await assert.rejects(
-                GetDiscountCode.receive(mockContext({}, () => assert.fail('no request expected'))),
-                /Discount Code is required/
-            );
-        });
+        }
     });
 });

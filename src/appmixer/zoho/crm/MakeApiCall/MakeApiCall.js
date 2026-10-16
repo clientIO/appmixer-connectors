@@ -1,4 +1,5 @@
 'use strict';
+const { resolveApiDomain } = require('../../endpoints');
 
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
@@ -27,10 +28,8 @@ module.exports = {
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const TLDS = { 'in': 'in', 'us': 'com', 'au': 'com.au', 'eu': 'eu', 'cn': 'com.cn' };
-        const region = (context.profileInfo && context.profileInfo.region || 'us').toLowerCase();
-        const tld = TLDS[region] || TLDS['us'];
-        const baseUrl = `https://www.zohoapis.${tld}`;
+        const profileInfo = context.profileInfo || {};
+        const baseUrl = resolveApiDomain({ apiDomain: profileInfo.apiDomain, region: profileInfo.region || 'us' });
         const targetUrl = url.startsWith('http://') || url.startsWith('https://')
             ? url
             : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;

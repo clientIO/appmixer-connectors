@@ -1,6 +1,6 @@
 'use strict';
 
-const { fetchLatestRecord } = require('../../lib');
+const { fetchLatestRecord, getListenerParams } = require('../../lib');
 
 const eventName = (context) => `${(context.auth.instance)}.${(context.properties.tableName)}.insert`;
 
@@ -8,8 +8,9 @@ module.exports = {
 
     async start(context) {
 
+        const params = await getListenerParams(context);
         context.log({ stage: 'start', eventName: eventName(context) });
-        return context.addListener(eventName(context));
+        return context.addListener(eventName(context), params);
     },
 
     async stop(context) {

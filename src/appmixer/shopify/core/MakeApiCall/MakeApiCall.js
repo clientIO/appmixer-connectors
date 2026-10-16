@@ -1,4 +1,6 @@
 'use strict';
+const { normalizeStore } = require('../../lib');
+const { API_VERSION } = require('../../graphql-client');
 
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
@@ -12,7 +14,42 @@ function kvToObj(arr) {
     return out;
 }
 
+// The access token goes with every request, so the request may only leave for
+// the connected store's Admin API. A relative path is resolved against the
+// supported API version; a full URL is accepted only on the store's own origin.
+function resolveApiUrl(context, url) {
+
+    let origin;
+    try {
+        origin = `https://${normalizeStore(context.auth.store)}.myshopify.com`;
+    } catch (error) {
+        throw new context.CancelError(error.message);
+    }
+
+    const path = String(url).trim();
+    const candidate = /^[a-z][a-z0-9+.-]*:/i.test(path) || path.startsWith('//')
+        ? path
+        : `/admin/api/${API_VERSION}${path.startsWith('/') ? '' : '/'}${path}`;
+
+    let parsed;
+    try {
+        parsed = new URL(candidate, origin);
+    } catch (error) {
+        throw new context.CancelError(`API Endpoint Path is not a valid URL: ${url}`);
+    }
+    if (parsed.username || parsed.password) {
+        throw new context.CancelError('API Endpoint Path must not contain credentials.');
+    }
+    if (parsed.origin !== origin) {
+        throw new context.CancelError(`API Endpoint Path must target ${origin}, got ${parsed.origin}.`);
+    }
+    return parsed.toString();
+}
+
 module.exports = {
+
+    resolveApiUrl,
+
     async receive(context) {
 
         const { url, method, headers: headersKV, parameters: parametersKV, body } = context.messages.in.content;
@@ -27,10 +64,7 @@ module.exports = {
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const baseUrl = `https://${context.auth.store}.myshopify.com/admin/api/2023-04`;
-        const targetUrl = url.startsWith('http://') || url.startsWith('https://')
-            ? url
-            : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
+        const targetUrl = resolveApiUrl(context, url);
 
         const requestOptions = {
             method,

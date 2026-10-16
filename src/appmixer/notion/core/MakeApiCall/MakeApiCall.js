@@ -13,19 +13,25 @@ function kvToObj(arr) {
 }
 
 
-const { API_VERSION } = require('../../lib');
+const lib = require('../../lib');
+const { API_VERSION } = lib;
 
 module.exports = {
     async receive(context) {
         const { url, method, headers: headersKV, parameters: parametersKV, body } = context.messages.in.content;
 
+        if (!url) {
+            throw new context.CancelError('API Endpoint URL is required!');
+        }
+        if (!method) {
+            throw new context.CancelError('HTTP Method is required!');
+        }
+
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const baseUrl = 'https://api.notion.com/v1';
-        const targetUrl = url.startsWith('http://') || url.startsWith('https://')
-            ? url
-            : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
+        // The account's token goes out with this request — only ever to the Notion API.
+        const targetUrl = lib.resolveApiUrl(context, url);
 
         const requestOptions = {
             method: method,

@@ -213,6 +213,7 @@ module.exports = [
         messageIncludes: 'no MakeApiCall component',
         paths: [
             'appmixer/utils/bundle.json',
+            'appmixer/utils/controls/bundle.json',
             'appmixer/utils/test/bundle.json',
             'appmixer/system/bundle.json'
         ],
@@ -273,50 +274,6 @@ module.exports = [
         messageIncludes: 'must declare an "outputType" input',
         paths: ['google/calendar/FindEvent/component.json'],
         reason: 'Pre-existing component (predates the Find outputType standard). It emits one message per matching event on "out" plus a "notFound" port; adding an outputType input would change its output shape and break existing flows, so it is deferred to a future major version of the connector.'
-    },
-    {
-        validator: 'delete-returns-empty',
-        messageIncludes: 'must return an empty object',
-        paths: [
-            'shopify/customers/DeleteCustomer/component.json',
-            'shopify/orders/DeleteOrder/component.json',
-            'shopify/products/DeleteProduct/component.json'
-        ],
-        reason: 'Pre-existing Shopify Delete components return the deleted resource id ({ id }) rather than {}. They predate the delete-shape standard and are wired into published flows; changing the payload/port is a breaking change deferred to a future major version. Surfaced now only because the OAuth->apiKey auth migration touched every component.json (scope removal).'
-    },
-    {
-        validator: 'delete-update-shape',
-        messageIncludes: 'single output port named "out"',
-        paths: [
-            'shopify/customers/DeleteCustomer/component.json',
-            'shopify/orders/DeleteOrder/component.json',
-            'shopify/products/DeleteProduct/component.json'
-        ],
-        reason: 'Pre-existing Shopify Delete components emit on a "deleted" port. Renaming to "out" breaks flows wired to that port; deferred to a future major version. Surfaced now only because the apiKey auth migration touched every component.json.'
-    },
-    {
-        validator: 'dynamic-outport-required-inputs',
-        messageIncludes: 'missing required input',
-        paths: [
-            'shopify/customers/CreateCustomer/component.json',
-            'shopify/customers/FindCustomers/component.json',
-            'shopify/customers/GetCustomer/component.json',
-            'shopify/customers/UpdateCustomer/component.json'
-        ],
-        reason: 'The customers dynamic outPort sources are pure static field-list generators — GenerateCustomersOutput (Create/Get/UpdateCustomer) and FindCustomers own generateOutputPortOptions branch (which only needs outputType, not the required "query"). They read no service data, so the "missing required input" priming the validator wants is a false positive for a static source (it never consumes those inputs), so only that message is suppressed here.'
-    },
-    {
-        validator: 'input-property-naming',
-        paths: [
-            'shopify/customers/CreateCustomer/component.json',
-            'shopify/customers/UpdateCustomer/component.json',
-            'shopify/orders/CountOrders/component.json',
-            'shopify/orders/UpdateOrder/component.json',
-            'shopify/products/CountProducts/component.json',
-            'shopify/products/CreateProduct/component.json',
-            'shopify/products/UpdateProduct/component.json'
-        ],
-        reason: 'Pre-existing snake_case input property names (created_at_min, product_type, accepts_marketing, ...) mirror the Shopify Admin API field names 1:1 and are referenced by published flows and the buildOrder/buildProduct mappers. Renaming to camelCase is a breaking change deferred to a future major version. Surfaced now only because the apiKey auth migration touched every component.json.'
     },
     {
         validator: 'delete-returns-empty',

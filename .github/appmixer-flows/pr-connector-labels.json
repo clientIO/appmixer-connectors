@@ -1,0 +1,734 @@
+{
+    "name": "CI - PR connector labels",
+    "description": "Labels every new pull request with the connector it touches, and every new issue with the connector its title names — appmixer:<connector>, one label per bundle.json — so org:Appmixer-ai label:\"appmixer:slack\" lists its issues and PRs together.",
+    "flow": {
+        "e2000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.github.list.NewPullRequest",
+            "version": "1.0.0",
+            "label": "New pull request",
+            "x": 0,
+            "y": 0,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "Appmixer-ai/appmixer-connectors"
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.github.list.FindFiles",
+            "version": "1.0.0",
+            "label": "Bundles on the PR head",
+            "x": 384,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000001": [
+                        "pullRequest"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000001": {
+                            "pullRequest": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "e2000000-0000-4000-8000-00000000bb01": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000001.pullRequest.base.repo.html_url",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ref": {
+                                        "e2000000-0000-4000-8000-00000000bb02": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000001.pullRequest.head.sha",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {},
+                                    "path": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{e2000000-0000-4000-8000-00000000bb01}}}",
+                                    "ref": "{{{e2000000-0000-4000-8000-00000000bb02}}}",
+                                    "name": "bundle.json",
+                                    "path": "src/appmixer",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000007": {
+            "type": "appmixer.github.list.FindFiles",
+            "version": "1.0.0",
+            "label": "Bundles on the PR base",
+            "x": 768,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "e2000000-0000-4000-8000-00000000bb09": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000001.pullRequest.base.repo.html_url",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ref": {
+                                        "e2000000-0000-4000-8000-00000000bb10": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000001.pullRequest.base.sha",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {},
+                                    "path": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{e2000000-0000-4000-8000-00000000bb09}}}",
+                                    "ref": "{{{e2000000-0000-4000-8000-00000000bb10}}}",
+                                    "name": "bundle.json",
+                                    "path": "src/appmixer",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000003": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "version": "1.0.0",
+            "label": "Changed files",
+            "x": 1152,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000007": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000007": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "e2000000-0000-4000-8000-00000000bb03": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000001.pullRequest.html_url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/graphql",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"query { resource(url: \\\"{{{e2000000-0000-4000-8000-00000000bb03}}}\\\") { ... on PullRequest { number repository { nameWithOwner } files(first: 100) { totalCount nodes { path } } } } }\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000004": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "version": "1.0.0",
+            "label": "Paths to labels",
+            "x": 1536,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "e2000000-0000-4000-8000-00000000bb04": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000003.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data.resource"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "e2000000-0000-4000-8000-00000000bb05": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000002.out.result",
+                                            "functions": []
+                                        },
+                                        "e2000000-0000-4000-8000-00000000bb11": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000007.out.result",
+                                            "functions": []
+                                        }
+                                    },
+                                    "code": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "pr",
+                                                "text": "{{{e2000000-0000-4000-8000-00000000bb04}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "bundles",
+                                                "text": "{{{e2000000-0000-4000-8000-00000000bb05}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "baseBundles",
+                                                "text": "{{{e2000000-0000-4000-8000-00000000bb11}}}"
+                                            }
+                                        ]
+                                    },
+                                    "code": "// The isolate hands back only JSON-serializable primitives: return the result as a JSON string.\nJSON.stringify((function () {\n    const parse = (v) => (typeof v === 'string' ? JSON.parse(v) : v);\n    const pr = parse($data.pr) || {};\n    if (!pr.number || !pr.repository) {\n        return { label: false, reason: 'pull request not found' };\n    }\n    const ROOT = 'src/appmixer/';\n    const MAX_NAME = 50;    // GitHub's limit on a label name\n    const MAX_LABELS = 5;   // a sweep across more connectors would bury every overview it lands in\n    // Appmixer-ai/appmixer-components (GraphQL node id) and the colour every connector label has there.\n    const COMPONENTS_REPOSITORY_ID = 'R_kgDOBsEXTw';\n    const LABEL_COLOR = '5319e7';\n\n    const files = ((pr.files || {}).nodes || []).map(f => f.path);\n    if ((pr.files || {}).totalCount > files.length) {\n        // Only the first page is read; labelling from part of the files could miss connectors and the MAX_LABELS cut.\n        return { label: false, reason: 'changes ' + pr.files.totalCount + ' files, more than ' + files.length + ' can be classified' };\n    }\n\n    // Bundle directories on the PR head and base: one releasable unit each, including a connector the PR adds or removes.\n    const bundleDirs = Array.from(new Set((parse($data.bundles) || []).concat(parse($data.baseBundles) || [])\n        .map(b => b.directory + '/')\n        .filter(d => d.startsWith(ROOT) && d.length > ROOT.length)));\n    const nameOf = dir => 'appmixer:' + dir.slice(ROOT.length, -1).split('/').join(':');\n    const vendorOf = dir => dir.slice(ROOT.length).split('/')[0];\n    // A vendor with a label over the limit (generated MCP server wrappers) gets one label for all its bundles.\n    const collapsed = new Set(bundleDirs.filter(d => nameOf(d).length > MAX_NAME).map(vendorOf));\n    const labelOf = dir => collapsed.has(vendorOf(dir)) ? 'appmixer:' + vendorOf(dir) : nameOf(dir);\n\n    const deepest = (dirs, file) => dirs.filter(d => file.startsWith(d)).sort((a, b) => b.length - a.length)[0];\n    const labels = new Set();\n    const dirOf = new Map();\n    const addLabel = dir => {\n        const label = labelOf(dir);\n        labels.add(label);\n        dirOf.set(label, collapsed.has(vendorOf(dir)) ? ROOT + vendorOf(dir) : dir.slice(0, -1));\n    };\n    for (const file of files) {\n        const bundle = deepest(bundleDirs, file);\n        if (bundle) {\n            addLabel(bundle);\n            continue;\n        }\n        // Not inside a bundle: the nearest ancestor that holds bundles is a shared root\n        // (google/auth.js, microsoft/artifacts/...), and a change there reaches all of them.\n        const parts = file.split('/');\n        for (let depth = parts.length - 1; depth > 2; depth--) {\n            const dir = parts.slice(0, depth).join('/') + '/';\n            if (bundleDirs.some(b => b.startsWith(dir))) {\n                addLabel(dir);\n                break;\n            }\n        }\n    }\n    const list = Array.from(labels).sort();\n    if (list.length > MAX_LABELS) {\n        return { label: false, reason: 'touches ' + list.length + ' connectors, more than ' + MAX_LABELS };\n    }\n    return {\n        label: list.length > 0,\n        labels: list.join(', '),\n        url: '/repos/' + pr.repository.nameWithOwner + '/issues/' + pr.number + '/labels',\n        body: JSON.stringify({ labels: list }),\n        // The same labels in appmixer-components, where the issues live. One GraphQL call; a label that\n        // exists already fails on its own alias (\"Name has already been taken\") and the rest go through.\n        createBody: JSON.stringify({\n            query: 'mutation { ' + list.map((name, i) => 'l' + i + ': createLabel(input: { repositoryId: '\n                + JSON.stringify(COMPONENTS_REPOSITORY_ID) + ', name: ' + JSON.stringify(name) + ', color: '\n                + JSON.stringify(LABEL_COLOR) + ', description: ' + JSON.stringify('Connector: ' + dirOf.get(name))\n                + ' }) { label { name } }').join(' ') + ' }'\n        })\n    };\n})());"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000005": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "label": "Touches a connector",
+            "x": 1920,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e2000000-0000-4000-8000-00000000bb06": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000004.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.label"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{e2000000-0000-4000-8000-00000000bb06}}}",
+                                                        "operator": "=",
+                                                        "value": "true"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000006": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "version": "1.0.0",
+            "label": "Add labels",
+            "x": 2304,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000005": [
+                        "true"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000005": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "e2000000-0000-4000-8000-00000000bb07": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000004.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.url"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {
+                                        "e2000000-0000-4000-8000-00000000bb08": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000004.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.body"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "{{{e2000000-0000-4000-8000-00000000bb07}}}",
+                                    "method": "POST",
+                                    "body": "{{{e2000000-0000-4000-8000-00000000bb08}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000008": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "label": "Create labels in appmixer-components",
+            "x": 2688,
+            "y": 0,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000006": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000006": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "e2000000-0000-4000-8000-00000000bb12": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000004.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.createBody"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/graphql",
+                                    "method": "POST",
+                                    "body": "{{{e2000000-0000-4000-8000-00000000bb12}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-000000000009": {
+            "type": "appmixer.github.list.NewIssue",
+            "label": "New issue",
+            "x": 0,
+            "y": 256,
+            "source": {},
+            "config": {
+                "properties": {
+                    "repositoryId": "Appmixer-ai/appmixer-components",
+                    "state": "open",
+                    "includePr": false
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-00000000000a": {
+            "type": "appmixer.github.list.FindFiles",
+            "label": "Bundles on dev",
+            "x": 384,
+            "y": 256,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-000000000009": [
+                        "issue"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-000000000009": {
+                            "issue": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {},
+                                    "ref": {},
+                                    "name": {},
+                                    "path": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "Appmixer-ai/appmixer-connectors",
+                                    "ref": "dev",
+                                    "name": "bundle.json",
+                                    "path": "src/appmixer",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-00000000000b": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "label": "Title to labels",
+            "x": 768,
+            "y": 256,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-00000000000a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-00000000000a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "e2000000-0000-4000-8000-00000000bb13": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000009.issue.title",
+                                            "functions": []
+                                        },
+                                        "e2000000-0000-4000-8000-00000000bb14": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000009.issue.labels",
+                                            "functions": []
+                                        },
+                                        "e2000000-0000-4000-8000-00000000bb15": {
+                                            "variable": "$.e2000000-0000-4000-8000-000000000009.issue.url",
+                                            "functions": []
+                                        },
+                                        "e2000000-0000-4000-8000-00000000bb16": {
+                                            "variable": "$.e2000000-0000-4000-8000-00000000000a.out.result",
+                                            "functions": []
+                                        }
+                                    },
+                                    "code": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "title",
+                                                "text": "{{{e2000000-0000-4000-8000-00000000bb13}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "labels",
+                                                "text": "{{{e2000000-0000-4000-8000-00000000bb14}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "url",
+                                                "text": "{{{e2000000-0000-4000-8000-00000000bb15}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "bundles",
+                                                "text": "{{{e2000000-0000-4000-8000-00000000bb16}}}"
+                                            }
+                                        ]
+                                    },
+                                    "code": "// The isolate hands back only JSON-serializable primitives: return the result as a JSON string.\nJSON.stringify((function () {\n    const parse = (v) => { try { return typeof v === 'string' ? JSON.parse(v) : v; } catch (e) { return v; } };\n    const issue = { title: $data.title, labels: parse($data.labels) || [] };\n    const result = (function issueLabels(issue, bundles) {\n        const ROOT = 'src/appmixer/';\n        const MAX_NAME = 50;    // GitHub's limit on a label name\n        const MAX_LABELS = 5;   // same cut as for pull requests\n        // Connector names that are also ordinary words: they count only as an explicit ref (vendor.module).\n        const COMMON = ['front', 'line', 'box', 'tasks', 'http', 'email', 'mail', 'chat', 'data', 'files', 'file',\n            'calendar', 'sheets', 'docs', 'drive', 'storage', 'utils', 'test', 'ai', 'core', 'controls', 'database',\n            'list', 'records', 'agent', 'agents', 'teams', 'contacts', 'forms', 'tables', 'webhook', 'webhooks',\n            'timers', 'filters', 'converters', 'formatting', 'language', 'text', 'image', 'images', 'video',\n            'audio', 'search', 'news', 'notes', 'meetings', 'messages', 'events', 'people', 'projects', 'crm',\n            'books', 'desk', 'sign', 'analytics', 'ads', 'marketing', 'cloud', 'mcp', 'mcpservers', 'pages'];\n    \n        if ((issue.labels || []).some(l => String(l.name || l).startsWith('appmixer:'))) {\n            return { label: false, reason: 'already has a connector label' };\n        }\n    \n        // Bundle refs on dev: microsoft/mail -> ['microsoft', 'mail'].\n        const refs = (bundles || [])\n            .map(b => b.directory + '/')\n            .filter(d => d.startsWith(ROOT) && d.length > ROOT.length)\n            .map(d => d.slice(ROOT.length, -1).split('/'));\n        const nameOf = parts => 'appmixer:' + parts.join(':');\n        const collapsed = new Set(refs.filter(p => nameOf(p).length > MAX_NAME).map(p => p[0]));\n        const labelOf = parts => collapsed.has(parts[0]) ? 'appmixer:' + parts[0] : nameOf(parts);\n        const dirOf = parts => ROOT + (collapsed.has(parts[0]) ? parts[0] : parts.join('/'));\n    \n        const byRef = new Map();      // 'microsoft.mail' -> parts\n        const byName = new Map();     // 'mail' -> [parts, ...]\n        const vendors = new Map();    // 'microsoft' -> number of bundles below it\n        for (const parts of refs) {\n            byRef.set(parts.join('.').toLowerCase(), parts);\n            const last = parts[parts.length - 1].toLowerCase();\n            byName.set(last, (byName.get(last) || []).concat([parts]));\n            vendors.set(parts[0].toLowerCase(), (vendors.get(parts[0].toLowerCase()) || 0) + 1);\n        }\n    \n        const found = new Map();      // label -> directory\n        const add = parts => found.set(labelOf(parts), dirOf(parts));\n        const title = String(issue.title || '');\n    \n        // 1. An explicit ref anywhere in the title: microsoft.mail, ai/openai, appmixer.ai.typesafe,\n        //    or a component ref (jira.createIssue) - the longest prefix that is a bundle wins.\n        const tokens = title.match(/[A-Za-z0-9_]+(?:[./][A-Za-z0-9_]+)+/g) || [];\n        const matchedTokens = [];\n        for (const token of tokens) {\n            let parts = token.split(/[./]/);\n            if (parts[0].toLowerCase() === 'appmixer') parts = parts.slice(1);\n            if (parts.length < 2) continue;\n            let matched = false;\n            for (let n = parts.length; n >= 2 && !matched; n--) {\n                const ref = byRef.get(parts.slice(0, n).join('.').toLowerCase());\n                if (ref) {\n                    add(ref);\n                    matched = true;\n                }\n            }\n            // A vendor that is a bundle of its own followed by a component (jira.createIssue, slack.ListChannels).\n            if (!matched && byRef.has(parts[0].toLowerCase()) && !byRef.has(parts[1].toLowerCase())) {\n                add(byRef.get(parts[0].toLowerCase()));\n                matched = true;\n            }\n            if (matched) matchedTokens.push(token);\n        }\n    \n        // 2. The head of the title, before ': ', ' - ' or ' — ': 'Slack: ...', 'Google Drive - ...',\n        //    'slack 5.5.1: ...', 'Microsoft Teams SendChannelMessage: ...', 'Hubspot, Asana: ...'.\n        //    Each listed name counts by its first one to three words.\n        // An explicit ref already matched above is taken out, so ai/openai does not also count as 'openai'.\n        let head = title\n            .replace(/^(\\[[^\\]]*\\]\\s*)+/, '')\n            .split(/:\\s|:$|\\s[-–—]\\s/)[0]\n            .replace(/\\([^)]*\\)|\\[[^\\]]*\\]/g, ' ');\n        for (const token of matchedTokens) head = head.split(token).join(' ');\n        head = head.trim();\n        // Names people use for a module that is called differently in the repository.\n        const ALIASES = { sheets: 'spreadsheets' };\n        const matchWords = words => {\n            for (let k = Math.min(3, words.length); k >= 1; k--) {\n                const key = words.slice(0, k).map(w => ALIASES[w] || w).join('.');\n                const ref = byRef.get(key);\n                if (ref) return add(ref);\n                if (k > 1) continue;\n                const named = byName.get(key) || [];\n                if (named.length === 1 && !COMMON.includes(key)) return add(named[0]);\n                if ((vendors.get(key) || 0) > 1 && !COMMON.includes(key)) {\n                    // The vendor alone ('Microsoft: ...', 'microsoft auth: ...') is about its shared root.\n                    found.set('appmixer:' + key, ROOT + key);\n                }\n            }\n        };\n        if (head && head.length <= 80) {\n            for (const item of head.split(/,|\\s\\/\\s|\\/|&|\\+|\\sand\\s/)) {\n                const words = item.toLowerCase()\n                    .replace(/^\\s*appmixer[\\s.]+/, '')\n                    .split(/[\\s.]+/)\n                    .filter(w => w && !/^v?\\d/.test(w));\n                if (words.length) matchWords(words);\n            }\n        }\n    \n        const labels = Array.from(found.keys()).sort();\n        if (!labels.length) {\n            return { label: false, reason: 'no connector in the title' };\n        }\n        if (labels.length > MAX_LABELS) {\n            return { label: false, reason: 'names ' + labels.length + ' connectors, more than ' + MAX_LABELS };\n        }\n        return { label: true, labels, dirs: labels.map(l => found.get(l)) };\n    })(issue, parse($data.bundles) || []);\n    if (!result.label) {\n        return result;\n    }\n    // url is the issue's API URL: https://api.github.com/repos/{owner}/{repo}/issues/{number}\n    return {\n        label: true,\n        labels: result.labels.join(', '),\n        url: String($data.url).replace(/^https:\\/\\/api\\.github\\.com/, '') + '/labels',\n        body: JSON.stringify({ labels: result.labels })\n    };\n})());"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-00000000000c": {
+            "type": "appmixer.utils.controls.Condition",
+            "label": "Names a connector",
+            "x": 1152,
+            "y": 256,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-00000000000b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-00000000000b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e2000000-0000-4000-8000-00000000bb17": {
+                                            "variable": "$.e2000000-0000-4000-8000-00000000000b.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.label"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{e2000000-0000-4000-8000-00000000bb17}}}",
+                                                        "operator": "=",
+                                                        "value": "true"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e2000000-0000-4000-8000-00000000000d": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "label": "Add labels to the issue",
+            "x": 1536,
+            "y": 236,
+            "source": {
+                "in": {
+                    "e2000000-0000-4000-8000-00000000000c": [
+                        "true"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2000000-0000-4000-8000-00000000000c": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "e2000000-0000-4000-8000-00000000bb18": {
+                                            "variable": "$.e2000000-0000-4000-8000-00000000000b.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.url"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {
+                                        "e2000000-0000-4000-8000-00000000bb19": {
+                                            "variable": "$.e2000000-0000-4000-8000-00000000000b.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.body"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "{{{e2000000-0000-4000-8000-00000000bb18}}}",
+                                    "method": "POST",
+                                    "body": "{{{e2000000-0000-4000-8000-00000000bb19}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "notes": {
+        "e2000000-0000-4000-8000-00000000ff01": {
+            "x": 0,
+            "y": 160,
+            "width": 560,
+            "height": 240,
+            "content": "**PR connector labels**\n\nEvery new pull request gets `appmixer:<connector>` for each connector whose files it changes — one label per `bundle.json`, plus `appmixer:google` / `appmixer:microsoft` / … for their shared root files. *Bundles on the PR head* and *Bundles on the PR base* read the `bundle.json` files at the PR's head and base commits, so a connector the PR adds or removes is labelled too, and nothing here has to be regenerated when a connector is added.\n\nA PR touching more than five connectors, or changing more than 100 files, gets no labels.\n\n**Add labels** needs **push** access: adding a label that does not exist yet creates it, which triage cannot.\n\n**Source of truth:** `.github/appmixer-flows/pr-connector-labels.json` in the connectors repo."
+        }
+    },
+    "wizard": {
+        "fields": [
+            {
+                "type": "account",
+                "label": "GitHub account (reads pull requests and issues)",
+                "tooltip": "Reads new pull requests, their changed files, new issues and the repository tree.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "e2000000-0000-4000-8000-000000000001",
+                        "e2000000-0000-4000-8000-000000000002",
+                        "e2000000-0000-4000-8000-000000000007",
+                        "e2000000-0000-4000-8000-000000000003",
+                        "e2000000-0000-4000-8000-000000000009",
+                        "e2000000-0000-4000-8000-00000000000a"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "account",
+                "label": "GitHub account with push access",
+                "tooltip": "Adds the labels to pull requests and issues, and creates the labels in appmixer-components. Push access is needed so a label for a brand-new connector can be created.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "e2000000-0000-4000-8000-000000000006",
+                        "e2000000-0000-4000-8000-000000000008",
+                        "e2000000-0000-4000-8000-00000000000d"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "Repository",
+                "tooltip": "The repository to watch, in `owner/repo` format.",
+                "placeholder": "",
+                "source": "e2000000-0000-4000-8000-000000000001.config.properties.repositoryId",
+                "attrs": {},
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "Issues repository",
+                "tooltip": "The repository whose new issues get a connector label, in `owner/repo` format.",
+                "placeholder": "",
+                "source": "e2000000-0000-4000-8000-000000000009.config.properties.repositoryId",
+                "attrs": {},
+                "options": {}
+            }
+        ]
+    }
+}

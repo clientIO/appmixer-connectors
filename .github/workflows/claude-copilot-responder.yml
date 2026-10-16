@@ -1,7 +1,8 @@
 name: Claude Copilot Responder (auto-address Copilot review)
 
-# Sibling of claude-pr-author.yml. That workflow reacts to a HUMAN reviewer who
-# @-mentions `apx-vero` on a PR. THIS one reacts automatically to GitHub
+# Sibling of the @apx-vero mention responder (.github/openclaw/vero-mention/,
+# run on the OpenClaw gateway), which reacts to a PERSON who @-mentions
+# `apx-vero` on a PR. THIS one reacts automatically to GitHub
 # Copilot's code review: when Copilot submits a review on an apx-vero-authored
 # PR, Claude reads every Copilot inline comment, decides which are valid, fixes
 # the valid ones on the PR branch, pushes (updating the PR in place) and replies
@@ -268,6 +269,17 @@ jobs:
         if: steps.pr.outputs.proceed == 'true'
         run: npm ci
 
+      # scripts/validate.js is a thin wrapper over `appmixer connector validate`
+      # (same as nodejs.yml), so the CLI has to be present or Claude's validate
+      # step silently does nothing. The checkout's `origin` is the apx-vero
+      # fork, whose `dev` can lag; validate --changed needs the real base, so
+      # fetch upstream's dev into a remote-tracking ref (public repo, no token).
+      - name: Install appmixer CLI (dev dist-tag) and fetch upstream dev
+        if: steps.pr.outputs.proceed == 'true'
+        run: |
+          npm install -g appmixer@dev
+          git fetch --no-tags https://github.com/${{ github.repository }}.git dev:refs/remotes/upstream/dev
+
       - name: Configure git identity
         if: steps.pr.outputs.proceed == 'true'
         run: |
@@ -284,8 +296,6 @@ jobs:
       - name: Claude address the Copilot review
         if: steps.pr.outputs.proceed == 'true'
         uses: anthropics/claude-code-action@46a42b43239748e5b25771606bf1f551c3b1b517 # v1.0.232
-        env:
-          GH_TOKEN: ${{ secrets.VERO_GH_TOKEN }}
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.VERO_GH_TOKEN }}
@@ -293,10 +303,17 @@ jobs:
           allowed_bots: "copilot"
           claude_args: "--model claude-opus-5-5"
           # SECURITY: Copilot's comments + diff hunks are treated as untrusted
-          # input. Claude is NOT given any gh write command — it only edits code,
-          # lints, commits and pushes the branch, and writes a structured replies
-          # file. A separate trusted step posts the replies, so a prompt-injection
-          # in a comment can't drive arbitrary API calls with the PAT.
+          # input. Claude is NOT given any gh write command and no PAT in its
+          # environment — it only edits code, lints, commits, and writes a
+          # structured replies file. Trusted steps below push the commits and
+          # post the replies, so a prompt-injection in a comment can't drive
+          # arbitrary API calls with the PAT.
+          #
+          # The push deliberately does NOT happen here: Claude Code refuses a
+          # command that splices `$GH_TOKEN` into a URL (it never matched the
+          # `Bash(git:*)` allow rule and, headless, is denied instead of asked),
+          # so every run that changed code ended with the commit stranded on the
+          # runner while the summary still said "Pushed" (PR #1341, 2026-09-25).
           settings: |
             {
               "permissions": {
@@ -305,7 +322,8 @@ jobs:
                   "Bash(git:*)",
                   "Bash(npm run lint)",
                   "Bash(npm ci)",
-                  "Bash(node scripts/validate.js:*)"
+                  "Bash(node scripts/validate.js:*)",
+                  "Bash(rm:*)"
                 ]
               }
             }
@@ -345,8 +363,18 @@ jobs:
             - There is NO live Appmixer instance and no live credentials here. Do
               NOT use skills that talk to a running instance (run-CLI-tests,
               upload-e2e-flows, run-e2e-flows). Static skills are fine.
-            - Do NOT post anything to GitHub yourself (no gh comment/api). You only
-              edit code, commit, push, and write the replies file described below.
+            - Do NOT post anything to GitHub yourself (no gh comment/api) and do
+              NOT push: you only edit code, commit on the current branch, and
+              write the replies file described below. A later workflow step
+              pushes your commits to the PR branch and posts the replies.
+            - The only shell commands you may run are `git`, `npm run lint`,
+              `npm ci`, `node scripts/validate.js` and `rm`; anything else
+              (`cat`, `node <script>`, `python3`, …) is denied. Read files —
+              including /tmp/copilot-review.json — with the Read tool and change
+              them with Edit, also JSON flow files whose Code Blocks embed code
+              in strings. Do NOT write helper scripts or scratch files into the
+              repository: you could not run them, and anything left in the
+              working tree is reported on the PR as unpushed work.
 
             Steps:
             1. Read /tmp/copilot-review.json. For EACH inline comment, judge whether
@@ -357,14 +385,13 @@ jobs:
                BRANCH. Group related fixes sensibly. Make NO change for INVALID
                comments — you will explain why in the reply instead.
             3. If you changed any files: run `npm run lint`, and if connector files
-               changed, `node scripts/validate.js --changed --base origin/dev`.
+               changed, `node scripts/validate.js --changed --base upstream/dev`
+               (the appmixer CLI is installed; `upstream/dev` is fetched).
                Fix anything they flag.
-            4. If you changed files, commit with a clear message referencing the PR
-               (${{ github.repository }}#${{ steps.pr.outputs.number }} — addressing
-               Copilot review), then push to the SAME branch on the apx-vero fork.
-               Do NOT add a git remote; push directly using GH_TOKEN, never print it:
-               git push "https://x-access-token:$GH_TOKEN@github.com/apx-vero/appmixer-connectors.git" \
-                 "HEAD:refs/heads/${{ steps.pr.outputs.head_ref }}"
+            4. If you changed files, commit them on the current branch with a clear
+               message referencing the PR (${{ github.repository }}#${{ steps.pr.outputs.number }}
+               — addressing Copilot review). Leave nothing uncommitted. Do not
+               push, do not add or change git remotes.
             5. Write /tmp/claude-replies.json with EXACTLY this shape (valid JSON):
                {
                  "code_changed": true,
@@ -379,32 +406,106 @@ jobs:
                  comment. Keep each `body` concise and specific.
             6. Stop. Do not loop, do not open a new PR, do not merge.
 
+      - name: Push Claude's commits to the PR branch
+        # TRUSTED step: pushes to the apx-vero fork with the apx-vero PAT — no
+        # token ever appears on a command line or in .git/config. Anything
+        # Claude edited but did not commit is NOT pushed (it would be
+        # unreviewed, half-done work); it is reported instead. `pushed` /
+        # `commits` / `uncommitted` feed the summary so it can only claim a push
+        # that actually happened.
+        #
+        # The checkout's credentials cannot be reused: while setting up git
+        # auth, claude-code-action removes the checkout's extraheader, re-points
+        # `origin` at the BASE repository (GITHUB_REPOSITORY, where the fork's
+        # head branch does not exist) and installs a credential helper that
+        # only works inside its own process. So restore the fork remote and
+        # authenticate with a helper that reads GH_TOKEN from this step's env.
+        id: push
+        if: steps.pr.outputs.proceed == 'true'
+        env:
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+          GH_TOKEN: ${{ secrets.VERO_GH_TOKEN }}
+        run: |
+          set -euo pipefail
+          git remote set-url origin https://github.com/apx-vero/appmixer-connectors.git
+          git config --local --unset-all credential.helper || true
+          git config --local credential.helper '!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f'
+          git fetch -q origin "$HEAD_REF"
+
+          UNCOMMITTED=$(git status --porcelain | wc -l | tr -d ' ')
+          COMMITS=$(git log --format='%h %s' "origin/$HEAD_REF..HEAD")
+          COUNT=$(git rev-list --count "origin/$HEAD_REF..HEAD")
+
+          PUSHED=false
+          if [ "$COUNT" -gt 0 ]; then
+            git push origin "HEAD:refs/heads/$HEAD_REF"
+            PUSHED=true
+            echo "Pushed $COUNT commit(s) to $HEAD_REF:"; echo "$COMMITS"
+          else
+            echo "No new commits on top of origin/$HEAD_REF — nothing to push."
+          fi
+          if [ "$UNCOMMITTED" -gt 0 ]; then
+            echo "WARNING: $UNCOMMITTED uncommitted change(s) left in the working tree were NOT pushed:"
+            git status --short
+          fi
+
+          {
+            echo "pushed=$PUSHED"
+            echo "count=$COUNT"
+            echo "uncommitted=$UNCOMMITTED"
+            echo "commits<<EOF"
+            echo "$COMMITS"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Post replies to Copilot
         # TRUSTED step: reads the structured file Claude produced and posts each
         # reply into the corresponding Copilot review thread, then one PR summary
         # comment. Tolerant: if the file is missing/invalid it still posts a
-        # fallback summary so the run is never silent.
+        # fallback summary so the run is never silent. What it says about code
+        # changes comes from the push step, not from Claude's own claims.
         if: steps.pr.outputs.proceed == 'true'
         env:
           GH_TOKEN: ${{ secrets.VERO_GH_TOKEN }}
           REPO: ${{ github.repository }}
           NUM: ${{ steps.pr.outputs.number }}
+          PUSHED: ${{ steps.push.outputs.pushed }}
+          PUSH_COUNT: ${{ steps.push.outputs.count }}
+          PUSH_COMMITS: ${{ steps.push.outputs.commits }}
+          UNCOMMITTED: ${{ steps.push.outputs.uncommitted }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
           F=/tmp/claude-replies.json
 
+          if [ "${PUSHED:-false}" = "true" ]; then
+            CHANGED="Pushed ${PUSH_COUNT} commit(s) to this branch:"$'\n'"$(printf '%s\n' "$PUSH_COMMITS" | sed 's/^/- /')"
+            NOT_PUSHED=""
+          else
+            CHANGED="No commits were pushed."
+            NOT_PUSHED="⚠️ Not pushed — "
+          fi
+          if [ "${UNCOMMITTED:-0}" != "0" ]; then
+            CHANGED="$CHANGED"$'\n'"⚠️ Claude left ${UNCOMMITTED} uncommitted change(s) on the runner that were NOT pushed — see the [run log](${RUN_URL})."
+          fi
+
           if [ ! -s "$F" ] || ! jq -e . "$F" >/dev/null 2>&1; then
             gh pr comment "$NUM" --repo "$REPO" \
-              --body "🤖 Addressed the Copilot review, but could not read a structured reply file — see the workflow run logs for details."
+              --body "🤖 Addressed the Copilot review, but could not read a structured reply file — see the [run log](${RUN_URL}).
+
+          $CHANGED"
             exit 0
           fi
 
-          # Post one threaded reply per comment.
+          # A reply that claims a fix is only true if the push happened; otherwise
+          # say so in the thread instead of leaving a "Fixed:" that points nowhere.
           jq -c '.replies[]?' "$F" | while read -r row; do
             CID=$(echo "$row" | jq -r '.comment_id // empty')
             BODY=$(echo "$row" | jq -r '.body // empty')
+            VALID=$(echo "$row" | jq -r '.valid // false')
             [ -z "$CID" ] && continue
             [ -z "$BODY" ] && BODY="(no detail provided)"
+            [ "$VALID" = "true" ] && BODY="${NOT_PUSHED}${BODY}"
             if ! gh api -X POST "repos/$REPO/pulls/$NUM/comments/$CID/replies" \
                   -f body="🤖 $BODY" >/dev/null 2>&1; then
               echo "Failed to reply to comment $CID (it may be outdated/resolved) — skipping."
@@ -413,7 +514,10 @@ jobs:
 
           # One PR-level summary comment.
           SUMMARY=$(jq -r '.summary // "Addressed the Copilot review."' "$F")
-          CHANGED=$(jq -r 'if .code_changed == true then "Pushed code changes to this branch." else "No code changes were needed." end' "$F")
+          CLAIMED=$(jq -r '.code_changed // false' "$F")
+          if [ "$CLAIMED" = "true" ] && [ "${PUSHED:-false}" != "true" ]; then
+            CHANGED="⚠️ Claude reported code changes but no commit reached this branch — see the [run log](${RUN_URL})."$'\n'"$CHANGED"
+          fi
           gh pr comment "$NUM" --repo "$REPO" \
             --body "🤖 **Copilot review addressed.** $CHANGED
 

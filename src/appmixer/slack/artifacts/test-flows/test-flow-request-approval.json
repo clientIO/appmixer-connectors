@@ -1,0 +1,391 @@
+{
+    "name": "E2E Slack - request approval",
+    "description": "Creates a public channel, posts a RequestApproval task (requester/approver = first two workspace users, decision due in 60 min), asserts the created task, then archives the channel.",
+    "flow": {
+        "8e20ae64-73be-47c1-8b0f-ef4b257fc783": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2137878b-2c01-4b6e-aef4-26513ed75baa": {
+            "type": "appmixer.slack.list.CreateChannel",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "channel": {
+                    "8e20ae64-73be-47c1-8b0f-ef4b257fc783": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "channel": {
+                        "8e20ae64-73be-47c1-8b0f-ef4b257fc783": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "3aa9dd7a-ef31-4661-bfa4-ecf073d0e88e": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "name": "e2e-slack-approval-{{{3aa9dd7a-ef31-4661-bfa4-ecf073d0e88e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ce16264d-2556-4135-b6e3-ab4f7dc6eaf4": {
+            "type": "appmixer.slack.list.ListUsers",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2137878b-2c01-4b6e-aef4-26513ed75baa": [
+                        "newChannel"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2137878b-2c01-4b6e-aef4-26513ed75baa": {
+                            "newChannel": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "81416e89-744e-4ab7-bdaf-89977b0022e1": {
+            "type": "appmixer.slack.tasks.RequestApproval",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "task": {
+                    "ce16264d-2556-4135-b6e3-ab4f7dc6eaf4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "task": {
+                        "ce16264d-2556-4135-b6e3-ab4f7dc6eaf4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "title": {},
+                                    "description": {},
+                                    "requester": {
+                                        "826df3fd-a7b0-4aaa-9134-987f339d1019": {
+                                            "variable": "$.ce16264d-2556-4135-b6e3-ab4f7dc6eaf4.out.records",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "approver": {
+                                        "3fd10743-2a92-4f01-aebf-98417b598c18": {
+                                            "variable": "$.ce16264d-2556-4135-b6e3-ab4f7dc6eaf4.out.records",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[1].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "decisionBy": {
+                                        "a0ba7029-b4d3-48b6-81a0-08a854334b38": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "minutes": {
+                                                            "value": 60
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "channel": {
+                                        "99c4675f-f9d8-4a40-aa24-60787914207c": {
+                                            "variable": "$.2137878b-2c01-4b6e-aef4-26513ed75baa.newChannel.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "title": "E2E Slack approval request",
+                                    "description": "Automated E2E test - no action needed, the channel is archived after the run.",
+                                    "requester": "{{{826df3fd-a7b0-4aaa-9134-987f339d1019}}}",
+                                    "approver": "{{{3fd10743-2a92-4f01-aebf-98417b598c18}}}",
+                                    "decisionBy": "{{{a0ba7029-b4d3-48b6-81a0-08a854334b38}}}",
+                                    "channel": "{{{99c4675f-f9d8-4a40-aa24-60787914207c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "41ed9e5c-040f-4ec8-b729-05470fecdcaf": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "81416e89-744e-4ab7-bdaf-89977b0022e1": [
+                        "created"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "81416e89-744e-4ab7-bdaf-89977b0022e1": {
+                            "created": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "daae6080-af8d-43eb-ab5e-b017cfe69a6a": {
+                                            "variable": "$.81416e89-744e-4ab7-bdaf-89977b0022e1.created.id",
+                                            "functions": []
+                                        },
+                                        "84dae74c-d961-4c13-9c1a-32671dd42180": {
+                                            "variable": "$.81416e89-744e-4ab7-bdaf-89977b0022e1.created.status",
+                                            "functions": []
+                                        },
+                                        "b89f91e0-f3e3-43fd-bc14-d428956efc94": {
+                                            "variable": "$.81416e89-744e-4ab7-bdaf-89977b0022e1.created.title",
+                                            "functions": []
+                                        },
+                                        "2f1b3672-b674-47f1-a500-9cfb623e5e95": {
+                                            "variable": "$.81416e89-744e-4ab7-bdaf-89977b0022e1.created.approver",
+                                            "functions": []
+                                        },
+                                        "f255edd9-8369-4ad4-a2d8-876ae652a927": {
+                                            "variable": "$.81416e89-744e-4ab7-bdaf-89977b0022e1.created.requester",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{daae6080-af8d-43eb-ab5e-b017cfe69a6a}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{84dae74c-d961-4c13-9c1a-32671dd42180}}}",
+                                                "assertion": "equal",
+                                                "expected": "pending"
+                                            },
+                                            {
+                                                "field": "{{{b89f91e0-f3e3-43fd-bc14-d428956efc94}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Slack approval request"
+                                            },
+                                            {
+                                                "field": "{{{2f1b3672-b674-47f1-a500-9cfb623e5e95}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[UW][A-Z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{f255edd9-8369-4ad4-a2d8-876ae652a927}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[UW][A-Z0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e073626c-55cd-43fc-8635-f672e994708c": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "41ed9e5c-040f-4ec8-b729-05470fecdcaf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "dad39a7d-3ee5-420b-bdeb-fecc479ccbb7": {
+            "type": "appmixer.slack.core.MakeApiCall",
+            "label": "Archive channel",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e073626c-55cd-43fc-8635-f672e994708c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e073626c-55cd-43fc-8635-f672e994708c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "7f67aa11-f6ec-49bd-b95c-4987a66799dd": {
+                                            "variable": "$.2137878b-2c01-4b6e-aef4-26513ed75baa.newChannel.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/conversations.archive",
+                                    "method": "POST",
+                                    "body": "{\"channel\": \"{{{7f67aa11-f6ec-49bd-b95c-4987a66799dd}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8b3ad720-632c-4c78-9b2d-d6007ab4e629": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "dad39a7d-3ee5-420b-bdeb-fecc479ccbb7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "dad39a7d-3ee5-420b-bdeb-fecc479ccbb7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "feadb1cb-78a6-4de7-9b42-79daa53586aa": {
+                                            "variable": "$.e073626c-55cd-43fc-8635-f672e994708c.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Slack - request approval",
+                                    "result": "{{{feadb1cb-78a6-4de7-9b42-79daa53586aa}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "f3fe8b48-b36f-4f63-9ce7-9510a2f7b8d5": {
+            "x": 64,
+            "y": 320,
+            "width": 672,
+            "height": 256,
+            "content": "## ⚠️ Test data assumption\n\n- The workspace must have **at least two users** (ListUsers `$[0]` / `$[1]`); requester and approver must differ.\n- Only the `created` port is asserted. Approve/Reject needs a human click in Slack, so the task stays **pending** after the run.\n- At *decisionBy* (+60 min) the plugin's due job fires the `due` webhook at this flow. If the flow is only **stopped**, the webhook fails with 400 and the task stays in `error`, retried with a growing backoff until the flow runs again or the 60-day cleanup removes it. Only if the flow is **deleted** (404/410) is the task removed right away (slack 5.5.2, issue #2901). Check the plugin logs for `slack-trigger-webhook-error` / `slack-trigger-webhook-gone`."
+        }
+    }
+}

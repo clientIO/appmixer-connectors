@@ -25,7 +25,9 @@ module.exports = {
                 'Authorization': `Bearer ${context.auth.apiKey}`,
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            data: params
+            // Query filters belong in the query string: Stripe does not read a GET body,
+            // so sending them as `data` silently returned unfiltered results.
+            params
         });
 
         // Check if no results found and send to notFound port

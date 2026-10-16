@@ -1,70 +1,49 @@
 'use strict';
-const commons = require('../../lib');
 
-function buildCustomer(customerInfo, context) {
-
-    let metafields = [];
-    if (customerInfo.metafields && Array.isArray(customerInfo.metafields.ADD)) {
-        metafields = customerInfo.metafields.ADD.filter(metafield => metafield.key !== '');
-    }
-
-    const customer = {
-        'first_name': customerInfo.firstName,
-        'last_name': customerInfo.lastName,
-        'email': customerInfo.email ? customerInfo.email : '',
-        'phone': customerInfo.phone ? customerInfo.phone : '',
-        'verified_email': customerInfo.email ? true : false,
-        'accepts_marketing': customerInfo.accepts_marketing,
-        'addresses': [{
-            'first_name': customerInfo.addressFName ? customerInfo.addressFName : customerInfo.firstName,
-            'last_name': customerInfo.addressLName ? customerInfo.addressLName : customerInfo.lastName,
-            'phone': customerInfo.addressPhone ? customerInfo.addressPhone : '',
-            'address1': customerInfo.address1 ? customerInfo.address1 : '',
-            'city': customerInfo.city ? customerInfo.city : '',
-            'country': customerInfo.country ? customerInfo.country : '',
-            'province': customerInfo.province ? customerInfo.province : '',
-            'zip': customerInfo.zip ? customerInfo.zip : ''
-        }],
-        'note': customerInfo.note ? customerInfo.note : '',
-        'tags': customerInfo.tags ? customerInfo.tags : '',
-        'tax_exempt': customerInfo.tax_exempt
-    };
-
-    if (customerInfo.accepts_marketing_updated_at) {
-        customer['accepts_marketing_updated_at'] = customerInfo.accepts_marketing_updated_at;
-    }
-
-    if (customerInfo.tax_exemptions) {
-        customer['tax_exemptions'] = commons.normalizeMultiselectInput(customerInfo.tax_exemptions, context, 'Tax Exemptions');
-    }
-
-    if (metafields.length > 0) {
-        customer['metafields'] = metafields;
-    }
-
-    return customer;
-}
+const lib = require('../../lib');
+const gqlCustomers = require('../../gql-customers');
 
 /**
- * Create customer.
+ * Create a customer.
  * @extends {Component}
  */
 module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context);
+        const {
+            firstName, lastName, email, phone, note, tags, acceptsEmailMarketing,
+            addressFirstName, addressLastName, company, address1, address2, city, provinceCode, countryCode, zip,
+            addressPhone,
+            taxExempt, taxExemptions, metafields
+        } = context.messages.in.content;
 
-        const customerInfo = context.messages.in.content;
-
-
-        if (!customerInfo.firstName) {
-            throw new context.CancelError('First name is required!');
+        if (!firstName && !lastName && !email && !phone) {
+            throw new context.CancelError('Enter at least a first name, last name, email or phone.');
         }
-        if (!customerInfo.lastName) {
-            throw new context.CancelError('Last name is required!');
+        if (acceptsEmailMarketing === true && !email) {
+            throw new context.CancelError('Subscribing to email marketing needs an email address.');
         }
-        const customer = await shopify.customer.create(buildCustomer(customerInfo, context));
-        return context.sendJson(customer, 'customer');
+
+        try {
+            const customer = await gqlCustomers(lib.runner(context)).create({
+                firstName, lastName, email, phone, note, tags, taxExempt,
+                taxExemptions: taxExemptions ? lib.normalizeMultiselectInput(taxExemptions, context, 'Tax Exemptions') : undefined,
+                metafields: (metafields && metafields.ADD) || []
+            }, {
+                address: {
+                    firstName: addressFirstName, lastName: addressLastName, company, address1, address2,
+                    city, provinceCode, countryCode, zip, phone: addressPhone
+                },
+                acceptsEmailMarketing
+            });
+            return context.sendJson(customer, 'out');
+        } catch (err) {
+            // Rejected input (userErrors, invalid codes) does not get better by retrying.
+            if (err.statusCode === 422) {
+                throw new context.CancelError(err.message);
+            }
+            throw err;
+        }
     }
 };

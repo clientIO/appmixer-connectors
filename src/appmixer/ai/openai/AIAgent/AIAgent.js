@@ -13,7 +13,6 @@ const TOOLS_OUTPUT_POLL_TIMEOUT = 2 * 60 * 1000;  // 120 seconds
 const TOOLS_OUTPUT_POLL_INTERVAL = 300;  // 300ms
 const AI_AGENT_MAX_ATTEMPTS = 20; // Max number of agent turns before we stop.
 const AI_AGENT_MAX_HISTORY_SIZE = 512000;
-const AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS = 32000;
 const AI_AGENT_MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
 const AI_AGENT_OPENAI_FILE_EXP = 3600 * 24 * 7; // 7 days
 
@@ -366,12 +365,16 @@ module.exports = {
 
     agent: async function(context, client, instructions, model, prompt, fileId, tools, history) {
 
-        const messages = history || [{
+        const messages = history || [];
+        // The instructions lead every request but stay out of `messages`, which is what gets
+        // stored as the thread history. A thread therefore always runs on the current
+        // instructions and they survive the history being summarized.
+        const instructionsMessage = {
             // Note that we're not using the 'system' role here since it's not
             // supported by all models. For example, o1 models.
             role: 'user',
             content: instructions
-        }];
+        };
 
         let userContent = prompt;
 
@@ -446,7 +449,7 @@ module.exports = {
 
             const completion = {
                 model,
-                messages,
+                messages: [instructionsMessage, ...messages],
                 tools
             };
             await context.log({ step: 'agent-completion', completion });
@@ -598,7 +601,7 @@ module.exports = {
 
     summarizeHistory: async function(context, client, model, history) {
 
-        const choice = await this.createCompletion(context, client, {
+        const completion = {
             model,
             messages: [{
                 role: 'user',
@@ -606,9 +609,17 @@ module.exports = {
                     context.config.AI_AGENT_SUMMARY_PROMPT || 'Summarize the following conversation:',
                     JSON.stringify(history, null, 2)
                 ].join('\n')
-            }],
-            max_tokens: context.config.AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS || AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS
-        });
+            }]
+        };
+        // The summary is capped only when the cap is configured. A fixed default cannot fit
+        // every model: it has to stay below the model's own output limit, or the request fails.
+        const maxTokens = context.config.AI_AGENT_MAX_HISTORY_SUMMARY_TOKENS;
+        if (maxTokens) {
+            // OpenAI replaced 'max_tokens' with 'max_completion_tokens' and its newer models
+            // reject the old name. Other OpenAI compatible LLMs may only know the old one.
+            completion[context.config.llmBaseUrl ? 'max_tokens' : 'max_completion_tokens'] = Number(maxTokens);
+        }
+        const choice = await this.createCompletion(context, client, completion);
 
         const { message } = choice;
         return message.content;
@@ -665,17 +676,23 @@ module.exports = {
         const maxHistorySize = context.config.AI_AGENT_MAX_HISTORY_SIZE || AI_AGENT_MAX_HISTORY_SIZE;
         if (threadId && (newHistoryText.length > maxHistorySize)) {
             // Limit the history size to around 512kB by default.
-            const summary = await this.summarizeHistory(context, client, model, newHistory);
-            newHistory = [{
-                role: 'user',
-                content: summary
-            }];
-            await context.log({
-                step: 'summarized-history',
-                threadId,
-                oldHistoryTextLength: newHistoryText.length,
-                newHistoryTextLength: summary.length
-            });
+            try {
+                const summary = await this.summarizeHistory(context, client, model, newHistory);
+                newHistory = [{
+                    role: 'user',
+                    content: summary
+                }];
+                await context.log({
+                    step: 'summarized-history',
+                    threadId,
+                    oldHistoryTextLength: newHistoryText.length,
+                    newHistoryTextLength: summary.length
+                });
+            } catch (err) {
+                // The answer is ready; failing here would throw it away and make the engine
+                // run the whole agent again. Keep the full history and try on the next turn.
+                await context.log({ step: 'summarize-history-error', threadId, error: err.message });
+            }
         }
         if (threadId) {
             await this.saveSummary(context, storeId, threadId, newHistory);

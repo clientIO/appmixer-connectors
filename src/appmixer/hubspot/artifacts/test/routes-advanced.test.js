@@ -2,6 +2,7 @@ const assert = require('assert');
 const sinon = require('sinon');
 const testUtils = require('../../../../../test/utils.js');
 const routes = require('../../routes.js');
+const { signedRequest, h, CLIENT_SECRET, API_URL } = require('./signedRequest');
 
 // Single scenario:
 // New Deal is created in HubSpot with a specific amount and deal name and stage and close date.
@@ -32,7 +33,9 @@ describe('POST /events handler advanced', () => {
                 router: {
                     register: sinon.stub()
                 }
-            }
+            },
+            config: { clientSecret: CLIENT_SECRET },
+            appmixerApiUrl: API_URL
         };
 
         // Register the routes the same way Appmixer does.
@@ -141,8 +144,8 @@ describe('POST /events handler advanced', () => {
 
         const clock = sinon.useFakeTimers();
         // Call the handlers at the same time
-        await handler(req1);
-        await handler(req2);
+        await handler(signedRequest(req1.payload), h);
+        await handler(signedRequest(req2.payload), h);
 
         // Expecting no calls yet to triggerListeners, this is the time when the events are received.
         assert.equal(context.triggerListeners.callCount, 0, 'triggerListeners should not be called yet');

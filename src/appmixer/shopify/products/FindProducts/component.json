@@ -1,0 +1,254 @@
+{
+    "name": "appmixer.shopify.products.FindProducts",
+    "description": "Find products by a search query and filters. Returns at most 250 products. Each product carries up to 100 variants and 50 media.",
+    "author": "Jimoh Damilola <jimoh@client.io>",
+    "private": false,
+    "auth": {
+        "service": "appmixer:shopify",
+        "scope": [
+            "read_products"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:shopify",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "maxLength": 16384
+                    },
+                    "vendor": {
+                        "type": "string"
+                    },
+                    "productType": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "collectionId": {
+                        "type": "string"
+                    },
+                    "tag": {
+                        "type": "string"
+                    },
+                    "createdAtMin": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAtMax": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAtMin": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAtMax": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "sortKey": {
+                        "type": "string"
+                    },
+                    "reverse": {
+                        "type": "boolean"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "query": {
+                        "type": "text",
+                        "label": "Search Query",
+                        "index": 0,
+                        "tooltip": "Shopify product search syntax, for example <code>title:shirt*</code> or <code>sku:TS-ORG-M</code>. Combined with the filters below. Leave empty to match all products."
+                    },
+                    "vendor": {
+                        "type": "text",
+                        "label": "Vendor",
+                        "index": 1,
+                        "tooltip": "Only products from this vendor."
+                    },
+                    "productType": {
+                        "type": "text",
+                        "label": "Product Type",
+                        "index": 2,
+                        "tooltip": "Only products of this product type."
+                    },
+                    "status": {
+                        "type": "select",
+                        "label": "Status",
+                        "index": 3,
+                        "tooltip": "Only products with this status. Leave empty for any status.",
+                        "options": [
+                            {
+                                "label": "Any",
+                                "value": ""
+                            },
+                            {
+                                "label": "Active",
+                                "value": "ACTIVE"
+                            },
+                            {
+                                "label": "Draft",
+                                "value": "DRAFT"
+                            },
+                            {
+                                "label": "Archived",
+                                "value": "ARCHIVED"
+                            },
+                            {
+                                "label": "Unlisted",
+                                "value": "UNLISTED"
+                            }
+                        ]
+                    },
+                    "collectionId": {
+                        "type": "text",
+                        "label": "Collection ID",
+                        "index": 4,
+                        "tooltip": "Only products in this collection (gid://shopify/Collection/123 or the numeric ID 123)."
+                    },
+                    "tag": {
+                        "type": "text",
+                        "label": "Tag",
+                        "index": 5,
+                        "tooltip": "Only products with this tag."
+                    },
+                    "createdAtMin": {
+                        "type": "date-time",
+                        "label": "Created After",
+                        "index": 6,
+                        "tooltip": "Only products created at or after this date."
+                    },
+                    "createdAtMax": {
+                        "type": "date-time",
+                        "label": "Created Before",
+                        "index": 7,
+                        "tooltip": "Only products created at or before this date."
+                    },
+                    "updatedAtMin": {
+                        "type": "date-time",
+                        "label": "Updated After",
+                        "index": 8,
+                        "tooltip": "Only products last updated at or after this date."
+                    },
+                    "updatedAtMax": {
+                        "type": "date-time",
+                        "label": "Updated Before",
+                        "index": 9,
+                        "tooltip": "Only products last updated at or before this date."
+                    },
+                    "sortKey": {
+                        "type": "select",
+                        "label": "Sort By",
+                        "index": 10,
+                        "tooltip": "The field to sort the products by. Relevance needs a search query.",
+                        "options": [
+                            {
+                                "label": "Default (ID)",
+                                "value": ""
+                            },
+                            {
+                                "label": "Created At",
+                                "value": "CREATED_AT"
+                            },
+                            {
+                                "label": "Updated At",
+                                "value": "UPDATED_AT"
+                            },
+                            {
+                                "label": "Published At",
+                                "value": "PUBLISHED_AT"
+                            },
+                            {
+                                "label": "Title",
+                                "value": "TITLE"
+                            },
+                            {
+                                "label": "Vendor",
+                                "value": "VENDOR"
+                            },
+                            {
+                                "label": "Product Type",
+                                "value": "PRODUCT_TYPE"
+                            },
+                            {
+                                "label": "Total Inventory",
+                                "value": "INVENTORY_TOTAL"
+                            },
+                            {
+                                "label": "Relevance",
+                                "value": "RELEVANCE"
+                            }
+                        ]
+                    },
+                    "reverse": {
+                        "type": "toggle",
+                        "label": "Descending",
+                        "index": 11,
+                        "tooltip": "Sort in descending order (newest, Z to A, highest first)."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ],
+                        "index": 12
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/shopify/products/FindProducts?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDEyOCAxMjgiIGlkPSJTb2NpYWxfSWNvbnMiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDEyOCAxMjgiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxnIGlkPSJfeDM3X19zdHJva2UiPjxnIGlkPSJTaG9waWZ5Ij48cmVjdCBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgaGVpZ2h0PSIxMjgiIHdpZHRoPSIxMjgiLz48cGF0aCBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik03MC40NSwxOS41NjhjMC0wLjQzNiwwLjAwNC0wLjg2NCwwLjAwNC0xLjMzMiAgICBjMC00LjA4LTAuNTY1LTcuMzY4LTEuNDY5LTkuOTcyYzMuNjM0LDAuNDU2LDYuMDU0LDQuNjEyLDcuNjEsOS4zOTJDNzQuNzczLDE4LjIyNCw3Mi42OTksMTguODY4LDcwLjQ1LDE5LjU2OHogTTYyLjQyNiw2MC4yNDggICAgYzAsMC00LjI1MS0yLjI4LTkuNDYxLTIuMjhjLTcuNjQyLDAtOC4wMjgsNC44Mi04LjAyOCw2LjAzMmMwLDYuNjI4LDE3LjE4Nyw5LjE2OCwxNy4xODcsMjQuNjg4ICAgIGMwLDEyLjIwOC03LjcwNiwyMC4wNzItMTguMDk4LDIwLjA3MmMtMTIuNDcsMC0xOC44NDYtNy44LTE4Ljg0Ni03LjhsMy4zMzktMTEuMDg0YzAsMCw2LjU1NSw1LjY1NiwxMi4wODgsNS42NTYgICAgYzMuNjEsMCw1LjA4My0yLjg2LDUuMDgzLTQuOTQ4YzAtOC42NDQtMTQuMTAyLTkuMDMyLTE0LjEwMi0yMy4yMzZjMC0xMS45NTIsOC41MzgtMjMuNTIsMjUuNzcyLTIzLjUyICAgIGM2LjYzOSwwLDkuOTIzLDEuOTEyLDkuOTIzLDEuOTEyTDYyLjQyNiw2MC4yNDh6IE01OS41OTYsNC40MjhjMC43MTIsMCwxLjQyNSwwLjI0NCwyLjExLDAuNzE2ICAgIGMtNS4yNjYsMi40ODgtMTAuOTA2LDguNzYtMTMuMjksMjEuMjhjLTMuNDgzLDEuMDg0LTYuODg2LDIuMTQ0LTEwLjAzNCwzLjEyNEM0MS4xNzEsMTkuOTk2LDQ3Ljc5OCw0LjQyOCw1OS41OTYsNC40Mjh6ICAgICBNNjYuMTQ3LDIwLjE5MmMwLDAuMjUyLTAuMDA0LDAuNDg0LTAuMDA0LDAuNzE2Yy00LDEuMjQ0LTguMzQzLDIuNTk2LTEyLjY5NywzLjk1MkM1NS44OSwxNS4zOCw2MC40NzIsMTAuOCw2NC40OCw5LjA3MiAgICBDNjUuNDg3LDExLjYxNiw2Ni4xNDcsMTUuMjY4LDY2LjE0NywyMC4xOTJ6IE04NS4wNTgsMTUuMDk3Yy0wLjI2LDAuMDM0LTAuNDg1LDAuMDg1LTAuNjQyLDAuMTMxICAgIGMtMC4wODQsMC4wMjQtMS40ODUsMC40Ni0zLjgwNSwxLjE4Qzc4LjMzOSw5Ljg0LDc0LjMzMSwzLjgwNCw2Ny4yODIsMy44MDRjLTAuMTk1LDAtMC4zOTgsMC4wMDgtMC41OTcsMC4wMiAgICBDNjQuNjc5LDEuMTYsNjIuMTk1LDAsNjAuMDUsMEM0My42MjMsMCwzNS43NzQsMjAuNjQsMzMuMzE0LDMxLjEyNGMtNi4zODQsMS45ODgtMTAuOTE4LDMuNC0xMS40OTUsMy41ODQgICAgYy0zLjU2NiwxLjEyNC0zLjY3OCwxLjIzNi00LjE0Myw0LjYwOEMxNy4zMjIsNDEuODcyLDgsMTE0LjMyNCw4LDExNC4zMjRMODAuNjM5LDEyOGwwLjA3Ny0wLjAxN0w4NS4wNTgsMTUuMDk3eiBNOTAuMjU5LDE4LjY1MiAgICBjMi4wOTcsMi4wOTMsNC40NzUsNC40NjQsNC40NzUsNC40NjRzOS43ODcsMC43MjgsMTAuMjQ5LDAuNzY4YzAuNDY2LDAuMDQsMS4wMjcsMC4zOTYsMS4xMTQsMS4wNCAgICBjMC4wODgsMC42NDQsMTMuOTAzLDk0LjUyLDEzLjkwMyw5NC41MmwtMzMuOTAxLDcuMzY5TDkwLjI1OSwxOC42NTJ6IiBmaWxsPSIjODFCRjM3IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGlkPSJTaG9waWZ5XzFfIi8+PC9nPjwvZz48L3N2Zz4="
+}

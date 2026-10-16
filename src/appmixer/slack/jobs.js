@@ -17,7 +17,7 @@ module.exports = async context => {
                 deleteBefore.setDate(deleteBefore.getDate() - 60);
                 context.log('info', `[slack-job-due-tasks] Deleting old tasks older than ${deleteBefore.toISOString()}`);
 
-                const filter = { 'createdAt': { '$lt': deleteBefore } };
+                const filter = { 'created': { '$lt': deleteBefore } };
                 const resultDel = await context.db.collection(Task.collection).deleteMany(filter);
                 const deletedCount = resultDel?.deletedCount || 0;
                 context.log('info', `[slack-job-due-tasks] Old tasks deletion finished. Deleted: ${deletedCount}`);
@@ -27,9 +27,12 @@ module.exports = async context => {
                 const res = await context.utils.P.mapArray(tasks, async function(task) {
                     task.setStatus(Task.STATUS_DUE);
                     try {
-                        await utils.triggerWebhook(task);
-                        await task.save();
-                        return true;
+                        // On failure, triggerWebhook already persisted (or removed) the task.
+                        const { ok } = await utils.triggerWebhook(task);
+                        if (ok) {
+                            await task.save();
+                        }
+                        return ok;
                     } catch (err) {
                         task.setStatus(Task.STATUS_ERROR);
                         try {
@@ -69,15 +72,23 @@ module.exports = async context => {
         try {
             const lock = await context.job.lock('slack-tasks-failed-webhooks');
             try {
-                const tasksToRetry = await Task.find({ status: Task.STATUS_ERROR });
+                // Only tasks whose backoff has elapsed. Tasks failed before backoff was introduced have no nextAttemptAt.
+                const tasksToRetry = await Task.find({
+                    status: Task.STATUS_ERROR,
+                    $or: [{ nextAttemptAt: null }, { nextAttemptAt: { $lte: new Date() } }]
+                });
                 const res = await context.utils.P.mapArray(tasksToRetry, async function(taskToRetry) {
-                    // For each task, attempt to set to pending, trigger webhook and save.
-                    // If triggering fails, revert status back to error and save the failure.
-                    taskToRetry.setStatus(Task.STATUS_PENDING);
+                    // Deliver again the status that failed. triggerWebhook persists the failure itself:
+                    // the task is removed when the target is gone (404/410), otherwise it stays in error
+                    // and is retried later.
+                    taskToRetry.setStatus(taskToRetry.failedStatus || Task.STATUS_PENDING);
                     try {
-                        await utils.triggerWebhook(taskToRetry);
-                        await taskToRetry.save();
-                        return true;
+                        const { ok, removed } = await utils.triggerWebhook(taskToRetry);
+                        if (ok) {
+                            await taskToRetry.save();
+                            return 'success';
+                        }
+                        return removed ? 'removed' : 'failed';
                     } catch (err) {
                         // revert status and persist
                         try {
@@ -87,15 +98,16 @@ module.exports = async context => {
                             // log but continue
                             context.log('error', '[slack-resubmit-failed-webhooks] failed to save task after trigger error', context.utils.Error.stringify(err2));
                         }
-                        return false;
+                        return 'failed';
                     }
                 }, { concurrency: config.triggerWebhooksConcurrencyLimit });
                 const result = {
                     webhooks: tasksToRetry.length,
-                    success: res.flat().filter(item => item).length,
-                    errors: res.flat().filter(item => !item).length
+                    success: res.filter(item => item === 'success').length,
+                    errors: res.filter(item => item === 'failed').length,
+                    removed: res.filter(item => item === 'removed').length
                 };
-                context.log('info', `Resubmit failed webhooks finished, ${result.success} webhooks triggered, ${result.errors} failed.`);
+                context.log('info', `Resubmit failed webhooks finished, ${result.success} webhooks triggered, ${result.errors} failed, ${result.removed} removed.`, result);
             } finally {
                 await lock?.unlock();
             }

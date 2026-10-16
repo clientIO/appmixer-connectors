@@ -1,8 +1,17 @@
 {
     "name": "E2E Shopify - New Checkout Trigger",
-    "type": "automation",
+    "description": "New Checkout fires when a checkout is started in the online store (manual storefront step).",
+    "notes": {
+        "27eaf554-f775-482d-a4f5-d4ae034e4089": {
+            "x": 64,
+            "y": -128,
+            "width": 400,
+            "height": 400,
+            "content": "## ⚠️ Manual E2E — requires a storefront action\n\n`checkouts/create` cannot be provoked through the Admin API — only a real storefront checkout session fires it.\n\n### How to test\n1. Start this flow (the webhook is registered on start).\n2. Open the online store in an **incognito window** (https://<store>.myshopify.com; the dev-store password is in Online Store → Preferences). A fresh window forces a NEW checkout session — a reused window resumes the previous checkout instead.\n3. Add a product to the cart and click through to the checkout page — creating the checkout session fires **checkouts/create**.\n\nThe Assert checks the checkout token and topic. A checkout Shopify does not list as abandoned yet (no contact details entered) is emitted with its token only; once listed it carries the full abandoned checkout. AfterAll timeout is 600 s — finish the storefront steps within 10 minutes of starting the flow."
+        }
+    },
     "flow": {
-        "a0000000-0000-0000-0000-000000000001": {
+        "4a4737dd-d208-4841-bdf1-07b7d6a281f9": {
             "type": "appmixer.shopify.checkouts.NewCheckout",
             "x": 64,
             "y": 320,
@@ -15,31 +24,31 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000002": {
+        "dfad29b2-7553-476f-aab8-b1af471b8023": {
             "type": "appmixer.utils.test.Assert",
             "x": 272,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000001": [
-                        "checkout"
+                    "4a4737dd-d208-4841-bdf1-07b7d6a281f9": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000001": {
-                            "checkout": {
+                        "4a4737dd-d208-4841-bdf1-07b7d6a281f9": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "field-token": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.checkout.token",
+                                        "51e7b348-45aa-46f7-a9bd-7990e74d737e": {
+                                            "variable": "$.4a4737dd-d208-4841-bdf1-07b7d6a281f9.out.token",
                                             "functions": []
                                         },
-                                        "field-topic": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.checkout.webhookTopic",
+                                        "7aa336ec-2d07-4bba-a633-330e3f6305ea": {
+                                            "variable": "$.4a4737dd-d208-4841-bdf1-07b7d6a281f9.out.webhookTopic",
                                             "functions": []
                                         }
                                     }
@@ -48,12 +57,12 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-token}}}"
+                                                "field": "{{{51e7b348-45aa-46f7-a9bd-7990e74d737e}}}",
+                                                "assertion": "notEmpty"
                                             },
                                             {
+                                                "field": "{{{7aa336ec-2d07-4bba-a633-330e3f6305ea}}}",
                                                 "assertion": "equal",
-                                                "field": "{{{field-topic}}}",
                                                 "expected": "checkouts/create"
                                             }
                                         ]
@@ -69,13 +78,13 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000003": {
+        "3cb620db-7837-4ade-a085-350dbe2ff722": {
             "type": "appmixer.utils.test.AfterAll",
             "x": 480,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000002": [
+                    "dfad29b2-7553-476f-aab8-b1af471b8023": [
                         "out"
                     ]
                 }
@@ -90,36 +99,37 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000004": {
+        "40137ddf-4877-455e-8a5b-cfabcc7623de": {
             "type": "appmixer.utils.test.ProcessE2EResults",
             "x": 688,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000003": [
+                    "3cb620db-7837-4ade-a085-350dbe2ff722": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000003": {
+                        "3cb620db-7837-4ade-a085-350dbe2ff722": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
                                     "result": {
-                                        "field-result": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                        "07ed69e8-c59b-4aeb-8870-7a6ca9f0fe01": {
+                                            "variable": "$.3cb620db-7837-4ade-a085-350dbe2ff722.out",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "recipients": "test@appmixer.com",
+                                    "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Shopify - New Checkout Trigger",
-                                    "result": "{{{field-result}}}"
+                                    "result": "{{{07ed69e8-c59b-4aeb-8870-7a6ca9f0fe01}}}"
                                 }
                             }
                         }
@@ -131,7 +141,7 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000001": {
+        "899b28f3-eeb0-4211-8b2b-5d5781ef3968": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
             "y": 576,
@@ -142,13 +152,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000002": {
+        "05f64640-9b63-411f-a119-3602b272fb00": {
             "type": "appmixer.utils.timers.Wait",
             "x": 272,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000001": [
+                    "899b28f3-eeb0-4211-8b2b-5d5781ef3968": [
                         "out"
                     ]
                 }
@@ -156,10 +166,12 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000001": {
+                        "899b28f3-eeb0-4211-8b2b-5d5781ef3968": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "interval": {}
+                                },
                                 "lambda": {
                                     "interval": "1m"
                                 }
@@ -172,18 +184,6 @@
                 "autoRetry": false,
                 "onError": "stopFlow"
             }
-        }
-    },
-    "wizard": {
-        "fields": []
-    },
-    "notes": {
-        "11111111-e2e0-4000-8000-000000000003": {
-            "content": "## ⚠️ Manual E2E — requires a storefront action\n\n`checkouts/create` cannot be provoked through the Admin API (checkout POST returns 406, storefront tokens are denied) — only a real storefront checkout session fires it.\n\n### How to test\n1. Start this flow (the webhook is registered on start).\n2. Open the online store in an **incognito window** (https://<store>.myshopify.com; the dev-store password is in Online Store → Preferences). A fresh window forces a NEW checkout session — a reused window resumes the previous checkout instead.\n3. Add a product to the cart and click through to the checkout page — creating the checkout session fires **checkouts/create**.\n\nThe Assert then verifies the emitted checkout (token + topic) and ProcessE2EResults records the result. AfterAll timeout is 600 s — finish the storefront steps within 10 minutes of starting the flow.",
-            "height": 400,
-            "width": 400,
-            "x": 64,
-            "y": -128
         }
     }
 }

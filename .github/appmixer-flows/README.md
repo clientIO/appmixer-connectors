@@ -81,3 +81,201 @@ A retry, or a manual dispatch on top of an automatic one, can hand the same
 review over twice. The responder's Resolve step is idempotent: it skips a review
 for which its own summary comment already exists with a timestamp after the
 review's `submitted_at`. Worst case is one extra ~15 s no-op run.
+
+## apx-vero-mention-dispatch.json
+
+Calls the OpenClaw gateway's `vero-mention` hook when a person mentions the
+bot on a PR — in the conversation, inline on a line of the diff, or in a
+review body. The `vero` agent on the gateway then runs the responder in
+`.github/openclaw/vero-mention/` (its README has the whole path).
+
+It replaces `claude-pr-author.yml` (#1153, removed in #1169), which listened to
+the comment and review events directly. Two of those three events run without
+secrets on PRs from forks, and apx-vero's PRs always come from its fork. Until
+2026-10-07 the flow fired a `repository_dispatch` into the Actions workflow
+`vero-mention-responder.yml`, which is removed; the hook is the only path.
+
+### Shape
+
+- `GitHub / New Mention` — the notifications of the account bound to it,
+  reason `mention`, limited to the watched repositories.
+- `Condition` — the notification is about a pull request
+  (`subject.type = PullRequest`). It reads `input` / `operator` / `value`; the
+  `field` / `expected` keys some older flows use are ignored by the component,
+  which then lets everything through.
+- `HTTP Post` — `{"pr_url": "<subject.url>"}` to
+  `https://91-99-144-37.nip.io/hooks/vero-mention`, with the hook token as
+  `Authorization: Bearer …`. The wizard asks for the headers, which carry the
+  token; the file keeps the `<OPENCLAW_HOOK_TOKEN>` placeholder.
+
+GitHub keeps one notification per PR thread, so the payload only says "something
+on this PR mentions the bot". The hook accepts only a pull request of
+`Appmixer-ai/appmixer-connectors`; the responder then sweeps the PR for every
+mention with no reply yet and answers each once. Every reply ends with an
+`<!-- apx-vero-mention:<kind>:<id> -->` marker, which is what "answered" means;
+a repeated call finds nothing pending and stops.
+
+### Accounts
+
+- **New Mention** reads the notifications of the account it is bound to, so
+  bind the **bot** (apx-vero). Its own comments never notify it, which also
+  rules out reply loops. No second account: the hook needs no GitHub access.
+
+### Setup
+
+Published as an integration template (see below); the wizard asks for the bot
+account, the repositories to watch and the hook headers. The other half lives
+on the OpenClaw host — see `.github/openclaw/vero-mention/README.md`.
+
+## Publishing as integrations
+
+Both flows carry a `wizard` and a `description` and are published on
+dev-automated-00001 as integration templates in the category
+**appmixer-sanity-hub**, which the appmixer-sanity app's `/automation-hub` page
+opens on. Publish or re-publish one with the appmixer-sanity script, pointed at
+that instance (run from an appmixer-sanity checkout):
+
+```bash
+node --env-file=.env scripts/publish-integration.js <path>/copilot-review-dispatch.json --dry-run
+```
+
+How to turn another flow into an integration — the JSON format, wizard fields,
+publishing, activating and retiring the old flow:
+[appmixer-sanity CLAUDE.md → Migrating a flow to an integration](https://github.com/vtalas/appmixer-sanity/blob/main/CLAUDE.md#migrating-a-flow-to-an-integration).
+
+## pr-hygiene-new-pr.json and pr-hygiene-daily.json
+
+Two integrations that keep pull requests and the
+[@appmixer-connectors project](https://github.com/orgs/Appmixer-ai/projects/7)
+tidy. They only **warn in Slack** — nothing on a pull request is changed.
+
+The rules:
+
+1. Every pull request either **links an issue** (a closing keyword in its
+   description, e.g. `Fixes Appmixer-ai/appmixer-components#N`) or **is itself in
+   the project**. A PR whose description says enough on its own does not need an
+   issue — but then it goes into the project.
+2. Every project item carries a **connector label** — `appmixer:<connector>`,
+   one per `bundle.json`, e.g. `appmixer:microsoft:mail` — or
+   `non-connector-task`.
+
+### Shape
+
+- **New pull request** — `New Pull Request` → `Wait 1h` → a GraphQL
+  `resource(url:)` lookup of the PR (draft, state, linked issues) → `Find
+  Project Items` → `Code Block` → `Condition` → Slack. The hour gives the author
+  time to link an issue or add the PR to the project. Drafts are skipped; the
+  daily check picks them up once they are ready.
+- **Daily check** — Monday to Friday, 8:00 Europe/Prague. Lists the open,
+  non-draft PRs breaking rule 1 and the project items breaking rule 2, in one
+  message. Rule 2 only looks at items **added in the last two days** (the item's
+  own `createdAt`, returned by `Find Project Items` since github 3.4.0), so the
+  hundreds of older unlabelled items never flood the channel. Nothing is posted
+  when both lists are empty.
+
+Linked issues are read through GraphQL with the bound account rather than by
+parsing the PR description: the issues live in the private
+`appmixer-components` repo, and the account can see it.
+
+### Setup
+
+The wizard asks for three things:
+
+- **GitHub account** — needs `repo` and **`read:project`**. Without the project
+  scope `Find Project Items` fails at start with *"Access token not found …
+  Calling factory init"*; re-authorize the account from that component.
+- **Slack account** — must be a member of the channel.
+- **Slack channel** — where the warnings go.
+
+Then start it from the Automation Hub (`/automation-hub` → Use → Start
+automation).
+
+### Publishing
+
+Both files are Automation Hub templates, published with appmixer-sanity's
+script (its CLAUDE.md, *Migrating a flow to an integration*), from an
+appmixer-sanity checkout. Its `.env` may point at another instance — set
+`APPMIXER_BASE_URL`, `APPMIXER_USERNAME` and `APPMIXER_PASSWORD` for
+dev-automated-00001 in the shell, which wins over the file:
+
+```bash
+node --env-file=.env scripts/publish-integration.js <path>/pr-hygiene-new-pr.json --dry-run
+node --env-file=.env scripts/publish-integration.js <path>/pr-hygiene-new-pr.json
+```
+
+It finds the draft by `name` and the template by the draft (`originFlowId`),
+so re-running it updates the same template in place. Do not clone a template to
+republish it: the clone is a second card in the hub. Running
+instances stay on their revision until
+`appmixer integration update-instances <template id>` moves them.
+
+## pr-connector-labels.json
+
+Labels every new pull request with the connector it touches, and every new issue in
+`appmixer-components` with the connector its title names, so one search lists a
+connector's issues and PRs together across both repositories:
+`org:Appmixer-ai label:"appmixer:slack"`.
+
+The labels are one per releasable unit — per `bundle.json` — named after the
+connector ref the e2e tooling uses (`appmixer:microsoft:mail`), plus a label per
+shared root above several bundles (`appmixer:google`, `appmixer:microsoft`,
+`appmixer:aws`, `appmixer:zoho`) for the files it holds itself. A vendor with a
+label over GitHub's 50-character limit — the generated MCP server wrappers — gets
+one label for all its bundles (`appmixer:mcpservers`). PRs that touch no
+connector (CI, scripts, docs) get none, and so does a sweep across more than five
+connectors, which would show up in every one of their overviews.
+
+### Shape
+
+Pull requests: `New Pull Request` → `Find Files` ×2 (every `bundle.json` under
+`src/appmixer` at the PR's **head commit** and at its **base commit**) → `Make API
+Call` (GraphQL `resource(url:)`: the PR's number, repository and changed files) →
+`Code Block` (a changed file takes the deepest bundle directory containing it, else
+the nearest ancestor that holds bundles) → `Condition` (at least one label) → `Make
+API Call` (`POST /repos/{repo}/issues/{number}/labels`) → `Make API Call` (GraphQL
+`createLabel` for the same labels in `appmixer-components`).
+
+Issues: `New Issue` (`appmixer-components`, open) → `Find Files` (every `bundle.json`
+on `dev`) → `Code Block` (title rule below) → `Condition` → `Make API Call` (`POST
+.../issues/{number}/labels`).
+
+The bundle set comes from the repository on every run, so a PR that adds a
+connector is labelled with its new label, a PR that removes or renames one with
+its old label, and adding a connector needs no change here. Only the first 100
+changed files can be read in one request, so a PR changing more than 100 files
+gets no labels rather than labels from part of it. The changed files come from
+GraphQL because `Find Files` reads a tree, not the diff of a pull request.
+
+**Labels in appmixer-components.** GitHub creates a missing label only in the repo
+it is added in, so the PR branch creates every label of the PR in
+`appmixer-components` too — one GraphQL call with one aliased `createLabel` per
+label. A label that exists already fails on its own alias ("Name has already been
+taken"); the others go through and the response is still HTTP 200. A brand-new
+connector therefore has its label in both repositories from its first PR on.
+
+**Issue title rule** — only the title, never the body:
+
+- an explicit ref anywhere: `microsoft.mail`, `ai/openai`, `appmixer.ai.typesafe`,
+  or a component ref `jira.createIssue`;
+- the head of the title (before `: ` or ` - `), each listed name by its first one
+  to three words: `Slack: …`, `Google Drive - …`, `slack 5.5.1: …`,
+  `Microsoft Teams SendChannelMessage: …`, `Hubspot, Asana: …`; the vendor alone
+  gives the shared root label (`Microsoft: …` → `appmixer:microsoft`);
+- connector names that are ordinary words (`front`, `box`, `tasks`, `http`, …)
+  count only as an explicit ref;
+- an issue that already has a connector label, or names more than five, is left alone.
+
+Run against every issue in the repository, the rule agrees with 635 of the 646
+labels set so far (by the title-only backfill or by hand) and finds a label for 348
+issues that have none.
+
+### Setup
+
+The wizard asks for two GitHub accounts and the two repositories:
+
+- **Reads pull requests and issues** — any account that can read both repositories.
+- **Push access** — adds the labels and creates them in `appmixer-components`.
+  Creating a label needs push; `apx-vero` has only triage.
+
+`New Issue` polls GitHub search and remembers the issues it has seen, so the first
+run only takes a baseline; issues filed before the instance started are not touched.

@@ -1,5 +1,6 @@
 {
     "name": "CI - Copilot review -> repository_dispatch",
+    "description": "When Copilot reviews a pull request, starts the Claude responder workflow (repository_dispatch `copilot-review`) — no \"Approve and run\" needed.",
     "flow": {
         "c1000000-0000-4000-8000-000000000001": {
             "type": "appmixer.github.list.NewReview",
@@ -91,5 +92,42 @@
             "height": 336,
             "content": "### Dispatch: `copilot-review`\n\nPayload `{pr_number, review_id}` — the workflow accepts numeric ids only.\n\n**Account needs push** to the repo (bound: vtalas). apx-vero has only triage.\n\n**403 \"OAuth App access restrictions\"** = the Appmixer-ai org revoked the grant for the Appmixer GitHub app (client `1c0ed414fe35895cb5ce`). Re-grant, then **re-authorize** the account — that stops this flow, start it again.\n\nFailures land in the dead-letter queue. Retry only while the flow is **running** — a retry into a stopped flow is lost."
         }
+    },
+    "wizard": {
+        "fields": [
+            {
+                "type": "account",
+                "label": "GitHub account with push access",
+                "tooltip": "Reads the reviews and sends the repository_dispatch event, which requires push access.",
+                "placeholder": "",
+                "attrs": {
+                    "service": "appmixer:github",
+                    "components": [
+                        "c1000000-0000-4000-8000-000000000001",
+                        "c1000000-0000-4000-8000-000000000002"
+                    ],
+                    "sharedAccountId": null
+                },
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "Repository to watch",
+                "tooltip": "owner/repo whose pull requests get Copilot reviews.",
+                "placeholder": "Appmixer-ai/appmixer-connectors",
+                "source": "c1000000-0000-4000-8000-000000000001.config.properties.repositoryId",
+                "attrs": {},
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "Repository running the responder workflow",
+                "tooltip": "Usually the same repository. It needs .github/workflows/claude-copilot-responder.yml on its default branch.",
+                "placeholder": "Appmixer-ai/appmixer-connectors",
+                "source": "c1000000-0000-4000-8000-000000000002.config.transform.in.c1000000-0000-4000-8000-000000000001.out.lambda.repositoryId",
+                "attrs": {},
+                "options": {}
+            }
+        ]
     }
 }

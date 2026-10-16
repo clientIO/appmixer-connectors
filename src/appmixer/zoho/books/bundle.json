@@ -1,6 +1,6 @@
 {
     "name": "appmixer.zoho.books",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "changelog": {
         "1.0.0": [
             "Initial version"
@@ -18,6 +18,11 @@
             "Added NewInvoice polling trigger.",
             "Fixed intermittent \"Parse Error: Expected HTTP/\" (HPE_INVALID_CONSTANT) failures in components that read from Zoho. Every GET request was sent with an empty JSON body ({}), which Zoho does not read; on a reused connection those stray bytes corrupted the next response. GET and HEAD requests are now sent without a body.",
             "A refused OAuth token request is reported instead of being stored. Zoho answers with HTTP 200 and an `error` in the body, so a failed token refresh used to leave the account holding an empty access token: it kept looking connected and every later call failed with an unrelated \"Access token not found\". An account without a refresh token now says so as well."
+        ],
+        "1.2.1": [
+            "Accounts in the Canada, Japan, Saudi Arabia, United Kingdom, United Arab Emirates and Singapore data centers can be connected. Connecting a Canada account used to fail with \"Invalid access token\": the region was not recognized, so the authorization code was exchanged at accounts.zoho.com and the API was called at www.zohoapis.com. The connector now uses the accounts server Zoho names in the redirect callback and the API host from the token response (`api_domain`), both checked against the known Zoho data centers. Existing accounts keep working without reconnecting.",
+            "An unknown data center region is reported instead of silently falling back to the US data center.",
+            "Connecting an account through the Auth Hub no longer fails with \"Missing region: undefined.\" The data center is found by asking Zoho - the code exchange and the profile request try the data centers until one accepts the authorization code or the access token - instead of being remembered from the redirect callback, which in the Auth Hub runs as a separate request, possibly in another process. Token refresh through the Auth Hub, which does not know the account's data center either, finds it the same way."
         ]
     }
 }

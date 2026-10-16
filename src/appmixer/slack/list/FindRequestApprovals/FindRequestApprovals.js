@@ -1,8 +1,32 @@
 'use strict';
 
-const { sendArrayOutput } = require('../../lib');
+const lib = require('../../lib');
+
+// The tasks API has no cursor; it caps a single page at 1000 records.
+const PAGE_SIZE = 1000;
+
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['taskId', 'status'],
+    properties: {
+        taskId: { type: 'string', title: 'Task ID', example: '6a95493889a78ab01364b817' },
+        title: { type: 'string', title: 'Title', example: 'Approve Q3 budget' },
+        description: { type: 'string', title: 'Description', example: 'Please review the attached budget proposal.' },
+        status: { type: 'string', title: 'Status', example: 'pending' },
+        requester: { type: 'string', title: 'Requester', example: 'U0ABC12345' },
+        approver: { type: 'string', title: 'Approver', example: 'U0DEF67890' },
+        channel: { type: 'string', title: 'Channel', example: 'D0ABC12345' },
+        decisionBy: { type: 'string', title: 'Decision By', example: '2026-09-30T12:00:00.000Z' },
+        decisionByReadable: { type: 'string', title: 'Decision By (Human Readable)', example: '9/30/2026, 12:00:00 PM' },
+        decisionMade: { type: 'string', title: 'Decision Made', example: '2026-09-25T09:15:00.000Z' },
+        actor: { type: 'string', title: 'Actor', example: 'U0DEF67890' },
+        created: { type: 'string', title: 'Created', example: '2026-09-23T08:00:00.000Z' }
+    }
+};
 
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
@@ -12,12 +36,11 @@ module.exports = {
             status,
             title,
             requester,
-            approver,
-            limit = 100
+            approver
         } = context.messages.in.content;
 
         if (generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, outputType);
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Tasks' });
         }
 
         // Build query parameters
@@ -39,7 +62,7 @@ module.exports = {
             queryParams.append('approver', approver);
         }
 
-        queryParams.append('limit', limit.toString());
+        queryParams.append('limit', String(PAGE_SIZE));
 
         // Make HTTP request to the tasks API
         const response = await context.callAppmixer({
@@ -51,7 +74,7 @@ module.exports = {
         });
 
         // Transform tasks to include human-readable date
-        const transformedTasks = response.map(task => {
+        const records = (response || []).map(task => {
             // Add human-readable decision by date
             if (task.decisionBy) {
                 const decisionByDate = new Date(task.decisionBy);
@@ -61,50 +84,10 @@ module.exports = {
             return task;
         });
 
-        return sendArrayOutput({ context, outputPortName: 'out', outputType, records: transformedTasks });
-    },
-
-    getOutputPortOptions(context, outputType) {
-        if (outputType === 'object' || outputType === 'first') {
-            return context.sendJson([
-                { label: 'Task ID', value: 'taskId', schema: { type: 'string' } },
-                { label: 'Title', value: 'title', schema: { type: 'string' } },
-                { label: 'Description', value: 'description', schema: { type: 'string' } },
-                { label: 'Status', value: 'status', schema: { type: 'string' } },
-                { label: 'Requester', value: 'requester', schema: { type: 'string' } },
-                { label: 'Approver', value: 'approver', schema: { type: 'string' } },
-                { label: 'Channel', value: 'channel', schema: { type: 'string' } },
-                { label: 'Decision By', value: 'decisionBy', schema: { type: 'string' } },
-                { label: 'Decision By (Human Readable)', value: 'decisionByReadable', schema: { type: 'string' } },
-                { label: 'Decision Made', value: 'decisionMade', schema: { type: 'string' } },
-                { label: 'Actor', value: 'actor', schema: { type: 'string' } },
-                { label: 'Created', value: 'created', schema: { type: 'string' } },
-                { label: 'Current Index', value: 'index', schema: { type: 'integer' } },
-                { label: 'Total Count', value: 'count', schema: { type: 'integer' } }
-            ], 'out');
-        } else if (outputType === 'array') {
-            return context.sendJson([
-                { label: 'Total Count', value: 'count', schema: { type: 'integer' } },
-                { label: 'Tasks', value: 'result', schema: { type: 'array', items: { type: 'object', properties: {
-                    taskId: { type: 'string', title: 'Task ID' },
-                    title: { type: 'string', title: 'Title' },
-                    description: { type: 'string', title: 'Description' },
-                    status: { type: 'string', title: 'Status' },
-                    requester: { type: 'string', title: 'Requester' },
-                    approver: { type: 'string', title: 'Approver' },
-                    channel: { type: 'string', title: 'Channel' },
-                    decisionBy: { type: 'string', title: 'Decision By' },
-                    decisionByReadable: { type: 'string', title: 'Decision By (Human Readable)' },
-                    decisionMade: { type: 'string', title: 'Decision Made' },
-                    actor: { type: 'string', title: 'Actor' },
-                    created: { type: 'string', title: 'Created' }
-                } } } }
-            ], 'out');
-        } else { // file
-            return context.sendJson([
-                { label: 'File ID', value: 'fileId' },
-                { label: 'Total Count', value: 'count', schema: { type: 'integer' } }
-            ], 'out');
+        if (records.length === 0) {
+            return context.sendJson({ status, title, requester, approver }, 'notFound');
         }
+
+        return lib.sendArrayOutput({ context, outputPortName: 'out', outputType, records });
     }
 };

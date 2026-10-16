@@ -1,10 +1,63 @@
 'use strict';
-const { sendArrayOutput } = require('../../commons');
+const { sendArrayOutput, getOutputPortOptions } = require('../../commons');
 const XeroClient = require('../../XeroClient');
 
 const outputPortName = 'journals';
 
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['JournalID', 'JournalDate', 'JournalNumber'],
+    properties: {
+        JournalID: { type: 'string', title: 'Journal ID', example: '3c8d5e21-7a94-4b60-8f13-9d2e4a6b8c05' },
+        JournalDate: { type: 'string', title: 'Journal Date', example: '/Date(1774051200000+0000)/' },
+        JournalNumber: { type: 'number', title: 'Journal Number', example: 1284 },
+        CreatedDateUTC: { type: 'string', title: 'Created Date UTC', example: '/Date(1774059000000+0000)/' },
+        Reference: { type: 'string', title: 'Reference', example: 'INV-2026-0035' },
+        SourceID: { type: 'string', title: 'Source ID', example: 'd4e5f6a7-b8c9-0123-defa-345678901234' },
+        SourceType: { type: 'string', title: 'Source Type', example: 'ACCREC' },
+        JournalLines: {
+            type: 'array',
+            title: 'Journal Lines',
+            example: [
+                {
+                    JournalLineID: '6b2c9d47-1e53-4f08-9a26-7c3d5e8f0a19',
+                    AccountID: '2a9b7c14-6d38-4e52-8f01-3b4c5d6e7f80',
+                    AccountCode: '200',
+                    AccountType: 'REVENUE',
+                    AccountName: 'Sales',
+                    Description: 'Design consultancy',
+                    NetAmount: 3200.0,
+                    GrossAmount: 3680.0,
+                    TaxAmount: 480.0,
+                    TaxType: 'OUTPUT2',
+                    TaxName: '15% GST on Income',
+                    TrackingCategories: []
+                }
+            ],
+            items: {
+                type: 'object',
+                properties: {
+                    JournalLineID: { type: 'string', title: 'Journal Line ID' },
+                    AccountID: { type: 'string', title: 'Account ID' },
+                    AccountCode: { type: 'string', title: 'Account Code' },
+                    AccountType: { type: 'string', title: 'Account Type' },
+                    AccountName: { type: 'string', title: 'Account Name' },
+                    Description: { type: 'string', title: 'Description' },
+                    NetAmount: { type: 'number', title: 'Net Amount' },
+                    GrossAmount: { type: 'number', title: 'Gross Amount' },
+                    TaxAmount: { type: 'number', title: 'Tax Amount' },
+                    TaxType: { type: 'string', title: 'Tax Type' },
+                    TaxName: { type: 'string', title: 'Tax Name' },
+                    TrackingCategories: { type: 'array', title: 'Tracking Categories' }
+                }
+            }
+        }
+    }
+};
+
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
@@ -46,87 +99,9 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'item') {
-            return context.sendJson(
-                [
-                    { value: 'JournalID', label: 'Journal ID' },
-                    { value: 'JournalDate', label: 'Journal Date' },
-                    { value: 'JournalNumber', label: 'Journal Number' },
-                    { value: 'CreatedDateUTC', label: 'Created Date UTC' },
-                    { value: 'Reference', label: 'Reference' },
-                    { value: 'SourceID', label: 'Source ID' },
-                    { value: 'SourceType', label: 'Source Type' },
-                    { value: 'JournalLines', label: 'Journal Lines', schema: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                JournalLineID: { type: 'string', title: 'Journal Line ID' },
-                                AccountID: { type: 'string', title: 'Account ID' },
-                                AccountCode: { type: 'string', title: 'Account Code' },
-                                AccountType: { type: 'string', title: 'Account Type' },
-                                AccountName: { type: 'string', title: 'Account Name' },
-                                Description: { type: 'string', title: 'Description' },
-                                NetAmount: { type: 'number', title: 'Net Amount' },
-                                GrossAmount: { type: 'number', title: 'Gross Amount' },
-                                TaxAmount: { type: 'number', title: 'Tax Amount' },
-                                TaxType: { type: 'string', title: 'Tax Type' },
-                                TaxName: { type: 'string', title: 'Tax Name' },
-                                TrackingCategories: { type: 'array', title: 'Tracking Categories' }
-                            }
-                        }
-                    } }
-                ],
-                outputPortName
-            );
-        } else if (outputType === 'items') {
-            return context.sendJson(
-                [
-                    {
-                        label: 'Journals',
-                        value: 'items',
-                        schema: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    JournalID: { type: 'string', title: 'Journal ID' },
-                                    JournalDate: { type: 'string', title: 'Journal Date' },
-                                    JournalNumber: { type: 'string', title: 'Journal Number' },
-                                    CreatedDateUTC: { type: 'string', title: 'Created Date UTC' },
-                                    Reference: { type: 'string', title: 'Reference' },
-                                    SourceID: { type: 'string', title: 'Source ID' },
-                                    SourceType: { type: 'string', title: 'Source Type' },
-                                    JournalLines: { type: 'array', title: 'Journal Lines', schema: {
-                                        type: 'array',
-                                        items: {
-                                            type: 'object',
-                                            properties: {
-                                                JournalLineID: { type: 'string', title: 'Journal Line ID' },
-                                                AccountID: { type: 'string', title: 'Account ID' },
-                                                AccountCode: { type: 'string', title: 'Account Code' },
-                                                AccountType: { type: 'string', title: 'Account Type' },
-                                                AccountName: { type: 'string', title: 'Account Name' },
-                                                Description: { type: 'string', title: 'Description' },
-                                                NetAmount: { type: 'number', title: 'Net Amount' },
-                                                GrossAmount: { type: 'number', title: 'Gross Amount' },
-                                                TaxAmount: { type: 'number', title: 'Tax Amount' },
-                                                TaxType: { type: 'string', title: 'Tax Type' },
-                                                TaxName: { type: 'string', title: 'Tax Name' },
-                                                TrackingCategories: { type: 'array', title: 'Tracking Categories' }
-                                            }
-                                        }
-                                    } }
-                                }
-                            }
-                        }
-                    }
-                ],
-                outputPortName
-            );
-        } else {
-            // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], outputPortName);
-        }
+        return getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, {
+            label: 'Journals',
+            outputPortName
+        });
     }
 };

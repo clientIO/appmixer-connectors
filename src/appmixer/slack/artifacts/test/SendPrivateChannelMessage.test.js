@@ -18,8 +18,8 @@ describe('SendPrivateChannelMessage component (options focus)', () => {
                     channelId: 'G123',
                     text: 'Hello private world',
                     asBot: true,
-                    thread_ts: '1717171717.000200',
-                    reply_broadcast: true,
+                    threadTs: '1717171717.000200',
+                    replyBroadcast: true,
                     username: 'MySlackBot',
                     iconUrl: 'https://example.com/icon.png'
                 }

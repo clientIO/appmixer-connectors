@@ -1,39 +1,41 @@
 'use strict';
-const commons = require('../../lib');
+
+const lib = require('../../lib');
+const gqlCustomers = require('../../gql-customers');
+
+const TOPIC = 'customers/create';
 
 /**
- * Component which triggers whenever new customer comes.
+ * Triggers when a customer is created.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'customers/create');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'customer');
+            const api = gqlCustomers(lib.runner(context));
+            return lib.receiveWebhook(context, { port: 'out', type: 'Customer', fetch: id => api.getOrNull(id) });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const customer = await commons.fetchLatestWebhookExample(context, {
-            resource: 'customer',
-            topic: 'customers/create',
-            params: { order: 'created_at DESC' }
-        });
+        const api = gqlCustomers(lib.runner(context));
+        const [customer] = await api.find({ sortKey: 'CREATED_AT', reverse: true, max: 1 });
         if (!customer) {
-            throw new Error('No recent customers to use as test data.');
+            throw new context.CancelError('The store has no customers yet. Create one to get test data.');
         }
-        return context.sendJson(customer, 'customer');
+        return context.sendJson({ ...customer, webhookTopic: TOPIC }, 'out');
     }
 };

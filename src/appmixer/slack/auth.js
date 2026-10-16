@@ -20,15 +20,22 @@ module.exports = {
 
             authUrl: context => {
 
-                const botScopes = [
+                // Some user-token scopes have a differently named bot-token counterpart; requesting the
+                // user name in the bot `scope` makes Slack reject the whole consent with
+                // "Invalid permissions requested" (seen with CreateChannel's channels:write).
+                const BOT_SCOPE_FOR_USER_SCOPE = {
+                    'channels:write': 'channels:manage'
+                };
+                const botScopes = [...new Set([
                     // Join public channels in a workspace
                     'channels:join',
                     // New Slack apps do not begin life with the ability to post in all public channels.
                     // For your new Slack app to gain the ability to post in all public channels, request the chat:write.public scope.
                     'chat:write.public',
                     'chat:write.customize',
-                    [...context.scope || []] // Include any additional scopes requested by the component
-                ];
+                    // Include any additional scopes requested by the component
+                    ...(context.scope || []).map(scope => BOT_SCOPE_FOR_USER_SCOPE[scope] || scope)
+                ])];
 
                 let urlObject = new URL('https://slack.com/oauth/v2/authorize');
                 let params = new URLSearchParams([

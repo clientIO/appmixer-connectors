@@ -2,59 +2,42 @@
     "name": "E2E Shopify - New Refund Trigger",
     "type": "automation",
     "flow": {
-        "a0000000-0000-0000-0000-000000000001": {
-            "type": "appmixer.shopify.orders.NewRefund",
-            "x": 64,
-            "y": 320,
+        "35397efd-ab71-4e66-8f17-df622f4414d9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 128,
             "source": {},
-            "config": {
-                "properties": {}
-            },
+            "config": {},
             "errorHandling": {
                 "autoRetry": false,
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000002": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 272,
-            "y": 320,
+        "edb3ea62-0300-41d0-83e3-7d15eb2b2f56": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 416,
+            "y": 128,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000001": [
-                        "refund"
+                    "35397efd-ab71-4e66-8f17-df622f4414d9": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000001": {
-                            "refund": {
+                        "35397efd-ab71-4e66-8f17-df622f4414d9": {
+                            "out": {
                                 "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "field-id": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.refund.id",
-                                            "functions": []
-                                        },
-                                        "field-topic": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.refund.webhookTopic",
-                                            "functions": []
-                                        }
-                                    }
-                                },
+                                "modifiers": {},
                                 "lambda": {
-                                    "expression": {
-                                        "AND": [
+                                    "variables": {
+                                        "ADD": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-id}}}"
-                                            },
-                                            {
-                                                "assertion": "equal",
-                                                "field": "{{{field-topic}}}",
-                                                "expected": "refunds/create"
+                                                "type": "text",
+                                                "name": "email",
+                                                "text": "appmixer.e2e.newrefund@example.com"
                                             }
                                         ]
                                     }
@@ -69,13 +52,227 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000003": {
-            "type": "appmixer.utils.test.AfterAll",
-            "x": 480,
-            "y": 320,
+        "c2ffa2e4-c15b-4d90-9054-00d301ebfbce": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 624,
+            "y": 128,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000002": [
+                    "edb3ea62-0300-41d0-83e3-7d15eb2b2f56": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "edb3ea62-0300-41d0-83e3-7d15eb2b2f56": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "837b4ea5-0fa3-4f5e-b38b-15913d9770e1": {
+            "type": "appmixer.shopify.orders.CreateOrder",
+            "x": 832,
+            "y": 128,
+            "source": {
+                "in": {
+                    "c2ffa2e4-c15b-4d90-9054-00d301ebfbce": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c2ffa2e4-c15b-4d90-9054-00d301ebfbce": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {
+                                        "98e1f308-0b92-4f92-a260-b235cf52930c": {
+                                            "variable": "$.edb3ea62-0300-41d0-83e3-7d15eb2b2f56.out.email",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "lineItems": {
+                                        "ADD": [
+                                            {
+                                                "itemType": "custom",
+                                                "title": "Appmixer E2E Trigger Item",
+                                                "price": 9.99,
+                                                "quantity": 1,
+                                                "taxable": true,
+                                                "requiresShipping": true
+                                            }
+                                        ]
+                                    },
+                                    "email": "{{{98e1f308-0b92-4f92-a260-b235cf52930c}}}",
+                                    "test": true,
+                                    "note": "Created by Appmixer E2E",
+                                    "tags": "appmixer-e2e"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ae8cc54c-7d6d-450c-907a-ccdb25776096": {
+            "type": "appmixer.shopify.core.MakeApiCall",
+            "x": 1040,
+            "y": 128,
+            "source": {
+                "in": {
+                    "837b4ea5-0fa3-4f5e-b38b-15913d9770e1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "837b4ea5-0fa3-4f5e-b38b-15913d9770e1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "body": {
+                                        "a2cc7082-86c1-489d-b524-9c5cca59ba9f": {
+                                            "variable": "$.837b4ea5-0fa3-4f5e-b38b-15913d9770e1.out.legacyResourceId",
+                                            "functions": []
+                                        },
+                                        "c66efd4c-f5e9-4995-b546-db07d60ff29b": {
+                                            "variable": "$.837b4ea5-0fa3-4f5e-b38b-15913d9770e1.out.id",
+                                            "functions": []
+                                        },
+                                        "1ac76c12-c394-4343-8c5e-4a5a5525b59d": {
+                                            "variable": "$.837b4ea5-0fa3-4f5e-b38b-15913d9770e1.out.lineItems",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\":\"mutation Refund($input: RefundInput!, $key: String!) { refundCreate(input: $input) @idempotent(key: $key) { refund { id } userErrors { field message } } }\",\"variables\":{\"key\":\"appmixer-e2e-refund-{{{a2cc7082-86c1-489d-b524-9c5cca59ba9f}}}\",\"input\":{\"orderId\":\"{{{c66efd4c-f5e9-4995-b546-db07d60ff29b}}}\",\"note\":\"Appmixer E2E refund\",\"refundLineItems\":[{\"lineItemId\":\"{{{1ac76c12-c394-4343-8c5e-4a5a5525b59d}}}\",\"quantity\":1,\"restockType\":\"NO_RESTOCK\"}]}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11d429d8-afc6-4bdc-bb86-e9dbe5227d23": {
+            "type": "appmixer.shopify.orders.NewRefund",
+            "x": 208,
+            "y": 384,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cbe04491-cc96-49da-b735-ed699b3c5f75": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 416,
+            "y": 384,
+            "source": {
+                "in": {
+                    "11d429d8-afc6-4bdc-bb86-e9dbe5227d23": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11d429d8-afc6-4bdc-bb86-e9dbe5227d23": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "4d60fbf5-3e0e-4aa7-932a-7ee83c9dfd28": {
+                                            "variable": "$.11d429d8-afc6-4bdc-bb86-e9dbe5227d23.out.id",
+                                            "functions": []
+                                        },
+                                        "c9f39ff0-4307-4643-b983-60b566cec3ef": {
+                                            "variable": "$.11d429d8-afc6-4bdc-bb86-e9dbe5227d23.out.webhookTopic",
+                                            "functions": []
+                                        },
+                                        "29e734d8-9e7b-42f4-9cbd-89597c4475ce": {
+                                            "variable": "$.11d429d8-afc6-4bdc-bb86-e9dbe5227d23.out.order.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{4d60fbf5-3e0e-4aa7-932a-7ee83c9dfd28}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{c9f39ff0-4307-4643-b983-60b566cec3ef}}}",
+                                                "expected": "refunds/create"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{29e734d8-9e7b-42f4-9cbd-89597c4475ce}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6d8eff5d-5f37-48a9-aa03-0d70d9c99f8d": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1248,
+            "y": 384,
+            "source": {
+                "in": {
+                    "cbe04491-cc96-49da-b735-ed699b3c5f75": [
                         "out"
                     ]
                 }
@@ -90,36 +287,33 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000004": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 688,
-            "y": 320,
+        "642ee88a-e119-4b9f-a98a-07e8116c3c84": {
+            "type": "appmixer.shopify.orders.DeleteOrder",
+            "x": 1456,
+            "y": 384,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000003": [
+                    "6d8eff5d-5f37-48a9-aa03-0d70d9c99f8d": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000003": {
+                        "6d8eff5d-5f37-48a9-aa03-0d70d9c99f8d": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "result": {
-                                        "field-result": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                    "id": {
+                                        "cceecd80-9375-4443-ab09-01528acb87f2": {
+                                            "variable": "$.11d429d8-afc6-4bdc-bb86-e9dbe5227d23.out.order.id",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "recipients": "test@appmixer.com",
-                                    "testCase": "E2E Shopify - New Refund Trigger",
-                                    "result": "{{{field-result}}}"
+                                    "id": "{{{cceecd80-9375-4443-ab09-01528acb87f2}}}"
                                 }
                             }
                         }
@@ -131,24 +325,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000001": {
-            "type": "appmixer.utils.controls.OnStart",
-            "x": 64,
-            "y": 576,
-            "source": {},
-            "config": {},
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000002": {
-            "type": "appmixer.utils.timers.Wait",
-            "x": 272,
-            "y": 576,
+        "f57119fe-0748-454f-83d4-ae2d67fcd4e6": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1664,
+            "y": 384,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000001": [
+                    "642ee88a-e119-4b9f-a98a-07e8116c3c84": [
                         "out"
                     ]
                 }
@@ -156,140 +339,21 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000001": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {
-                                    "interval": "1m"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000003": {
-            "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 480,
-            "y": 576,
-            "source": {
-                "in": {
-                    "b0000000-0000-0000-0000-000000000002": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "b0000000-0000-0000-0000-000000000002": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {
-                                    "url": "/orders.json",
-                                    "method": "POST",
-                                    "body": "{\"order\": {\"email\": \"e2e.refund@example.com\", \"test\": true, \"line_items\": [{\"title\": \"Appmixer E2E Trigger Item\", \"price\": \"9.99\", \"quantity\": 1}], \"financial_status\": \"paid\"}}"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000004": {
-            "type": "appmixer.utils.timers.Wait",
-            "x": 688,
-            "y": 576,
-            "source": {
-                "in": {
-                    "b0000000-0000-0000-0000-000000000003": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "b0000000-0000-0000-0000-000000000003": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {
-                                    "interval": "1m"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000005": {
-            "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 896,
-            "y": 576,
-            "source": {
-                "in": {
-                    "b0000000-0000-0000-0000-000000000004": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "b0000000-0000-0000-0000-000000000004": {
+                        "642ee88a-e119-4b9f-a98a-07e8116c3c84": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "url": {
-                                        "m-oid": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000003.out.body",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$.order.id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    },
-                                    "body": {
-                                        "m-liid": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000003.out.body",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$.order.line_items[0].id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                    "result": {
+                                        "b5085c63-4986-4b19-9973-d7362bd38e5b": {
+                                            "variable": "$.6d8eff5d-5f37-48a9-aa03-0d70d9c99f8d.out",
+                                            "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "url": "/orders/{{{m-oid}}}/refunds.json",
-                                    "method": "POST",
-                                    "body": "{\"refund\":{\"note\":\"Appmixer E2E refund\",\"refund_line_items\":[{\"line_item_id\":{{{m-liid}}},\"quantity\":1,\"restock_type\":\"no_restock\"}]}}"
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Shopify - New Refund Trigger",
+                                    "result": "{{{b5085c63-4986-4b19-9973-d7362bd38e5b}}}"
                                 }
                             }
                         }
@@ -304,5 +368,14 @@
     },
     "wizard": {
         "fields": []
+    },
+    "notes": {
+        "21bf1a75-f763-4b6b-9a60-eed07eadb7d6": {
+            "x": 32,
+            "y": 8,
+            "width": 672,
+            "height": 112,
+            "content": "## ⚠️ Self-provoking trigger flow\n\nThe top lane creates a paid test order and refunds its line item (`refundCreate` through Make API Call) one minute after the start — keep the first **Wait**: it lets the webhook subscription become active. The test order is deleted after `AfterAll`."
+        }
     }
 }

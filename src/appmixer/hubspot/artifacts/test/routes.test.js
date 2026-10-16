@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const testUtils = require('../../../../../test/utils.js');
 const routes = require('../../routes');
 const { version } = require('../../bundle.json');
+const { signedRequest, h, CLIENT_SECRET, API_URL } = require('./signedRequest');
 
 describe('POST /events handler', () => {
 
@@ -23,7 +24,9 @@ describe('POST /events handler', () => {
                 router: {
                     register: sinon.stub()
                 }
-            }
+            },
+            config: { clientSecret: CLIENT_SECRET },
+            appmixerApiUrl: API_URL
             // v3
         };
 
@@ -146,6 +149,80 @@ describe('POST /events handler', () => {
         });
     }
 
+    describe('signature verification', () => {
+
+        const payload = [{
+            eventId: 1,
+            portalId: PORTAL_ID_AIRBUS,
+            occurredAt: 1726820305517,
+            subscriptionType: 'contact.creation',
+            objectId: 38533722672
+        }];
+
+        it('accepts a valid signature', async () => {
+
+            const clock = sinon.useFakeTimers({ now: 1726820305517 });
+            const response = await handler(signedRequest(payload), h);
+            await clock.tickAsync(6000);
+            clock.restore();
+
+            assert.deepEqual(response, {});
+            assert.equal(context.triggerListeners.callCount, 1);
+        });
+
+        it('accepts a signature computed with the forwarded public URL', async () => {
+
+            context.appmixerApiUrl = undefined;
+            const clock = sinon.useFakeTimers({ now: 1726820305517 });
+            const req = signedRequest(payload);
+            req.headers['x-forwarded-proto'] = 'https';
+            req.headers['x-forwarded-host'] = 'api.appmixer.example.com';
+
+            const response = await handler(req, h);
+            await clock.tickAsync(6000);
+            clock.restore();
+            assert.deepEqual(response, {});
+            assert.equal(context.triggerListeners.callCount, 1);
+        });
+
+        it('rejects a request without a signature', async () => {
+
+            const req = signedRequest(payload);
+            delete req.headers['x-hubspot-signature-v3'];
+
+            const response = await handler(req, h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects a request signed with another secret', async () => {
+
+            const response = await handler(signedRequest(payload, { secret: 'attacker' }), h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects a tampered body', async () => {
+
+            const req = signedRequest(payload);
+            req.payload = Buffer.from(JSON.stringify([{ ...payload[0], portalId: 999 }]));
+
+            const response = await handler(req, h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects an old timestamp', async () => {
+
+            const response = await handler(signedRequest(payload, { timestamp: Date.now() - 6 * 60 * 1000 }), h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects every request when the client secret is not configured', async () => {
+
+            context.config = {};
+            const response = await handler(signedRequest(payload), h);
+            assert.equal(response.statusCode, 401);
+        });
+    });
+
     it('all propertyChange events pass through to triggerListeners', async () => {
 
         // All propertyChange events now pass through regardless of property name.
@@ -184,7 +261,7 @@ describe('POST /events handler', () => {
         };
 
         const clock = sinon.useFakeTimers();
-        await handler(req);
+        await handler(signedRequest(req.payload), h);
         await clock.tickAsync(6000);
 
         // triggerListeners should be called — all propertyChange events now pass through
@@ -271,7 +348,7 @@ describe('POST /events handler', () => {
 
         const clock = sinon.useFakeTimers();
         // Call the handler with the payload.
-        await handler(req);
+        await handler(signedRequest(req.payload), h);
 
         // Jump 6 seconds into the future to trigger delayed events
         await clock.tickAsync(6000);
@@ -389,7 +466,7 @@ describe('POST /events handler', () => {
 
         const clock = sinon.useFakeTimers();
         // Call the handler with the payload.
-        await handler(req);
+        await handler(signedRequest(req.payload), h);
 
         // Jump 6 seconds into the future to trigger delayed events
         await clock.tickAsync(6000);

@@ -1,7 +1,18 @@
 'use strict';
 
+const { createHmac, timingSafeEqual } = require('node:crypto');
 const _ = require('lodash');
 const { DEFAULT_SUBSCRIBED_PROPERTIES_CONTACT, DEFAULT_SUBSCRIBED_PROPERTIES_DEAL } = require('./commons');
+
+// HubSpot recommends rejecting requests with a timestamp older than 5 minutes.
+// See https://developers.hubspot.com/docs/api/webhooks/validating-requests
+const MAX_SIGNATURE_AGE_MS = 5 * 60 * 1000;
+
+// Characters HubSpot URL-decodes in the request URI before computing the v3 signature.
+const URI_DECODE_MAP = {
+    '%3A': ':', '%2F': '/', '%3F': '?', '%40': '@', '%21': '!', '%24': '$',
+    '%27': '\'', '%28': '(', '%29': ')', '%2A': '*', '%2C': ',', '%3B': ';'
+};
 
 module.exports = async (context) => {
 
@@ -80,15 +91,32 @@ module.exports = async (context) => {
         path: '/events',
         options: {
             auth: false,
-            handler: async (req) => {
+            // The raw body is needed to verify the X-HubSpot-Signature-v3 header.
+            payload: {
+                parse: false
+            },
+            handler: async (req, h) => {
 
-                await context.log('info', 'hubspot-plugin-route-webhook-hit', { eventCount: req.payload?.length });
-                context.log('trace', 'hubspot-plugin-route-webhook-payload', { payload: req.payload });
-                if (!req.payload || typeof req.payload !== 'object') {
+                const rawBody = Buffer.isBuffer(req.payload) ? req.payload.toString('utf8') : (req.payload || '');
+                if (!verifySignature(context, req, rawBody)) {
+                    return h.response({ error: 'Invalid signature.' }).code(401);
+                }
+
+                let payload;
+                try {
+                    payload = rawBody ? JSON.parse(rawBody) : undefined;
+                } catch (err) {
+                    context.log('error', 'hubspot-plugin-route-webhook-invalid-payload', { error: err.message });
+                    return h.response({ error: 'Invalid payload.' }).code(400);
+                }
+
+                await context.log('info', 'hubspot-plugin-route-webhook-hit', { eventCount: payload?.length });
+                context.log('trace', 'hubspot-plugin-route-webhook-payload', { payload });
+                if (!payload || typeof payload !== 'object') {
                     context.log('warn', 'hubspot-plugin-route-webhook-missing-payload');
                     return {};
                 }
-                const events = Array.isArray(req.payload) ? req.payload : [req.payload];
+                const events = Array.isArray(payload) ? payload : [payload];
                 if (!Array.isArray(events) || !events.length) {
                     return {};
                 }
@@ -149,6 +177,73 @@ module.exports = async (context) => {
         }
     });
 };
+
+// Verifies the X-HubSpot-Signature-v3 header: base64 HMAC-SHA256 of method + URI + raw body + timestamp,
+// keyed with the app's client secret. Requests without a valid, recent signature are rejected.
+function verifySignature(context, req, rawBody) {
+
+    const clientSecret = context.config?.clientSecret;
+    if (!clientSecret) {
+        context.log('error', 'hubspot-plugin-route-webhook-missing-client-secret');
+        return false;
+    }
+
+    const signature = req.headers?.['x-hubspot-signature-v3'];
+    const timestamp = req.headers?.['x-hubspot-request-timestamp'];
+    if (!signature || !timestamp) {
+        context.log('error', 'hubspot-plugin-route-webhook-missing-signature');
+        return false;
+    }
+
+    if (!(Math.abs(Date.now() - Number(timestamp)) <= MAX_SIGNATURE_AGE_MS)) {
+        context.log('error', 'hubspot-plugin-route-webhook-expired-timestamp', { timestamp });
+        return false;
+    }
+
+    const method = (req.method || 'POST').toUpperCase();
+    const valid = getRequestUris(context, req).some(uri => {
+        const expected = createHmac('sha256', clientSecret)
+            .update(`${method}${uri}${rawBody}${timestamp}`)
+            .digest('base64');
+        return safeEqual(expected, signature);
+    });
+
+    if (!valid) {
+        context.log('error', 'hubspot-plugin-route-webhook-invalid-signature');
+    }
+    return valid;
+}
+
+// The signed URI is the full URL HubSpot called. Behind a proxy the URL seen by the server can differ,
+// so accept the public Appmixer API URL as well as the URL rebuilt from the (forwarded) request headers.
+function getRequestUris(context, req) {
+
+    const pathWithQuery = (req.url?.pathname || req.path || '') + (req.url?.search || '');
+    const uris = [];
+
+    if (context.appmixerApiUrl) {
+        uris.push(context.appmixerApiUrl.replace(/\/+$/, '') + pathWithQuery);
+    }
+
+    const headers = req.headers || {};
+    const protocol = (headers['x-forwarded-proto'] || '').split(',')[0].trim()
+        || (req.url?.protocol || '').replace(':', '');
+    const host = (headers['x-forwarded-host'] || '').split(',')[0].trim() || headers.host || req.url?.host;
+    if (protocol && host) {
+        uris.push(`${protocol}://${host}${pathWithQuery}`);
+    }
+
+    return [...new Set(uris)].map(uri => uri.replace(/%(3A|2F|3F|40|21|24|27|28|29|2A|2C|3B)/gi, match => {
+        return URI_DECODE_MAP[match.toUpperCase()];
+    }));
+}
+
+function safeEqual(a, b) {
+
+    const bufferA = Buffer.from(String(a));
+    const bufferB = Buffer.from(String(b));
+    return bufferA.length === bufferB.length && timingSafeEqual(bufferA, bufferB);
+}
 
 // Trigger listeners after 5 seconds. This is to avoid duplicate events.
 // See https://github.com/clientIO/appmixer-components/issues/1700#issuecomment-2605687394

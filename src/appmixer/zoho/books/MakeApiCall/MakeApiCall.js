@@ -1,5 +1,5 @@
 'use strict';
-const { apiEndpoint } = require('../../endpoints');
+const { resolveApiDomain } = require('../../endpoints');
 
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
@@ -28,10 +28,9 @@ module.exports = {
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        // Resolve the data-center-specific API host from the account region, the
+        // Resolve the data-center-specific API host of the account, the
         // same way ZohoClient does. Accept either an absolute URL (used as-is) or
         // a path relative to the Books API (https://www.zohoapis.<tld>/books/v3).
-        const region = context.profileInfo?.region;
         const isAbsolute = /^https?:\/\//i.test(url);
         let targetUrl;
         if (isAbsolute) {
@@ -39,7 +38,7 @@ module.exports = {
         } else {
             const path = url.startsWith('/') ? url : '/' + url;
             const endpoint = path.startsWith('/books/') ? path : `/books/v3${path}`;
-            targetUrl = `${apiEndpoint(region)}${endpoint}`;
+            targetUrl = `${resolveApiDomain(context.profileInfo)}${endpoint}`;
         }
 
         const requestOptions = {

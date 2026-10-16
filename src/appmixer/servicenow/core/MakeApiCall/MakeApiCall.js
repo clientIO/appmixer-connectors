@@ -1,6 +1,16 @@
 'use strict';
 
-function kvToObj(arr) {
+// Key-value inputs arrive as a JSON string (their schema type is string), or as an array.
+function kvToObj(context, value, label) {
+    let arr = value;
+    if (typeof arr === 'string') {
+        if (!arr.trim()) return {};
+        try {
+            arr = JSON.parse(arr);
+        } catch (e) {
+            throw new context.CancelError(`${label} must be a JSON array of {"key", "value"} items.`);
+        }
+    }
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
     for (const row of arr) {
@@ -18,8 +28,8 @@ module.exports = {
 
         const { url, method, headers: headersKV, parameters: parametersKV, body } = context.messages.in.content;
 
-        const extraHeaders = kvToObj(headersKV);
-        const queryParams = kvToObj(parametersKV);
+        const extraHeaders = kvToObj(context, headersKV, 'Headers');
+        const queryParams = kvToObj(context, parametersKV, 'Query Parameters');
 
         if (!url) {
             throw new context.CancelError('API Endpoint URL is required!');

@@ -1,3 +1,20 @@
+'use strict';
+
+const crypto = require('crypto');
+
+/**
+ * PKCE (RFC 7636) code verifier derived from the OAuth ticket. Salesforce
+ * requires PKCE for External Client Apps (and enforces it progressively for
+ * Connected Apps), so the authorize request has to carry a code_challenge
+ * and the token request the matching code_verifier. The ticket is the only
+ * value that survives between authUrl() and requestAccessToken(), so the
+ * verifier is derived from it deterministically: base64url(sha256(ticket))
+ * is 43 characters, which is the minimum verifier length Salesforce accepts.
+ */
+const getCodeVerifier = ticket => crypto.createHash('sha256').update(ticket).digest('base64url');
+
+const getCodeChallenge = codeVerifier => crypto.createHash('sha256').update(codeVerifier).digest('base64url');
+
 module.exports = {
 
     type: 'oauth2',
@@ -21,7 +38,9 @@ module.exports = {
                     client_id: context.clientId,
                     redirect_uri: context.callbackUrl,
                     state: context.ticket,
-                    prompt: promptType
+                    prompt: promptType,
+                    code_challenge: getCodeChallenge(getCodeVerifier(context.ticket)),
+                    code_challenge_method: 'S256'
                 };
                 url.search = new URLSearchParams(queryParams);
 
@@ -41,7 +60,9 @@ module.exports = {
                     code: context.authorizationCode,
                     redirect_uri: context.callbackUrl,
                     client_id: context.clientId,
-                    client_secret: context.clientSecret
+                    client_secret: context.clientSecret,
+                    // Same verifier the code_challenge in authUrl() was built from.
+                    code_verifier: getCodeVerifier(context.ticket)
                 };
                 url.search = new URLSearchParams(queryParams);
 
@@ -131,10 +152,17 @@ module.exports = {
                 newDate.setSeconds(newDate.getSeconds() + 60 * 120);
                 instanceId = data['id'];
                 instanceUrl = data['instance_url'];
-                return {
+                const refreshed = {
                     accessToken: data['access_token'],
                     accessTokenExpDate: newDate
                 };
+                // Apps with Refresh Token Rotation enabled (enforced by Salesforce
+                // together with PKCE) return a new refresh token and invalidate the
+                // old one, so it has to be stored or the next refresh fails.
+                if (data['refresh_token']) {
+                    refreshed.refreshToken = data['refresh_token'];
+                }
+                return refreshed;
             },
 
             validateAccessToken: context => {

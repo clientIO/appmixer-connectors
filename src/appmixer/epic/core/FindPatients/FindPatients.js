@@ -3,198 +3,253 @@
 const lib = require('../../lib');
 const { fhirRequest, extractResources } = require('../../lib');
 
-const schema = {
-    'resourceType': {
-        'type': 'string',
-        'title': 'Resource Type',
-        'example': 'Patient'
-    },
-    'id': {
-        'type': 'string',
-        'title': 'Patient ID',
-        'example': 'eq081-VQEgP8drUUqCWzHfw3'
-    },
-    'identifier': {
-        'type': 'array',
-        'title': 'Identifier',
-        'items': {
-            'type': 'object',
-            'properties': {
-                'use': {
-                    'type': 'string',
-                    'title': 'Identifier Use',
-                    'example': 'usual'
-                },
-                'system': {
-                    'type': 'string',
-                    'title': 'Identifier System',
-                    'example': 'urn:oid:1.2.840.114350.1.13.0.1.7.5.737384.0'
-                },
-                'value': {
-                    'type': 'string',
-                    'title': 'Identifier Value',
-                    'example': 'E4007'
-                }
-            }
-        }
-    },
-    'active': {
-        'type': 'boolean',
-        'title': 'Active',
-        'example': true
-    },
-    'name': {
-        'type': 'array',
-        'title': 'Name',
-        'items': {
-            'type': 'object',
-            'properties': {
-                'use': {
-                    'type': 'string',
-                    'title': 'Name Use',
-                    'example': 'official'
-                },
-                'text': {
-                    'type': 'string',
-                    'title': 'Name Text',
-                    'example': 'Warren McGinnis'
-                },
-                'family': {
-                    'type': 'string',
-                    'title': 'Name Family',
-                    'example': 'McGinnis'
-                },
-                'given': {
-                    'type': 'array',
-                    'title': 'Name Given',
-                    'items': {
+const ITEM_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'resourceType': {
+            'type': 'string',
+            'title': 'Resource Type',
+            'example': 'Patient'
+        },
+        'id': {
+            'type': 'string',
+            'title': 'Patient ID',
+            'example': 'eq081-VQEgP8drUUqCWzHfw3'
+        },
+        'identifier': {
+            'type': 'array',
+            'title': 'Identifier',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'use': {
                         'type': 'string',
-                        'example': 'Warren'
-                    }
-                }
-            }
-        }
-    },
-    'telecom': {
-        'type': 'array',
-        'title': 'Telecom',
-        'items': {
-            'type': 'object',
-            'properties': {
-                'system': {
-                    'type': 'string',
-                    'title': 'Telecom System',
-                    'example': 'phone'
-                },
-                'value': {
-                    'type': 'string',
-                    'title': 'Telecom Value',
-                    'example': '608-555-0123'
-                },
-                'use': {
-                    'type': 'string',
-                    'title': 'Telecom Use',
-                    'example': 'home'
-                }
-            }
-        }
-    },
-    'gender': {
-        'type': 'string',
-        'title': 'Gender',
-        'example': 'male'
-    },
-    'birthDate': {
-        'type': 'string',
-        'title': 'Birth Date',
-        'example': '1952-05-25'
-    },
-    'address': {
-        'type': 'array',
-        'title': 'Address',
-        'items': {
-            'type': 'object',
-            'properties': {
-                'use': {
-                    'type': 'string',
-                    'title': 'Address Use',
-                    'example': 'home'
-                },
-                'line': {
-                    'type': 'array',
-                    'title': 'Address Line',
-                    'items': {
+                        'title': 'Identifier Use',
+                        'example': 'usual'
+                    },
+                    'system': {
                         'type': 'string',
-                        'example': '134 Elmstreet'
-                    }
-                },
-                'city': {
-                    'type': 'string',
-                    'title': 'Address City',
-                    'example': 'Madison'
-                },
-                'state': {
-                    'type': 'string',
-                    'title': 'Address State',
-                    'example': 'WI'
-                },
-                'postalCode': {
-                    'type': 'string',
-                    'title': 'Address Postal Code',
-                    'example': '53703'
-                },
-                'country': {
-                    'type': 'string',
-                    'title': 'Address Country',
-                    'example': 'US'
-                }
-            }
-        }
-    },
-    'maritalStatus': {
-        'type': 'object',
-        'title': 'Marital Status',
-        'properties': {
-            'coding': {
-                'type': 'array',
-                'title': 'Marital Status Coding',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'system': {
-                            'type': 'string',
-                            'title': 'Marital Status Coding System',
-                            'example': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus'
-                        },
-                        'code': {
-                            'type': 'string',
-                            'title': 'Marital Status Coding Code',
-                            'example': 'M'
-                        },
-                        'display': {
-                            'type': 'string',
-                            'title': 'Marital Status Coding Display',
-                            'example': 'Married'
-                        }
+                        'title': 'Identifier System',
+                        'example': 'urn:oid:1.2.840.114350.1.13.0.1.7.5.737384.0'
+                    },
+                    'value': {
+                        'type': 'string',
+                        'title': 'Identifier Value',
+                        'example': 'E4007'
                     }
                 }
             },
-            'text': {
-                'type': 'string',
-                'title': 'Marital Status Text',
-                'example': 'Married'
+            'example': [
+                {
+                    'use': 'usual',
+                    'system': 'urn:oid:1.2.840.114350.1.13.0.1.7.5.737384.0',
+                    'value': 'E4007'
+                }
+            ]
+        },
+        'active': {
+            'type': 'boolean',
+            'title': 'Active',
+            'example': true
+        },
+        'name': {
+            'type': 'array',
+            'title': 'Name',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'use': {
+                        'type': 'string',
+                        'title': 'Name Use',
+                        'example': 'official'
+                    },
+                    'text': {
+                        'type': 'string',
+                        'title': 'Name Text',
+                        'example': 'Warren McGinnis'
+                    },
+                    'family': {
+                        'type': 'string',
+                        'title': 'Name Family',
+                        'example': 'McGinnis'
+                    },
+                    'given': {
+                        'type': 'array',
+                        'title': 'Name Given',
+                        'items': {
+                            'type': 'string',
+                            'example': 'Warren'
+                        },
+                        'example': [
+                            'Warren'
+                        ]
+                    }
+                }
+            },
+            'example': [
+                {
+                    'use': 'official',
+                    'text': 'Warren McGinnis',
+                    'family': 'McGinnis',
+                    'given': [
+                        'Warren'
+                    ]
+                }
+            ]
+        },
+        'telecom': {
+            'type': 'array',
+            'title': 'Telecom',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'system': {
+                        'type': 'string',
+                        'title': 'Telecom System',
+                        'example': 'phone'
+                    },
+                    'value': {
+                        'type': 'string',
+                        'title': 'Telecom Value',
+                        'example': '608-555-0123'
+                    },
+                    'use': {
+                        'type': 'string',
+                        'title': 'Telecom Use',
+                        'example': 'home'
+                    }
+                }
+            },
+            'example': [
+                {
+                    'system': 'phone',
+                    'value': '608-555-0123',
+                    'use': 'home'
+                }
+            ]
+        },
+        'gender': {
+            'type': 'string',
+            'title': 'Gender',
+            'example': 'male'
+        },
+        'birthDate': {
+            'type': 'string',
+            'title': 'Birth Date',
+            'example': '1952-05-25'
+        },
+        'address': {
+            'type': 'array',
+            'title': 'Address',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'use': {
+                        'type': 'string',
+                        'title': 'Address Use',
+                        'example': 'home'
+                    },
+                    'line': {
+                        'type': 'array',
+                        'title': 'Address Line',
+                        'items': {
+                            'type': 'string',
+                            'example': '134 Elmstreet'
+                        },
+                        'example': [
+                            '134 Elmstreet'
+                        ]
+                    },
+                    'city': {
+                        'type': 'string',
+                        'title': 'Address City',
+                        'example': 'Madison'
+                    },
+                    'state': {
+                        'type': 'string',
+                        'title': 'Address State',
+                        'example': 'WI'
+                    },
+                    'postalCode': {
+                        'type': 'string',
+                        'title': 'Address Postal Code',
+                        'example': '53703'
+                    },
+                    'country': {
+                        'type': 'string',
+                        'title': 'Address Country',
+                        'example': 'US'
+                    }
+                }
+            },
+            'example': [
+                {
+                    'use': 'home',
+                    'line': [
+                        '134 Elmstreet'
+                    ],
+                    'city': 'Madison',
+                    'state': 'WI',
+                    'postalCode': '53703',
+                    'country': 'US'
+                }
+            ]
+        },
+        'maritalStatus': {
+            'type': 'object',
+            'title': 'Marital Status',
+            'properties': {
+                'coding': {
+                    'type': 'array',
+                    'title': 'Marital Status.Coding',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'system': {
+                                'type': 'string',
+                                'title': 'Marital Status Coding System',
+                                'example': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus'
+                            },
+                            'code': {
+                                'type': 'string',
+                                'title': 'Marital Status Coding Code',
+                                'example': 'M'
+                            },
+                            'display': {
+                                'type': 'string',
+                                'title': 'Marital Status Coding Display',
+                                'example': 'Married'
+                            }
+                        }
+                    },
+                    'example': [
+                        {
+                            'system': 'http://terminology.hl7.org/CodeSystem/v3-MaritalStatus',
+                            'code': 'M',
+                            'display': 'Married'
+                        }
+                    ]
+                },
+                'text': {
+                    'type': 'string',
+                    'title': 'Marital Status.Text',
+                    'example': 'Married'
+                }
             }
         }
     }
 };
 
 module.exports = {
+
+    ITEM_SCHEMA,
+
     async receive(context) {
 
         const { family, given, birthdate, identifier, outputType } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Patients' });
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Patients' });
         }
 
         const params = {};

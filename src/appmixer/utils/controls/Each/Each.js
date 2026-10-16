@@ -1,6 +1,7 @@
 'use strict';
 
 const eachDelay = require('./EachDelay');
+const eachSequential = require('./EachSequential');
 
 function parseVariable(listVariable) {
 
@@ -116,7 +117,17 @@ module.exports = {
 
         const { buildOutPortOptions = false } = context.properties;
 
+        if (context.messages.webhook) {
+            // ContinueEach acknowledged the item in flight of a sequential Each loop (it calls this
+            // component's webhook URL directly, see EachSequential.js).
+            return eachSequential.handleAck(context);
+        }
+
         if (context.messages.timeout) {
+            if (context.messages.timeout.content?.sequential) {
+                // The item in flight of a sequential Each loop was not acknowledged in time.
+                return eachSequential.handleTimeout(context);
+            }
             // A scheduled timeout drives the next batch of a delayed Each loop.
             return eachDelay.handleTimeout(context);
         }
@@ -147,11 +158,22 @@ module.exports = {
 
         if (!Array.isArray(list)) {
             // Not an array, send empty done
-            await context.sendJson({ count: 0, correlationId: eachCorrelationId }, 'done');
+            await context.sendJson({ count: 0, correlationId: eachCorrelationId, result: [] }, 'done');
             return;
         }
 
         const count = list.length;
+
+        if (context.messages.in.content.sequential) {
+            // Sequential iteration is acknowledgement-driven - see EachSequential.js.
+            return eachSequential.handleStart(context, {
+                list,
+                correlationId: eachCorrelationId,
+                count,
+                delay,
+                itemTimeout: context.messages.in.content.itemTimeout
+            });
+        }
 
         if (delay) {
             // Delayed iteration is batched and timeout-driven - see EachDelay.js.
@@ -186,7 +208,7 @@ module.exports = {
             });
         }
 
-        await context.sendJson({ count, correlationId: eachCorrelationId }, 'done');
+        await context.sendJson({ count, correlationId: eachCorrelationId, result: [] }, 'done');
         // at this point we will remove the store index. Otherwise, the state would keep growing until it would
         // reach the limit of the document
         return context.stateUnset(contextId);

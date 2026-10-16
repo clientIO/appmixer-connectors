@@ -1,0 +1,307 @@
+{
+    "name": "E2E Notion - new database item trigger",
+    "description": "End-to-end test for the Notion connector - NewDatabaseItem (polling trigger provoked by Create Database Item).",
+    "flow": {
+        "e68b6612-f2bf-4d61-b71c-3b770d89b444": {
+            "type": "appmixer.notion.core.NewDatabaseItem",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "databaseId": "6a479175-a340-4bff-b278-93df6acb2613"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2045e34c-839e-4148-a196-fb181b14e890": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e68b6612-f2bf-4d61-b71c-3b770d89b444": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e68b6612-f2bf-4d61-b71c-3b770d89b444": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1eb884bc-0127-49bb-ae7c-f372f657cedd": {
+                                            "variable": "$.e68b6612-f2bf-4d61-b71c-3b770d89b444.out.id",
+                                            "functions": []
+                                        },
+                                        "405f4b7e-bbad-485c-8505-49599230b01b": {
+                                            "variable": "$.e68b6612-f2bf-4d61-b71c-3b770d89b444.out.parent",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.database_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "d67a5a23-7b38-435b-97d5-5c8be6fd6919": {
+                                            "variable": "$.e68b6612-f2bf-4d61-b71c-3b770d89b444.out.properties",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Title.title[0].plain_text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{1eb884bc-0127-49bb-ae7c-f372f657cedd}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{405f4b7e-bbad-485c-8505-49599230b01b}}}",
+                                                "assertion": "equal",
+                                                "expected": "6a479175-a340-4bff-b278-93df6acb2613"
+                                            },
+                                            {
+                                                "field": "{{{d67a5a23-7b38-435b-97d5-5c8be6fd6919}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Notion new database item trigger"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "69a3f325-d810-4314-b10d-458588430f51": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2045e34c-839e-4148-a196-fb181b14e890": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "92018e7b-8ce5-4600-bf08-ed64444cbece": {
+            "type": "appmixer.notion.core.MakeApiCall",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "69a3f325-d810-4314-b10d-458588430f51": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "69a3f325-d810-4314-b10d-458588430f51": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "26a202b3-4d88-4ed8-98fd-b8af44c9f71a": {
+                                            "variable": "$.e68b6612-f2bf-4d61-b71c-3b770d89b444.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/pages/{{{26a202b3-4d88-4ed8-98fd-b8af44c9f71a}}}",
+                                    "method": "PATCH",
+                                    "body": "{\"archived\": true}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a064fdb2-399b-4ec4-924a-c74755f46cec": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "92018e7b-8ce5-4600-bf08-ed64444cbece": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "92018e7b-8ce5-4600-bf08-ed64444cbece": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "eadfb395-f1ad-4097-8260-6b7295872ae1": {
+                                            "variable": "$.69a3f325-d810-4314-b10d-458588430f51.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Notion - new database item trigger",
+                                    "result": "{{{eadfb395-f1ad-4097-8260-6b7295872ae1}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "83949aba-51e7-461e-9ca9-aa40894f07d3": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 144,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c1860f39-12a6-4066-836e-0babf92c42ac": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "83949aba-51e7-461e-9ca9-aa40894f07d3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "83949aba-51e7-461e-9ca9-aa40894f07d3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "14aec597-5cd8-42d7-831d-1cc96429414a": {
+            "type": "appmixer.notion.core.CreateDatabaseItem",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c1860f39-12a6-4066-836e-0babf92c42ac": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "databaseId": "6a479175-a340-4bff-b278-93df6acb2613"
+                },
+                "transform": {
+                    "in": {
+                        "c1860f39-12a6-4066-836e-0babf92c42ac": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "Title": {},
+                                    "content": {}
+                                },
+                                "lambda": {
+                                    "Title": "E2E Notion new database item trigger",
+                                    "content": "Created by the Appmixer E2E test flow. Safe to delete."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "eafaf0d3-e5ea-469d-9576-e4ec04f9f907": {
+            "x": 64,
+            "y": 288,
+            "width": 672,
+            "height": 256,
+            "content": "## ⚠️ Test data assumption\n\nThis flow works on the Notion database **Docs** (`6a479175-a340-4bff-b278-93df6acb2613`) of the test workspace, set as *Database ID* on the components.\n\nOn a fresh workspace: share a database with the integration that has a `Title` (title) and an `Email` (email) property, and put its ID into every Notion component of this flow.\n\n**Do not remove the Wait.** The trigger only takes a baseline on its first poll and emits items that are created later; an item created at flow start lands in the baseline and is never emitted.\n\nThe cleanup archives the item the trigger emitted."
+        }
+    }
+}

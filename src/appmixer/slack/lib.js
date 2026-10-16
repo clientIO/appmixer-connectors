@@ -31,6 +31,20 @@ module.exports = {
     },
 
     /**
+     * Thread inputs of Send*ChannelMessage. The inputs were renamed to camelCase
+     * (threadTs, replyBroadcast) in 5.5.1; flows saved earlier still carry the
+     * original Slack names (thread_ts, reply_broadcast), so both are honoured.
+     * @param {Object} content
+     * @returns {{ threadTs: string|undefined, replyBroadcast: boolean|undefined }}
+     */
+    getThreadInputs(content = {}) {
+
+        const threadTs = content.threadTs ?? content.thread_ts;
+        const replyBroadcast = content.replyBroadcast ?? content.reply_broadcast;
+        return { threadTs, replyBroadcast };
+    },
+
+    /**
      * Send slack channel message.
      * @param {Object} context
      * @param {string} channelId
@@ -102,7 +116,7 @@ module.exports = {
         return response.message;
     },
 
-    // Expects standardized outputType: 'item', 'items', 'file', 'first'
+    // Expects standardized outputType: 'first', 'object', 'array', 'file'
     async sendArrayOutput({ context, outputPortName = 'out', outputType = 'first', records = [] }) {
 
         if (outputType === 'first') {
@@ -112,8 +126,9 @@ module.exports = {
             // One by one.
             await context.sendArray(records, outputPortName);
         } else if (outputType === 'array') {
-            // All at once.
-            await context.sendJson({ records }, outputPortName);
+            // All at once. The array field is `records` (not the canonical `result`)
+            // to stay compatible with flows and dropdown transformers that already read it.
+            await context.sendJson({ records, count: records.length }, outputPortName);
         } else if (outputType === 'file') {
             // Into CSV file.
             const headers = Object.keys(records[0] || {});
@@ -137,6 +152,49 @@ module.exports = {
         } else {
             throw new context.CancelError('Unsupported outputType ' + outputType);
         }
+    },
+
+    /**
+     * Emit the variable-picker options of a dynamic out port for the given outputType.
+     * `itemSchema` is `ITEM_SCHEMA.properties` of the calling component, so the options
+     * cannot drift from the exported contract. The array wrapper field stays `records`
+     * (see sendArrayOutput).
+     * @param {Object} context
+     * @param {string} outputType
+     * @param {Object} itemSchema
+     * @param {{ label?: string, outputPortName?: string }} [options]
+     */
+    getOutputPortOptions(context, outputType, itemSchema, { label, outputPortName = 'out' } = {}) {
+
+        if (outputType === 'object' || outputType === 'first') {
+            const options = Object.keys(itemSchema).map(field => {
+                const { title: fieldLabel, ...schemaWithoutTitle } = itemSchema[field];
+                return { label: fieldLabel, value: field, schema: schemaWithoutTitle };
+            });
+            return context.sendJson(options, outputPortName);
+        }
+
+        if (outputType === 'array') {
+            return context.sendJson([
+                {
+                    label: label || 'Records',
+                    value: 'records',
+                    schema: {
+                        type: 'array',
+                        items: { type: 'object', properties: itemSchema }
+                    }
+                },
+                { label: 'Items Count', value: 'count', schema: { type: 'integer', example: 1 } }
+            ], outputPortName);
+        }
+
+        if (outputType === 'file') {
+            return context.sendJson([
+                { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id', example: '6a95493889a78ab01364b817' } }
+            ], outputPortName);
+        }
+
+        return context.sendJson([], outputPortName);
     },
 
     isValidPayload(context, req) {

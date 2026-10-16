@@ -1,17 +1,16 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlProducts = require('../../gql-products');
 
 /**
- * Count products.
+ * Count the products matching a search query and typed filters.
  * @extends {Component}
  */
 module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context);
-        const filter = context.messages.in.content;
-        const count = await shopify.product.count(filter);
+        const count = await gqlProducts(lib.runner(context)).count(context.messages.in.content);
         return context.sendJson({ count }, 'out');
     }
 };

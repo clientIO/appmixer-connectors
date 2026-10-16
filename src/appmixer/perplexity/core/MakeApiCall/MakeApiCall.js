@@ -1,5 +1,7 @@
 'use strict';
 
+const { addIntegrationHeader } = require('../../lib');
+
 function kvToObj(arr) {
     if (!arr || !Array.isArray(arr)) return {};
     const out = {};
@@ -36,11 +38,11 @@ module.exports = {
         const requestOptions = {
             method,
             url: targetUrl,
-            headers: {
+            headers: addIntegrationHeader(targetUrl, {
                 'Authorization': `Bearer ${context.auth.apiKey}`,
                 'Content-Type': 'application/json',
                 ...extraHeaders
-            }
+            })
         };
 
         let parsedBody;
