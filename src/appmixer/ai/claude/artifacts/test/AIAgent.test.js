@@ -124,6 +124,18 @@ describe('ai/claude AIAgent - tool port', () => {
         assert.deepStrictEqual(requests.map(r => r.max_tokens), [8192, 16000]);
     });
 
+    it('should not ask a Claude 3 model for more than its 4096 tokens by default', async () => {
+
+        const context = toolPortContext();
+        context.messages.in.content.model = 'claude-3-haiku-20240307';
+        const requests = anthropic(context, [{ content: [{ type: 'text', text: 'a' }], stop_reason: 'end_turn', usage }]);
+
+        await AIAgent.start(context);
+        await AIAgent.receive(context);
+
+        assert.strictEqual(requests[0].max_tokens, 4096);
+    });
+
     it('should collect the tools itself when the message comes before start() stored them', async () => {
 
         const context = toolPortContext();

@@ -7,6 +7,8 @@ const COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT = 60 * 1000;  // 60 seconds
 const COLLECT_TOOL_OUTPUTS_POLL_INTERVAL = 1 * 1000;  // 1 second
 // Room for extended thinking: newer models spend part of max_tokens on thinking before they answer.
 const DEFAULT_MAX_TOKENS = 8192;
+// The Claude 3 models (not 3.5 / 3.7) answer at most 4096 tokens and refuse a higher max_tokens.
+const CLAUDE_3_MAX_TOKENS = 4096;
 const MAX_TURNS = 20; // Messages API calls for one prompt before the agent gives up.
 
 /**
@@ -52,7 +54,8 @@ module.exports = {
         const { prompt, model, instructions } = context.messages.in.content;
         // max_tokens: the name before the input was declared
         const { maxTokens: maxTokensInput, max_tokens: legacyMaxTokens } = context.messages.in.content;
-        const maxTokens = Number(maxTokensInput || legacyMaxTokens) || DEFAULT_MAX_TOKENS;
+        const maxTokens = Number(maxTokensInput || legacyMaxTokens)
+            || (/^claude-3-(haiku|opus|sonnet)/.test(model) ? CLAUDE_3_MAX_TOKENS : DEFAULT_MAX_TOKENS);
         if (!prompt) {
             throw new context.CancelError('Prompt is required');
         }
