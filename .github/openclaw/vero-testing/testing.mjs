@@ -118,7 +118,7 @@ function environmentProblem(out, ref) {
         [/No account ID|no account (found|bound)|Unbound account|account is not bound/i, `no ${service} account is connected on dev-automated-00001`],
         [/missing (OAuth )?scopes?|Access token not found|insufficient[_ ]scope/i, `the ${service} account on dev-automated-00001 lacks a scope the components need — re-authorize it`],
         [/invalid_grant|token (has )?expired|revoked|InvalidTokenError|401 Unauthorized|status code 401/i, `the ${service} token on dev-automated-00001 is expired or revoked — re-authorize the account`],
-        [/no credits remaining|insufficient_quota|exceeded your current quota|billing/i, `the ${service} provider account has no credit or quota left`]
+        [/no credits remaining|insufficient_quota|exceeded your current quota|billing|credit balance is too low/i, `the ${service} provider account has no credit or quota left`]
     ];
     for (const [re, why] of rules) if (re.test(out)) return why;
     return null;
@@ -319,7 +319,14 @@ async function main() {
                 writeFileSync(path.join(runDir, `${ref}.${f.flowId}.run.log`), r.out);
                 const line = (r.out.match(/^RESULT \| (\w+) \| ([^|]+)\|/m) || []);
                 const passed = r.code === 0 && line[1] === 'PASSED';
-                const problem = passed ? null : environmentProblem(r.out, ref);
+                let problem = passed ? null : environmentProblem(r.out, ref);
+                if (!passed && !problem) {
+                    // The run output carries only "Request failed with status code 4xx"; the provider's
+                    // answer (no credit, revoked key) is in the engine log of the flow
+                    const logs = run('appmixer', ['logs', '--flow-id', f.flowId, '-q', 'severity:error', '--json'], { env: cliEnv, cwd: worktree, timeout: 120000 });
+                    writeFileSync(path.join(runDir, `${ref}.${f.flowId}.engine.log`), logs.out.slice(0, 2000000));
+                    problem = environmentProblem(logs.out, ref);
+                }
                 if (!passed) allPassed = false;
                 if (problem) blockers.add(problem);
                 else if (!passed) codeFailures += 1;
