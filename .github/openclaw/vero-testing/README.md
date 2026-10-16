@@ -18,7 +18,9 @@ PR, and the stage only waits for it to be green on the head commit.
    `vero` agent (model `claude-haiku-4-5`, it only launches) a fixed instruction: `./start.sh …`.
 3. `start.sh` validates again and starts `testing.mjs` detached; the agent turn ends.
 4. `testing.mjs` (deterministic, no model):
-   - preconditions: the PR is open; its author is apx-vero or an OWNER / MEMBER / COLLABORATOR (the PR's
+   - preconditions: an issue card points at exactly one open, non-draft PR of this repo (the runner
+     reads the PRs that close the issue itself; two or more ready PRs, or only drafts, → Needs input
+     with the list); the PR is open and not a draft; its author is apx-vero or an OWNER / MEMBER / COLLABORATOR (the PR's
      code is published to the shared QA instance); Node.js CI (`build`) is green on the head — waits up to
      25 min; the PR changes 1–3 connectors and each has `artifacts/test-flows`;
    - checks out the PR head in a worktree of the base clone (`mention-responder/repo`);

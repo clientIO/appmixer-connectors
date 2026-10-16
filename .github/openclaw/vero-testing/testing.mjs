@@ -135,11 +135,49 @@ function changedConnectors(worktree, baseSha) {
     return [...bundles];
 }
 
+/**
+ * Open pull requests of the connectors repo that close the issue (target "Appmixer-ai/<repo>#<n>").
+ * Null when the target is not an issue (the card is the PR itself).
+ */
+async function linkedPullRequests() {
+    const [repo, number] = target.split('#');
+    if (repo === REPO) return null;
+    const res = await fetch('https://api.github.com/graphql', {
+        method: 'POST',
+        headers: { authorization: 'Bearer ' + GH_TOKEN, 'content-type': 'application/json', 'user-agent': 'pipeline-testing' },
+        body: JSON.stringify({ query: `query { repository(owner: "${repo.split('/')[0]}", name: "${repo.split('/')[1]}") { issue(number: ${Number(number)}) {
+            closedByPullRequestsReferences(first: 20, includeClosedPrs: false) { nodes { number state isDraft repository { nameWithOwner } } } } } }` })
+    });
+    const d = await res.json();
+    const nodes = d?.data?.repository?.issue?.closedByPullRequestsReferences?.nodes;
+    if (!nodes) throw new Error('could not read the PRs linked to ' + target + ': ' + JSON.stringify(d.errors || d).slice(0, 200));
+    return nodes.filter((n) => n.state === 'OPEN' && n.repository.nameWithOwner === REPO);
+}
+
 async function main() {
     log('Testing PR', pr, 'item', itemNodeId, 'target', target);
 
     // --- 1. Preconditions
+    // The issue has to point at exactly one open, non-draft PR of this repo
+    const linked = await linkedPullRequests();
+    if (linked) {
+        const ready = linked.filter((n) => !n.isDraft);
+        const list = (ns) => ns.map((n) => '#' + n.number).join(', ');
+        if (ready.length > 1) {
+            return report('blocked', `${target} is closed by ${ready.length} open pull requests that are ready for review (${list(ready)}). Testing needs exactly one: close or unlink the others, or mark them as drafts, then move the card to Testing again.`, ready.map((n) => `- https://github.com/${REPO}/pull/${n.number}`).join('\n'));
+        }
+        if (!ready.length) {
+            return report('blocked', linked.length
+                ? `${target} has only draft pull requests (${list(linked)}). Mark the one to test as ready for review, then move the card to Testing again.`
+                : `${target} has no open pull request in ${REPO} that closes it (a closing keyword such as "Fixes ${target}" in the PR description).`, '');
+        }
+        if (ready[0].number !== pr) {
+            log('the dispatcher chose', pr, 'but the only ready PR is', ready[0].number);
+            return report('blocked', `The card points at PR #${pr}, but the only open PR ready for review is #${ready[0].number}. Move the card to Testing again.`, '');
+        }
+    }
     const p = await gh(`/repos/${REPO}/pulls/${pr}`);
+    if (p.draft) return report('blocked', `PR #${pr} is a draft. Mark it as ready for review, then move the card to Testing again.`, '');
     if (p.state !== 'open') return report('blocked', `PR #${pr} is ${p.state}.`, '');
     const trusted = p.user.login === 'apx-vero' || ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(p.author_association);
     if (!trusted) {
