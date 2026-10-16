@@ -138,6 +138,33 @@ function changedConnectors(worktree, baseSha) {
     return [...bundles];
 }
 
+/** The flow JSONs of a test-flows dir, picked the way `appmixer e2e import <dir>` picks them. */
+function flowJsons(flowsDir) {
+    if (!existsSync(flowsDir)) return [];
+    const all = readdirSync(flowsDir).filter((f) => f.endsWith('.json'));
+    const named = all.filter((f) => f.startsWith('test-flow-'));
+    return (named.length ? named : all).sort().map((f) => path.join(flowsDir, f));
+}
+
+/**
+ * E2E flows of a bundle: its own artifacts/test-flows, plus the flows of a parent connector dir that
+ * use the bundle's components. The ai modules (ai/claude, ai/groq, …) keep most of their flows in
+ * ai/artifacts/test-flows, next to the flows of the other modules.
+ */
+function bundleFlows(worktree, dir) {
+    const own = flowJsons(path.join(worktree, dir, 'artifacts', 'test-flows'));
+    const prefix = dir.replace(/^src\//, '').split('/').join('.') + '.'; // appmixer.ai.claude.
+    const shared = [];
+    for (let up = path.dirname(dir); up.startsWith('src/appmixer/') && up !== 'src/appmixer'; up = path.dirname(up)) {
+        for (const file of flowJsons(path.join(worktree, up, 'artifacts', 'test-flows'))) {
+            let flow = {};
+            try { flow = JSON.parse(readFileSync(file, 'utf8')).flow || {}; } catch { continue; }
+            if (Object.values(flow).some((c) => String(c.type || '').startsWith(prefix))) shared.push(file);
+        }
+    }
+    return [...own, ...shared];
+}
+
 /**
  * Open pull requests of the connectors repo that close the issue (target "Appmixer-ai/<repo>#<n>").
  * Null when the target is not an issue (the card is the PR itself).
@@ -220,8 +247,9 @@ async function main() {
     const connectors = changedConnectors(worktree, baseSha);
     if (!connectors.length) return report('blocked', `PR #${pr} changes no connector — nothing to test on the instance.`, '');
     if (connectors.length > MAX_CONNECTORS) return report('blocked', `PR #${pr} changes ${connectors.length} connectors (${connectors.join(', ')}); the Testing stage runs at most ${MAX_CONNECTORS}.`, '');
-    const withoutFlows = connectors.filter((d) => !existsSync(path.join(worktree, d, 'artifacts', 'test-flows')));
-    if (withoutFlows.length) return report('blocked', `No E2E test flows in ${withoutFlows.map((d) => d + '/artifacts/test-flows').join(', ')}.`, '');
+    const flowFiles = Object.fromEntries(connectors.map((d) => [d, bundleFlows(worktree, d)]));
+    const withoutFlows = connectors.filter((d) => !flowFiles[d].length);
+    if (withoutFlows.length) return report('blocked', `No E2E test flows for ${withoutFlows.join(', ')} (neither in its artifacts/test-flows nor in a parent connector's test-flows using its components).`, '');
 
     // --- 3. Publish, import, run
     const cliEnv = await appmixerEnv();
@@ -243,7 +271,7 @@ async function main() {
                 lines.push(`- publish failed: \`${published.out.trim().split('\n').pop().slice(0, 200)}\``);
                 return;
             }
-            const imported = run('appmixer', ['e2e', 'import', path.join(worktree, dir, 'artifacts', 'test-flows'), '--connectors-dir', worktree], { env: cliEnv, cwd: worktree });
+            const imported = run('appmixer', ['e2e', 'import', ...flowFiles[dir], '--connectors-dir', worktree], { env: cliEnv, cwd: worktree });
             writeFileSync(path.join(runDir, `${ref}.import.log`), imported.out);
             const importProblem = imported.code !== 0 ? environmentProblem(imported.out, ref) : null;
             if (importProblem) {
@@ -252,9 +280,13 @@ async function main() {
                 lines.push(`- ⏸️ import: ${importProblem}`);
                 return;
             }
-            const listed = run('appmixer', ['e2e', 'list', '-c', ref, '--json'], { env: cliEnv, cwd: worktree });
-            let flows = [];
-            try { const j = JSON.parse(listed.out.slice(Math.min(...['[', '{'].map((c) => listed.out.indexOf(c)).filter((i) => i >= 0)))); flows = Array.isArray(j) ? j : (j.flows || []); } catch { /* reported below */ }
+            // Run exactly the flows this import wrote ("✓ <name> → <flowId> (created|updated, <ref>)");
+            // flows from a parent dir carry the parent's ref, so `e2e list -c <ref>` would miss them
+            let flows = [...imported.out.matchAll(/^✓ (.+?) → ([0-9a-f-]{36}) \(/gm)].map((m) => ({ name: m[1], flowId: m[2] }));
+            if (!flows.length) {
+                const listed = run('appmixer', ['e2e', 'list', '-c', ref, '--json'], { env: cliEnv, cwd: worktree });
+                try { const j = JSON.parse(listed.out.slice(Math.min(...['[', '{'].map((c) => listed.out.indexOf(c)).filter((i) => i >= 0)))); flows = Array.isArray(j) ? j : (j.flows || []); } catch { /* reported below */ }
+            }
             if (!flows.length) {
                 allPassed = false;
                 lines.push(`- no E2E flow found on the instance after import (import exit ${imported.code})`);
