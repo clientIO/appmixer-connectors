@@ -197,6 +197,46 @@ comment that already carries the result.
 The wizard asks for one GitHub account: the dispatcher's (it has to edit the comment the dispatcher
 created) with `repo` and `project`.
 
+## pre-release-checklist.json
+
+The **Pre-release** stage. The dispatcher calls this integration's webhook when a card moves to
+Pre-release; it checks whether the PR can be released and reports to `pipeline-stage-result.json`
+(stage `Pre-release`): everything green → the card stays for the merge, anything missing → Needs input
+with the list in the pipeline comment.
+
+### Shape
+
+`Webhook Trigger` → `Code Block` (validates the request, builds the GraphQL query) → `Condition` →
+`Make API Call` (`POST /graphql`: merge state, CI checks of the head, review threads, closing issues,
+changed files, and the pipeline comment of the item) → `Code Block` (the directories above the changed
+files) → `Make API Call` (`POST /graphql`: their `bundle.json` at the head, on the base branch and on
+`appmixer-components` master) → `Code Block` **Checklist** → Claude `AI Agent` **Design review** →
+`Code Block` (joins the checklist and the review) → `HTTP Post` (stage result).
+
+The checklist, blocking unless noted:
+
+- the PR is open and not a draft, has no merge conflict, and is up to date with its base (warning only);
+- Node.js CI (`build`: lint, validator, unit tests) is green on the head;
+- every review thread is resolved;
+- the PR closes the item's issue;
+- per changed connector: a changelog entry for the version, one bump over the base branch (which may
+  carry unreleased versions of other PRs), and a version above the release;
+- the pipeline comment shows Testing passed on the current head (the E2E report);
+- Doc&Verification passed or left a docs PR.
+
+The design review is the Claude AI Agent with two tools on its `tool` port: **Read a file** (`HTTP Get`,
+the model passes a raw URL of the public repository, so no credential leaves the flow) and **Diff of
+the pull request** (GitHub `Make API Call` whose URL is fixed by the PR number from the checklist; the
+model fills nothing). Its instructions list the component design rules; it answers
+`{"verdict": "ok" | "concerns", "notes": [...]}`.
+
+### Setup
+
+The wizard asks for a GitHub account (`repo`, `read:org`), an Anthropic Claude account and the webhook
+URL of `pipeline-stage-result.json`. The dispatcher's wizard then gets this integration's webhook URL
+(`Pre-release flow URL`). Both URLs are credentials. The Claude agent needs `ai.claude` 1.3.0 (the
+`tool` port).
+
 ## Publishing as integrations
 
 Both flows carry a `wizard` and a `description` and are published on
