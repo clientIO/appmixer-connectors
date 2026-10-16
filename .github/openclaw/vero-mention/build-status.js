@@ -56,7 +56,9 @@ const journalRuns = journal.split('\n').filter(Boolean).map((line) => {
 // holds one turn per hook run. While it lives, its transcript is in the gateway's database and is
 // read through `openclaw sessions export-trajectory`; once maintenance removes it, the gateway
 // archives it (zstd) next to the isolated sessions of the earlier runs.
-const SESSIONS = '/root/.openclaw/agents/vero/sessions';
+// Every agent a hook mapping runs (vero for the mention responder and Testing, maya for the docs)
+const HOOK_AGENTS = [...new Set(((config.hooks && config.hooks.mappings) || []).map((m) => m.agentId).filter(Boolean))];
+const sessionsDir = (agent) => `/root/.openclaw/agents/${agent}/sessions`;
 const SESSION_AGE_MS = 8 * 24 * 3600 * 1000;
 const SESSION_LIMIT = 30;
 const LIVE_PREFIX = 'agent:vero:hook:vero:gh:';
@@ -64,7 +66,8 @@ const PROMPT = /apx-vero mention on PR #(\d+)/;
 // The gateway writes the run name the transform returned into the prompt: "Task: <name>"
 const TASK = /^Task: (.+)$/m;
 
-const archivedTranscripts = () => {
+const archivedTranscripts = (agent) => {
+    const SESSIONS = sessionsDir(agent);
     let files;
     try {
         files = fs.readdirSync(SESSIONS).filter((f) => f.endsWith('.zst'));
@@ -86,10 +89,10 @@ const archivedTranscripts = () => {
         .filter(Boolean);
 };
 
-const liveTranscripts = () => {
+const liveTranscripts = (agent) => {
     let sessions;
     try {
-        const listed = sh('openclaw', ['sessions', '--agent', 'vero', '--json', '--limit', 'all', '--active', String(SESSION_AGE_MS / 60000)]);
+        const listed = sh('openclaw', ['sessions', '--agent', agent, '--json', '--limit', 'all', '--active', String(SESSION_AGE_MS / 60000)]);
         sessions = JSON.parse(listed.slice(listed.indexOf('{'))).sessions || [];
     } catch {
         return [];
@@ -99,10 +102,10 @@ const liveTranscripts = () => {
         return sessions
             // Persistent PR sessions of the mention responder, and isolated hook runs, which OpenClaw
             // keys agent:vero:cron:<id>; turnsOf keeps only turns started by a hook prompt ("Task:")
-            .filter((s) => String(s.key || '').startsWith(LIVE_PREFIX) || String(s.key || '').startsWith('agent:vero:cron:'))
+            .filter((s) => String(s.key || '').startsWith(`agent:${agent}:hook:`) || String(s.key || '').startsWith(`agent:${agent}:cron:`))
             .slice(0, SESSION_LIMIT)
             .map((s, i) => {
-                sh('openclaw', ['sessions', 'export-trajectory', '--agent', 'vero', '--session-key', s.key, '--workspace', tmp, '--output', `s${i}`]);
+                sh('openclaw', ['sessions', 'export-trajectory', '--agent', agent, '--session-key', s.key, '--workspace', tmp, '--output', `s${i}`]);
                 // events.jsonl, not session-branch.json: the branch replaces entries past the first
                 // few with "[Truncated]", the events keep every message (only long texts are cut).
                 // Transcript events become transcript entries, the shape the archives have.
@@ -166,7 +169,7 @@ const describeTurn = (entries) => {
     };
 };
 
-const sessionRuns = [...liveTranscripts(), ...archivedTranscripts()].flatMap(turnsOf).map(describeTurn);
+const sessionRuns = HOOK_AGENTS.flatMap((agent) => [...liveTranscripts(agent), ...archivedTranscripts(agent)]).flatMap(turnsOf).map(describeTurn);
 
 // A journal line is matched to the turn that ended just before it (the gateway logs "completed"
 // right after the turn's last transcript entry). Rejected runs (model policy) have no turn.
@@ -323,8 +326,12 @@ for (const run of hookRuns) {
 // Runs of the pipeline Testing runner (pipeline-testing/runs/<pr>-<yyyymmdd>-<hhmmss>/): what the
 // stage found and decided. The hook turn only launches it, so the runner's result is the detail
 // worth showing; it is attached to the hook run whose turn started it.
-const TESTING = '/root/.openclaw/workspace-vero/pipeline-testing/runs';
-const testingRuns = (() => {
+const STAGES = {
+    'vero-testing': { name: 'Testing', dir: '/root/.openclaw/workspace-vero/pipeline-testing/runs' },
+    'maya-docs': { name: 'Doc&Verification', dir: '/root/.openclaw/workspace-maya/docs-pipeline/runs' }
+};
+const stageRuns = (hookId) => {
+    const { name, dir: TESTING } = STAGES[hookId];
     let dirs;
     try {
         dirs = fs.readdirSync(TESTING).filter((d) => /^\d+-\d{8}-\d{6}$/.test(d));
@@ -338,7 +345,7 @@ const testingRuns = (() => {
         let finishedAt = null;
         try { finishedAt = fs.statSync(path.join(TESTING, dir, 'result.json')).mtime.toISOString(); } catch { /* still running */ }
         return {
-            name: 'Testing',
+            name,
             dir,
             at,
             pr: Number(pr),
@@ -350,9 +357,11 @@ const testingRuns = (() => {
             durationSec: finishedAt ? Math.round((Date.parse(finishedAt) - Date.parse(at)) / 1000) : null
         };
     });
-})();
+};
+const stageRunsByHook = Object.fromEntries(Object.keys(STAGES).map((h) => [h, stageRuns(h)]));
 for (const run of hookRuns) {
-    if (run.hookId !== 'vero-testing') continue;
+    const testingRuns = stageRunsByHook[run.hookId];
+    if (!testingRuns) continue;
     const end = Date.parse(run.endedAt || run.at);
     const start = Date.parse(run.startedAt || run.at) - 60000;
     const stage = testingRuns.find((s) => !s.claimed && Date.parse(s.at) >= start - 5000 && Date.parse(s.at) <= end + 5000 && (!run.pr || s.pr === run.pr));
