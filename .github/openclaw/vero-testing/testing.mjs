@@ -16,6 +16,7 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, openSync, closeSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
+import { costFields } from '/root/.openclaw/pipeline/cost.mjs';
 
 const ROOT = '/root/.openclaw/workspace-vero/pipeline-testing';
 const PIPELINE = '/root/.openclaw/pipeline';
@@ -97,6 +98,8 @@ async function report(result, summary, details) {
         target,
         runDir: path.basename(runDir),
         ...extra,
+        // What the agent turn that started this run cost (the runner itself uses no model)
+        ...costFields('vero', path.basename(runDir)),
         at: new Date().toISOString()
     };
     writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(body, (k, v) => (k === 'secret' ? '***' : v), 2));

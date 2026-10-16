@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+import { costFields } from '/root/.openclaw/pipeline/cost.mjs';
 
 const ROOT = '/root/.openclaw/workspace-maya/docs-pipeline';
 const CONNECTORS_CLONE = '/root/.openclaw/workspace-maya/appmixer-connectors';
@@ -35,7 +36,7 @@ const api = async (method, p, body) => {
 async function report(result, summary, details) {
     const body = { secret: callback.secret, stage: 'Doc&Verification', result, summary, report: details, pr: run.pr, prUrl: run.prUrl,
         itemNodeId: run.itemNodeId, projectNodeId: run.projectNodeId, statusFieldId: run.statusFieldId, target: run.target,
-        runDir: path.basename(runDir), at: new Date().toISOString() };
+        runDir: path.basename(runDir), ...costFields('maya', path.basename(runDir)), at: new Date().toISOString() };
     writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(body, (k, v) => (k === 'secret' ? '***' : v), 2));
     const res = await fetch(callback.url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     console.log('REPORTED: ' + result + ' (callback ' + res.status + ')');

@@ -9,6 +9,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+import { costFields } from '/root/.openclaw/pipeline/cost.mjs';
 
 const ROOT = '/root/.openclaw/workspace-vero/pipeline-fix';
 const BASE_CLONE = '/root/.openclaw/workspace-vero/mention-responder/repo';
@@ -24,7 +25,7 @@ const git = (args, cwd) => spawnSync('git', args, { cwd, encoding: 'utf8' });
 async function report(result, summary, details) {
     const body = { secret: callback.secret, stage: 'Fix', result, summary, report: details, pr: run.pr, prUrl: run.prUrl,
         itemNodeId: run.itemNodeId, projectNodeId: run.projectNodeId, statusFieldId: run.statusFieldId, target: run.target,
-        runDir: path.basename(runDir), at: new Date().toISOString() };
+        runDir: path.basename(runDir), ...costFields('vero', path.basename(runDir)), at: new Date().toISOString() };
     writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(body, (k, v) => (k === 'secret' ? '***' : v), 2));
     const res = await fetch(callback.url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
     console.log('REPORTED: ' + result + ' (callback ' + res.status + ')');
