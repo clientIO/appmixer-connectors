@@ -26,14 +26,22 @@ function toAnthropicTool(def) {
 module.exports = {
 
     start: async function(context) {
+        await this.collectTools(context);
+    },
+
+    /**
+     * Tools of the agent: ToolStart chains on the 'tools' port and components on the 'tool' port.
+     * 'functionDeclarations' is written last, so once it is in the state, 'componentTools' is too.
+     */
+    collectTools: async function(context) {
         try {
             const tools = lib.getConnectedToolStartComponents(context.componentId, context.flowDescriptor);
             const functionDeclarations = lib.getFunctionDeclarations(tools);
             // Components wired to the 'tool' port are tools on their own, with no
             // 'ToolStart'/'ToolOutput' chain around them (cached to state as 'componentTools').
-            await componentTool.collectComponentTools(context);
-
-            return context.stateSet('functionDeclarations', functionDeclarations);
+            const componentToolDefs = await componentTool.collectComponentTools(context);
+            await context.stateSet('functionDeclarations', functionDeclarations);
+            return { functionDeclarations, componentToolDefs };
         } catch (error) {
             throw new context.CancelError(error.message || error);
         }
@@ -53,8 +61,14 @@ module.exports = {
         const threadId = context.messages.in.content.threadId;
         const correlationId = context.messages.in.correlationId;
 
-        const functionDeclarations = await context.stateGet('functionDeclarations') || [];
-        const componentToolDefs = await componentTool.getComponentToolDefs(context);
+        let functionDeclarations = await context.stateGet('functionDeclarations');
+        let componentToolDefs;
+        if (functionDeclarations) {
+            componentToolDefs = await componentTool.getComponentToolDefs(context);
+        } else {
+            // A message from OnStart can arrive before start() has stored the tools.
+            ({ functionDeclarations, componentToolDefs } = await this.collectTools(context));
+        }
         const tools = functionDeclarations.concat(componentToolDefs.map(toAnthropicTool));
         let system = instructions || 'You are a helpful assistant. If you detect you cannot use any tool, always reply directly as if no tools were given to you.';
         let messages = threadId ? await context.stateGet(`history:${threadId}`) || [] : [];

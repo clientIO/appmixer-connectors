@@ -108,6 +108,19 @@ describe('ai/claude AIAgent - tool port', () => {
         }]);
     });
 
+    it('should collect the tools itself when the message comes before start() stored them', async () => {
+
+        const context = toolPortContext();
+        const requests = anthropic(context, [
+            { content: [{ type: 'text', text: 'Hi' }], stop_reason: 'end_turn', usage }
+        ]);
+
+        // No start(): OnStart can deliver the message while start() still fetches the manifests
+        await AIAgent.receive(context);
+
+        assert.deepStrictEqual(requests[0].tools.map(t => t.name), [TOOL_NAME]);
+    });
+
     it('should call the component directly and return its output as the tool_result', async () => {
 
         const context = toolPortContext();
