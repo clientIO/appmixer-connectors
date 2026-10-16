@@ -271,7 +271,14 @@ async function main() {
                 lines.push(`- publish failed: \`${published.out.trim().split('\n').pop().slice(0, 200)}\``);
                 return;
             }
-            const imported = run('appmixer', ['e2e', 'import', ...flowFiles[dir], '--connectors-dir', worktree], { env: cliEnv, cwd: worktree });
+            // The API nodes may answer 5xx for a moment after a publish; the import is idempotent
+            const GATEWAY = /status 50[234]|Bad Gateway|Service Unavailable|Gateway Timeout/;
+            let imported = run('appmixer', ['e2e', 'import', ...flowFiles[dir], '--connectors-dir', worktree], { env: cliEnv, cwd: worktree });
+            for (let attempt = 1; attempt < 3 && GATEWAY.test(imported.out); attempt++) {
+                log('import answered 5xx, retrying in 30 s');
+                await sleep(30000);
+                imported = run('appmixer', ['e2e', 'import', ...flowFiles[dir], '--connectors-dir', worktree], { env: cliEnv, cwd: worktree });
+            }
             writeFileSync(path.join(runDir, `${ref}.import.log`), imported.out);
             const importProblem = imported.code !== 0 ? environmentProblem(imported.out, ref) : null;
             if (importProblem) {
@@ -279,6 +286,18 @@ async function main() {
                 blockers.add(importProblem);
                 lines.push(`- ⏸️ import: ${importProblem}`);
                 return;
+            }
+            // A flow that did not import is reported, even when the others did
+            for (const [, file, message] of imported.out.matchAll(/^\[ERROR\]:\s+(\S+\.json): (.+)$/gm)) {
+                allPassed = false;
+                const name = path.basename(file);
+                if (GATEWAY.test(message)) {
+                    blockers.add(`dev-automated-00001 kept answering ${message.match(/status \d+/) || '5xx'} to the flow import — move the card to Testing again later`);
+                    lines.push(`- ⏸️ import of ${name}: ${message.slice(0, 160)}`);
+                } else {
+                    codeFailures += 1;
+                    lines.push(`- ❌ import of ${name}: ${message.slice(0, 160)}`);
+                }
             }
             // Run exactly the flows this import wrote ("✓ <name> → <flowId> (created|updated, <ref>)");
             // flows from a parent dir carry the parent's ref, so `e2e list -c <ref>` would miss them
@@ -289,7 +308,10 @@ async function main() {
             }
             if (!flows.length) {
                 allPassed = false;
-                lines.push(`- no E2E flow found on the instance after import (import exit ${imported.code})`);
+                if (!/^\[ERROR\]/m.test(imported.out)) {
+                    codeFailures += 1;
+                    lines.push(`- ❌ no E2E flow found on the instance after import (import exit ${imported.code}): \`${imported.out.trim().split('\n').pop().slice(0, 160)}\``);
+                }
                 return;
             }
             for (const f of flows) {
