@@ -181,10 +181,13 @@ OpenClaw host (`.github/openclaw/vero-testing/`) posts its result to this integr
 
 ### Shape
 
-`Webhook Trigger` → `Code Block` (validates the payload, picks the next status: Testing passed →
-Review, failed → In Progress, blocked → Needs input) → `Condition` → `Make API Call` (the item's comments) →
-`Code Block` (rewrites the pipeline comment with the same renderer as the dispatcher) → `Make API Call`
-(write) → `Condition` (a next status) → `Update Project Item Field` (Status).
+`Webhook Trigger` → `Code Block` (validates the payload) → `Condition` → `Make API Call` (the item's
+comments) → `Code Block` (rewrites the pipeline comment with the same renderer as the dispatcher and
+decides the next status from the stage and the pipeline state: Testing passed → Review, failed on code
+on a PR vero may push to → In Progress + the fix stage, at most 3 rounds, then Needs input; blocked →
+Needs input; Doc&Verification blocked → Needs input; Fix pushed → Testing) → `Make API Call` (write) →
+`Condition` → `Update Project Item Field` (Status), and in parallel `Condition` → `HTTP Post`
+(`/hooks/vero-fix`, see `.github/openclaw/vero-fix/README.md`).
 
 The card moves only after the comment is written, so the dispatcher, which records the move, reads a
 comment that already carries the result.

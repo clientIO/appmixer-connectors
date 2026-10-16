@@ -1,6 +1,6 @@
 {
     "name": "CI - pipeline stage result",
-    "description": "Receives the result of a stage of the status-driven pipeline (Testing) from the runner on the OpenClaw host, writes it into the pipeline comment of the item and moves the card: passed to Review, failed back to In Progress.",
+    "description": "Receives the result of a stage of the status-driven pipeline from the OpenClaw host (Testing, Doc&Verification, Fix), writes it into the pipeline comment of the item, moves the card and, when Testing fails on code, starts the fix stage.",
     "flow": {
         "e4000000-0000-4000-8000-000000000001": {
             "type": "appmixer.utils.http.WebhookTrigger",
@@ -54,7 +54,7 @@
                                             }
                                         ]
                                     },
-                                    "code": "// Validates the stage result the runner posted and decides where the card goes next.\nJSON.stringify((function () {\n    const parse = (x) => (typeof x === 'string' && x ? JSON.parse(x) : (x || null));\n    const d = parse($data.data) || {};\n    const NEXT = { Testing: { passed: 'Review', failed: 'In Progress', blocked: 'Needs input' }, 'Doc&Verification': { passed: '', failed: '', blocked: 'Needs input' } };\n    const ok = /^PVTI_[A-Za-z0-9_-]+$/.test(d.itemNodeId || '') && /^PVT_[A-Za-z0-9_-]+$/.test(d.projectNodeId || '')\n        && /^PVTSSF_[A-Za-z0-9_-]+$/.test(d.statusFieldId || '') && /^Appmixer-ai\\/[A-Za-z0-9_.-]+#\\d+$/.test(d.target || '')\n        && NEXT[d.stage] && ['passed', 'failed', 'blocked'].indexOf(d.result) >= 0;\n    if (!ok) return { ok: false, reason: 'malformed stage result' };\n    const repo = d.target.split('#')[0];\n    const number = d.target.split('#')[1];\n    return {\n        ok: true,\n        stage: d.stage,\n        result: d.result,\n        summary: String(d.summary || '').slice(0, 1000),\n        report: String(d.report || '').slice(0, 20000),\n        nextStatus: NEXT[d.stage][d.result],\n        itemNodeId: d.itemNodeId,\n        projectNodeId: d.projectNodeId,\n        statusFieldId: d.statusFieldId,\n        repo,\n        number,\n        commentsUrl: '/repos/' + repo + '/issues/' + number + '/comments?per_page=100',\n        at: String(d.at || new Date().toISOString())\n    };\n})())"
+                                    "code": "// Validates the stage result the host posted.\nJSON.stringify((function () {\n    const parse = (x) => (typeof x === 'string' && x ? JSON.parse(x) : (x || null));\n    const d = parse($data.data) || {};\n    const STAGES = ['Testing', 'Doc&Verification', 'Fix'];\n    const ok = /^PVTI_[A-Za-z0-9_-]+$/.test(d.itemNodeId || '') && /^PVT_[A-Za-z0-9_-]+$/.test(d.projectNodeId || '')\n        && /^PVTSSF_[A-Za-z0-9_-]+$/.test(d.statusFieldId || '') && /^Appmixer-ai\\/[A-Za-z0-9_.-]+#\\d+$/.test(d.target || '')\n        && STAGES.indexOf(d.stage) >= 0 && ['passed', 'failed', 'blocked'].indexOf(d.result) >= 0;\n    if (!ok) return { ok: false, reason: 'malformed stage result' };\n    const repo = d.target.split('#')[0];\n    const number = d.target.split('#')[1];\n    return {\n        ok: true,\n        stage: d.stage,\n        result: d.result,\n        summary: String(d.summary || '').slice(0, 1000),\n        report: String(d.report || '').slice(0, 20000),\n        itemNodeId: d.itemNodeId,\n        projectNodeId: d.projectNodeId,\n        statusFieldId: d.statusFieldId,\n        target: d.target,\n        prUrl: /^https:\\/\\/github\\.com\\/Appmixer-ai\\/appmixer-connectors\\/pull\\/\\d+$/.test(d.prUrl || '') ? d.prUrl : '',\n        codeFailures: Number(d.codeFailures) || 0,\n        fixable: d.fixable === true,\n        testingRun: /^\\d+-\\d{8}-\\d{6}$/.test(d.testingRun || '') ? d.testingRun : '',\n        repo,\n        number,\n        commentsUrl: '/repos/' + repo + '/issues/' + number + '/comments?per_page=100',\n        at: String(d.at || new Date().toISOString())\n    };\n})())"
                                 }
                             }
                         }
@@ -225,7 +225,7 @@
                                             }
                                         ]
                                     },
-                                    "code": "// Writes the stage result into the item's pipeline comment (or creates one).\nJSON.stringify((function () {\n    const parse = (x) => (typeof x === 'string' && x ? JSON.parse(x) : (x || null));\n\n    const RENDER = function (state, lastRun) {\n        const row = (r) => '- ' + String(r.at).slice(0, 16).replace('T', ' ') + ' UTC · ' + (r.from || '—') + ' → **' + r.to + '** (' + r.by + ')';\n        const icon = { passed: '✅', failed: '❌', blocked: '⏸️', running: '⏳' };\n        const stages = Object.keys(state.stages || {}).map((name) => {\n            const s = state.stages[name];\n            return ['', '### ' + name + ' ' + (icon[s.result] || '') + ' ' + s.result + ' · ' + String(s.at).slice(0, 16).replace('T', ' ') + ' UTC',\n                '', s.summary || '', s.report ? '\\n' + s.report : ''].join('\\n');\n        });\n        // \"--\" never reaches the HTML comment, so a report cannot close the state block early\n        const json = JSON.stringify(state).replace(/--/g, '\\\\u002d\\\\u002d');\n        return [\n            '🤖 **Pipeline** — status moves of this card on the ' + (state.organization || 'organization') + ' project board',\n            '',\n            state.runs.map(row).join('\\n'),\n            stages.join('\\n'),\n            '',\n            'Connector: ' + (state.connector || '—') + ' · PR: ' + (state.pr || '—') + (lastRun ? ' · last run `' + lastRun + '`' : ''),\n            '',\n            '<!-- pipeline: ' + json + ' -->'\n        ].join('\\n');\n    };\n    const READ_STATE = function (comments) {\n        const existing = (comments || []).filter((c) => typeof c.body === 'string' && c.body.indexOf('<!-- pipeline: ') >= 0)[0];\n        let state = { runs: [], stages: {} };\n        if (existing) {\n            const m = existing.body.match(/<!-- pipeline: (\\{[\\s\\S]*?\\}) -->/);\n            if (m) { try { state = JSON.parse(m[1]); } catch (e) { state = { runs: [], stages: {} }; } }\n        }\n        if (!Array.isArray(state.runs)) state.runs = [];\n        if (!state.stages || typeof state.stages !== 'object') state.stages = {};\n        return { existing, state };\n    };\n\n    const r = parse($data.result) || {};\n    const { existing, state } = READ_STATE(parse($data.comments) || []);\n    state.stages[r.stage] = { result: r.result, summary: r.summary, report: r.report, at: r.at };\n    const body = RENDER(state, '');\n    return existing\n        ? { method: 'PATCH', url: '/repos/' + r.repo + '/issues/comments/' + existing.id, body: JSON.stringify({ body }) }\n        : { method: 'POST', url: '/repos/' + r.repo + '/issues/' + r.number + '/comments', body: JSON.stringify({ body }) };\n})())"
+                                    "code": "// Writes the stage result into the pipeline comment and decides what happens next:\n//   Testing passed → Review; failed with code failures on a PR vero may push to → In Progress and\n//   the fix stage (at most 3 rounds, then Needs input); other failures → In Progress;\n//   blocked → Needs input. Doc&Verification blocked → Needs input. Fix pushed → Testing again;\n//   Fix gave up → Needs input.\nJSON.stringify((function () {\n    const parse = (x) => (typeof x === 'string' && x ? JSON.parse(x) : (x || null));\n\n    const RENDER = function (state, lastRun) {\n        const row = (r) => '- ' + String(r.at).slice(0, 16).replace('T', ' ') + ' UTC · ' + (r.from || '—') + ' → **' + r.to + '** (' + r.by + ')';\n        const icon = { passed: '✅', failed: '❌', blocked: '⏸️', running: '⏳' };\n        const stages = Object.keys(state.stages || {}).map((name) => {\n            const s = state.stages[name];\n            return ['', '### ' + name + ' ' + (icon[s.result] || '') + ' ' + s.result + ' · ' + String(s.at).slice(0, 16).replace('T', ' ') + ' UTC',\n                '', s.summary || '', s.report ? '\\n' + s.report : ''].join('\\n');\n        });\n        // \"--\" never reaches the HTML comment, so a report cannot close the state block early\n        const json = JSON.stringify(state).replace(/--/g, '\\\\u002d\\\\u002d');\n        return [\n            '🤖 **Pipeline** — status moves of this card on the ' + (state.organization || 'organization') + ' project board',\n            '',\n            state.runs.map(row).join('\\n'),\n            stages.join('\\n'),\n            '',\n            'Connector: ' + (state.connector || '—') + ' · PR: ' + (state.pr || '—') + (lastRun ? ' · last run `' + lastRun + '`' : ''),\n            '',\n            '<!-- pipeline: ' + json + ' -->'\n        ].join('\\n');\n    };\n    const READ_STATE = function (comments) {\n        const existing = (comments || []).filter((c) => typeof c.body === 'string' && c.body.indexOf('<!-- pipeline: ') >= 0)[0];\n        let state = { runs: [], stages: {} };\n        if (existing) {\n            const m = existing.body.match(/<!-- pipeline: (\\{[\\s\\S]*?\\}) -->/);\n            if (m) { try { state = JSON.parse(m[1]); } catch (e) { state = { runs: [], stages: {} }; } }\n        }\n        if (!Array.isArray(state.runs)) state.runs = [];\n        if (!state.stages || typeof state.stages !== 'object') state.stages = {};\n        return { existing, state };\n    };\n\n    const r = parse($data.result) || {};\n    const { existing, state } = READ_STATE(parse($data.comments) || []);\n    const fix = state.fix || { rounds: 0 };\n    let next = '';\n    let startFix = false;\n    let summary = r.summary;\n    if (r.stage === 'Testing') {\n        if (r.result === 'passed') { next = 'Review'; fix.rounds = 0; }\n        else if (r.result === 'blocked') next = 'Needs input';\n        else if (r.codeFailures > 0 && r.fixable && r.testingRun) {\n            if (fix.rounds < 3) { startFix = true; fix.rounds += 1; next = 'In Progress'; summary += ' Fix round ' + fix.rounds + ' of 3 started.'; }\n            else { next = 'Needs input'; summary += ' 3 fix rounds did not make it green — a person has to look.'; }\n        } else next = 'In Progress';\n    } else if (r.stage === 'Doc&Verification') {\n        next = r.result === 'blocked' ? 'Needs input' : '';\n    } else if (r.stage === 'Fix') {\n        next = r.result === 'passed' ? 'Testing' : 'Needs input';\n    }\n    state.fix = fix;\n    state.stages[r.stage] = { result: r.result, summary: summary, report: r.report, at: r.at };\n    const body = RENDER(state, '');\n    const write = existing\n        ? { method: 'PATCH', url: '/repos/' + r.repo + '/issues/comments/' + existing.id, body: JSON.stringify({ body }) }\n        : { method: 'POST', url: '/repos/' + r.repo + '/issues/' + r.number + '/comments', body: JSON.stringify({ body }) };\n    return Object.assign(write, {\n        nextStatus: next,\n        startFix: startFix,\n        fixPayload: startFix ? JSON.stringify({ pr_url: r.prUrl, item_node_id: r.itemNodeId, project_node_id: r.projectNodeId, status_field_id: r.statusFieldId, target: r.target, testing_run: r.testingRun }) : ''\n    });\n})())"
                                 }
                             }
                         }
@@ -340,7 +340,7 @@
                                 "modifiers": {
                                     "expression": {
                                         "b4000000-0000-4000-8000-00000000bb09": {
-                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "variable": "$.e4000000-0000-4000-8000-000000000005.out.result",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
@@ -446,7 +446,7 @@
                                     "valueType": {},
                                     "value": {
                                         "b4000000-0000-4000-8000-00000000bb13": {
-                                            "variable": "$.e4000000-0000-4000-8000-000000000002.out.result",
+                                            "variable": "$.e4000000-0000-4000-8000-000000000005.out.result",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
@@ -474,15 +474,130 @@
             },
             "x": 1552,
             "y": 128
+        },
+        "e4000000-0000-4000-8000-000000000009": {
+            "type": "appmixer.utils.controls.Condition",
+            "version": "1.0.0",
+            "label": "Start the fix",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000006": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000006": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b4000000-0000-4000-8000-00000000bb14": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.startFix"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{b4000000-0000-4000-8000-00000000bb14}}}",
+                                                        "operator": "=",
+                                                        "value": "true"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 1360,
+            "y": 320
+        },
+        "e4000000-0000-4000-8000-000000000010": {
+            "type": "appmixer.utils.http.Post",
+            "label": "Fix (OpenClaw vero)",
+            "errorHandling": {
+                "autoRetry": true,
+                "onError": "storeUnprocessed"
+            },
+            "source": {
+                "in": {
+                    "e4000000-0000-4000-8000-000000000009": [
+                        "true"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4000000-0000-4000-8000-000000000009": {
+                            "true": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "headers": {},
+                                    "bodyType": {},
+                                    "body": {
+                                        "b4000000-0000-4000-8000-00000000bb15": {
+                                            "variable": "$.e4000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.fixPayload"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "https://91-99-144-37.nip.io/hooks/vero-fix",
+                                    "headers": "{\"Content-Type\": \"application/json\", \"Authorization\": \"Bearer <OPENCLAW_HOOK_TOKEN>\"}",
+                                    "bodyType": "raw",
+                                    "body": "{{{b4000000-0000-4000-8000-00000000bb15}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "x": 1552,
+            "y": 320
         }
     },
     "notes": {
         "f4000000-0000-4000-8000-000000000001": {
             "x": 144,
-            "y": -256,
-            "width": 640,
-            "height": 300,
-            "content": "## Pipeline stage result\n\nCounterpart of `CI - project status -> pipeline` (Appmixer-ai/appmixer-components#2890). The Testing runner on the OpenClaw host (`.github/openclaw/vero-testing/testing.mjs`) posts its result to this flow's webhook URL, which lives root-only on the host (`/root/.openclaw/pipeline/callback.json`) — the URL is the credential.\n\n`Check the result` validates the payload and picks the next status (Testing: passed → Review, failed → In Progress, blocked → Needs input). The comment is rewritten with the same renderer the dispatcher uses, so neither loses what the other wrote; the card moves only after the comment is written.\n\n**Source of truth:** `.github/appmixer-flows/pipeline-stage-result.json` in the connectors repo."
+            "y": -320,
+            "width": 680,
+            "height": 380,
+            "content": "## Pipeline stage result\n\nCounterpart of `CI - project status -> pipeline` (Appmixer-ai/appmixer-components#2890). The stages on the OpenClaw host post their result to this flow's webhook URL, which lives root-only on the host (`/root/.openclaw/pipeline/callback.json`) — the URL is the credential.\n\n`Pipeline comment` decides the next status from the stage, its result and the pipeline state in the comment: Testing passed → Review; failed on code on a PR vero may push to → In Progress + the fix stage (at most 3 rounds, then Needs input); blocked → Needs input. Doc&Verification blocked → Needs input. Fix pushed → Testing again; Fix gave up → Needs input.\n\n**Source of truth:** `.github/appmixer-flows/pipeline-stage-result.json` in the connectors repo."
         }
     },
     "wizard": {
@@ -501,6 +616,15 @@
                     ],
                     "sharedAccountId": null
                 },
+                "options": {}
+            },
+            {
+                "type": "inspectorField",
+                "label": "OpenClaw hook headers",
+                "tooltip": "Headers of the call that starts the fix stage on the OpenClaw gateway. Replace <OPENCLAW_HOOK_TOKEN> with hooks.token of the gateway.",
+                "placeholder": "",
+                "source": "e4000000-0000-4000-8000-000000000010.config.transform.in.e4000000-0000-4000-8000-000000000009.true.lambda.headers",
+                "attrs": {},
                 "options": {}
             }
         ]

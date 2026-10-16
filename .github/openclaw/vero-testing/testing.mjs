@@ -32,6 +32,8 @@ const SKIP_PUBLISH = process.env.PIPELINE_SKIP_PUBLISH === '1';
 
 const [runDir, prArg, itemNodeId, projectNodeId, statusFieldId, target] = process.argv.slice(2);
 const pr = Number(prArg);
+// Filled in once known; sent with every result so the fix stage can pick it up
+const extra = { codeFailures: 0, fixable: false, testingRun: path.basename(runDir || '') };
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 const readJson = (f) => JSON.parse(readFileSync(f, 'utf8'));
 const env = Object.fromEntries(readFileSync('/root/.openclaw/.env', 'utf8').split('\n')
@@ -94,6 +96,7 @@ async function report(result, summary, details) {
         statusFieldId,
         target,
         runDir: path.basename(runDir),
+        ...extra,
         at: new Date().toISOString()
     };
     writeFileSync(path.join(runDir, 'result.json'), JSON.stringify(body, (k, v) => (k === 'secret' ? '***' : v), 2));
@@ -184,6 +187,8 @@ async function main() {
         return report('blocked', `PR #${pr} is by ${p.user.login} (${p.author_association}); its code is not run on the QA instance automatically. A maintainer has to test it.`, '');
     }
     const headSha = p.head.sha;
+    // vero can push a fix only to its own PR, whose head branch lives in the apx-vero fork
+    extra.fixable = p.user.login === 'apx-vero' && p.head.repo && p.head.repo.owner.login === 'apx-vero';
 
     const started = Date.now();
     let ci = null;
@@ -272,6 +277,7 @@ async function main() {
     const head = `E2E on dev-automated-00001, head ${headSha.slice(0, 7)}`;
     if (allPassed) return report('passed', `${head}: all flows passed.`, lines.join('\n'));
     // A real failure goes back to the developer; otherwise the environment needs a person first
+    extra.codeFailures = codeFailures;
     if (codeFailures) return report('failed', `${head}: ${codeFailures} flow(s) failed.` + (blockers.size ? ' Also needs: ' + [...blockers].join('; ') + '.' : ''), lines.join('\n'));
     return report('blocked', `${head}: needs input — ${[...blockers].join('; ')}.`, lines.join('\n'));
 }
