@@ -5,7 +5,8 @@ const componentTool = require('../tool');
 
 const COLLECT_TOOL_OUTPUTS_POLL_TIMEOUT = 60 * 1000;  // 60 seconds
 const COLLECT_TOOL_OUTPUTS_POLL_INTERVAL = 1 * 1000;  // 1 second
-const DEFAULT_MAX_TOKENS = 1024;
+// Room for extended thinking: newer models spend part of max_tokens on thinking before they answer.
+const DEFAULT_MAX_TOKENS = 8192;
 const MAX_TURNS = 20; // Messages API calls for one prompt before the agent gives up.
 
 /**
@@ -48,7 +49,10 @@ module.exports = {
     },
 
     receive: async function(context) {
-        const { prompt, model, instructions, max_tokens } = context.messages.in.content;
+        const { prompt, model, instructions } = context.messages.in.content;
+        // max_tokens: the name before the input was declared
+        const { maxTokens: maxTokensInput, max_tokens: legacyMaxTokens } = context.messages.in.content;
+        const maxTokens = Number(maxTokensInput || legacyMaxTokens) || DEFAULT_MAX_TOKENS;
         if (!prompt) {
             throw new context.CancelError('Prompt is required');
         }
@@ -87,7 +91,7 @@ module.exports = {
             const requestData = {
                 system,
                 messages,
-                max_tokens: max_tokens || DEFAULT_MAX_TOKENS,
+                max_tokens: maxTokens,
                 model
             };
             if (tools.length) {

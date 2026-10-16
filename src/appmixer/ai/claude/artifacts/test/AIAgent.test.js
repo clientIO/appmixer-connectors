@@ -108,6 +108,22 @@ describe('ai/claude AIAgent - tool port', () => {
         }]);
     });
 
+    it('should send max_tokens from the Max Tokens input, 8192 by default', async () => {
+
+        const context = toolPortContext();
+        const requests = anthropic(context, [
+            { content: [{ type: 'text', text: 'a' }], stop_reason: 'end_turn', usage },
+            { content: [{ type: 'text', text: 'b' }], stop_reason: 'end_turn', usage }
+        ]);
+
+        await AIAgent.start(context);
+        await AIAgent.receive(context);
+        context.messages.in.content.maxTokens = 16000;
+        await AIAgent.receive(context);
+
+        assert.deepStrictEqual(requests.map(r => r.max_tokens), [8192, 16000]);
+    });
+
     it('should collect the tools itself when the message comes before start() stored them', async () => {
 
         const context = toolPortContext();
