@@ -1,0 +1,244 @@
+{
+    "flow": {
+        "0d5e2001-1111-4111-8111-111111111101": {
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 320
+        },
+        "0d5e2002-2222-4222-8222-222222222202": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "0d5e2001-1111-4111-8111-111111111101": {
+                            "out": {
+                                "lambda": {
+                                    "instructions": "You are a test agent. First call the Echo tool with the value ping. Then look the secret code up with the Secret code tool. Answer with the secret code followed by the word DONE and nothing else.",
+                                    "model": "claude-haiku-4-5-20251001",
+                                    "prompt": "What is the secret code?"
+                                },
+                                "modifiers": {
+                                    "instructions": {},
+                                    "model": {},
+                                    "prompt": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0d5e2001-1111-4111-8111-111111111101": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.ai.claude.AIAgent",
+            "x": 400,
+            "y": 320
+        },
+        "0d5e2003-3333-4333-8333-333333333303": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "0d5e2002-2222-4222-8222-222222222202": {
+                            "tool": {
+                                "lambda": {
+                                    "value": "APPMIXER-7421"
+                                },
+                                "modifiers": {
+                                    "value": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Secret code",
+            "source": {
+                "in": {
+                    "0d5e2002-2222-4222-8222-222222222202": [
+                        "tool"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.controls.MockValue",
+            "x": 400,
+            "y": 448
+        },
+        "0d5e2004-4444-4444-8444-444444444404": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "0d5e2002-2222-4222-8222-222222222202": {
+                            "tool": {
+                                "lambda": {
+                                    "value": "{{{c3000000-cccc-4ccc-8ccc-c000000000c3}}}"
+                                },
+                                "modifiers": {
+                                    "value": {
+                                        "c3000000-cccc-4ccc-8ccc-c000000000c3": {
+                                            "functions": [],
+                                            "variable": "$.0d5e2002-2222-4222-8222-222222222202.tool.modelDefinedParameter"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "label": "Echo",
+            "source": {
+                "in": {
+                    "0d5e2002-2222-4222-8222-222222222202": [
+                        "tool"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.controls.MockValue",
+            "x": 400,
+            "y": 576
+        },
+        "0d5e2005-5555-4555-8555-555555555505": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "0d5e2002-2222-4222-8222-222222222202": {
+                            "out": {
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "regex",
+                                                "field": "{{{a1000000-aaaa-4aaa-8aaa-a000000000a1}}}",
+                                                "regex": "APPMIXER-7421"
+                                            },
+                                            {
+                                                "assertion": "regex",
+                                                "field": "{{{a1000000-aaaa-4aaa-8aaa-a000000000a1}}}",
+                                                "regex": "DONE"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "expression": {
+                                        "a1000000-aaaa-4aaa-8aaa-a000000000a1": {
+                                            "functions": [],
+                                            "variable": "$.0d5e2002-2222-4222-8222-222222222202.out.answer"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0d5e2002-2222-4222-8222-222222222202": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.Assert",
+            "x": 592,
+            "y": 320
+        },
+        "0d5e2006-6666-4666-8666-666666666606": {
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0d5e2005-5555-4555-8555-555555555505": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 784,
+            "y": 448
+        },
+        "0d5e2007-7777-4777-8777-777777777707": {
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "0d5e2006-6666-4666-8666-666666666606": {
+                            "out": {
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "result": "{{{b2000000-bbbb-4bbb-8bbb-b000000000b2}}}",
+                                    "testCase": "E2E Ai/claude - AI Agent Tool Port"
+                                },
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "b2000000-bbbb-4bbb-8bbb-b000000000b2": {
+                                            "functions": [],
+                                            "variable": "$.0d5e2006-6666-4666-8666-666666666606.out"
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0d5e2006-6666-4666-8666-666666666606": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 976,
+            "y": 448
+        }
+    },
+    "name": "E2E Ai/claude - AI Agent Tool Port",
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}
