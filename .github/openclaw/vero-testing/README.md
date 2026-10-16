@@ -4,7 +4,7 @@ Step 2 of [appmixer-components#2890](https://github.com/Appmixer-ai/appmixer-com
 moving a card of the [@appmixer-connectors](https://github.com/orgs/Appmixer-ai/projects/7) project to
 **Testing** runs the E2E flows of the connectors its pull request changes on dev-automated-00001, writes
 the result into the item's pipeline comment and moves the card — passed → **Review**, failed →
-**In Progress**, a precondition not met → stays in Testing with the reason.
+**In Progress**, something a person has to fix → **Needs input** with the reason.
 
 Static checks (lint, `validate.js --changed`, unit tests) are not repeated: Node.js CI runs them on every
 PR, and the stage only waits for it to be green on the head commit.
@@ -28,6 +28,15 @@ PR, and the stage only waits for it to be green on the head commit.
    - posts the result to `CI - pipeline stage result` (`.github/appmixer-flows/pipeline-stage-result.json`).
 5. The result integration rewrites the pipeline comment (same renderer as the dispatcher, so neither
    drops what the other wrote) and then moves the card; the dispatcher records that move.
+
+## Needs input
+
+`blocked` means a person has to act before the stage can say anything about the code: a
+precondition (PR closed, untrusted author, Node.js CI red for too long, no connector or no E2E flows,
+more than 3 connectors) or an environment problem in a flow or the import — no account for the
+connector on dev-automated-00001, a missing scope, an expired token, a provider account without
+credit. The reason is in the comment. A flow that fails for any other reason is a code failure:
+the card goes back to In Progress.
 
 ## On the host
 

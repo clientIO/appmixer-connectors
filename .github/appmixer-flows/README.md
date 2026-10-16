@@ -182,7 +182,7 @@ OpenClaw host (`.github/openclaw/vero-testing/`) posts its result to this integr
 ### Shape
 
 `Webhook Trigger` → `Code Block` (validates the payload, picks the next status: Testing passed →
-Review, failed → In Progress, blocked → stays) → `Condition` → `Make API Call` (the item's comments) →
+Review, failed → In Progress, blocked → Needs input) → `Condition` → `Make API Call` (the item's comments) →
 `Code Block` (rewrites the pipeline comment with the same renderer as the dispatcher) → `Make API Call`
 (write) → `Condition` (a next status) → `Update Project Item Field` (Status).
 

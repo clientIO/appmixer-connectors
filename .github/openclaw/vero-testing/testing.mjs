@@ -102,6 +102,25 @@ async function report(result, summary, details) {
     log('callback', res.status);
 }
 
+/**
+ * Why a failed import or flow needs a person rather than a code fix, or null. These come from the
+ * environment of the QA instance, not from the connector: no account bound, a consent without a
+ * scope the component needs, a token the provider revoked, a provider account out of quota.
+ * @param {string} out - CLI output
+ * @param {string} ref - appmixer:<connector>
+ */
+function environmentProblem(out, ref) {
+    const service = ref.split(':').slice(1).join(':');
+    const rules = [
+        [/No account ID|no account (found|bound)|Unbound account|account is not bound/i, `no ${service} account is connected on dev-automated-00001`],
+        [/missing (OAuth )?scopes?|Access token not found|insufficient[_ ]scope/i, `the ${service} account on dev-automated-00001 lacks a scope the components need — re-authorize it`],
+        [/invalid_grant|token (has )?expired|revoked|InvalidTokenError|401 Unauthorized|status code 401/i, `the ${service} token on dev-automated-00001 is expired or revoked — re-authorize the account`],
+        [/no credits remaining|insufficient_quota|exceeded your current quota|billing/i, `the ${service} provider account has no credit or quota left`]
+    ];
+    for (const [re, why] of rules) if (re.test(out)) return why;
+    return null;
+}
+
 /** Directories (relative to the repo root) of the bundles the PR changes. */
 function changedConnectors(worktree, baseSha) {
     const files = run('git', ['-C', worktree, 'diff', '--name-only', `${baseSha}...HEAD`]).out.split('\n').filter((f) => f.startsWith('src/appmixer/'));
@@ -165,6 +184,8 @@ async function main() {
     const cliEnv = await appmixerEnv();
     const lines = [];
     let allPassed = true;
+    const blockers = new Set(); // environment problems a person has to fix
+    let codeFailures = 0; // flows that failed for any other reason
     for (const dir of connectors) {
         const ref = dir.replace(/^src\//, '').split('/').join(':'); // appmixer:microsoft:mail
         await withLock(ref, async () => {
@@ -181,6 +202,13 @@ async function main() {
             }
             const imported = run('appmixer', ['e2e', 'import', path.join(worktree, dir, 'artifacts', 'test-flows'), '--connectors-dir', worktree], { env: cliEnv, cwd: worktree });
             writeFileSync(path.join(runDir, `${ref}.import.log`), imported.out);
+            const importProblem = imported.code !== 0 ? environmentProblem(imported.out, ref) : null;
+            if (importProblem) {
+                allPassed = false;
+                blockers.add(importProblem);
+                lines.push(`- ⏸️ import: ${importProblem}`);
+                return;
+            }
             const listed = run('appmixer', ['e2e', 'list', '-c', ref, '--json'], { env: cliEnv, cwd: worktree });
             let flows = [];
             try { const j = JSON.parse(listed.out.slice(Math.min(...['[', '{'].map((c) => listed.out.indexOf(c)).filter((i) => i >= 0)))); flows = Array.isArray(j) ? j : (j.flows || []); } catch { /* reported below */ }
@@ -194,14 +222,20 @@ async function main() {
                 writeFileSync(path.join(runDir, `${ref}.${f.flowId}.run.log`), r.out);
                 const line = (r.out.match(/^RESULT \| (\w+) \| ([^|]+)\|/m) || []);
                 const passed = r.code === 0 && line[1] === 'PASSED';
+                const problem = passed ? null : environmentProblem(r.out, ref);
                 if (!passed) allPassed = false;
-                const why = passed ? '' : ' — ' + ((r.out.match(/"message":\s*"([^"]+)"/) || r.out.match(/\[ERROR\]:\s*(.+)/) || r.out.match(/"reason":\s*"([^"]+)"/) || [, r.code === null ? 'timed out' : `exit ${r.code}`])[1]).slice(0, 160);
-                lines.push(`- ${passed ? '✅' : '❌'} [${(line[2] || f.name).trim()}](${appmixer.uiUrl}/designer/${f.flowId})${why}`);
+                if (problem) blockers.add(problem);
+                else if (!passed) codeFailures += 1;
+                const why = passed ? '' : ' — ' + (problem || ((r.out.match(/"message":\s*"([^"]+)"/) || r.out.match(/\[ERROR\]:\s*(.+)/) || r.out.match(/"reason":\s*"([^"]+)"/) || [, r.code === null ? 'timed out' : `exit ${r.code}`])[1]).slice(0, 160));
+                lines.push(`- ${passed ? '✅' : problem ? '⏸️' : '❌'} [${(line[2] || f.name).trim()}](${appmixer.uiUrl}/designer/${f.flowId})${why}`);
             }
         });
     }
     const head = `E2E on dev-automated-00001, head ${headSha.slice(0, 7)}`;
-    return report(allPassed ? 'passed' : 'failed', allPassed ? `${head}: all flows passed.` : `${head}: some flows failed.`, lines.join('\n'));
+    if (allPassed) return report('passed', `${head}: all flows passed.`, lines.join('\n'));
+    // A real failure goes back to the developer; otherwise the environment needs a person first
+    if (codeFailures) return report('failed', `${head}: ${codeFailures} flow(s) failed.` + (blockers.size ? ' Also needs: ' + [...blockers].join('; ') + '.' : ''), lines.join('\n'));
+    return report('blocked', `${head}: needs input — ${[...blockers].join('; ')}.`, lines.join('\n'));
 }
 
 mkdirSync(runDir, { recursive: true });
