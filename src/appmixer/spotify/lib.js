@@ -16,10 +16,12 @@ const MAX_SEARCH_RESULTS = 50;
 const MAX_ITEMS_PER_REQUEST = 100;
 // `/v1/me/playlists` and `/v1/playlists/{id}/items` page at 50.
 const MAX_PAGE_SIZE = 50;
-// Guards a runaway `next` chain on a pathological account.
-const MAX_PAGES = 40;
+// Guards a runaway `next` chain: a playlist holds at most 10,000 items, i.e. 200 pages.
+// Hitting the cap fails the call instead of returning a silently truncated list.
+const MAX_PAGES = 200;
 
 // Spotify answers a breach of the rolling 30-second window with 429 + Retry-After.
+// A longer cooldown than we are willing to wait inline is propagated, not retried early.
 const MAX_RETRIES = 3;
 const MAX_RETRY_AFTER_SECONDS = 60;
 
@@ -72,11 +74,13 @@ const stripDiacritics = (text) => String(text).normalize('NFD').replace(COMBININ
 /**
  * Lowercase, strip diacritics, drop punctuation and collapse whitespace.
  * Dropping punctuation without inserting a space is what turns "don't" into "dont".
+ * Letters, numbers and combining marks of any script survive, so "残響散歌" is not
+ * reduced to an empty title.
  * @param {string} text
  * @returns {string}
  */
 const normalize = (text) => stripDiacritics(String(text === null || text === undefined ? '' : text).toLowerCase())
-    .replace(/[^a-z0-9\s]+/g, '')
+    .replace(/[^\p{L}\p{M}\p{N}\s]+/gu, '')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -269,10 +273,11 @@ module.exports = {
             .filter(Boolean);
 
         if (!artist || !title) {
-            const text = title || query || '';
-            const haystack = title
-                ? candidate.name
-                : `${candidateArtists.join(' ')} ${candidate.name || ''}`;
+            // Same precedence as the free-text search in FindTracks: `query || title`.
+            const text = query || title || '';
+            const haystack = query
+                ? `${candidateArtists.join(' ')} ${candidate.name || ''}`
+                : candidate.name;
             return round(clamp(similarity(text, haystack)));
         }
 
@@ -415,11 +420,12 @@ module.exports = {
                 const response = error.response || {};
                 const retryAfter = parseInt((response.headers || {})['retry-after'], 10);
 
-                if (response.status !== 429 || attempt >= MAX_RETRIES) {
+                const waitSeconds = Number.isFinite(retryAfter) ? retryAfter : 1;
+
+                if (response.status !== 429 || attempt >= MAX_RETRIES || waitSeconds > MAX_RETRY_AFTER_SECONDS) {
                     throw this.normalizeError(context, error);
                 }
 
-                const waitSeconds = Math.min(Number.isFinite(retryAfter) ? retryAfter : 1, MAX_RETRY_AFTER_SECONDS);
                 await context.log({ step: 'Spotify rate limited (429), retrying', url: options.url, waitSeconds });
                 await new Promise((resolve) => setTimeout(resolve, waitSeconds * 1000));
             }
@@ -523,6 +529,12 @@ module.exports = {
             pages++;
         } while (next && pages < MAX_PAGES);
 
+        if (next) {
+            throw new context.CancelError(
+                `Spotify returned more than ${MAX_PAGES} pages for ${path}; refusing to return a partial list.`
+            );
+        }
+
         return records;
     },
 
@@ -593,8 +605,20 @@ module.exports = {
         }
 
         return list
-            // FindTracks records can be forwarded whole instead of mapped to `uri`.
-            .map((entry) => (entry && typeof entry === 'object' ? (entry.uri || entry.id) : entry))
+            // FindTracks records can be forwarded whole instead of mapped to `uri`. An
+            // object without a usable `uri`/`id` is rejected rather than dropped, so a
+            // malformed input never collapses into an empty list (which would make
+            // ReplacePlaylistItems clear the playlist).
+            .map((entry) => {
+                if (!entry || typeof entry !== 'object') {
+                    return entry;
+                }
+                const reference = String(entry.uri || entry.id || '').trim();
+                if (!reference) {
+                    throw new context.CancelError(`Not a valid Spotify track URI, ID or URL: ${JSON.stringify(entry)}`);
+                }
+                return reference;
+            })
             .map((entry) => String(entry === null || entry === undefined ? '' : entry).trim())
             .filter(Boolean)
             .map((entry) => {
@@ -794,6 +818,20 @@ module.exports = {
 };
 
 /**
+ * Quote one CSV cell (RFC 4180): objects are serialized to JSON, embedded quotes doubled.
+ * @param {*} value
+ * @returns {string}
+ */
+const toCsvCell = (value) => {
+
+    if (value === null || value === undefined) {
+        return '';
+    }
+    const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    return `"${text.replace(/"/g, '""')}"`;
+};
+
+/**
  * @param {array} array
  * @returns {string}
  */
@@ -806,14 +844,7 @@ const toCsv = (array) => {
     const headers = Object.keys(array[0]);
 
     return [
-        headers.join(','),
-        ...array.map(items => {
-            return Object.values(items).map(property => {
-                if (typeof property === 'object') {
-                    return JSON.stringify(property);
-                }
-                return property;
-            }).join(',');
-        })
+        headers.map(toCsvCell).join(','),
+        ...array.map(item => headers.map(header => toCsvCell(item[header])).join(','))
     ].join('\n');
 };

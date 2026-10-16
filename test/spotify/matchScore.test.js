@@ -43,6 +43,14 @@ describe('Spotify match scoring', function() {
         });
     });
 
+    describe('normalize', function() {
+
+        it('keeps non-Latin letters while dropping punctuation', function() {
+            assert.strictEqual(lib.normalize('残響散歌!'), '残響散歌');
+            assert.notStrictEqual(lib.normalize('残響散歌'), lib.normalize('カタオモイ'));
+        });
+    });
+
     describe('parseTitle', function() {
 
         it('moves a slash-suffixed version out of the title', function() {
@@ -255,6 +263,11 @@ describe('Spotify URI parsing', function() {
             lib.parseUris(context, 'spotify:episode:2GiJYvgVaD2HtM8GqD9EgQ'),
             ['spotify:episode:2GiJYvgVaD2HtM8GqD9EgQ']
         );
+    });
+
+    it('rejects a record without a uri or id instead of dropping it', function() {
+        assert.throws(() => lib.parseUris(context, '[{}]'), context.CancelError);
+        assert.throws(() => lib.parseUris(context, [{ uri: ' ' }]), context.CancelError);
     });
 
     it('rejects anything that is not a Spotify track', function() {
