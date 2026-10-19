@@ -32,6 +32,16 @@ class FacebookClient {
     }
 
     /**
+     * POST multipart form data (a form-data instance), e.g. a file upload.
+     */
+    async postForm(path, form) {
+        form.append('access_token', this.accessToken);
+        const url = `${BASE_URL}${path}`;
+        const response = await this.context.httpRequest.post(url, form, { headers: form.getHeaders() });
+        return response.data;
+    }
+
+    /**
      * Set a different access token (e.g. page token).
      */
     setAccessToken(token) {

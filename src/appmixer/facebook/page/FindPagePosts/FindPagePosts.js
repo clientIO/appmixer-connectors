@@ -15,7 +15,8 @@ const POST_FIELDS = [
     'permalink_url',
     'full_picture',
     'status_type',
-    'is_published'
+    'is_published',
+    'attachments{type,url,title,description,media,subattachments{type,url,media}}'
 ].join(',');
 
 // The output contract of one post. A dynamic (source) output port has no `schema` in
@@ -41,6 +42,53 @@ const ITEM_SCHEMA = {
         },
         status_type: { type: 'string', title: 'Status Type', example: 'added_photos' },
         is_published: { type: 'boolean', title: 'Is Published', example: true },
+        attachments: {
+            type: 'array',
+            title: 'Attachments',
+            example: [{
+                type: 'album',
+                url: 'https://www.facebook.com/photo.php?fbid=122133547148947080',
+                title: 'Photos from Acme Inc\'s post',
+                imageUrl: 'https://scontent.xx.fbcdn.net/v/t39.30808-6/123456789_n.jpg',
+                subattachments: [{
+                    type: 'photo',
+                    url: 'https://www.facebook.com/photo.php?fbid=122133547148947081',
+                    imageUrl: 'https://scontent.xx.fbcdn.net/v/t39.30808-6/123456790_n.jpg'
+                }]
+            }],
+            items: {
+                type: 'object',
+                properties: {
+                    type: { type: 'string', title: 'Attachments.Type', example: 'photo' },
+                    url: {
+                        type: 'string',
+                        title: 'Attachments.URL',
+                        example: 'https://www.facebook.com/photo.php?fbid=122133547148947080'
+                    },
+                    title: { type: 'string', title: 'Attachments.Title', example: 'Summer sale' },
+                    description: { type: 'string', title: 'Attachments.Description', example: '20% off all drinks' },
+                    imageUrl: {
+                        type: 'string',
+                        title: 'Attachments.Image URL',
+                        example: 'https://scontent.xx.fbcdn.net/v/t39.30808-6/123456789_n.jpg'
+                    },
+                    videoUrl: {
+                        type: 'string',
+                        title: 'Attachments.Video URL',
+                        example: 'https://video.xx.fbcdn.net/v/t42.1790-2/123456789_n.mp4'
+                    },
+                    subattachments: {
+                        type: 'array',
+                        title: 'Attachments.Subattachments',
+                        example: [{
+                            type: 'photo',
+                            url: 'https://www.facebook.com/photo.php?fbid=122133547148947081',
+                            imageUrl: 'https://scontent.xx.fbcdn.net/v/t39.30808-6/123456790_n.jpg'
+                        }]
+                    }
+                }
+            }
+        },
         pageId: { type: 'string', title: 'Page ID', example: '104857361234567' },
         pageName: { type: 'string', title: 'Page Name', example: 'Acme Inc' }
     }
@@ -63,6 +111,28 @@ const toUnixTime = (context, value, label) => {
     }
 
     return Math.floor(time / 1000);
+};
+
+/**
+ * Flatten one Graph API attachment: drop the `{ data: [...] }` envelopes and the nested
+ * media object, so the variable picker can offer plain fields.
+ */
+const mapAttachment = (attachment) => {
+
+    const mapped = {
+        type: attachment.type,
+        url: attachment.url,
+        title: attachment.title,
+        description: attachment.description,
+        imageUrl: attachment.media?.image?.src,
+        videoUrl: attachment.media?.source
+    };
+
+    if (attachment.subattachments) {
+        mapped.subattachments = (attachment.subattachments.data || []).map(mapAttachment);
+    }
+
+    return mapped;
 };
 
 /**
@@ -116,6 +186,7 @@ module.exports = {
 
         const records = posts.map(post => ({
             ...post,
+            attachments: (post.attachments?.data || []).map(mapAttachment),
             pageId,
             pageName: pageDetails.name
         }));
