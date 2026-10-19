@@ -127,6 +127,52 @@ Published as an integration template (see below); the wizard asks for the bot
 account, the repositories to watch and the hook headers. The other half lives
 on the OpenClaw host — see `.github/openclaw/vero-mention/README.md`.
 
+## project-status-pipeline.json
+
+The dispatcher of the status-driven connector pipeline
+([appmixer-components#2890](https://github.com/Appmixer-ai/appmixer-components/issues/2890),
+step 1 in [#2916](https://github.com/Appmixer-ai/appmixer-components/issues/2916)). A Status
+change of a card on the [@appmixer-connectors](https://github.com/orgs/Appmixer-ai/projects/7)
+project is resolved to the card's issue, pull request, connector and branch and recorded in one
+comment on the item. The pipeline stages (Testing, Review, Doc&Verification, Needs input) will hang
+on this flow; this version starts nothing else.
+
+### Shape
+
+- `GitHub / On Project Item Changed` — `projects_v2_item` deliveries, action `edited`, limited to
+  project 7 (`PVT_kwDODXokv84BFM6_`). They arrive through the GitHub connector's endpoint
+  `/plugins/appmixer/github/events`, at which an organization owner points one organization
+  webhook once (github connector README, "Setting up the organization webhook"); the bound
+  account needs no admin scope. dev-automated-00001 authenticates GitHub through the QA Auth
+  Hub, so the webhook points at the hub: `https://auth-hub.dev.appmixer.ai/plugins/appmixer/github/events`
+  (the listener of an Auth Hub-backed service registers on the hub, which relays to the instance).
+- `Condition` — the changed field is Status.
+- `GitHub / Make API Call` — one GraphQL call on the card's content node: issue or pull request,
+  labels, and for an issue the pull requests that close it.
+- `Code Block` (Pipeline event) — `{issue?, pr?, connector, branch, status, from, runId}`. An
+  issue card is linked to its PR through the closing keyword (an open one first); a PR card looks
+  up no issue; the connector comes from the `appmixer:<x>` label. `runId` is the card, the
+  target status and the card's `updated_at`, so a webhook redelivery produces the same id. A
+  draft issue ends here (`ok: false`).
+- `Make API Call` (comments) → `Code Block` (Pipeline comment) → `Condition` → `Make API
+  Call` (write) — finds the item's comment carrying `<!-- pipeline: {...} -->`, stops on a run
+  id already in it, otherwise creates or edits the comment with the status history. The comment
+  goes to the issue when the card is an issue, else to the PR.
+
+### Setup
+
+Published as an integration template; the wizard asks for the GitHub account (`read:org`,
+`read:project`, `repo`), the organization and the project node id. The organization webhook
+exists independently of the instance.
+
+### When it breaks
+
+- **No deliveries at all** — the organization webhook is missing, points elsewhere, or its secret
+  differs from the connector's `webhookSecret` (the endpoint answers 401; GitHub shows it in the
+  webhook's Recent Deliveries).
+- **A move with no comment** — look at the instance's runs on `/ops`: `Resolved` is false for
+  draft issues, `New run` is false for a redelivery.
+
 ## Publishing as integrations
 
 Both flows carry a `wizard` and a `description` and are published on
