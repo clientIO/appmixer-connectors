@@ -1,0 +1,323 @@
+{
+    "name": "E2E LinkedIn Pages - create and delete post",
+    "description": "Finds a company page the connected member administers (MakeApiCall), publishes a post as that page (CreatePost), checks both results and deletes the post after AfterAll.",
+    "flow": {
+        "e5e55845-3930-4d16-bda8-21c739e58f05": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "9eda529f-a589-4fe1-8341-fd85739fcb9b": {
+            "type": "appmixer.linkedinPages.core.MakeApiCall",
+            "label": "Find admin page (MakeApiCall)",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e5e55845-3930-4d16-bda8-21c739e58f05": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5e55845-3930-4d16-bda8-21c739e58f05": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "parameters": {},
+                                    "headers": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/rest/organizationAcls",
+                                    "method": "GET",
+                                    "parameters": "[{\"key\": \"q\", \"value\": \"roleAssignee\"}, {\"key\": \"role\", \"value\": \"ADMINISTRATOR\"}, {\"key\": \"state\", \"value\": \"APPROVED\"}, {\"key\": \"count\", \"value\": \"10\"}]"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "8ecc3705-c7d5-4cef-97de-651ca85dcd90": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert MakeApiCall",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9eda529f-a589-4fe1-8341-fd85739fcb9b": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9eda529f-a589-4fe1-8341-fd85739fcb9b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "459cb2aa-81e1-400b-beab-a85f059ccdff": {
+                                            "variable": "$.9eda529f-a589-4fe1-8341-fd85739fcb9b.out.status",
+                                            "functions": []
+                                        },
+                                        "954ebc4a-141a-423e-9a1e-fdb91d139467": {
+                                            "variable": "$.9eda529f-a589-4fe1-8341-fd85739fcb9b.out.body",
+                                            "functions": [
+                                                { "name": "g_jsonPath", "params": [{ "value": "$.elements[0].organization" }] }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{459cb2aa-81e1-400b-beab-a85f059ccdff}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "field": "{{{954ebc4a-141a-423e-9a1e-fdb91d139467}}}",
+                                                "assertion": "regex",
+                                                "regex": "^urn:li:organization:\\d+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "3e6197dc-31dc-401d-b52d-b6c3d0defd14": {
+            "type": "appmixer.linkedinPages.core.CreatePost",
+            "label": "CreatePost",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8ecc3705-c7d5-4cef-97de-651ca85dcd90": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8ecc3705-c7d5-4cef-97de-651ca85dcd90": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "organizationId": {
+                                        "c612d9a3-603f-46b7-99a7-bef971f642e4": {
+                                            "variable": "$.9eda529f-a589-4fe1-8341-fd85739fcb9b.out.body",
+                                            "functions": [
+                                                { "name": "g_jsonPath", "params": [{ "value": "$.elements[0].organization" }] }
+                                            ]
+                                        }
+                                    },
+                                    "visibility": {},
+                                    "text": {
+                                        "df040f7b-2c32-4cf8-b8f3-d28dd94b5492": {
+                                            "variable": "$.e5e55845-3930-4d16-bda8-21c739e58f05.out.started",
+                                            "functions": []
+                                        }
+                                    },
+                                    "specificLink": {},
+                                    "url": {},
+                                    "title": {},
+                                    "description": {}
+                                },
+                                "lambda": {
+                                    "organizationId": "{{{c612d9a3-603f-46b7-99a7-bef971f642e4}}}",
+                                    "visibility": "PUBLIC",
+                                    "text": "Connector test run (E2E) {{{df040f7b-2c32-4cf8-b8f3-d28dd94b5492}}} for test_page [escaping check]. This post is deleted automatically.",
+                                    "specificLink": true,
+                                    "url": "https://www.appmixer.com",
+                                    "title": "Appmixer",
+                                    "description": "Automated test post - deleted by the same flow."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "d12a54f5-cbfb-467f-aef6-96292e44b0b1": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert CreatePost",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3e6197dc-31dc-401d-b52d-b6c3d0defd14": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3e6197dc-31dc-401d-b52d-b6c3d0defd14": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "96d94ef9-10a8-4dd7-8534-6c087e2e9b85": {
+                                            "variable": "$.3e6197dc-31dc-401d-b52d-b6c3d0defd14.out.status",
+                                            "functions": []
+                                        },
+                                        "d5a20aac-8f5b-4fa2-afdc-952c15c25169": {
+                                            "variable": "$.3e6197dc-31dc-401d-b52d-b6c3d0defd14.out.postId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{96d94ef9-10a8-4dd7-8534-6c087e2e9b85}}}",
+                                                "assertion": "equal",
+                                                "expected": "201"
+                                            },
+                                            {
+                                                "field": "{{{d5a20aac-8f5b-4fa2-afdc-952c15c25169}}}",
+                                                "assertion": "regex",
+                                                "regex": "^urn:li:(share|ugcPost):\\d+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "f3917ee6-15e1-4d0f-b97f-2ab1549517f9": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "AfterAll",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8ecc3705-c7d5-4cef-97de-651ca85dcd90": ["out"],
+                    "d12a54f5-cbfb-467f-aef6-96292e44b0b1": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "0773e496-e8fb-4c03-b7da-bc451d1a86a5": {
+            "type": "appmixer.linkedinPages.core.MakeApiCall",
+            "label": "Delete post (MakeApiCall)",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "f3917ee6-15e1-4d0f-b97f-2ab1549517f9": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f3917ee6-15e1-4d0f-b97f-2ab1549517f9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "8e45ca57-e7eb-4eb1-b4f0-6ef83eebebf3": {
+                                            "variable": "$.3e6197dc-31dc-401d-b52d-b6c3d0defd14.out.postId",
+                                            "functions": [
+                                                { "name": "g_encodeUrl", "params": [{ "value": false }] }
+                                            ]
+                                        }
+                                    },
+                                    "method": {},
+                                    "parameters": {},
+                                    "headers": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/rest/posts/{{{8e45ca57-e7eb-4eb1-b4f0-6ef83eebebf3}}}",
+                                    "method": "DELETE",
+                                    "headers": "[{\"key\": \"X-RestLi-Method\", \"value\": \"DELETE\"}]"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "0c555f4d-fb99-4637-a2f1-421a1051a5b2": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "ProcessE2EResults",
+            "x": 1520,
+            "y": 144,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "0773e496-e8fb-4c03-b7da-bc451d1a86a5": ["out"]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "0773e496-e8fb-4c03-b7da-bc451d1a86a5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "ad305b4a-cbf3-42e2-9e68-b07c17efec53": {
+                                            "variable": "$.f3917ee6-15e1-4d0f-b97f-2ab1549517f9.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E LinkedIn Pages - create and delete post",
+                                    "result": "{{{ad305b4a-cbf3-42e2-9e68-b07c17efec53}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    },
+    "notes": {
+        "316fee49-1450-4acd-b226-f9db7e5a4901": {
+            "x": 64,
+            "y": 288,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ Test data assumption\n\nThe connected LinkedIn account must be an approved **ADMINISTRATOR** of at least one company page, and the account must come from a LinkedIn app with the **Community Management API** product. The flow posts publicly as the first page returned by `organizationAcls` and deletes the post after AfterAll, so keep the delete step. If the flow stops in between, delete the post on the page by hand."
+        }
+    }
+}

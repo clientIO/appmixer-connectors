@@ -1,0 +1,197 @@
+{
+    "name": "appmixer.linkedinPages.core.CreatePost",
+    "description": "Publish a post on behalf of a LinkedIn company page you manage, optionally with a shared link or an image.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:linkedinPages",
+        "scope": [
+            "w_organization_social"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:linkedinPages",
+        "resources": "shares",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "organizationId": {
+                        "type": "string"
+                    },
+                    "visibility": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "allowMentions": {
+                        "type": "boolean"
+                    },
+                    "specificLink": {
+                        "type": "boolean"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "imageFileId": {
+                        "type": "string"
+                    },
+                    "altText": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "organizationId",
+                    "text"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "organizationId": {
+                        "type": "text",
+                        "label": "Organization",
+                        "index": 1,
+                        "tooltip": "Select the company page to post as, or type its numeric organization ID (e.g. 12345) or URN (urn:li:organization:12345). The ID is shown in the page admin URL: linkedin.com/company/{id}/admin/. The list shows pages where you are an administrator or content administrator.",
+                        "source": {
+                            "url": "/component/appmixer/linkedinPages/core/ListOrganizations?outPort=out",
+                            "data": {
+                                "transform": "./ListOrganizations#organizationsToSelectArray",
+                                "properties": {
+                                    "isSource": true
+                                }
+                            }
+                        }
+                    },
+                    "visibility": {
+                        "type": "select",
+                        "label": "Visibility",
+                        "options": [
+                            {
+                                "label": "Public",
+                                "value": "PUBLIC"
+                            },
+                            {
+                                "label": "Logged In Members Only",
+                                "value": "LOGGED_IN"
+                            }
+                        ],
+                        "defaultValue": "PUBLIC",
+                        "index": 2,
+                        "tooltip": "Select who can see this post. Note: 'Connections Only' is not available for company page posts."
+                    },
+                    "text": {
+                        "type": "textarea",
+                        "tooltip": "Text of the post. Characters that LinkedIn reserves for formatting are escaped automatically unless Allow mentions is on.",
+                        "label": "Text",
+                        "index": 3
+                    },
+                    "allowMentions": {
+                        "type": "toggle",
+                        "label": "Allow mentions",
+                        "defaultValue": false,
+                        "index": 4,
+                        "tooltip": "Send the text in LinkedIn \"little text\" format to mention pages or people, e.g. <code>@[Acme](urn:li:organization:12345)</code>. Reserved characters <code>| { } @ [ ] ( ) &lt; &gt; # \\ * _ ~</code> that are not part of a mention must then be escaped with a backslash."
+                    },
+                    "specificLink": {
+                        "type": "toggle",
+                        "tooltip": "Enable to attach a URL article link to the post.",
+                        "label": "Share specific link",
+                        "defaultValue": false,
+                        "index": 5
+                    },
+                    "url": {
+                        "type": "text",
+                        "tooltip": "A fully qualified URL for the content being shared.",
+                        "label": "URL",
+                        "index": 6,
+                        "when": {
+                            "eq": {
+                                "specificLink": true
+                            }
+                        }
+                    },
+                    "title": {
+                        "type": "text",
+                        "tooltip": "The title of the content being shared.",
+                        "label": "Title",
+                        "index": 7,
+                        "when": {
+                            "eq": {
+                                "specificLink": true
+                            }
+                        }
+                    },
+                    "description": {
+                        "type": "textarea",
+                        "tooltip": "The description of the content being shared.",
+                        "label": "Description",
+                        "index": 8,
+                        "when": {
+                            "eq": {
+                                "specificLink": true
+                            }
+                        }
+                    },
+                    "imageFileId": {
+                        "type": "filepicker",
+                        "label": "Image",
+                        "index": 9,
+                        "tooltip": "Optional image to attach to the post: a JPG, PNG or GIF file. To post an image from a web address, download it first with the Download File utility. A post can have either a shared link or an image.",
+                        "when": {
+                            "eq": {
+                                "specificLink": false
+                            }
+                        }
+                    },
+                    "altText": {
+                        "type": "text",
+                        "label": "Image Alt Text",
+                        "index": 10,
+                        "tooltip": "Text that describes the image for screen readers.",
+                        "when": {
+                            "eq": {
+                                "specificLink": false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "properties": {},
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "integer",
+                        "title": "Status",
+                        "example": 201
+                    },
+                    "postId": {
+                        "type": "string",
+                        "title": "Post ID",
+                        "example": "urn:li:share:7241234567890123456"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA3NS43NjggNzYuMjQ4Ij48ZGVmcz48c3R5bGU+LmF7ZmlsbDojMDY5O30uYntmaWxsOiNmZmY7ZmlsbC1ydWxlOmV2ZW5vZGQ7fTwvc3R5bGU+PC9kZWZzPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKC05NTUxLjA5OCAtMjUwNykiPjxwYXRoIGNsYXNzPSJhIiBkPSJNMjQzLjgzNi05Ni44MjZhNS41MzIsNS41MzIsMCwwLDEsNS42LTUuNDYySDMxNGE1LjUzMiw1LjUzMiwwLDAsMSw1LjYsNS40NjJWLTMxLjVhNS41MzIsNS41MzIsMCwwLDEtNS42LDUuNDYySDI0OS40MzVhNS41MzIsNS41MzIsMCwwLDEtNS42LTUuNDYyWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTMwNy4yNjIgMjYwOS4yODgpIi8+PHBhdGggY2xhc3M9ImIiIGQ9Ik0yNjYuOC0zOC40NlYtNzIuODlIMjU1LjM2djM0LjQzWm0tNS43MjItMzkuMTMxYzMuOTkxLDAsNi40NzUtMi42NDQsNi40NzUtNS45NDgtLjA3NC0zLjM3OC0yLjQ4NC01Ljk0OS02LjQtNS45NDlzLTYuNDc0LDIuNTcxLTYuNDc0LDUuOTQ5YzAsMy4zLDIuNDgzLDUuOTQ4LDYuMzI0LDUuOTQ4aC4wNzRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5MzA3LjI2MiAyNjA5LjI4OCkiLz48cGF0aCBjbGFzcz0iYiIgZD0iTTI3My4xMzYtMzguNDZIMjg0LjU4Vi01Ny42ODdhNy44NDQsNy44NDQsMCwwLDEsLjM3Ny0yLjc5Myw2LjI2NCw2LjI2NCwwLDAsMSw1Ljg3Mi00LjE4NWM0LjE0MSwwLDUuOCwzLjE1Nyw1LjgsNy43ODZWLTM4LjQ2aDExLjQ0M1YtNTguMmMwLTEwLjU3NS01LjY0Ni0xNS41LTEzLjE3NS0xNS41YTExLjQsMTEuNCwwLDAsMC0xMC4zOSw1LjhoLjA3NlYtNzIuODlIMjczLjEzN2MuMTUsMy4yMzEsMCwzNC40MywwLDM0LjQzWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOTMwNy4yNjIgMjYwOS4yODgpIi8+PC9nPjwvc3ZnPg=="
+}
