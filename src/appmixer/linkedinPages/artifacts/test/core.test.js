@@ -145,6 +145,93 @@ describe('linkedinPages core', function() {
             });
         });
 
+        describe('with an image', function() {
+
+            const UPLOAD_URL = 'https://www.linkedin.com/dms-uploads/sp/v2/D4E10AQ/uploadedImage/0?ca=x';
+
+            function imageContext(input, fileInfo = { filename: 'photo.png', contentType: 'image/png', length: 1234 }) {
+
+                const context = createContext({ organizationId: '42', text: 'Look', imageFileId: 'file-1', ...input });
+                context.getFileInfo = sinon.stub().resolves(fileInfo);
+                context.getFileReadStream = sinon.stub().resolves('file-stream');
+                context.httpRequest
+                    .onFirstCall().resolves({ data: { value: { uploadUrl: UPLOAD_URL, image: 'urn:li:image:D4E10AQ' } } })
+                    .onSecondCall().resolves({ status: 201 })
+                    .onThirdCall().resolves({ status: 201, headers: { 'x-restli-id': 'urn:li:share:3' } });
+                return context;
+            }
+
+            it('uploads the file and attaches the image to the post', async function() {
+
+                const context = imageContext({ altText: 'Team photo' });
+
+                const result = await CreatePost.receive(context);
+
+                const init = context.httpRequest.getCall(0).args[0];
+                assert.strictEqual(init.url, 'https://api.linkedin.com/rest/images?action=initializeUpload');
+                assert.strictEqual(init.headers['LinkedIn-Version'], VERSION_HEADER);
+                assert.deepStrictEqual(init.data, { initializeUploadRequest: { owner: 'urn:li:organization:42' } });
+
+                const upload = context.httpRequest.getCall(1).args[0];
+                assert.strictEqual(upload.method, 'PUT');
+                assert.strictEqual(upload.url, UPLOAD_URL);
+                assert.strictEqual(upload.data, 'file-stream');
+                assert.strictEqual(upload.headers.Authorization, 'Bearer token-1');
+                assert.strictEqual(upload.headers['Content-Length'], 1234);
+                sinon.assert.calledWith(context.getFileReadStream, 'file-1');
+
+                const post = context.httpRequest.getCall(2).args[0];
+                assert.strictEqual(post.url, 'https://api.linkedin.com/rest/posts');
+                assert.deepStrictEqual(post.data.content, { media: { id: 'urn:li:image:D4E10AQ', altText: 'Team photo' } });
+                assert.deepStrictEqual(result.data, { status: 201, postId: 'urn:li:share:3' });
+            });
+
+            it('omits alt text when it is empty', async function() {
+
+                const context = imageContext({});
+
+                await CreatePost.receive(context);
+
+                assert.deepStrictEqual(context.httpRequest.getCall(2).args[0].data.content, { media: { id: 'urn:li:image:D4E10AQ' } });
+            });
+
+            it('accepts a supported extension when the content type is generic', async function() {
+
+                const context = imageContext({}, { filename: 'photo.JPG', contentType: 'application/octet-stream' });
+
+                await CreatePost.receive(context);
+
+                sinon.assert.calledThrice(context.httpRequest);
+            });
+
+            it('rejects a link and an image together', async function() {
+
+                const context = imageContext({ specificLink: true, url: 'https://a.b', title: 'T' });
+
+                await assert.rejects(CreatePost.receive(context), { name: 'CancelError', message: /either a shared link or an image/ });
+                sinon.assert.notCalled(context.httpRequest);
+            });
+
+            it('rejects a file that is not a supported image', async function() {
+
+                const context = imageContext({}, { filename: 'report.pdf', contentType: 'application/pdf' });
+
+                await assert.rejects(CreatePost.receive(context), { name: 'CancelError', message: /JPG, PNG or GIF.*application\/pdf/ });
+                sinon.assert.notCalled(context.httpRequest);
+            });
+
+            it('does not send the token to an upload URL outside LinkedIn', async function() {
+
+                const context = imageContext({});
+                context.httpRequest.onFirstCall().resolves({
+                    data: { value: { uploadUrl: 'https://evil.example/linkedin.com', image: 'urn:li:image:X' } }
+                });
+
+                await assert.rejects(CreatePost.receive(context), /unexpected image upload host: evil\.example/);
+                sinon.assert.calledOnce(context.httpRequest);
+            });
+        });
+
         it('escapes little-text characters in plain text', async function() {
 
             const context = createContext({ organizationId: '1', text: 'Join us (today) at some_name #launch @home' });
