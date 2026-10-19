@@ -21,25 +21,44 @@ const schema = {
         'type': 'object',
         'title': 'Recorded By',
         'properties': {
-            'name': { 'type': 'string', 'example': 'Jane Doe' },
-            'email': { 'type': 'string', 'example': 'jane.doe@example.com' }
+            'name': { 'type': 'string', 'title': 'Recorded By.Name', 'example': 'Jane Doe' },
+            'email': { 'type': 'string', 'title': 'Recorded By.Email', 'example': 'jane.doe@example.com' }
         }
     },
     'action_items': {
         'type': 'array',
         'title': 'Action Items',
-        'items': { 'type': 'object' }
+        'items': { 'type': 'object' },
+        'example': [{
+            'description': 'Send renewal quote to Acme',
+            'user_generated': false,
+            'completed': false,
+            'recording_timestamp': '00:12:34',
+            'recording_playback_url': 'https://fathom.video/calls/123456?timestamp=754',
+            'assignee': { 'name': 'Jane Doe', 'email': 'jane.doe@example.com', 'team': 'Sales' }
+        }]
     },
     'highlights': {
         'type': 'array',
         'title': 'Highlights',
-        'items': { 'type': 'object' }
+        'items': { 'type': 'object' },
+        'example': [{
+            'type': 'Key Moment',
+            'summary': 'Customer confirmed the Q1 renewal.',
+            'start_time': 754.2,
+            'end_time': 781.9
+        }]
     }
 };
+
+// Exported as ITEM_SCHEMA because the `out` port is dynamic.
+const ITEM_SCHEMA = { 'type': 'object', 'properties': schema };
 
 const toList = value => String(value).split(',').map(item => item.trim()).filter(Boolean);
 
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
@@ -58,7 +77,7 @@ module.exports = {
         } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Meetings' });
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Meetings' });
         }
 
         // Build the query string manually so array filters use Fathom's `key[]` convention.

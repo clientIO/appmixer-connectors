@@ -29,10 +29,7 @@ module.exports = {
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const baseUrl = lib.API_BASE_URL;
-        const targetUrl = url.startsWith('http://') || url.startsWith('https://')
-            ? url
-            : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
+        const targetUrl = lib.resolveApiUrl(context, url);
 
         const requestOptions = {
             method,

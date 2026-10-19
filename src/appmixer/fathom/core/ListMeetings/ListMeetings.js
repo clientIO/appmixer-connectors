@@ -21,20 +21,25 @@ const schema = {
         'type': 'object',
         'title': 'Recorded By',
         'properties': {
-            'name': { 'type': 'string', 'example': 'Jane Doe' },
-            'email': { 'type': 'string', 'example': 'jane.doe@example.com' }
+            'name': { 'type': 'string', 'title': 'Recorded By.Name', 'example': 'Jane Doe' },
+            'email': { 'type': 'string', 'title': 'Recorded By.Email', 'example': 'jane.doe@example.com' }
         }
     }
 };
 
+// Exported as ITEM_SCHEMA because the `out` port is dynamic.
+const ITEM_SCHEMA = { 'type': 'object', 'properties': schema };
+
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
         const { outputType = 'array' } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Meetings' });
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Meetings' });
         }
 
         const records = await lib.fetchAllPages(context, {

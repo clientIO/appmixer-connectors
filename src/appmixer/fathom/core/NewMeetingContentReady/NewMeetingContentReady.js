@@ -1,6 +1,16 @@
 'use strict';
 
+const crypto = require('crypto');
 const lib = require('../../lib');
+
+function isSameToken(received, expected) {
+    if (typeof received !== 'string' || typeof expected !== 'string') {
+        return false;
+    }
+    const a = Buffer.from(received);
+    const b = Buffer.from(expected);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 function normalizeTriggeredFor(value) {
     if (Array.isArray(value)) {
@@ -33,8 +43,14 @@ module.exports = {
             );
         }
 
+        // Anyone can POST to the webhook URL. Fathom signs deliveries (Svix), but components
+        // only see the parsed body, so the signature cannot be checked byte-exactly. A random
+        // token in the destination URL is echoed back on every delivery and checked in receive().
+        const token = crypto.randomBytes(24).toString('hex');
+        const separator = webhookUrl.indexOf('?') === -1 ? '?' : '&';
+
         const body = {
-            destination_url: webhookUrl,
+            destination_url: `${webhookUrl}${separator}token=${token}`,
             triggered_for: triggeredFor
         };
         if (includeSummary) body.include_summary = true;
@@ -53,7 +69,7 @@ module.exports = {
         });
 
         // There is no list-webhooks endpoint, so the id must be persisted for reliable cleanup.
-        return context.saveState({ webhookId: data.id, secret: data.secret });
+        return context.saveState({ webhookId: data.id, token });
     },
 
     async receive(context) {
@@ -63,6 +79,13 @@ module.exports = {
         }
 
         const webhook = context.messages.webhook;
+        const { token } = await context.loadState();
+        const received = webhook.content && webhook.content.query && webhook.content.query.token;
+        if (!isSameToken(received, token)) {
+            await context.log({ step: 'webhook-rejected', reason: 'Missing or invalid token in the webhook URL.' });
+            return context.response({ error: 'Forbidden' }, 403);
+        }
+
         const payload = (webhook.content && webhook.content.data) || webhook.content || {};
 
         await context.sendJson(payload, 'out');

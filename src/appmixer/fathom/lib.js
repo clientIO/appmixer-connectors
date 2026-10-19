@@ -1,7 +1,6 @@
 'use strict';
 
 const pathModule = require('path');
-const crypto = require('crypto');
 
 const API_BASE_URL = 'https://api.fathom.ai/external/v1';
 const DEFAULT_PREFIX = 'fathom-objects-export';
@@ -16,6 +15,37 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 module.exports = {
 
     API_BASE_URL,
+
+    /**
+     * Resolve a MakeApiCall URL against the Fathom API and refuse anything else, so the
+     * API key is never sent to a foreign host. Accepts a path relative to API_BASE_URL
+     * (`/meetings`, `meetings`) or a full URL under it.
+     */
+    resolveApiUrl(context, url) {
+
+        const base = new URL(API_BASE_URL);
+        const candidate = /^[a-z][a-z0-9+.-]*:/i.test(url) || url.startsWith('//')
+            ? url
+            : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+
+        let parsed;
+        try {
+            parsed = new URL(candidate, API_BASE_URL);
+        } catch (error) {
+            throw new context.CancelError(`API Endpoint Path is not a valid URL: ${url}`);
+        }
+
+        if (parsed.username || parsed.password) {
+            throw new context.CancelError('API Endpoint Path must not contain credentials.');
+        }
+
+        const underBasePath = parsed.pathname === base.pathname || parsed.pathname.startsWith(`${base.pathname}/`);
+        if (parsed.origin !== base.origin || !underBasePath) {
+            throw new context.CancelError(`API Endpoint Path must target ${API_BASE_URL}, got ${parsed.origin}${parsed.pathname}.`);
+        }
+
+        return parsed.toString();
+    },
 
     // Authentication header used by every request. Fathom keys are passed as `X-Api-Key`.
     getHeaders(context) {
@@ -83,45 +113,6 @@ module.exports = {
         } while (cursor && items.length < maxItems && pages < maxPages);
 
         return items.slice(0, maxItems);
-    },
-
-    /**
-     * Verify a Fathom (Svix-style) webhook signature. Best-effort helper — returns true/false.
-     * secret: the `whsec_...` value returned when the webhook was created.
-     * headers: object containing `webhook-id`, `webhook-timestamp`, `webhook-signature`.
-     * rawBody: the exact raw request body string.
-     */
-    verifyWebhookSignature(secret, headers = {}, rawBody = '') {
-
-        const id = headers['webhook-id'];
-        const timestamp = headers['webhook-timestamp'];
-        const signatureHeader = headers['webhook-signature'];
-        if (!secret || !id || !timestamp || !signatureHeader) {
-            return false;
-        }
-
-        const ts = parseInt(timestamp, 10);
-        const now = Math.floor(Date.now() / 1000);
-        if (!Number.isFinite(ts) || Math.abs(now - ts) > 60 * 5) {
-            return false;
-        }
-
-        const secretBytes = Buffer.from(String(secret).replace(/^whsec_/, ''), 'base64');
-        const signedContent = `${id}.${timestamp}.${rawBody}`;
-        const expected = crypto.createHmac('sha256', secretBytes).update(signedContent).digest('base64');
-
-        // `webhook-signature` is a space-separated list of version-prefixed signatures, e.g. "v1,<base64>".
-        const passedSigs = String(signatureHeader).split(' ').map(part => (part.includes(',') ? part.split(',')[1] : part));
-
-        return passedSigs.some(sig => {
-            try {
-                const a = Buffer.from(sig);
-                const b = Buffer.from(expected);
-                return a.length === b.length && crypto.timingSafeEqual(a, b);
-            } catch (e) {
-                return false;
-            }
-        });
     },
 
     async sendArrayOutput({
