@@ -32,6 +32,8 @@ module.exports = {
 
         const projects = await lib.apiRequest(context, '/projects');
 
+        console.log(     JSON.stringify(projects));
+
         return lib.sendArrayOutput({
             context,
             outputType: outputType || 'array',
