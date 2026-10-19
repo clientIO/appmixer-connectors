@@ -2,59 +2,42 @@
     "name": "E2E Shopify - Updated Fulfillment Trigger",
     "type": "automation",
     "flow": {
-        "a0000000-0000-0000-0000-000000000001": {
-            "type": "appmixer.shopify.orders.UpdatedFulfillment",
-            "x": 64,
-            "y": 320,
+        "ce50600d-23ff-4eee-b2e7-939f1355f71a": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 128,
             "source": {},
-            "config": {
-                "properties": {}
-            },
+            "config": {},
             "errorHandling": {
                 "autoRetry": false,
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000002": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 272,
-            "y": 320,
+        "02c84c7c-c99f-48b9-a19f-c0a555567cfe": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 416,
+            "y": 128,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000001": [
-                        "fulfillment"
+                    "ce50600d-23ff-4eee-b2e7-939f1355f71a": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000001": {
-                            "fulfillment": {
+                        "ce50600d-23ff-4eee-b2e7-939f1355f71a": {
+                            "out": {
                                 "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "field-id": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.fulfillment.id",
-                                            "functions": []
-                                        },
-                                        "field-topic": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.fulfillment.webhookTopic",
-                                            "functions": []
-                                        }
-                                    }
-                                },
+                                "modifiers": {},
                                 "lambda": {
-                                    "expression": {
-                                        "AND": [
+                                    "variables": {
+                                        "ADD": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-id}}}"
-                                            },
-                                            {
-                                                "assertion": "equal",
-                                                "field": "{{{field-topic}}}",
-                                                "expected": "fulfillments/update"
+                                                "type": "text",
+                                                "name": "email",
+                                                "text": "appmixer.e2e.updatedfulfillment@example.com"
                                             }
                                         ]
                                     }
@@ -69,57 +52,26 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000003": {
-            "type": "appmixer.utils.test.AfterAll",
-            "x": 480,
-            "y": 320,
+        "cce55aa9-1c95-41b7-9047-36186e7422bc": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 624,
+            "y": 128,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000002": [
+                    "02c84c7c-c99f-48b9-a19f-c0a555567cfe": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {
-                    "timeout": 300
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "a0000000-0000-0000-0000-000000000004": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 688,
-            "y": 320,
-            "source": {
-                "in": {
-                    "a0000000-0000-0000-0000-000000000003": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000003": {
+                        "02c84c7c-c99f-48b9-a19f-c0a555567cfe": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {
-                                    "result": {
-                                        "field-result": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
-                                            "functions": []
-                                        }
-                                    }
-                                },
+                                "modifiers": {},
                                 "lambda": {
-                                    "recipients": "test@appmixer.com",
-                                    "testCase": "E2E Shopify - Updated Fulfillment Trigger",
-                                    "result": "{{{field-result}}}"
+                                    "interval": "1m"
                                 }
                             }
                         }
@@ -131,10 +83,232 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000001": {
-            "type": "appmixer.utils.controls.OnStart",
-            "x": 64,
-            "y": 576,
+        "80ab5a6d-aae9-4f6f-85a7-e9a69a3a5ec4": {
+            "type": "appmixer.shopify.orders.CreateOrder",
+            "x": 832,
+            "y": 128,
+            "source": {
+                "in": {
+                    "cce55aa9-1c95-41b7-9047-36186e7422bc": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cce55aa9-1c95-41b7-9047-36186e7422bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {
+                                        "7bd533d3-e6dc-4b4e-bb0e-e972df3beecb": {
+                                            "variable": "$.02c84c7c-c99f-48b9-a19f-c0a555567cfe.out.email",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "lineItems": {
+                                        "ADD": [
+                                            {
+                                                "itemType": "custom",
+                                                "title": "Appmixer E2E Trigger Item",
+                                                "price": 9.99,
+                                                "quantity": 1,
+                                                "taxable": true,
+                                                "requiresShipping": true
+                                            }
+                                        ]
+                                    },
+                                    "email": "{{{7bd533d3-e6dc-4b4e-bb0e-e972df3beecb}}}",
+                                    "test": true,
+                                    "note": "Created by Appmixer E2E",
+                                    "tags": "appmixer-e2e"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "dcbe0106-947d-4e28-b386-9aaba0c98661": {
+            "type": "appmixer.shopify.core.MakeApiCall",
+            "x": 1040,
+            "y": 128,
+            "source": {
+                "in": {
+                    "80ab5a6d-aae9-4f6f-85a7-e9a69a3a5ec4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "80ab5a6d-aae9-4f6f-85a7-e9a69a3a5ec4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "body": {
+                                        "8224315f-6967-4a15-b915-554a99da3a5e": {
+                                            "variable": "$.80ab5a6d-aae9-4f6f-85a7-e9a69a3a5ec4.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\":\"query FulfillmentOrders($id: ID!) { order(id: $id) { fulfillmentOrders(first: 1) { nodes { id } } } }\",\"variables\":{\"id\":\"{{{8224315f-6967-4a15-b915-554a99da3a5e}}}\"}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ac3ad939-c762-4fae-876f-2fedb2934803": {
+            "type": "appmixer.shopify.core.MakeApiCall",
+            "x": 1248,
+            "y": 128,
+            "source": {
+                "in": {
+                    "dcbe0106-947d-4e28-b386-9aaba0c98661": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "dcbe0106-947d-4e28-b386-9aaba0c98661": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "body": {
+                                        "bcd94cf2-9b8d-4465-a05e-32599f64e8b5": {
+                                            "variable": "$.dcbe0106-947d-4e28-b386-9aaba0c98661.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data.order.fulfillmentOrders.nodes[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\":\"mutation Fulfill($fulfillmentOrderId: ID!) { fulfillmentCreate(fulfillment: { lineItemsByFulfillmentOrder: [{ fulfillmentOrderId: $fulfillmentOrderId }], notifyCustomer: false }) { fulfillment { id } userErrors { field message } } }\",\"variables\":{\"fulfillmentOrderId\":\"{{{bcd94cf2-9b8d-4465-a05e-32599f64e8b5}}}\"}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c26386c9-45a7-4a7d-b35a-8fbda0b258fa": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 1456,
+            "y": 128,
+            "source": {
+                "in": {
+                    "ac3ad939-c762-4fae-876f-2fedb2934803": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ac3ad939-c762-4fae-876f-2fedb2934803": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d07d27d3-c042-4a45-890e-a59cb0b757b8": {
+            "type": "appmixer.shopify.core.MakeApiCall",
+            "x": 1664,
+            "y": 128,
+            "source": {
+                "in": {
+                    "c26386c9-45a7-4a7d-b35a-8fbda0b258fa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c26386c9-45a7-4a7d-b35a-8fbda0b258fa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "body": {
+                                        "05189b25-0263-4fa1-b1e4-9001bf9f9adc": {
+                                            "variable": "$.ac3ad939-c762-4fae-876f-2fedb2934803.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.data.fulfillmentCreate.fulfillment.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\":\"mutation Track($id: ID!) { fulfillmentTrackingInfoUpdate(fulfillmentId: $id, trackingInfoInput: { number: \\\"E2E-TRACK-1\\\", company: \\\"Other\\\" }, notifyCustomer: false) { fulfillment { id } userErrors { field message } } }\",\"variables\":{\"id\":\"{{{05189b25-0263-4fa1-b1e4-9001bf9f9adc}}}\"}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a26341fc-2aa2-4870-a540-7190f885223c": {
+            "type": "appmixer.shopify.orders.UpdatedFulfillment",
+            "x": 208,
+            "y": 384,
             "source": {},
             "config": {},
             "errorHandling": {
@@ -142,13 +316,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000002": {
-            "type": "appmixer.utils.timers.Wait",
-            "x": 272,
-            "y": 576,
+        "8c3d4d00-3332-44d0-997f-2b13ae2baf67": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 416,
+            "y": 384,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000001": [
+                    "a26341fc-2aa2-4870-a540-7190f885223c": [
                         "out"
                     ]
                 }
@@ -156,93 +330,43 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000001": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {
-                                    "interval": "1m"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000003": {
-            "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 480,
-            "y": 576,
-            "source": {
-                "in": {
-                    "b0000000-0000-0000-0000-000000000002": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "b0000000-0000-0000-0000-000000000002": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {
-                                    "url": "/orders.json",
-                                    "method": "POST",
-                                    "body": "{\"order\": {\"email\": \"e2e.fulfill@example.com\", \"test\": true, \"line_items\": [{\"title\": \"Appmixer E2E Trigger Item\", \"price\": \"9.99\", \"quantity\": 1}]}}"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000004": {
-            "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 688,
-            "y": 576,
-            "source": {
-                "in": {
-                    "b0000000-0000-0000-0000-000000000003": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "b0000000-0000-0000-0000-000000000003": {
+                        "a26341fc-2aa2-4870-a540-7190f885223c": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "url": {
-                                        "m-oid": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000003.out.body",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$.order.id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                    "expression": {
+                                        "25d68736-88bd-43ab-bbbd-8b25501cbde4": {
+                                            "variable": "$.a26341fc-2aa2-4870-a540-7190f885223c.out.id",
+                                            "functions": []
+                                        },
+                                        "d93b3981-fa8d-40a8-b1d5-d156b400fb1f": {
+                                            "variable": "$.a26341fc-2aa2-4870-a540-7190f885223c.out.webhookTopic",
+                                            "functions": []
+                                        },
+                                        "10c241ef-dc3a-4658-933e-28a29b342013": {
+                                            "variable": "$.a26341fc-2aa2-4870-a540-7190f885223c.out.order.id",
+                                            "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "url": "/orders/{{{m-oid}}}/fulfillment_orders.json",
-                                    "method": "GET"
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{25d68736-88bd-43ab-bbbd-8b25501cbde4}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{d93b3981-fa8d-40a8-b1d5-d156b400fb1f}}}",
+                                                "expected": "fulfillments/update"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{10c241ef-dc3a-4658-933e-28a29b342013}}}"
+                                            }
+                                        ]
+                                    }
                                 }
                             }
                         }
@@ -254,13 +378,34 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000005": {
-            "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 896,
-            "y": 576,
+        "3f186982-bf60-4901-9ff1-fa406e7464e9": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1872,
+            "y": 384,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000004": [
+                    "8c3d4d00-3332-44d0-997f-2b13ae2baf67": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "89dc7e1b-6de3-45c0-ab33-9f93ee9c2466": {
+            "type": "appmixer.shopify.orders.DeleteOrder",
+            "x": 2080,
+            "y": 384,
+            "source": {
+                "in": {
+                    "3f186982-bf60-4901-9ff1-fa406e7464e9": [
                         "out"
                     ]
                 }
@@ -268,30 +413,19 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000004": {
+                        "3f186982-bf60-4901-9ff1-fa406e7464e9": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "body": {
-                                        "m-foid": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000004.out.body",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$.fulfillment_orders[0].id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                    "id": {
+                                        "aa2e3ae6-d9fb-41c4-96b0-8754c600afed": {
+                                            "variable": "$.a26341fc-2aa2-4870-a540-7190f885223c.out.order.id",
+                                            "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "url": "/fulfillments.json",
-                                    "method": "POST",
-                                    "body": "{\"fulfillment\":{\"line_items_by_fulfillment_order\":[{\"fulfillment_order_id\":{{{m-foid}}}}],\"notify_customer\":false}}"
+                                    "id": "{{{aa2e3ae6-d9fb-41c4-96b0-8754c600afed}}}"
                                 }
                             }
                         }
@@ -303,13 +437,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000006": {
-            "type": "appmixer.utils.timers.Wait",
-            "x": 1104,
-            "y": 576,
+        "c4500829-f247-45a8-b4f1-350170e63abc": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2288,
+            "y": 384,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000005": [
+                    "89dc7e1b-6de3-45c0-ab33-9f93ee9c2466": [
                         "out"
                     ]
                 }
@@ -317,61 +451,21 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000005": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {
-                                    "interval": "1m"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "b0000000-0000-0000-0000-000000000007": {
-            "type": "appmixer.shopify.core.MakeApiCall",
-            "x": 1312,
-            "y": 576,
-            "source": {
-                "in": {
-                    "b0000000-0000-0000-0000-000000000006": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "b0000000-0000-0000-0000-000000000006": {
+                        "89dc7e1b-6de3-45c0-ab33-9f93ee9c2466": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "url": {
-                                        "m-fid": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000005.out.body",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$.fulfillment.id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                    "result": {
+                                        "fefef02a-d4f1-4200-b13e-fb8af675055c": {
+                                            "variable": "$.3f186982-bf60-4901-9ff1-fa406e7464e9.out",
+                                            "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "url": "/fulfillments/{{{m-fid}}}/update_tracking.json",
-                                    "method": "POST",
-                                    "body": "{\"fulfillment\":{\"notify_customer\":false,\"tracking_info\":{\"number\":\"E2E-TRACK-1\",\"company\":\"Other\"}}}"
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Shopify - Updated Fulfillment Trigger",
+                                    "result": "{{{fefef02a-d4f1-4200-b13e-fb8af675055c}}}"
                                 }
                             }
                         }
@@ -386,5 +480,14 @@
     },
     "wizard": {
         "fields": []
+    },
+    "notes": {
+        "e1e06c0e-9b0e-434e-adfb-4097bfd245a8": {
+            "x": 32,
+            "y": 8,
+            "width": 672,
+            "height": 112,
+            "content": "## ⚠️ Self-provoking trigger flow\n\nThe top lane creates and fulfills a test order, and a minute later changes its tracking number (`fulfillmentTrackingInfoUpdate`) one minute after the start — keep the first **Wait**: it lets the webhook subscription become active. The app needs a fulfillment write scope (merchant-managed fulfillment orders). The test order is deleted after `AfterAll`."
+        }
     }
 }

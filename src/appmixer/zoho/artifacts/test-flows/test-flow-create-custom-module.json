@@ -1,0 +1,179 @@
+{
+    "name": "E2E Zoho - create custom module",
+    "description": "Creates a custom module with CreateCustomModule and asserts the module metadata read back by the component. One-shot: Zoho has no API to delete a module.",
+    "notes": {
+        "bb04b9c4-0d24-44a5-8152-03583f32c627": {
+            "x": 64,
+            "y": 384,
+            "width": 672,
+            "height": 272,
+            "content": "## ⚠️ One-shot flow — manual cleanup\n\nZoho CRM has **no API to delete a custom module**, so this flow cannot clean up after itself and is **not part of the regular E2E run**.\n\n1. Before running, make sure the module **Appmixer E2E Modules** does not exist (Setup → Customization → Modules and Fields). A second run fails with `DUPLICATE_DATA`.\n2. After a green run, delete the module in the same place — custom modules are capped per edition.\n\nNeeds a paid Zoho CRM edition and an account authorized with `ZohoCRM.settings.modules.ALL` + `ZohoCRM.settings.profiles.READ` — reconnect the account in this flow. No Profile IDs are passed, so the module is opened to every profile."
+        }
+    },
+    "flow": {
+        "465f2d13-1224-40ad-a791-5bab61734cac": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 128,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "50188828-31d8-4895-9a7a-ee7d7bcd2180": {
+            "type": "appmixer.zoho.crm.CreateCustomModule",
+            "x": 272,
+            "y": 128,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "465f2d13-1224-40ad-a791-5bab61734cac": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "465f2d13-1224-40ad-a791-5bab61734cac": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "singularLabel": {},
+                                    "pluralLabel": {},
+                                    "apiName": {},
+                                    "displayFieldLabel": {},
+                                    "displayFieldType": {}
+                                },
+                                "lambda": {
+                                    "singularLabel": "Appmixer E2E Module",
+                                    "pluralLabel": "Appmixer E2E Modules",
+                                    "apiName": "Appmixer_E2E_Modules",
+                                    "displayFieldLabel": "Module Record Name",
+                                    "displayFieldType": "text"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "0cfae157-ada6-457d-8c7d-d786d9fa2569": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 128,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "50188828-31d8-4895-9a7a-ee7d7bcd2180": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "50188828-31d8-4895-9a7a-ee7d7bcd2180": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a96b92e7-b91d-496f-9e73-f82b54daec0d": {
+                                            "variable": "$.50188828-31d8-4895-9a7a-ee7d7bcd2180.out.id",
+                                            "functions": []
+                                        },
+                                        "b308fbd5-575b-43bf-a3b0-8e5f0ab4b87a": {
+                                            "variable": "$.50188828-31d8-4895-9a7a-ee7d7bcd2180.out.plural_label",
+                                            "functions": []
+                                        },
+                                        "12e423e7-b693-4bf1-8d05-9a7049b635c9": {
+                                            "variable": "$.50188828-31d8-4895-9a7a-ee7d7bcd2180.out.generated_type",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a96b92e7-b91d-496f-9e73-f82b54daec0d}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{b308fbd5-575b-43bf-a3b0-8e5f0ab4b87a}}}",
+                                                "assertion": "equal",
+                                                "expected": "Appmixer E2E Modules"
+                                            },
+                                            {
+                                                "field": "{{{12e423e7-b693-4bf1-8d05-9a7049b635c9}}}",
+                                                "assertion": "equal",
+                                                "expected": "custom"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "791d5f64-3c50-4c48-b2a3-a2895c15da55": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 128,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0cfae157-ada6-457d-8c7d-d786d9fa2569": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "27551059-2eb6-4e71-bc8e-19b7b597bc4e": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 128,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "791d5f64-3c50-4c48-b2a3-a2895c15da55": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "791d5f64-3c50-4c48-b2a3-a2895c15da55": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "e869bc78-bc08-484f-82d9-e40be7336f4c": {
+                                            "variable": "$.791d5f64-3c50-4c48-b2a3-a2895c15da55.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Zoho - create custom module",
+                                    "result": "{{{e869bc78-bc08-484f-82d9-e40be7336f4c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

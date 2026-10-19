@@ -1,0 +1,113 @@
+{
+    "flow": {
+        "d7000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.prestashop.core.AbandonedCart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d7000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.prestashop.core.GetCustomer",
+            "x": 272,
+            "y": 300,
+            "source": {
+                "in": {
+                    "d7000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d7000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerId": {
+                                        "a": {
+                                            "variable": "$.d7000000-0000-0000-0000-000000000001.out.id_customer",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "customerId": "{{{a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d7000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.utils.email.SendEmail",
+            "x": 480,
+            "y": 300,
+            "source": {
+                "in": {
+                    "d7000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d7000000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "a": {
+                                        "variable": "$.d7000000-0000-0000-0000-000000000001.out.id",
+                                        "functions": []
+                                    },
+                                    "b": {
+                                        "variable": "$.d7000000-0000-0000-0000-000000000001.out.date_upd",
+                                        "functions": []
+                                    },
+                                    "c": {
+                                        "variable": "$.d7000000-0000-0000-0000-000000000002.out.firstname",
+                                        "functions": []
+                                    },
+                                    "d": {
+                                        "variable": "$.d7000000-0000-0000-0000-000000000002.out.lastname",
+                                        "functions": []
+                                    },
+                                    "e": {
+                                        "variable": "$.d7000000-0000-0000-0000-000000000002.out.email",
+                                        "functions": []
+                                    }
+                                },
+                                "lambda": {
+                                    "to": "test@appmixer.com",
+                                    "subject": "PrestaShop demo — Abandoned cart {{{a}}}",
+                                    "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;color:#222\"><h2 style=\"color:#DF0067\">PrestaShop — Abandoned Cart</h2><p>A customer left the shop without completing their order.</p><ul><li><b>Cart ID:</b> {{{a}}}</li><li><b>Last activity:</b> {{{b}}}</li><li><b>Customer:</b> {{{c}}} {{{d}}}</li><li><b>E-mail:</b> {{{e}}}</li></ul><p>Consider sending {{{c}}} a recovery e-mail with a discount code.</p></div>"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.1.1"
+        }
+    },
+    "name": "Demo PrestaShop - Abandoned Cart Recovery",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {}
+}

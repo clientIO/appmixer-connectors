@@ -1,0 +1,44 @@
+{
+    "fixtures": {
+        "businessId": { "from": "ListBusinesses", "path": "id" },
+        "practitionerId": { "from": "ListPractitioners", "path": "id" },
+        "appointmentTypeId": { "from": "ListAppointmentTypes", "path": "id" },
+        "patientId": { "from": "FindPatients", "path": "id" },
+        "appointmentId": { "from": "FindAppointments", "path": "id" }
+    },
+    "read": [
+        { "component": "ListPractitioners" },
+        { "component": "ListBusinesses" },
+        { "component": "ListAppointmentTypes" },
+        { "component": "FindPatients" },
+        { "component": "FindAppointments" },
+        { "component": "FindInvoices" },
+        { "component": "FindContacts" },
+        { "component": "FindTreatmentNotes" },
+        { "component": "GetPatient", "inputs": { "patientId": "{patientId}" } },
+        { "component": "GetAppointment", "inputs": { "appointmentId": "{appointmentId}" } },
+        { "component": "FindAvailableTimes", "inputs": {
+            "businessId": "{businessId}",
+            "practitionerId": "{practitionerId}",
+            "appointmentTypeId": "{appointmentTypeId}"
+        } },
+        { "component": "GetNextAvailableTime", "inputs": {
+            "businessId": "{businessId}",
+            "practitionerId": "{practitionerId}",
+            "appointmentTypeId": "{appointmentTypeId}"
+        } }
+    ],
+    "roundtrip": [
+        {
+            "component": "CreateContact",
+            "input": "typeCode",
+            "base": { "lastName": "Verify Roundtrip" },
+            "valueField": "type_code",
+            "labelField": "type",
+            "cleanup": {
+                "component": "MakeApiCall",
+                "inputs": { "url": "/contacts/{id}/archive", "method": "POST" }
+            }
+        }
+    ]
+}

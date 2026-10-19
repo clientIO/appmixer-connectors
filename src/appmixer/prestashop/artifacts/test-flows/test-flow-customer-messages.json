@@ -1,0 +1,434 @@
+{
+    "name": "E2E PrestaShop - Customer Thread Messages",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "a92ef72f-0e50-4272-8042-66f82f3c78c9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 288,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e7e1925b-4e8a-4162-bb4e-04ba6a53ed5a": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 288,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a92ef72f-0e50-4272-8042-66f82f3c78c9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a92ef72f-0e50-4272-8042-66f82f3c78c9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Name",
+                                                "text": "E2E Customer Thread Messages"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cab44c74-7ba2-4aa9-b4aa-362b79b63609": {
+            "type": "appmixer.prestashop.core.MakeApiCall",
+            "x": 448,
+            "y": 288,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e7e1925b-4e8a-4162-bb4e-04ba6a53ed5a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e7e1925b-4e8a-4162-bb4e-04ba6a53ed5a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/customer_threads",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7bad8840-e786-4a3c-87f0-3db8f08a1cd2": {
+            "type": "appmixer.prestashop.core.AttachMessage",
+            "x": 640,
+            "y": 288,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cab44c74-7ba2-4aa9-b4aa-362b79b63609": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cab44c74-7ba2-4aa9-b4aa-362b79b63609": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerThreadId": {
+                                        "826db744-ce87-4a53-89ad-13b8abe46915": {
+                                            "variable": "$.cab44c74-7ba2-4aa9-b4aa-362b79b63609.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.body.customer_threads[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "message": {}
+                                },
+                                "lambda": {
+                                    "customerThreadId": "{{{826db744-ce87-4a53-89ad-13b8abe46915}}}",
+                                    "message": "E2E automated reply from Appmixer test."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "967f990d-09c8-4856-9d07-5e6b60bd1641": {
+            "type": "appmixer.prestashop.core.CreateNote",
+            "x": 832,
+            "y": 288,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7bad8840-e786-4a3c-87f0-3db8f08a1cd2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7bad8840-e786-4a3c-87f0-3db8f08a1cd2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerThreadId": {
+                                        "d3ac3c11-7dfc-41b3-bd29-666a9f0a3ac8": {
+                                            "variable": "$.cab44c74-7ba2-4aa9-b4aa-362b79b63609.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.body.customer_threads[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "note": {}
+                                },
+                                "lambda": {
+                                    "customerThreadId": "{{{d3ac3c11-7dfc-41b3-bd29-666a9f0a3ac8}}}",
+                                    "note": "E2E internal note from Appmixer test."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2b724873-28ef-4cfb-b7af-bada9d0ed48a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1024,
+            "y": 96,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cab44c74-7ba2-4aa9-b4aa-362b79b63609": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cab44c74-7ba2-4aa9-b4aa-362b79b63609": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1af6ff95-6f3f-4456-b3d0-c8665587eebb": {
+                                            "variable": "$.cab44c74-7ba2-4aa9-b4aa-362b79b63609.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.status"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{1af6ff95-6f3f-4456-b3d0-c8665587eebb}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "26748934-bc0d-4528-903d-298ab3c1279e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1024,
+            "y": 288,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7bad8840-e786-4a3c-87f0-3db8f08a1cd2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7bad8840-e786-4a3c-87f0-3db8f08a1cd2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f3272fc5-552b-4de7-9e2c-cb0dab6fac48": {
+                                            "variable": "$.7bad8840-e786-4a3c-87f0-3db8f08a1cd2.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f3272fc5-552b-4de7-9e2c-cb0dab6fac48}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "82572387-c018-4692-acaa-3de740ee8992": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1024,
+            "y": 480,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "967f990d-09c8-4856-9d07-5e6b60bd1641": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "967f990d-09c8-4856-9d07-5e6b60bd1641": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a43ea8eb-b4ae-4bb4-9ad0-2c0e07bdba79": {
+                                            "variable": "$.967f990d-09c8-4856-9d07-5e6b60bd1641.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a43ea8eb-b4ae-4bb4-9ad0-2c0e07bdba79}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9055b101-643f-4343-9e63-ce998e657c10": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1216,
+            "y": 288,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2b724873-28ef-4cfb-b7af-bada9d0ed48a": [
+                        "out"
+                    ],
+                    "26748934-bc0d-4528-903d-298ab3c1279e": [
+                        "out"
+                    ],
+                    "82572387-c018-4692-acaa-3de740ee8992": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "46c7c633-1545-4d24-bb3b-a5da7acb3d53": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1408,
+            "y": 288,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "9055b101-643f-4343-9e63-ce998e657c10": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "9055b101-643f-4343-9e63-ce998e657c10": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "935e4f8b-c772-4707-bee1-4c267665ad34": {
+                                            "variable": "$.9055b101-643f-4343-9e63-ce998e657c10.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E PrestaShop - Customer Thread Messages",
+                                    "result": "{{{935e4f8b-c772-4707-bee1-4c267665ad34}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -22,7 +22,7 @@ const aggregator = new PagingAggregator(
 module.exports = {
 
     async receive(context) {
-        if (!context.messages.in.content.domain) {
+        if (!context.messages.attributes.content.domain) {
             throw new context.CancelError('Domain is required');
         }
 

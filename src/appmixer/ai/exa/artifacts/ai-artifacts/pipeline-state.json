@@ -1,0 +1,51 @@
+{
+    "connector": "appmixer.ai.exa",
+    "vendor": "appmixer",
+    "module": "ai/exa",
+    "mode": "unattended",
+    "budget": {
+        "maxMinutes": 60,
+        "maxCredits": 50,
+        "maxFixAttempts": 3
+    },
+    "target": {
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "e2eUser": "test@appmixer.ai",
+        "pushRemote": "origin",
+        "branch": "feature/exa-connector",
+        "prRepo": "Appmixer-ai/appmixer-connectors",
+        "prBase": "dev"
+    },
+    "steps": {
+        "preflight": "done",
+        "build": "done",
+        "review": "done",
+        "cliTests": "done",
+        "e2e": "done",
+        "ship": "done"
+    },
+    "notes": [
+        "Exa API key lives on the instance account 6a8d88635be7850c2bdfd5fd; the local CLI configstore has no Exa entry, so verification was driven through the instance (E2E flows + Flow Test Mode) rather than `appmixer test component`.",
+        "`appmixer e2e import` cannot resolve the account for nested ai/* refs and skips the binding \u2014 always pass `-a <accountId>`, otherwise `e2e run` fails its preflight with \"No valid account bound\".",
+        "Search `type` and `category` option lists were checked against the live API, not just the docs: an unknown `type` is rejected with a 400 that enumerates the valid set, while an unknown `category` is silently ignored on /search, so a wrong category value would degrade to unfiltered results rather than erroring.",
+        "`score` is only returned by the `neural` search type, which the options list did not offer \u2014 it was a dead entry in the picker. FindSearchResults now offers neural and keyword (closing the original review's open question), and the NewSearchResult trigger, which deliberately restricts itself to the cheap types, drops `score` instead."
+    ],
+    "results": {
+        "validator": "0 failures, 0 warnings (node scripts/validate.js --connector ai/exa), 26 validators",
+        "lint": "clean (eslint 8, repo .eslintrc.json)",
+        "e2eValidate": "0 failures (appmixer e2e validate, 29 validators, 3 flow files)",
+        "e2eFlows": {
+            "E2E Exa - Search, Extract and Find Similar": "PASSED f6b20f14-6585-4e94-8592-b759de209ff7 (3 asserts, 0 failures)",
+            "E2E Exa - Answer and API Call": "PASSED b2c578b6-6454-4c41-9626-ce6700178927 (2 asserts, 0 failures)",
+            "E2E Exa - Array Output and Not Found": "PASSED 9fd8b2db-ebe7-48b8-9e1b-2a51f63ec670 (2 asserts, 3 clauses, 0 failures)"
+        },
+        "e2eCoverage": "5 of 6 components. NewSearchResult is a polling trigger whose firing condition (a page new to Exa's index for the query) cannot be provoked, so it has no E2E flow \u2014 it is covered by Flow Test Mode on the instance plus a deterministic tick()/test() harness (13 checks).",
+        "negativeControl": "A copy of the array/notFound flow with both assertions inverted was imported and run: it reported FAILED with both assertion messages, proving the suite can fail. Flow and its store record were deleted afterwards.",
+        "triggerVerification": "appmixer flow test on the instance emitted one real result (dataSource=real); the local harness proves the first tick saves a baseline and emits nothing, later ticks emit only unseen ids, the known-id window caps at 1000, an empty first poll still initialises, and test() emits exactly one item without writing state.",
+        "ssrfGuard": "lib.resolveApiUrl exercised over 15 inputs: foreign origins, protocol-relative //host, embedded credentials, http downgrade, api.exa.ai.evil.com and javascript: are all rejected; only api.exa.ai resolves.",
+        "instanceAccountId": "6a8d88635be7850c2bdfd5fd",
+        "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+        "connectorVerify": "appmixer connector verify ai/exa: 2 pass, 0 fail, 0 error, 3 warn. The warnings are optional fields (author, score, favicon, entities) that Exa omits when the page or search type does not produce them. artifacts/verify.json drives the run and artifacts/samples/ holds sanitised shapes so `--offline` works in CI without credentials.",
+        "itemSchema": "The three dynamic-outPort Find components export ITEM_SCHEMA with a `required` list derived from live sampling, so verify honours per-field optionality instead of treating every declared leaf as mandatory."
+    }
+}

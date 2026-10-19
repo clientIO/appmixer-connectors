@@ -1,0 +1,783 @@
+{
+    "name": "E2E Xero - Purchase Orders",
+    "description": "End-to-end test for the Xero Purchase Order components: create, get, update, find, then delete the purchase order and archive its supplier.",
+    "flow": {
+        "66aa7ca6-cc81-4019-b692-c4f2ffd007d2": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "51ec864f-daf9-4155-9488-8cd3897a5694": {
+            "type": "appmixer.xero.accounting.ListTenants",
+            "label": "List Tenants",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "66aa7ca6-cc81-4019-b692-c4f2ffd007d2": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "66aa7ca6-cc81-4019-b692-c4f2ffd007d2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "items"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "ccfa986d-c41f-4a6c-910b-5c7e10f6c31d": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "51ec864f-daf9-4155-9488-8cd3897a5694": ["tenants"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "51ec864f-daf9-4155-9488-8cd3897a5694": {
+                            "tenants": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "30add285-7ff1-42a5-882a-2a96559e0a9e": {
+                                            "variable": "$.51ec864f-daf9-4155-9488-8cd3897a5694.tenants.items",
+                                            "functions": [
+                                                { "name": "g_jsonPath", "params": [{ "value": "$[0].tenantId" }] }
+                                            ]
+                                        },
+                                        "d83d4bdf-3e1f-4b5e-bda4-62db239cbc9b": {
+                                            "variable": "$.66aa7ca6-cc81-4019-b692-c4f2ffd007d2.out.started",
+                                            "functions": []
+                                        },
+                                        "a8096ca5-ac41-4dc8-a1f4-472501a8c6fa": {
+                                            "functions": [
+                                                { "name": "g_now" },
+                                                { "name": "g_formatDate", "params": [{ "value": "YYYY-MM-DD" }] }
+                                            ]
+                                        },
+                                        "d91981ae-7519-4acc-9749-c725b0b58859": {
+                                            "functions": [
+                                                { "name": "g_now" },
+                                                { "name": "g_addTimeSpan", "hashParams": { "days": { "value": 7 } } },
+                                                { "name": "g_formatDate", "params": [{ "value": "YYYY-MM-DD" }] }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            { "type": "text", "name": "tenantId", "text": "{{{30add285-7ff1-42a5-882a-2a96559e0a9e}}}" },
+                                            { "type": "text", "name": "supplierName", "text": "E2E PO Supplier {{{d83d4bdf-3e1f-4b5e-bda4-62db239cbc9b}}}" },
+                                            { "type": "text", "name": "reference", "text": "E2E PO Ref {{{d83d4bdf-3e1f-4b5e-bda4-62db239cbc9b}}}" },
+                                            { "type": "text", "name": "updatedReference", "text": "E2E PO Ref Updated {{{d83d4bdf-3e1f-4b5e-bda4-62db239cbc9b}}}" },
+                                            { "type": "text", "name": "lineItems", "text": "[{\"Description\": \"E2E PO item\", \"Quantity\": 2, \"UnitAmount\": 50}]" },
+                                            { "type": "text", "name": "poDate", "text": "{{{a8096ca5-ac41-4dc8-a1f4-472501a8c6fa}}}" },
+                                            { "type": "text", "name": "deliveryDate", "text": "{{{d91981ae-7519-4acc-9749-c725b0b58859}}}" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "8f19e8a3-1951-4e26-a05c-c25424b53442": {
+            "type": "appmixer.xero.accounting.CreateContact",
+            "label": "Create Supplier Contact",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ccfa986d-c41f-4a6c-910b-5c7e10f6c31d": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ccfa986d-c41f-4a6c-910b-5c7e10f6c31d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "3128a74d-3283-45e3-8a4b-fb0720eb77d5": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Name": {
+                                        "cb9d024e-f17a-40b8-b5b5-d0189952c2e9": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.supplierName",
+                                            "functions": []
+                                        }
+                                    },
+                                    "EmailAddress": {}
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{3128a74d-3283-45e3-8a4b-fb0720eb77d5}}}",
+                                    "Name": "{{{cb9d024e-f17a-40b8-b5b5-d0189952c2e9}}}",
+                                    "EmailAddress": "e2e-po-supplier@appmixer.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "4ffe4bc6-0550-473e-ad1f-dc2d8ca77085": {
+            "type": "appmixer.xero.accounting.CreatePurchaseOrder",
+            "label": "Create Purchase Order",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8f19e8a3-1951-4e26-a05c-c25424b53442": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8f19e8a3-1951-4e26-a05c-c25424b53442": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "1f6216c7-aa6b-4177-812b-2794e8f90180": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ContactID": {
+                                        "7fc98818-b0ae-4622-8f02-17971427861b": {
+                                            "variable": "$.8f19e8a3-1951-4e26-a05c-c25424b53442.out.ContactID",
+                                            "functions": []
+                                        }
+                                    },
+                                    "LineItems": {
+                                        "5a63ab82-b6a5-49c1-a958-69a5daece801": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.lineItems",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Date": {
+                                        "e0558987-05c1-44c0-85f9-56c60337b370": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.poDate",
+                                            "functions": []
+                                        }
+                                    },
+                                    "DeliveryDate": {
+                                        "a8693278-151f-4391-9abb-4cb293abd22f": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.deliveryDate",
+                                            "functions": []
+                                        }
+                                    },
+                                    "LineAmountTypes": {},
+                                    "Reference": {
+                                        "d505ec1f-6787-424e-a063-14fa43e3431b": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.reference",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Status": {},
+                                    "AttentionTo": {}
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{1f6216c7-aa6b-4177-812b-2794e8f90180}}}",
+                                    "ContactID": "{{{7fc98818-b0ae-4622-8f02-17971427861b}}}",
+                                    "LineItems": "{{{5a63ab82-b6a5-49c1-a958-69a5daece801}}}",
+                                    "Date": "{{{e0558987-05c1-44c0-85f9-56c60337b370}}}",
+                                    "DeliveryDate": "{{{a8693278-151f-4391-9abb-4cb293abd22f}}}",
+                                    "LineAmountTypes": "Exclusive",
+                                    "Reference": "{{{d505ec1f-6787-424e-a063-14fa43e3431b}}}",
+                                    "Status": "DRAFT",
+                                    "AttentionTo": "E2E Receiver"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "4ec47b4b-a025-4498-8a2d-3021212a3fac": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4ffe4bc6-0550-473e-ad1f-dc2d8ca77085": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4ffe4bc6-0550-473e-ad1f-dc2d8ca77085": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "8ed45381-9c40-4389-90cf-8dd2377c671d": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.PurchaseOrderID",
+                                            "functions": []
+                                        },
+                                        "a0424117-03b1-46bd-8b90-7ef26b53dfd7": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.PurchaseOrderNumber",
+                                            "functions": []
+                                        },
+                                        "962e3979-d744-4968-9842-051eff35be12": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.Reference",
+                                            "functions": []
+                                        },
+                                        "a7d279d6-49b9-40ba-b5cd-ed3b691f1cc3": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.reference",
+                                            "functions": []
+                                        },
+                                        "ff4ed68c-e6cb-4d70-873a-ed43d85b41bc": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.Status",
+                                            "functions": []
+                                        },
+                                        "f9afb136-b6b2-469f-b041-7f72cb2b209f": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.DateString",
+                                            "functions": []
+                                        },
+                                        "39f99d8b-fc2b-4a79-88dd-a3bb96290698": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.poDate",
+                                            "functions": []
+                                        },
+                                        "a3ea2ae7-6f29-430d-81b6-add344a6e678": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.DeliveryDateString",
+                                            "functions": []
+                                        },
+                                        "c2875b3d-50f7-4c5f-8eae-c99969287343": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.deliveryDate",
+                                            "functions": []
+                                        },
+                                        "ef5059e7-7415-4128-a2f8-846076bd8daf": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.Total",
+                                            "functions": []
+                                        },
+                                        "5db57ea9-c7bb-4d46-b59a-c2810676cd6f": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.AttentionTo",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "field": "{{{8ed45381-9c40-4389-90cf-8dd2377c671d}}}", "assertion": "notEmpty" },
+                                            { "field": "{{{a0424117-03b1-46bd-8b90-7ef26b53dfd7}}}", "assertion": "notEmpty" },
+                                            { "field": "{{{962e3979-d744-4968-9842-051eff35be12}}}", "assertion": "equal", "expected": "{{{a7d279d6-49b9-40ba-b5cd-ed3b691f1cc3}}}" },
+                                            { "field": "{{{ff4ed68c-e6cb-4d70-873a-ed43d85b41bc}}}", "assertion": "equal", "expected": "DRAFT" },
+                                            { "field": "{{{f9afb136-b6b2-469f-b041-7f72cb2b209f}}}", "assertion": "regex", "regex": "^{{{39f99d8b-fc2b-4a79-88dd-a3bb96290698}}}" },
+                                            { "field": "{{{a3ea2ae7-6f29-430d-81b6-add344a6e678}}}", "assertion": "regex", "regex": "^{{{c2875b3d-50f7-4c5f-8eae-c99969287343}}}" },
+                                            { "field": "{{{ef5059e7-7415-4128-a2f8-846076bd8daf}}}", "assertion": "equal", "expected": "100" },
+                                            { "field": "{{{5db57ea9-c7bb-4d46-b59a-c2810676cd6f}}}", "assertion": "equal", "expected": "E2E Receiver" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "636a4222-9d1f-4752-b248-bc019ac9316a": {
+            "type": "appmixer.xero.accounting.GetPurchaseOrder",
+            "label": "Get Purchase Order",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4ffe4bc6-0550-473e-ad1f-dc2d8ca77085": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4ffe4bc6-0550-473e-ad1f-dc2d8ca77085": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "26e77591-8cd7-49a5-8381-118a9cfd87c8": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "PurchaseOrderID": {
+                                        "c33abaca-dfd9-4fbf-9eeb-4b4c4ebc92c0": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.PurchaseOrderID",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{26e77591-8cd7-49a5-8381-118a9cfd87c8}}}",
+                                    "PurchaseOrderID": "{{{c33abaca-dfd9-4fbf-9eeb-4b4c4ebc92c0}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "d025a091-48f9-485f-9131-4cb5cf18d118": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "636a4222-9d1f-4752-b248-bc019ac9316a": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "636a4222-9d1f-4752-b248-bc019ac9316a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c4d7509c-48dd-457e-bb2f-86a68d6e7e53": {
+                                            "variable": "$.636a4222-9d1f-4752-b248-bc019ac9316a.out.PurchaseOrderID",
+                                            "functions": []
+                                        },
+                                        "fdd37bf0-4483-4aa4-bb67-e967cc50c6f4": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.PurchaseOrderID",
+                                            "functions": []
+                                        },
+                                        "f8a2d29a-dccb-444f-ab66-f34322a0927a": {
+                                            "variable": "$.636a4222-9d1f-4752-b248-bc019ac9316a.out.Contact",
+                                            "functions": [
+                                                { "name": "g_jsonPath", "params": [{ "value": "$.ContactID" }] }
+                                            ]
+                                        },
+                                        "b21cbbe4-b2c6-4b7b-a785-6f7bbcf10a83": {
+                                            "variable": "$.8f19e8a3-1951-4e26-a05c-c25424b53442.out.ContactID",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "field": "{{{c4d7509c-48dd-457e-bb2f-86a68d6e7e53}}}", "assertion": "equal", "expected": "{{{fdd37bf0-4483-4aa4-bb67-e967cc50c6f4}}}" },
+                                            { "field": "{{{f8a2d29a-dccb-444f-ab66-f34322a0927a}}}", "assertion": "equal", "expected": "{{{b21cbbe4-b2c6-4b7b-a785-6f7bbcf10a83}}}" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "45d70882-5929-4e6c-944e-acacf8f6c3bc": {
+            "type": "appmixer.xero.accounting.UpdatePurchaseOrder",
+            "label": "Update Purchase Order",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "636a4222-9d1f-4752-b248-bc019ac9316a": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "636a4222-9d1f-4752-b248-bc019ac9316a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "e7454ed8-b5ee-453c-b7a0-0827db169d19": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "PurchaseOrderID": {
+                                        "606e7c7e-6c85-4c55-811f-c5d020e0ae74": {
+                                            "variable": "$.636a4222-9d1f-4752-b248-bc019ac9316a.out.PurchaseOrderID",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Reference": {
+                                        "1b76e675-6dec-4a9b-8ed6-310b1cc2985e": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.updatedReference",
+                                            "functions": []
+                                        }
+                                    },
+                                    "DeliveryInstructions": {}
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{e7454ed8-b5ee-453c-b7a0-0827db169d19}}}",
+                                    "PurchaseOrderID": "{{{606e7c7e-6c85-4c55-811f-c5d020e0ae74}}}",
+                                    "Reference": "{{{1b76e675-6dec-4a9b-8ed6-310b1cc2985e}}}",
+                                    "DeliveryInstructions": "E2E leave at reception"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "85fb9b79-236f-4a02-9628-6e47a16dd62c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1520,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "45d70882-5929-4e6c-944e-acacf8f6c3bc": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "45d70882-5929-4e6c-944e-acacf8f6c3bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a62ac573-12ca-4146-964c-efecc9ed43e2": {
+                                            "variable": "$.45d70882-5929-4e6c-944e-acacf8f6c3bc.out.Reference",
+                                            "functions": []
+                                        },
+                                        "d1f5e158-e41a-41ec-bd53-c56d81de452f": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.updatedReference",
+                                            "functions": []
+                                        },
+                                        "e556df05-866a-4fc7-a6ce-07ac0cfb2500": {
+                                            "variable": "$.45d70882-5929-4e6c-944e-acacf8f6c3bc.out.DeliveryInstructions",
+                                            "functions": []
+                                        },
+                                        "88e6b2f4-863a-4469-8deb-ad3727dc81e1": {
+                                            "variable": "$.45d70882-5929-4e6c-944e-acacf8f6c3bc.out.AttentionTo",
+                                            "functions": []
+                                        },
+                                        "06a18938-6f4f-4359-ad4f-bdf4da79a2de": {
+                                            "variable": "$.45d70882-5929-4e6c-944e-acacf8f6c3bc.out.Status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "field": "{{{a62ac573-12ca-4146-964c-efecc9ed43e2}}}", "assertion": "equal", "expected": "{{{d1f5e158-e41a-41ec-bd53-c56d81de452f}}}" },
+                                            { "field": "{{{e556df05-866a-4fc7-a6ce-07ac0cfb2500}}}", "assertion": "equal", "expected": "E2E leave at reception" },
+                                            { "field": "{{{88e6b2f4-863a-4469-8deb-ad3727dc81e1}}}", "assertion": "equal", "expected": "E2E Receiver" },
+                                            { "field": "{{{06a18938-6f4f-4359-ad4f-bdf4da79a2de}}}", "assertion": "equal", "expected": "DRAFT" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "7ec6546d-ef04-4d15-a70b-d347985a446f": {
+            "type": "appmixer.xero.accounting.FindPurchaseOrders",
+            "label": "Find Purchase Orders",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "45d70882-5929-4e6c-944e-acacf8f6c3bc": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "45d70882-5929-4e6c-944e-acacf8f6c3bc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "6cd93939-c0e1-40e3-87f0-34075357b366": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Status": {},
+                                    "DateFrom": {
+                                        "2040e168-04a8-4a7b-b428-ad3159997bac": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.poDate",
+                                            "functions": []
+                                        }
+                                    },
+                                    "DateTo": {
+                                        "26a12f7e-00e6-4d66-b979-8318a3855b9e": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.poDate",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{6cd93939-c0e1-40e3-87f0-34075357b366}}}",
+                                    "Status": "DRAFT",
+                                    "DateFrom": "{{{2040e168-04a8-4a7b-b428-ad3159997bac}}}",
+                                    "DateTo": "{{{26a12f7e-00e6-4d66-b979-8318a3855b9e}}}",
+                                    "outputType": "items"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "d4b6878b-7672-4000-b389-8bec9e86e80f": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1728,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7ec6546d-ef04-4d15-a70b-d347985a446f": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7ec6546d-ef04-4d15-a70b-d347985a446f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "d20c71dd-71d4-473a-9d84-d5ee1d8f238b": {
+                                            "variable": "$.7ec6546d-ef04-4d15-a70b-d347985a446f.out.items",
+                                            "functions": [
+                                                { "name": "g_jsonPath", "params": [{ "value": "$[0].PurchaseOrderID" }] }
+                                            ]
+                                        },
+                                        "91d78c28-2b9c-4564-be9e-7337c6f72533": {
+                                            "variable": "$.7ec6546d-ef04-4d15-a70b-d347985a446f.out.items",
+                                            "functions": [
+                                                { "name": "g_jsonPath", "params": [{ "value": "$[0].Status" }] }
+                                            ]
+                                        },
+                                        "7022e430-1269-4f1d-a822-d35d34ec68ca": {
+                                            "variable": "$.7ec6546d-ef04-4d15-a70b-d347985a446f.out.items",
+                                            "functions": [
+                                                { "name": "g_jsonPath", "params": [{ "value": "$[0].DateString" }] }
+                                            ]
+                                        },
+                                        "2015e89e-892f-47b8-b1de-b32cbd193dd9": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.poDate",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "field": "{{{d20c71dd-71d4-473a-9d84-d5ee1d8f238b}}}", "assertion": "notEmpty" },
+                                            { "field": "{{{91d78c28-2b9c-4564-be9e-7337c6f72533}}}", "assertion": "equal", "expected": "DRAFT" },
+                                            { "field": "{{{7022e430-1269-4f1d-a822-d35d34ec68ca}}}", "assertion": "regex", "regex": "^{{{2015e89e-892f-47b8-b1de-b32cbd193dd9}}}" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "3eb438fe-00ba-45e1-8f52-a3caa7986663": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1936,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4ec47b4b-a025-4498-8a2d-3021212a3fac": ["out"],
+                    "d025a091-48f9-485f-9131-4cb5cf18d118": ["out"],
+                    "85fb9b79-236f-4a02-9628-6e47a16dd62c": ["out"],
+                    "d4b6878b-7672-4000-b389-8bec9e86e80f": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "5adcaa51-78f0-4571-bd3c-58ec5e6051cd": {
+            "type": "appmixer.xero.accounting.UpdatePurchaseOrder",
+            "label": "Delete Purchase Order (cleanup)",
+            "x": 2144,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3eb438fe-00ba-45e1-8f52-a3caa7986663": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3eb438fe-00ba-45e1-8f52-a3caa7986663": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "ea0feb3e-18bf-47ef-9506-c43df3e793c3": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "PurchaseOrderID": {
+                                        "9df61e23-ca25-4b67-bd78-70ac3066c6f9": {
+                                            "variable": "$.4ffe4bc6-0550-473e-ad1f-dc2d8ca77085.out.PurchaseOrderID",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Status": {}
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{ea0feb3e-18bf-47ef-9506-c43df3e793c3}}}",
+                                    "PurchaseOrderID": "{{{9df61e23-ca25-4b67-bd78-70ac3066c6f9}}}",
+                                    "Status": "DELETED"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "727de204-5f10-4058-a32e-15ed24808ad9": {
+            "type": "appmixer.xero.accounting.UpdateContact",
+            "label": "Archive Supplier (cleanup)",
+            "x": 2352,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5adcaa51-78f0-4571-bd3c-58ec5e6051cd": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5adcaa51-78f0-4571-bd3c-58ec5e6051cd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tenantId": {
+                                        "a46fe6b8-e3d0-4f20-bfb8-836eb6cc5b75": {
+                                            "variable": "$.ccfa986d-c41f-4a6c-910b-5c7e10f6c31d.out.tenantId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ContactID": {
+                                        "44fb647e-f617-4674-8640-63869a4e13fb": {
+                                            "variable": "$.8f19e8a3-1951-4e26-a05c-c25424b53442.out.ContactID",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ContactStatus": {}
+                                },
+                                "lambda": {
+                                    "tenantId": "{{{a46fe6b8-e3d0-4f20-bfb8-836eb6cc5b75}}}",
+                                    "ContactID": "{{{44fb647e-f617-4674-8640-63869a4e13fb}}}",
+                                    "ContactStatus": "ARCHIVED"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "1bb12dd3-e099-45e8-907d-79eb6009e144": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2560,
+            "y": 400,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "727de204-5f10-4058-a32e-15ed24808ad9": ["out"]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "727de204-5f10-4058-a32e-15ed24808ad9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "0c190f48-9f36-4eb5-af7a-5891dade54df": {
+                                            "variable": "$.3eb438fe-00ba-45e1-8f52-a3caa7986663.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Xero - Purchase Orders",
+                                    "result": "{{{0c190f48-9f36-4eb5-af7a-5891dade54df}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    },
+    "notes": {
+        "e82caf5d-b0e4-4d21-a68b-1e1ba85f9dc0": {
+            "x": 64,
+            "y": 176,
+            "width": 672,
+            "height": 224,
+            "content": "## Test data assumptions\n\n- Runs against the **first** Xero organisation of the bound account (`ListTenants` items[0]).\n- Creates a supplier contact with a per-run unique name and a DRAFT purchase order dated today (delivery +7 days).\n- Cleanup after `AfterAll`: the purchase order is set to `DELETED`, the supplier is `ARCHIVED`.\n- The account needs the granular `accounting.invoices` (+ `.read`) and the `accounting.contacts` scopes; an account connected before these components existed must be reconnected."
+        }
+    }
+}

@@ -30,8 +30,10 @@ module.exports = {
             }
         });
 
+        // v2 returns the key's credits directly in `data` ({ remaining, refill }).
         return context.sendJson({
-            credits: data.data?.credits
+            credits: data.data?.remaining ?? null,
+            refill: data.data?.refill ?? null
         }, 'out');
     }
 };

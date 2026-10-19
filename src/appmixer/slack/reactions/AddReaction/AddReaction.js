@@ -11,6 +11,17 @@ module.exports = {
             await listAllChannels(context);
             return;
         }
+
+        if (!channel) {
+            throw new context.CancelError('Channel is required!');
+        }
+        if (!timestamp) {
+            throw new context.CancelError('Message Timestamp is required!');
+        }
+        if (!name) {
+            throw new context.CancelError('Reaction Name is required!');
+        }
+
         // Initialize Slack Web API client
         const web = new WebClient(context.auth.accessToken);
         const result = await web.reactions.add({

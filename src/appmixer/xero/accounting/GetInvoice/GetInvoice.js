@@ -10,6 +10,13 @@ module.exports = {
             InvoiceID
         } = context.messages.in.content;
 
+        if (!tenantId) {
+            throw new context.CancelError('Tenant ID is required!');
+        }
+        if (!InvoiceID) {
+            throw new context.CancelError('Invoice ID is required!');
+        }
+
         const xc = new XeroClient(context, tenantId);
         const { Invoices } = await xc.request('GET', '/api.xro/2.0/Invoices/' + InvoiceID, {});
 

@@ -1,38 +1,39 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlOrders = require('../../gql-orders');
+
+const TOPIC = 'refunds/create';
 
 /**
- * This trigger fires when a refund is created on a Shopify order.
+ * Triggers when a refund is created on an order.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'refunds/create');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'refund');
+            const api = gqlOrders(lib.runner(context));
+            return lib.receiveWebhook(context, { port: 'out', type: 'Refund', fetch: id => api.fetchRefund(id) });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const record = await commons.fetchLatestOrderChildExample(context, {
-            child: 'refund',
-            topic: 'refunds/create'
-        });
-        if (!record) {
-            throw new Error('No refunds to use as test data.');
+        const refund = await gqlOrders(lib.runner(context)).latestRefund();
+        if (!refund) {
+            throw new context.CancelError('There are no refunds on the recently updated orders. Refund an order to see sample data.');
         }
-        return context.sendJson(record, 'refund');
+        return context.sendJson({ ...refund, webhookTopic: TOPIC }, 'out');
     }
 };

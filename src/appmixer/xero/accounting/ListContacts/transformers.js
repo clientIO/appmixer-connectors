@@ -7,8 +7,8 @@ module.exports.contactsToSelectArray = contacts => {
 
     let transformed = [];
 
-    if (Array.isArray(contacts)) {
-        contacts.forEach(contact => {
+    if (Array.isArray(contacts?.items)) {
+        contacts.items.forEach(contact => {
 
             transformed.push({
                 label: contact['Name'],

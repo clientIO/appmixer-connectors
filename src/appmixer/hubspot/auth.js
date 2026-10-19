@@ -11,7 +11,9 @@ module.exports = {
         scope: [
             'oauth',
             'tickets',
+            'automation',
             'e-commerce',
+            'forms',
             'timeline',
             'media_bridge.read',
             'crm.lists.read',

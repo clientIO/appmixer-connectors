@@ -1,0 +1,76 @@
+{
+    "name": "appmixer.posthog.core.ListProjects",
+    "description": "List all PostHog projects the authenticated user has access to. Returns a maximum of 100 projects.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:posthog"
+    },
+    "quota": {
+        "manager": "appmixer:posthog",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "outputType": {
+                        "type": "string",
+                        "default": "array"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 1,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/posthog/core/ListProjects?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBpZD0iUG9zdGhvZy0tU3RyZWFtbGluZS1TaW1wbGUtSWNvbnMiIGhlaWdodD0iMjQiIHdpZHRoPSIyNCI+CiAgPGRlc2M+CiAgICBQb3N0aG9nIFN0cmVhbWxpbmUgSWNvbjogaHR0cHM6Ly9zdHJlYW1saW5laHEuY29tCiAgPC9kZXNjPgogIDx0aXRsZT5Qb3N0SG9nPC90aXRsZT4KICA8cGF0aCBkPSJNOS44NTQgMTQuNSA1IDkuNjQ3IDAuODU0IDUuNUEwLjUgMC41IDAgMCAwIDAgNS44NTRWOC40NGEwLjUgMC41IDAgMCAwIDAuMTQ2IDAuMzUzTDUgMTMuNjQ3bDAuMTQ3IDAuMTQ2TDkuODU0IDE4LjVsMC4xNDYgMC4xNDd2LTAuMDQ5YzAuMDY1IDAuMDMgMC4xMzQgMC4wNDkgMC4yMDcgMC4wNDloMi41ODZhMC41IDAuNSAwIDAgMCAwLjM1MyAtMC44NTRMOS44NTQgMTQuNXptMCAtNSAtNCAtNGEwLjQ4NyAwLjQ4NyAwIDAgMCAtMC40MDkgLTAuMTQ0IDAuNTE1IDAuNTE1IDAgMCAwIC0wLjM1NiAwLjIxIDAuNDkzIDAuNDkzIDAgMCAwIC0wLjA4OSAwLjI4OFY4LjQ0YTAuNSAwLjUgMCAwIDAgMC4xNDcgMC4zNTNsOSA5YTAuNSAwLjUgMCAwIDAgMC44NTMgLTAuMzU0di0yLjU4NWEwLjUgMC41IDAgMCAwIC0wLjE0NiAtMC4zNTRsLTUgLTV6bTEgLTRhMC41IDAuNSAwIDAgMCAtMC44NTQgMC4zNTRWOC40NGEwLjUgMC41IDAgMCAwIDAuMTQ3IDAuMzUzbDQgNGEwLjUgMC41IDAgMCAwIDAuODUzIC0wLjM1NFY5Ljg1NGEwLjUgMC41IDAgMCAwIC0wLjE0NiAtMC4zNTRsLTQgLTR6bTEyLjY0NyAxMS41MTVhMy44NjMgMy44NjMgMCAwIDEgLTIuMjMyIC0xLjFsLTQuNzA4IC00LjcwN2EwLjUgMC41IDAgMCAwIC0wLjg1NCAwLjM1NHY2LjU4NWEwLjUgMC41IDAgMCAwIDAuNSAwLjVIMjMuNWEwLjUgMC41IDAgMCAwIDAuNSAtMC41di0wLjZjMCAtMC4yNzYgLTAuMjI1IC0wLjQ5NyAtMC40OTkgLTAuNTMyem0tNS4zOTQgMC4wMzJhMC44IDAuOCAwIDEgMSAwIC0xLjYgMC44IDAuOCAwIDAgMSAwIDEuNnpNMC44NTQgMTUuNWEwLjUgMC41IDAgMCAwIC0wLjg1NCAwLjM1NHYyLjI5M2EwLjUgMC41IDAgMCAwIDAuNSAwLjVoMi4yOTNjMC4yMjIgMCAwLjM5IC0wLjEzNSAwLjQ2MiAtMC4zMDlhMC40OTMgMC40OTMgMCAwIDAgLTAuMTA5IC0wLjU0NUwwLjg1NCAxNS41MDF6TTUgMTQuNjQ3IDAuODU0IDEwLjVhMC41IDAuNSAwIDAgMCAtMC44NTQgMC4zNTN2Mi41ODZhMC41IDAuNSAwIDAgMCAwLjE0NiAwLjM1M0w0Ljg1NCAxOC41bDAuMTQ2IDAuMTQ3aDIuNzkzYTAuNSAwLjUgMCAwIDAgMC4zNTMgLTAuODU0TDUgMTQuNjQ3eiIgZmlsbD0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+Cjwvc3ZnPg=="
+}

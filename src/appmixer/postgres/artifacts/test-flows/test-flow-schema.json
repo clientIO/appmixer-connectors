@@ -1,0 +1,374 @@
+{
+    "flow": {
+        "on-start": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 144,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "create-table": {
+            "type": "appmixer.postgres.db.Query",
+            "x": 256,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "on-start": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "on-start": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "query": "CREATE TABLE IF NOT EXISTS appmixer_e2e_schema_test (id SERIAL PRIMARY KEY, label TEXT, value NUMERIC)",
+                                    "outputType": "rows"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b42b24a745079d67442abe"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "list-tables": {
+            "type": "appmixer.postgres.db.ListTables",
+            "x": 448,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-table": [
+                        "out",
+                        "emptyResult"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-table": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {}
+                            },
+                            "emptyResult": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {}
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b42b24a745079d67442abe"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "assert-list-tables": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "list-tables": [
+                        "tables"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "list-tables": {
+                            "tables": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "first-table": {
+                                            "variable": "$.list-tables.tables",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].tablename"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{first-table}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "list-columns": {
+            "type": "appmixer.postgres.db.ListColumns",
+            "x": 448,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "create-table": [
+                        "out",
+                        "emptyResult"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "create-table": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {}
+                            },
+                            "emptyResult": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {}
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "table": "appmixer_e2e_schema_test",
+                    "account": "69b42b24a745079d67442abe"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "assert-list-columns": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "list-columns": [
+                        "columns"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "list-columns": {
+                            "columns": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "first-column": {
+                                            "variable": "$.list-columns.columns",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].column_name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{first-column}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "after-all": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1024,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "assert-list-tables": [
+                        "out"
+                    ],
+                    "assert-list-columns": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 30
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "drop-table": {
+            "type": "appmixer.postgres.db.Query",
+            "x": 1216,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "after-all": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "after-all": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "query": "DROP TABLE IF EXISTS appmixer_e2e_schema_test",
+                                    "outputType": "rows"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b42b24a745079d67442abe"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "process-results": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1408,
+            "y": 144,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "drop-table": [
+                        "out",
+                        "emptyResult"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "drop-table": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.after-all.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "jirka@client.io",
+                                    "testCase": "E2E PostgreSQL - Schema Inspection",
+                                    "result": "{{{result-var}}}"
+                                }
+                            },
+                            "emptyResult": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "variable": "$.after-all.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "jirka@client.io",
+                                    "testCase": "E2E PostgreSQL - Schema Inspection",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E PostgreSQL - Schema Inspection",
+    "type": "automation",
+    "notes": {}
+}

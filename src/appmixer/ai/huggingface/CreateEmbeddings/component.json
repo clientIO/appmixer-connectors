@@ -1,0 +1,96 @@
+{
+    "name": "appmixer.ai.huggingface.CreateEmbeddings",
+    "label": "Create Embeddings",
+    "description": "Turn a piece of text into a numeric embedding vector using a feature-extraction model served by Hugging Face Inference Providers.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:ai:huggingface"
+    },
+    "quota": {
+        "manager": "appmixer:ai:huggingface",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "normalize": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "model",
+                    "text"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "model": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Model",
+                        "defaultValue": "sentence-transformers/all-MiniLM-L6-v2",
+                        "tooltip": "Repository ID of a feature-extraction model, e.g. <code>sentence-transformers/all-MiniLM-L6-v2</code> or <code>BAAI/bge-base-en-v1.5</code>."
+                    },
+                    "text": {
+                        "type": "textarea",
+                        "index": 2,
+                        "label": "Text",
+                        "tooltip": "The text to embed."
+                    },
+                    "normalize": {
+                        "type": "toggle",
+                        "index": 3,
+                        "label": "Normalize",
+                        "tooltip": "Scale the vector to unit length. Only supported by sentence-transformers style models."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "model": {
+                        "type": "string",
+                        "title": "Model",
+                        "example": "sentence-transformers/all-MiniLM-L6-v2"
+                    },
+                    "embedding": {
+                        "type": "array",
+                        "title": "Embedding",
+                        "items": {
+                            "type": "number"
+                        },
+                        "example": [
+                            -0.0344,
+                            0.0712,
+                            0.0159
+                        ]
+                    },
+                    "dimensions": {
+                        "type": "integer",
+                        "title": "Dimensions",
+                        "example": 384
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgLTMuNSA5NSA5NSIgd2lkdGg9Ijk1IiBoZWlnaHQ9Ijk1IiBmaWxsPSJub25lIj48cGF0aCBmaWxsPSIjZmZmIiBkPSJNOTQuMjUgNzAuMDhhOC4yOCA4LjI4IDAgMCAxLS40MyA2LjQ2IDEwLjU3IDEwLjU3IDAgMCAxLTMgMy42IDI1LjE4IDI1LjE4IDAgMCAxLTUuNyAzLjIgNjUuNzQgNjUuNzQgMCAwIDEtNy41NiAyLjY1IDQ2LjY3IDQ2LjY3IDAgMCAxLTExLjQyIDEuNjhjLTUuNDIuMDUtMTAuMDktMS4yMy0xMy40LTQuNWE0MC40IDQwLjQgMCAwIDEtMTAuMTQuMDNjLTMuMzQgMy4yNS03Ljk5IDQuNTItMTMuMzkgNC40N2E0Ni44MiA0Ni44MiAwIDAgMS0xMS40My0xLjY4IDY2LjM3IDY2LjM3IDAgMCAxLTcuNTUtMi42NWMtMi4yOC0uOTgtNC4xNy0yLTUuNjgtMy4yYTEwLjUgMTAuNSAwIDAgMS0zLjAyLTMuNmMtLjk5LTItMS4xOC00LjMtLjQyLTYuNDZhOC41NCA4LjU0IDAgMCAxLS4zMy01LjYzYy4yNS0uOTUuNjYtMS44MyAxLjE4LTIuNjFhOC42NyA4LjY3IDAgMCAxIDIuMS04LjQ3IDguMjMgOC4yMyAwIDAgMSAyLjgyLTIuMDcgNDEuNzUgNDEuNzUgMCAxIDEgODEuMy0uMTIgOC4yNyA4LjI3IDAgMCAxIDMuMTEgMi4xOSA4LjcgOC43IDAgMCAxIDIuMSA4LjQ3Yy41Mi43OC45MyAxLjY2IDEuMTggMi42MWE4LjYxIDguNjEgMCAwIDEtLjMyIDUuNjNaIiAvPjxwYXRoIGZpbGw9IiNGRkQyMUUiIGQ9Ik00Ny4yMSA3Ni41YTM0Ljc1IDM0Ljc1IDAgMSAwIDAtNjkuNSAzNC43NSAzNC43NSAwIDAgMCAwIDY5LjVaIiAvPjxwYXRoIGZpbGw9IiNGRjlEMEIiIGQ9Ik04MS45NiA0MS43NWEzNC43NSAzNC43NSAwIDEgMC02OS41IDAgMzQuNzUgMzQuNzUgMCAwIDAgNjkuNSAwWm0tNzMuNSAwYTM4Ljc1IDM4Ljc1IDAgMSAxIDc3LjUgMCAzOC43NSAzOC43NSAwIDAgMS03Ny41IDBaIiAvPjxwYXRoIGZpbGw9IiMzQTNCNDUiIGQ9Ik01OC41IDMyLjNjMS4yOC40NCAxLjc4IDMuMDYgMy4wNyAyLjM4YTUgNSAwIDEgMC02Ljc2LTIuMDdjLjYxIDEuMTUgMi41NS0uNzIgMy43LS4zMlpNMzQuOTUgMzIuM2MtMS4yOC40NC0xLjc5IDMuMDYtMy4wNyAyLjM4YTUgNSAwIDEgMSA2Ljc2LTIuMDdjLS42MSAxLjE1LTIuNTYtLjcyLTMuNy0uMzJaIiAvPjxwYXRoIGZpbGw9IiNGRjMyM0QiIGQ9Ik00Ni45NiA1Ni4yOWM5LjgzIDAgMTMtOC43NiAxMy0xMy4yNiAwLTIuMzQtMS41Ny0xLjYtNC4wOS0uMzYtMi4zMyAxLjE1LTUuNDYgMi43NC04LjkgMi43NC03LjE5IDAtMTMtNi44OC0xMy0yLjM4czMuMTYgMTMuMjYgMTMgMTMuMjZaIiAvPjxwYXRoIGZpbGw9IiMzQTNCNDUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTM5LjQzIDU0YTguNyA4LjcgMCAwIDEgNS4zLTQuNDljLjQtLjEyLjgxLjU3IDEuMjQgMS4yOC40LjY4LjgyIDEuMzcgMS4yNCAxLjM3LjQ1IDAgLjktLjY4IDEuMzMtMS4zNS40NS0uNy44OS0xLjM4IDEuMzItMS4yNWE4LjYxIDguNjEgMCAwIDEgNSA0LjE3YzMuNzMtMi45NCA1LjEtNy43NCA1LjEtMTAuNyAwLTIuMzQtMS41Ny0xLjYtNC4wOS0uMzZsLS4xNC4wN2MtMi4zMSAxLjE1LTUuMzkgMi42Ny04Ljc3IDIuNjdzLTYuNDUtMS41Mi04Ljc3LTIuNjdjLTIuNi0xLjI5LTQuMjMtMi4xLTQuMjMuMjkgMCAzLjA1IDEuNDYgOC4wNiA1LjQ3IDEwLjk3WiIgY2xpcC1ydWxlPSJldmVub2RkIiAvPjxwYXRoIGZpbGw9IiNGRjlEMEIiIGQ9Ik03MC43MSAzN2EzLjI1IDMuMjUgMCAxIDAgMC02LjUgMy4yNSAzLjI1IDAgMCAwIDAgNi41Wk0yNC4yMSAzN2EzLjI1IDMuMjUgMCAxIDAgMC02LjUgMy4yNSAzLjI1IDAgMCAwIDAgNi41Wk0xNy41MiA0OGMtMS42MiAwLTMuMDYuNjYtNC4wNyAxLjg3YTUuOTcgNS45NyAwIDAgMC0xLjMzIDMuNzYgNy4xIDcuMSAwIDAgMC0xLjk0LS4zYy0xLjU1IDAtMi45NS41OS0zLjk0IDEuNjZhNS44IDUuOCAwIDAgMC0uOCA3IDUuMyA1LjMgMCAwIDAtMS43OSAyLjgyYy0uMjQuOS0uNDggMi44LjggNC43NGE1LjIyIDUuMjIgMCAwIDAtLjM3IDUuMDJjMS4wMiAyLjMyIDMuNTcgNC4xNCA4LjUyIDYuMSAzLjA3IDEuMjIgNS44OSAyIDUuOTEgMi4wMWE0NC4zMyA0NC4zMyAwIDAgMCAxMC45MyAxLjZjNS44NiAwIDEwLjA1LTEuOCAxMi40Ni01LjM0IDMuODgtNS42OSAzLjMzLTEwLjktMS43LTE1LjkyLTIuNzctMi43OC00LjYyLTYuODctNS03Ljc3LS43OC0yLjY2LTIuODQtNS42Mi02LjI1LTUuNjJhNS43IDUuNyAwIDAgMC00LjYgMi40NmMtMS0xLjI2LTEuOTgtMi4yNS0yLjg2LTIuODJBNy40IDcuNCAwIDAgMCAxNy41MiA0OFptMCA0Yy41MSAwIDEuMTQuMjIgMS44Mi42NSAyLjE0IDEuMzYgNi4yNSA4LjQzIDcuNzYgMTEuMTguNS45MiAxLjM3IDEuMzEgMi4xNCAxLjMxIDEuNTUgMCAyLjc1LTEuNTMuMTUtMy40OC0zLjkyLTIuOTMtMi41NS03LjcyLS42OC04LjAxLjA4LS4wMi4xNy0uMDIuMjQtLjAyIDEuNyAwIDIuNDUgMi45MyAyLjQ1IDIuOTNzMi4yIDUuNTIgNS45OCA5LjNjMy43NyAzLjc3IDMuOTcgNi44IDEuMjIgMTAuODMtMS44OCAyLjc1LTUuNDcgMy41OC05LjE2IDMuNTgtMy44MSAwLTcuNzMtLjktOS45Mi0xLjQ2LS4xMS0uMDMtMTMuNDUtMy44LTExLjc2LTcgLjI4LS41NC43NS0uNzYgMS4zNC0uNzYgMi4zOCAwIDYuNyAzLjU0IDguNTcgMy41NC40MSAwIC43LS4xNy44My0uNi43OS0yLjg1LTEyLjA2LTQuMDUtMTAuOTgtOC4xNy4yLS43My43MS0xLjAyIDEuNDQtMS4wMiAzLjE0IDAgMTAuMiA1LjUzIDExLjY4IDUuNTMuMTEgMCAuMi0uMDMuMjQtLjEuNzQtMS4yLjMzLTIuMDQtNC45LTUuMi01LjIxLTMuMTYtOC44OC01LjA2LTYuOC03LjMzLjI0LS4yNi41OC0uMzggMS0uMzggMy4xNyAwIDEwLjY2IDYuODIgMTAuNjYgNi44MnMyLjAyIDIuMSAzLjI1IDIuMWMuMjggMCAuNTItLjEuNjgtLjM4Ljg2LTEuNDYtOC4wNi04LjIyLTguNTYtMTEuMDEtLjM0LTEuOS4yNC0yLjg1IDEuMzEtMi44NVoiIC8+PHBhdGggZmlsbD0iI0ZGRDIxRSIgZD0iTTM4LjYgNzYuNjljMi43NS00LjA0IDIuNTUtNy4wNy0xLjIyLTEwLjg0LTMuNzgtMy43Ny01Ljk4LTkuMy01Ljk4LTkuM3MtLjgyLTMuMi0yLjY5LTIuOWMtMS44Ny4zLTMuMjQgNS4wOC42OCA4LjAxIDMuOTEgMi45My0uNzggNC45Mi0yLjI5IDIuMTctMS41LTIuNzUtNS42Mi05LjgyLTcuNzYtMTEuMTgtMi4xMy0xLjM1LTMuNjMtLjYtMy4xMyAyLjIuNSAyLjc5IDkuNDMgOS41NSA4LjU2IDExLS44NyAxLjQ3LTMuOTMtMS43MS0zLjkzLTEuNzFzLTkuNTctOC43MS0xMS42Ni02LjQ0Yy0yLjA4IDIuMjcgMS41OSA0LjE3IDYuOCA3LjMzIDUuMjMgMy4xNiA1LjY0IDQgNC45IDUuMi0uNzUgMS4yLTEyLjI4LTguNTMtMTMuMzYtNC40LTEuMDggNC4xMSAxMS43NyA1LjMgMTAuOTggOC4xNS0uOCAyLjg1LTkuMDYtNS4zOC0xMC43NC0yLjE4LTEuNyAzLjIxIDExLjY1IDYuOTggMTEuNzYgNy4wMSA0LjMgMS4xMiAxNS4yNSAzLjQ5IDE5LjA4LTIuMTJaIiAvPjxwYXRoIGZpbGw9IiNGRjlEMEIiIGQ9Ik03Ny40IDQ4YzEuNjIgMCAzLjA3LjY2IDQuMDcgMS44N2E1Ljk3IDUuOTcgMCAwIDEgMS4zMyAzLjc2IDcuMSA3LjEgMCAwIDEgMS45NS0uM2MxLjU1IDAgMi45NS41OSAzLjk0IDEuNjZhNS44IDUuOCAwIDAgMSAuOCA3IDUuMyA1LjMgMCAwIDEgMS43OCAyLjgyYy4yNC45LjQ4IDIuOC0uOCA0Ljc0YTUuMjIgNS4yMiAwIDAgMSAuMzcgNS4wMmMtMS4wMiAyLjMyLTMuNTcgNC4xNC04LjUxIDYuMS0zLjA4IDEuMjItNS45IDItNS45MiAyLjAxYTQ0LjMzIDQ0LjMzIDAgMCAxLTEwLjkzIDEuNmMtNS44NiAwLTEwLjA1LTEuOC0xMi40Ni01LjM0LTMuODgtNS42OS0zLjMzLTEwLjkgMS43LTE1LjkyIDIuNzgtMi43OCA0LjYzLTYuODcgNS4wMS03Ljc3Ljc4LTIuNjYgMi44My01LjYyIDYuMjQtNS42MmE1LjcgNS43IDAgMCAxIDQuNiAyLjQ2YzEtMS4yNiAxLjk4LTIuMjUgMi44Ny0yLjgyQTcuNCA3LjQgMCAwIDEgNzcuNCA0OFptMCA0Yy0uNTEgMC0xLjEzLjIyLTEuODIuNjUtMi4xMyAxLjM2LTYuMjUgOC40My03Ljc2IDExLjE4YTIuNDMgMi40MyAwIDAgMS0yLjE0IDEuMzFjLTEuNTQgMC0yLjc1LTEuNTMtLjE0LTMuNDggMy45MS0yLjkzIDIuNTQtNy43Mi42Ny04LjAxYTEuNTQgMS41NCAwIDAgMC0uMjQtLjAyYy0xLjcgMC0yLjQ1IDIuOTMtMi40NSAyLjkzcy0yLjIgNS41Mi01Ljk3IDkuM2MtMy43OCAzLjc3LTMuOTggNi44LTEuMjIgMTAuODMgMS44NyAyLjc1IDUuNDcgMy41OCA5LjE1IDMuNTggMy44MiAwIDcuNzMtLjkgOS45My0xLjQ2LjEtLjAzIDEzLjQ1LTMuOCAxMS43Ni03LS4yOS0uNTQtLjc1LS43Ni0xLjM0LS43Ni0yLjM4IDAtNi43MSAzLjU0LTguNTcgMy41NC0uNDIgMC0uNzEtLjE3LS44My0uNi0uOC0yLjg1IDEyLjA1LTQuMDUgMTAuOTctOC4xNy0uMTktLjczLS43LTEuMDItMS40NC0xLjAyLTMuMTQgMC0xMC4yIDUuNTMtMTEuNjggNS41My0uMSAwLS4xOS0uMDMtLjIzLS4xLS43NC0xLjItLjM0LTIuMDQgNC44OC01LjIgNS4yMy0zLjE2IDguOS01LjA2IDYuOC03LjMzLS4yMy0uMjYtLjU3LS4zOC0uOTgtLjM4LTMuMTggMC0xMC42NyA2LjgyLTEwLjY3IDYuODJzLTIuMDIgMi4xLTMuMjQgMi4xYS43NC43NCAwIDAgMS0uNjgtLjM4Yy0uODctMS40NiA4LjA1LTguMjIgOC41NS0xMS4wMS4zNC0xLjktLjI0LTIuODUtMS4zMS0yLjg1WiIgLz48cGF0aCBmaWxsPSIjRkZEMjFFIiBkPSJNNTYuMzMgNzYuNjljLTIuNzUtNC4wNC0yLjU2LTcuMDcgMS4yMi0xMC44NCAzLjc3LTMuNzcgNS45Ny05LjMgNS45Ny05LjNzLjgyLTMuMiAyLjctMi45YzEuODYuMyAzLjIzIDUuMDgtLjY4IDguMDEtMy45MiAyLjkzLjc4IDQuOTIgMi4yOCAyLjE3IDEuNTEtMi43NSA1LjYzLTkuODIgNy43Ni0xMS4xOCAyLjEzLTEuMzUgMy42NC0uNiAzLjEzIDIuMi0uNSAyLjc5LTkuNDIgOS41NS04LjU1IDExIC44NiAxLjQ3IDMuOTItMS43MSAzLjkyLTEuNzFzOS41OC04LjcxIDExLjY2LTYuNDRjMi4wOCAyLjI3LTEuNTggNC4xNy02LjggNy4zMy01LjIzIDMuMTYtNS42MyA0LTQuOSA1LjIuNzUgMS4yIDEyLjI4LTguNTMgMTMuMzYtNC40IDEuMDggNC4xMS0xMS43NiA1LjMtMTAuOTcgOC4xNS44IDIuODUgOS4wNS01LjM4IDEwLjc0LTIuMTggMS42OSAzLjIxLTExLjY1IDYuOTgtMTEuNzYgNy4wMS00LjMxIDEuMTItMTUuMjYgMy40OS0xOS4wOC0yLjEyWiIgLz48L3N2Zz4="
+}

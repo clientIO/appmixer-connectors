@@ -1,0 +1,365 @@
+{
+    "name": "E2E AI Groq - audio",
+    "description": "End-to-end test for the Groq module of the AI connector — Create Transcription and Create Translation over a downloaded speech sample, with the temporary file removed after all assertions have reported.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "35a68ad7-58e5-40f6-a3bc-0188d5e6f28f": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d6935ea0-b47e-490e-84e3-f63be55daba1": {
+            "type": "appmixer.utils.files.DownloadFile",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "35a68ad7-58e5-40f6-a3bc-0188d5e6f28f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "35a68ad7-58e5-40f6-a3bc-0188d5e6f28f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "link": {},
+                                    "customFileName": {}
+                                },
+                                "lambda": {
+                                    "link": "https://dpgr.am/spacewalk.wav",
+                                    "customFileName": "groq-e2e-spacewalk.wav"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "68ce61ef-9269-417e-9ccf-1bcfd1a84dc4": {
+            "type": "appmixer.ai.groq.CreateTranscription",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d6935ea0-b47e-490e-84e3-f63be55daba1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d6935ea0-b47e-490e-84e3-f63be55daba1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "file": {
+                                        "f215f284-c510-401c-8d5b-4346a862a5f2": {
+                                            "variable": "$.d6935ea0-b47e-490e-84e3-f63be55daba1.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "language": {},
+                                    "prompt": {},
+                                    "temperature": {}
+                                },
+                                "lambda": {
+                                    "model": "whisper-large-v3",
+                                    "file": "{{{f215f284-c510-401c-8d5b-4346a862a5f2}}}",
+                                    "language": "en",
+                                    "prompt": "A NASA press briefing about an all-female spacewalk.",
+                                    "temperature": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a7015da7-fd1e-4f04-95f5-444f2509676c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "68ce61ef-9269-417e-9ccf-1bcfd1a84dc4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "68ce61ef-9269-417e-9ccf-1bcfd1a84dc4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b9f5939d-e67c-4f0c-9763-5b393b0f6bed": {
+                                            "variable": "$.68ce61ef-9269-417e-9ccf-1bcfd1a84dc4.out.text",
+                                            "functions": []
+                                        },
+                                        "65b3c78f-d049-466a-a136-eaa2e85b39a5": {
+                                            "variable": "$.68ce61ef-9269-417e-9ccf-1bcfd1a84dc4.out.text",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b9f5939d-e67c-4f0c-9763-5b393b0f6bed}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{65b3c78f-d049-466a-a136-eaa2e85b39a5}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Ss]pace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1845c6bb-525e-4f70-a73f-a6a2c60e4f37": {
+            "type": "appmixer.ai.groq.CreateTranslation",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d6935ea0-b47e-490e-84e3-f63be55daba1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d6935ea0-b47e-490e-84e3-f63be55daba1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "file": {
+                                        "6fddaf30-fbf7-4b6f-b729-6f0f643645f6": {
+                                            "variable": "$.d6935ea0-b47e-490e-84e3-f63be55daba1.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "prompt": {},
+                                    "temperature": {}
+                                },
+                                "lambda": {
+                                    "model": "whisper-large-v3",
+                                    "file": "{{{6fddaf30-fbf7-4b6f-b729-6f0f643645f6}}}",
+                                    "prompt": "A NASA press briefing about an all-female spacewalk.",
+                                    "temperature": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "17bff31b-e8fb-4fb9-8c59-7d565e1bbbfd": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1845c6bb-525e-4f70-a73f-a6a2c60e4f37": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1845c6bb-525e-4f70-a73f-a6a2c60e4f37": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0f0652e6-9719-4868-b8fa-3c9471a2814a": {
+                                            "variable": "$.1845c6bb-525e-4f70-a73f-a6a2c60e4f37.out.text",
+                                            "functions": []
+                                        },
+                                        "8a6493fb-e158-4727-b344-e46f9457833c": {
+                                            "variable": "$.1845c6bb-525e-4f70-a73f-a6a2c60e4f37.out.text",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0f0652e6-9719-4868-b8fa-3c9471a2814a}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{8a6493fb-e158-4727-b344-e46f9457833c}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Ss]pace"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "87303a64-003b-462e-bb01-b9a9e559c816": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a7015da7-fd1e-4f04-95f5-444f2509676c": [
+                        "out"
+                    ],
+                    "17bff31b-e8fb-4fb9-8c59-7d565e1bbbfd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0d85676d-9574-40b2-a100-c873a9e98c13": {
+            "type": "appmixer.utils.files.RemoveFile",
+            "x": 1312,
+            "y": 144,
+            "version": "1.1.0",
+            "source": {
+                "in": {
+                    "87303a64-003b-462e-bb01-b9a9e559c816": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "87303a64-003b-462e-bb01-b9a9e559c816": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "a84a4ac1-5b7d-4d58-8a9d-e78e34b334e5": {
+                                            "variable": "$.d6935ea0-b47e-490e-84e3-f63be55daba1.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{a84a4ac1-5b7d-4d58-8a9d-e78e34b334e5}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c8f51e90-7078-4b57-b32c-6d6f1356ed8b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 144,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "0d85676d-9574-40b2-a100-c873a9e98c13": [
+                        "deleted"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "0d85676d-9574-40b2-a100-c873a9e98c13": {
+                            "deleted": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "f064dc51-bdc7-4e32-a662-fc5fc69014e1": {
+                                            "variable": "$.87303a64-003b-462e-bb01-b9a9e559c816.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E AI Groq - audio",
+                                    "result": "{{{f064dc51-bdc7-4e32-a662-fc5fc69014e1}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

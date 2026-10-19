@@ -6,6 +6,16 @@ module.exports = {
 
     receive: async function(context) {
 
+        if ([undefined, null, ''].includes(context.messages.in.content.licensedSheetCreator)) {
+            throw new context.CancelError('Is Licensed Sheet Creator is required!');
+        }
+        if ([undefined, null, ''].includes(context.messages.in.content.isAdmin)) {
+            throw new context.CancelError('Is Admin is required!');
+        }
+        if (!context.messages.in.content.email) {
+            throw new context.CancelError('Email is required!');
+        }
+
         const { data } = await this.httpRequest(context);
 
         return context.sendJson(data, 'out');

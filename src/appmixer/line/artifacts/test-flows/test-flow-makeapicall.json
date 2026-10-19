@@ -1,0 +1,198 @@
+{
+    "name": "E2E LINE - MakeApiCall bot info",
+    "flow": {
+        "bb220000-0000-0000-0000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 320,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb220000-0000-0000-0000-000000000002": {
+            "type": "appmixer.line.core.MakeApiCall",
+            "x": 400,
+            "y": 320,
+            "source": {
+                "in": {
+                    "bb220000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bb220000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/v2/bot/info",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb220000-0000-0000-0000-000000000003": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 400,
+            "y": 448,
+            "source": {
+                "in": {
+                    "bb220000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bb220000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v0": {
+                                            "functions": [],
+                                            "variable": "$.bb220000-0000-0000-0000-000000000002.out.status"
+                                        },
+                                        "v1": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.basicId"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "variable": "$.bb220000-0000-0000-0000-000000000002.out.body"
+                                        },
+                                        "v2": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.displayName"
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "variable": "$.bb220000-0000-0000-0000-000000000002.out.body"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{v0}}}",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v1}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v2}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb220000-0000-0000-0000-000000000004": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 592,
+            "y": 448,
+            "source": {
+                "in": {
+                    "bb220000-0000-0000-0000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb220000-0000-0000-0000-000000000005": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 784,
+            "y": 448,
+            "source": {
+                "in": {
+                    "bb220000-0000-0000-0000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "bb220000-0000-0000-0000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res": {
+                                            "functions": [],
+                                            "variable": "$.bb220000-0000-0000-0000-000000000004.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E LINE - MakeApiCall bot info",
+                                    "result": "{{{res}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

@@ -1,0 +1,255 @@
+{
+    "name": "E2E tl;dv - Find Meetings and Transcript",
+    "flow": {
+        "fb78c889-d1f4-49d6-9ce7-acba514e2e45": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6d5cfbc7-527a-4dd7-9912-b2a1fe0bcfa2": {
+            "type": "appmixer.tldv.core.FindMeetings",
+            "x": 256,
+            "y": 320,
+            "source": {
+                "in": {
+                    "fb78c889-d1f4-49d6-9ce7-acba514e2e45": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "fb78c889-d1f4-49d6-9ce7-acba514e2e45": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {},
+                                    "query": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first",
+                                    "query": "\"tldv test meeting\""
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "85d24dc3-aa02-49a5-aa6e-8e992e958aa2": {
+            "type": "appmixer.tldv.core.GetMeetingTranscript",
+            "x": 448,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6d5cfbc7-527a-4dd7-9912-b2a1fe0bcfa2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6d5cfbc7-527a-4dd7-9912-b2a1fe0bcfa2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "meetingId": {
+                                        "mid": {
+                                            "functions": [],
+                                            "variable": "$.6d5cfbc7-527a-4dd7-9912-b2a1fe0bcfa2.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "meetingId": "{{{mid}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e119ee88-ab06-408a-9326-7372e592e0f8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 208,
+            "source": {
+                "in": {
+                    "6d5cfbc7-527a-4dd7-9912-b2a1fe0bcfa2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6d5cfbc7-527a-4dd7-9912-b2a1fe0bcfa2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-6d5cfbc7": {
+                                            "functions": [],
+                                            "variable": "$.6d5cfbc7-527a-4dd7-9912-b2a1fe0bcfa2.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0-6d5cfbc7}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "62e8d813-78fc-4a4b-b1ff-83e58a062d9e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 432,
+            "source": {
+                "in": {
+                    "85d24dc3-aa02-49a5-aa6e-8e992e958aa2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "85d24dc3-aa02-49a5-aa6e-8e992e958aa2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-85d24dc3": {
+                                            "functions": [],
+                                            "variable": "$.85d24dc3-aa02-49a5-aa6e-8e992e958aa2.out.meetingId"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0-85d24dc3}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "817ce79e-bc5b-43b6-9310-f42bcc9ec830": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e119ee88-ab06-408a-9326-7372e592e0f8": [
+                        "out"
+                    ],
+                    "62e8d813-78fc-4a4b-b1ff-83e58a062d9e": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "414fd0ef-8a3a-4732-849e-2cb02d9b2fbf": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1024,
+            "y": 320,
+            "source": {
+                "in": {
+                    "817ce79e-bc5b-43b6-9310-f42bcc9ec830": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "817ce79e-bc5b-43b6-9310-f42bcc9ec830": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "13ff88bf-2421-4878-879a-6d38ad1a9050": {
+                                            "variable": "$.817ce79e-bc5b-43b6-9310-f42bcc9ec830.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E tl;dv - Find Meetings and Transcript",
+                                    "result": "{{{13ff88bf-2421-4878-879a-6d38ad1a9050}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

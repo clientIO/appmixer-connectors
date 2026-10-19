@@ -95,6 +95,16 @@ module.exports = {
     receive(context) {
 
         let { companyId, visibleTo } = context.properties;
+        if (!context.messages.contact.content.firstName) {
+            throw new context.CancelError('First name is required!');
+        }
+        if (!context.messages.contact.content.lastName) {
+            throw new context.CancelError('Last name is required!');
+        }
+        if (!context.messages.contact.content.email) {
+            throw new context.CancelError('Email is required!');
+        }
+
         let person = context.messages.contact.content;
         const options = { userAgent: context.auth.userAgent };
         let client = commons.getHighriseAPI(companyId, context.auth.accessToken, options);

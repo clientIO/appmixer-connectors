@@ -1,0 +1,190 @@
+{
+    "name": "E2E ServiceNow - Make API Call",
+    "description": "Calls the Table API through MakeApiCall and checks the incident table definition is returned.",
+    "flow": {
+        "afb713b4-d7fc-41e7-807c-12283c3e9616": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a236af51-837c-4b9a-8ac1-1dc10e03cd16": {
+            "type": "appmixer.servicenow.core.MakeApiCall",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "afb713b4-d7fc-41e7-807c-12283c3e9616": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "afb713b4-d7fc-41e7-807c-12283c3e9616": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "parameters": {}
+                                },
+                                "lambda": {
+                                    "url": "/api/now/table/sys_db_object",
+                                    "method": "GET",
+                                    "parameters": "[{\"key\":\"sysparm_limit\",\"value\":\"1\"},{\"key\":\"sysparm_query\",\"value\":\"name=incident\"},{\"key\":\"sysparm_fields\",\"value\":\"name,sys_id\"}]"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "848a1085-d3de-421f-8b4e-35323560a1a1": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a236af51-837c-4b9a-8ac1-1dc10e03cd16": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a236af51-837c-4b9a-8ac1-1dc10e03cd16": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9ce26e8a-e466-40a9-beb2-1d9d8f7f0fc9": {
+                                            "variable": "$.a236af51-837c-4b9a-8ac1-1dc10e03cd16.out.status",
+                                            "functions": []
+                                        },
+                                        "43e97f76-e8e3-4ead-b390-e912f9e8f1e0": {
+                                            "variable": "$.a236af51-837c-4b9a-8ac1-1dc10e03cd16.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.result[0].name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9ce26e8a-e466-40a9-beb2-1d9d8f7f0fc9}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "field": "{{{43e97f76-e8e3-4ead-b390-e912f9e8f1e0}}}",
+                                                "assertion": "equal",
+                                                "expected": "incident"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "92f3b212-73b4-4a19-a068-6d3944cc2f49": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "848a1085-d3de-421f-8b4e-35323560a1a1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2154f98b-e98b-48bd-baaa-236b5bee399b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "92f3b212-73b4-4a19-a068-6d3944cc2f49": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "92f3b212-73b4-4a19-a068-6d3944cc2f49": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "1c142e0c-2608-48c9-a9f3-47b970a04050": {
+                                            "variable": "$.92f3b212-73b4-4a19-a068-6d3944cc2f49.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E ServiceNow - Make API Call",
+                                    "result": "{{{1c142e0c-2608-48c9-a9f3-47b970a04050}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

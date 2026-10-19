@@ -1,0 +1,378 @@
+{
+    "flow": {
+        "f6000006-0000-4000-8000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f6000006-0000-4000-8000-000000000002": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6000006-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-000000000003": {
+            "type": "appmixer.hubspot.crm.CreateContact",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6000006-0000-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "email": {
+                                        "ts-1": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "firstname": {},
+                                    "lastname": {}
+                                },
+                                "lambda": {
+                                    "email": "e2e-cpc-custom-{{{ts-1}}}@example.com",
+                                    "firstname": "E2E",
+                                    "lastname": "CustomProperty"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-000000000004": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-000000000003": [
+                        "contact"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6000006-0000-4000-8000-000000000003": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-000000000005": {
+            "type": "appmixer.hubspot.crm.UpdateContact",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.3",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6000006-0000-4000-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactId": {
+                                        "cid-1": {
+                                            "variable": "$.f6000006-0000-4000-8000-000000000003.contact.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "additionalProperties": {}
+                                },
+                                "lambda": {
+                                    "contactId": "{{{cid-1}}}",
+                                    "additionalProperties": {
+                                        "AND": [
+                                            {
+                                                "name": "e2e_watched_note",
+                                                "value": "watched-by-e2e"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-000000000008": {
+            "type": "appmixer.hubspot.crm.ContactPropertyChanged",
+            "x": 64,
+            "y": 576,
+            "source": {},
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "propertyName": "e2e_watched_note",
+                    "properties": "email,e2e_watched_note,hs_object_id",
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-000000000009": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 576,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-000000000008": [
+                        "contact"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6000006-0000-4000-8000-000000000008": {
+                            "contact": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "as-1": {
+                                            "variable": "$.f6000006-0000-4000-8000-000000000008.contact.properties.e2e_watched_note",
+                                            "functions": []
+                                        },
+                                        "as-2": {
+                                            "variable": "$.f6000006-0000-4000-8000-000000000008.contact.properties.email",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{as-1}}}",
+                                                "assertion": "equal",
+                                                "expected": "watched-by-e2e"
+                                            },
+                                            {
+                                                "field": "{{{as-2}}}",
+                                                "assertion": "regex",
+                                                "regex": "^e2e-cpc-custom-[0-9]+@example\\.com$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-00000000000a": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 576,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-000000000009": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-000000000007": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 688,
+            "y": 576,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-00000000000a": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6000006-0000-4000-8000-00000000000a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "del-1": {
+                                            "variable": "$.f6000006-0000-4000-8000-000000000008.contact.properties.hs_object_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/crm/v3/objects/contacts/{{{del-1}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "f6000006-0000-4000-8000-00000000000b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 576,
+            "source": {
+                "in": {
+                    "f6000006-0000-4000-8000-000000000007": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6000006-0000-4000-8000-000000000007": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-1": {
+                                            "variable": "$.f6000006-0000-4000-8000-00000000000a.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubSpot - Contact Property Changed Custom Property",
+                                    "result": "{{{res-1}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            }
+        }
+    },
+    "name": "E2E HubSpot - Contact Property Changed Custom Property",
+    "type": "automation",
+    "notes": {
+        "f6000006-0000-4000-8000-0000000000ff": {
+            "content": "## ⚠️ Test data assumption\n\n- Appmixer account: auth+hubspot@appmixer.com (service appmixer:hubspot), HubSpot portal 148964607 (developer test account).\n- The HubSpot app's webhook target URL must point at this Appmixer instance (own app: appId + apiKey in the service config) — the trigger registers its subscription at flow start.\n- **Custom contact property `e2e_watched_note` must exist** (string/text, group contactinformation). Create it once: HubSpot MakeApiCall `POST /crm/v3/properties/contacts` `{\"name\":\"e2e_watched_note\",\"label\":\"E2E Watched Note\",\"type\":\"string\",\"fieldType\":\"text\",\"groupName\":\"contactinformation\"}`.\n- ContactPropertyChanged subscribes to `e2e_watched_note` itself at flow start (own app only; with AuthHub the property has to be added in the HubSpot app's webhook settings).\n- The creation-time email/name events must not fire it — the Assert expects the custom value. The cleanup after AfterAll deletes the contact by the trigger output.\n- The Waits must stay: subscription propagation and create → update spacing.",
+            "x": 64,
+            "y": 32,
+            "width": 672,
+            "height": 256
+        }
+    }
+}

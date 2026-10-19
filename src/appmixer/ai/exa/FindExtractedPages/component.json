@@ -1,0 +1,166 @@
+{
+    "name": "appmixer.ai.exa.FindExtractedPages",
+    "label": "Extract Page Contents",
+    "description": "Extract clean, LLM-ready content from a list of URLs \u2014 full text, relevant highlights, a focused summary and page metadata.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:ai:exa"
+    },
+    "quota": {
+        "manager": "appmixer:ai:exa",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "urls": {
+                        "type": "string"
+                    },
+                    "includeText": {
+                        "type": "boolean"
+                    },
+                    "includeHighlights": {
+                        "type": "boolean"
+                    },
+                    "summaryQuery": {
+                        "type": "string"
+                    },
+                    "maxAgeHours": {
+                        "type": "integer",
+                        "minimum": -1,
+                        "maximum": 720
+                    },
+                    "subpages": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "subpageTarget": {
+                        "type": "string"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "urls"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "urls": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "URLs",
+                        "tooltip": "Comma or newline separated list of page URLs to extract, up to 100 per call."
+                    },
+                    "includeText": {
+                        "type": "toggle",
+                        "index": 2,
+                        "label": "Include Page Text",
+                        "defaultValue": true,
+                        "tooltip": "Return the cleaned full text of each page."
+                    },
+                    "includeHighlights": {
+                        "type": "toggle",
+                        "index": 3,
+                        "label": "Include Highlights",
+                        "tooltip": "Also return the snippets of each page an LLM judged most relevant."
+                    },
+                    "summaryQuery": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "Summary Query",
+                        "tooltip": "Ask Exa to summarise each page with this question in mind, e.g. <code>What is the pricing?</code>. Leave empty for no summary."
+                    },
+                    "maxAgeHours": {
+                        "type": "number",
+                        "index": 5,
+                        "label": "Max Cache Age (hours)",
+                        "tooltip": "Use Exa's cached copy when it is newer than this many hours. <code>0</code> forces a fresh crawl, <code>-1</code> serves cache only. Maximum 720."
+                    },
+                    "subpages": {
+                        "type": "number",
+                        "index": 6,
+                        "label": "Subpages",
+                        "tooltip": "Also crawl up to this many linked subpages of each URL, between 0 and 100."
+                    },
+                    "subpageTarget": {
+                        "type": "text",
+                        "index": 7,
+                        "label": "Subpage Target",
+                        "tooltip": "Comma separated terms that steer which subpages are picked, e.g. <code>pricing, about</code>. Only applies when Subpages is set."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "index": 8,
+                        "label": "Output Type",
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/ai/exa/FindExtractedPages?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/urls": "dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "urls": {
+                        "type": "array",
+                        "title": "URLs",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "https://exa.ai/about"
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjI0IDEyIDEwMiAxMjYiIHdpZHRoPSIxMDIiIGhlaWdodD0iMTI2IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkV4YSI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzIsIDIwKSI+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0wIDBIODZWOC4yMDg5Nkw0OS4yOTgxIDU1TDg2IDEwMS43OTFWMTEwSDBWMFpNNDMuNTQwOCA0Ny40Mjg5TDczLjM2NTIgOC4yMDg5NkgxMy43MTY0TDQzLjU0MDggNDcuNDI4OVpNOS42NzU3MyAxOC4wMzc1VjUwLjg5NTVIMzQuNjYyM0w5LjY3NTczIDE4LjAzNzVaTTM0LjY2MjMgNTkuMTA0NUg5LjY3NTczVjkxLjk2MjVMMzQuNjYyMyA1OS4xMDQ1Wk0xMy43MTY0IDEwMS43OTFMNDMuNTQwOCA2Mi41NzExTDczLjM2NTIgMTAxLjc5MUgxMy43MTY0WiIgZmlsbD0iIzFGNDBFRCIvPjwvZz48L3N2Zz4="
+}

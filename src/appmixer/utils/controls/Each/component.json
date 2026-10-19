@@ -1,9 +1,10 @@
 {
   "name": "appmixer.utils.controls.Each",
   "author": "David Durman <david@client.io>",
-  "description": "Loops over the incoming list and outputs a new message for each item.",
-  "version": "1.4.8",
+  "description": "Loops over the incoming list and outputs a new message for each item. Turn on 'Sequential' and end the loop with the 'Continue Each' component to process the items strictly one at a time, in order, and to collect a 'Result' from every item for the 'done' branch.",
+  "version": "1.5.0",
   "private": false,
+  "webhook": true,
   "inPorts": [
     {
       "name": "in",
@@ -14,6 +15,13 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 60000
+          },
+          "sequential": {
+            "type": "boolean"
+          },
+          "itemTimeout": {
+            "type": "integer",
+            "minimum": 60
           },
           "list": {
             "oneOf": [
@@ -46,7 +54,29 @@
             "index": 2,
             "min": 0,
             "max": 60000,
-            "tooltip": "Delay between items in milliseconds."
+            "tooltip": "Delay between items in milliseconds. In sequential mode it is an extra pause before each next item."
+          },
+          "sequential": {
+            "type": "toggle",
+            "group": "transformation",
+            "label": "Sequential",
+            "index": 3,
+            "defaultValue": false,
+            "tooltip": "Send the next item only after the previous one has been fully processed. Use it when the order of the items matters and the steps after this component take a varying amount of time - otherwise faster items overtake slower ones. <b>Requires the 'Continue Each' component at the end of the loop</b>: connect it after the last step that has to finish before the next item starts, and map the 'Correlation ID' and 'Index' of this component to it. Values that 'Continue Each' adds to the result are available as 'Result' on the 'done' port once the loop is over."
+          },
+          "itemTimeout": {
+            "type": "number",
+            "group": "transformation",
+            "label": "Item Timeout (seconds)",
+            "index": 4,
+            "defaultValue": 300,
+            "min": 60,
+            "when": {
+              "eq": {
+                "sequential": true
+              }
+            },
+            "tooltip": "How long to wait for 'Continue Each' to confirm an item. If the confirmation does not arrive in time (a step failed, or a Condition filtered the item out before 'Continue Each'), the loop moves on to the next item instead of stopping. Set it safely above the longest time one item can take. Minimum 60 seconds."
           }
         },
         "groups": {
@@ -91,6 +121,31 @@
           "schema": {
             "type": "string",
             "example": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+          }
+        },
+        {
+          "label": "Result",
+          "value": "result",
+          "schema": {
+            "type": "array",
+            "description": "One entry per item of a sequential loop, in item order: the fields added by 'Continue Each' for that item, or null for an item skipped after 'Item Timeout'. Empty when 'Sequential' is off.",
+            "items": {
+              "type": [
+                "object",
+                "null"
+              ]
+            },
+            "example": [
+              {
+                "id": "1001",
+                "status": "created"
+              },
+              null,
+              {
+                "id": "1003",
+                "status": "created"
+              }
+            ]
           }
         }
       ]

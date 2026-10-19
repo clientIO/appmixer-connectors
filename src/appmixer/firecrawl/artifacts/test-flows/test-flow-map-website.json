@@ -1,0 +1,244 @@
+{
+    "flow": {
+        "70c75949-2080-4fc9-b287-782edff21032": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a3ca7eac-2393-4979-9a41-6ecf0178c50d": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "70c75949-2080-4fc9-b287-782edff21032": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "70c75949-2080-4fc9-b287-782edff21032": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "testUrl",
+                                                "text": "https://example.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "678a1ffd-c02e-4274-80ca-9fa57a1160fa": {
+            "type": "appmixer.firecrawl.core.MapWebsite",
+            "x": 480,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a3ca7eac-2393-4979-9a41-6ecf0178c50d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a3ca7eac-2393-4979-9a41-6ecf0178c50d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "url": "https://example.com",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6c6aff4f-be7c-45b9-a90c-e40f4f374d5d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "678a1ffd-c02e-4274-80ca-9fa57a1160fa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "678a1ffd-c02e-4274-80ca-9fa57a1160fa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7bd2d80e-2581-401d-99eb-a39e32044ec8": {
+                                            "variable": "$.678a1ffd-c02e-4274-80ca-9fa57a1160fa.out.result",
+                                            "functions": []
+                                        },
+                                        "b1c2d3e4-0001-4a00-9000-000000000001": {
+                                            "variable": "$.678a1ffd-c02e-4274-80ca-9fa57a1160fa.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].url"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "b1c2d3e4-0002-4a00-9000-000000000002": {
+                                            "variable": "$.678a1ffd-c02e-4274-80ca-9fa57a1160fa.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].title"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7bd2d80e-2581-401d-99eb-a39e32044ec8}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{b1c2d3e4-0001-4a00-9000-000000000001}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://"
+                                            },
+                                            {
+                                                "field": "{{{b1c2d3e4-0002-4a00-9000-000000000002}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9c76baf5-6af1-492c-8b45-558cf6aedd66": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6c6aff4f-be7c-45b9-a90c-e40f4f374d5d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1e9ea412-51f4-47c1-a07a-18ade5907075": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "9c76baf5-6af1-492c-8b45-558cf6aedd66": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "9c76baf5-6af1-492c-8b45-558cf6aedd66": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "222afde2-4abf-4eee-8de6-2ce1c37225cf": {
+                                            "variable": "$.9c76baf5-6af1-492c-8b45-558cf6aedd66.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Firecrawl - Map Website",
+                                    "result": "{{{222afde2-4abf-4eee-8de6-2ce1c37225cf}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Firecrawl - Map Website",
+    "notes": {},
+    "type": "automation"
+}

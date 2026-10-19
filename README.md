@@ -12,38 +12,48 @@ This repository contains the officially maintained connectors for Appmixer. They
 ## Getting Started
 To learn how to create custom connectors, refer to our comprehensive guide: [Creating Custom Connectors](https://docs.appmixer.com/getting-started/custom-connectors).
 
-## AI & Development Instructions
+## AI Development
 
-Comprehensive development guidelines for both humans and AI assistants (Copilot, Claude, CodeRabbit, etc.) are maintained in `.github/instructions/`. These cover connector structure, authentication, component types, best practices, and testing.
+AI-assisted connector development lives in the public
+**[appmixer-skills](https://github.com/Appmixer-ai/appmixer-skills)** repository:
+agent skills that build, test, and review connectors end-to-end
+(`build-connector`, `test-connector`, `review-connector`), installable as a
+Claude Code plugin. Start there.
 
-The files are numbered for reading order:
+`.github/copilot-instructions.md` here is a **pointer to that repository**, not a
+copy of it. The full guide used to be generated into this repo, but a 4000-line
+duplicate of another repo's content is a copy that can go stale — and did, for
+ten days, while the workflow meant to refresh it reported success. Rules now have
+exactly one home: open a PR against appmixer-skills `instructions/`.
 
-| File | Topic |
-|------|-------|
-| `00-overview.md` | Project structure overview |
-| `01-connectors.md` | Connector configuration (service.json, bundle.json, quota.js) |
-| `02-authentication.md` | Auth types (API key, OAuth 2.0) |
-| `03-plugins.md` | Plugins, routes, and jobs |
-| `04-components.md` | Component overview |
-| `05-component-config.md` | component.json schema and configuration |
-| `06-component-behavior.md` | Component behavior (JavaScript) |
-| `07-component-types.md` | Action & trigger component patterns |
-| `08-best-practices.md` | Code style, development, and AI guidelines |
-| `09-testing.md` | Unit tests and E2E test flows |
-| `10-agent-instructions.md` | Instructions for AI agents |
+## Developing a connector — commit hooks
 
-A combined version is auto-generated at `.github/copilot-instructions.md` — do not edit it directly. To rebuild after editing instruction files:
+Connector development in this repo is gated by a **pre-commit hook** that
+validates the files in your diff. One-time setup:
 
 ```sh
-node scripts/build-instructions.js
+npm install -g appmixer    # the CLI runs the validators
+                           # (until the next release ships `connector validate`,
+                           #  use the experimental tag: npm install -g appmixer@dev)
+npm run hooks:install      # git pre-commit -> validates your changes
 ```
+
+From then on every commit checks your changed `bundle.json` / `component.json`
+files (strict — new work must be clean; repo-wide legacy debt does not block
+you), and CI runs the same gate on every PR into `dev`. Manual runs:
+`npm run validate:changed` (your diff) or `npm run validate` (whole repo).
+
+What the validators check is documented in the appmixer CLI — see the
+[appmixer package on npm](https://www.npmjs.com/package/appmixer) or
+`appmixer connector validate --help`.
 
 ## Contribution Guidelines
 We welcome contributions from the community! To contribute:
 1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Ensure your code adheres to our coding standards and includes tests.
-4. Submit a pull request with a clear description of your changes.
+2. Install the pre-commit hook (see *Developing a connector* above).
+3. Create a new branch for your feature or bug fix.
+4. Ensure your code adheres to our coding standards and includes tests.
+5. Submit a pull request with a clear description of your changes.
 
 
 ## Examples

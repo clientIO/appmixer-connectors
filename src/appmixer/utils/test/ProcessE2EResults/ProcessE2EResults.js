@@ -17,9 +17,19 @@ async function sendEmail(context, recipients, subject, text, html) {
     await context.log({ step: 'Email sent', message, result });
 }
 
-async function storeResult(context, storeId, key, value) {
+// Stores the result under `key` in `storeId` and drops the same key from `oppositeStoreId` so that
+// at most one record per test case exists and it always reflects the latest outcome.
+async function storeResult(context, storeId, oppositeStoreId, key, value) {
 
-    return context.store.set(storeId, key, value);
+    await context.store.set(storeId, key, value);
+
+    try {
+        await context.store.remove(oppositeStoreId, key);
+    } catch (err) {
+        // The key is usually not there at all (first run, or same outcome as before). Removing a
+        // missing key must not fail the whole component.
+        await context.log({ step: 'Could not remove stale result', storeId: oppositeStoreId, key, error: err.message });
+    }
 }
 
 module.exports = {
@@ -72,7 +82,7 @@ module.exports = {
                             </tr>
                         `).join('')}
                 </table>`;
-            await storeResult(context, failedStoreId, testCase, result);
+            await storeResult(context, failedStoreId, successStoreId, testCase, result);
             await sendEmail(context, content.recipients, subject, text, getHTML(metadata, details));
             return;
         }
@@ -114,10 +124,10 @@ module.exports = {
             const subject = `${testCase} failed`;
             const text = `The following errors were found:\n\n${JSON.stringify(failedAsserts)}\n\nFull test results `
                 + `were:\n\n${JSON.stringify(arrayResults)}`;
-            await storeResult(context, failedStoreId, testCase, result);
+            await storeResult(context, failedStoreId, successStoreId, testCase, result);
             await sendEmail(context, content.recipients, subject, text, getHTML(metadata, details));
         } else {
-            await storeResult(context, successStoreId, testCase, result);
+            await storeResult(context, successStoreId, failedStoreId, testCase, result);
         }
     }
 };

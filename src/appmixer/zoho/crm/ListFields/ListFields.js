@@ -9,10 +9,13 @@ module.exports = {
     async receive(context) {
 
         const { moduleName, filterApiName } = context.messages.in.content;
-        let fields = await context.staticCache.get(moduleName);
+        // staticCache is shared by every user of the instance, and picklist values are organization
+        // specific, so the cache is scoped to the connected Zoho user.
+        const cacheKey = `zoho-crm-fields:${context.profileInfo?.id || context.auth?.accessToken}:${moduleName}`;
+        let fields = await context.staticCache.get(cacheKey);
         if (!fields) {
             fields = await (new ZohoClient(context)).getFields(moduleName);
-            await context.staticCache.set(moduleName, fields, context?.config?.listFieldsCacheTTL || 600000);
+            await context.staticCache.set(cacheKey, fields, context?.config?.listFieldsCacheTTL || 600000);
         }
         if (filterApiName) {
             // eslint-disable-next-line camelcase

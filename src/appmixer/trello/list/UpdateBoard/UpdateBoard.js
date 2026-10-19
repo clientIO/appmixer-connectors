@@ -9,6 +9,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.boardId) {
+            throw new context.CancelError('Board is required!');
+        }
+
         let boardInfo = context.messages.in.content;
         const { data: updatedBoard } = await context.httpRequest({
             headers: { 'Content-Type': 'application/json' },

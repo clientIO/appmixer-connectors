@@ -1,6 +1,6 @@
 {
     "name": "appmixer.postgres",
-    "version": "2.1.1",
+    "version": "2.2.0",
     "changelog": {
         "1.0.0": [
             "Initial version"
@@ -26,6 +26,17 @@
         ],
         "2.1.1": [
             "Added output examples to component schemas."
+        ],
+        "2.2.0": [
+            "Query: Added Async Mode for long-running queries exceeding the standard timeout.",
+            "Async Mode uses the PostgreSQL dblink extension to run queries in a background session.",
+            "Async job state is persisted in MongoDB (pgAsyncJobs collection), surviving Appmixer restarts.",
+            "Added plugin.js with background polling and cleanup jobs for async query management.",
+            "Table dropdowns (CreateRow, DeleteRow, UpdateRow, ListColumns) changed to typeahead text inputs so a table name can be entered manually when the source call fails.",
+            "Query: output port options are now generated without an auth account (ignoreAuth) — they are static and need no database access.",
+            "ListTables, ListColumns: documented the output port payload with a JSON schema (array of catalog rows with examples).",
+            "Async Mode hardening for multi-node deployments: atomic result-delivery claim (no duplicate delivery after stale-job takeover), unique job index (no double query start), read-only enforced server-side via default_transaction_read_only on the dblink session, stale-job recovery skips stopped flows, and result rows are no longer persisted in the job document (avoids the 16MB BSON limit).",
+            "Async Mode now supports the Stream to file output type: the result is streamed into a CSV file in platform storage and only the File ID is delivered, so arbitrarily large result sets are safe."
         ]
     }
 }

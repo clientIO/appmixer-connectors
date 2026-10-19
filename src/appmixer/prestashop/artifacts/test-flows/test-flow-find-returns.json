@@ -1,0 +1,259 @@
+{
+    "name": "E2E PrestaShop - Find Returns",
+    "type": "automation",
+    "notes": {
+        "48c578a2-60ca-5a6f-94b4-ea9839105207": {
+            "x": 64,
+            "y": -80,
+            "width": 672,
+            "height": 288,
+            "content": "## ⚠️ Test data assumption — merchandise returns\n\nPrestaShop does **not** expose RMA records through the Webservice API (no `order_returns` resource in any version), so **Find Returns reconstructs the return journey from the order state history** (states with the `refund` e-mail template or a return/refund name).\n\nThis flow therefore **provokes its own test data**: the MakeApiCall step POSTs a `Refunded` state (id `7`) into the history of **order `1`** via `/order_histories`. For this to work on your shop:\n\n- an order with ID `1` must exist and belong to the customer used in Find Returns (demo data: customer `2`, `pub@prestashop.com`) — otherwise change both IDs,\n- the webservice key needs **POST** permission on `order_histories`,\n- state changes may trigger customer e-mails — configure SMTP or disable mail (`PS_MAIL_METHOD=3`).\n\nSee `src/appmixer/prestashop/README.md` for a full local test-instance setup."
+        }
+    },
+    "flow": {
+        "18378e49-415e-4200-8334-80e0462f9170": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 240,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bce37691-d306-4e01-bca8-3c4d54c749c3": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "18378e49-415e-4200-8334-80e0462f9170": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "18378e49-415e-4200-8334-80e0462f9170": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Name",
+                                                "text": "E2E Find Returns"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b23fd0df-7c95-4721-b35c-600210094057": {
+            "type": "appmixer.prestashop.core.FindReturns",
+            "x": 448,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bbbb1111-2222-3333-4444-555566667777": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bbbb1111-2222-3333-4444-555566667777": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "customerId": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "customerId": "2",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "899583c1-a9b3-49d7-b710-664999a4f995": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b23fd0df-7c95-4721-b35c-600210094057": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b23fd0df-7c95-4721-b35c-600210094057": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ad8de1c7-2e92-4431-b2ae-872447fc235a": {
+                                            "variable": "$.b23fd0df-7c95-4721-b35c-600210094057.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ad8de1c7-2e92-4431-b2ae-872447fc235a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a5fd2c9a-6e5b-4f4f-a726-cbdd57731eb7": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 240,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "899583c1-a9b3-49d7-b710-664999a4f995": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "17119402-ddfb-4215-b196-0af59c5ecbfb": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1024,
+            "y": 240,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "a5fd2c9a-6e5b-4f4f-a726-cbdd57731eb7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a5fd2c9a-6e5b-4f4f-a726-cbdd57731eb7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "11b24d38-14e4-451d-9959-533d6d285f59": {
+                                            "variable": "$.a5fd2c9a-6e5b-4f4f-a726-cbdd57731eb7.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E PrestaShop - Find Returns",
+                                    "result": "{{{11b24d38-14e4-451d-9959-533d6d285f59}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bbbb1111-2222-3333-4444-555566667777": {
+            "type": "appmixer.prestashop.core.MakeApiCall",
+            "x": 352,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bce37691-d306-4e01-bca8-3c4d54c749c3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bce37691-d306-4e01-bca8-3c4d54c749c3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "url": "/order_histories",
+                                    "method": "POST",
+                                    "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n  <order_history>\n    <id_order>1</id_order>\n    <id_order_state>7</id_order_state>\n  </order_history>\n</prestashop>"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

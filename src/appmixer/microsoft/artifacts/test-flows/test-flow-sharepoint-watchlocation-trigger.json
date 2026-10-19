@@ -1,0 +1,347 @@
+{
+    "name": "E2E Microsoft SharePoint - Watch Location Trigger",
+    "description": "Provokes the SharePoint Watch Location trigger by uploading a file into a dedicated, otherwise empty document library.",
+    "type": "automation",
+    "flow": {
+        "ab4d7e6c-68f8-4373-9a36-3764a9d88431": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "14fec65d-8da7-4f2b-9814-40845a2148a9": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 400,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ab4d7e6c-68f8-4373-9a36-3764a9d88431": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ab4d7e6c-68f8-4373-9a36-3764a9d88431": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fec25e22-86f1-41c7-9f79-0e2b9ab16fa9": {
+            "type": "appmixer.utils.files.SaveFile",
+            "x": 700,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "14fec65d-8da7-4f2b-9814-40845a2148a9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "14fec65d-8da7-4f2b-9814-40845a2148a9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filename": {
+                                        "dd3c4e79-08b4-49b8-bea8-eeb0c273ad3b": {
+                                            "variable": "$.ab4d7e6c-68f8-4373-9a36-3764a9d88431.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_formatDate",
+                                                    "params": [
+                                                        {
+                                                            "value": "YYYYMMDD-HHmmss"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "mimetype": {},
+                                    "content": {},
+                                    "contentEncoding": {}
+                                },
+                                "lambda": {
+                                    "filename": "e2e-sharepoint-watchlocation-{{{dd3c4e79-08b4-49b8-bea8-eeb0c273ad3b}}}.txt",
+                                    "mimetype": "text/plain",
+                                    "content": "Appmixer E2E fixture for the SharePoint Watch Location delta trigger.",
+                                    "contentEncoding": "utf8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "524359e2-3957-4673-a0d7-9081718c386d": {
+            "type": "appmixer.microsoft.sharepoint.UploadFile",
+            "x": 1000,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "fec25e22-86f1-41c7-9f79-0e2b9ab16fa9": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fec25e22-86f1-41c7-9f79-0e2b9ab16fa9": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "siteId": {},
+                                    "driveId": {},
+                                    "parentPath": {},
+                                    "fileId": {
+                                        "a83f9291-5e64-4a6f-87c4-f3fe878809f8": {
+                                            "variable": "$.fec25e22-86f1-41c7-9f79-0e2b9ab16fa9.file.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileName": {
+                                        "3798d818-1dcb-416a-a0af-083248b91c49": {
+                                            "variable": "$.fec25e22-86f1-41c7-9f79-0e2b9ab16fa9.file.filename",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "siteId": "appmixer.sharepoint.com,8238da12-a4f0-41e6-ae43-2f8ea30b3e08,0e1dce53-0a53-4fd1-9574-37cc6133c911",
+                                    "driveId": "b!Eto4gvCk5kGuQy-Oows-CFPOHQ5TCtFPlXQ3zGEzyRH0QXrcZ7cRTpnsUe-6sqyO",
+                                    "parentPath": "E2E-WatchLocation",
+                                    "fileId": "{{{a83f9291-5e64-4a6f-87c4-f3fe878809f8}}}",
+                                    "fileName": "{{{3798d818-1dcb-416a-a0af-083248b91c49}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2c97ba35-3bea-475c-bdbd-c45eca6ed90c": {
+            "type": "appmixer.microsoft.sharepoint.WatchLocation",
+            "x": 100,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "siteId": "appmixer.sharepoint.com,8238da12-a4f0-41e6-ae43-2f8ea30b3e08,0e1dce53-0a53-4fd1-9574-37cc6133c911",
+                    "driveId": "b!Eto4gvCk5kGuQy-Oows-CFPOHQ5TCtFPlXQ3zGEzyRH0QXrcZ7cRTpnsUe-6sqyO"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7536c32f-b1e2-42fa-9156-5e82bf03f44e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 400,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2c97ba35-3bea-475c-bdbd-c45eca6ed90c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2c97ba35-3bea-475c-bdbd-c45eca6ed90c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c535cc81-c937-44c5-bf5c-618edc43bdac": {
+                                            "variable": "$.2c97ba35-3bea-475c-bdbd-c45eca6ed90c.out.id",
+                                            "functions": []
+                                        },
+                                        "9e9e5c6e-38b3-4fda-9be8-d0eec908a2f8": {
+                                            "variable": "$.2c97ba35-3bea-475c-bdbd-c45eca6ed90c.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c535cc81-c937-44c5-bf5c-618edc43bdac}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{9e9e5c6e-38b3-4fda-9be8-d0eec908a2f8}}}",
+                                                "assertion": "regex",
+                                                "regex": "^e2e-sharepoint-watchlocation-"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "da6d803e-31d7-4385-a3a4-8d481b9d7914": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 700,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7536c32f-b1e2-42fa-9156-5e82bf03f44e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d136e12e-79ee-4d4a-85fb-45792e7588e3": {
+            "type": "appmixer.microsoft.sharepoint.MakeApiCall",
+            "x": 1000,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "da6d803e-31d7-4385-a3a4-8d481b9d7914": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "da6d803e-31d7-4385-a3a4-8d481b9d7914": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "8c4100fe-44aa-4100-86fa-ff053d86555f": {
+                                            "variable": "$.2c97ba35-3bea-475c-bdbd-c45eca6ed90c.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/drives/b!Eto4gvCk5kGuQy-Oows-CFPOHQ5TCtFPlXQ3zGEzyRH0QXrcZ7cRTpnsUe-6sqyO/items/{{{8c4100fe-44aa-4100-86fa-ff053d86555f}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4d931bc8-79d7-4e2f-846a-9a8d569be9bc": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1300,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d136e12e-79ee-4d4a-85fb-45792e7588e3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d136e12e-79ee-4d4a-85fb-45792e7588e3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "20cdf7c2-1b8d-46b8-9d1b-c7d71494582e": {
+                                            "variable": "$.da6d803e-31d7-4385-a3a4-8d481b9d7914.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Microsoft SharePoint - Watch Location Trigger",
+                                    "result": "{{{20cdf7c2-1b8d-46b8-9d1b-c7d71494582e}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "d60ea780-7170-4ba9-b9db-a3e2f028fec1": {
+            "x": 64,
+            "y": 640,
+            "width": 900,
+            "height": 260,
+            "content": "## ⚠️ Test data assumption\n\n`WatchLocation` has no parent-path property — it watches an **entire drive** — and the cleanup\ndeletes whatever item id the trigger reports. This flow therefore deliberately uses the empty\n**Documents** library of the **TestSite1** SharePoint site, not the shared Stg Appmixer QA library\nthe other SharePoint E2E flows use.\n\nThe upload target folder `E2E-WatchLocation` must exist in that library — create it with\n`appmixer.microsoft.sharepoint.CreateFolder` on a fresh tenant.\n\nNothing else may write to that library while the flow runs, or the cleanup will delete a foreign\nfile. `Wait 1m` lets the Graph subscription propagate — do not remove it.\n\nThe account needs `Files.Read.All`, `Sites.Read.All` (trigger), `Files.ReadWrite.All` (upload)\nand `Sites.ReadWrite.All` (cleanup Make API Call)."
+        }
+    }
+}

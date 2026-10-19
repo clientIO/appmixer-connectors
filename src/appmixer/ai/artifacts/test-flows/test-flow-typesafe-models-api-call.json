@@ -1,0 +1,378 @@
+{
+    "name": "E2E AI TypeSafe - models and API call",
+    "description": "End-to-end test for the TypeSafe module of the AI connector — List Models (first item) and Make API Call with a relative GET path and an absolute POST URL carrying a JSON body.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "2e11cf7b-d29a-4c17-aa7d-b341eec8d144": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "94d402f3-311a-4dee-900f-2a10f1d35f3e": {
+            "type": "appmixer.ai.typesafe.ListModels",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2e11cf7b-d29a-4c17-aa7d-b341eec8d144": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2e11cf7b-d29a-4c17-aa7d-b341eec8d144": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7268269f-6bc2-4a32-b8c1-994664d62c8d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "94d402f3-311a-4dee-900f-2a10f1d35f3e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "94d402f3-311a-4dee-900f-2a10f1d35f3e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "54107f82-ffe4-40a7-8495-a903b972f141": {
+                                            "variable": "$.94d402f3-311a-4dee-900f-2a10f1d35f3e.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{54107f82-ffe4-40a7-8495-a903b972f141}}}",
+                                                "assertion": "regex",
+                                                "regex": "^jev-"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "140b158c-83ff-4c1e-b94e-75578ef0abfe": {
+            "type": "appmixer.ai.typesafe.MakeApiCall",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "94d402f3-311a-4dee-900f-2a10f1d35f3e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "94d402f3-311a-4dee-900f-2a10f1d35f3e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "/v1/models",
+                                    "method": "GET",
+                                    "headers": "[{\"key\": \"x-appmixer-e2e\", \"value\": \"ai-typesafe\"}]"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "269502e4-f9d7-4678-a73b-081be0c04b7c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "140b158c-83ff-4c1e-b94e-75578ef0abfe": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "140b158c-83ff-4c1e-b94e-75578ef0abfe": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "54f5f23c-c744-44fd-a1ae-afc9f8299c30": {
+                                            "variable": "$.140b158c-83ff-4c1e-b94e-75578ef0abfe.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{54f5f23c-c744-44fd-a1ae-afc9f8299c30}}}",
+                                                "assertion": "equal",
+                                                "expected": 200
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b4fa1ba1-1832-461a-940b-7a4815d4190e": {
+            "type": "appmixer.ai.typesafe.MakeApiCall",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "140b158c-83ff-4c1e-b94e-75578ef0abfe": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "140b158c-83ff-4c1e-b94e-75578ef0abfe": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "https://api.typesafe.ai/v1/systemone",
+                                    "method": "POST",
+                                    "body": "{\"model\":\"jev-latest\",\"state\":\"URGENT: the payment page is down for every customer, please fix it immediately.\",\"questions\":{\"is_urgent\":{\"type\":\"noul\",\"instructions\":\"The message is urgent\"}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "665342ca-d055-4952-b444-5f0f5aa1cf99": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b4fa1ba1-1832-461a-940b-7a4815d4190e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b4fa1ba1-1832-461a-940b-7a4815d4190e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c32a83f7-856c-4b00-8f31-d8621bfe828c": {
+                                            "variable": "$.b4fa1ba1-1832-461a-940b-7a4815d4190e.out.status",
+                                            "functions": []
+                                        },
+                                        "b7495c4d-6d11-4947-b649-832a32004e1d": {
+                                            "variable": "$.b4fa1ba1-1832-461a-940b-7a4815d4190e.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.answers.is_urgent.type"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "83f07d8f-ff8c-4b72-887d-73686bb1cfed": {
+                                            "variable": "$.b4fa1ba1-1832-461a-940b-7a4815d4190e.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.model"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c32a83f7-856c-4b00-8f31-d8621bfe828c}}}",
+                                                "assertion": "equal",
+                                                "expected": 200
+                                            },
+                                            {
+                                                "field": "{{{b7495c4d-6d11-4947-b649-832a32004e1d}}}",
+                                                "assertion": "equal",
+                                                "expected": "noul"
+                                            },
+                                            {
+                                                "field": "{{{83f07d8f-ff8c-4b72-887d-73686bb1cfed}}}",
+                                                "assertion": "regex",
+                                                "regex": "^jev-"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2223ebf6-47f4-43b3-9678-524b532b4000": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7268269f-6bc2-4a32-b8c1-994664d62c8d": [
+                        "out"
+                    ],
+                    "269502e4-f9d7-4678-a73b-081be0c04b7c": [
+                        "out"
+                    ],
+                    "665342ca-d055-4952-b444-5f0f5aa1cf99": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2300e286-1f10-4823-aaea-ae06258f8fc8": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "2223ebf6-47f4-43b3-9678-524b532b4000": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "2223ebf6-47f4-43b3-9678-524b532b4000": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "c5ead53f-1846-4ebc-9fdd-38b2cc54f9b2": {
+                                            "variable": "$.2223ebf6-47f4-43b3-9678-524b532b4000.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E AI TypeSafe - models and API call",
+                                    "result": "{{{c5ead53f-1846-4ebc-9fdd-38b2cc54f9b2}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

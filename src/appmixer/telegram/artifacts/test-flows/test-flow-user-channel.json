@@ -1,0 +1,415 @@
+{
+    "name": "E2E Telegram User - channel read",
+    "flow": {
+        "07c9f45b-8895-42a1-9a99-4fbf2908ee47": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "392fef6a-cfc0-4088-ab3e-22659c750b04": {
+            "type": "appmixer.telegram.user.GetChannel",
+            "x": 272,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "07c9f45b-8895-42a1-9a99-4fbf2908ee47": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "07c9f45b-8895-42a1-9a99-4fbf2908ee47": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channel": {}
+                                },
+                                "lambda": {
+                                    "channel": "@telegram"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "de63a24c-a0db-42ce-8756-568dc8f293d4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "392fef6a-cfc0-4088-ab3e-22659c750b04": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "392fef6a-cfc0-4088-ab3e-22659c750b04": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "4fc784c4-222f-4b6c-adf6-bf736a59ef55": {
+                                            "variable": "$.392fef6a-cfc0-4088-ab3e-22659c750b04.out.id",
+                                            "functions": []
+                                        },
+                                        "1d2e87e7-af42-4a96-a61b-da2157cbf5e4": {
+                                            "variable": "$.392fef6a-cfc0-4088-ab3e-22659c750b04.out.title",
+                                            "functions": []
+                                        },
+                                        "944288b0-3f1e-4f9b-8be6-4979e137fa31": {
+                                            "variable": "$.392fef6a-cfc0-4088-ab3e-22659c750b04.out.type",
+                                            "functions": []
+                                        },
+                                        "db695cdc-58cc-445e-98d8-78657dbb59ec": {
+                                            "variable": "$.392fef6a-cfc0-4088-ab3e-22659c750b04.out.is_public",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{4fc784c4-222f-4b6c-adf6-bf736a59ef55}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{1d2e87e7-af42-4a96-a61b-da2157cbf5e4}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{944288b0-3f1e-4f9b-8be6-4979e137fa31}}}",
+                                                "assertion": "equal",
+                                                "expected": "channel"
+                                            },
+                                            {
+                                                "field": "{{{db695cdc-58cc-445e-98d8-78657dbb59ec}}}",
+                                                "assertion": "equal",
+                                                "expected": "true"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c41c5fbe-dd34-41a2-8359-d052530920ec": {
+            "type": "appmixer.telegram.user.FindChannelMessages",
+            "x": 688,
+            "y": 448,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "07c9f45b-8895-42a1-9a99-4fbf2908ee47": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "07c9f45b-8895-42a1-9a99-4fbf2908ee47": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channel": {},
+                                    "maxResults": {},
+                                    "minId": {},
+                                    "offsetDate": {
+                                        "d480865e-dca6-4038-9bbd-52b558e708dc": {
+                                            "variable": "$.07c9f45b-8895-42a1-9a99-4fbf2908ee47.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now",
+                                                    "params": []
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "channel": "https://t.me/telegram",
+                                    "maxResults": 5,
+                                    "minId": 1,
+                                    "offsetDate": "{{{d480865e-dca6-4038-9bbd-52b558e708dc}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ecf9b441-4d4a-4106-b0e2-e6a19b87ca63": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 448,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c41c5fbe-dd34-41a2-8359-d052530920ec": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c41c5fbe-dd34-41a2-8359-d052530920ec": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e6f0ce23-ef59-4177-b2ed-cca0e4063d76": {
+                                            "variable": "$.c41c5fbe-dd34-41a2-8359-d052530920ec.out.id",
+                                            "functions": []
+                                        },
+                                        "df2086dd-579d-4f95-876b-302f285208e8": {
+                                            "variable": "$.c41c5fbe-dd34-41a2-8359-d052530920ec.out.date",
+                                            "functions": []
+                                        },
+                                        "a8517824-538d-409a-a652-1f4a95fe9d13": {
+                                            "variable": "$.c41c5fbe-dd34-41a2-8359-d052530920ec.out.channel_username",
+                                            "functions": []
+                                        },
+                                        "9966b923-73f4-4f7d-8811-70952d852c2c": {
+                                            "variable": "$.c41c5fbe-dd34-41a2-8359-d052530920ec.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{e6f0ce23-ef59-4177-b2ed-cca0e4063d76}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{df2086dd-579d-4f95-876b-302f285208e8}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{a8517824-538d-409a-a652-1f4a95fe9d13}}}",
+                                                "assertion": "equal",
+                                                "expected": "telegram"
+                                            },
+                                            {
+                                                "field": "{{{9966b923-73f4-4f7d-8811-70952d852c2c}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https://t\\.me/telegram/\\d+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9988deba-5b8f-48f8-8626-0ae780276485": {
+            "type": "appmixer.telegram.user.FindChannelMessages",
+            "x": 1104,
+            "y": 576,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "07c9f45b-8895-42a1-9a99-4fbf2908ee47": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "07c9f45b-8895-42a1-9a99-4fbf2908ee47": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channel": {},
+                                    "maxResults": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "channel": "@telegram",
+                                    "maxResults": 3,
+                                    "outputType": "file"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b29c9fdf-db53-48fb-be1f-73ba2e3d063e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 576,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9988deba-5b8f-48f8-8626-0ae780276485": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9988deba-5b8f-48f8-8626-0ae780276485": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "600bbd53-279e-4666-986f-d8c83b9e5e74": {
+                                            "variable": "$.9988deba-5b8f-48f8-8626-0ae780276485.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{600bbd53-279e-4666-986f-d8c83b9e5e74}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d9cf0405-2b96-4832-b908-4b4d12bf99a8": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "de63a24c-a0db-42ce-8756-568dc8f293d4": [
+                        "out"
+                    ],
+                    "ecf9b441-4d4a-4106-b0e2-e6a19b87ca63": [
+                        "out"
+                    ],
+                    "b29c9fdf-db53-48fb-be1f-73ba2e3d063e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d2556b84-5df7-45ef-a24c-4886573495b4": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d9cf0405-2b96-4832-b908-4b4d12bf99a8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "695d11bf9bd2c7da7fff03f6",
+                    "failedStoreId": "695d11c1c38355dede7fa7a0"
+                },
+                "transform": {
+                    "in": {
+                        "d9cf0405-2b96-4832-b908-4b4d12bf99a8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "f33f0572-8099-4024-9956-5f10266adcab": {
+                                            "variable": "$.d9cf0405-2b96-4832-b908-4b4d12bf99a8.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Telegram User - channel read",
+                                    "result": "{{{f33f0572-8099-4024-9956-5f10266adcab}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "94e2fbdc-8950-4711-89e2-50e0749a4fd4": {
+            "x": 64,
+            "y": 64,
+            "width": 560,
+            "height": 220,
+            "content": "## Test data assumption\n\n- Account: a **Telegram User** account (service `appmixer:telegram:user`) — API ID, API Hash and a session string of a **user** (not bot) account.\n- Reads the official public channel **@telegram** without joining it. It always has posts, so FindChannelMessages (`First Item Only`) never hits `notFound`.\n- Read-only: nothing is created, so there is no cleanup step.\n- If @telegram is restricted in the account's region, point both components at another public channel and update the asserted channel username/URL on Find Channel Messages."
+        }
+    }
+}

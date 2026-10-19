@@ -8,7 +8,10 @@ const lib = require('../../lib');
 module.exports = {
 
     async receive(context) {
-        const { title = '', body = '', assignees = [], labels = [], milestone = '' } = context.messages.in.content;
+        const { issue, title = '', body = '', assignees = [], labels = [], milestone = '' } = context.messages.in.content;
+        if (!issue) {
+            throw new context.CancelError('Issue is required!');
+        }
         let requestData = {};
 
         if (title) requestData.title = title;

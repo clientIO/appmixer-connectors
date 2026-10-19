@@ -1,0 +1,373 @@
+{
+    "name": "E2E Microsoft SharePoint - Deleted File Trigger",
+    "description": "Uploads a file into a dedicated SharePoint folder, deletes it and asserts the Deleted File delta trigger emits the removal.",
+    "type": "automation",
+    "flow": {
+        "baa995c4-63f6-48e5-9ea3-c495c345f284": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "914f2123-0d2a-4ad5-8036-b460dc7d2fba": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 400,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "baa995c4-63f6-48e5-9ea3-c495c345f284": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "baa995c4-63f6-48e5-9ea3-c495c345f284": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d85a23f4-84a5-417a-8f7f-c4c174d5a50a": {
+            "type": "appmixer.utils.files.SaveFile",
+            "x": 700,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "914f2123-0d2a-4ad5-8036-b460dc7d2fba": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "914f2123-0d2a-4ad5-8036-b460dc7d2fba": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filename": {
+                                        "e173afd1-5662-4a32-8c6b-2e2cccc689a3": {
+                                            "variable": "$.baa995c4-63f6-48e5-9ea3-c495c345f284.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_formatDate",
+                                                    "params": [
+                                                        {
+                                                            "value": "YYYYMMDD-HHmmss"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "mimetype": {},
+                                    "content": {},
+                                    "contentEncoding": {}
+                                },
+                                "lambda": {
+                                    "filename": "e2e-sharepoint-deletedfile-{{{e173afd1-5662-4a32-8c6b-2e2cccc689a3}}}.txt",
+                                    "mimetype": "text/plain",
+                                    "content": "Appmixer E2E fixture for the SharePoint Deleted File delta trigger.",
+                                    "contentEncoding": "utf8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "639811a0-9e49-487b-ad5c-8a576360b31a": {
+            "type": "appmixer.microsoft.sharepoint.UploadFile",
+            "x": 1000,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d85a23f4-84a5-417a-8f7f-c4c174d5a50a": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d85a23f4-84a5-417a-8f7f-c4c174d5a50a": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "siteId": {},
+                                    "driveId": {},
+                                    "parentPath": {},
+                                    "fileId": {
+                                        "af81d6f1-a233-4381-a1e1-a3a253d217f7": {
+                                            "variable": "$.d85a23f4-84a5-417a-8f7f-c4c174d5a50a.file.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileName": {
+                                        "3f42b79b-ef8c-490e-8f43-b8de8a351301": {
+                                            "variable": "$.d85a23f4-84a5-417a-8f7f-c4c174d5a50a.file.filename",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "siteId": "appmixer.sharepoint.com,143e1507-a38a-4a41-87da-29794c81011b,a851d241-aeab-43b5-8426-dc8cc87e9351",
+                                    "driveId": "b!BxU-FIqjQUqH2il5TIEBG0HSUairrrVDhCbcjMh-k1HpggReNXwPS6zVg-Y8qiuC",
+                                    "parentPath": "E2E-Delta-Triggers/DeletedFile",
+                                    "fileId": "{{{af81d6f1-a233-4381-a1e1-a3a253d217f7}}}",
+                                    "fileName": "{{{3f42b79b-ef8c-490e-8f43-b8de8a351301}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "93bce72e-4acf-4249-b2ae-fd33822f5a82": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 1300,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "639811a0-9e49-487b-ad5c-8a576360b31a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "639811a0-9e49-487b-ad5c-8a576360b31a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "81ed4f02-6afb-452f-bae9-080fbf6a1140": {
+            "type": "appmixer.microsoft.sharepoint.MakeApiCall",
+            "x": 1600,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "93bce72e-4acf-4249-b2ae-fd33822f5a82": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "93bce72e-4acf-4249-b2ae-fd33822f5a82": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "cdf097d2-467f-41fb-b3a7-8dcee5a11064": {
+                                            "variable": "$.639811a0-9e49-487b-ad5c-8a576360b31a.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/drives/b!BxU-FIqjQUqH2il5TIEBG0HSUairrrVDhCbcjMh-k1HpggReNXwPS6zVg-Y8qiuC/items/{{{cdf097d2-467f-41fb-b3a7-8dcee5a11064}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ba33d635-3d67-44b2-b9d9-bb73385665c8": {
+            "type": "appmixer.microsoft.sharepoint.DeletedFile",
+            "x": 100,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "siteId": "appmixer.sharepoint.com,143e1507-a38a-4a41-87da-29794c81011b,a851d241-aeab-43b5-8426-dc8cc87e9351",
+                    "driveId": "b!BxU-FIqjQUqH2il5TIEBG0HSUairrrVDhCbcjMh-k1HpggReNXwPS6zVg-Y8qiuC",
+                    "parentPath": "E2E-Delta-Triggers/DeletedFile"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9edbcb4a-9c4a-4551-bcc6-d6dfc1bf1f37": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 400,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ba33d635-3d67-44b2-b9d9-bb73385665c8": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ba33d635-3d67-44b2-b9d9-bb73385665c8": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e3f8e7a0-4440-4859-82d4-0bf1b776f034": {
+                                            "variable": "$.ba33d635-3d67-44b2-b9d9-bb73385665c8.file.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{e3f8e7a0-4440-4859-82d4-0bf1b776f034}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "16666f14-efc3-47fa-899e-73420b854826": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 700,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9edbcb4a-9c4a-4551-bcc6-d6dfc1bf1f37": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 720
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "aa8a0ad7-519f-4ea0-b4f2-04be83c9a056": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1000,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "16666f14-efc3-47fa-899e-73420b854826": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "16666f14-efc3-47fa-899e-73420b854826": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a5bb166d-247b-401c-a43c-466f96ae5dc7": {
+                                            "variable": "$.16666f14-efc3-47fa-899e-73420b854826.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Microsoft SharePoint - Deleted File Trigger",
+                                    "result": "{{{a5bb166d-247b-401c-a43c-466f96ae5dc7}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "2e7a2a5b-b144-4ec1-bef7-f8f17243d886": {
+            "x": 64,
+            "y": 640,
+            "width": 900,
+            "height": 260,
+            "content": "## ⚠️ Test data assumption\n\nBoth lanes are scoped to `E2E-Delta-Triggers/DeletedFile` in the **Documents** library of the **Stg Appmixer QA**\nSharePoint site. Create that folder with `appmixer.microsoft.sharepoint.CreateFolder`\n(parent path `E2E-Delta-Triggers`) on a fresh tenant.\n\nThe provoking Make API Call deletes the file this flow uploaded, so it doubles as the cleanup —\nthere is nothing left behind and no cleanup component after AfterAll.\n\n`Wait 1m` lets the Graph subscription propagate before the file is created and `Wait 2m` keeps the\ncreate and the delete in separate delta pages. Do not remove either.\n\nThe account needs `Files.Read.All`, `Sites.Read.All`, `Subscription.Read.All` (trigger),\n`Files.ReadWrite.All` (upload) and `Sites.ReadWrite.All` (Make API Call)."
+        }
+    }
+}

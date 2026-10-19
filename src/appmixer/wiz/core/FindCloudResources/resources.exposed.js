@@ -256,9 +256,23 @@ const outputSchema = {
         title: 'Graph Entity'
     }
 };
+// Default and hard cap for the number of records fetched in a single receive().
+// Without a cap a large `limit` fans out one message per record downstream and
+// keeps the component paginating (500/page) for the whole duration of receive().
+const DEFAULT_LIMIT = 100;
+const MAX_LIMIT = 10000;
+
 module.exports = {
     schema: outputSchema,
+    // Always returns an array of records (possibly empty). The caller decides how
+    // to route an empty result so we never mix a `notFound` response with the
+    // records already accumulated on earlier pages.
     async getResources(context, { PAGE_SIZE = 500, limit, filterBy }) {
+
+        // Clamp to [1, MAX_LIMIT] — a zero/negative/non-numeric limit falls back
+        // to the default instead of leaking an invalid `first` into the GraphQL query.
+        const parsedLimit = parseInt(limit, 10);
+        const effectiveLimit = Math.min(parsedLimit > 0 ? parsedLimit : DEFAULT_LIMIT, MAX_LIMIT);
 
         let nextPageToken = null;
         let totalRecordsCount = 0;
@@ -266,7 +280,7 @@ module.exports = {
 
         do {
             const variables = {
-                first: Math.min(PAGE_SIZE, limit - totalRecordsCount),
+                first: Math.min(PAGE_SIZE, effectiveLimit - totalRecordsCount),
                 filterBy
             };
 
@@ -287,17 +301,18 @@ module.exports = {
                 throw new context.CancelError(data.errors);
             }
 
-            const { pageInfo = {}, nodes } = data.data.cloudResources;
+            const { pageInfo = {}, nodes = [] } = data.data.cloudResources;
 
             if (nodes.length === 0) {
-                return context.sendJson({ filter: filterBy }, 'notFound');
+                // No more results on this page; stop and return whatever we have.
+                break;
             }
 
             records = records.concat(nodes);
             totalRecordsCount += nodes.length;
             nextPageToken = pageInfo.hasNextPage ? pageInfo.endCursor : null;
-        } while (nextPageToken && totalRecordsCount < limit);
+        } while (nextPageToken && totalRecordsCount < effectiveLimit);
 
-        return records;
+        return records.slice(0, effectiveLimit);
     }
 };

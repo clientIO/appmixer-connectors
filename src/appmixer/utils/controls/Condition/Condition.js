@@ -3,6 +3,8 @@
 const _ = require('lodash');
 const moment = require('moment');
 
+const OPERATORS = ['=', '!=', '>', '>=', '<', '<=', '%', 'empty', 'notEmpty', 'contains', 'range', 'regex'];
+
 module.exports = {
 
     receive(context) {
@@ -15,6 +17,10 @@ module.exports = {
         /** All AND expressions */
         const expressions = context.messages.in.content.expression['AND'];
         context.log({ step: 'expressions', expressions });
+
+        // The 'in' port schema rejects a clause without a supported operator before receive() is called (the engine
+        // and the CLI both validate the port first). This is the fallback for a caller that skips port validation.
+        validateClauses(context, expressions);
 
         for (let i in expressions) {
             const expressionAnd = expressions[i];
@@ -82,8 +88,7 @@ module.exports = {
                         }
                         break;
                     case 'regex':
-                        const regex = new RegExp(exp.regex);
-                        if (regex.test(exp.input)) {
+                        if (matchesRegex(context, exp.input, exp.regex)) {
                             okCount++;
                         }
                         break;
@@ -105,6 +110,25 @@ module.exports = {
         return context.sendJson({}, 'false');
     }
 };
+
+function validateClauses(context, expressions) {
+
+    for (let i in expressions) {
+        for (let j in (expressions[i] || {})['OR']) {
+            const exp = expressions[i]['OR'][j];
+            const path = `AND[${i}].OR[${j}]`;
+            const operator = exp ? exp.operator : undefined;
+            if (operator === undefined || operator === null || operator === '') {
+                throw new context.CancelError(`${path}: missing operator. Supported operators: ${OPERATORS.join(', ')}.`);
+            }
+            if (!OPERATORS.includes(operator)) {
+                throw new context.CancelError(
+                    `${path}: unsupported operator '${operator}'. Supported operators: ${OPERATORS.join(', ')}.`
+                );
+            }
+        }
+    }
+}
 
 function isLooseEqual(a, b) {
 
@@ -195,13 +219,38 @@ function isDate(text) {
 
 function contains(sourceData, value) {
 
+    // A missing input (e.g. a null field from the upstream component) does not contain anything.
+    if (sourceData === undefined || sourceData === null) {
+        return false;
+    }
     if (typeof sourceData != 'string') {
         sourceData = JSON.stringify(sourceData);
     }
     if (typeof value != 'string') {
         value = JSON.stringify(value);
     }
+    // JSON.stringify() returns undefined for undefined, functions and symbols.
+    if (typeof sourceData != 'string' || typeof value != 'string') {
+        return false;
+    }
     return sourceData.toLowerCase().indexOf(value.toLowerCase()) > -1;
+}
+
+function matchesRegex(context, sourceData, pattern) {
+
+    // A missing input never matches (RegExp.test() would otherwise test the string 'undefined' / 'null').
+    if (sourceData === undefined || sourceData === null) {
+        return false;
+    }
+
+    let regex;
+    try {
+        regex = new RegExp(pattern);
+    } catch (err) {
+        // An invalid pattern fails the same way on every retry.
+        throw new context.CancelError(`Invalid regular expression: ${err.message}`);
+    }
+    return regex.test(sourceData);
 }
 
 function isInRange(sourceData, rangeMin, rangeMax, exclusiveMin, exclusiveMax) {

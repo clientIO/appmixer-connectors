@@ -1,17 +1,34 @@
 'use strict';
 
-const schema = {
-    'keyId': { 'type': 'string', 'title': 'Key ID' },
-    'name': { 'type': 'string', 'title': 'Name' },
-    'ownerId': { 'type': 'string', 'title': 'Owner ID' },
-    'enabled': { 'type': 'boolean', 'title': 'Enabled' },
-    'expires': { 'type': 'integer', 'title': 'Expires' },
-    'createdAt': { 'type': 'string', 'title': 'Created At' },
-    'meta': { 'type': 'object', 'title': 'Metadata' },
-    'remaining': { 'type': 'integer', 'title': 'Remaining' }
+// Shape of one key in the v2 `apis.listKeys` response (KeyResponseData).
+const ITEM_SCHEMA = {
+    type: 'object',
+    properties: {
+        'keyId': { 'type': 'string', 'title': 'Key ID', 'example': 'key_2cGKbMxRyIzhCxo1Idjz8q' },
+        'start': { 'type': 'string', 'title': 'Start', 'example': 'acme_3ZK8' },
+        'name': { 'type': ['string', 'null'], 'title': 'Name', 'example': 'Production API Key' },
+        'enabled': { 'type': 'boolean', 'title': 'Enabled', 'example': true },
+        'expires': { 'type': ['integer', 'null'], 'title': 'Expires', 'example': 1789029000000 },
+        'createdAt': { 'type': 'integer', 'title': 'Created At', 'example': 1757493000000 },
+        'updatedAt': { 'type': ['integer', 'null'], 'title': 'Updated At', 'example': 1757579400000 },
+        'meta': { 'type': ['object', 'null'], 'title': 'Metadata', 'example': { 'plan': 'pro' } },
+        'credits': {
+            'type': ['object', 'null'],
+            'title': 'Credits',
+            'example': { 'remaining': 1000, 'refill': { 'interval': 'monthly', 'amount': 1000, 'refillDay': 1 } }
+        },
+        'identity': {
+            'type': ['object', 'null'],
+            'title': 'Identity',
+            'example': { 'id': 'id_4Qm7vT2xLp9sRk3N', 'externalId': 'user_1234', 'meta': { 'tier': 'pro' } }
+        }
+    }
 };
+const schema = ITEM_SCHEMA.properties;
 
 module.exports = {
+    ITEM_SCHEMA,
+
     async receive(context) {
         const { apiId, ownerId, outputType } = context.messages.in.content;
 
@@ -35,8 +52,9 @@ module.exports = {
                 limit: 100
             };
 
+            // v2 replaced the key owner with the identity's external ID.
             if (ownerId) {
-                params.ownerId = ownerId;
+                params.externalId = ownerId;
             }
 
             if (cursor) {
@@ -57,11 +75,11 @@ module.exports = {
             allKeys.push(...keys);
 
             // Stop if no more pages or we've reached max records
-            if (!data.hasMore || allKeys.length >= maxRecords) {
+            if (!data.pagination?.hasMore || allKeys.length >= maxRecords) {
                 break;
             }
 
-            cursor = data.cursor;
+            cursor = data.pagination.cursor;
         }
 
         // Trim to max records if needed

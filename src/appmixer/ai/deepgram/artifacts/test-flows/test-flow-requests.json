@@ -1,0 +1,252 @@
+{
+    "name": "E2E Deepgram - Requests (Find and Get)",
+    "flow": {
+        "7e1eda81-e56c-4396-b3f9-94af57855be9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f9d3704a-1058-457f-9ebf-47a848a8816e": {
+            "type": "appmixer.ai.deepgram.ListProjects",
+            "x": 324,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "7e1eda81-e56c-4396-b3f9-94af57855be9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7e1eda81-e56c-4396-b3f9-94af57855be9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "91c99729-71cc-4ac8-b121-be7ace62b30b": {
+            "type": "appmixer.ai.deepgram.FindRequests",
+            "x": 584,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f9d3704a-1058-457f-9ebf-47a848a8816e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f9d3704a-1058-457f-9ebf-47a848a8816e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "projectId": {
+                                        "ef80c553-2138-45e1-bc02-ceba95703464": {
+                                            "functions": [],
+                                            "variable": "$.f9d3704a-1058-457f-9ebf-47a848a8816e.out.project_id"
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "projectId": "{{{ef80c553-2138-45e1-bc02-ceba95703464}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f69b919b-8d46-4c83-8d59-9cc5041361f7": {
+            "type": "appmixer.ai.deepgram.GetRequest",
+            "x": 844,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "91c99729-71cc-4ac8-b121-be7ace62b30b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "91c99729-71cc-4ac8-b121-be7ace62b30b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "projectId": {
+                                        "2c75b373-1473-400b-9f8a-7bc7d0b428bb": {
+                                            "functions": [],
+                                            "variable": "$.f9d3704a-1058-457f-9ebf-47a848a8816e.out.project_id"
+                                        }
+                                    },
+                                    "requestId": {
+                                        "9700dc1a-c14a-4b10-af92-d57cb3929a78": {
+                                            "functions": [],
+                                            "variable": "$.91c99729-71cc-4ac8-b121-be7ace62b30b.out.request_id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "projectId": "{{{2c75b373-1473-400b-9f8a-7bc7d0b428bb}}}",
+                                    "requestId": "{{{9700dc1a-c14a-4b10-af92-d57cb3929a78}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "89c27786-0b96-4f01-bfb1-43fc86782f8a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f69b919b-8d46-4c83-8d59-9cc5041361f7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f69b919b-8d46-4c83-8d59-9cc5041361f7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "5a4066d5-2b68-4e53-9131-794defee0b06": {
+                                            "functions": [],
+                                            "variable": "$.f69b919b-8d46-4c83-8d59-9cc5041361f7.out.request_id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{5a4066d5-2b68-4e53-9131-794defee0b06}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e3a0c166-f8cb-423c-b72a-985976eeaa30": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1364,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "89c27786-0b96-4f01-bfb1-43fc86782f8a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "21e529ec-3fe5-472c-847c-b2b7c04d7411": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1624,
+            "y": 300,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "e3a0c166-f8cb-423c-b72a-985976eeaa30": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "695d11bf9bd2c7da7fff03f6",
+                    "failedStoreId": "695d11c1c38355dede7fa7a0"
+                },
+                "transform": {
+                    "in": {
+                        "e3a0c166-f8cb-423c-b72a-985976eeaa30": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "37bfa5e2-6b45-47de-9be8-9c75a374391c": {
+                                            "functions": [],
+                                            "variable": "$.e3a0c166-f8cb-423c-b72a-985976eeaa30.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Deepgram - Requests (Find and Get)",
+                                    "result": "{{{37bfa5e2-6b45-47de-9be8-9c75a374391c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

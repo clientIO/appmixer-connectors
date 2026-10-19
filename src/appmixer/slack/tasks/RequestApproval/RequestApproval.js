@@ -129,7 +129,8 @@ module.exports = {
             }
         );
 
-        await context.sendJson(task, 'created');
+        // Same `id` as the approved / rejected / due ports (taskId kept for existing flows).
+        await context.sendJson({ ...task, id: task.taskId }, 'created');
     },
 
     async stop(context) {

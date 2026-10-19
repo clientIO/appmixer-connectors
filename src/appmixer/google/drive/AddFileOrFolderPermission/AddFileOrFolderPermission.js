@@ -11,6 +11,10 @@ module.exports = {
         const drive = google.drive({ version: 'v3', auth });
         let { googleDriveFileId, type, role, emailAddress, domain } = context.messages.in.content;
 
+        if (!googleDriveFileId) {
+            throw new context.CancelError('Google Drive File ID is required!');
+        }
+
         const resource = {
             role,
             type

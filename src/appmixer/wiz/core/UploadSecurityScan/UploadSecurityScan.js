@@ -8,70 +8,23 @@ const query = `query RequestSecurityScanUpload($filename: String!) {
         }
     }`;
 
-const statusQuery = `query SystemActivity($id: ID!) {
-          systemActivity(id: $id) {
-              id
-              status
-              statusInfo
-              result {
-                  ...on SystemActivityEnrichmentIntegrationResult{
-                      dataSources {
-                          ... IngestionStatsDetails
-                      }
-                      findings {
-                          ... IngestionStatsDetails
-                      }
-                      events {
-                          ... IngestionStatsDetails
-                      }
-                      tags {
-                          ...IngestionStatsDetails
-          }
-                  }
-              }
-              context {
-                  ... on SystemActivityEnrichmentIntegrationContext{
-                      fileUploadId
-                  }
-              }
-          }
-      }
+// This component keeps a deliberately short poll (5 attempts x 2s) instead of the
+// connector-configurable budget lib.getStatus uses by default: a security scan
+// upload is expected to be acknowledged quickly and receive() must not block.
+const STATUS_ATTEMPTS = 5;
+const STATUS_POLLING_INTERVAL = 2000;
 
-      fragment IngestionStatsDetails on EnrichmentIntegrationStats {
-          incoming
-          handled
-      }`;
+const getStatus = async function(context, id) {
 
-const getStatus = async function(context, id, attempts = 0) {
-
-    context.log({ stage: 'retrieving-upload-status', systemActivityId: id, attempts });
-    const { data } = await lib.makeApiCall({
-        context,
-        method: 'POST',
-        data: {
-            query: statusQuery,
-            variables: {
-                id
-            }
-        }
+    const systemActivity = await lib.getStatus(context, id, {
+        maxAttempts: STATUS_ATTEMPTS,
+        pollingInterval: STATUS_POLLING_INTERVAL
     });
-
-    if (data.errors || data?.data?.systemActivity?.status === 'IN_PROGRESS') {
-        attempts++;
-        if (attempts <= 5) {
-            await new Promise(r => setTimeout(r, 2000));
-            return await getStatus(context, id, attempts);
-        } else {
-            throw new context.CancelError(`Exceeded max attempts systemActivity: ${id}`);
-        }
-    }
-
-    const systemActivity = data?.data?.systemActivity || {};
 
     // throw error if the system activity is not valid.
     lib.validateUploadStatus(context, { systemActivity });
 
-    return data.data.systemActivity;
+    return systemActivity;
 };
 
 const requestUpload = async function(context, { filename }) {
@@ -104,9 +57,16 @@ const uploadFile = async function(context, { url, fileContent }) {
         data: fileContent, // stream upload is not implemented on the wiz side
         headers: {
             'Content-Type': 'application/json'
-        }
+        },
+        timeout: lib.getRequestTimeout(context)
     });
-    await context.log({ stage: 'upload-finished', uploadData: upload.statusCode, fileContent });
+    // Do not log the full fileContent: the upload batch can be megabytes and may
+    // contain security-findings data. Log only its size/shape instead.
+    await context.log({
+        stage: 'upload-finished',
+        uploadData: upload.status,
+        dataSourcesCount: Array.isArray(fileContent?.dataSources) ? fileContent.dataSources.length : undefined
+    });
 };
 
 const normalizeEvents = function(events) {

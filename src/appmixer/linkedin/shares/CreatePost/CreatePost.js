@@ -47,6 +47,18 @@ module.exports = {
 
     async receive(context) {
 
+        const { text, specificLink, url, title } = context.messages.in.content;
+
+        if (!text) {
+            throw new context.CancelError('Text is required!');
+        }
+        if (specificLink && !url) {
+            throw new context.CancelError('URL is required when sharing a specific link!');
+        }
+        if (specificLink && !title) {
+            throw new context.CancelError('Title is required when sharing a specific link!');
+        }
+
         const response = await context.httpRequest({
             method: 'POST',
             url: `${BASE_URL}${VERSION_PATH}/posts`,

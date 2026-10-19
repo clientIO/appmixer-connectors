@@ -28,6 +28,13 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.topic) {
+            throw new context.CancelError('Topic is required!');
+        }
+        if (!context.messages.in.content.value) {
+            throw new context.CancelError('Value is required!');
+        }
+
         const {
             topic,
             key,

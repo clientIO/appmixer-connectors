@@ -40,6 +40,13 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.url.content.path) {
+            throw new context.CancelError('Path is required!');
+        }
+        if (!context.messages.url.content.url) {
+            throw new context.CancelError('URL is required!');
+        }
+
         let params = {
             path: context.messages.url.content.path,
             url: context.messages.url.content.url

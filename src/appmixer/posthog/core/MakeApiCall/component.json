@@ -1,0 +1,142 @@
+{
+    "name": "appmixer.posthog.core.MakeApiCall",
+    "label": "Make API Call",
+    "description": "Perform an arbitrary authorized API call to the PostHog API.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:posthog"
+    },
+    "quota": {
+        "manager": "appmixer:posthog",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                        ]
+                    },
+                    "headers": {
+                        "type": "string"
+                    },
+                    "parameters": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "url",
+                    "method"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Enter the API endpoint path relative to your PostHog host (e.g. <code>/api/projects/</code>) or provide a full URL."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            {
+                                "label": "GET",
+                                "value": "GET"
+                            },
+                            {
+                                "label": "POST",
+                                "value": "POST"
+                            },
+                            {
+                                "label": "PUT",
+                                "value": "PUT"
+                            },
+                            {
+                                "label": "PATCH",
+                                "value": "PATCH"
+                            },
+                            {
+                                "label": "DELETE",
+                                "value": "DELETE"
+                            }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Enter the request body as a JSON object."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Status Code",
+                    "value": "status"
+                },
+                {
+                    "label": "Response Headers",
+                    "value": "headers"
+                },
+                {
+                    "label": "Response Body",
+                    "value": "body",
+                    "schema": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiBpZD0iUG9zdGhvZy0tU3RyZWFtbGluZS1TaW1wbGUtSWNvbnMiIGhlaWdodD0iMjQiIHdpZHRoPSIyNCI+CiAgPGRlc2M+CiAgICBQb3N0aG9nIFN0cmVhbWxpbmUgSWNvbjogaHR0cHM6Ly9zdHJlYW1saW5laHEuY29tCiAgPC9kZXNjPgogIDx0aXRsZT5Qb3N0SG9nPC90aXRsZT4KICA8cGF0aCBkPSJNOS44NTQgMTQuNSA1IDkuNjQ3IDAuODU0IDUuNUEwLjUgMC41IDAgMCAwIDAgNS44NTRWOC40NGEwLjUgMC41IDAgMCAwIDAuMTQ2IDAuMzUzTDUgMTMuNjQ3bDAuMTQ3IDAuMTQ2TDkuODU0IDE4LjVsMC4xNDYgMC4xNDd2LTAuMDQ5YzAuMDY1IDAuMDMgMC4xMzQgMC4wNDkgMC4yMDcgMC4wNDloMi41ODZhMC41IDAuNSAwIDAgMCAwLjM1MyAtMC44NTRMOS44NTQgMTQuNXptMCAtNSAtNCAtNGEwLjQ4NyAwLjQ4NyAwIDAgMCAtMC40MDkgLTAuMTQ0IDAuNTE1IDAuNTE1IDAgMCAwIC0wLjM1NiAwLjIxIDAuNDkzIDAuNDkzIDAgMCAwIC0wLjA4OSAwLjI4OFY4LjQ0YTAuNSAwLjUgMCAwIDAgMC4xNDcgMC4zNTNsOSA5YTAuNSAwLjUgMCAwIDAgMC44NTMgLTAuMzU0di0yLjU4NWEwLjUgMC41IDAgMCAwIC0wLjE0NiAtMC4zNTRsLTUgLTV6bTEgLTRhMC41IDAuNSAwIDAgMCAtMC44NTQgMC4zNTRWOC40NGEwLjUgMC41IDAgMCAwIDAuMTQ3IDAuMzUzbDQgNGEwLjUgMC41IDAgMCAwIDAuODUzIC0wLjM1NFY5Ljg1NGEwLjUgMC41IDAgMCAwIC0wLjE0NiAtMC4zNTRsLTQgLTR6bTEyLjY0NyAxMS41MTVhMy44NjMgMy44NjMgMCAwIDEgLTIuMjMyIC0xLjFsLTQuNzA4IC00LjcwN2EwLjUgMC41IDAgMCAwIC0wLjg1NCAwLjM1NHY2LjU4NWEwLjUgMC41IDAgMCAwIDAuNSAwLjVIMjMuNWEwLjUgMC41IDAgMCAwIDAuNSAtMC41di0wLjZjMCAtMC4yNzYgLTAuMjI1IC0wLjQ5NyAtMC40OTkgLTAuNTMyem0tNS4zOTQgMC4wMzJhMC44IDAuOCAwIDEgMSAwIC0xLjYgMC44IDAuOCAwIDAgMSAwIDEuNnpNMC44NTQgMTUuNWEwLjUgMC41IDAgMCAwIC0wLjg1NCAwLjM1NHYyLjI5M2EwLjUgMC41IDAgMCAwIDAuNSAwLjVoMi4yOTNjMC4yMjIgMCAwLjM5IC0wLjEzNSAwLjQ2MiAtMC4zMDlhMC40OTMgMC40OTMgMCAwIDAgLTAuMTA5IC0wLjU0NUwwLjg1NCAxNS41MDF6TTUgMTQuNjQ3IDAuODU0IDEwLjVhMC41IDAuNSAwIDAgMCAtMC44NTQgMC4zNTN2Mi41ODZhMC41IDAuNSAwIDAgMCAwLjE0NiAwLjM1M0w0Ljg1NCAxOC41bDAuMTQ2IDAuMTQ3aDIuNzkzYTAuNSAwLjUgMCAwIDAgMC4zNTMgLTAuODU0TDUgMTQuNjQ3eiIgZmlsbD0iIzAwMDAwMCIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+Cjwvc3ZnPg=="
+}

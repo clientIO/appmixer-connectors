@@ -18,6 +18,10 @@ module.exports = {
             zip
         } = context.messages.in.content;
 
+        if (!email) {
+            throw new context.CancelError('Email is required!');
+        }
+
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);
 

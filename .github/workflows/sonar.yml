@@ -28,18 +28,21 @@ jobs:
           path: src/appmixer/**/node_modules
           key: ${{ runner.os }}-connector-npm-${{ hashFiles('src/appmixer/**/package.json') }}
       - name: Install connector dependencies
-        run: ./scripts/npm_install.sh
+        run: node ./scripts/npm_install.js
       - name: Run unit tests and coverage
         run: npm run test-unit-coverage
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4.2.1
         with:
+          # Tests cover both the legacy test/ folder and the per-connector
+          # artifacts test folders; lcov paths likewise take the global report
+          # plus any per-connector lcovs produced under artifacts/test.
+          # (Keep comments HERE — a "#" line inside the folded args scalar is
+          # not a comment, it is passed to the scanner as literal arguments.)
           args: >
             -Dsonar.projectKey=clientIO_appmixer-connectors_AY7J_O6GZsPR2eThxIf0
             -Dsonar.sources=src
-            # Include both legacy test/ folder and the new per-connector artifacts test folders
             -Dsonar.tests=test,src/appmixer/**/artifacts/test/**
-            # Include global lcov and any per-connector lcovs produced under artifacts/test
             -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info,src/appmixer/**/artifacts/test/**/coverage/lcov.info
             -Dsonar.exclusions=test/**,src/appmixer/**/artifacts/test/**,src/appmixer/utils/chat/chat.bundle.js
             -Dsonar.coverage.exclusions=node_modules/**,test/**,src/appmixer/**/artifacts/test/**

@@ -1,0 +1,106 @@
+{
+    "flow": {
+        "bb000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 320,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.postgres.db.Query",
+            "x": 400,
+            "y": 320,
+            "source": {
+                "in": {
+                    "bb000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bb000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "query": "WITH heavy_computation AS (SELECT pg_sleep(60)), monthly AS (SELECT to_char(date '2026-01-01' + (s.i || ' month')::interval, 'YYYY-MM') AS month, round((random() * 90000 + 10000)::numeric, 2) AS revenue, (random() * 500 + 50)::int AS orders FROM generate_series(0, 11) AS s(i)) SELECT month, revenue, orders FROM monthly, heavy_computation ORDER BY month",
+                                    "outputType": "rows",
+                                    "asyncMode": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bb000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.utils.email.SendEmail",
+            "x": 592,
+            "y": 320,
+            "source": {
+                "in": {
+                    "bb000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bb000000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "html": {
+                                        "report": {
+                                            "variable": "$.bb000000-0000-0000-0000-000000000002.out.rows",
+                                            "functions": [
+                                                {
+                                                    "name": "g_stringify"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "to": "test@appmixer.com",
+                                    "subject": "Your PostgreSQL report is ready (async query finished)",
+                                    "html": "<div style=\"font-family:Arial,sans-serif;max-width:640px;color:#222\"><h2 style=\"color:#336791\">Monthly Revenue Report</h2><p>This report was produced by a <strong>long-running PostgreSQL query</strong> executed in <strong>Async Mode</strong>: the flow handed the query to the database, kept running without holding a connection open, and this email was sent automatically the moment the result arrived — no timeouts, no blocked flow.</p><pre style=\"background:#f4f6f8;border:1px solid #dde3e8;border-radius:6px;padding:12px;font-size:12px;overflow:auto\">{{{report}}}</pre><p style=\"color:#888;font-size:12px\">Powered by the Appmixer PostgreSQL connector (dblink async execution). The same flow works for queries running minutes or hours.</p></div>"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "version": "1.1.1"
+        }
+    },
+    "name": "Demo PostgreSQL - Long Running Report (Async Mode)",
+    "notes": {
+        "bb000000-0000-0000-0000-00000000n001": {
+            "content": "## What this flow does\n\nDemonstrates the **Async Mode** of the PostgreSQL *Query* component — running queries that take minutes or hours without blocking the flow or hitting any timeout.\n\n1. **OnStart** — you start the flow manually.\n2. **Query (Async Mode ON)** — the flow hands the query to PostgreSQL and immediately moves on. No database connection is held by the flow while the query runs. The demo query simulates a heavy analytical report: `pg_sleep(60)` + a 12-month revenue aggregation.\n3. **Send Email** — fires automatically the moment the result arrives (~1 minute later) with the report data.\n\n## How it works under the hood\n\nAsync Mode uses the PostgreSQL **dblink** extension (`CREATE EXTENSION IF NOT EXISTS dblink` — created automatically): the query runs in a background database session, a platform job polls its status every few seconds, and the component emits the rows when the query completes. Job state is persisted in MongoDB, so it survives platform restarts. Only a single read-only `SELECT` (or `WITH … SELECT`) statement is allowed; output types are *All rows at once* / *One row at a time*.\n\n## How to demo\n\n1. Click **Start** and open the **Logs** tab — you'll see `async_query_start` / `async_query_registered` right away.\n2. Point out that the flow is idle, not waiting on a connection.\n3. After ~70 seconds: `async_query_deliver` with `rowCount: 12` and the email is sent.\n\nTweaks: change `pg_sleep(60)` to any duration; change the recipient in the Send Email step to the customer's address.",
+            "height": 480,
+            "width": 460,
+            "x": 784,
+            "y": 128
+        }
+    },
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    }
+}

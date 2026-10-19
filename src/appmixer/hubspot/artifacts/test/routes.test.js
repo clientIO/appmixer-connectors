@@ -3,6 +3,7 @@ const sinon = require('sinon');
 const testUtils = require('../../../../../test/utils.js');
 const routes = require('../../routes');
 const { version } = require('../../bundle.json');
+const { signedRequest, h, CLIENT_SECRET, API_URL } = require('./signedRequest');
 
 describe('POST /events handler', () => {
 
@@ -23,7 +24,9 @@ describe('POST /events handler', () => {
                 router: {
                     register: sinon.stub()
                 }
-            }
+            },
+            config: { clientSecret: CLIENT_SECRET },
+            appmixerApiUrl: API_URL
             // v3
         };
 
@@ -64,7 +67,161 @@ describe('POST /events handler', () => {
             );
             assert.equal(context.httpRequest.callCount, 2, 'httpRequest should be called twice');
         });
+
+        it('onListenerAdded subscribes to the ContactPropertyChanged property on top of the defaults', async () => {
+
+            // Existing subscriptions of the app: `email` is already there.
+            context.httpRequest.onCall(0).resolves({
+                data: {
+                    results: [
+                        { id: 1, eventType: 'contact.propertyChange', propertyName: 'email', active: true }
+                    ]
+                }
+            });
+            context.httpRequest.onCall(1).resolves({ statusCode: 200 });
+
+            const listenerHandler = context.onListenerAdded.getCall(0).args[0];
+            await listenerHandler({
+                eventName: 'contact.propertyChange:33',
+                params: { apiKey: 'dev-api-key', appId: '1234585', propertyName: 'my_custom_field' }
+            });
+
+            assert.equal(context.httpRequest.callCount, 2, 'list + batch create');
+            const created = context.httpRequest.getCall(1).args[0].data
+                .map(sub => sub.subscriptionDetails.propertyName);
+            assert(created.includes('my_custom_field'), 'custom property subscribed');
+            assert(created.includes('firstname'), 'default properties subscribed');
+            assert(!created.includes('email'), 'existing subscription not created again');
+        });
+
+        it('onListenerAdded re-activates an inactive subscription (v3 `active` flag)', async () => {
+
+            // Every default exists; `email` is switched off, the rest are active.
+            const defaults = ['email', 'firstname', 'lastname', 'phone', 'website', 'company', 'address', 'city', 'state', 'zip'];
+            context.httpRequest.onCall(0).resolves({
+                data: {
+                    results: defaults.map((propertyName, index) => ({
+                        id: 100 + index,
+                        eventType: 'contact.propertyChange',
+                        propertyName,
+                        active: propertyName !== 'email'
+                    }))
+                }
+            });
+            context.httpRequest.resolves({ statusCode: 200, data: {} });
+
+            const listenerHandler = context.onListenerAdded.getCall(0).args[0];
+            await listenerHandler({
+                eventName: 'contact.propertyChange:33',
+                params: { apiKey: 'dev-api-key', appId: '1234585' }
+            });
+
+            assert.equal(context.httpRequest.callCount, 2, 'list + one PATCH, nothing created');
+            const patch = context.httpRequest.getCall(1).args[0];
+            assert.equal(patch.method, 'PATCH');
+            assert(patch.url.includes('/subscriptions/100?'), 'the inactive email subscription');
+            assert.deepEqual(patch.data, { active: true });
+        });
+
+        it('onListenerAdded does nothing on the AuthHub pod (the shared app is configured manually)', async () => {
+
+            const originalUrl = process.env.AUTH_HUB_URL;
+            const originalToken = process.env.AUTH_HUB_TOKEN;
+            process.env.AUTH_HUB_URL = 'https://auth-hub.example.com';
+            delete process.env.AUTH_HUB_TOKEN;
+            try {
+                context.config = { apiKey: 'authhub-dev-key', appId: '999' };
+                const listenerHandler = context.onListenerAdded.getCall(0).args[0];
+                await listenerHandler({ eventName: 'contact.propertyChange:33', params: { propertyName: 'my_custom_field' } });
+                await listenerHandler({ eventName: 'contact.creation:33', params: {} });
+
+                assert.equal(context.httpRequest.callCount, 0, 'no HubSpot call');
+            } finally {
+                if (originalUrl === undefined) {
+                    delete process.env.AUTH_HUB_URL;
+                } else {
+                    process.env.AUTH_HUB_URL = originalUrl;
+                }
+                if (originalToken !== undefined) {
+                    process.env.AUTH_HUB_TOKEN = originalToken;
+                }
+            }
+        });
     }
+
+    describe('signature verification', () => {
+
+        const payload = [{
+            eventId: 1,
+            portalId: PORTAL_ID_AIRBUS,
+            occurredAt: 1726820305517,
+            subscriptionType: 'contact.creation',
+            objectId: 38533722672
+        }];
+
+        it('accepts a valid signature', async () => {
+
+            const clock = sinon.useFakeTimers({ now: 1726820305517 });
+            const response = await handler(signedRequest(payload), h);
+            await clock.tickAsync(6000);
+            clock.restore();
+
+            assert.deepEqual(response, {});
+            assert.equal(context.triggerListeners.callCount, 1);
+        });
+
+        it('accepts a signature computed with the forwarded public URL', async () => {
+
+            context.appmixerApiUrl = undefined;
+            const clock = sinon.useFakeTimers({ now: 1726820305517 });
+            const req = signedRequest(payload);
+            req.headers['x-forwarded-proto'] = 'https';
+            req.headers['x-forwarded-host'] = 'api.appmixer.example.com';
+
+            const response = await handler(req, h);
+            await clock.tickAsync(6000);
+            clock.restore();
+            assert.deepEqual(response, {});
+            assert.equal(context.triggerListeners.callCount, 1);
+        });
+
+        it('rejects a request without a signature', async () => {
+
+            const req = signedRequest(payload);
+            delete req.headers['x-hubspot-signature-v3'];
+
+            const response = await handler(req, h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects a request signed with another secret', async () => {
+
+            const response = await handler(signedRequest(payload, { secret: 'attacker' }), h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects a tampered body', async () => {
+
+            const req = signedRequest(payload);
+            req.payload = Buffer.from(JSON.stringify([{ ...payload[0], portalId: 999 }]));
+
+            const response = await handler(req, h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects an old timestamp', async () => {
+
+            const response = await handler(signedRequest(payload, { timestamp: Date.now() - 6 * 60 * 1000 }), h);
+            assert.equal(response.statusCode, 401);
+        });
+
+        it('rejects every request when the client secret is not configured', async () => {
+
+            context.config = {};
+            const response = await handler(signedRequest(payload), h);
+            assert.equal(response.statusCode, 401);
+        });
+    });
 
     it('all propertyChange events pass through to triggerListeners', async () => {
 
@@ -104,15 +261,17 @@ describe('POST /events handler', () => {
         };
 
         const clock = sinon.useFakeTimers();
-        await handler(req);
+        await handler(signedRequest(req.payload), h);
         await clock.tickAsync(6000);
 
         // triggerListeners should be called — all propertyChange events now pass through
         assert.equal(context.triggerListeners.callCount, 1, 'triggerListeners should be called once');
         const call = context.triggerListeners.getCall(0).args[0];
         assert.equal(call.eventName, `contact.propertyChange:${PORTAL_ID_AIRBUS}`);
-        // _.keyBy keeps last event per objectId
-        assert.deepEqual(call.payload, { '38533722672': req.payload[1] });
+        // The last event per objectId, plus every property of the object that changed in the batch.
+        assert.deepEqual(call.payload, {
+            '38533722672': { ...req.payload[1], propertyNames: ['hubspot_owner_id', 'hubspot_owner_assigneddate'] }
+        });
     });
 
     it('multiple changes of the same contact in a single event', async () => {
@@ -189,7 +348,7 @@ describe('POST /events handler', () => {
 
         const clock = sinon.useFakeTimers();
         // Call the handler with the payload.
-        await handler(req);
+        await handler(signedRequest(req.payload), h);
 
         // Jump 6 seconds into the future to trigger delayed events
         await clock.tickAsync(6000);
@@ -203,14 +362,20 @@ describe('POST /events handler', () => {
         }
 
         // Expecting the call to triggerListeners to be with the correct arguments.
-        // All propertyChange events now pass through (no allowlist filter). _.keyBy groups by objectId
-        // keeping the last event per object, so the payload contains the last event in the batch.
+        // All propertyChange events pass through (no allowlist filter), grouped by objectId: the last event
+        // per object plus `propertyNames` with every property changed in the batch — firstname included,
+        // although it is not the last change, so triggers filtering by property do not miss it.
         if (version.startsWith('4')) {
             const triggerListenersArgsExpected = [
                 [
                     {
                         eventName: `contact.propertyChange:${PORTAL_ID_AIRBUS}`,
-                        payload: { '38533722672': req.payload[3] }
+                        payload: {
+                            '38533722672': {
+                                ...req.payload[3],
+                                propertyNames: ['hubspot_owner_id', 'hubspot_owner_assigneddate', 'firstname']
+                            }
+                        }
                     }
                 ]
             ];
@@ -301,7 +466,7 @@ describe('POST /events handler', () => {
 
         const clock = sinon.useFakeTimers();
         // Call the handler with the payload.
-        await handler(req);
+        await handler(signedRequest(req.payload), h);
 
         // Jump 6 seconds into the future to trigger delayed events
         await clock.tickAsync(6000);

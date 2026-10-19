@@ -6,6 +6,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.folderId) {
+            throw new context.CancelError('Folder ID is required!');
+        }
+
         const { folderId, name, description, visibility } = context.messages.in.content;
 
         const body = {};

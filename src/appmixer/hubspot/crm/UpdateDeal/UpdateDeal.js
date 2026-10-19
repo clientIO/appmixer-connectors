@@ -1,7 +1,10 @@
 'use strict';
 const Hubspot = require('../../Hubspot');
+const ITEM_SCHEMA = require('../../item-schemas.json').deal;
 
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
@@ -14,6 +17,10 @@ module.exports = {
             closedate,
             amount
         } = context.messages.in.content;
+
+        if (!dealId) {
+            throw new context.CancelError('Deal ID is required!');
+        }
 
         const { auth } = context;
         const hs = new Hubspot(auth.accessToken, context.config);

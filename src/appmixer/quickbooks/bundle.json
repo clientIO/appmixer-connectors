@@ -1,6 +1,6 @@
 {
     "name": "appmixer.quickbooks",
-    "version": "1.7.0",
+    "version": "1.9.1",
     "changelog": {
         "1.0.0": [
             "Initial version."
@@ -62,6 +62,30 @@
         ],
         "1.7.0": [
             "Added MakeApiCall component for performing arbitrary authorized API calls to the QuickBooks API."
+        ],
+        "1.8.0": [
+            "Rewrote the NewInvoice, UpdatedInvoice, NewCustomer and UpdatedCustomer triggers to use Appmixer listeners (context.addListener/removeListener) instead of shared service state, so webhook routing works through AuthHub's single shared endpoint. Webhook events are now delivered via context.triggerListeners filtered by realmId.",
+            "Fixed webhook routing when a single payload carries more than one notification for the same company: entities are now merged per realm instead of the first notification being processed twice and the rest dropped. A notification without a dataChangeEvent no longer aborts the whole payload.",
+            "Replaced the trigger output port definitions (dynamic source on the Customer triggers, options arrays on the Invoice triggers) with static JSON Schema including realistic example values, so the variable picker shows sample data for every field.",
+            "Webhook signature verification accepts multiple verifier tokens (webhookVerifierToken as a comma-separated list and/or webhookVerifierTokenSandbox), so the Development (sandbox) and Production sections of the Intuit app can share one endpoint. The invalid-signature debug log no longer dumps the service configuration."
+        ],
+        "1.8.1": [
+            "Added missing output examples to CreateBill and CreateCustomer."
+        ],
+        "1.8.2": [
+            "CreateInvoice: the customer picker is now a typeahead text field, so a value can still be entered when the list fails to load; added output schemas with examples."
+        ],
+        "1.8.3": [
+            "Attachable, GetBill and SendInvoice now stop with a clear error when a required input is missing instead of calling the API; added output examples."
+        ],
+        "1.8.4": [
+            "Output examples for FindCustomer, DeleteBill and Query. FindCustomer's billing country option pointed at BillAddr.Country and now reads Customer.BillAddr.Country."
+        ],
+        "1.9.0": [
+            "Added NewBill and UpdatedBill webhook triggers, fired when a bill is created or updated in QuickBooks."
+        ],
+        "1.9.1": [
+            "MakeApiCall: Request Headers and Query Parameters set in the Designer are now sent. They were silently dropped: the key-value field stores its rows as a JSON object string, which the component did not parse."
         ]
     }
 }

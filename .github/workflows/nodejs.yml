@@ -34,6 +34,16 @@ jobs:
       run: node ./scripts/npm_install.js
     - name: Run lint
       run: npm run lint
+    # The connector source validator suite lives in appmixer-cli (single source of
+    # truth) — this repo's dev tracks the CLI's dev branch, published to npm as
+    # the public `dev` dist-tag on every CLI dev push (appmixer-cli publish-dev
+    # workflow). A dist-tag needs no credentials, which matters here: PRs come
+    # from forks, and GitHub withholds Actions secrets from fork-triggered
+    # workflows — a token-based git install can never work in this job.
+    # scripts/validate.js is a thin wrapper over `appmixer connector validate`;
+    # only the two git-workflow rules stay local (scripts/validators, --rules-dir).
+    - name: Install appmixer CLI (dev dist-tag)
+      run: npm install -g appmixer@dev
     # Gate PRs on the files they actually change (strict) — a PR no longer fails for unrelated repo-wide debt.
     - name: Run validate (changed files, strict)
       run: node scripts/validate.js --changed --base origin/${{ github.base_ref }}

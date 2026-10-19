@@ -1,38 +1,39 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlOrders = require('../../gql-orders');
+
+const TOPIC = 'fulfillments/create';
 
 /**
- * This trigger fires when a fulfillment is created on a Shopify order.
+ * Triggers when a fulfillment is created on an order.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'fulfillments/create');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'fulfillment');
+            const api = gqlOrders(lib.runner(context));
+            return lib.receiveWebhook(context, { port: 'out', type: 'Fulfillment', fetch: id => api.fetchFulfillment(id) });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const record = await commons.fetchLatestOrderChildExample(context, {
-            child: 'fulfillment',
-            topic: 'fulfillments/create'
-        });
-        if (!record) {
-            throw new Error('No fulfillments to use as test data.');
+        const fulfillment = await gqlOrders(lib.runner(context)).latestFulfillment('createdAt');
+        if (!fulfillment) {
+            throw new context.CancelError('There are no fulfillments on the recently updated orders. Fulfill an order to see sample data.');
         }
-        return context.sendJson(record, 'fulfillment');
+        return context.sendJson({ ...fulfillment, webhookTopic: TOPIC }, 'out');
     }
 };

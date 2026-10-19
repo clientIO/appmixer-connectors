@@ -19,8 +19,6 @@ module.exports = {
             'properties': properties ? properties.split(',') : []
         };
 
-        context.log({ stage: 'Engagements - GetEmails payload ', payload });
-
         const { data } = await hs.call(
             'post',
             'crm/v3/objects/emails/batch/read',

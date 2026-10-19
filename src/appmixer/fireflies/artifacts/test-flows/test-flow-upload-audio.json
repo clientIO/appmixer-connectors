@@ -1,0 +1,160 @@
+{
+    "name": "E2E Fireflies - Upload Audio",
+    "flow": {
+        "a2bf6caa-333a-4cfc-9086-868acf695544": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "211f71bd-d671-4ae7-92fe-92959a9e3746": {
+            "type": "appmixer.fireflies.core.UploadAudio",
+            "x": 340,
+            "y": 300,
+            "source": {
+                "in": {
+                    "a2bf6caa-333a-4cfc-9086-868acf695544": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a2bf6caa-333a-4cfc-9086-868acf695544": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "url": "https://download.samplelib.com/mp3/sample-15s.mp3",
+                                    "title": "E2E Upload Audio Test"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "02ef0634-b84e-4958-9132-01a2e3cdc21c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 560,
+            "y": 300,
+            "source": {
+                "in": {
+                    "211f71bd-d671-4ae7-92fe-92959a9e3746": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "211f71bd-d671-4ae7-92fe-92959a9e3746": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f-success": {
+                                            "variable": "$.211f71bd-d671-4ae7-92fe-92959a9e3746.out.success",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f-success}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3a0f3496-e131-489c-857b-3e4f6ad8e7af": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 780,
+            "y": 300,
+            "source": {
+                "in": {
+                    "02ef0634-b84e-4958-9132-01a2e3cdc21c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a317645d-af77-474a-9616-c3d94f18f305": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1000,
+            "y": 300,
+            "source": {
+                "in": {
+                    "3a0f3496-e131-489c-857b-3e4f6ad8e7af": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "3a0f3496-e131-489c-857b-3e4f6ad8e7af": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.3a0f3496-e131-489c-857b-3e4f6ad8e7af.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fireflies - Upload Audio",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

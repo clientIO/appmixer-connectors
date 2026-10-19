@@ -17,7 +17,9 @@ class ClickUpClient {
 
         this.client = context.httpRequest.create({
             baseURL: 'https://api.clickup.com/api/v2',
-            timeout: 6 * 1000,
+            // 6s was too tight: ClickUp regularly takes longer than that for a
+            // plain DELETE, which surfaced as a spurious component failure.
+            timeout: 30 * 1000,
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 'User-Agent': 'AppMixer'

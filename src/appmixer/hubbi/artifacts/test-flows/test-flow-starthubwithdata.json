@@ -1,0 +1,233 @@
+{
+    "name": "E2E HubBI - StartHubWithData raw JSON records",
+    "type": "automation",
+    "flow": {
+        "218ebd83-8fa8-4f35-a9c2-eed81bb33942": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "504d7663-5cde-4ad1-926e-d26ee1221516": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 320,
+            "y": 16,
+            "source": {
+                "in": {
+                    "218ebd83-8fa8-4f35-a9c2-eed81bb33942": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "218ebd83-8fa8-4f35-a9c2-eed81bb33942": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "conversionKey",
+                                                "text": "59bd2669-808c-480b-b594-034c372f45a4"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "records",
+                                                "text": "[{\"Email\":\"e2e@appmixer.com\"}]"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3ce51236-4751-4b8f-8786-74efa392daf4": {
+            "type": "appmixer.hubbi.core.StartHubWithData",
+            "x": 576,
+            "y": 16,
+            "source": {
+                "in": {
+                    "504d7663-5cde-4ad1-926e-d26ee1221516": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "2.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "504d7663-5cde-4ad1-926e-d26ee1221516": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "conversionKey": {
+                                        "var-ck": {
+                                            "variable": "$.504d7663-5cde-4ad1-926e-d26ee1221516.out.conversionKey",
+                                            "functions": []
+                                        }
+                                    },
+                                    "rawJson": {},
+                                    "records": {
+                                        "var-records": {
+                                            "variable": "$.504d7663-5cde-4ad1-926e-d26ee1221516.out.records",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "conversionKey": "{{{var-ck}}}",
+                                    "rawJson": true,
+                                    "records": "{{{var-records}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4e17a39c-047f-4b65-817f-81f1c9ac63bb": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 16,
+            "source": {
+                "in": {
+                    "3ce51236-4751-4b8f-8786-74efa392daf4": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "3ce51236-4751-4b8f-8786-74efa392daf4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ck-check": {
+                                            "variable": "$.3ce51236-4751-4b8f-8786-74efa392daf4.out.conversionKey",
+                                            "functions": []
+                                        },
+                                        "count-check": {
+                                            "variable": "$.3ce51236-4751-4b8f-8786-74efa392daf4.out.recordsCount",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{ck-check}}}"
+                                            },
+                                            {
+                                                "expected": "1",
+                                                "assertion": "equal",
+                                                "field": "{{{count-check}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9ca9814e-db02-4b65-a159-1291eba9f1f5": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1088,
+            "y": 16,
+            "source": {
+                "in": {
+                    "4e17a39c-047f-4b65-817f-81f1c9ac63bb": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3b91f533-37eb-4601-a304-6858a93d2d98": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1344,
+            "y": 16,
+            "source": {
+                "in": {
+                    "9ca9814e-db02-4b65-a159-1291eba9f1f5": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "9ca9814e-db02-4b65-a159-1291eba9f1f5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-afterall": {
+                                            "variable": "$.9ca9814e-db02-4b65-a159-1291eba9f1f5.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubBI - StartHubWithData raw JSON records",
+                                    "result": "{{{res-afterall}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

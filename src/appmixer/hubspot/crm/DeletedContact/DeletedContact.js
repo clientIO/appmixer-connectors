@@ -10,7 +10,6 @@ class DeletedContact extends BaseSubscriptionComponent {
 
         if (context.messages.timeout) {
 
-            await context.log({ stage: 'timeout', ...context.messages.timeout });
             return;
         }
 

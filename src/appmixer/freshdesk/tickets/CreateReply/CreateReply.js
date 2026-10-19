@@ -5,6 +5,13 @@ module.exports = {
 
     async receive(context) {
 
+        if ([undefined, null, ''].includes(context.messages.in.content.ticketId)) {
+            throw new context.CancelError('Ticket ID is required!');
+        }
+        if (!context.messages.in.content.body) {
+            throw new context.CancelError('Body is required!');
+        }
+
         const { content } = context.messages.in;
 
         const body = trimUndefined({

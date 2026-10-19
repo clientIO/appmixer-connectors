@@ -1,8 +1,65 @@
 'use strict';
-const { sendArrayOutput } = require('../../commons');
+const { sendArrayOutput, getOutputPortOptions } = require('../../commons');
 const XeroClient = require('../../XeroClient');
 
 const outputPortName = 'out';
+
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['ManualJournalID', 'Narration', 'Date', 'Status'],
+    properties: {
+        ManualJournalID: {
+            type: 'string',
+            title: 'Manual Journal ID',
+            example: '9f3c1b2a-5d6e-4f70-8a91-2b3c4d5e6f70'
+        },
+        Narration: { type: 'string', title: 'Narration', example: 'Accrued consulting fees' },
+        Date: { type: 'string', title: 'Date', example: '/Date(1774051200000+0000)/' },
+        DateString: { type: 'string', title: 'Date String', example: '2026-03-18T00:00:00' },
+        Status: { type: 'string', title: 'Status', example: 'POSTED' },
+        LineAmountTypes: { type: 'string', title: 'Line Amount Types', example: 'NoTax' },
+        JournalLines: {
+            type: 'array',
+            title: 'Journal Lines',
+            example: [
+                {
+                    LineAmount: 1200.0,
+                    AccountCode: '400',
+                    AccountID: '2a9b7c14-6d38-4e52-8f01-3b4c5d6e7f80',
+                    Description: 'Accrued consulting fees',
+                    TaxType: 'NONE',
+                    TaxAmount: 0.0,
+                    IsBlank: false
+                }
+            ],
+            items: {
+                type: 'object',
+                properties: {
+                    LineAmount: { type: 'number', title: 'LineAmount' },
+                    AccountCode: { type: 'string', title: 'AccountCode' },
+                    AccountID: { type: 'string', title: 'AccountID' },
+                    Description: { type: 'string', title: 'Description' },
+                    TaxType: { type: 'string', title: 'TaxType' },
+                    TaxAmount: { type: 'number', title: 'TaxAmount' },
+                    IsBlank: { type: 'boolean', title: 'IsBlank' }
+                }
+            }
+        },
+        Url: {
+            type: 'string',
+            title: 'Url',
+            example: 'https://go.xero.com/Journal/View.aspx?invoiceID=9f3c1b2a-5d6e-4f70-8a91-2b3c4d5e6f70'
+        },
+        ShowOnCashBasisReports: { type: 'boolean', title: 'Show On Cash Basis Reports', example: true },
+        HasAttachments: { type: 'boolean', title: 'Has Attachments', example: false },
+        UpdatedDateUTC: { type: 'string', title: 'Updated Date UTC', example: '/Date(1774059000000+0000)/' },
+        UpdatedDateUTCString: {
+            type: 'string',
+            title: 'Updated Date UTC String',
+            example: '2026-03-18T09:24:31.123'
+        }
+    }
+};
 
 /**
  * Parse Xero's /Date(timestamp+offset)/ format into ISO string.
@@ -15,6 +72,8 @@ function xeroDateToISO(xeroDate) {
 }
 
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
@@ -64,85 +123,9 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        const itemSchema = [
-            { label: 'Manual Journal ID', value: 'ManualJournalID', schema: { type: 'string' } },
-            { label: 'Narration', value: 'Narration', schema: { type: 'string' } },
-            { label: 'Date', value: 'Date', schema: { type: 'string' } },
-            { label: 'Date String', value: 'DateString', schema: { type: 'string' } },
-            { label: 'Status', value: 'Status', schema: { type: 'string' } },
-            { label: 'Line Amount Types', value: 'LineAmountTypes', schema: { type: 'string' } },
-            {
-                label: 'Journal Lines', value: 'JournalLines', schema: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            LineAmount: { type: 'number', title: 'LineAmount' },
-                            AccountCode: { type: 'string', title: 'AccountCode' },
-                            AccountID: { type: 'string', title: 'AccountID' },
-                            Description: { type: 'string', title: 'Description' },
-                            TaxType: { type: 'string', title: 'TaxType' },
-                            TaxAmount: { type: 'number', title: 'TaxAmount' },
-                            IsBlank: { type: 'boolean', title: 'IsBlank' }
-                        }
-                    }
-                }
-            },
-            { label: 'Url', value: 'Url', schema: { type: 'string' } },
-            { label: 'Show On Cash Basis Reports', value: 'ShowOnCashBasisReports', schema: { type: 'boolean' } },
-            { label: 'Has Attachments', value: 'HasAttachments', schema: { type: 'boolean' } },
-            { label: 'Updated Date UTC', value: 'UpdatedDateUTC', schema: { type: 'string' } },
-            { label: 'Updated Date UTC String', value: 'UpdatedDateUTCString', schema: { type: 'string' } }
-        ];
-
-        if (outputType === 'item') {
-            return context.sendJson(itemSchema, outputPortName);
-        } else if (outputType === 'items') {
-            return context.sendJson(
-                [{
-                    label: 'Manual Journals',
-                    value: 'items',
-                    schema: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                ManualJournalID: { type: 'string', title: 'ManualJournalID' },
-                                Narration: { type: 'string', title: 'Narration' },
-                                Date: { type: 'string', title: 'Date' },
-                                DateString: { type: 'string', title: 'DateString' },
-                                Status: { type: 'string', title: 'Status' },
-                                LineAmountTypes: { type: 'string', title: 'LineAmountTypes' },
-                                JournalLines: {
-                                    title: 'JournalLines',
-                                    type: 'array',
-                                    items: {
-                                        type: 'object',
-                                        properties: {
-                                            LineAmount: { type: 'number', title: 'LineAmount' },
-                                            AccountCode: { type: 'string', title: 'AccountCode' },
-                                            AccountID: { type: 'string', title: 'AccountID' },
-                                            Description: { type: 'string', title: 'Description' },
-                                            TaxType: { type: 'string', title: 'TaxType' },
-                                            TaxAmount: { type: 'number', title: 'TaxAmount' },
-                                            IsBlank: { type: 'boolean', title: 'IsBlank' }
-                                        }
-                                    }
-                                },
-                                Url: { type: 'string', title: 'Url' },
-                                ShowOnCashBasisReports: { type: 'boolean', title: 'ShowOnCashBasisReports' },
-                                HasAttachments: { type: 'boolean', title: 'HasAttachments' },
-                                UpdatedDateUTC: { type: 'string', title: 'UpdatedDateUTC' },
-                                UpdatedDateUTCString: { type: 'string', title: 'UpdatedDateUTCString' }
-                            }
-                        }
-                    }
-                }],
-                outputPortName
-            );
-        } else {
-            // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], outputPortName);
-        }
+        return getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, {
+            label: 'Manual Journals',
+            outputPortName
+        });
     }
 };

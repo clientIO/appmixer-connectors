@@ -13,6 +13,16 @@ module.exports = {
             await context.sendJson(context.messages.webhook.content.data, 'completed');
             return context.response({});
         }
+        if ([undefined, null, ''].includes(context.messages.in.content.signers)) {
+            throw new context.CancelError('Signers is required!');
+        }
+        if (!context.messages.in.content.subject) {
+            throw new context.CancelError('Subject is required!');
+        }
+        if ([undefined, null, ''].includes(context.messages.in.content.documents)) {
+            throw new context.CancelError('Document is required!');
+        }
+
         const envelopeArgs = context.messages.in.content;
         let docs = envelopeArgs.documents.AND;
         for (const doc of docs) {

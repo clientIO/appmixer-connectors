@@ -11,10 +11,14 @@ module.exports = {
 
         const { dateFilter, dateValue, ...propertyFilters } = context.messages.in.content;
 
+        if (!databaseId) {
+            throw new context.CancelError('Database ID is required!');
+        }
+
         const filters = [];
 
         // Retrieve the database schema
-        const { data: databaseDetails } = await lib.callEndpoint(context, `/databases/${databaseId}`);
+        const databaseDetails = await lib.getDatabase(context, databaseId);
 
         let datePropertyName = null;
 
@@ -44,6 +48,13 @@ module.exports = {
             const userInput = propertyFilters[propertyName];
 
             if (userInput) {
+                // The filter was configured against a property that has since been
+                // renamed or removed. Dropping it would silently widen the search.
+                if (!property) {
+                    throw new context.CancelError(
+                        `Property "${propertyName}" does not exist in the database. It may have been renamed or removed.`
+                    );
+                }
                 // Switch case to apply the correct filter type based on the property type
                 switch (property.type) {
                     case 'title':
@@ -123,7 +134,7 @@ async function generateInspector(context, databaseId) {
     let fieldsInputs = {};
 
     if (databaseId) {
-        const { data: databaseDetails } = await lib.callEndpoint(context, `/databases/${databaseId}`);
+        const databaseDetails = await lib.getDatabase(context, databaseId, { cached: true });
 
         // Loop through properties of the database
         fieldsInputs = Object.keys(databaseDetails.properties).reduce((res, propertyName, index) => {

@@ -1,0 +1,304 @@
+{
+    "name": "E2E GitHub - New Pull Request Review Comment Trigger",
+    "description": "End-to-end test for the New Pull Request Review Comment trigger. The provoke lane posts an inline review comment on the pull request the trigger watches.",
+    "flow": {
+        "cef9ccd0-d515-4d24-9efb-1b6f896d2af3": {
+            "type": "appmixer.github.list.NewPullRequestReviewComment",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "apx-vero/appmixer-test",
+                    "pullRequestNumber": "5",
+                    "authorType": "any"
+                }
+            }
+        },
+        "bad5c299-60fd-4987-9634-56bdb4cfd06e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "cef9ccd0-d515-4d24-9efb-1b6f896d2af3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cef9ccd0-d515-4d24-9efb-1b6f896d2af3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "86661060-cc2c-46e4-a122-f1ce8e76e07e": {
+                                            "variable": "$.cef9ccd0-d515-4d24-9efb-1b6f896d2af3.out.id",
+                                            "functions": []
+                                        },
+                                        "6fd2e25e-d7f0-46ef-ab80-18ff3d1457f9": {
+                                            "variable": "$.cef9ccd0-d515-4d24-9efb-1b6f896d2af3.out.body",
+                                            "functions": []
+                                        },
+                                        "1d071799-0d8e-41f2-b1ac-f88c3d2eabca": {
+                                            "variable": "$.cef9ccd0-d515-4d24-9efb-1b6f896d2af3.out.path",
+                                            "functions": []
+                                        },
+                                        "57cf3905-316b-473d-8003-3ad929923577": {
+                                            "variable": "$.cef9ccd0-d515-4d24-9efb-1b6f896d2af3.out.pull_request_url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{86661060-cc2c-46e4-a122-f1ce8e76e07e}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{6fd2e25e-d7f0-46ef-ab80-18ff3d1457f9}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E NewPullRequestReviewComment probe - inline comment posted by the test flow."
+                                            },
+                                            {
+                                                "field": "{{{1d071799-0d8e-41f2-b1ac-f88c3d2eabca}}}",
+                                                "assertion": "equal",
+                                                "expected": "review-components-smoke.txt"
+                                            },
+                                            {
+                                                "field": "{{{57cf3905-316b-473d-8003-3ad929923577}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e4d48d18-22e6-4cc2-8ad5-a9b9144a285a": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "bad5c299-60fd-4987-9634-56bdb4cfd06e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "ea72aee4-f707-4c14-9d18-f54e49deaaff": {
+            "type": "appmixer.github.list.MakeApiCall",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "e4d48d18-22e6-4cc2-8ad5-a9b9144a285a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e4d48d18-22e6-4cc2-8ad5-a9b9144a285a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "cd243016-10b1-4e23-ac20-2bd3bf1571f4": {
+                                            "variable": "$.cef9ccd0-d515-4d24-9efb-1b6f896d2af3.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/repos/apx-vero/appmixer-test/pulls/comments/{{{cd243016-10b1-4e23-ac20-2bd3bf1571f4}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "3ef38169-ac9d-4caf-bc7d-8377fe2e559f": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "ea72aee4-f707-4c14-9d18-f54e49deaaff": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "ea72aee4-f707-4c14-9d18-f54e49deaaff": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "7b5354c9-8001-4d20-af22-f060522e2948": {
+                                            "variable": "$.e4d48d18-22e6-4cc2-8ad5-a9b9144a285a.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E GitHub - New Pull Request Review Comment Trigger",
+                                    "result": "{{{7b5354c9-8001-4d20-af22-f060522e2948}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a3971c63-f52c-4451-884d-469685936ed6": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "a2659112-0cb7-40c7-8de8-fba23c24d3c2": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a3971c63-f52c-4451-884d-469685936ed6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a3971c63-f52c-4451-884d-469685936ed6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "598e0a8c-a8da-4449-8095-ef0805e81d5a": {
+            "type": "appmixer.github.list.CreateReviewComment",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a2659112-0cb7-40c7-8de8-fba23c24d3c2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a2659112-0cb7-40c7-8de8-fba23c24d3c2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {},
+                                    "pullRequestNumber": {},
+                                    "body": {},
+                                    "path": {},
+                                    "line": {},
+                                    "side": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "apx-vero/appmixer-test",
+                                    "pullRequestNumber": "5",
+                                    "body": "E2E NewPullRequestReviewComment probe - inline comment posted by the test flow.",
+                                    "path": "review-components-smoke.txt",
+                                    "line": "2",
+                                    "side": "RIGHT"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "29da2302-9b77-4325-833e-8b8ca10cc9a1": {
+            "x": 64,
+            "y": 576,
+            "width": 736,
+            "height": 320,
+            "content": "## \u26a0\ufe0f Test data assumption\n\nThese flows work against the **permanently open pull request [`apx-vero/appmixer-test` #5](https://github.com/apx-vero/appmixer-test/pull/5)** (\"Exercise the new review components\", head `review-components-smoke`).\n\nIt adds a single file `review-components-smoke.txt` with five lines, so lines 1-5 are all part of the diff and can be commented on with side `RIGHT`. Two review threads created by hand live on it \u2014 they are what List Review Threads / List Reviews read.\n\n**If the pull request is missing or closed, every flow here fails or times out.** Recreate it:\n\n1. `git checkout -b review-components-smoke master` in `apx-vero/appmixer-test`\n2. add `review-components-smoke.txt` containing the lines `line one` \u2026 `line five`, commit and push\n3. open a pull request against `master` and leave it OPEN\n4. post one inline review comment on line 3 and reply to it once (that is the thread the resolve/unresolve steps operate on)\n\n## \u23f2\ufe0f Timing\n\nThe `Wait 1m` in the provoke lane must stay: the trigger records its polling window when the flow starts, and the comment has to be posted after that. The trigger polls, so allow a few minutes - the AfterAll timeout is 420s on purpose.\n"
+        }
+    }
+}

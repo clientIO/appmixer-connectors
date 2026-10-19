@@ -1,0 +1,735 @@
+{
+    "name": "E2E Notion - database items",
+    "description": "End-to-end test for the Notion connector - Create / Find / Update Database Item, Get Page, Get Database.",
+    "flow": {
+        "5589f4f4-a82c-425f-bb9a-8f16c421473b": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "aa9e4898-aa48-4aaf-94df-40985d968c8e": {
+            "type": "appmixer.notion.core.CreateDatabaseItem",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5589f4f4-a82c-425f-bb9a-8f16c421473b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "databaseId": "6a479175-a340-4bff-b278-93df6acb2613"
+                },
+                "transform": {
+                    "in": {
+                        "5589f4f4-a82c-425f-bb9a-8f16c421473b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "Title": {},
+                                    "Email": {},
+                                    "Number": {},
+                                    "Checkbox": {},
+                                    "content": {}
+                                },
+                                "lambda": {
+                                    "Title": "E2E Notion item",
+                                    "Email": "e2e-notion@example.com",
+                                    "Number": "7",
+                                    "Checkbox": "true",
+                                    "content": "Created by the Appmixer E2E test flow. Safe to delete."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4a23cf32-ebde-43cc-8f7b-d3ae63eeddbb": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "aa9e4898-aa48-4aaf-94df-40985d968c8e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aa9e4898-aa48-4aaf-94df-40985d968c8e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "091f4f31-1818-495b-b9ac-b0fde25be71b": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.id",
+                                            "functions": []
+                                        },
+                                        "95016707-8fcb-4fc6-8470-2cf694b726f4": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.object",
+                                            "functions": []
+                                        },
+                                        "444e8a1a-9b36-43e7-a8cb-5490b71222f9": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.parent",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.database_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "80460e8a-1f63-4f0d-8006-d939ad307c5d": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.properties",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Number.number"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "6e2b8b09-e8b8-4286-b154-47f65e024270": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.properties",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Checkbox.checkbox"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{091f4f31-1818-495b-b9ac-b0fde25be71b}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{95016707-8fcb-4fc6-8470-2cf694b726f4}}}",
+                                                "assertion": "equal",
+                                                "expected": "page"
+                                            },
+                                            {
+                                                "field": "{{{444e8a1a-9b36-43e7-a8cb-5490b71222f9}}}",
+                                                "assertion": "equal",
+                                                "expected": "6a479175-a340-4bff-b278-93df6acb2613"
+                                            },
+                                            {
+                                                "field": "{{{80460e8a-1f63-4f0d-8006-d939ad307c5d}}}",
+                                                "assertion": "equal",
+                                                "expected": "7"
+                                            },
+                                            {
+                                                "field": "{{{6e2b8b09-e8b8-4286-b154-47f65e024270}}}",
+                                                "assertion": "equal",
+                                                "expected": "true"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4fe9d95a-5ead-4d16-b145-bfff477a2bea": {
+            "type": "appmixer.notion.core.FindDatabaseItem",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "aa9e4898-aa48-4aaf-94df-40985d968c8e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "databaseId": "6a479175-a340-4bff-b278-93df6acb2613"
+                },
+                "transform": {
+                    "in": {
+                        "aa9e4898-aa48-4aaf-94df-40985d968c8e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "Email": {}
+                                },
+                                "lambda": {
+                                    "Email": "e2e-notion@example.com"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc1101a9-ba84-4b27-af4b-82ac51af4875": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4fe9d95a-5ead-4d16-b145-bfff477a2bea": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4fe9d95a-5ead-4d16-b145-bfff477a2bea": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "67d5c619-168f-4475-854e-af05bb7e32af": {
+                                            "variable": "$.4fe9d95a-5ead-4d16-b145-bfff477a2bea.out.id",
+                                            "functions": []
+                                        },
+                                        "fa49217d-21f0-4230-b586-1edf3e8de0b0": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{67d5c619-168f-4475-854e-af05bb7e32af}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{fa49217d-21f0-4230-b586-1edf3e8de0b0}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "58013096-8ee2-454c-a4ad-db07d4ffb57c": {
+            "type": "appmixer.notion.core.UpdateDatabaseItem",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4fe9d95a-5ead-4d16-b145-bfff477a2bea": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "databaseId": "6a479175-a340-4bff-b278-93df6acb2613"
+                },
+                "transform": {
+                    "in": {
+                        "4fe9d95a-5ead-4d16-b145-bfff477a2bea": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "itemId": {
+                                        "6f68295f-92d1-4683-ba57-54dbc1fb0e82": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "Title": {},
+                                    "content": {}
+                                },
+                                "lambda": {
+                                    "itemId": "{{{6f68295f-92d1-4683-ba57-54dbc1fb0e82}}}",
+                                    "Title": "E2E Notion item updated",
+                                    "content": "Updated by the Appmixer E2E test flow."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ef6f3e65-ac69-465c-8723-e99002f89733": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "58013096-8ee2-454c-a4ad-db07d4ffb57c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "58013096-8ee2-454c-a4ad-db07d4ffb57c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a88a1b72-605b-4b41-a498-b4e4bf528aee": {
+                                            "variable": "$.58013096-8ee2-454c-a4ad-db07d4ffb57c.out.id",
+                                            "functions": []
+                                        },
+                                        "47847d54-6a4a-465d-9fb9-3f53de58ce0a": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.id",
+                                            "functions": []
+                                        },
+                                        "d555ab4b-c8d0-401c-8471-e32340aa3218": {
+                                            "variable": "$.58013096-8ee2-454c-a4ad-db07d4ffb57c.out.properties",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Title.title[0].plain_text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a88a1b72-605b-4b41-a498-b4e4bf528aee}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{47847d54-6a4a-465d-9fb9-3f53de58ce0a}}}"
+                                            },
+                                            {
+                                                "field": "{{{d555ab4b-c8d0-401c-8471-e32340aa3218}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Notion item updated"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0b3e5ebc-b04c-43dd-92a8-f451b22acd86": {
+            "type": "appmixer.notion.core.GetPage",
+            "x": 896,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "58013096-8ee2-454c-a4ad-db07d4ffb57c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "58013096-8ee2-454c-a4ad-db07d4ffb57c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "pageId": {
+                                        "bd51f1b9-860c-4591-97d0-cf733acf65d1": {
+                                            "variable": "$.58013096-8ee2-454c-a4ad-db07d4ffb57c.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "pageId": "{{{bd51f1b9-860c-4591-97d0-cf733acf65d1}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4215df56-49c6-4d0b-8cf8-62aec2383c79": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0b3e5ebc-b04c-43dd-92a8-f451b22acd86": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0b3e5ebc-b04c-43dd-92a8-f451b22acd86": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "03651405-4cfb-4183-b1ed-8e5b91a87619": {
+                                            "variable": "$.0b3e5ebc-b04c-43dd-92a8-f451b22acd86.out.id",
+                                            "functions": []
+                                        },
+                                        "786c14a0-0b55-4d07-a32d-8ebe7b00f2f7": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.id",
+                                            "functions": []
+                                        },
+                                        "99c881e7-316f-4474-a441-8d6d8a7487d4": {
+                                            "variable": "$.0b3e5ebc-b04c-43dd-92a8-f451b22acd86.out.properties",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Title.title[0].plain_text"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "c165f2b6-78a3-4f75-9b4a-144fe48d1b84": {
+                                            "variable": "$.0b3e5ebc-b04c-43dd-92a8-f451b22acd86.out.properties",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.Email.email"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{03651405-4cfb-4183-b1ed-8e5b91a87619}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{786c14a0-0b55-4d07-a32d-8ebe7b00f2f7}}}"
+                                            },
+                                            {
+                                                "field": "{{{99c881e7-316f-4474-a441-8d6d8a7487d4}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Notion item updated"
+                                            },
+                                            {
+                                                "field": "{{{c165f2b6-78a3-4f75-9b4a-144fe48d1b84}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-notion@example.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5ed1e993-be6d-48e8-b08b-f92e07d2f442": {
+            "type": "appmixer.notion.core.GetDatabase",
+            "x": 1104,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0b3e5ebc-b04c-43dd-92a8-f451b22acd86": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0b3e5ebc-b04c-43dd-92a8-f451b22acd86": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "databaseId": {
+                                        "8aaf4609-dddd-4e09-afb4-9315a5d89001": {
+                                            "variable": "$.0b3e5ebc-b04c-43dd-92a8-f451b22acd86.out.parent",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.database_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "databaseId": "{{{8aaf4609-dddd-4e09-afb4-9315a5d89001}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3b9a84be-4561-453b-b6f3-56ee1fd6eec6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5ed1e993-be6d-48e8-b08b-f92e07d2f442": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5ed1e993-be6d-48e8-b08b-f92e07d2f442": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "4fbead92-5b56-4226-8113-d0423b00ad48": {
+                                            "variable": "$.5ed1e993-be6d-48e8-b08b-f92e07d2f442.out.id",
+                                            "functions": []
+                                        },
+                                        "5330f613-666b-4e5c-8117-ab6796aafd15": {
+                                            "variable": "$.5ed1e993-be6d-48e8-b08b-f92e07d2f442.out.object",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{4fbead92-5b56-4226-8113-d0423b00ad48}}}",
+                                                "assertion": "equal",
+                                                "expected": "6a479175-a340-4bff-b278-93df6acb2613"
+                                            },
+                                            {
+                                                "field": "{{{5330f613-666b-4e5c-8117-ab6796aafd15}}}",
+                                                "assertion": "equal",
+                                                "expected": "database"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "84202165-fd87-46ff-b40c-c02287f7bf92": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4a23cf32-ebde-43cc-8f7b-d3ae63eeddbb": [
+                        "out"
+                    ],
+                    "cc1101a9-ba84-4b27-af4b-82ac51af4875": [
+                        "out"
+                    ],
+                    "ef6f3e65-ac69-465c-8723-e99002f89733": [
+                        "out"
+                    ],
+                    "4215df56-49c6-4d0b-8cf8-62aec2383c79": [
+                        "out"
+                    ],
+                    "3b9a84be-4561-453b-b6f3-56ee1fd6eec6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e472d713-d489-4e2d-a1de-5815a6e6f684": {
+            "type": "appmixer.notion.core.MakeApiCall",
+            "x": 1728,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "84202165-fd87-46ff-b40c-c02287f7bf92": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "84202165-fd87-46ff-b40c-c02287f7bf92": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "1d173ca0-596c-4ed7-97cb-53c7e3470e62": {
+                                            "variable": "$.aa9e4898-aa48-4aaf-94df-40985d968c8e.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/pages/{{{1d173ca0-596c-4ed7-97cb-53c7e3470e62}}}",
+                                    "method": "PATCH",
+                                    "body": "{\"archived\": true}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a8350c2d-1e09-4f20-b4b2-c223147c571b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1936,
+            "y": 528,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "e472d713-d489-4e2d-a1de-5815a6e6f684": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "e472d713-d489-4e2d-a1de-5815a6e6f684": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "03d328d1-cd3b-4eb9-83e6-f40d0ba242ae": {
+                                            "variable": "$.84202165-fd87-46ff-b40c-c02287f7bf92.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Notion - database items",
+                                    "result": "{{{03d328d1-cd3b-4eb9-83e6-f40d0ba242ae}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "34bca558-7550-4f1c-b704-584947d29526": {
+            "x": 64,
+            "y": 672,
+            "width": 672,
+            "height": 256,
+            "content": "## ⚠️ Test data assumption\n\nThis flow works on the Notion database **Docs** (`6a479175-a340-4bff-b278-93df6acb2613`) of the test workspace, set as *Database ID* on the components.\n\nOn a fresh workspace: share a database with the integration that has a `Title` (title) and an `Email` (email) property, and put its ID into every Notion component of this flow.\n\nThe created item is archived by the cleanup step (`PATCH /pages/{id}` with `archived: true`)."
+        }
+    }
+}

@@ -1,64 +1,87 @@
 {
     "flow": {
-        "after-all": {
+        "0d18d15f-3fca-5e41-b2d3-6e21ec237000": {
             "config": {
                 "properties": {
                     "timeout": 30
                 }
             },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
             "source": {
                 "in": {
-                    "assert-appointment": [
+                    "4e3ecc6f-88b8-55c9-ad97-f321a55cfa09": [
                         "out"
                     ],
-                    "assert-list-calendars": [
+                    "caeca176-d348-5aea-8dd5-7d2e8751434d": [
                         "out"
                     ]
                 }
             },
             "type": "appmixer.utils.test.AfterAll",
-            "x": 1360,
-            "y": 80
+            "x": 1184,
+            "y": 16
         },
-        "assert-appointment": {
+        "33802334-31cf-5169-9a25-2f2a579151b0": {
             "config": {
+                "properties": {
+                    "account": "69bd20b72e33e81a1e686f91"
+                },
                 "transform": {
                     "in": {
-                        "create-appointment": {
+                        "afd3b15e-b99c-5056-afb5-fb5f48af6d1a": {
                             "out": {
                                 "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{appt-id-var}}}"
-                                            },
-                                            {
-                                                "assertion": "equal",
-                                                "expected": "E2E Test Appointment",
-                                                "field": "{{{appt-title-var}}}"
-                                            },
-                                            {
-                                                "assertion": "equal",
-                                                "expected": "new",
-                                                "field": "{{{appt-status-var}}}"
-                                            }
-                                        ]
-                                    }
+                                    "address": "123 E2E Street, Austin, TX",
+                                    "appointmentStatus": "new",
+                                    "calendarId": "{{{var-calendar-id}}}",
+                                    "contactId": "{{{var-contact-id}}}",
+                                    "endTime": "{{{var-end-time}}}",
+                                    "startTime": "{{{var-start-time}}}",
+                                    "title": "{{{var-title}}}"
                                 },
                                 "modifiers": {
-                                    "expression": {
-                                        "appt-id-var": {
+                                    "address": {},
+                                    "appointmentStatus": {},
+                                    "calendarId": {
+                                        "var-calendar-id": {
                                             "functions": [],
-                                            "variable": "$.create-appointment.out.id"
-                                        },
-                                        "appt-status-var": {
+                                            "variable": "$.59fdca13-dcfa-5957-be54-03e856bf8172.out.calendarId"
+                                        }
+                                    },
+                                    "contactId": {
+                                        "var-contact-id": {
                                             "functions": [],
-                                            "variable": "$.create-appointment.out.appointmentStatus"
-                                        },
-                                        "appt-title-var": {
+                                            "variable": "$.59fdca13-dcfa-5957-be54-03e856bf8172.out.contactId"
+                                        }
+                                    },
+                                    "endTime": {
+                                        "var-end-time": {
+                                            "functions": [
+                                                {
+                                                    "hashParams": {
+                                                        "minutes": {
+                                                            "value": 30
+                                                        }
+                                                    },
+                                                    "name": "g_addTimeSpan"
+                                                }
+                                            ],
+                                            "variable": "$.afd3b15e-b99c-5056-afb5-fb5f48af6d1a.out.result"
+                                        }
+                                    },
+                                    "startTime": {
+                                        "var-start-time": {
                                             "functions": [],
-                                            "variable": "$.create-appointment.out.title"
+                                            "variable": "$.afd3b15e-b99c-5056-afb5-fb5f48af6d1a.out.result"
+                                        }
+                                    },
+                                    "title": {
+                                        "var-title": {
+                                            "functions": [],
+                                            "variable": "$.59fdca13-dcfa-5957-be54-03e856bf8172.out.appointmentTitle"
                                         }
                                     }
                                 },
@@ -68,22 +91,71 @@
                     }
                 }
             },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
             "source": {
                 "in": {
-                    "create-appointment": [
+                    "afd3b15e-b99c-5056-afb5-fb5f48af6d1a": [
                         "out"
                     ]
                 }
             },
-            "type": "appmixer.utils.test.Assert",
-            "x": 1168,
-            "y": 144
+            "type": "appmixer.gohighlevel.core.CreateAppointment",
+            "x": 736,
+            "y": 16
         },
-        "assert-list-calendars": {
+        "3dcfb300-b937-5388-984d-bfaf521a5b28": {
+            "config": {
+                "properties": {
+                    "account": "69bd20b72e33e81a1e686f91"
+                },
+                "transform": {
+                    "in": {
+                        "0d18d15f-3fca-5e41-b2d3-6e21ec237000": {
+                            "out": {
+                                "lambda": {
+                                    "headers": "[{\"key\": \"Version\", \"value\": \"2021-07-28\"}]",
+                                    "method": "DELETE",
+                                    "url": "/calendars/events/{{{var-appointment-id}}}"
+                                },
+                                "modifiers": {
+                                    "headers": {},
+                                    "method": {},
+                                    "url": {
+                                        "var-appointment-id": {
+                                            "functions": [],
+                                            "variable": "$.33802334-31cf-5169-9a25-2f2a579151b0.out.id"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0d18d15f-3fca-5e41-b2d3-6e21ec237000": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.gohighlevel.core.MakeApiCall",
+            "x": 1408,
+            "y": 16
+        },
+        "4e3ecc6f-88b8-55c9-ad97-f321a55cfa09": {
             "config": {
                 "transform": {
                     "in": {
-                        "list-calendars": {
+                        "4f0fdc05-5334-5b60-a9cf-85990e0075a2": {
                             "out": {
                                 "lambda": {
                                     "expression": {
@@ -99,7 +171,7 @@
                                     "expression": {
                                         "calendars-var": {
                                             "functions": [],
-                                            "variable": "$.list-calendars.out.calendars"
+                                            "variable": "$.4f0fdc05-5334-5b60-a9cf-85990e0075a2.out.calendars"
                                         }
                                     }
                                 },
@@ -109,222 +181,47 @@
                     }
                 }
             },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
             "source": {
                 "in": {
-                    "list-calendars": [
+                    "4f0fdc05-5334-5b60-a9cf-85990e0075a2": [
                         "out"
                     ]
                 }
             },
             "type": "appmixer.utils.test.Assert",
-            "x": 1168,
-            "y": 16
+            "x": 736,
+            "y": 176
         },
-        "compute-end": {
-            "config": {
-                "transform": {
-                    "in": {
-                        "compute-start": {
-                            "out": {
-                                "lambda": {
-                                    "code": "(() => { const d = new Date('{{{start-time}}}'); d.setMinutes(d.getMinutes() + 30); return d.toISOString(); })()",
-                                    "variables": {
-                                        "ADD": [
-                                            {
-                                                "toggle": false,
-                                                "type": "text"
-                                            }
-                                        ]
-                                    }
-                                },
-                                "modifiers": {
-                                    "code": {
-                                        "start-time": {
-                                            "functions": [],
-                                            "variable": "$.compute-start.out.result"
-                                        }
-                                    },
-                                    "variables": {}
-                                },
-                                "type": "json2new"
-                            }
-                        }
-                    }
-                }
-            },
-            "source": {
-                "in": {
-                    "compute-start": [
-                        "out"
-                    ]
-                }
-            },
-            "type": "appmixer.utils.controls.CodeBlock",
-            "x": 688,
-            "y": 144
-        },
-        "compute-start": {
-            "config": {
-                "transform": {
-                    "in": {
-                        "set-variables": {
-                            "out": {
-                                "lambda": {
-                                    "code": "(() => { const d = new Date(); d.setDate(d.getDate() + 7 + (Date.now() % 7)); const day = d.getDay(); if (day === 0) d.setDate(d.getDate() + 1); if (day === 6) d.setDate(d.getDate() + 2); d.setHours(10, 0, 0, 0); return d.toISOString(); })()"
-                                },
-                                "modifiers": {
-                                    "code": {}
-                                },
-                                "type": "json2new"
-                            }
-                        }
-                    }
-                }
-            },
-            "source": {
-                "in": {
-                    "set-variables": [
-                        "out"
-                    ]
-                }
-            },
-            "type": "appmixer.utils.controls.CodeBlock",
-            "x": 480,
-            "y": 144
-        },
-        "create-appointment": {
-            "config": {
-                "properties": {
-                    "account": "69bd20b72e33e81a1e686f91"
-                },
-                "transform": {
-                    "in": {
-                        "compute-end": {
-                            "out": {
-                                "lambda": {
-                                    "calendarId": "{{{var-calendar-id}}}",
-                                    "contactId": "{{{var-contact-id}}}",
-                                    "endTime": "{{{var-end-time}}}",
-                                    "startTime": "{{{var-start-time}}}",
-                                    "title": "{{{var-title}}}"
-                                },
-                                "modifiers": {
-                                    "calendarId": {
-                                        "var-calendar-id": {
-                                            "functions": [],
-                                            "variable": "$.set-variables.out.calendarId"
-                                        }
-                                    },
-                                    "contactId": {
-                                        "var-contact-id": {
-                                            "functions": [],
-                                            "variable": "$.set-variables.out.contactId"
-                                        }
-                                    },
-                                    "endTime": {
-                                        "var-end-time": {
-                                            "functions": [],
-                                            "variable": "$.compute-end.out.result"
-                                        }
-                                    },
-                                    "startTime": {
-                                        "var-start-time": {
-                                            "functions": [],
-                                            "variable": "$.compute-start.out.result"
-                                        }
-                                    },
-                                    "title": {
-                                        "var-title": {
-                                            "functions": [],
-                                            "variable": "$.set-variables.out.appointmentTitle"
-                                        }
-                                    }
-                                },
-                                "type": "json2new"
-                            }
-                        }
-                    }
-                }
-            },
-            "source": {
-                "in": {
-                    "compute-end": [
-                        "out"
-                    ]
-                }
-            },
-            "type": "appmixer.gohighlevel.core.CreateAppointment",
-            "x": 976,
-            "y": 144
-        },
-        "list-calendars": {
+        "4f0fdc05-5334-5b60-a9cf-85990e0075a2": {
             "config": {
                 "properties": {
                     "account": "69bd20b72e33e81a1e686f91"
                 }
             },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
             "source": {
                 "in": {
-                    "set-variables": [
+                    "59fdca13-dcfa-5957-be54-03e856bf8172": [
                         "out"
                     ]
                 }
             },
             "type": "appmixer.gohighlevel.core.ListCalendars",
-            "x": 976,
-            "y": 16
+            "x": 512,
+            "y": 176
         },
-        "on-start": {
-            "config": {},
-            "source": {},
-            "type": "appmixer.utils.controls.OnStart",
-            "x": -80,
-            "y": 16
-        },
-        "process-results": {
-            "config": {
-                "properties": {},
-                "transform": {
-                    "in": {
-                        "after-all": {
-                            "out": {
-                                "lambda": {
-                                    "recipients": "auth@appmixer.ai",
-                                    "result": "{{{result-var}}}",
-                                    "testCase": "E2E Gohighlevel - Appointment Scheduling"
-                                },
-                                "modifiers": {
-                                    "recipients": {},
-                                    "result": {
-                                        "result-var": {
-                                            "functions": [],
-                                            "variable": "$.after-all.out"
-                                        }
-                                    },
-                                    "testCase": {}
-                                },
-                                "type": "json2new"
-                            }
-                        }
-                    }
-                }
-            },
-            "source": {
-                "in": {
-                    "after-all": [
-                        "out"
-                    ]
-                }
-            },
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1552,
-            "y": 80
-        },
-        "set-variables": {
+        "59fdca13-dcfa-5957-be54-03e856bf8172": {
             "config": {
                 "transform": {
                     "in": {
-                        "on-start": {
+                        "767095e8-4235-50ec-807b-57ac77a94968": {
                             "out": {
                                 "lambda": {
                                     "variables": {
@@ -356,15 +253,169 @@
                     }
                 }
             },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
             "source": {
                 "in": {
-                    "on-start": [
+                    "767095e8-4235-50ec-807b-57ac77a94968": [
                         "out"
                     ]
                 }
             },
             "type": "appmixer.utils.controls.SetVariable",
             "x": 288,
+            "y": 16
+        },
+        "767095e8-4235-50ec-807b-57ac77a94968": {
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16
+        },
+        "afd3b15e-b99c-5056-afb5-fb5f48af6d1a": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "59fdca13-dcfa-5957-be54-03e856bf8172": {
+                            "out": {
+                                "lambda": {
+                                    "code": "(() => { const d = new Date(); const week = 1 + Math.floor(Math.random() * 8); d.setUTCDate(d.getUTCDate() + 7 * week); while (d.getUTCDay() !== 1) { d.setUTCDate(d.getUTCDate() + 1); } const hour = 9 + Math.floor(Math.random() * 7); const half = Math.random() < 0.5 ? 0 : 30; d.setUTCHours(hour, half, 0, 0); return d.toISOString(); })()"
+                                },
+                                "modifiers": {
+                                    "code": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "59fdca13-dcfa-5957-be54-03e856bf8172": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.controls.CodeBlock",
+            "x": 512,
+            "y": 16
+        },
+        "caeca176-d348-5aea-8dd5-7d2e8751434d": {
+            "config": {
+                "transform": {
+                    "in": {
+                        "33802334-31cf-5169-9a25-2f2a579151b0": {
+                            "out": {
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{appt-id-var}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "E2E Test Appointment",
+                                                "field": "{{{appt-title-var}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "expected": "new",
+                                                "field": "{{{appt-status-var}}}"
+                                            }
+                                        ]
+                                    }
+                                },
+                                "modifiers": {
+                                    "expression": {
+                                        "appt-id-var": {
+                                            "functions": [],
+                                            "variable": "$.33802334-31cf-5169-9a25-2f2a579151b0.out.id"
+                                        },
+                                        "appt-status-var": {
+                                            "functions": [],
+                                            "variable": "$.33802334-31cf-5169-9a25-2f2a579151b0.out.appointmentStatus"
+                                        },
+                                        "appt-title-var": {
+                                            "functions": [],
+                                            "variable": "$.33802334-31cf-5169-9a25-2f2a579151b0.out.title"
+                                        }
+                                    }
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "33802334-31cf-5169-9a25-2f2a579151b0": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.Assert",
+            "x": 960,
+            "y": 16
+        },
+        "e456b3f0-605b-5db4-9024-fa3c2f2f4580": {
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "3dcfb300-b937-5388-984d-bfaf521a5b28": {
+                            "out": {
+                                "lambda": {
+                                    "recipients": "auth@appmixer.ai",
+                                    "result": "{{{result-var}}}",
+                                    "testCase": "E2E Gohighlevel - Appointment Scheduling"
+                                },
+                                "modifiers": {
+                                    "recipients": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.0d18d15f-3fca-5e41-b2d3-6e21ec237000.out"
+                                        }
+                                    },
+                                    "testCase": {}
+                                },
+                                "type": "json2new"
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "3dcfb300-b937-5388-984d-bfaf521a5b28": [
+                        "out"
+                    ]
+                }
+            },
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1632,
             "y": 16
         }
     },

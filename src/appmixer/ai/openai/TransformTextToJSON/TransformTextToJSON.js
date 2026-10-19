@@ -11,10 +11,9 @@ module.exports = {
             throw new context.CancelError('Text is required');
         }
 
-        if (!jsonSchema) {
+        if (!jsonSchemaString) {
             throw new context.CancelError('Output JSON Schema is required');
         }
-
 
         let jsonSchema;
         try {

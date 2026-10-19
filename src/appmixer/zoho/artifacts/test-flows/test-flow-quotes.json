@@ -1,0 +1,433 @@
+{
+    "name": "E2E Zoho - quotes",
+    "description": "End-to-end test for Zoho CRM quotes \u2014 reads a quote with Get Quote, declines it and accepts it again.",
+    "type": "automation",
+    "flow": {
+        "e0cc6ffc-83f7-4b8c-905b-7616d9ee4fea": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "a1cc4d96-2c6c-48b7-a9e5-93b4836049c7": {
+            "type": "appmixer.zoho.crm.ListRecords",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "e0cc6ffc-83f7-4b8c-905b-7616d9ee4fea": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e0cc6ffc-83f7-4b8c-905b-7616d9ee4fea": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "moduleName": {},
+                                    "allAtOnce": {}
+                                },
+                                "lambda": {
+                                    "moduleName": "Quotes",
+                                    "allAtOnce": true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0b84d708-33fb-4b8a-8e63-caffb5473be3": {
+            "type": "appmixer.zoho.crm.GetQuote",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1cc4d96-2c6c-48b7-a9e5-93b4836049c7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1cc4d96-2c6c-48b7-a9e5-93b4836049c7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "quoteId": {
+                                        "v-quote-id": {
+                                            "variable": "$.a1cc4d96-2c6c-48b7-a9e5-93b4836049c7.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.records[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "quoteId": "{{{v-quote-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d748a3da-fb16-4518-9a6c-8dc1f2557538": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0b84d708-33fb-4b8a-8e63-caffb5473be3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0b84d708-33fb-4b8a-8e63-caffb5473be3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-quote-id": {
+                                            "variable": "$.0b84d708-33fb-4b8a-8e63-caffb5473be3.out.id",
+                                            "functions": []
+                                        },
+                                        "a-quote-id-expected": {
+                                            "variable": "$.a1cc4d96-2c6c-48b7-a9e5-93b4836049c7.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.records[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "a-quote-created": {
+                                            "variable": "$.0b84d708-33fb-4b8a-8e63-caffb5473be3.out.Created_Time",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-quote-id}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{a-quote-id-expected}}}"
+                                            },
+                                            {
+                                                "field": "{{{a-quote-created}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "909d1ad0-1e79-440e-885e-8c0c8549a026": {
+            "type": "appmixer.zoho.crm.DeclineQuote",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "0b84d708-33fb-4b8a-8e63-caffb5473be3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0b84d708-33fb-4b8a-8e63-caffb5473be3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "quoteId": {
+                                        "v-decline-id": {
+                                            "variable": "$.0b84d708-33fb-4b8a-8e63-caffb5473be3.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "quoteStage": {}
+                                },
+                                "lambda": {
+                                    "quoteId": "{{{v-decline-id}}}",
+                                    "quoteStage": "Closed Lost"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "67937d63-bc9f-46cf-ae2c-3ee95e21eb26": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "909d1ad0-1e79-440e-885e-8c0c8549a026": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "909d1ad0-1e79-440e-885e-8c0c8549a026": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-decline-stage": {
+                                            "variable": "$.909d1ad0-1e79-440e-885e-8c0c8549a026.out.Quote_Stage",
+                                            "functions": []
+                                        },
+                                        "a-decline-modified": {
+                                            "variable": "$.909d1ad0-1e79-440e-885e-8c0c8549a026.out.Modified_Time",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-decline-stage}}}",
+                                                "assertion": "equal",
+                                                "expected": "Closed Lost"
+                                            },
+                                            {
+                                                "field": "{{{a-decline-modified}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "1f87fe3a-b88d-4f0e-9cc6-a0c1ed7e4ad2": {
+            "type": "appmixer.zoho.crm.AcceptQuote",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "909d1ad0-1e79-440e-885e-8c0c8549a026": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "909d1ad0-1e79-440e-885e-8c0c8549a026": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "quoteId": {
+                                        "v-accept-id": {
+                                            "variable": "$.909d1ad0-1e79-440e-885e-8c0c8549a026.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "quoteStage": {}
+                                },
+                                "lambda": {
+                                    "quoteId": "{{{v-accept-id}}}",
+                                    "quoteStage": "Confirmed"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0729fcf8-9432-476f-bdfd-f67cd082bd68": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "1f87fe3a-b88d-4f0e-9cc6-a0c1ed7e4ad2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1f87fe3a-b88d-4f0e-9cc6-a0c1ed7e4ad2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-accept-stage": {
+                                            "variable": "$.1f87fe3a-b88d-4f0e-9cc6-a0c1ed7e4ad2.out.Quote_Stage",
+                                            "functions": []
+                                        },
+                                        "a-accept-id": {
+                                            "variable": "$.1f87fe3a-b88d-4f0e-9cc6-a0c1ed7e4ad2.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-accept-stage}}}",
+                                                "assertion": "equal",
+                                                "expected": "Confirmed"
+                                            },
+                                            {
+                                                "field": "{{{a-accept-id}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "064a2fa4-8345-4283-9b2c-9a79da2c429a": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "d748a3da-fb16-4518-9a6c-8dc1f2557538": [
+                        "out"
+                    ],
+                    "67937d63-bc9f-46cf-ae2c-3ee95e21eb26": [
+                        "out"
+                    ],
+                    "0729fcf8-9432-476f-bdfd-f67cd082bd68": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "a1c99f32-f750-486a-97bf-c0981d08358e": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "064a2fa4-8345-4283-9b2c-9a79da2c429a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "064a2fa4-8345-4283-9b2c-9a79da2c429a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "589e62f1-d576-4d5e-9791-3b90960c4839": {
+                                            "variable": "$.064a2fa4-8345-4283-9b2c-9a79da2c429a.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Zoho - quotes",
+                                    "result": "{{{589e62f1-d576-4d5e-9791-3b90960c4839}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

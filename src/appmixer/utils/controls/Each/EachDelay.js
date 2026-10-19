@@ -106,7 +106,7 @@ async function handleTimeout(context) {
             method: 'DELETE'
         });
         await context.stateUnset(id);
-        await context.sendJson({ count, correlationId }, 'done');
+        await context.sendJson({ count, correlationId, result: [] }, 'done');
         return;
     }
 
@@ -128,7 +128,7 @@ async function handleTimeout(context) {
             method: 'DELETE'
         });
         await context.stateUnset(id);
-        await context.sendJson({ count, correlationId }, 'done');
+        await context.sendJson({ count, correlationId, result: [] }, 'done');
     } else {
         // Schedule next timeout
         await context.setTimeout({ id, timestamp: new Date() }, TIMEOUT_INTERVAL(context));
@@ -163,7 +163,7 @@ async function handleDelayedStart(context, { list, correlationId, count, delay }
     if (startIndex >= list.length) {
         // Already finished on a prior attempt - just finalize.
         await context.stateUnset(id);
-        await context.sendJson({ count, correlationId }, 'done');
+        await context.sendJson({ count, correlationId, result: [] }, 'done');
         return;
     }
 
@@ -177,7 +177,7 @@ async function handleDelayedStart(context, { list, correlationId, count, delay }
     if (newIndex >= list.length) {
         // All items sent. Nothing was ever stored in the plugin, so just finish.
         await context.stateUnset(id);
-        await context.sendJson({ count, correlationId }, 'done');
+        await context.sendJson({ count, correlationId, result: [] }, 'done');
     } else {
         // More items remain: hand off to the timeout-driven flow. The timeout delivery does not have
         // the original `in` message, so the remaining items must live in the plugin store. If this

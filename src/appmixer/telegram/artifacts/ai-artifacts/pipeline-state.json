@@ -1,0 +1,79 @@
+{
+    "connector": "telegram",
+    "vendor": "appmixer",
+    "pipeline": "ship-connector",
+    "startedAt": "2026-08-26",
+    "branch": "feature/telegram-connector",
+    "instance": "https://api-dev-automated-00001.dev.appmixer.ai",
+    "e2eUser": "test@appmixer.ai",
+    "bot": "@appmixer_test_bot (8865231953)",
+    "testChat": "-5467341409 (group \"Appmixer Test\")",
+    "instanceAccountId": "6a8ed8d6c518b9438bf491cd",
+    "budget": {
+        "maxMinutes": "60 initial + 60 approved on resume",
+        "maxCredits": "n/a - Telegram Bot API is free",
+        "maxFixAttempts": 3
+    },
+    "steps": {
+        "0-preflight": {
+            "status": "done",
+            "detail": "Initially blocked on the bot token; cleared when the user ran `appmixer test auth login`. auth.js verified live - validate() and requestProfileInfo() both returned real data."
+        },
+        "1-build": {
+            "status": "done",
+            "detail": "13 components. eslint exit 0, validate.js --connector telegram 0 failures 0 warnings (25 validators).",
+            "commit": "b04057cd"
+        },
+        "2-review": {
+            "status": "done",
+            "detail": "3 findings fixed: dynamic output options lacked example/nested properties, unused quota rule removed, GetFile download errors normalized."
+        },
+        "3a-cli-tests": {
+            "status": "done",
+            "detail": "10 of 13 components tested via `appmixer test component` against the live bot. 10 pass. 1 defect found and fixed (GetFile stream -> arraybuffer, commit fcad6b96). The remaining 3 components are not reachable from the CLI and are covered by E2E instead.",
+            "passed": [
+                "MakeApiCall",
+                "SendMessage",
+                "EditMessage",
+                "ForwardMessage",
+                "SendPhoto",
+                "SendDocument (URL)",
+                "GetChat",
+                "ListChatAdministrators",
+                "GetFile",
+                "DeleteMessage"
+            ],
+            "notTestableViaCli": {
+                "SendPhoto / SendDocument multipart upload": "appmixer test component uses an ephemeral per-invocation file store, so a file saved by one invocation is gone in the next. The multipart branch of lib.sendMedia is covered by SendDocument in the media E2E flow; SendPhoto is driven with a URL there, so its own upload branch is exercised only through that shared helper.",
+                "AnswerCallbackQuery": "needs a real callback_query_id, which only a human button press produces.",
+                "NewMessage / NewCallbackQuery": "triggers - covered by E2E."
+            }
+        },
+        "3b-e2e": {
+            "status": "done",
+            "detail": "5 flows generated, `appmixer e2e validate` passes (26 validators), all imported with the account bound. All 5 verified in the E2E success store.",
+            "passed": [
+                "E2E Telegram - chat info",
+                "E2E Telegram - messaging",
+                "E2E Telegram - media (covers the multipart upload path)",
+                "E2E Telegram - new message trigger (plugin webhook verified end to end)",
+                "E2E Telegram - callback query trigger (NewCallbackQuery + AnswerCallbackQuery verified with a real button press)"
+            ]
+        },
+        "4-ship": {
+            "status": "done",
+            "detail": "Branch pushed to origin (petrolivka fork); PR opened against Appmixer-ai/appmixer-connectors."
+        }
+    },
+    "webhookVerification": {
+        "registeredUrl": "https://api-dev-automated-00001.dev.appmixer.ai/plugins/appmixer/telegram/updates/89a1bb2f99554cac7d3c62ff252f3c76",
+        "derivationMatches": true,
+        "secretDistinctFromPath": true,
+        "routeVerified": "A real bot message was delivered to the plugin endpoint inside a genuine Telegram update envelope. With the correct X-Telegram-Bot-Api-Secret-Token the trigger fired and the flow passed; the wrong-secret POST produced no second delivery (a duplicate would have made the cleanup DeleteMessage fail)."
+    },
+    "remaining": [],
+    "notes": [
+        "E2E Assert clauses render a modifier binding as a string, so a boolean expectation never matches - it fails with the confusing 'expected true to equal true'. Write \"true\"/\"false\" as strings.",
+        "Review feedback from vtalas addressed: stray file_0.jpg removed, dynamic outPort source uses the \"dummy\" literal, all five flows carry a notes sticky, upload limits are per-method, and ForwardMessage declares forward_origin."
+    ]
+}

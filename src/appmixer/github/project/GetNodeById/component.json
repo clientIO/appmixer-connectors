@@ -1,0 +1,142 @@
+{
+    "name": "appmixer.github.project.GetNodeById",
+    "label": "Get Node By ID",
+    "description": "Resolve a GitHub global node ID (issue, pull request or draft issue) to its number, title, URL, state, repository and labels.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "read:project",
+            "repo"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests-projects",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "nodeId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "nodeId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "nodeId": {
+                        "type": "text",
+                        "tooltip": "The GitHub global node ID to resolve, for example the 'Content Node ID' emitted by the On Project Item Changed trigger.",
+                        "label": "Node ID",
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "ID",
+                        "example": "I_kwDOAA12oc6abcde"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Type",
+                        "example": "Issue"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "title": "Number",
+                        "example": 2834
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "example": "Projects v2 components for board-driven agent workflow"
+                    },
+                    "url": {
+                        "type": "string",
+                        "title": "URL",
+                        "example": "https://github.com/Appmixer-ai/appmixer-components/issues/2834"
+                    },
+                    "state": {
+                        "type": "string",
+                        "title": "State",
+                        "example": "OPEN"
+                    },
+                    "body": {
+                        "type": "string",
+                        "title": "Body",
+                        "example": "We want to drive connector development from a GitHub Projects board."
+                    },
+                    "isDraft": {
+                        "type": "boolean",
+                        "title": "Is Draft",
+                        "example": false
+                    },
+                    "repository": {
+                        "type": "object",
+                        "title": "Repository",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "title": "Repository.Name",
+                                "example": "appmixer-components"
+                            },
+                            "owner": {
+                                "type": "string",
+                                "title": "Repository.Owner",
+                                "example": "Appmixer-ai"
+                            },
+                            "nameWithOwner": {
+                                "type": "string",
+                                "title": "Repository.Name With Owner",
+                                "example": "Appmixer-ai/appmixer-components"
+                            }
+                        }
+                    },
+                    "labels": {
+                        "type": "array",
+                        "title": "Labels",
+                        "example": ["enhancement", "connector"],
+                        "items": {
+                            "type": "string",
+                            "title": "Labels.Label",
+                            "example": "enhancement"
+                        }
+                    },
+                    "assignees": {
+                        "type": "array",
+                        "title": "Assignees",
+                        "example": ["octocat"],
+                        "items": {
+                            "type": "string",
+                            "title": "Assignees.Login",
+                            "example": "octocat"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo="
+}

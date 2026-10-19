@@ -6,6 +6,10 @@ module.exports = {
 
     receive: async function(context) {
 
+        if (!context.messages.in.content.model) {
+            throw new context.CancelError('Model is required!');
+        }
+
         const { data } = await this.httpRequest(context);
 
         return context.sendJson(data, 'out');

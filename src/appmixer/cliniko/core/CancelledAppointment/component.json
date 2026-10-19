@@ -1,0 +1,205 @@
+{
+    "name": "appmixer.cliniko.core.CancelledAppointment",
+    "label": "Cancelled Appointment",
+    "description": "Triggers when an individual appointment is cancelled. Cancelled appointments are normally hidden from the API; this trigger asks for them explicitly and polls the \"cancelled at\" timestamp. The first run only records a baseline.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "trigger": true,
+    "tick": true,
+    "auth": {
+        "service": "appmixer:cliniko"
+    },
+    "quota": {
+        "manager": "appmixer:cliniko",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "practitionerId": {
+                    "type": "string"
+                },
+                "businessId": {
+                    "type": "string"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "practitionerId": {
+                    "type": "text",
+                    "index": 1,
+                    "label": "Practitioner",
+                    "tooltip": "Only react to records for this practitioner. Leave empty for all practitioners.",
+                    "source": {
+                        "url": "/component/appmixer/cliniko/core/ListPractitioners?outPort=out",
+                        "data": {
+                            "transform": "./ListPractitioners#toSelectArray",
+                            "messages": {
+                                "in/outputType": "array",
+                                "in/isSource": true
+                            }
+                        }
+                    }
+                },
+                "businessId": {
+                    "type": "text",
+                    "index": 2,
+                    "label": "Business",
+                    "tooltip": "Only react to records for this business. Leave empty for all businesses.",
+                    "source": {
+                        "url": "/component/appmixer/cliniko/core/ListBusinesses?outPort=out",
+                        "data": {
+                            "transform": "./ListBusinesses#toSelectArray",
+                            "messages": {
+                                "in/outputType": "array",
+                                "in/isSource": true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Appointment ID",
+                        "example": "2021658404375760861"
+                    },
+                    "patient_id": {
+                        "type": "string",
+                        "title": "Patient ID",
+                        "example": "2021658306572980085"
+                    },
+                    "patient_name": {
+                        "type": "string",
+                        "title": "Patient Name",
+                        "example": "Test Patient"
+                    },
+                    "practitioner_id": {
+                        "type": "string",
+                        "title": "Practitioner ID",
+                        "example": "2021656762171526868"
+                    },
+                    "business_id": {
+                        "type": "string",
+                        "title": "Business ID",
+                        "example": "2021656766541991379"
+                    },
+                    "appointment_type_id": {
+                        "type": "string",
+                        "title": "Appointment Type ID",
+                        "example": "2021656765636021706"
+                    },
+                    "patient_case_id": {
+                        "type": "string",
+                        "title": "Patient Case ID",
+                        "example": ""
+                    },
+                    "starts_at": {
+                        "type": "string",
+                        "title": "Starts At",
+                        "format": "date-time",
+                        "example": "2026-09-01T09:00:00Z"
+                    },
+                    "ends_at": {
+                        "type": "string",
+                        "title": "Ends At",
+                        "format": "date-time",
+                        "example": "2026-09-01T09:30:00Z"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "title": "Notes",
+                        "example": "First consultation."
+                    },
+                    "patient_arrived": {
+                        "type": "boolean",
+                        "title": "Patient Arrived",
+                        "example": false
+                    },
+                    "did_not_arrive": {
+                        "type": "boolean",
+                        "title": "Did Not Arrive",
+                        "example": false
+                    },
+                    "cancelled_at": {
+                        "type": "string",
+                        "title": "Cancelled At",
+                        "format": "date-time",
+                        "example": ""
+                    },
+                    "cancellation_note": {
+                        "type": "string",
+                        "title": "Cancellation Note",
+                        "example": ""
+                    },
+                    "cancellation_reason": {
+                        "type": "integer",
+                        "title": "Cancellation Reason",
+                        "example": 30
+                    },
+                    "cancellation_reason_description": {
+                        "type": "string",
+                        "title": "Cancellation Reason Description",
+                        "example": "Sick"
+                    },
+                    "email_reminder_sent": {
+                        "type": "boolean",
+                        "title": "Email Reminder Sent",
+                        "example": false
+                    },
+                    "sms_reminder_sent": {
+                        "type": "boolean",
+                        "title": "SMS Reminder Sent",
+                        "example": false
+                    },
+                    "invoice_status": {
+                        "type": "integer",
+                        "title": "Invoice Status",
+                        "example": 0
+                    },
+                    "treatment_note_status": {
+                        "type": "integer",
+                        "title": "Treatment Note Status",
+                        "example": 0
+                    },
+                    "telehealth_url": {
+                        "type": "string",
+                        "title": "Telehealth URL",
+                        "example": "https://example.eu1.cliniko.com/appointments/2021658404375760861/connect"
+                    },
+                    "archived_at": {
+                        "type": "string",
+                        "title": "Archived At",
+                        "format": "date-time",
+                        "example": ""
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At",
+                        "format": "date-time",
+                        "example": "2026-08-21T08:34:22Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "title": "Updated At",
+                        "format": "date-time",
+                        "example": "2026-08-21T08:34:22Z"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJDbGluaWtvIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNGRkZGRkYiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1LjUsMTAuNSkiPjxnIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGwtcnVsZT0ibm9uemVybyI+PHBhdGggZD0iTTMxLjEsMjQuMiBDMzAuNywyMy44IDMwLjYsMjMuMiAzMSwyMi44IEMzMS40LDIyLjQgMzIsMjIuMyAzMi40LDIyLjcgQzM0LjIsMjQuMiAzNi41LDI0LjEgMzgsMjIuNyBDMzguNCwyMi4zIDM5LDIyLjQgMzkuNCwyMi44IEMzOS44LDIzLjIgMzkuNywyMy44IDM5LjMsMjQuMiBDMzcuMSwyNi4yIDMzLjYsMjYuNCAzMS4xLDI0LjIgWiIgZmlsbD0iIzAwQTlDRSI+PC9wYXRoPjxwYXRoIGQ9Ik0xOC43LDQuOCBDMTksNC41IDE4LjgsNC4yIDE5LjUsMy43IEMyMS40LDIuMSAyOCwyLjMgMjguNiw0LjYgQzI4LjgsNS4zIDI5LDQuOSAzMi4zLDUuNyBDMzIuNSw1LjcgMzMuMiw2IDMzLjIsNS43IEMzMy4yLDUuNSAzMi41LDQuNSAzMi4zLDQuMyBDMjgsLTEuMSAxOS43LC0xLjQgMTUuMSwzLjggQzE0LjksNCAxMy41LDUuNSAxNCw1LjggQzE0LjMsNiAxNC41LDUuNyAxOC4xLDUuMSBDMTguNCw1IDE4LjYsNSAxOC43LDQuOCBaIiBmaWxsPSIjNkFEMUUzIj48L3BhdGg+PHBhdGggZD0iTTIzLjcsOS4xIEMyNS4xLDkuMSAyNi44LDYuMSAyNi43LDUuNSBDMjYuNSwzLjggMjAuOSwzLjggMjAuOCw1LjUgQzIwLjgsNiAyMi40LDkuMSAyMy43LDkuMSBaIiBmaWxsPSIjMDBBOUNFIj48L3BhdGg+PHBhdGggZD0iTTM0LjUsOC4zIEMzNC40LDcuOSAzNC4zLDcuNyAzMy45LDcuNiBDMzMuNSw3LjQgMzEuOCw2LjkgMjkuNCw2LjcgQzI4LjgsNi42IDI4LjIsNi40IDI3LjksNyBDMjcuNSw3LjYgMjcuMiw4LjIgMjYuNyw4LjcgQzI0LjQsMTEuNSAyMi43LDExLjcgMjAuMSw3LjQgQzE5LjMsNi4xIDE4LjEsNi42IDE2LjksNi44IEMxNi4xLDcgMTMuNiw3LjUgMTMuMiw3LjcgQzEyLjgsNy45IDEyLjcsOC42IDEyLjYsOS40IEMxMS43LDE0LjUgMTQuNCwxOS40IDE4LjksMjEuNSBDMTkuMiwyMS42IDE5LjYsMjEuOCAxOS41LDIyLjEgQzE5LjQsMjIuNyAxOC4zLDIzIDE3LjksMjMuMyBDMTQuMSwyNS4yIDEwLjUsMjguMyA3LjYsMzIuNCBDMi44LDM5LjQgMS4yLDQ3LjUgMC44LDU2IEMwLjcsNTcuMiAxLjcsNTguMSAyLjgsNTguMSBMNy4zLDU4LjEgQzguMyw1OC4xIDkuMSw1Ny40IDkuMyw1Ni41IEM5LjgsNTEuOCAxMC44LDQ2LjMgMTMsNDIuMSBDMTYuMywzNS40IDIxLjQsMzAuNyAyNi4yLDI4LjQgQzI3LjEsMjggMjguMiwyNy42IDI3LjMsMjYuNSBDMjIuMSwyMCAyNi4yLDExLjMgMzMuNSwxMC4yIEMzNC43LDEwLjEgMzUsMTAgMzQuNSw4LjMgWiIgZmlsbD0iIzZBRDFFMyI+PC9wYXRoPjxwYXRoIGQ9Ik01NC42LDI3IEM1NC4zLDI2LjggNTMuNywyNi41IDUzLjcsMjYuMSBDNTMuNywyNS43IDU0LjIsMjUuNiA1NC41LDI1LjQgQzYzLjIsMjAgNTkuMyw2LjcgNDkuMiw2LjcgQzQ2LjUsNi43IDQzLjksNy44IDQyLjMsOS40IEM0MS44LDkuOSA0MC4yLDExLjMgNDAuOSwxMi4xIEM0MS4yLDEyLjQgNDEuNiwxMi43IDQxLjksMTIuOSBDNDMuOCwxNC43IDQ1LDE3LjMgNDUsMjAuMSBDNDUsMjIuMiA0NC40LDIzLjkgNDMuMywyNS43IEM0MywyNi4zIDQyLjMsMjYuOCA0MywyNy40IEM0NC41LDI4LjYgNTAuNiwzMS42IDU1LjQsMzkuMiBDNTcuOCw0My4xIDU5LjgsNDcuNyA2MC43LDU2LjIgQzYwLjcsNTcuMiA2MS42LDU4LjIgNjIuNyw1OC4yIEw2Nyw1OC4yIEM2OC4xLDU4LjIgNjksNTcuNCA2OSw1Ni4zIEM2OC43LDQ1IDYzLjgsMzMuNCA1NC42LDI3IFoiIGZpbGw9IiMwNUMzREUiPjwvcGF0aD48cGF0aCBkPSJNNTcuNyw1Ni4yIEM1Ny40LDUzLjMgNTYuOSw1MC44IDU2LDQ3LjkgQzUzLjksNDEuMiA0OS43LDM0LjQgNDMuNCwzMS41IEM0Mi4xLDMwLjkgMzguMywyOS42IDM3LjQsMzAuNiBDMzYuOSwzMS4xIDM3LjEsMzIgMzcuNSwzNS43IEMzOC43LDQ3LjYgMzguOCw0OC44IDM4LjgsNDkuNCBDMzguOCw1MC41IDM2LjYsNTIuNSAzNi4yLDUyLjkgQzM1LjksNTMuMiAzNS4zLDUzLjIgMzQuOSw1Mi45IEMzNC42LDUyLjUgMzIuNCw1MC41IDMyLjQsNDkuNSBDMzIuNCw0Ny4xIDM0LjEsMzIgMzQuMSwzMS41IEMzNC4xLDI5LjYgMzEuOSwzMC40IDMwLjksMzAuNiBDMjMsMzIuNCAxNy43LDQwLjIgMTUuMiw0OCBDMTQuMiw1MS4xIDEzLjYsNTQuOSAxMy41LDU2LjEgQzEzLjQsNTcuMiAxNC40LDU4LjIgMTUuNSw1OC4yIEw1NS41LDU4LjIgQzU2LjgsNTguMiA1Ny43LDU3LjIgNTcuNyw1Ni4yIFoiIGZpbGw9IiMwMEE5Q0UiPjwvcGF0aD48L2c+PC9nPjwvZz48L3N2Zz4="
+}

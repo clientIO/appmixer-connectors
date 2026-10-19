@@ -16,12 +16,16 @@ module.exports = {
 
     agent: async function(context, instructions, model, prompt, fileId, tools, history) {
 
-        const messages = history || [{
+        const messages = history || [];
+        // The instructions lead every request but stay out of `messages`, which is what gets
+        // stored as the thread history. A thread therefore always runs on the current
+        // instructions and they survive the history being summarized.
+        const instructionsMessage = {
             // Note that we're not using the 'system' role here since it's not
             // supported by all models. For example, o1 models.
             role: 'user',
             content: instructions
-        }];
+        };
 
         let userContent = prompt;
 
@@ -105,7 +109,7 @@ module.exports = {
 
             const completion = {
                 model,
-                messages,
+                messages: [instructionsMessage, ...messages],
                 tools
             };
             await context.log({ step: 'agent-completion', completion, turn: i + 1 });

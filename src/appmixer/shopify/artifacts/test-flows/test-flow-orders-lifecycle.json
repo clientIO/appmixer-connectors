@@ -1,25 +1,25 @@
 {
+    "name": "E2E Shopify - Orders Lifecycle",
+    "type": "automation",
     "flow": {
-        "f6631ba5-4c9a-4020-8f72-57e40a2b24c5": {
+        "0f0b1ea7-10ad-4e08-8f99-6986c8567c71": {
             "type": "appmixer.utils.controls.OnStart",
-            "x": 64,
-            "y": 320,
+            "x": 208,
+            "y": 128,
             "source": {},
-            "version": "1.0.0",
             "config": {},
             "errorHandling": {
                 "autoRetry": false,
                 "onError": "stopFlow"
             }
         },
-        "263ad4e0-ac12-4562-8199-d034395c2d03": {
+        "228ac4f5-5c0f-491d-b9ad-5e7151b11fba": {
             "type": "appmixer.utils.controls.SetVariable",
-            "x": 272,
-            "y": 320,
-            "version": "1.0.0",
+            "x": 416,
+            "y": 128,
             "source": {
                 "in": {
-                    "f6631ba5-4c9a-4020-8f72-57e40a2b24c5": [
+                    "0f0b1ea7-10ad-4e08-8f99-6986c8567c71": [
                         "out"
                     ]
                 }
@@ -27,12 +27,10 @@
             "config": {
                 "transform": {
                     "in": {
-                        "f6631ba5-4c9a-4020-8f72-57e40a2b24c5": {
+                        "0f0b1ea7-10ad-4e08-8f99-6986c8567c71": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {
-                                    "variables": {}
-                                },
+                                "modifiers": {},
                                 "lambda": {
                                     "variables": {
                                         "ADD": [
@@ -43,8 +41,8 @@
                                             },
                                             {
                                                 "type": "text",
-                                                "name": "itemTitle",
-                                                "text": "Appmixer E2E Line Item"
+                                                "name": "tag",
+                                                "text": "appmixer-e2e-orders-lifecycle"
                                             }
                                         ]
                                     }
@@ -59,14 +57,13 @@
                 "onError": "stopFlow"
             }
         },
-        "c532453b-7100-40a8-94bc-9937fedcde26": {
+        "a485c3b9-7800-4a39-8e02-f4a8b8522c9c": {
             "type": "appmixer.shopify.orders.CreateOrder",
-            "x": 480,
-            "y": 320,
-            "version": "1.0.0",
+            "x": 624,
+            "y": 128,
             "source": {
                 "in": {
-                    "263ad4e0-ac12-4562-8199-d034395c2d03": [
+                    "228ac4f5-5c0f-491d-b9ad-5e7151b11fba": [
                         "out"
                     ]
                 }
@@ -74,32 +71,71 @@
             "config": {
                 "transform": {
                     "in": {
-                        "263ad4e0-ac12-4562-8199-d034395c2d03": {
+                        "228ac4f5-5c0f-491d-b9ad-5e7151b11fba": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "email": {
+                                        "58cd89d4-a1ac-47aa-9f2f-a126ffc6137c": {
+                                            "variable": "$.228ac4f5-5c0f-491d-b9ad-5e7151b11fba.out.email",
+                                            "functions": []
+                                        }
+                                    },
+                                    "tags": {
+                                        "35f2a5b0-d1f9-4dac-bb95-b4aa07ac4fb4": {
+                                            "variable": "$.228ac4f5-5c0f-491d-b9ad-5e7151b11fba.out.tag",
+                                            "functions": []
+                                        }
+                                    }
+                                },
                                 "lambda": {
-                                    "email": "e2e.order@example.com",
-                                    "test": true,
-                                    "note": "Created by Appmixer E2E",
-                                    "tags": "appmixer-e2e",
-                                    "line_items": {
+                                    "lineItems": {
                                         "ADD": [
                                             {
-                                                "variantType": "custom",
+                                                "itemType": "custom",
                                                 "title": "Appmixer E2E Line Item",
                                                 "price": 9.99,
-                                                "quantity": 2
+                                                "quantity": 2,
+                                                "sku": "E2E-1",
+                                                "taxable": true,
+                                                "requiresShipping": true
                                             }
                                         ]
-                                    }
+                                    },
+                                    "email": "{{{58cd89d4-a1ac-47aa-9f2f-a126ffc6137c}}}",
+                                    "financialStatus": "PENDING",
+                                    "note": "Created by Appmixer E2E",
+                                    "tags": "appmixer-e2e, {{{35f2a5b0-d1f9-4dac-bb95-b4aa07ac4fb4}}}",
+                                    "test": true,
+                                    "discountCode": "E2E5",
+                                    "discountType": "FIXED_AMOUNT",
+                                    "discountValue": 5,
+                                    "taxLines": {
+                                        "ADD": [
+                                            {
+                                                "title": "E2E VAT",
+                                                "rate": 0.21,
+                                                "price": 2.1
+                                            }
+                                        ]
+                                    },
+                                    "billingFirstName": "Appmixer",
+                                    "billingLastName": "E2E",
+                                    "billingAddress1": "Karlovo namesti 1",
+                                    "billingCity": "Prague",
+                                    "billingCountryCode": "CZ",
+                                    "billingZip": "120 00",
+                                    "shippingFirstName": "Appmixer",
+                                    "shippingLastName": "E2E",
+                                    "shippingAddress1": "100 Queen St W",
+                                    "shippingCity": "Toronto",
+                                    "shippingProvinceCode": "ON",
+                                    "shippingCountryCode": "CA",
+                                    "shippingZip": "M5H 2N2"
                                 }
                             }
                         }
                     }
-                },
-                "properties": {
-                    "account": "6a5dbb68b33bcbd1269431be"
                 }
             },
             "errorHandling": {
@@ -107,41 +143,154 @@
                 "onError": "stopFlow"
             }
         },
-        "8676aa0e-cf8a-48f9-ae34-ba09e8461871": {
+        "a3b8af48-5697-4773-867a-6f329dbff390": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 128,
+            "source": {
+                "in": {
+                    "a485c3b9-7800-4a39-8e02-f4a8b8522c9c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a485c3b9-7800-4a39-8e02-f4a8b8522c9c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "42681589-73fd-43ff-9373-8503b457d680": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.id",
+                                            "functions": []
+                                        },
+                                        "f32fea53-a060-4b7e-8f3a-2503e236b539": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.email",
+                                            "functions": []
+                                        },
+                                        "288b89d5-fca1-4838-9675-572d25835707": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.note",
+                                            "functions": []
+                                        },
+                                        "f786dfc5-851c-43fd-811c-6282871580ff": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.displayFinancialStatus",
+                                            "functions": []
+                                        },
+                                        "98ea7a7f-b2a9-4258-8c21-a53e712d3e11": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.shippingAddress.countryCodeV2",
+                                            "functions": []
+                                        },
+                                        "89e5435e-c551-4ef3-9a9c-364c452a0aad": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.lineItems",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].title"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "1a9c5f7b-dfe5-4cb8-8c0b-e0273277a7cc": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.discountCodes",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0]"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{42681589-73fd-43ff-9373-8503b457d680}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{f32fea53-a060-4b7e-8f3a-2503e236b539}}}",
+                                                "expected": "appmixer.e2e.order@example.com"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{288b89d5-fca1-4838-9675-572d25835707}}}",
+                                                "expected": "Created by Appmixer E2E"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{f786dfc5-851c-43fd-811c-6282871580ff}}}",
+                                                "expected": "PENDING"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{98ea7a7f-b2a9-4258-8c21-a53e712d3e11}}}",
+                                                "expected": "CA"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{89e5435e-c551-4ef3-9a9c-364c452a0aad}}}",
+                                                "expected": "Appmixer E2E Line Item"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{1a9c5f7b-dfe5-4cb8-8c0b-e0273277a7cc}}}",
+                                                "expected": "E2E5"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e712c276-d8d8-4e3a-973f-e7b7d4e1acb3": {
             "type": "appmixer.shopify.orders.GetOrder",
-            "x": 688,
-            "y": 448,
-            "version": "1.0.0",
+            "x": 832,
+            "y": 256,
             "source": {
                 "in": {
-                    "c532453b-7100-40a8-94bc-9937fedcde26": [
-                        "order"
+                    "a485c3b9-7800-4a39-8e02-f4a8b8522c9c": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "c532453b-7100-40a8-94bc-9937fedcde26": {
-                            "order": {
+                        "a485c3b9-7800-4a39-8e02-f4a8b8522c9c": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "id": {
-                                        "99884149-9284-43c3-b31e-262b0a8e2dc8": {
-                                            "variable": "$.c532453b-7100-40a8-94bc-9937fedcde26.order.id",
+                                        "05a9e1ea-6e80-4c9f-bae0-c1987fe05318": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.id",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "id": "{{{99884149-9284-43c3-b31e-262b0a8e2dc8}}}"
+                                    "id": "{{{05a9e1ea-6e80-4c9f-bae0-c1987fe05318}}}"
                                 }
                             }
                         }
                     }
-                },
-                "properties": {
-                    "account": "6a5dbb68b33bcbd1269431be"
                 }
             },
             "errorHandling": {
@@ -149,145 +298,110 @@
                 "onError": "stopFlow"
             }
         },
-        "6fafbec0-def5-473e-a90e-ac000bd5ae78": {
+        "c66f0a0c-19a1-4ed3-beb4-5e810e67ad42": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1040,
+            "y": 256,
+            "source": {
+                "in": {
+                    "e712c276-d8d8-4e3a-973f-e7b7d4e1acb3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e712c276-d8d8-4e3a-973f-e7b7d4e1acb3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2b0a82b3-c81b-4984-86a6-9aeb4033cb65": {
+                                            "variable": "$.e712c276-d8d8-4e3a-973f-e7b7d4e1acb3.out.id",
+                                            "functions": []
+                                        },
+                                        "9f45c62d-21f8-4829-b2e5-eed3c8540e1e": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.id",
+                                            "functions": []
+                                        },
+                                        "184572a0-699d-4e20-9321-7087fb1eb949": {
+                                            "variable": "$.e712c276-d8d8-4e3a-973f-e7b7d4e1acb3.out.name",
+                                            "functions": []
+                                        },
+                                        "e386e1df-c3db-4cd9-a51b-3f1169311cdf": {
+                                            "variable": "$.e712c276-d8d8-4e3a-973f-e7b7d4e1acb3.out.email",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{2b0a82b3-c81b-4984-86a6-9aeb4033cb65}}}",
+                                                "expected": "{{{9f45c62d-21f8-4829-b2e5-eed3c8540e1e}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{184572a0-699d-4e20-9321-7087fb1eb949}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{e386e1df-c3db-4cd9-a51b-3f1169311cdf}}}",
+                                                "expected": "appmixer.e2e.order@example.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6f1a7cae-9956-4b6b-94d6-8695f32f379e": {
             "type": "appmixer.shopify.orders.UpdateOrder",
-            "x": 896,
-            "y": 576,
-            "version": "1.0.0",
+            "x": 1040,
+            "y": 384,
             "source": {
                 "in": {
-                    "8676aa0e-cf8a-48f9-ae34-ba09e8461871": [
-                        "order"
+                    "e712c276-d8d8-4e3a-973f-e7b7d4e1acb3": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "8676aa0e-cf8a-48f9-ae34-ba09e8461871": {
-                            "order": {
+                        "e712c276-d8d8-4e3a-973f-e7b7d4e1acb3": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "id": {
-                                        "upd-id": {
-                                            "variable": "$.8676aa0e-cf8a-48f9-ae34-ba09e8461871.order.id",
+                                        "c4844fc7-273b-4d2b-8df7-1a501caa331d": {
+                                            "variable": "$.e712c276-d8d8-4e3a-973f-e7b7d4e1acb3.out.id",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "id": "{{{upd-id}}}",
+                                    "id": "{{{c4844fc7-273b-4d2b-8df7-1a501caa331d}}}",
                                     "note": "Updated by Appmixer E2E",
-                                    "tags": "appmixer-e2e-updated",
-                                    "email": "e2e.order.updated@example.com"
-                                }
-                            }
-                        }
-                    }
-                },
-                "properties": {
-                    "account": "6a5dbb68b33bcbd1269431be"
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "83920895-7aab-46dd-b9e6-19c0e5219ddc": {
-            "type": "appmixer.shopify.orders.CountOrders",
-            "x": 1104,
-            "y": 704,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "6fafbec0-def5-473e-a90e-ac000bd5ae78": [
-                        "order"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "6fafbec0-def5-473e-a90e-ac000bd5ae78": {
-                            "order": {
-                                "type": "json2new",
-                                "modifiers": {},
-                                "lambda": {}
-                            }
-                        }
-                    }
-                },
-                "properties": {
-                    "account": "6a5dbb68b33bcbd1269431be"
-                }
-            },
-            "errorHandling": {
-                "autoRetry": false,
-                "onError": "stopFlow"
-            }
-        },
-        "622e352f-3fd0-49b7-82f9-6e47ec2d9650": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 688,
-            "y": 320,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "c532453b-7100-40a8-94bc-9937fedcde26": [
-                        "order"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "c532453b-7100-40a8-94bc-9937fedcde26": {
-                            "order": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "v0": {
-                                            "variable": "$.c532453b-7100-40a8-94bc-9937fedcde26.order.id",
-                                            "functions": []
-                                        },
-                                        "v1": {
-                                            "variable": "$.c532453b-7100-40a8-94bc-9937fedcde26.order.email",
-                                            "functions": []
-                                        },
-                                        "v2": {
-                                            "variable": "$.c532453b-7100-40a8-94bc-9937fedcde26.order.note",
-                                            "functions": []
-                                        },
-                                        "v3": {
-                                            "variable": "$.c532453b-7100-40a8-94bc-9937fedcde26.order.line_items",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{v0}}}"
-                                            },
-                                            {
-                                                "assertion": "equal",
-                                                "field": "{{{v1}}}",
-                                                "expected": "e2e.order@example.com"
-                                            },
-                                            {
-                                                "assertion": "equal",
-                                                "field": "{{{v2}}}",
-                                                "expected": "Created by Appmixer E2E"
-                                            },
-                                            {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{v3}}}"
-                                            }
-                                        ]
-                                    }
+                                    "email": "appmixer.e2e.order.updated@example.com",
+                                    "poNumber": "E2E-PO-1",
+                                    "shippingFirstName": "Appmixer",
+                                    "shippingLastName": "E2E",
+                                    "shippingAddress1": "111 Wellington St",
+                                    "shippingCity": "Ottawa",
+                                    "shippingProvinceCode": "ON",
+                                    "shippingCountryCode": "CA",
+                                    "shippingZip": "K1A 0A9"
                                 }
                             }
                         }
@@ -299,51 +413,33 @@
                 "onError": "stopFlow"
             }
         },
-        "638e4961-73a4-456b-8b3c-92bdaae42c92": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 896,
-            "y": 448,
-            "version": "1.0.0",
+        "dafaaba4-8edb-47c7-a119-7d7067d4599f": {
+            "type": "appmixer.shopify.orders.GetOrder",
+            "x": 1248,
+            "y": 384,
             "source": {
                 "in": {
-                    "8676aa0e-cf8a-48f9-ae34-ba09e8461871": [
-                        "order"
+                    "6f1a7cae-9956-4b6b-94d6-8695f32f379e": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "8676aa0e-cf8a-48f9-ae34-ba09e8461871": {
-                            "order": {
+                        "6f1a7cae-9956-4b6b-94d6-8695f32f379e": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "expression": {
-                                        "v0": {
-                                            "variable": "$.8676aa0e-cf8a-48f9-ae34-ba09e8461871.order.email",
-                                            "functions": []
-                                        },
-                                        "v1": {
-                                            "variable": "$.8676aa0e-cf8a-48f9-ae34-ba09e8461871.order.note",
+                                    "id": {
+                                        "e84ff333-c439-4585-964c-83120f108e66": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.id",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "assertion": "equal",
-                                                "field": "{{{v0}}}",
-                                                "expected": "e2e.order@example.com"
-                                            },
-                                            {
-                                                "assertion": "equal",
-                                                "field": "{{{v1}}}",
-                                                "expected": "Created by Appmixer E2E"
-                                            }
-                                        ]
-                                    }
+                                    "id": "{{{e84ff333-c439-4585-964c-83120f108e66}}}"
                                 }
                             }
                         }
@@ -355,32 +451,39 @@
                 "onError": "stopFlow"
             }
         },
-        "27c5f2bd-8b92-4e69-875b-454d8e5e4099": {
+        "77bd55f2-abd8-455c-9e06-f458a081f58d": {
             "type": "appmixer.utils.test.Assert",
-            "x": 1104,
-            "y": 576,
-            "version": "1.0.0",
+            "x": 1456,
+            "y": 384,
             "source": {
                 "in": {
-                    "6fafbec0-def5-473e-a90e-ac000bd5ae78": [
-                        "order"
+                    "dafaaba4-8edb-47c7-a119-7d7067d4599f": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "6fafbec0-def5-473e-a90e-ac000bd5ae78": {
-                            "order": {
+                        "dafaaba4-8edb-47c7-a119-7d7067d4599f": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "v0": {
-                                            "variable": "$.6fafbec0-def5-473e-a90e-ac000bd5ae78.order.note",
+                                        "6819e521-6727-470e-96b7-b7983f3e5276": {
+                                            "variable": "$.dafaaba4-8edb-47c7-a119-7d7067d4599f.out.note",
                                             "functions": []
                                         },
-                                        "v1": {
-                                            "variable": "$.6fafbec0-def5-473e-a90e-ac000bd5ae78.order.email",
+                                        "b8bc88b0-968c-4dec-a8b9-7f965edf8e1c": {
+                                            "variable": "$.dafaaba4-8edb-47c7-a119-7d7067d4599f.out.email",
+                                            "functions": []
+                                        },
+                                        "1c6e9104-8f21-403c-bf35-3f5c2ec0c0f1": {
+                                            "variable": "$.dafaaba4-8edb-47c7-a119-7d7067d4599f.out.poNumber",
+                                            "functions": []
+                                        },
+                                        "c53f9675-4983-428f-a7f3-ebf210117703": {
+                                            "variable": "$.dafaaba4-8edb-47c7-a119-7d7067d4599f.out.shippingAddress.city",
                                             "functions": []
                                         }
                                     }
@@ -390,13 +493,23 @@
                                         "AND": [
                                             {
                                                 "assertion": "equal",
-                                                "field": "{{{v0}}}",
+                                                "field": "{{{6819e521-6727-470e-96b7-b7983f3e5276}}}",
                                                 "expected": "Updated by Appmixer E2E"
                                             },
                                             {
                                                 "assertion": "equal",
-                                                "field": "{{{v1}}}",
-                                                "expected": "e2e.order.updated@example.com"
+                                                "field": "{{{b8bc88b0-968c-4dec-a8b9-7f965edf8e1c}}}",
+                                                "expected": "appmixer.e2e.order.updated@example.com"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{1c6e9104-8f21-403c-bf35-3f5c2ec0c0f1}}}",
+                                                "expected": "E2E-PO-1"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{c53f9675-4983-428f-a7f3-ebf210117703}}}",
+                                                "expected": "Ottawa"
                                             }
                                         ]
                                     }
@@ -411,14 +524,13 @@
                 "onError": "stopFlow"
             }
         },
-        "d115fa2f-03f0-44e3-90b2-7a8f0666efb1": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 1312,
-            "y": 704,
-            "version": "1.0.0",
+        "e452d075-d477-4543-b0ee-6f03bc0790b1": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 1456,
+            "y": 512,
             "source": {
                 "in": {
-                    "83920895-7aab-46dd-b9e6-19c0e5219ddc": [
+                    "dafaaba4-8edb-47c7-a119-7d7067d4599f": [
                         "out"
                     ]
                 }
@@ -426,13 +538,186 @@
             "config": {
                 "transform": {
                     "in": {
-                        "83920895-7aab-46dd-b9e6-19c0e5219ddc": {
+                        "dafaaba4-8edb-47c7-a119-7d7067d4599f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3c1e273e-09a6-4647-8071-93b42c17cea8": {
+            "type": "appmixer.shopify.orders.FindOrders",
+            "x": 1664,
+            "y": 512,
+            "source": {
+                "in": {
+                    "e452d075-d477-4543-b0ee-6f03bc0790b1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e452d075-d477-4543-b0ee-6f03bc0790b1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {
+                                        "da08bfd5-a285-4c51-bfdd-f2685efc995a": {
+                                            "variable": "$.228ac4f5-5c0f-491d-b9ad-5e7151b11fba.out.tag",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "query": "tag:{{{da08bfd5-a285-4c51-bfdd-f2685efc995a}}}",
+                                    "status": "open",
+                                    "financialStatus": "unpaid",
+                                    "sortKey": "CREATED_AT",
+                                    "reverse": true,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1bd9d5f5-0a9d-46b3-b088-e1f5feb8e591": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1872,
+            "y": 512,
+            "source": {
+                "in": {
+                    "3c1e273e-09a6-4647-8071-93b42c17cea8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3c1e273e-09a6-4647-8071-93b42c17cea8": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "419c3af5-0b00-47a4-ba0e-d38259b1c896": {
-                                            "variable": "$.83920895-7aab-46dd-b9e6-19c0e5219ddc.out.count",
+                                        "6acf53ff-fc29-4ffc-88d0-6e6d26e44fa1": {
+                                            "variable": "$.3c1e273e-09a6-4647-8071-93b42c17cea8.out.id",
+                                            "functions": []
+                                        },
+                                        "5887d78e-d683-4bb2-8751-07345d22e624": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.id",
+                                            "functions": []
+                                        },
+                                        "a343d26b-9411-4441-af20-f664474dd9e4": {
+                                            "variable": "$.3c1e273e-09a6-4647-8071-93b42c17cea8.out.note",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{6acf53ff-fc29-4ffc-88d0-6e6d26e44fa1}}}",
+                                                "expected": "{{{5887d78e-d683-4bb2-8751-07345d22e624}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{a343d26b-9411-4441-af20-f664474dd9e4}}}",
+                                                "expected": "Updated by Appmixer E2E"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f05ef87f-671f-4074-b53a-7628bade9fa1": {
+            "type": "appmixer.shopify.orders.CountOrders",
+            "x": 1872,
+            "y": 640,
+            "source": {
+                "in": {
+                    "3c1e273e-09a6-4647-8071-93b42c17cea8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3c1e273e-09a6-4647-8071-93b42c17cea8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {
+                                        "cc2e2753-29c9-48b2-9cdc-db75edf46b51": {
+                                            "variable": "$.228ac4f5-5c0f-491d-b9ad-5e7151b11fba.out.tag",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "query": "tag:{{{cc2e2753-29c9-48b2-9cdc-db75edf46b51}}}",
+                                    "status": "any",
+                                    "fulfillmentStatus": "unshipped"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d0b4401b-41ec-4a3c-95be-50b418fc706b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2080,
+            "y": 640,
+            "source": {
+                "in": {
+                    "f05ef87f-671f-4074-b53a-7628bade9fa1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f05ef87f-671f-4074-b53a-7628bade9fa1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "89d06f04-b63a-4c12-adfc-99f7ad79ce7a": {
+                                            "variable": "$.f05ef87f-671f-4074-b53a-7628bade9fa1.out.count",
                                             "functions": []
                                         }
                                     }
@@ -442,7 +727,7 @@
                                         "AND": [
                                             {
                                                 "assertion": "notEmpty",
-                                                "field": "{{{419c3af5-0b00-47a4-ba0e-d38259b1c896}}}"
+                                                "field": "{{{89d06f04-b63a-4c12-adfc-99f7ad79ce7a}}}"
                                             }
                                         ]
                                     }
@@ -457,30 +742,32 @@
                 "onError": "stopFlow"
             }
         },
-        "ac6dd913-199a-4cbe-8324-eaa3ff4336d8": {
+        "0cbadc89-64bb-4b83-9969-1f6ca30d264d": {
             "type": "appmixer.utils.test.AfterAll",
-            "x": 1520,
-            "y": 320,
-            "version": "1.0.0",
+            "x": 2288,
+            "y": 128,
             "source": {
                 "in": {
-                    "622e352f-3fd0-49b7-82f9-6e47ec2d9650": [
+                    "a3b8af48-5697-4773-867a-6f329dbff390": [
                         "out"
                     ],
-                    "638e4961-73a4-456b-8b3c-92bdaae42c92": [
+                    "c66f0a0c-19a1-4ed3-beb4-5e810e67ad42": [
                         "out"
                     ],
-                    "27c5f2bd-8b92-4e69-875b-454d8e5e4099": [
+                    "77bd55f2-abd8-455c-9e06-f458a081f58d": [
                         "out"
                     ],
-                    "d115fa2f-03f0-44e3-90b2-7a8f0666efb1": [
+                    "1bd9d5f5-0a9d-46b3-b088-e1f5feb8e591": [
+                        "out"
+                    ],
+                    "d0b4401b-41ec-4a3c-95be-50b418fc706b": [
                         "out"
                     ]
                 }
             },
             "config": {
                 "properties": {
-                    "timeout": 120
+                    "timeout": 240
                 }
             },
             "errorHandling": {
@@ -488,14 +775,13 @@
                 "onError": "stopFlow"
             }
         },
-        "5e2f28b7-0eb3-459e-9a92-9b5b0a814045": {
+        "3a49911b-3d3d-4012-80e6-6ad78d34b2a1": {
             "type": "appmixer.shopify.orders.DeleteOrder",
-            "x": 1728,
-            "y": 320,
-            "version": "1.0.0",
+            "x": 2496,
+            "y": 128,
             "source": {
                 "in": {
-                    "ac6dd913-199a-4cbe-8324-eaa3ff4336d8": [
+                    "0cbadc89-64bb-4b83-9969-1f6ca30d264d": [
                         "out"
                     ]
                 }
@@ -503,26 +789,23 @@
             "config": {
                 "transform": {
                     "in": {
-                        "ac6dd913-199a-4cbe-8324-eaa3ff4336d8": {
+                        "0cbadc89-64bb-4b83-9969-1f6ca30d264d": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "id": {
-                                        "cf3a3611-d9f2-40aa-a9e2-5d48300138b8": {
-                                            "variable": "$.c532453b-7100-40a8-94bc-9937fedcde26.order.id",
+                                        "44e6a97a-c2ab-4a82-abf5-406e7b02931e": {
+                                            "variable": "$.a485c3b9-7800-4a39-8e02-f4a8b8522c9c.out.id",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "id": "{{{cf3a3611-d9f2-40aa-a9e2-5d48300138b8}}}"
+                                    "id": "{{{44e6a97a-c2ab-4a82-abf5-406e7b02931e}}}"
                                 }
                             }
                         }
                     }
-                },
-                "properties": {
-                    "account": "6a5dbb68b33bcbd1269431be"
                 }
             },
             "errorHandling": {
@@ -530,31 +813,27 @@
                 "onError": "stopFlow"
             }
         },
-        "647fd6d4-6b3a-411d-ac58-db59aeadab1c": {
+        "1d76e9a9-87cf-4a0b-b3ad-9079c196ad94": {
             "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1936,
-            "y": 320,
-            "version": "1.0.1",
+            "x": 2704,
+            "y": 128,
             "source": {
                 "in": {
-                    "5e2f28b7-0eb3-459e-9a92-9b5b0a814045": [
-                        "deleted"
+                    "3a49911b-3d3d-4012-80e6-6ad78d34b2a1": [
+                        "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "5e2f28b7-0eb3-459e-9a92-9b5b0a814045": {
-                            "deleted": {
+                        "3a49911b-3d3d-4012-80e6-6ad78d34b2a1": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "recipients": {},
-                                    "testCase": {},
                                     "result": {
-                                        "b9b2d3c3-6857-4416-9265-35edf49a9edd": {
-                                            "variable": "$.ac6dd913-199a-4cbe-8324-eaa3ff4336d8.out",
+                                        "98a85d5e-5dfe-445a-900f-21adba042de2": {
+                                            "variable": "$.0cbadc89-64bb-4b83-9969-1f6ca30d264d.out",
                                             "functions": []
                                         }
                                     }
@@ -562,7 +841,7 @@
                                 "lambda": {
                                     "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Shopify - Orders Lifecycle",
-                                    "result": "{{{b9b2d3c3-6857-4416-9265-35edf49a9edd}}}"
+                                    "result": "{{{98a85d5e-5dfe-445a-900f-21adba042de2}}}"
                                 }
                             }
                         }
@@ -575,18 +854,16 @@
             }
         }
     },
-    "name": "E2E Shopify - Orders Lifecycle",
-    "type": "automation",
     "wizard": {
         "fields": []
     },
     "notes": {
-        "11111111-e2e0-4000-8000-000000000001": {
-            "content": "## ⚠️ CreateOrder – dynamic inspector\n\nWhen the flow is saved in the designer, the engine (dev-automated-00001) **wipes the Line Items** (dynamic inspector). The automated E2E runner is **not affected** — it uploads the flow via the API and starts it immediately, with no designer save in between.\n\n### For a MANUAL test in the designer\nSet the Line Item by hand (otherwise you get a red “Should exclusively match one schema” error):\n\n- **Item Type:** Custom\n- **Title:** Appmixer E2E Line Item\n- **Price:** 9.99\n- **Quantity:** 2\n\n(The store has no product variants, so don't use Variant + Variant ID.)",
-            "height": 304,
-            "width": 320,
-            "x": 448,
-            "y": 96
+        "6d34e708-893a-48f9-b071-b82b717fb16d": {
+            "x": 32,
+            "y": 8,
+            "width": 672,
+            "height": 112,
+            "content": "## Orders lifecycle\n\nCreates a test order (custom item, discount code, tax line, both addresses), reads, updates, finds and counts it, and deletes it after `AfterAll`. Keep the **Wait** before Find Orders: the order search index needs a few seconds to see the new order."
         }
     }
 }

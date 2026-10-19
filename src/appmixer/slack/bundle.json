@@ -1,6 +1,6 @@
 {
     "name": "appmixer.slack",
-    "version": "5.4.0",
+    "version": "6.0.0",
     "engine": ">=6.0.0",
     "changelog": {
         "1.0.1": [
@@ -64,6 +64,39 @@
         ],
         "5.4.0": [
             "Added MakeApiCall component for performing arbitrary authorized API calls to the Slack API."
+        ],
+        "5.4.1": [
+            "Added missing output examples to SendDirectMessage."
+        ],
+        "5.4.2": [
+            "NewChannelMessageRT: the channel picker is now a typeahead text field, so a value can still be entered when the list fails to load; added missing output examples."
+        ],
+        "5.4.3": [
+            "Fixed output fields that never resolved: UploadFileToUser, UploadFileToChannel and GetFileMetadata expose mimetype / filetype (were mimeType / fileType), NewUser and NewUserWebhook expose updated (was update), UpdateMessage exposes message.user (was user); CreateChannel and CreatePrivateChannel no longer declare members, which Slack does not return; RequestApproval's created port now carries id like its other ports. Required-input checks and typeahead channel pickers; output examples."
+        ],
+        "5.5.1": [
+            "ListChannels, ListUsers, ListReactions: the Limit input is gone; all pages are fetched internally. Array output now also carries count.",
+            "FindRequestApprovals: Limit input removed (up to 1000 approvals per call), new notFound port for an empty result.",
+            "ListChannels, ListUsers, ListReactions, FindRequestApprovals: output contract exported as ITEM_SCHEMA with examples; variable picker works without a connected account.",
+            "GetMessageReactions: static output schema (was borrowed from ListReactions), full reaction details.",
+            "DeleteFile, DeleteMessage, DeleteReaction: return an empty object on success.",
+            "SendChannelMessage, SendPrivateChannelMessage: thread inputs renamed to threadTs and replyBroadcast (flows saved with the old names keep working); required inputs are validated.",
+            "Channel, user, requester and approver pickers are typeahead text fields so a value can still be entered when the list fails to load.",
+            "Required-input validation in AddReaction, DeleteReaction, DeleteMessage, DeleteFile, GetMessageReactions and ListReactions.",
+            "Fixed the OAuth consent failing with \"Invalid permissions requested\" when a component needs channels:write (CreateChannel): the bot scope now asks for channels:manage instead.",
+            "SendChannelMessage, SendPrivateChannelMessage: output schema declares subtype, username, bot_id, app_id and team; ts, type, text and bot_id are marked required, user and team are optional because Slack omits them for messages sent as bot (subtype bot_message)."
+        ],
+        "5.5.2": [
+            "RequestApproval: a task whose flow or component no longer exists (webhook answers 404/410) is removed instead of being resubmitted every 10 minutes forever.",
+            "RequestApproval: other failed webhook deliveries (e.g. a stopped flow) are retried with an exponential backoff, at most 6 hours apart (configurable via failedWebhooksBackoffBaseMs and failedWebhooksBackoffMaxMs), so the decision is delivered once the flow runs again.",
+            "RequestApproval: a resubmitted webhook delivers the original decision (approved / rejected / due) instead of pending; the resubmit job reports delivered, failed and removed tasks correctly.",
+            "RequestApproval: the cleanup of tasks older than 60 days never removed anything (it filtered by a property the tasks do not have); it works now."
+        ],
+        "5.5.3": [
+            "MakeApiCall: Request Headers and Query Parameters set in the Designer are now sent. They were silently dropped: the key-value field stores its rows as a JSON object string, which the component did not parse."
+        ],
+        "6.0.0": [
+            "BREAKING: SendDirectMessage now requests the chat:write scope; without it the component failed with missing_scope (needed chat:write:bot) when the account was authorized from this component alone. Existing accounts used by SendDirectMessage that do not have chat:write yet must be re-authenticated."
         ]
     }
 }

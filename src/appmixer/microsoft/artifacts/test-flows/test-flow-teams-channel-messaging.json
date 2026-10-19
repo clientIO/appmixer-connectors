@@ -1,0 +1,571 @@
+{
+    "name": "E2E Microsoft Teams - Channel Messaging",
+    "type": "automation",
+    "flow": {
+        "ad00f53d-c768-4e8c-91a2-7afbdfc8e83d": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "03d0f419-a181-4254-bb4d-7f30dee14872": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 300,
+            "y": 320,
+            "source": {
+                "in": {
+                    "ad00f53d-c768-4e8c-91a2-7afbdfc8e83d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "ad00f53d-c768-4e8c-91a2-7afbdfc8e83d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "content",
+                                                "text": "Hello from the Microsoft connector E2E test flow."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9456a5e0-f51b-464b-82c3-730753cffbf1": {
+            "type": "appmixer.microsoft.teams.ListTeams",
+            "x": 500,
+            "y": 320,
+            "source": {
+                "in": {
+                    "03d0f419-a181-4254-bb4d-7f30dee14872": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "03d0f419-a181-4254-bb4d-7f30dee14872": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "93a8617e-9b39-46f0-93c2-4ef72546d050": {
+            "type": "appmixer.microsoft.teams.ListChannels",
+            "x": 700,
+            "y": 320,
+            "source": {
+                "in": {
+                    "9456a5e0-f51b-464b-82c3-730753cffbf1": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9456a5e0-f51b-464b-82c3-730753cffbf1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "teamId": {
+                                        "9d834de0-e423-4895-8478-07afda423e31": {
+                                            "variable": "$.9456a5e0-f51b-464b-82c3-730753cffbf1.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "teamId": "{{{9d834de0-e423-4895-8478-07afda423e31}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b042d148-53ee-4e2d-af9a-b87ddd31ad37": {
+            "type": "appmixer.microsoft.teams.SendChannelMessage",
+            "x": 900,
+            "y": 320,
+            "source": {
+                "in": {
+                    "93a8617e-9b39-46f0-93c2-4ef72546d050": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "93a8617e-9b39-46f0-93c2-4ef72546d050": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "teamId": {
+                                        "91601fcd-4eb6-4aa5-8c67-6055643b5021": {
+                                            "variable": "$.9456a5e0-f51b-464b-82c3-730753cffbf1.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "channelId": {
+                                        "af302d72-3e19-4bfa-bd8f-726797bc41d6": {
+                                            "variable": "$.93a8617e-9b39-46f0-93c2-4ef72546d050.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "content": {
+                                        "f94ae29a-33cf-421d-a8f6-96d386188f3e": {
+                                            "variable": "$.03d0f419-a181-4254-bb4d-7f30dee14872.out.content",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "teamId": "{{{91601fcd-4eb6-4aa5-8c67-6055643b5021}}}",
+                                    "channelId": "{{{af302d72-3e19-4bfa-bd8f-726797bc41d6}}}",
+                                    "content": "{{{f94ae29a-33cf-421d-a8f6-96d386188f3e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "153c1618-9909-4218-9c34-8b036b341047": {
+            "type": "appmixer.microsoft.teams.ListChannelMessages",
+            "x": 1100,
+            "y": 320,
+            "source": {
+                "in": {
+                    "b042d148-53ee-4e2d-af9a-b87ddd31ad37": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b042d148-53ee-4e2d-af9a-b87ddd31ad37": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "teamId": {
+                                        "d540fc2e-d7ee-4b40-894f-95c2ab9536a1": {
+                                            "variable": "$.9456a5e0-f51b-464b-82c3-730753cffbf1.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "channelId": {
+                                        "db555ddd-c92c-4180-a8ea-04d81e76c085": {
+                                            "variable": "$.93a8617e-9b39-46f0-93c2-4ef72546d050.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "outputType": {},
+                                    "limit": {}
+                                },
+                                "lambda": {
+                                    "teamId": "{{{d540fc2e-d7ee-4b40-894f-95c2ab9536a1}}}",
+                                    "channelId": "{{{db555ddd-c92c-4180-a8ea-04d81e76c085}}}",
+                                    "outputType": "items",
+                                    "limit": 5
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "13662bf3-864e-43b1-a25a-f92faeff309d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1400,
+            "y": 120,
+            "source": {
+                "in": {
+                    "9456a5e0-f51b-464b-82c3-730753cffbf1": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9456a5e0-f51b-464b-82c3-730753cffbf1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "cfaf1a58-1475-41fa-95fe-2e30e25f40bd": {
+                                            "variable": "$.9456a5e0-f51b-464b-82c3-730753cffbf1.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{cfaf1a58-1475-41fa-95fe-2e30e25f40bd}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "66b4aa4a-091a-4516-9cab-1fdc92111a1f": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1400,
+            "y": 260,
+            "source": {
+                "in": {
+                    "93a8617e-9b39-46f0-93c2-4ef72546d050": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "93a8617e-9b39-46f0-93c2-4ef72546d050": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "8c78c743-9f19-44ba-8dca-26ca80bd80a4": {
+                                            "variable": "$.93a8617e-9b39-46f0-93c2-4ef72546d050.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{8c78c743-9f19-44ba-8dca-26ca80bd80a4}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ae9b17cb-7234-4ae7-8e74-83da37c8b5ea": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1400,
+            "y": 400,
+            "source": {
+                "in": {
+                    "b042d148-53ee-4e2d-af9a-b87ddd31ad37": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "b042d148-53ee-4e2d-af9a-b87ddd31ad37": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a4654af9-b5e3-40a9-8b85-80f5a04924fa": {
+                                            "variable": "$.b042d148-53ee-4e2d-af9a-b87ddd31ad37.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a4654af9-b5e3-40a9-8b85-80f5a04924fa}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8282e42c-1fdf-480e-b12e-21b328475d57": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1400,
+            "y": 540,
+            "source": {
+                "in": {
+                    "153c1618-9909-4218-9c34-8b036b341047": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "153c1618-9909-4218-9c34-8b036b341047": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "2f6a0a9d-f140-40d0-a860-051e14ee9bad": {
+                                            "variable": "$.153c1618-9909-4218-9c34-8b036b341047.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.messages[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{2f6a0a9d-f140-40d0-a860-051e14ee9bad}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c11b4949-6019-4c08-a6f6-3fd5e89986fe": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1700,
+            "y": 320,
+            "source": {
+                "in": {
+                    "13662bf3-864e-43b1-a25a-f92faeff309d": [
+                        "out"
+                    ],
+                    "66b4aa4a-091a-4516-9cab-1fdc92111a1f": [
+                        "out"
+                    ],
+                    "ae9b17cb-7234-4ae7-8e74-83da37c8b5ea": [
+                        "out"
+                    ],
+                    "8282e42c-1fdf-480e-b12e-21b328475d57": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ec27290c-1cf5-476a-9d82-1758a53f2d94": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1900,
+            "y": 320,
+            "source": {
+                "in": {
+                    "c11b4949-6019-4c08-a6f6-3fd5e89986fe": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "c11b4949-6019-4c08-a6f6-3fd5e89986fe": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "951f07a4-6de6-4389-ae52-ce27788c3192": {
+                                            "variable": "$.c11b4949-6019-4c08-a6f6-3fd5e89986fe.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Microsoft Teams - Channel Messaging",
+                                    "result": "{{{951f07a4-6de6-4389-ae52-ce27788c3192}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

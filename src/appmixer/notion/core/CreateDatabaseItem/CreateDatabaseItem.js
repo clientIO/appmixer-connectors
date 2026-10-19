@@ -11,6 +11,10 @@ module.exports = {
 
         const { content } = context.messages.in.content;
 
+        if (!databaseId) {
+            throw new context.CancelError('Database ID is required!');
+        }
+
         const itemData = await formatPropertiesForNotion(context, databaseId, context.messages.in.content);
 
         const requestData = {
@@ -59,7 +63,7 @@ async function generateInspector(context, databaseId) {
     let fieldsInputs = {};
 
     if (databaseId) {
-        const { data: databaseDetails } = await lib.callEndpoint(context, `/databases/${databaseId}`);
+        const databaseDetails = await lib.getDatabase(context, databaseId, { cached: true });
 
         fieldsInputs = Object.keys(databaseDetails.properties).reduce((res, propertyName, index) => {
             const property = databaseDetails.properties[propertyName];
@@ -104,7 +108,7 @@ async function generateInspector(context, databaseId) {
 }
 
 async function formatPropertiesForNotion(context, databaseId, content) {
-    const { data: databaseDetails } = await lib.callEndpoint(context, `/databases/${databaseId}`);
+    const databaseDetails = await lib.getDatabase(context, databaseId);
 
     const formattedProperties = {};
 
@@ -114,85 +118,15 @@ async function formatPropertiesForNotion(context, databaseId, content) {
             const userInput = content[propertyName];
 
             if (userInput !== undefined && userInput !== null) {
-                formattedProperties[propertyName] = formatProperty(property, userInput);
+                const value = lib.formatPropertyValue(context, propertyName, property, userInput);
+                if (value !== undefined) {
+                    formattedProperties[propertyName] = value;
+                }
             }
         }
     }
 
     return formattedProperties;
-}
-
-function formatProperty(property, userInput) {
-    switch (property.type) {
-        case 'title':
-            return {
-                'title': [{ 'text': { 'content': userInput } }]
-            };
-        case 'rich_text':
-            return {
-                'rich_text': [{ 'text': { 'content': userInput } }]
-            };
-        case 'multi_select':
-            return {
-                'multi_select': Array.isArray(userInput) ? userInput.map(option => ({ 'name': option })) : [{ 'name': userInput }]
-            };
-        case 'select':
-            return {
-                'select': { 'name': userInput }
-            };
-        case 'status':
-            return {
-                'status': { 'name': userInput }
-            };
-        case 'people':
-            return {
-                'people': Array.isArray(userInput) ? userInput.map(personId => ({ 'id': personId })) : [{ 'id': userInput }]
-            };
-        case 'date':
-            return {
-                'date': { 'start': userInput }
-            };
-        case 'checkbox':
-            return {
-                'checkbox': Boolean(userInput)
-            };
-        case 'number':
-            return {
-                'number': parseFloat(userInput)
-            };
-        case 'email':
-            return {
-                'email': userInput
-            };
-        case 'url':
-            return {
-                'url': userInput
-            };
-        case 'phone_number':
-            return {
-                'phone_number': userInput
-            };
-        case 'files':
-            const files = [];
-            if (Array.isArray(userInput)) {
-                for (const fileUrl of userInput) {
-                    files.push({
-                        'name': fileUrl.split('/').pop(),
-                        'external': { 'url': fileUrl.trim() }
-                    });
-                }
-            } else {
-                files.push({
-                    'name': userInput.split('/').pop(),
-                    'external': { 'url': userInput.trim() }
-                });
-            }
-            return { 'files': files };
-        default:
-            return {
-                [property.type]: userInput
-            };
-    }
 }
 
 function getInputType(property) {

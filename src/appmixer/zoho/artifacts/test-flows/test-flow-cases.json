@@ -1,0 +1,351 @@
+{
+    "name": "E2E Zoho - cases",
+    "description": "End-to-end test for Zoho CRM cases \u2014 reads a case with Get Case and attaches a note to it with Create Note.",
+    "type": "automation",
+    "flow": {
+        "7eb36ba6-72a6-479d-b23f-2964d4f53021": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "8f4cefde-b85a-4149-bec9-764dcd93b418": {
+            "type": "appmixer.zoho.crm.ListRecords",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "7eb36ba6-72a6-479d-b23f-2964d4f53021": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7eb36ba6-72a6-479d-b23f-2964d4f53021": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "moduleName": {},
+                                    "allAtOnce": {}
+                                },
+                                "lambda": {
+                                    "moduleName": "Cases",
+                                    "allAtOnce": true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e": {
+            "type": "appmixer.zoho.crm.GetCase",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "8f4cefde-b85a-4149-bec9-764dcd93b418": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8f4cefde-b85a-4149-bec9-764dcd93b418": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "caseId": {
+                                        "v-case-id": {
+                                            "variable": "$.8f4cefde-b85a-4149-bec9-764dcd93b418.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.records[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "caseId": "{{{v-case-id}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "8804aff4-c497-4360-a79f-48888761de5c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-case-id": {
+                                            "variable": "$.18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e.out.id",
+                                            "functions": []
+                                        },
+                                        "a-case-id-expected": {
+                                            "variable": "$.8f4cefde-b85a-4149-bec9-764dcd93b418.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.records[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "a-case-created": {
+                                            "variable": "$.18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e.out.Created_Time",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-case-id}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{a-case-id-expected}}}"
+                                            },
+                                            {
+                                                "field": "{{{a-case-created}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "707fcb2c-9423-404c-9223-0f2362a46540": {
+            "type": "appmixer.zoho.crm.CreateNote",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "moduleName": {},
+                                    "noteTitle": {},
+                                    "noteContent": {},
+                                    "recordId": {
+                                        "v-note-record": {
+                                            "variable": "$.18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "moduleName": "Cases",
+                                    "recordId": "{{{v-note-record}}}",
+                                    "noteTitle": "Appmixer E2E note",
+                                    "noteContent": "Note attached to this case by the Appmixer end-to-end test flow."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "81cdadf3-b678-4f2e-acc7-8b4030a589ad": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "707fcb2c-9423-404c-9223-0f2362a46540": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "707fcb2c-9423-404c-9223-0f2362a46540": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-note-id": {
+                                            "variable": "$.707fcb2c-9423-404c-9223-0f2362a46540.out.id",
+                                            "functions": []
+                                        },
+                                        "a-note-parent": {
+                                            "variable": "$.707fcb2c-9423-404c-9223-0f2362a46540.out.Parent_Id",
+                                            "functions": []
+                                        },
+                                        "a-note-parent-expected": {
+                                            "variable": "$.18e4ef9d-f81e-4dc6-8240-3eced9ce7f7e.out.id",
+                                            "functions": []
+                                        },
+                                        "a-note-module": {
+                                            "variable": "$.707fcb2c-9423-404c-9223-0f2362a46540.out.se_module",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-note-id}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{a-note-parent}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{a-note-parent-expected}}}"
+                                            },
+                                            {
+                                                "field": "{{{a-note-module}}}",
+                                                "assertion": "equal",
+                                                "expected": "Cases"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e649015c-87b6-4b69-a9a4-0c97dd91d0fa": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "8804aff4-c497-4360-a79f-48888761de5c": [
+                        "out"
+                    ],
+                    "81cdadf3-b678-4f2e-acc7-8b4030a589ad": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "66a94181-d571-4f41-a280-f010f47d66de": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "e649015c-87b6-4b69-a9a4-0c97dd91d0fa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e649015c-87b6-4b69-a9a4-0c97dd91d0fa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a0bcc636-cb99-4bca-a985-4d3d797f725c": {
+                                            "variable": "$.e649015c-87b6-4b69-a9a4-0c97dd91d0fa.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Zoho - cases",
+                                    "result": "{{{a0bcc636-cb99-4bca-a985-4d3d797f725c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

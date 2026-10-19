@@ -1,7 +1,7 @@
 'use strict';
 
 const Hubspot = require('../../Hubspot');
-const { getObjectProperties, WATCHED_PROPERTIES_COMPANY } = require('../../commons');
+const { getObjectProperties, INSPECTOR_FIELDS_COMPANY } = require('../../commons');
 
 module.exports = {
 
@@ -70,7 +70,7 @@ module.exports = {
     additionalFieldsToSelectArray(companiesProperties) {
 
         return companiesProperties
-            .filter((property) => !WATCHED_PROPERTIES_COMPANY.includes(property.name))
+            .filter((property) => !INSPECTOR_FIELDS_COMPANY.includes(property.name))
             .map((property) => {
                 return { label: property.label, value: property.name };
             });

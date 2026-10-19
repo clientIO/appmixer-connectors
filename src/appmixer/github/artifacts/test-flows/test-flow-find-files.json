@@ -1,0 +1,677 @@
+{
+    "name": "E2E GitHub - Find Files",
+    "flow": {
+        "f1000000-0000-4000-8000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "version": "1.0.0",
+            "x": 208,
+            "y": 128,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1000000-0000-4000-8000-000000000002": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "version": "1.0.0",
+            "x": 416,
+            "y": 128,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "testCase",
+                                                "text": "E2E GitHub - Find Files"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "repository",
+                                                "text": "Appmixer-ai/appmixer-connectors"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1000000-0000-4000-8000-000000000003": {
+            "type": "appmixer.github.list.FindFiles",
+            "version": "1.0.0",
+            "label": "Find Files (first)",
+            "x": 624,
+            "y": 128,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "f1000000-0000-4000-8000-00000000aa01": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000002.out.repository",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {},
+                                    "path": {},
+                                    "ref": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{f1000000-0000-4000-8000-00000000aa01}}}",
+                                    "name": "bundle.json",
+                                    "path": "src/appmixer/github",
+                                    "ref": "dev",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1000000-0000-4000-8000-000000000004": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 832,
+            "y": 128,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f1000000-0000-4000-8000-00000000aa02": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000003.out.path",
+                                            "functions": []
+                                        },
+                                        "f1000000-0000-4000-8000-00000000aa03": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000003.out.name",
+                                            "functions": []
+                                        },
+                                        "f1000000-0000-4000-8000-00000000aa04": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000003.out.directory",
+                                            "functions": []
+                                        },
+                                        "f1000000-0000-4000-8000-00000000aa05": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000003.out.sha",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa02}}}",
+                                                "assertion": "equal",
+                                                "expected": "src/appmixer/github/bundle.json"
+                                            },
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa03}}}",
+                                                "assertion": "equal",
+                                                "expected": "bundle.json"
+                                            },
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa04}}}",
+                                                "assertion": "equal",
+                                                "expected": "src/appmixer/github"
+                                            },
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa05}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1000000-0000-4000-8000-000000000005": {
+            "type": "appmixer.github.list.FindFiles",
+            "version": "1.0.0",
+            "label": "Find Files (array, wildcard)",
+            "x": 832,
+            "y": 256,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "f1000000-0000-4000-8000-00000000aa06": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000002.out.repository",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {},
+                                    "path": {},
+                                    "ref": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{f1000000-0000-4000-8000-00000000aa06}}}",
+                                    "name": "*.json",
+                                    "path": "src/appmixer/github/list/FindRepository",
+                                    "ref": "",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1000000-0000-4000-8000-000000000006": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 1040,
+            "y": 256,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000005": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f1000000-0000-4000-8000-00000000aa07": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000005.out.count",
+                                            "functions": []
+                                        },
+                                        "f1000000-0000-4000-8000-00000000aa08": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000005.out.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa07}}}",
+                                                "assertion": "equal",
+                                                "expected": "1"
+                                            },
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa08}}}",
+                                                "assertion": "equal",
+                                                "expected": "component.json"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1000000-0000-4000-8000-000000000009": {
+            "type": "appmixer.github.list.FindFiles",
+            "version": "1.0.0",
+            "label": "Find Files (no match)",
+            "x": 1040,
+            "y": 384,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000005": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "f1000000-0000-4000-8000-00000000aa10": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000002.out.repository",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {},
+                                    "path": {},
+                                    "ref": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{f1000000-0000-4000-8000-00000000aa10}}}",
+                                    "ref": "",
+                                    "name": "no-such-file-e2e.xyz",
+                                    "path": "src/appmixer/github",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f1000000-0000-4000-8000-000000000010": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 1248,
+            "y": 384,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000009": [
+                        "notFound"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000009": {
+                            "notFound": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f1000000-0000-4000-8000-00000000aa11": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000002.out.testCase",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa11}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E GitHub - Find Files"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f1000000-0000-4000-8000-000000000011": {
+            "type": "appmixer.github.list.FindFiles",
+            "version": "1.0.0",
+            "label": "Find Files (one at a time)",
+            "x": 1248,
+            "y": 512,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000009": [
+                        "notFound"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000009": {
+                            "notFound": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "f1000000-0000-4000-8000-00000000aa12": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000002.out.repository",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {},
+                                    "path": {},
+                                    "ref": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{f1000000-0000-4000-8000-00000000aa12}}}",
+                                    "ref": "",
+                                    "name": "*.json",
+                                    "path": "src/appmixer/github/list/FindRepository",
+                                    "outputType": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f1000000-0000-4000-8000-000000000012": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 1456,
+            "y": 512,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000011": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000011": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f1000000-0000-4000-8000-00000000aa13": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000011.out.name",
+                                            "functions": []
+                                        },
+                                        "f1000000-0000-4000-8000-00000000aa14": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000011.out.count",
+                                            "functions": []
+                                        },
+                                        "f1000000-0000-4000-8000-00000000aa15": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000011.out.path",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa13}}}",
+                                                "assertion": "equal",
+                                                "expected": "component.json"
+                                            },
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa14}}}",
+                                                "assertion": "equal",
+                                                "expected": "1"
+                                            },
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa15}}}",
+                                                "assertion": "equal",
+                                                "expected": "src/appmixer/github/list/FindRepository/component.json"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f1000000-0000-4000-8000-000000000013": {
+            "type": "appmixer.github.list.FindFiles",
+            "version": "1.0.0",
+            "label": "Find Files (CSV file)",
+            "x": 1248,
+            "y": 640,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000009": [
+                        "notFound"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000009": {
+                            "notFound": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {
+                                        "f1000000-0000-4000-8000-00000000aa16": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000002.out.repository",
+                                            "functions": []
+                                        }
+                                    },
+                                    "name": {},
+                                    "path": {},
+                                    "ref": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "{{{f1000000-0000-4000-8000-00000000aa16}}}",
+                                    "ref": "",
+                                    "name": "*.json",
+                                    "path": "src/appmixer/github/list/FindRepository",
+                                    "outputType": "file"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f1000000-0000-4000-8000-000000000014": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 1456,
+            "y": 640,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000013": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000013": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f1000000-0000-4000-8000-00000000aa17": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000013.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f1000000-0000-4000-8000-00000000aa17}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f1000000-0000-4000-8000-000000000007": {
+            "type": "appmixer.utils.test.AfterAll",
+            "version": "1.0.0",
+            "x": 1872,
+            "y": 128,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000004": [
+                        "out"
+                    ],
+                    "f1000000-0000-4000-8000-000000000006": [
+                        "out"
+                    ],
+                    "f1000000-0000-4000-8000-000000000010": [
+                        "out"
+                    ],
+                    "f1000000-0000-4000-8000-000000000012": [
+                        "out"
+                    ],
+                    "f1000000-0000-4000-8000-000000000014": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f1000000-0000-4000-8000-000000000008": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "version": "1.0.0",
+            "x": 2080,
+            "y": 128,
+            "source": {
+                "in": {
+                    "f1000000-0000-4000-8000-000000000007": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "f1000000-0000-4000-8000-000000000007": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "f1000000-0000-4000-8000-00000000aa09": {
+                                            "variable": "$.f1000000-0000-4000-8000-000000000007.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E GitHub - Find Files",
+                                    "result": "{{{f1000000-0000-4000-8000-00000000aa09}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

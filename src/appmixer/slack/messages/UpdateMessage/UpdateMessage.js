@@ -7,6 +7,16 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.channel) {
+            throw new context.CancelError('Channel is required!');
+        }
+        if (!context.messages.in.content.text) {
+            throw new context.CancelError('Message Text is required!');
+        }
+        if (!context.messages.in.content.ts) {
+            throw new context.CancelError('Message Timestamp is required!');
+        }
+
         const { channel, text, ts } = context.messages.in.content;
 
         let entities = new Entities();

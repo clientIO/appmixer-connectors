@@ -11,6 +11,14 @@ module.exports = {
             return this.getOutputPortOptions(context, outputType);
         }
 
+        // An empty query makes the search return every page.
+        if (!title) {
+            throw new context.CancelError('Title is required!');
+        }
+        if (!outputType) {
+            throw new context.CancelError('Output Type is required!');
+        }
+
         const requestData = {
             query: title,
             filter: {
@@ -27,7 +35,9 @@ module.exports = {
 
         const pages = response.data.results.map((page) => {
             const titleProperty = Object.values(page.properties).find(prop => prop.type === 'title');
-            const pageTitle = titleProperty ? titleProperty.title[0]?.text?.content || 'Untitled' : 'Untitled';
+            // All fragments, as plain text: a title can be split into several rich-text
+            // fragments, and a mention fragment carries no `text`.
+            const pageTitle = (titleProperty?.title || []).map(fragment => fragment.plain_text).join('') || 'Untitled';
 
             return {
                 id: page.id,
@@ -58,16 +68,7 @@ module.exports = {
 
         // For file outputType
         if (outputType === 'file') {
-            const headers = Object.keys(pages[0]);
-            const csvRows = [headers.join(',')];
-
-            for (const page of pages) {
-                const row = Object.values(page).join(',');
-                csvRows.push(row);
-            }
-
-            const csvString = csvRows.join('\n');
-            const buffer = Buffer.from(csvString, 'utf8');
+            const buffer = Buffer.from(lib.toCsv(pages), 'utf8');
             const filename = `notion-findpagesbytitle-${context.componentId}.csv`;
             const savedFile = await context.saveFileStream(filename, buffer);
             await context.sendJson({ fileId: savedFile.fileId, count: pages.length }, 'out');

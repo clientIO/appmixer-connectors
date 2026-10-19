@@ -1,0 +1,418 @@
+{
+    "flow": {
+        "2b942825-2479-4f4f-b306-88ed0b38e0c4": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "35846320-715d-4173-bcae-43ed6bee0a70": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2b942825-2479-4f4f-b306-88ed0b38e0c4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2b942825-2479-4f4f-b306-88ed0b38e0c4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "endpointId",
+                                                "text": "fal-ai/flux/schnell"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "prompt",
+                                                "text": "A photorealistic red bicycle leaning on a brick wall"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "72224c60-0ddb-4382-8072-5bb3b554a3b9": {
+            "type": "appmixer.ai.fal.GenerateImage",
+            "x": 448,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "35846320-715d-4173-bcae-43ed6bee0a70": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "35846320-715d-4173-bcae-43ed6bee0a70": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "endpointId": {
+                                        "903ff1e4-86db-4a6f-add2-a910e45fe0e6": {
+                                            "variable": "$.35846320-715d-4173-bcae-43ed6bee0a70.out.endpointId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "prompt": {
+                                        "0fc13b9e-c92e-479e-aeb2-91fce7f820c7": {
+                                            "variable": "$.35846320-715d-4173-bcae-43ed6bee0a70.out.prompt",
+                                            "functions": []
+                                        }
+                                    },
+                                    "imageSize": {},
+                                    "numImages": {}
+                                },
+                                "lambda": {
+                                    "endpointId": "{{{903ff1e4-86db-4a6f-add2-a910e45fe0e6}}}",
+                                    "prompt": "{{{0fc13b9e-c92e-479e-aeb2-91fce7f820c7}}}",
+                                    "imageSize": "square",
+                                    "numImages": 1
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cc9fcd5b-9467-42c3-8081-5283aa5dfec6": {
+            "type": "appmixer.ai.fal.DownloadFile",
+            "x": 704,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "72224c60-0ddb-4382-8072-5bb3b554a3b9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "72224c60-0ddb-4382-8072-5bb3b554a3b9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "8dddfe2c-b4aa-4f8e-9d7a-da79172e6181": {
+                                            "variable": "$.72224c60-0ddb-4382-8072-5bb3b554a3b9.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.images[0].url"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "fileName": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{8dddfe2c-b4aa-4f8e-9d7a-da79172e6181}}}",
+                                    "fileName": "fal-e2e-image.jpeg"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ac462fda-4203-4fb5-b895-7f5a5487a2b3": {
+            "type": "appmixer.ai.fal.UploadFile",
+            "x": 960,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cc9fcd5b-9467-42c3-8081-5283aa5dfec6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "cc9fcd5b-9467-42c3-8081-5283aa5dfec6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "88308b51-0187-41f3-8f27-146c1f41b6c0": {
+                                            "variable": "$.cc9fcd5b-9467-42c3-8081-5283aa5dfec6.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{88308b51-0187-41f3-8f27-146c1f41b6c0}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cbf13f78-d50d-4c1f-883c-0b83bb669c04": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 704,
+            "y": 96,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "72224c60-0ddb-4382-8072-5bb3b554a3b9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "72224c60-0ddb-4382-8072-5bb3b554a3b9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "d64d2cc2-93b6-4a61-9fb4-be2aa1b5fd3d": {
+                                            "variable": "$.72224c60-0ddb-4382-8072-5bb3b554a3b9.out.requestId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{d64d2cc2-93b6-4a61-9fb4-be2aa1b5fd3d}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "40c3c50e-1b07-4435-8b35-5d24c686076a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 960,
+            "y": 96,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cc9fcd5b-9467-42c3-8081-5283aa5dfec6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cc9fcd5b-9467-42c3-8081-5283aa5dfec6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "606d046d-268a-4820-a44a-93dbf4b20486": {
+                                            "variable": "$.cc9fcd5b-9467-42c3-8081-5283aa5dfec6.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{606d046d-268a-4820-a44a-93dbf4b20486}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8f5ad5a8-e611-45ee-9cf2-688d64b9c651": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1216,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ac462fda-4203-4fb5-b895-7f5a5487a2b3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ac462fda-4203-4fb5-b895-7f5a5487a2b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "5565e3fa-059f-44f6-aa09-bec74c5ca70c": {
+                                            "variable": "$.ac462fda-4203-4fb5-b895-7f5a5487a2b3.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{5565e3fa-059f-44f6-aa09-bec74c5ca70c}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c0015d3a-c83b-4eae-8b9a-747eff738a3d": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1472,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cbf13f78-d50d-4c1f-883c-0b83bb669c04": [
+                        "out"
+                    ],
+                    "40c3c50e-1b07-4435-8b35-5d24c686076a": [
+                        "out"
+                    ],
+                    "8f5ad5a8-e611-45ee-9cf2-688d64b9c651": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a52cdbec-d5c4-4ba1-85b4-425dd7375ac1": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 320,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "c0015d3a-c83b-4eae-8b9a-747eff738a3d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "c0015d3a-c83b-4eae-8b9a-747eff738a3d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "4393f6cb-f6e0-4c71-aa3b-31a16ed7ff11": {
+                                            "variable": "$.c0015d3a-c83b-4eae-8b9a-747eff738a3d.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E fal - Generate, Download and Upload",
+                                    "result": "{{{4393f6cb-f6e0-4c71-aa3b-31a16ed7ff11}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E fal - Generate, Download and Upload",
+    "type": "automation",
+    "notes": {}
+}

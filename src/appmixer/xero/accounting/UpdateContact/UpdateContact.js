@@ -14,6 +14,16 @@ module.exports = {
             ContactStatus
         } = context.messages.in.content;
 
+        if (!tenantId) {
+            throw new context.CancelError('Tenant ID is required!');
+        }
+        if (!ContactID) {
+            throw new context.CancelError('Contact ID is required!');
+        }
+        if (!ContactStatus) {
+            throw new context.CancelError('Contact Status is required!');
+        }
+
         const data = {
             ContactID,
             ContactStatus

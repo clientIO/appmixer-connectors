@@ -1,0 +1,397 @@
+{
+    "name": "E2E Telegram - callback query trigger",
+    "flow": {
+        "6d351289-e32e-4bcc-88f1-2d2ad6c18ce9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "85498a1b-0fb6-4bda-bd9a-8a0bad67d0ad": {
+            "type": "appmixer.telegram.core.MakeApiCall",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6d351289-e32e-4bcc-88f1-2d2ad6c18ce9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "6d351289-e32e-4bcc-88f1-2d2ad6c18ce9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/sendMessage",
+                                    "method": "POST",
+                                    "body": "{\"chat_id\": \"-5393771328\", \"text\": \"E2E: press the button to fire the Callback Query trigger.\", \"reply_markup\": {\"inline_keyboard\": [[{\"text\": \"Fire E2E\", \"callback_data\": \"e2e-approve\"}]]}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c122307e-426d-4750-b166-bf1d972a5df7": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "85498a1b-0fb6-4bda-bd9a-8a0bad67d0ad": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "85498a1b-0fb6-4bda-bd9a-8a0bad67d0ad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "87ab9410-e533-425f-9714-bef14a9dd8c6": {
+                                            "variable": "$.85498a1b-0fb6-4bda-bd9a-8a0bad67d0ad.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.ok"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{87ab9410-e533-425f-9714-bef14a9dd8c6}}}",
+                                                "assertion": "equal",
+                                                "expected": "true"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "510a1a9e-ab52-4edc-b982-e7ca2d43b821": {
+            "type": "appmixer.telegram.core.NewCallbackQuery",
+            "x": 272,
+            "y": 576,
+            "source": {},
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "chatId": "-5393771328",
+                    "callbackData": "e2e-approve"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "00d02909-4251-4cc5-846f-284c16a29fa0": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 576,
+            "source": {
+                "in": {
+                    "510a1a9e-ab52-4edc-b982-e7ca2d43b821": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "510a1a9e-ab52-4edc-b982-e7ca2d43b821": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e243f748-e949-4813-8fad-3adc4f00269c": {
+                                            "variable": "$.510a1a9e-ab52-4edc-b982-e7ca2d43b821.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{e243f748-e949-4813-8fad-3adc4f00269c}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "80c8f3ca-5e71-49c3-8a47-fe998dfc42df": {
+            "type": "appmixer.telegram.core.AnswerCallbackQuery",
+            "x": 688,
+            "y": 704,
+            "source": {
+                "in": {
+                    "510a1a9e-ab52-4edc-b982-e7ca2d43b821": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "510a1a9e-ab52-4edc-b982-e7ca2d43b821": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "callbackQueryId": {
+                                        "cd6d3170-c010-4bf9-83e9-aad66e2027c1": {
+                                            "variable": "$.510a1a9e-ab52-4edc-b982-e7ca2d43b821.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "text": {},
+                                    "showAlert": {}
+                                },
+                                "lambda": {
+                                    "callbackQueryId": "{{{cd6d3170-c010-4bf9-83e9-aad66e2027c1}}}",
+                                    "text": "E2E acknowledged",
+                                    "showAlert": false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ee935c02-fe19-4baf-a2b0-ef58765b8907": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 704,
+            "source": {
+                "in": {
+                    "80c8f3ca-5e71-49c3-8a47-fe998dfc42df": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "80c8f3ca-5e71-49c3-8a47-fe998dfc42df": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b81a9aa6-fd6d-4165-8e19-db9607242075": {
+                                            "variable": "$.80c8f3ca-5e71-49c3-8a47-fe998dfc42df.out.success",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b81a9aa6-fd6d-4165-8e19-db9607242075}}}",
+                                                "assertion": "equal",
+                                                "expected": "true"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ba13a1e8-476d-4707-b98f-a3755277a8bf": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "c122307e-426d-4750-b166-bf1d972a5df7": [
+                        "out"
+                    ],
+                    "00d02909-4251-4cc5-846f-284c16a29fa0": [
+                        "out"
+                    ],
+                    "ee935c02-fe19-4baf-a2b0-ef58765b8907": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b2d8608d-ee04-4267-b9d9-b9f5e5185db5": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1312,
+            "y": 320,
+            "source": {
+                "in": {
+                    "ba13a1e8-476d-4707-b98f-a3755277a8bf": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "695d11bf9bd2c7da7fff03f6",
+                    "failedStoreId": "695d11c1c38355dede7fa7a0"
+                },
+                "transform": {
+                    "in": {
+                        "ba13a1e8-476d-4707-b98f-a3755277a8bf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "ec93c267-fd17-4cc2-a3ec-bdeb688efc5a": {
+                                            "variable": "$.ba13a1e8-476d-4707-b98f-a3755277a8bf.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Telegram - callback query trigger",
+                                    "result": "{{{ec93c267-fd17-4cc2-a3ec-bdeb688efc5a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3a9ea020-d0e7-49b6-9d72-c379719cb155": {
+            "type": "appmixer.telegram.core.DeleteMessage",
+            "x": 1312,
+            "y": 448,
+            "source": {
+                "in": {
+                    "ba13a1e8-476d-4707-b98f-a3755277a8bf": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "ba13a1e8-476d-4707-b98f-a3755277a8bf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "messageId": {
+                                        "553c454c-4fe4-4489-a6c7-d31d533f425c": {
+                                            "variable": "$.85498a1b-0fb6-4bda-bd9a-8a0bad67d0ad.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.result.message_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "chatId": "-5393771328",
+                                    "messageId": "{{{553c454c-4fe4-4489-a6c7-d31d533f425c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "4d7e0fc6-5a8b-4193-a249-9f5d1e8a3b74": {
+            "content": "ENVIRONMENT — this flow is built for:\n- Telegram account: an apiKey account holding a bot token (service appmixer:telegram).\n- Chat: group chat id -5393771328. The bot MUST already be a member of that group.\n- Retargeting: the chat id is a literal on every Telegram component in this flow — change all of them together, or the cleanup step will target a different chat than the one under test.\n\nMANUAL STEP REQUIRED — this flow cannot complete unattended.\n1. Start the flow. MakeApiCall posts a message carrying an inline keyboard with a \"Fire E2E\" button (SendMessage has no reply_markup input, so the keyboard goes out through the generic call).\n2. PRESS THE BUTTON in Telegram.\n3. NewCallbackQuery fires, AnswerCallbackQuery acknowledges it and the prompt message is deleted. AfterAll waits 600s; with no press the flow just times out.",
+            "x": 64,
+            "y": 64,
+            "width": 520,
+            "height": 300
+        }
+    }
+}

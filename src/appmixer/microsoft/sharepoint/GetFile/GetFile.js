@@ -4,9 +4,19 @@ module.exports = {
 
     async receive(context) {
 
-        const { driveId, itemId, itemPath } = context.messages.in.content;
+        const { siteId, driveId, itemId, itemPath } = context.messages.in.content;
 
         const { accessToken } = context.auth;
+
+        if (!siteId) {
+            throw new context.CancelError('Site ID is required!');
+        }
+        if (!driveId) {
+            throw new context.CancelError('Drive ID is required!');
+        }
+        if (!itemId && !itemPath) {
+            throw new context.CancelError('Item ID or Item Path is required!');
+        }
 
         let url = '';
         if (itemId) {

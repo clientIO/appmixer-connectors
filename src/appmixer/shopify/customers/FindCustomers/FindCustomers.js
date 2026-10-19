@@ -1,63 +1,89 @@
 'use strict';
-const commons = require('../../lib');
 
-// Schema of a single customer item — powers the dynamic output-port options and
-// the variable-picker preview.
-const schema = {
-    'id': { 'type': 'integer', 'title': 'ID', 'example': 1073339471 },
-    'email': { 'type': 'string', 'title': 'Email', 'example': 'jane.doe@example.com' },
-    'first_name': { 'type': 'string', 'title': 'First Name', 'example': 'Jane' },
-    'last_name': { 'type': 'string', 'title': 'Last Name', 'example': 'Doe' },
-    'phone': { 'type': 'string', 'title': 'Phone', 'example': '+15550101234' },
-    'state': { 'type': 'string', 'title': 'State', 'example': 'enabled' },
-    'note': { 'type': 'string', 'title': 'Note', 'example': 'Loyal customer' },
-    'tags': { 'type': 'string', 'title': 'Tags', 'example': 'vip, wholesale' },
-    'currency': { 'type': 'string', 'title': 'Currency', 'example': 'USD' },
-    'orders_count': { 'type': 'integer', 'title': 'Orders Count', 'example': 3 },
-    'total_spent': { 'type': 'string', 'title': 'Total Spent', 'example': '199.98' },
-    'last_order_id': { 'type': 'integer', 'title': 'Last Order ID', 'example': 450789469 },
-    'last_order_name': { 'type': 'string', 'title': 'Last Order Name', 'example': '#1001' },
-    'accepts_marketing': { 'type': 'boolean', 'title': 'Accepts Marketing', 'example': true },
-    'accepts_marketing_updated_at': { 'type': 'string', 'format': 'date-time', 'title': 'Accepts Marketing Date', 'example': '2025-01-15T10:30:00-05:00' },
-    'marketing_opt_in_level': { 'type': 'string', 'title': 'Marketing Opt-in Level', 'example': 'single_opt_in' },
-    'multipass_identifier': { 'type': 'string', 'title': 'Multipass Identifier', 'example': '' },
-    'tax_exempt': { 'type': 'boolean', 'title': 'Tax Exempt', 'example': false },
-    'verified_email': { 'type': 'boolean', 'title': 'Email Verified', 'example': true },
-    'addresses': { 'type': 'array', 'title': 'Addresses', 'items': { 'type': 'object' }, 'example': [] },
-    'default_address': { 'type': 'object', 'title': 'Default Address', 'example': { 'id': 207119551, 'city': 'Ottawa', 'country': 'Canada' } },
-    'created_at': { 'type': 'string', 'format': 'date-time', 'title': 'Date Created', 'example': '2025-01-15T10:30:00-05:00' },
-    'updated_at': { 'type': 'string', 'format': 'date-time', 'title': 'Date Updated', 'example': '2025-02-20T08:15:00-05:00' }
-};
+const crypto = require('crypto');
+const lib = require('../../lib');
+const gqlCustomers = require('../../gql-customers');
+
+// The output contract of one customer (shared with Get/Create Customer and the
+// customer triggers through item-schema-customers.json).
+const ITEM_SCHEMA = require('../../item-schema-customers.json').customer;
+
+// The customer picker of other components calls this component as a source;
+// the result is cached so the burst of inspector calls costs one query.
+const PICKER_CACHE_TTL_MS = 2 * 60 * 1000;
+
+async function findCustomers(context, input) {
+
+    const api = gqlCustomers(lib.runner(context));
+    return api.find({
+        query: gqlCustomers.buildSearchQuery(input),
+        ...gqlCustomers.parseSort(input.sort)
+    });
+}
+
+async function findCustomersCached(context, input) {
+
+    const key = 'shopify-customers-picker-' + crypto.createHash('sha256')
+        .update(JSON.stringify({ store: context.auth.store, token: context.auth.accessToken, input }))
+        .digest('hex');
+    const lock = await context.lock(key);
+    try {
+        const cached = await context.staticCache.get(key);
+        if (cached) {
+            return cached;
+        }
+        const customers = await findCustomers(context, input);
+        await context.staticCache.set(key, customers, PICKER_CACHE_TTL_MS);
+        return customers;
+    } finally {
+        lock.unlock();
+    }
+}
 
 /**
- * Find customers.
+ * Find customers by a search query and filters (up to 250).
  * @extends {Component}
  */
 module.exports = {
 
+    ITEM_SCHEMA,
+
     async receive(context) {
 
-        const { query, maxResults, sort, outputType = 'array' } = context.messages.in.content;
+        const input = context.messages.in.content;
+        const { outputType = 'array' } = input;
 
         if (context.properties.generateOutputPortOptions) {
-            return commons.getOutputPortOptions(context, outputType, schema, { label: 'Customers', value: 'result' });
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Customers' });
         }
 
-        if (!query) {
-            throw new context.CancelError('Query is required!');
+        if (context.properties.isSource) {
+            try {
+                const customers = await findCustomersCached(context, input);
+                return context.sendJson({ result: customers, count: customers.length }, 'out');
+            } catch (err) {
+                return context.sendJson({ result: [], count: 0 }, 'out');
+            }
         }
 
-        const shopify = commons.getShopifyAPI(context);
-        const customers = await shopify.customer.search({
-            query,
-            limit: maxResults,
-            order: sort
-        });
-
-        if (!customers || customers.length === 0) {
+        const customers = await findCustomers(context, input);
+        if (customers.length === 0) {
             return context.sendJson({}, 'notFound');
         }
+        return lib.sendArrayOutput({ context, outputType, records: customers });
+    },
 
-        return commons.sendArrayOutput({ context, outputType, records: customers });
+    /**
+     * Customer picker: label = display name (or email), value = global ID.
+     * @param {object} out the `out` message of an `array` call
+     * @returns {Array<{label: string, value: string}>}
+     */
+    customersToSelectArray(out) {
+
+        const customers = (out && out.result) || [];
+        return customers.map(customer => {
+            const email = customer.defaultEmailAddress && customer.defaultEmailAddress.emailAddress;
+            return { label: customer.displayName || email || customer.id, value: customer.id };
+        });
     }
 };

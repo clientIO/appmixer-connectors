@@ -1,6 +1,6 @@
 {
     "name": "appmixer.servicenow",
-    "version": "3.2.0",
+    "version": "4.0.2",
     "engine": ">=6.0.0",
     "changelog": {
         "1.0.0": [
@@ -38,6 +38,19 @@
         ],
         "3.2.0": [
             "Added test() method to NewRecord, UpdatedRecord and DeletedRecord triggers for Flow Test Mode support."
+        ],
+        "4.0.0": [
+            "(Breaking Change) Security: NewRecord, UpdatedRecord and DeletedRecord only receive events sent with the connection's Webhook Secret in the X-Appmixer-Secret header. Events for one instance can no longer be delivered to flows of another connection.",
+            "Added Webhook Secret to the connection. The triggers check the credentials against the instance before they register.",
+            "Migration: reconnect the ServiceNow account with a Webhook Secret (at least 16 characters) and send it in the X-Appmixer-Secret header from your business rules.",
+            "MakeApiCall: Query Parameters and Headers set in the designer are sent with the request (they were ignored before). Invalid JSON in them now stops the call with an error.",
+            "Connection: a rejected username and password now says that the user needs the snc_basic_auth_api_access role on instances that restrict Basic auth."
+        ],
+        "4.0.1": [
+            "Fixed intermittent \"Parse Error: Expected HTTP/\" (HPE_INVALID_CONSTANT) failures in components that read from ServiceNow. Every GET request was sent with an empty JSON body ({}), which ServiceNow does not read; on a reused connection those stray bytes corrupted the next response. This hit paginated reads such as List Records hardest, because they issue many GET requests in a row. GET and HEAD requests are now sent without a body."
+        ],
+        "4.0.2": [
+            "MakeApiCall: Request Headers and Query Parameters set in the Designer are now sent. They were silently dropped: the key-value field stores its rows as a JSON object string, which the component did not parse."
         ]
     }
 }

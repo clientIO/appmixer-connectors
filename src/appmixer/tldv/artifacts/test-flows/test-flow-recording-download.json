@@ -1,0 +1,292 @@
+{
+    "name": "E2E tl;dv - Recording Download",
+    "flow": {
+        "9689976f-d000-49b8-82ca-dc8d48324d13": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "20e34088-fa57-4aac-8335-f8f711b7f446": {
+            "type": "appmixer.tldv.core.ListMeetings",
+            "x": 256,
+            "y": 320,
+            "source": {
+                "in": {
+                    "9689976f-d000-49b8-82ca-dc8d48324d13": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9689976f-d000-49b8-82ca-dc8d48324d13": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8b46ed6b-eace-4a3a-a981-d00a5e5c2e6e": {
+            "type": "appmixer.tldv.core.GetRecordingDownloadUrl",
+            "x": 448,
+            "y": 208,
+            "source": {
+                "in": {
+                    "20e34088-fa57-4aac-8335-f8f711b7f446": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "20e34088-fa57-4aac-8335-f8f711b7f446": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "meetingId": {
+                                        "mid": {
+                                            "functions": [],
+                                            "variable": "$.20e34088-fa57-4aac-8335-f8f711b7f446.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "meetingId": "{{{mid}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d01d339d-aa09-44a2-90e2-79ef08f3d0cc": {
+            "type": "appmixer.tldv.core.DownloadRecording",
+            "x": 448,
+            "y": 432,
+            "source": {
+                "in": {
+                    "20e34088-fa57-4aac-8335-f8f711b7f446": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "20e34088-fa57-4aac-8335-f8f711b7f446": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "meetingId": {
+                                        "mid": {
+                                            "functions": [],
+                                            "variable": "$.20e34088-fa57-4aac-8335-f8f711b7f446.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "meetingId": "{{{mid}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "972e4732-bc74-4f09-99d1-b614957ec841": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 176,
+            "source": {
+                "in": {
+                    "8b46ed6b-eace-4a3a-a981-d00a5e5c2e6e": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "8b46ed6b-eace-4a3a-a981-d00a5e5c2e6e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-8b46ed6b": {
+                                            "functions": [],
+                                            "variable": "$.8b46ed6b-eace-4a3a-a981-d00a5e5c2e6e.out.downloadUrl"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0-8b46ed6b}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "98e07fdb-dd1d-41a5-8282-3fc13e9aad89": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 640,
+            "y": 464,
+            "source": {
+                "in": {
+                    "d01d339d-aa09-44a2-90e2-79ef08f3d0cc": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "d01d339d-aa09-44a2-90e2-79ef08f3d0cc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0-d01d339d": {
+                                            "functions": [],
+                                            "variable": "$.d01d339d-aa09-44a2-90e2-79ef08f3d0cc.out.fileId"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0-d01d339d}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f20db5fb-7462-4f76-a0e1-83a2fa3204b3": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 832,
+            "y": 320,
+            "source": {
+                "in": {
+                    "972e4732-bc74-4f09-99d1-b614957ec841": [
+                        "out"
+                    ],
+                    "98e07fdb-dd1d-41a5-8282-3fc13e9aad89": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "df45e99a-8c5a-4b40-a8f5-8db4435980f4": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1024,
+            "y": 320,
+            "source": {
+                "in": {
+                    "f20db5fb-7462-4f76-a0e1-83a2fa3204b3": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "f20db5fb-7462-4f76-a0e1-83a2fa3204b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "f58820a1-0624-42d8-802c-4b8e60dbfc47": {
+                                            "variable": "$.f20db5fb-7462-4f76-a0e1-83a2fa3204b3.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E tl;dv - Recording Download",
+                                    "result": "{{{f58820a1-0624-42d8-802c-4b8e60dbfc47}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

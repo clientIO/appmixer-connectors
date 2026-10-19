@@ -1,0 +1,21 @@
+{
+    "plan": [
+        { "name": "ListProjects", "completed": true, "result": { "status": "pass", "note": "1 project returned; toSelectArray transform verified ({label: 'Default project', value: 244976})." } },
+        { "name": "CaptureEvent", "completed": true, "result": { "status": "pass", "note": "status 'Ok'; fixed output schema (status integer→string). Event verified in PostHog via RunQuery." } },
+        { "name": "IdentifyUser", "completed": true, "result": { "status": "pass", "note": "status 'Ok'; person created with $set props (verified by FindPersons)." } },
+        { "name": "FindPersons", "completed": true, "result": { "status": "pass", "note": "Found test person; fixed schema — person id is UUID string, not integer." } },
+        { "name": "GetPerson", "completed": true, "result": { "status": "pass", "note": "Works with UUID personId; fixed id schema type + tooltip." } },
+        { "name": "ListCohorts", "completed": true, "result": { "status": "pass", "note": "1 cohort returned." } },
+        { "name": "ListFeatureFlags", "completed": true, "result": { "status": "pass-empty", "note": "exit 0, valid empty list — project has no flags and API key lacks feature_flag:write to create one. Re-test after creating a flag in PostHog UI." } },
+        { "name": "CreateAnnotation", "completed": true, "result": { "status": "pass", "note": "Annotation created (id 105670)." } },
+        { "name": "NewAnnotation", "completed": true, "result": { "status": "pass", "note": "Live tick loop: baseline tick, then caught annotation 105671 created mid-run; dedup state saved. CLI 2.3.4 has no --test flag, test() verified by review only." } },
+        { "name": "RunQuery", "completed": true, "result": { "status": "pass", "note": "HogQL returned captured events ($identify, appmixer_test_event)." } },
+        { "name": "DeletePerson", "completed": true, "result": { "status": "pass", "note": "Returns {} per Delete convention; deletion verified via API (404)." } },
+        { "name": "NewActionEvent", "completed": true, "result": { "status": "not-cli-testable", "note": "Webhook trigger with manual PostHog realtime-destination setup; test() intentionally throws CancelError. Verify via Flow Test Mode / live flow on an instance." } }
+    ],
+    "fixes_during_testing": [
+        "lib.js: staticCache/lock access made best-effort (CLI dev container throws on access) — cacheGet/cacheSet/acquireLock wrappers.",
+        "CaptureEvent/IdentifyUser component.json: output 'status' type integer→string (API returns 'Ok').",
+        "FindPersons.js + GetPerson/DeletePerson component.json: person id is a UUID string, not integer; tooltips updated."
+    ]
+}

@@ -1,0 +1,121 @@
+{
+    "name": "appmixer.tldv.core.FindMeetings",
+    "label": "Find Meetings",
+    "description": "Search tl;dv meetings by free-text query, date range, meeting type and participation. Pages through all matches (up to the tl;dv 10,000 result ceiling).",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:tldv"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string"
+                    },
+                    "from": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "to": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "meetingType": {
+                        "type": "string",
+                        "enum": [
+                            "",
+                            "internal",
+                            "external"
+                        ]
+                    },
+                    "onlyParticipated": {
+                        "type": "boolean"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "query": {
+                        "type": "text",
+                        "label": "Search Query",
+                        "index": 1,
+                        "tooltip": "Free-text search across meeting names."
+                    },
+                    "from": {
+                        "type": "date-time",
+                        "label": "From",
+                        "index": 2,
+                        "tooltip": "Only return meetings that happened on or after this date/time."
+                    },
+                    "to": {
+                        "type": "date-time",
+                        "label": "To",
+                        "index": 3,
+                        "tooltip": "Only return meetings that happened on or before this date/time."
+                    },
+                    "meetingType": {
+                        "type": "select",
+                        "label": "Meeting Type",
+                        "index": 4,
+                        "tooltip": "Filter by whether the meeting is internal (only your organization) or external (with outside participants).",
+                        "options": [
+                            { "label": "Any", "value": "" },
+                            { "label": "Internal", "value": "internal" },
+                            { "label": "External", "value": "external" }
+                        ]
+                    },
+                    "onlyParticipated": {
+                        "type": "toggle",
+                        "label": "Only Meetings I Participated In",
+                        "index": 5,
+                        "tooltip": "When enabled, only return meetings the API-key owner participated in."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 6,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/tldv/core/FindMeetings?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMTEiIGhlaWdodD0iODMiIHZpZXdCb3g9IjAgMCAyMTEgODMiIGZpbGw9Im5vbmUiPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8xNjA3XzEwNjE2KSI+PHBhdGggZD0iTTMzLjkzODggNTYuNDM2MkMzMi42NzU1IDU2LjgwMzIgMzEuMzc2MyA1Ni45NzMzIDMwLjA1OTMgNTYuOTQ2NUMyOC40MTk2IDU3LjA0NDkgMjYuODA2OSA1Ni41MjU3IDI1LjUyNTcgNTUuNDk2MkMyNC4zMTYxIDU0LjIwNyAyMy43MTU4IDUyLjQ1MjQgMjMuODk1IDUwLjY4ODhWMzEuOTI0OEgzNy44MDk0VjIwLjYzNTlIMjMuODk1VjUuNzkyOTdMOC4wMDk0OSAxMC4xNzk2VjIwLjYzNTlILTAuMDI3MzQzOFYzMS45MzM3SDguMDAwNTNWNTMuMzExOEM3LjkxMDkzIDU2LjM1NTYgOC42NzI1IDU5LjM2MzYgMTAuMTk1NiA2MS45OTU2QzExLjYyMDIgNjQuMTg4OSAxMy43MTY4IDY1Ljg2MyAxNi4xODA3IDY2Ljc1ODJDMTkuMTI4NCA2Ny44MTQ2IDIyLjI0NjQgNjguMzI0OCAyNS4zODIzIDY4LjI1MzJDMjcuODM3MiA2OC4yNTMyIDMwLjI5MjIgNjcuOTM5OSAzMi42NjY1IDY3LjMyMjJDMzQuNzcyIDY2LjgyMDggMzYuNzcgNjUuOTM0NiAzOC41NTMgNjQuNzA4MUwzNi44Njg2IDU0LjkwNTNDMzUuOTk5NSA1NS41ODU3IDM1LjAwNSA1Ni4xMDQ5IDMzLjkzODggNTYuNDM2MloiIGZpbGw9IiMxRDFERkYiPjwvcGF0aD48cGF0aCBkPSJNNjUuMzY5MSA1Ny4xMzQxQzY0LjA3ODkgNTcuMjY4NCA2Mi43OTc3IDU2Ljc4NDkgNjEuOTEwNyA1NS44MjdDNjEuMTA0MyA1NC41MTExIDYwLjc0NiA1Mi45NzEyIDYwLjg4OTMgNTEuNDQwNFYwLjg0MTc5N0g0NS4wMDM5VjUzLjQ5MDVDNDUuMDAzOSA1OC43MTg3IDQ2LjEyMzkgNjIuNDc4NiA0OC4zNjM4IDY0Ljc4ODNDNTAuNjAzNyA2Ny4wODkxIDU0LjIxNDQgNjguMjQzOSA1OS4yMDQ5IDY4LjI0MzlDNjAuOTk2OCA2OC4yMzUgNjIuNzg4NyA2OC4wMjAxIDY0LjUyNjkgNjcuNTkwNEM2Ni4wNjggNjcuMjU5MiA2Ny41NDYzIDY2LjY5NTIgNjguOTE3MSA2NS45MDc0TDY5LjkzODUgNTYuMzkxQzY5LjA2OTQgNTYuNjQxNyA2OC4zMTY4IDU2LjgyOTcgNjcuNjk4NiA1Ni45NTVDNjYuOTM3IDU3LjA4MDQgNjYuMTQ4NiA1Ny4xNDMgNjUuMzY5MSA1Ny4xMzQxWiIgZmlsbD0iIzFEMURGRiI+PC9wYXRoPjxwYXRoIGQ9Ik03OS4wMTQ5IDM0LjM1MDlDODAuOTIzMyAzNS45MjY1IDgzLjM2MDMgMzYuNzIzMyA4NS44MzMyIDM2LjU4OUM4OC4zMjM5IDM2Ljc0MTIgOTAuNzc4OSAzNS45MzU1IDkyLjY5NjIgMzQuMzUwOUM5NC4zODk2IDMyLjc1NzQgOTUuMjk0NSAzMC41MTA0IDk1LjE2OTEgMjguMTkxN0M5NS4zMDM1IDI1Ljg0NjIgOTQuMzk4NSAyMy41NTQ0IDkyLjY5NjIgMjEuOTM0QzkwLjc2OTkgMjAuMzQ5NSA4OC4zMjM5IDE5LjU0MzggODUuODMzMiAxOS42OTZDODMuMzYwMyAxOS41NjE3IDgwLjkyMzMgMjAuMzU4NCA3OS4wMTQ5IDIxLjkzNEM3Ny4yODU3IDIzLjUzNjUgNzYuMzYyOSAyNS44MjgzIDc2LjQ5NzMgMjguMTkxN0M3Ni4zNzE4IDMwLjUxOTMgNzcuMjk0NyAzMi43NzUzIDc5LjAxNDkgMzQuMzUwOVoiIGZpbGw9IiMxRDFERkYiPjwvcGF0aD48cGF0aCBkPSJNOTEuMjQ0NSA1Mi44Mzc0Qzg5LjU2MDEgNTEuNzI3MyA4Ny41NjIxIDUxLjE3MjIgODUuNTQ2MiA1MS4yNTI4QzgzLjk2MDQgNTEuMjQzOCA4Mi40MDE0IDUxLjU5MyA4MC45Njc5IDUyLjI4MjNDNzkuNTYxMiA1Mi45NDQ4IDc4LjM2OTYgNTMuOTc0MyA3Ny41MDk0IDU1LjI3MjRDNzYuNTg2NiA1Ni43NTg1IDc2LjEyOTcgNTguNDc3MyA3Ni4yMDEzIDYwLjIyM0M3Ni4xMzg2IDYxLjc0NDkgNzYuNTQxOCA2My4yMzk5IDc3LjM2NjEgNjQuNTIwMUM3OC4wOTE4IDY1LjU5NDQgNzkuMDk1MyA2Ni40NjI3IDgwLjI2IDY3LjAzNTdDODEuMzE3MyA2Ny41NzI4IDgyLjQ4MiA2Ny44NTkzIDgzLjY3MzcgNjcuODc3MkM4NC4zMzY3IDY3Ljg5NTEgODQuOTkwNyA2Ny44MzI0IDg1LjYzNTggNjcuNjg5MkM4Ni4wNzQ4IDY3LjU5MDcgODYuNDg3IDY3LjQwMjcgODYuODQ1MyA2Ny4xMjUyTDg3LjMxMTIgNjcuNDAyN0M4Ni42OTMgNjguNzk5MyA4NS44NTk4IDcwLjA4ODQgODQuODM4NCA3MS4yMjUzQzgzLjY5MTYgNzIuNTE0NSA4Mi40MTAzIDczLjY3ODMgODEuMDAzNyA3NC42ODA5Qzc5LjUxNjQgNzUuNzQ2MiA3Ny45MDM3IDc2LjYzMjUgNzYuMTkyNCA3Ny4yOTVMODIuNjM0MyA4Mi4wNTc2Qzg1LjAyNjUgODAuOTkyMyA4Ny4yMDM3IDc5LjQ4ODMgODkuMDMxNSA3Ny42MTczQzkxLjAwMjYgNzUuNjM4OCA5Mi42MTUzIDczLjMzODEgOTMuNzk4IDcwLjgwNDZDOTQuOTk4NiA2OC4yOCA5NS42MTY4IDY1LjUyMjcgOTUuNjE2OCA2Mi43Mjk2Qzk1LjY0MzcgNjAuNzYwMSA5NS4yNzYzIDU4LjgwODUgOTQuNTQxNiA1Ni45OTEyQzkzLjg3ODYgNTUuMzE3MSA5Mi43MzE4IDUzLjg3NTggOTEuMjQ0NSA1Mi44Mzc0WiIgZmlsbD0iIzFEMURGRiI+PC9wYXRoPjxwYXRoIGQ9Ik0xMzYuOTMgMjguNjEyMUMxMzYuMDYxIDI2Ljc1ODkgMTM0Ljg3OCAyNS4wNDkgMTMzLjQyNyAyMy41NzE5QzEzMC42OTQgMjAuOTMxIDEyNi45OTQgMTkuNTI1NSAxMjMuMTk1IDE5LjY5NTZDMTE5LjU3NSAxOS42MjM5IDExNi4wMDkgMjAuNjM1NSAxMTIuOTYzIDIyLjU4NzJDMTA5LjkwOCAyNC42MzcyIDEwNy41MDcgMjcuNTE5OSAxMDYuMDU1IDMwLjg5NDlDMTA0LjI5IDM1LjA4NDYgMTAzLjQ0OCAzOS42MDU1IDEwMy41ODIgNDQuMTUzM0MxMDMuNDY2IDQ4LjYwMjYgMTA0LjI4MSA1My4wMTYxIDEwNS45NjYgNTcuMTM0MkMxMDcuMzQ1IDYwLjQ5MTMgMTA5LjY4NCA2My4zNjUgMTEyLjY5NCA2NS4zOTcyQzExNS43MTQgNjcuMzMwOSAxMTkuMjQ0IDY4LjMyNDYgMTIyLjgyOCA2OC4yNDRDMTI1LjYxNCA2OC4yODg4IDEyOC4zNTYgNjcuNjI2MyAxMzAuODIgNjYuMzE5M0MxMzMuMTY3IDY1LjAzOTEgMTM1LjE1NiA2My4xOTQ5IDEzNi42MTcgNjAuOTQ3OUMxMzcuMTYzIDYwLjA5NzQgMTM3LjYzOCA1OS4yMDIyIDEzOC4wNDEgNTguMjgwMUwxMzguNjIzIDY3LjI5NTFIMTUyLjgyNVYwLjgzMzAwOEgxMzYuOTM5VjI4LjYxMjFIMTM2LjkzWk0xMzUuOSA1MC43ODdDMTM1LjM3MSA1Mi40ODc5IDEzNC4zNDEgNTQuMDAwOSAxMzIuOTYxIDU1LjEyODlDMTMxLjYyNiA1Ni4xMTM2IDEzMC4wMDQgNTYuNjIzOSAxMjguMzQ3IDU2LjU3OTFDMTI1LjgyOSA1Ni42ODY2IDEyMy40MSA1NS41NDk2IDEyMS44ODcgNTMuNTQ0M0MxMjAuMzI4IDUxLjUyMTEgMTE5LjU0OCA0OC4zMzQgMTE5LjU0OCA0My45NzQzQzExOS41NDggMzkuNjIzNCAxMjAuMzQ2IDM2LjQyNzQgMTIxLjkzMiAzNC40MDQyQzEyMy40NzMgMzIuMzk4OSAxMjUuOTAxIDMxLjI3MDkgMTI4LjQyNyAzMS4zNjk0QzEzMC4wODUgMzEuMzI0NiAxMzEuNzE2IDMxLjgzNDkgMTMzLjA1MSAzMi44MTk3QzEzNC40MTIgMzMuOTAyOSAxMzUuNDE2IDM1LjM2MjEgMTM1Ljk0NSAzNy4wMTgzQzEzNi42NDMgMzkuMTc1OCAxMzYuOTc1IDQxLjQzMTggMTM2LjkzIDQzLjY5NjdDMTM2Ljk4NCA0Ni4wOTYgMTM2LjYzNCA0OC40OTUyIDEzNS45IDUwLjc4N1oiIGZpbGw9IiMxRDFERkYiPjwvcGF0aD48cGF0aCBkPSJNMTk0LjU2NyAyMC42MzU3TDE4NC43NTYgNTYuMTk0M0wxNzUuMTM0IDIwLjYzNTdIMTU4LjQwNkwxNzUuMjIzIDY3LjMwNDJIMTk0LjE5TDIxMS4wMDcgMjAuNjM1N0gxOTQuNTY3WiIgZmlsbD0iIzFEMURGRiI+PC9wYXRoPjwvZz48ZGVmcz48Y2xpcFBhdGggaWQ9ImNsaXAwXzE2MDdfMTA2MTYiPjxyZWN0IHdpZHRoPSIyMTEiIGhlaWdodD0iODIuNjI5OSIgZmlsbD0id2hpdGUiPjwvcmVjdD48L2NsaXBQYXRoPjwvZGVmcz48L3N2Zz4="
+}

@@ -250,28 +250,32 @@ module.exports = (context) => {
         context.log('info', 'slack-plugin-route-interaction-task-details', task);
         context.log('info', 'slack-plugin-route-interaction-payload-details', payload);
 
+        let webhookResult;
         if (action === 'task_approve') {
             task.setStatus(Task.STATUS_APPROVED);
             task.setDecisionMade(new Date());
             task.setActor(actorUserId);
-            await utils.triggerWebhook(task);
+            webhookResult = await utils.triggerWebhook(task);
             context.log('info', 'slack-plugin-route-interaction-task-approved', { taskId });
         } else if (action === 'task_reject') {
             task.setStatus(Task.STATUS_REJECTED);
             task.setDecisionMade(new Date());
             task.setActor(actorUserId);
-            await utils.triggerWebhook(task);
+            webhookResult = await utils.triggerWebhook(task);
             context.log('info', 'slack-plugin-route-interaction-task-rejected', { taskId });
         } else {
             context.log('error', 'slack-plugin-route-interaction-unknown-action', { action });
             return h.response({ text: 'Unknown action' }).code(400);
         }
 
-        await task.save();
+        // On failure, triggerWebhook already saved the task for a retry or removed it for good.
+        if (webhookResult?.ok) {
+            await task.save();
+        }
 
         // Send a response to the user
         // Build a block-preserving response that removes buttons and appends a status line
-        const approved = task.getStatus() === Task.STATUS_APPROVED;
+        const approved = action === 'task_approve';
         const actor = payload?.user?.id ? `<@${payload.user.id}>` : 'Someone';
         const emoji = approved ? ':white_check_mark:' : ':x:';
         const statusLine = `${emoji} ${actor} ${approved ? 'approved' : 'rejected'} this task.`;
@@ -295,7 +299,7 @@ module.exports = (context) => {
 
         if (!responseMessage) {
             responseMessage = {
-                text: `Task ${task.title || task.taskId} has been ${task.getStatus()} by ${actor}.`,
+                text: `Task ${task.title || task.taskId} has been ${approved ? 'approved' : 'rejected'} by ${actor}.`,
                 replace_original: true
             };
         }

@@ -1,103 +1,85 @@
 'use strict';
 
 const { WebClient } = require('@slack/web-api');
-const commons = require('../../lib');
+const lib = require('../../lib');
 
 const outputPortName = 'out';
 
-module.exports = {
+// reactions.list max page size.
+const PAGE_SIZE = 1000;
 
-    async receive(context) {
-
-        const generateOutputPortOptions = context.properties.generateOutputPortOptions;
-        const { userId, outputType, limit } = context.messages.in.content;
-
-        if (generateOutputPortOptions) {
-            return this.getOutputPortOptions(context, outputType);
-        }
-
-        // Initialize Slack Web API client
-        const web = new WebClient(context.auth.accessToken);
-        const result = await web.reactions.list({ user: userId, limit });
-
-        await commons.sendArrayOutput({ context, outputType, records: result.items || [] });
-    },
-
-    getOutputPortOptions(context, outputType) {
-
-        if (outputType === 'object' || outputType === 'first') {
-            return context.sendJson([
-                { label: 'Type', value: 'type', schema: { type: 'string' } },
-                { label: 'Channel', value: 'channel', schema: { type: 'string' } },
-                { label: 'Message', value: 'message', schema: {
-                    type: 'object',
-                    properties: {
-                        text: { type: 'string', title: 'Text' },
-                        files: { type: 'array', title: 'Files' },
-                        user: { type: 'string', title: 'User' },
-                        type: { type: 'string', title: 'Type' },
-                        ts: { type: 'string', title: 'Timestamp' },
-                        reactions: {
-                            type: 'array',
-                            title: 'Reactions',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    name: { type: 'string', title: 'Name' },
-                                    count: { type: 'number', title: 'Count' },
-                                    users: { type: 'array', title: 'Users' }
-                                }
-                            }
-                        }
-                    }
-                } }
-            ], outputPortName);
-        } else if (outputType === 'array') {
-            return context.sendJson([
-                {
-                    label: 'Reactions',
-                    value: 'records',
-                    schema: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                type: { type: 'string', title: 'Type' },
-                                channel: { type: 'string', title: 'Channel' },
-                                message: {
-                                    type: 'object',
-                                    properties: {
-                                        text: { type: 'string', title: 'Text' },
-                                        files: { type: 'array', title: 'Files' },
-                                        user: { type: 'string', title: 'User' },
-                                        type: { type: 'string', title: 'Type' },
-                                        ts: { type: 'string', title: 'Timestamp' },
-                                        reactions: {
-                                            type: 'array',
-                                            title: 'Reactions',
-                                            items: {
-                                                type: 'object',
-                                                properties: {
-                                                    name: { type: 'string', title: 'Name' },
-                                                    count: { type: 'number', title: 'Count' },
-                                                    users: { type: 'array', title: 'Users' }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['type'],
+    properties: {
+        type: { type: 'string', title: 'Type', example: 'message' },
+        channel: { type: 'string', title: 'Channel', example: 'C0ABC12345' },
+        message: {
+            type: 'object',
+            title: 'Message',
+            properties: {
+                type: { type: 'string', title: 'Message.Type', example: 'message' },
+                text: { type: 'string', title: 'Message.Text', example: 'Great work, team!' },
+                user: { type: 'string', title: 'Message.User', example: 'U0ABC12345' },
+                ts: { type: 'string', title: 'Message.Timestamp', example: '1737024600.333444' },
+                permalink: { type: 'string', title: 'Message.Permalink', example: 'https://example.slack.com/archives/C0ABC12345/p1737024600333444' },
+                files: {
+                    type: 'array',
+                    title: 'Message.Files',
+                    example: [{ id: 'F0ABC12345' }],
+                    items: { type: 'object', properties: { id: { type: 'string', title: 'Message.Files.ID', example: 'F0ABC12345' } } }
+                },
+                reactions: {
+                    type: 'array',
+                    title: 'Message.Reactions',
+                    example: [{ name: 'thumbsup', count: 2, users: ['U0ABC12345', 'U0DEF67890'] }],
+                    items: {
+                        type: 'object',
+                        properties: {
+                            name: { type: 'string', title: 'Message.Reactions.Name', example: 'thumbsup' },
+                            count: { type: 'number', title: 'Message.Reactions.Count', example: 2 },
+                            users: { type: 'array', title: 'Message.Reactions.Users', items: { type: 'string', example: 'U0ABC12345' } }
                         }
                     }
                 }
-            ], outputPortName);
-        } else if (outputType === 'file') {
-            return context.sendJson([
-                { label: 'File ID', value: 'fileId', schema: { type: 'string', format: 'appmixer-file-id' } }
-            ], outputPortName);
-        } else {
-            // Default to array output
-            return context.sendJson([], outputPortName);
+            }
         }
+    }
+};
+
+module.exports = {
+
+    ITEM_SCHEMA,
+
+    /**
+     * @link https://api.slack.com/methods/reactions.list
+     */
+    async receive(context) {
+
+        const generateOutputPortOptions = context.properties.generateOutputPortOptions;
+        const { userId, outputType } = context.messages.in.content;
+
+        if (generateOutputPortOptions) {
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Reactions' });
+        }
+
+        if (!userId) {
+            throw new context.CancelError('User is required!');
+        }
+
+        const web = new WebClient(context.auth.accessToken);
+        const records = [];
+        let cursor;
+        do {
+            const result = await web.reactions.list({
+                user: userId,
+                limit: PAGE_SIZE,
+                ...(cursor ? { cursor } : {})
+            });
+            records.push(...(result.items || []));
+            cursor = result.response_metadata?.next_cursor;
+        } while (cursor);
+
+        await lib.sendArrayOutput({ context, outputPortName, outputType, records });
     }
 };

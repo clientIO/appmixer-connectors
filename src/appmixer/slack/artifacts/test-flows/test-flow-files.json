@@ -1,0 +1,609 @@
+{
+    "name": "E2E Slack - files",
+    "description": "Creates a CSV file, uploads it to a fresh public channel and to the authenticated user (self DM), reads the metadata back, deletes both Slack files, then archives the channel.",
+    "flow": {
+        "ba792fe0-0efd-48dc-82ee-d3e9ddf368c8": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "81b209c1-c1ec-4cbb-a3c5-ec7feb71f6da": {
+            "type": "appmixer.utils.csv.CreateCSV",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "ba792fe0-0efd-48dc-82ee-d3e9ddf368c8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ba792fe0-0efd-48dc-82ee-d3e9ddf368c8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filename": {},
+                                    "delimiter": {},
+                                    "initialContent": {}
+                                },
+                                "lambda": {
+                                    "filename": "e2e-slack-file.csv",
+                                    "delimiter": ",",
+                                    "initialContent": "name,value\ne2e,1"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "95949d63-6a33-460b-93ce-2024fff4741d": {
+            "type": "appmixer.slack.list.CreateChannel",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "channel": {
+                    "81b209c1-c1ec-4cbb-a3c5-ec7feb71f6da": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "channel": {
+                        "81b209c1-c1ec-4cbb-a3c5-ec7feb71f6da": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "a15aca53-40c8-4be7-8cdb-ea08ec4f8038": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "name": "e2e-slack-files-{{{a15aca53-40c8-4be7-8cdb-ea08ec4f8038}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "73e1603b-3da3-437d-8427-d2d50b6a6fa8": {
+            "type": "appmixer.slack.files.UploadFileToChannel",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "95949d63-6a33-460b-93ce-2024fff4741d": [
+                        "newChannel"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "95949d63-6a33-460b-93ce-2024fff4741d": {
+                            "newChannel": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channel": {
+                                        "95f3f918-9182-4e1e-a819-7ba4c911e104": {
+                                            "variable": "$.95949d63-6a33-460b-93ce-2024fff4741d.newChannel.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileId": {
+                                        "298a136e-d6a5-4980-95ce-71008718c86c": {
+                                            "variable": "$.81b209c1-c1ec-4cbb-a3c5-ec7feb71f6da.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "filename": {},
+                                    "initialComment": {}
+                                },
+                                "lambda": {
+                                    "channel": "{{{95f3f918-9182-4e1e-a819-7ba4c911e104}}}",
+                                    "fileId": "{{{298a136e-d6a5-4980-95ce-71008718c86c}}}",
+                                    "filename": "e2e-slack-upload.csv",
+                                    "initialComment": "E2E Slack file upload to channel"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "552ba7be-7692-4a0f-8215-3c5dbfc5d40b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "73e1603b-3da3-437d-8427-d2d50b6a6fa8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "73e1603b-3da3-437d-8427-d2d50b6a6fa8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "803496e7-6a75-47e5-8d4b-34e0cc184d68": {
+                                            "variable": "$.73e1603b-3da3-437d-8427-d2d50b6a6fa8.out.id",
+                                            "functions": []
+                                        },
+                                        "f1f2bcb7-1a8a-4c3f-b289-edfb7da7099d": {
+                                            "variable": "$.73e1603b-3da3-437d-8427-d2d50b6a6fa8.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{803496e7-6a75-47e5-8d4b-34e0cc184d68}}}",
+                                                "assertion": "regex",
+                                                "regex": "^F[A-Z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{f1f2bcb7-1a8a-4c3f-b289-edfb7da7099d}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-slack-upload.csv"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2326cc1e-a142-4d34-a453-065004edc571": {
+            "type": "appmixer.slack.files.GetFileMetadata",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "552ba7be-7692-4a0f-8215-3c5dbfc5d40b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "552ba7be-7692-4a0f-8215-3c5dbfc5d40b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "file": {
+                                        "7fa65def-a3f4-4871-b09e-17a54740e66e": {
+                                            "variable": "$.73e1603b-3da3-437d-8427-d2d50b6a6fa8.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "file": "{{{7fa65def-a3f4-4871-b09e-17a54740e66e}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c84fc3e8-ba28-49e2-bfb7-534f48c94fa8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2326cc1e-a142-4d34-a453-065004edc571": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2326cc1e-a142-4d34-a453-065004edc571": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "bdaede2c-3fd4-4701-95bb-e393be7a58b4": {
+                                            "variable": "$.2326cc1e-a142-4d34-a453-065004edc571.out.id",
+                                            "functions": []
+                                        },
+                                        "8678e3ae-3d65-42cb-9fc8-ced30c6dc473": {
+                                            "variable": "$.2326cc1e-a142-4d34-a453-065004edc571.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{bdaede2c-3fd4-4701-95bb-e393be7a58b4}}}",
+                                                "assertion": "regex",
+                                                "regex": "^F[A-Z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{8678e3ae-3d65-42cb-9fc8-ced30c6dc473}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-slack-upload.csv"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6c58f245-25b4-491f-9900-92ef4c383d39": {
+            "type": "appmixer.slack.files.DeleteFile",
+            "label": "Delete channel file",
+            "x": 1520,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c84fc3e8-ba28-49e2-bfb7-534f48c94fa8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c84fc3e8-ba28-49e2-bfb7-534f48c94fa8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "file": {
+                                        "0364ac82-960e-47c1-98d4-365b4a8591dc": {
+                                            "variable": "$.73e1603b-3da3-437d-8427-d2d50b6a6fa8.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "file": "{{{0364ac82-960e-47c1-98d4-365b4a8591dc}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "81cd1923-438a-48f1-a5e4-1fcb6aade4b6": {
+            "type": "appmixer.slack.files.UploadFileToUser",
+            "x": 1728,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6c58f245-25b4-491f-9900-92ef4c383d39": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6c58f245-25b4-491f-9900-92ef4c383d39": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "userIds": {
+                                        "eb09811f-c6b8-4144-9147-ed311c69acbf": {
+                                            "variable": "$.95949d63-6a33-460b-93ce-2024fff4741d.newChannel.creator",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileId": {
+                                        "2b935ea0-9926-46e0-874f-19a3fb6017a4": {
+                                            "variable": "$.81b209c1-c1ec-4cbb-a3c5-ec7feb71f6da.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "filename": {},
+                                    "initialComment": {}
+                                },
+                                "lambda": {
+                                    "userIds": [
+                                        "{{{eb09811f-c6b8-4144-9147-ed311c69acbf}}}"
+                                    ],
+                                    "fileId": "{{{2b935ea0-9926-46e0-874f-19a3fb6017a4}}}",
+                                    "filename": "e2e-slack-upload-dm.csv",
+                                    "initialComment": "E2E Slack file upload to self DM"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c329e92f-8963-4f7f-8e68-bba181ae14a6": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1936,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "81cd1923-438a-48f1-a5e4-1fcb6aade4b6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "81cd1923-438a-48f1-a5e4-1fcb6aade4b6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "e0d1a7c0-a623-4a55-a72b-cb48e1fc6d2c": {
+                                            "variable": "$.81cd1923-438a-48f1-a5e4-1fcb6aade4b6.out.id",
+                                            "functions": []
+                                        },
+                                        "c988fa34-f611-4c20-835b-33270a2a9c20": {
+                                            "variable": "$.81cd1923-438a-48f1-a5e4-1fcb6aade4b6.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{e0d1a7c0-a623-4a55-a72b-cb48e1fc6d2c}}}",
+                                                "assertion": "regex",
+                                                "regex": "^F[A-Z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{c988fa34-f611-4c20-835b-33270a2a9c20}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-slack-upload-dm.csv"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9d5a81ed-8246-4e06-955b-b20c1461a057": {
+            "type": "appmixer.slack.files.DeleteFile",
+            "label": "Delete Slackbot file",
+            "x": 2144,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c329e92f-8963-4f7f-8e68-bba181ae14a6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c329e92f-8963-4f7f-8e68-bba181ae14a6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "file": {
+                                        "fc2a0772-de8f-455d-a8df-c1997cdb4dd8": {
+                                            "variable": "$.81cd1923-438a-48f1-a5e4-1fcb6aade4b6.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "file": "{{{fc2a0772-de8f-455d-a8df-c1997cdb4dd8}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3aba61be-31db-4b7e-9d56-b2e675c36422": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2352,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9d5a81ed-8246-4e06-955b-b20c1461a057": [
+                        "out"
+                    ],
+                    "552ba7be-7692-4a0f-8215-3c5dbfc5d40b": [
+                        "out"
+                    ],
+                    "c84fc3e8-ba28-49e2-bfb7-534f48c94fa8": [
+                        "out"
+                    ],
+                    "c329e92f-8963-4f7f-8e68-bba181ae14a6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "96e6487c-9464-4ef7-b6b3-fa1ff4f54c35": {
+            "type": "appmixer.slack.core.MakeApiCall",
+            "label": "Archive channel",
+            "x": 2560,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3aba61be-31db-4b7e-9d56-b2e675c36422": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3aba61be-31db-4b7e-9d56-b2e675c36422": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "41d775e4-d659-4150-8775-d24808ed0bb4": {
+                                            "variable": "$.95949d63-6a33-460b-93ce-2024fff4741d.newChannel.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/conversations.archive",
+                                    "method": "POST",
+                                    "body": "{\"channel\": \"{{{41d775e4-d659-4150-8775-d24808ed0bb4}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4a167cbc-4bb4-42e1-b27e-d627ee357107": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2768,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "96e6487c-9464-4ef7-b6b3-fa1ff4f54c35": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "96e6487c-9464-4ef7-b6b3-fa1ff4f54c35": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "3589ad5e-cef2-4123-a5b3-281e212f8830": {
+                                            "variable": "$.3aba61be-31db-4b7e-9d56-b2e675c36422.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Slack - files",
+                                    "result": "{{{3589ad5e-cef2-4123-a5b3-281e212f8830}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

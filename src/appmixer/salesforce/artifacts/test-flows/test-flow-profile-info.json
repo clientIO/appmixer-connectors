@@ -1,0 +1,155 @@
+{
+    "flow": {
+        "a4bbfba9-2582-4a8b-9fbd-8cee2aecb616": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "56fe2981-b961-4cc9-97a4-60d60511ba8a": {
+            "type": "appmixer.salesforce.crm.GetProfileInfo",
+            "x": 256,
+            "y": 300,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a4bbfba9-2582-4a8b-9fbd-8cee2aecb616": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fe4f5064-99d7-4803-8c26-238256022606": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 448,
+            "y": 300,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "56fe2981-b961-4cc9-97a4-60d60511ba8a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "56fe2981-b961-4cc9-97a4-60d60511ba8a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ca0f276b-bf36-4cb5-9b2e-3fe05c4944d5": {
+                                            "variable": "$.56fe2981-b961-4cc9-97a4-60d60511ba8a.out.user_id",
+                                            "functions": []
+                                        },
+                                        "555a0cc4-9717-4007-89e7-091eaccbc40f": {
+                                            "variable": "$.56fe2981-b961-4cc9-97a4-60d60511ba8a.out.organization_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ca0f276b-bf36-4cb5-9b2e-3fe05c4944d5}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{555a0cc4-9717-4007-89e7-091eaccbc40f}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "57b19479-51dc-4699-afc2-10e171b4f3b7": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 640,
+            "y": 300,
+            "source": {
+                "in": {
+                    "fe4f5064-99d7-4803-8c26-238256022606": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1d703aeb-d8fd-49a3-8a72-9d30356efe7a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 832,
+            "y": 300,
+            "source": {
+                "in": {
+                    "57b19479-51dc-4699-afc2-10e171b4f3b7": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "57b19479-51dc-4699-afc2-10e171b4f3b7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a5464aa8-6d14-472a-9db6-36e3001ca844": {
+                                            "variable": "$.57b19479-51dc-4699-afc2-10e171b4f3b7.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Salesforce - Profile Info",
+                                    "result": "{{{a5464aa8-6d14-472a-9db6-36e3001ca844}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Salesforce - Profile Info",
+    "type": "automation",
+    "notes": {}
+}

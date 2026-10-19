@@ -1,5 +1,7 @@
 'use strict';
-const commons = require('../../lib');
+
+const lib = require('../../lib');
+const gqlStore = require('../../gql-store');
 
 // Each step of the return journey fires its own webhook topic (a customer
 // request fires returns/request, an admin approval returns/approve, ...) —
@@ -15,66 +17,46 @@ const TOPICS = [
     'returns/update'
 ];
 
+// The selected topics; all of them when none is selected.
+function selectedTopics(context) {
+
+    const topics = context.properties.topics
+        ? lib.normalizeMultiselectInput(context.properties.topics, context, 'Return Events')
+        : [];
+    const valid = topics.filter(topic => TOPICS.includes(topic));
+    return valid.length ? valid : TOPICS;
+}
+
+/**
+ * Triggers on the selected return events.
+ * @extends {Component}
+ */
 module.exports = {
 
     async start(context) {
 
-        let topics = context.properties.topics
-            ? commons.normalizeMultiselectInput(context.properties.topics, context, 'Return Events')
-            : [];
-        topics = topics.filter(topic => TOPICS.includes(topic));
-        if (!topics.length) {
-            topics = TOPICS;
-        }
-        return commons.registerWebhooks(context, topics);
+        return lib.registerWebhooks(context, selectedTopics(context));
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'return');
+            const api = gqlStore(lib.runner(context));
+            return lib.receiveWebhook(context, { port: 'out', type: 'Return', fetch: id => api.getReturn(id) });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const shopify = commons.getShopifyAPI(context);
-        // Returns are only exposed through GraphQL; fetch the newest return of the
-        // most recent order so the emitted shape matches the webhook payload.
-        const orders = await shopify.order.list({ status: 'any', limit: 10, order: 'created_at DESC' });
-
-        if (!Array.isArray(orders)) {
-            throw new Error('No orders to look up returns for.');
+        const ret = await gqlStore(lib.runner(context)).latestReturn();
+        if (!ret) {
+            throw new context.CancelError('The store has no returns on its recent orders. Create a return to get test data.');
         }
-
-        for (const order of orders) {
-            const query = `query {
-                order(id: "gid://shopify/Order/${order.id}") {
-                    returns(first: 1) {
-                        edges { node {
-                            id name status totalQuantity
-                            order { id name }
-                        } }
-                    }
-                }
-            }`;
-            let result;
-            try {
-                result = await shopify.graphql(query);
-            } catch (err) {
-                continue;
-            }
-            const edges = result && result.order && result.order.returns && result.order.returns.edges;
-            if (Array.isArray(edges) && edges[0]) {
-                return context.sendJson({ ...edges[0].node, webhookTopic: 'returns/request' }, 'return');
-            }
-        }
-
-        throw new Error('No returns to use as test data. Ensure the store has returns and the token has read_returns scope.');
+        return context.sendJson({ ...ret, webhookTopic: selectedTopics(context)[0] }, 'out');
     }
 };

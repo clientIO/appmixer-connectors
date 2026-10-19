@@ -21,6 +21,13 @@ function processIssues(knownIssues, actualIssues, newIssues, issue) {
  * Component which triggers whenever new issue is created.
  * @extends {Component}
  */
+/**
+ * Maximum number of IDs to retain in context.state.known.
+ * getNewItems() replaces (not accumulates) known each tick, so this cap only
+ * fires if a single tick returns an unusually large page of results.
+ */
+const MAX_KNOWN = 500;
+
 module.exports = {
 
     async tick(context) {
@@ -36,20 +43,38 @@ module.exports = {
             !includePr ? 'is:issue' : ''
         ].filter(Boolean).join('+');
 
-        const res = await lib.apiRequest(context, `search/issues?q=${query}`);
+        const res = await lib.apiRequest(context, `search/issues?q=${query}`, {
+            params: { sort: 'created', order: 'desc' }
+        });
         let known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
         let actual = new Set();
         let diff = new Set();
 
         res.data.items.forEach(processIssues.bind(null, known, actual, diff));
 
-        if (diff.size) {
-            await Promise.all(Array.from(diff).map(issue => {
+        // When the matching issues do not fit on the page, one of them leaving the results
+        // (closed, label removed) pulls an older issue onto it. That issue is unseen but not
+        // new: it is no newer than the oldest issue the previous tick read (the floor).
+        let { floor } = context.state;
+        if (known && floor === undefined) {
+            // State saved before the floor existed: nothing older than the newest known issue is new.
+            floor = res.data.items.find(issue => known.has(issue.id))?.created_at;
+        }
+        const newIssues = Array.from(diff).filter(issue => !floor || issue.created_at > floor);
+
+        if (newIssues.length) {
+            await Promise.all(newIssues.map(issue => {
                 return context.sendJson(issue, 'issue');
             }));
         }
 
-        await context.saveState({ known: Array.from(actual) });
+        const knownArr = Array.from(actual);
+        const trimmedKnown = knownArr.length > MAX_KNOWN ? knownArr.slice(knownArr.length - MAX_KNOWN) : knownArr;
+        const oldest = res.data.items[res.data.items.length - 1];
+        await context.saveState({
+            known: trimmedKnown,
+            floor: oldest && res.data.total_count > res.data.items.length ? oldest.created_at : null
+        });
     },
 
     async test(context) {

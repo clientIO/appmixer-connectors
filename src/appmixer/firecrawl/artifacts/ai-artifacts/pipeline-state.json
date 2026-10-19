@@ -1,0 +1,38 @@
+{
+    "connector": "firecrawl",
+    "vendor": "appmixer",
+    "issue": "https://github.com/Appmixer-ai/appmixer-components/issues/2796",
+    "branch": "feature/firecrawl-connector",
+    "steps": {
+        "1-build": {
+            "status": "done",
+            "components": [
+                "ScrapeUrl",
+                "FindSearchResults",
+                "MapWebsite",
+                "CrawlWebsite",
+                "GetCrawlStatus",
+                "ExtractData",
+                "GetExtractStatus",
+                "MakeApiCall"
+            ],
+            "auth": "apiKey (Authorization: Bearer, validated via GET /v2/team/credit-usage)"
+        },
+        "2-review": {
+            "status": "done",
+            "notes": "scripts/validate.js --connector firecrawl: 0 failures, 0 warnings; eslint clean"
+        },
+        "3a-test-cli": {
+            "status": "done",
+            "notes": "All 8 components pass appmixer test component (2026-08-24). Async components verified via submit (wait=false) + status components against live jobs; ExtractData returned correct structured data ({heading: \"Example Domain\"}, 307 tokens)."
+        },
+        "3b-test-e2e": {
+            "status": "needs-rerun",
+            "notes": "All 6 flows PASSED on api-dev-automated-00001.dev.appmixer.ai (2026-08-24, account 6a8c4eee7dfdc2b6f42c5419, user test@appmixer.ai); results verified in E2E Succeeded Tests store. Flow fixes: static literals for dynamic-source required inputs (FindSearchResults.query, MapWebsite.url), markdown-based ScrapeUrl asserts (nested metadata paths not offered by designer), regex clause uses \"value\". RE-RUN NEEDED after the review fixes: CrawlWebsite moved from the polling continuation chain to Firecrawl's webhook callback, so its result now arrives on a new \"done\" port and the \"wait\"/\"pollingTimeout\" inputs are gone. test-flow-crawl-lifecycle.json was rewired accordingly (GetCrawlStatus and a new assert hang off \"done\") but has not been executed since. The Search component was renamed to FindSearchResults - it gained the notFound port a Find-shaped component must have, which the find-naming-by-shape validator then required."
+        },
+        "4-publish": {
+            "status": "done",
+            "notes": "Published appmixer.firecrawl 1.0.0 to the dev instance as test@appmixer.ai (2026-08-24). Initial release - no bundle bump needed."
+        }
+    }
+}

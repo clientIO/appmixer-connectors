@@ -24,6 +24,10 @@ module.exports = {
     receive(context) {
 
         let { companyId } = context.properties;
+        if (!context.messages.task.content.body) {
+            throw new context.CancelError('Description is required!');
+        }
+
         let newTask = context.messages.task.content;
         const options = { userAgent: context.auth.userAgent };
         let client = commons.getHighriseAPI(companyId, context.auth.accessToken, options);

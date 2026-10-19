@@ -1,0 +1,128 @@
+{
+    "name": "appmixer.csas.accounts.FindTransactions",
+    "author": "Appmixer <info@appmixer.com>",
+    "label": "Find Transactions",
+    "description": "Finds transactions of a Česká spořitelna payment account, optionally filtered by booking date range and direction (incoming/outgoing). All pages are fetched, up to 10,000 transactions; narrow the date range to get more.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:csas",
+        "scope": ["siblings.accounts"]
+    },
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "accountId": { "type": "string" },
+                    "fromDate": { "type": "string" },
+                    "toDate": { "type": "string" },
+                    "creditDebitIndicator": { "type": "string", "enum": ["", "DBIT", "CRDT"] },
+                    "order": { "type": "string", "enum": ["asc", "desc"] },
+                    "outputType": { "type": "string", "default": "array" }
+                },
+                "required": ["accountId"]
+            },
+            "inspector": {
+                "inputs": {
+                    "accountId": {
+                        "type": "text",
+                        "label": "Account ID",
+                        "tooltip": "Pick an account, or type the account ID (the <code>id</code> returned by List Accounts).",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/csas/accounts/ListAccounts?outPort=out",
+                            "data": {
+                                "properties": { "isSource": true },
+                                "transform": "./ListAccounts#toSelectOptions"
+                            }
+                        }
+                    },
+                    "fromDate": {
+                        "type": "date-time",
+                        "label": "From Date",
+                        "tooltip": "Only transactions booked on or after this date. Leave empty to use the bank's default range.",
+                        "index": 2,
+                        "config": {
+                            "enableTime": false
+                        }
+                    },
+                    "toDate": {
+                        "type": "date-time",
+                        "label": "To Date",
+                        "tooltip": "Only transactions booked on or before this date.",
+                        "index": 3,
+                        "config": {
+                            "enableTime": false
+                        }
+                    },
+                    "creditDebitIndicator": {
+                        "type": "select",
+                        "label": "Direction",
+                        "tooltip": "Credit for incoming transactions, Debit for outgoing transactions, or All.",
+                        "index": 4,
+                        "options": [
+                            { "label": "All", "value": "" },
+                            { "label": "Debit (outgoing)", "value": "DBIT" },
+                            { "label": "Credit (incoming)", "value": "CRDT" }
+                        ]
+                    },
+                    "order": {
+                        "type": "select",
+                        "label": "Order",
+                        "tooltip": "Order of the transactions by booking date.",
+                        "index": 5,
+                        "defaultValue": "desc",
+                        "options": [
+                            { "label": "Newest first", "value": "desc" },
+                            { "label": "Oldest first", "value": "asc" }
+                        ]
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 6,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/csas/accounts/FindTransactions?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/accountId": "dummy",
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "accountId": { "type": "string", "title": "Account ID", "example": "D2C8C1DCC51A3738538A40A4863CA288E0225E52" },
+                    "fromDate": { "type": "string", "title": "From Date", "example": "2026-09-01" },
+                    "toDate": { "type": "string", "title": "To Date", "example": "2026-09-30" }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzJBNzFFRiIvPjxjaXJjbGUgY3g9IjIwMSIgY3k9IjEwMSIgcj0iMjkiIGZpbGw9IiNmZmYiLz48cGF0aCBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMzIgMTU0aDE0MWEyMiAyMiAwIDAgMSAyMiAyMnYxMTJhMjIgMjIgMCAwIDEtMjIgMjJIMTMyYTIyIDIyIDAgMCAxLTIyLTIyVjE3NmEyMiAyMiAwIDAgMSAyMi0yMnpNMTU1IDE5NXYxOWgxNDB2LTE5ek0xMTAgMjUxdjE5aDE0MHYtMTl6Ii8+PC9zdmc+Cg=="
+}

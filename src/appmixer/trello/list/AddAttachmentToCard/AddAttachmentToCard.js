@@ -24,6 +24,13 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.url) {
+            throw new context.CancelError('Attach a Link is required!');
+        }
+        if (!context.messages.in.content.boardListCardId) {
+            throw new context.CancelError('Card is required!');
+        }
+
         let attachInfo = context.messages.in.content;
         let boardListCardId = attachInfo.boardListCardId;
         delete attachInfo.boardListCardId;

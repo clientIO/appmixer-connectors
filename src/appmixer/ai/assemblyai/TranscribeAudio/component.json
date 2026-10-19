@@ -1,0 +1,171 @@
+{
+    "name": "appmixer.ai.assemblyai.TranscribeAudio",
+    "label": "Transcribe Audio",
+    "description": "Submit an audio or video URL for transcription. IMPORTANT: transcription is asynchronous — this returns a transcript id with status \"queued\", NOT the text. Use the Transcript Completed trigger (or poll with Get Transcript) to retrieve the result once processing finishes.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:ai:assemblyai"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "audioUrl": { "type": "string" },
+                    "speechModel": { "type": "string" },
+                    "languageCode": { "type": "string" },
+                    "languageDetection": { "type": "boolean" },
+                    "speakerLabels": { "type": "boolean" },
+                    "speakersExpected": { "type": "integer" },
+                    "multichannel": { "type": "boolean" },
+                    "punctuate": { "type": "boolean" },
+                    "formatText": { "type": "boolean" },
+                    "filterProfanity": { "type": "boolean" },
+                    "contentSafety": { "type": "boolean" },
+                    "iabCategories": { "type": "boolean" },
+                    "entityDetection": { "type": "boolean" },
+                    "sentimentAnalysis": { "type": "boolean" },
+                    "autoHighlights": { "type": "boolean" },
+                    "redactPii": { "type": "boolean" },
+                    "redactPiiAudio": { "type": "boolean" },
+                    "webhookUrl": { "type": "string" }
+                },
+                "required": ["audioUrl"]
+            },
+            "inspector": {
+                "inputs": {
+                    "audioUrl": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Audio URL",
+                        "tooltip": "A publicly accessible URL of the audio/video file, or the <code>upload_url</code> returned by the Upload File component."
+                    },
+                    "speechModel": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Speech Model",
+                        "tooltip": "The speech model to use. Leave empty to use the default.",
+                        "options": [
+                            { "label": "Universal", "value": "universal" },
+                            { "label": "Slam-1", "value": "slam-1" },
+                            { "label": "Best", "value": "best" },
+                            { "label": "Nano", "value": "nano" }
+                        ]
+                    },
+                    "languageCode": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "Language Code",
+                        "tooltip": "The language of the audio, e.g. <code>en</code>, <code>en_us</code>, <code>es</code>. Leave empty and enable Language Detection to detect it automatically."
+                    },
+                    "languageDetection": {
+                        "type": "toggle",
+                        "index": 4,
+                        "label": "Language Detection",
+                        "tooltip": "Automatically detect the spoken language."
+                    },
+                    "speakerLabels": {
+                        "type": "toggle",
+                        "index": 5,
+                        "label": "Speaker Labels",
+                        "tooltip": "Enable speaker diarization (who spoke when)."
+                    },
+                    "speakersExpected": {
+                        "type": "number",
+                        "index": 6,
+                        "label": "Speakers Expected",
+                        "tooltip": "Hint for the expected number of speakers. Only used when Speaker Labels is enabled."
+                    },
+                    "multichannel": {
+                        "type": "toggle",
+                        "index": 7,
+                        "label": "Multichannel",
+                        "tooltip": "Transcribe each audio channel separately."
+                    },
+                    "punctuate": {
+                        "type": "toggle",
+                        "index": 8,
+                        "label": "Punctuate",
+                        "tooltip": "Enable automatic punctuation."
+                    },
+                    "formatText": {
+                        "type": "toggle",
+                        "index": 9,
+                        "label": "Format Text",
+                        "tooltip": "Enable text formatting (casing, numbers, etc.)."
+                    },
+                    "filterProfanity": {
+                        "type": "toggle",
+                        "index": 10,
+                        "label": "Filter Profanity",
+                        "tooltip": "Replace profanity in the transcript with asterisks."
+                    },
+                    "contentSafety": {
+                        "type": "toggle",
+                        "index": 11,
+                        "label": "Content Moderation",
+                        "tooltip": "Audio Intelligence: detect sensitive content."
+                    },
+                    "iabCategories": {
+                        "type": "toggle",
+                        "index": 12,
+                        "label": "Topic Detection",
+                        "tooltip": "Audio Intelligence: classify the transcript into IAB topic categories."
+                    },
+                    "entityDetection": {
+                        "type": "toggle",
+                        "index": 13,
+                        "label": "Entity Detection",
+                        "tooltip": "Audio Intelligence: detect entities (people, organizations, locations, etc.)."
+                    },
+                    "sentimentAnalysis": {
+                        "type": "toggle",
+                        "index": 14,
+                        "label": "Sentiment Analysis",
+                        "tooltip": "Audio Intelligence: analyze sentiment for each spoken sentence."
+                    },
+                    "autoHighlights": {
+                        "type": "toggle",
+                        "index": 15,
+                        "label": "Auto Highlights",
+                        "tooltip": "Audio Intelligence: detect key phrases and words."
+                    },
+                    "redactPii": {
+                        "type": "toggle",
+                        "index": 16,
+                        "label": "Redact PII",
+                        "tooltip": "Remove personally identifiable information from the transcript text. Irreversible."
+                    },
+                    "redactPiiAudio": {
+                        "type": "toggle",
+                        "index": 17,
+                        "label": "Redact PII Audio",
+                        "tooltip": "Also produce a redacted version of the audio. Requires Redact PII to be enabled; retrieve it with Get Redacted Audio."
+                    },
+                    "webhookUrl": {
+                        "type": "text",
+                        "index": 18,
+                        "label": "Webhook URL",
+                        "tooltip": "Optional. AssemblyAI will POST { transcript_id, status } to this URL when processing finishes."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string", "title": "Transcript ID", "example": "5551722-f677-48a6-9287-39c0aafd9ac1" },
+                    "status": { "type": "string", "title": "Status", "example": "queued" },
+                    "audio_url": { "type": "string", "title": "Audio URL", "example": "https://cdn.assemblyai.com/upload/463ce27f-0922-4ea9-9ce4-3353771c46f2" }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjFlbSIgc3R5bGU9ImZsZXg6bm9uZTtsaW5lLWhlaWdodDoxIiB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIxZW0iIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHRpdGxlPkFzc2VtYmx5QUk8L3RpdGxlPjxwYXRoIGQ9Ik0xMC41OTUgMS41YTMuNjk1IDMuNjk1IDAgMDAtMy40NDQgMi4zNTVMMCAyMi4yNmg1LjQzMmw1LjYyOS0xNC40ODZoLjAwMmEuOTYuOTYgMCAwMTEuNzgyIDBoLjc1VjQuODM1aC0xLjM5M0wxMy40OTggMS41aC0yLjkwMnoiIGZpbGw9IiMyNTQ1RDMiPjwvcGF0aD48cGF0aCBkPSJNNy4xNTEgMy44NTVhMy42OTUgMy42OTUgMCAwMTMuMjYtMi4zNWwtLjAwMi0uMDA1SDEzLjQwNWMxLjUyNCAwIDIuODkzLjkzNiAzLjQ0NCAyLjM1NUwyNCAyMi4yNmgtNS41MjVMMTEuNTQgNC40MTNhMi41MjggMi41MjggMCAwMC00LjYwOS4wMDZsLjIyLS41NjR6IiBmaWxsPSIjNTY2REU4Ij48L3BhdGg+PC9zdmc+"
+}

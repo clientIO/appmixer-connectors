@@ -1,0 +1,238 @@
+{
+    "flow": {
+        "b5842ef4-7f35-4229-9c77-4f4bf1d22c04": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d94cc3da-30cb-4912-bd08-e8510f893b9f": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "b5842ef4-7f35-4229-9c77-4f4bf1d22c04": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b5842ef4-7f35-4229-9c77-4f4bf1d22c04": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "63f07532-d8b7-4357-8af1-855b9a7c7b5e": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "d94cc3da-30cb-4912-bd08-e8510f893b9f": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d94cc3da-30cb-4912-bd08-e8510f893b9f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "ts-198dc583": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "https://api.hsforms.com/submissions/v3/integration/submit/148964607/ddf27a5f-f5c3-4cdc-befe-2884a5d16356",
+                                    "method": "POST",
+                                    "body": "{\"fields\": [{\"name\": \"email\", \"value\": \"e2e-form-{{{ts-198dc583}}}@example.com\"}]}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "f94025e8-7540-4d50-8305-5e60a506cd90": {
+            "type": "appmixer.hubspot.crm.FormSubmission",
+            "x": 64,
+            "y": 576,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "formId": "ddf27a5f-f5c3-4cdc-befe-2884a5d16356",
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "6e189b85-af3c-48a3-afa4-335048e3beb2": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 576,
+            "source": {
+                "in": {
+                    "f94025e8-7540-4d50-8305-5e60a506cd90": [
+                        "submission"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f94025e8-7540-4d50-8305-5e60a506cd90": {
+                            "submission": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "av-0-9c6f269d": {
+                                            "variable": "$.f94025e8-7540-4d50-8305-5e60a506cd90.submission.submittedAt",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{av-0-9c6f269d}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "35b0449b-3f7d-4ea4-b4f6-1c2ccd235cf1": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "6e189b85-af3c-48a3-afa4-335048e3beb2": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "ebfbead5-59a6-410b-8bbc-ee0850f613c0": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "35b0449b-3f7d-4ea4-b4f6-1c2ccd235cf1": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "35b0449b-3f7d-4ea4-b4f6-1c2ccd235cf1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-0d43a8b4": {
+                                            "variable": "$.35b0449b-3f7d-4ea4-b4f6-1c2ccd235cf1.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubSpot - Form Submission Trigger",
+                                    "result": "{{{res-0d43a8b4}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            }
+        }
+    },
+    "name": "E2E HubSpot - Form Submission Trigger",
+    "type": "automation",
+    "notes": {
+        "eedb902a-47b2-49b3-9f96-066be1b8f1a7": {
+            "content": "ENVIRONMENT \u2014 this flow is built for:\n- Appmixer account: auth+hubspot@appmixer.com (service appmixer:hubspot)\n- HubSpot portal: 148964607 (developer test account, EU, accountType DEVELOPER_TEST)\n- Portal asset: form ddf27a5f-f5c3-4cdc-befe-2884a5d16356 'E2E Trigger Test Form' \u2014 update the trigger formId and the hsforms submit URL (portal id + form id) when porting.",
+            "x": 64,
+            "y": 64,
+            "width": 460,
+            "height": 170
+        }
+    }
+}

@@ -1,0 +1,48 @@
+name: Claude Maya Review Trigger
+
+# Phase 1 of the apx-maya connector review (see claude-maya-review.yml).
+#
+# WHY TWO WORKFLOWS: `pull_request` events on a PR whose head lives in a fork
+# run WITHOUT repository secrets and with a read-only token (GitHub's fork
+# hardening). Connector PRs routinely come from forks (apx-vero and human
+# forks), so the reviewer workflow cannot listen to `review_requested`
+# directly — it would never see ANTHROPIC_API_KEY or MAYA_GH_TOKEN.
+#
+# So this tiny unprivileged workflow runs on the review-request event, applies
+# the cheap gate (the requested reviewer is apx-maya) and uploads the PR number
+# as an artifact. The privileged reviewer runs on `workflow_run` (which DOES
+# get secrets), reads the artifact and re-verifies everything against the live
+# API before acting.
+#
+# NOTE: `workflow_run` only fires for workflows on the default branch — both
+# files must be merged to `dev` before the chain works.
+
+on:
+  pull_request:
+    types: [review_requested]
+
+permissions: {}
+
+jobs:
+  capture:
+    # Cheap gate only — the reviewer re-verifies this via the API.
+    # `requested_reviewer` is set for USER review requests; team requests
+    # populate `requested_team` instead and are deliberately ignored.
+    if: github.event.requested_reviewer.login == 'apx-maya'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Write event payload
+        env:
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          jq -n --arg pr "$PR" '{pr_number: $pr}' > event.json
+          cat event.json
+
+      - name: Upload event artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: maya-review-event
+          path: event.json
+          retention-days: 1
