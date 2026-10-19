@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Full development guide:** `.github/copilot-instructions.md` - Contains detailed patterns, examples, JSON schemas, and best practices.
+**Full development guide:** the [`instructions/`](https://github.com/Appmixer-ai/appmixer-skills/tree/dev/instructions) directory of the public [appmixer-skills](https://github.com/Appmixer-ai/appmixer-skills) repository — the source of truth for connector rules, also installable as a Claude Code plugin. `.github/copilot-instructions.md` here is only a pointer to it.
 
 ## Quick Reference
 
@@ -50,14 +50,14 @@ src/appmixer/<connector_name>/
         └── <ComponentName>.js
 ```
 
-See: `.github/copilot-instructions.md` sections "Connector Structure", "Core Configuration Files"
+See: [`01-connectors.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/01-connectors.md) — "Connector Structure", "Core Configuration Files"
 
 ### Authentication
 
 - **OAuth 2.0**: For services with OAuth flow (Google, GitHub, etc.)
 - **API Key**: For services using API keys or tokens
 
-See: `.github/copilot-instructions.md` section "Authentication Types"
+See: [`02-authentication.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/02-authentication.md)
 
 ### Component Types
 
@@ -70,11 +70,11 @@ See: `.github/copilot-instructions.md` section "Authentication Types"
 | **Update** | Modify by ID | Returns `{}` |
 | **Delete** | Remove by ID | Returns `{}` |
 
-See: `.github/copilot-instructions.md` sections "Find (Items) Components", "List (Items) Components", "Get (Item) Components", "Create (Item) Components", "Delete (Item) Components", "Update (Item) Components"
+See: [`07-component-types.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/07-component-types.md) — the Find / List / Get / Create / Update / Delete sections
 
 **Triggers**: Use `properties` (not `inPorts`), implement `tick()` or `start()/receive()/stop()`
 
-See: `.github/copilot-instructions.md` sections "Trigger Components", "Trigger Behavior Requirements"
+See: [`07-component-types.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/07-component-types.md) — "Trigger Components", and [`10-trigger-test-method.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/10-trigger-test-method.md) for `test()`
 
 ## Critical Rules
 
@@ -87,7 +87,7 @@ Components with `outputType` **MUST** use lib.js helpers:
 
 **Canonical implementation:** `appmixer-cli/src/ai/src/templates/libs/lib.js`
 
-See: `.github/copilot-instructions.md` section "outputType Helper Functions"
+See: [`07-component-types.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/07-component-types.md) — "outputType Helper Functions", and [`15-live-verification.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/15-live-verification.md) for exporting `ITEM_SCHEMA`
 
 ### Delete/Update Components
 
@@ -104,7 +104,7 @@ if (!taskId) {
 }
 ```
 
-See: `.github/copilot-instructions.md` section "Component Behavior (JavaScript) Requirements"
+See: [`06-component-behavior.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/06-component-behavior.md) and [`08-best-practices.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/08-best-practices.md)
 
 ### Output Port Schema
 
@@ -125,7 +125,7 @@ Add a realistic `example` (singular, not `examples` array) on each leaf property
 }]
 ```
 
-See: `.github/copilot-instructions.md` sections "Output Port Schema Definition" and "Output Port Examples"
+See: [`05-component-config.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/05-component-config.md) — output port schema and examples
 
 ## Testing Components
 
@@ -137,7 +137,7 @@ appmixer test auth validate ./src/appmixer/<connector>/auth.js
 appmixer test component ./src/appmixer/<connector>/core/<Component> -i '{"in":{...}}'
 ```
 
-See: `.github/copilot-instructions.md` section "Testing Guidelines"
+See: [`09-testing.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/09-testing.md)
 
 ## E2E Test Flows
 
@@ -148,7 +148,7 @@ Required components in order:
 - Assertion types: `equal`, `notEmpty`, `regex` only
 - Every component MUST be tested in at least one flow
 
-See: `.github/copilot-instructions.md` section "End-to-End (E2E) Test Flows"
+See: [`11-e2e-flow-generation.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/11-e2e-flow-generation.md), [`12-e2e-upload.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/12-e2e-upload.md), [`13-e2e-run.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/13-e2e-run.md)
 
 ## Code Style
 
@@ -157,18 +157,20 @@ See: `.github/copilot-instructions.md` section "End-to-End (E2E) Test Flows"
 - Date fields: use `date-time` inspector type, not `text`
 - Remove unused variables/imports
 
-See: `.github/copilot-instructions.md` sections "Code Style Guidelines (For All)", "Development Guidelines (For All)"
+See: [`08-best-practices.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/08-best-practices.md)
 
 ## Reference
 
-- **Full guide:** `.github/copilot-instructions.md`
+- **Full guide:** [appmixer-skills `instructions/`](https://github.com/Appmixer-ai/appmixer-skills/tree/dev/instructions) — the source of truth
 - **External docs:** https://docs.appmixer.com/getting-started/custom-connectors
 
-### Key Sections in Full Guide
+### Where each topic lives in appmixer-skills
 
-| Topic | Section |
-|-------|---------|
-| Input/output types | "JSON Schema Reference", "Type Mapping for Input Ports" |
-| Component.json structure | "Desired Attribute Order in component.json", "component.json Requirements" |
-| Context methods | "Context API" |
-| AI-specific rules | "Best Practices (AI Assistance)", "Critical Restrictions for AI Code Generation" |
+| Topic | File |
+|-------|------|
+| Input/output types, JSON Schema reference | [`05-component-config.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/05-component-config.md) |
+| component.json structure and attribute order | [`05-component-config.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/05-component-config.md) |
+| Context API | [`06-component-behavior.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/06-component-behavior.md), [`03-plugins.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/03-plugins.md) |
+| AI-specific rules and restrictions | [`16-agent-instructions.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/16-agent-instructions.md) |
+| Long-running / async components | [`14-async-components.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/14-async-components.md) |
+| Live verification, `ITEM_SCHEMA`, `verify.json` | [`15-live-verification.md`](https://github.com/Appmixer-ai/appmixer-skills/blob/dev/instructions/15-live-verification.md) |

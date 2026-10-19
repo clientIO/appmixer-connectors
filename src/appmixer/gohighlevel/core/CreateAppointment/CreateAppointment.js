@@ -7,6 +7,19 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.calendarId) {
+            throw new context.CancelError('Calendar is required!');
+        }
+        if (!context.messages.in.content.contactId) {
+            throw new context.CancelError('Contact ID is required!');
+        }
+        if (!context.messages.in.content.startTime) {
+            throw new context.CancelError('Start Time is required!');
+        }
+        if (!context.messages.in.content.endTime) {
+            throw new context.CancelError('End Time is required!');
+        }
+
         const {
             calendarId,
             locationId,

@@ -1,0 +1,132 @@
+{
+    "connector": "fal",
+    "notes": [
+        "Ordered so that each test feeds the next: FindModels discovers a live endpointId,",
+        "GenerateImage produces a CDN url for DownloadFile, DownloadFile produces a fileId",
+        "for UploadFile, and SubmitRequest produces a requestId for the queue readers.",
+        "Only the steps marked billable:true call fal inference; everything else hits free",
+        "platform/storage endpoints. fal-ai/flux/schnell is the cheapest, fastest model.",
+        "",
+        "CLI run 2026-08-06 found and fixed three real defects: an ADMIN-only auth",
+        "validation endpoint, a flat output schema over nested /v1/models records, and",
+        "queue request URLs built from the full endpoint id instead of owner/model."
+    ],
+    "plan": [
+        {
+            "name": "FindModels",
+            "billable": false,
+            "dependsOn": [],
+            "provides": ["endpointId"],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "213 text-to-image models; array/first/generateOutputPortOptions all verified.",
+                "defectFound": "Records are {endpoint_id, metadata:{...}} but the declared schema was flat, making 9 of 10 fields unreachable. Fixed by flattening in FindModels.js.",
+                "endpointId": "fal-ai/flux/schnell"
+            }
+        },
+        {
+            "name": "MakeApiCall",
+            "billable": false,
+            "dependsOn": [],
+            "provides": [],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "GET api.fal.ai/v1 /models with key-value parameters; auth header injected correctly."
+            }
+        },
+        {
+            "name": "GenerateImage",
+            "billable": true,
+            "dependsOn": [],
+            "provides": ["imageUrl"],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "All optional inputs honoured (seed echoed back, jpeg, 512x512 square).",
+                "imageUrl": "https://v3b.fal.media/files/b/0aa53f33/1WRZHE6aDHeUgI3vMwzRa.jpg"
+            }
+        },
+        {
+            "name": "DownloadFile",
+            "billable": false,
+            "dependsOn": ["GenerateImage.imageUrl"],
+            "provides": ["fileId"],
+            "completed": true,
+            "result": {
+                "status": "pass-via-e2e",
+                "note": "Not testable under the CLI harness: appmixer-test-component.js:459 mocks saveFileStream as Buffer.from(stream), which throws on an IncomingMessage. Passing a stream is the correct Appmixer pattern (see ai/openai/GenerateImage/GenerateImage.js:27), so this is a harness gap, not a connector defect. Verified live on 2026-08-06 by test-flow-generate-and-file-roundtrip."
+            }
+        },
+        {
+            "name": "UploadFile",
+            "billable": false,
+            "dependsOn": ["DownloadFile.fileId"],
+            "provides": ["url"],
+            "completed": true,
+            "result": {
+                "status": "pass-via-e2e",
+                "note": "Needs a stored fileId, which DownloadFile cannot produce under the CLI harness. Verified live on 2026-08-06 by test-flow-generate-and-file-roundtrip."
+            }
+        },
+        {
+            "name": "RunModel",
+            "billable": true,
+            "dependsOn": [],
+            "provides": ["requestId"],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "Both branches verified: waitForResult=true returns the result inline; waitForResult=false returns queue handles.",
+                "requestId": "019fd6f7-221a-7e91-9ad4-43ef0ebaa6ca"
+            }
+        },
+        {
+            "name": "SubmitRequest",
+            "billable": true,
+            "dependsOn": [],
+            "provides": ["requestId", "statusUrl", "responseUrl", "cancelUrl"],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "fal returns handles under the owner/model base (fal-ai/flux), not the full endpoint id.",
+                "requestId": "019fd6f2-dcaf-7ed3-9f8c-28ce5fc171f5"
+            }
+        },
+        {
+            "name": "GetRequestStatus",
+            "billable": false,
+            "dependsOn": ["SubmitRequest.requestId"],
+            "provides": [],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "Both the statusUrl and the endpointId+requestId branches verified.",
+                "defectFound": "endpointId+requestId built .../fal-ai/flux/schnell/requests/<id>/status, which answers 405 — queue.fal.run routes requests only on owner/model. Fixed via lib.queueBaseId(); also fixes GetRequestResult and CancelRequest."
+            }
+        },
+        {
+            "name": "GetRequestResult",
+            "billable": false,
+            "dependsOn": ["SubmitRequest.requestId"],
+            "provides": [],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "Returned the completed image payload via the endpointId+requestId branch."
+            }
+        },
+        {
+            "name": "CancelRequest",
+            "billable": true,
+            "dependsOn": [],
+            "provides": [],
+            "completed": true,
+            "result": {
+                "status": "pass",
+                "note": "Already-completed request maps 400 to a readable CancelError. A fresh submit answers 202 CANCELLATION_REQUESTED, so the success path is exercised by test-flow-queue-submit-status-cancel, where CancelRequest hangs directly off SubmitRequest to keep the window tight."
+            }
+        }
+    ]
+}

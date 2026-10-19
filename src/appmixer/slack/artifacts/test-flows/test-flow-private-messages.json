@@ -1,0 +1,484 @@
+{
+    "name": "E2E Slack - private messages",
+    "description": "Creates a private channel, posts a message and a threaded reply (threadTs), deletes both, then archives the channel.",
+    "flow": {
+        "2dfefd9e-11ab-4a0b-b674-e526a3c4e8c5": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f5491747-3021-4502-9104-36b37c07cc68": {
+            "type": "appmixer.slack.list.CreatePrivateChannel",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "channel": {
+                    "2dfefd9e-11ab-4a0b-b674-e526a3c4e8c5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "channel": {
+                        "2dfefd9e-11ab-4a0b-b674-e526a3c4e8c5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {
+                                        "45f4d4e5-7bab-4e64-903a-a8e8141e4b0b": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "name": "e2e-slack-priv-{{{45f4d4e5-7bab-4e64-903a-a8e8141e4b0b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3ec437da-dc1c-481a-96cd-91058de060f6": {
+            "type": "appmixer.slack.list.SendPrivateChannelMessage",
+            "x": 480,
+            "y": 16,
+            "version": "1.1.0",
+            "source": {
+                "message": {
+                    "f5491747-3021-4502-9104-36b37c07cc68": [
+                        "newChannel"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "message": {
+                        "f5491747-3021-4502-9104-36b37c07cc68": {
+                            "newChannel": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channelId": {
+                                        "8835a073-3d7a-4dc7-9f89-c72857ccfea0": {
+                                            "variable": "$.f5491747-3021-4502-9104-36b37c07cc68.newChannel.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "text": {}
+                                },
+                                "lambda": {
+                                    "channelId": "{{{8835a073-3d7a-4dc7-9f89-c72857ccfea0}}}",
+                                    "text": "E2E Slack private message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "adc17837-6e60-4bf5-8db7-741b1cfbb9fd": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3ec437da-dc1c-481a-96cd-91058de060f6": [
+                        "newMessage"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3ec437da-dc1c-481a-96cd-91058de060f6": {
+                            "newMessage": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "16eda412-c648-4c28-a95e-4300c82daca7": {
+                                            "variable": "$.3ec437da-dc1c-481a-96cd-91058de060f6.newMessage.ts",
+                                            "functions": []
+                                        },
+                                        "345b587d-ae9d-4232-b96a-cc7a01355860": {
+                                            "variable": "$.3ec437da-dc1c-481a-96cd-91058de060f6.newMessage.user",
+                                            "functions": []
+                                        },
+                                        "c9b1be97-6474-47e8-a433-de54dd33d5d9": {
+                                            "variable": "$.3ec437da-dc1c-481a-96cd-91058de060f6.newMessage.text",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{16eda412-c648-4c28-a95e-4300c82daca7}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{345b587d-ae9d-4232-b96a-cc7a01355860}}}",
+                                                "assertion": "regex",
+                                                "regex": "^U[A-Z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{c9b1be97-6474-47e8-a433-de54dd33d5d9}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Slack private message"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "12062973-b1e7-4b3f-b0ef-afd8219734b7": {
+            "type": "appmixer.slack.list.SendPrivateChannelMessage",
+            "label": "Send threaded reply",
+            "x": 896,
+            "y": 144,
+            "version": "1.1.0",
+            "source": {
+                "message": {
+                    "adc17837-6e60-4bf5-8db7-741b1cfbb9fd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "message": {
+                        "adc17837-6e60-4bf5-8db7-741b1cfbb9fd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channelId": {
+                                        "4f23ce2b-a4e4-4593-92e8-8794f0e988bd": {
+                                            "variable": "$.f5491747-3021-4502-9104-36b37c07cc68.newChannel.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "text": {},
+                                    "threadTs": {
+                                        "ce942410-d7e7-43f9-bf5f-227904e105f3": {
+                                            "variable": "$.3ec437da-dc1c-481a-96cd-91058de060f6.newMessage.ts",
+                                            "functions": []
+                                        }
+                                    },
+                                    "replyBroadcast": {}
+                                },
+                                "lambda": {
+                                    "channelId": "{{{4f23ce2b-a4e4-4593-92e8-8794f0e988bd}}}",
+                                    "text": "E2E Slack threaded reply",
+                                    "threadTs": "{{{ce942410-d7e7-43f9-bf5f-227904e105f3}}}",
+                                    "replyBroadcast": false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bedf16d4-41a2-42c6-a500-6b6943d3cede": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "12062973-b1e7-4b3f-b0ef-afd8219734b7": [
+                        "newMessage"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "12062973-b1e7-4b3f-b0ef-afd8219734b7": {
+                            "newMessage": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "acda460f-c2ac-4971-a9ea-7b024e5efb84": {
+                                            "variable": "$.12062973-b1e7-4b3f-b0ef-afd8219734b7.newMessage.ts",
+                                            "functions": []
+                                        },
+                                        "7fd899f3-4177-48ba-bcce-689799ebdb22": {
+                                            "variable": "$.12062973-b1e7-4b3f-b0ef-afd8219734b7.newMessage.text",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{acda460f-c2ac-4971-a9ea-7b024e5efb84}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{7fd899f3-4177-48ba-bcce-689799ebdb22}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Slack threaded reply"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2b285a14-1913-41d6-bfa4-c99fe0d7720d": {
+            "type": "appmixer.slack.messages.DeleteMessage",
+            "label": "Delete reply",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bedf16d4-41a2-42c6-a500-6b6943d3cede": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bedf16d4-41a2-42c6-a500-6b6943d3cede": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channel": {
+                                        "76aea755-102f-4220-8776-7b02bbda4c73": {
+                                            "variable": "$.f5491747-3021-4502-9104-36b37c07cc68.newChannel.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ts": {
+                                        "14b32a77-4bf1-4729-957e-7ce2d119995b": {
+                                            "variable": "$.12062973-b1e7-4b3f-b0ef-afd8219734b7.newMessage.ts",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "channel": "{{{76aea755-102f-4220-8776-7b02bbda4c73}}}",
+                                    "ts": "{{{14b32a77-4bf1-4729-957e-7ce2d119995b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "38976f43-cb2c-4b27-b191-a627f15a60de": {
+            "type": "appmixer.slack.messages.DeleteMessage",
+            "label": "Delete parent message",
+            "x": 1520,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2b285a14-1913-41d6-bfa4-c99fe0d7720d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2b285a14-1913-41d6-bfa4-c99fe0d7720d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "channel": {
+                                        "2c828210-f036-42e3-886a-79f6bc9e8615": {
+                                            "variable": "$.f5491747-3021-4502-9104-36b37c07cc68.newChannel.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "ts": {
+                                        "47c03bcf-ab4b-457a-b795-8e1154b5dda4": {
+                                            "variable": "$.3ec437da-dc1c-481a-96cd-91058de060f6.newMessage.ts",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "channel": "{{{2c828210-f036-42e3-886a-79f6bc9e8615}}}",
+                                    "ts": "{{{47c03bcf-ab4b-457a-b795-8e1154b5dda4}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "59105fdb-d181-4616-b807-4bd8d009ead1": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1728,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "38976f43-cb2c-4b27-b191-a627f15a60de": [
+                        "out"
+                    ],
+                    "adc17837-6e60-4bf5-8db7-741b1cfbb9fd": [
+                        "out"
+                    ],
+                    "bedf16d4-41a2-42c6-a500-6b6943d3cede": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e39d4311-8f5d-4473-ad9d-19c06c2ac63a": {
+            "type": "appmixer.slack.core.MakeApiCall",
+            "label": "Archive channel",
+            "x": 1936,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "59105fdb-d181-4616-b807-4bd8d009ead1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "59105fdb-d181-4616-b807-4bd8d009ead1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "08d22708-50cb-4aaa-9a4b-7200c9eb5f82": {
+                                            "variable": "$.f5491747-3021-4502-9104-36b37c07cc68.newChannel.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/conversations.archive",
+                                    "method": "POST",
+                                    "body": "{\"channel\": \"{{{08d22708-50cb-4aaa-9a4b-7200c9eb5f82}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "adb175d7-6cc4-406d-b8a2-c592a19881b7": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2144,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e39d4311-8f5d-4473-ad9d-19c06c2ac63a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "e39d4311-8f5d-4473-ad9d-19c06c2ac63a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a41bd99f-99c8-4a46-9a8b-84c9dc170d69": {
+                                            "variable": "$.59105fdb-d181-4616-b807-4bd8d009ead1.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Slack - private messages",
+                                    "result": "{{{a41bd99f-99c8-4a46-9a8b-84c9dc170d69}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

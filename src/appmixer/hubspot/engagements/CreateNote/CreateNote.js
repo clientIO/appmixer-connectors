@@ -48,6 +48,7 @@ module.exports = {
             payload
         );
 
-        return context.sendJson(data, 'out');
+        // The create response carries no associations, so echo the association type back.
+        return context.sendJson({ ...data, associationTypeId }, 'out');
     }
 };

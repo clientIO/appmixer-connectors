@@ -1,0 +1,180 @@
+{
+    "name": "E2E Cliniko - New Invoice Trigger",
+    "flow": {
+        "c72d1382-addb-5f55-924f-a716c382f0c0": {
+            "type": "appmixer.cliniko.core.NewInvoice",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "b24577fd-7654-5927-ab41-9b82fdea0b82": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "c72d1382-addb-5f55-924f-a716c382f0c0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c72d1382-addb-5f55-924f-a716c382f0c0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "3621e4f1-60b3-5d26-bd5a-5593f4e9951d": {
+                                            "functions": [],
+                                            "variable": "$.c72d1382-addb-5f55-924f-a716c382f0c0.out.id"
+                                        },
+                                        "ec77a10a-e6b4-5477-8005-31a85ed8b292": {
+                                            "functions": [],
+                                            "variable": "$.c72d1382-addb-5f55-924f-a716c382f0c0.out.total_amount"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{3621e4f1-60b3-5d26-bd5a-5593f4e9951d}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{ec77a10a-e6b4-5477-8005-31a85ed8b292}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "407f2a55-b2bb-5a8b-aaef-e7b16e45d5f7": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "b24577fd-7654-5927-ab41-9b82fdea0b82": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 900
+                }
+            }
+        },
+        "57e4feb1-40d0-5032-aaa2-d1f8b7ec70ed": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "407f2a55-b2bb-5a8b-aaef-e7b16e45d5f7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "407f2a55-b2bb-5a8b-aaef-e7b16e45d5f7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "866e3e24-8f24-59e5-a80a-c0a342ab9750": {
+                                            "functions": [],
+                                            "variable": "$.407f2a55-b2bb-5a8b-aaef-e7b16e45d5f7.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Cliniko - New Invoice Trigger",
+                                    "result": "{{{866e3e24-8f24-59e5-a80a-c0a342ab9750}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "85cffcae-a547-5968-aaeb-ca0713335549": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "42557a7b-8af2-5134-995e-36942268a7a7": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "85cffcae-a547-5968-aaeb-ca0713335549": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "85cffcae-a547-5968-aaeb-ca0713335549": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "10m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

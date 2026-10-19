@@ -1,0 +1,325 @@
+{
+    "name": "E2E Fireflies - Meeting Management",
+    "flow": {
+        "009b00f7-33eb-430c-8d31-1d0a9bd7bc11": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e284f272-4085-47df-8d4e-9d54eb0f068c": {
+            "type": "appmixer.fireflies.core.ListTranscripts",
+            "x": 320,
+            "y": 300,
+            "source": {
+                "in": {
+                    "009b00f7-33eb-430c-8d31-1d0a9bd7bc11": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "009b00f7-33eb-430c-8d31-1d0a9bd7bc11": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "195ebdd4-1017-4563-af46-99bfcde2ca9e": {
+            "type": "appmixer.fireflies.core.ShareMeeting",
+            "x": 540,
+            "y": 160,
+            "source": {
+                "in": {
+                    "e284f272-4085-47df-8d4e-9d54eb0f068c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e284f272-4085-47df-8d4e-9d54eb0f068c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "tid": {
+                                            "variable": "$.e284f272-4085-47df-8d4e-9d54eb0f068c.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "transcriptId": "{{{tid}}}",
+                                    "emails": "share-test@appmixer.com",
+                                    "expiry": 7
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ff5ae1aa-65a2-4f6a-b9f1-d3ec455101af": {
+            "type": "appmixer.fireflies.core.UpdateMeetingTitle",
+            "x": 540,
+            "y": 440,
+            "source": {
+                "in": {
+                    "e284f272-4085-47df-8d4e-9d54eb0f068c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e284f272-4085-47df-8d4e-9d54eb0f068c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "tid": {
+                                            "variable": "$.e284f272-4085-47df-8d4e-9d54eb0f068c.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "transcriptId": "{{{tid}}}",
+                                    "title": "E2E Renamed Meeting"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cb1315a4-33fd-452b-8fb8-94c4a603cf4b": {
+            "type": "appmixer.fireflies.core.GetTranscript",
+            "x": 760,
+            "y": 440,
+            "source": {
+                "in": {
+                    "ff5ae1aa-65a2-4f6a-b9f1-d3ec455101af": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ff5ae1aa-65a2-4f6a-b9f1-d3ec455101af": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "tid": {
+                                            "variable": "$.e284f272-4085-47df-8d4e-9d54eb0f068c.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "transcriptId": "{{{tid}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "56cf2f49-c024-495f-91e6-51c18a4b0fe1": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 760,
+            "y": 160,
+            "source": {
+                "in": {
+                    "195ebdd4-1017-4563-af46-99bfcde2ca9e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "195ebdd4-1017-4563-af46-99bfcde2ca9e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f-success": {
+                                            "variable": "$.195ebdd4-1017-4563-af46-99bfcde2ca9e.out.success",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f-success}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "148f7898-a9ff-40da-a8a5-0810177f8e17": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 980,
+            "y": 440,
+            "source": {
+                "in": {
+                    "cb1315a4-33fd-452b-8fb8-94c4a603cf4b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cb1315a4-33fd-452b-8fb8-94c4a603cf4b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f-title": {
+                                            "variable": "$.cb1315a4-33fd-452b-8fb8-94c4a603cf4b.out.title",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{f-title}}}",
+                                                "expected": "E2E Renamed Meeting"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "160c0823-3809-465d-83b4-9668f5733b62": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1200,
+            "y": 300,
+            "source": {
+                "in": {
+                    "56cf2f49-c024-495f-91e6-51c18a4b0fe1": [
+                        "out"
+                    ],
+                    "148f7898-a9ff-40da-a8a5-0810177f8e17": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "98de6bfa-9fd6-43f0-b8af-f1aaa5bf6def": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1420,
+            "y": 300,
+            "source": {
+                "in": {
+                    "160c0823-3809-465d-83b4-9668f5733b62": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "160c0823-3809-465d-83b4-9668f5733b62": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.160c0823-3809-465d-83b4-9668f5733b62.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fireflies - Meeting Management",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

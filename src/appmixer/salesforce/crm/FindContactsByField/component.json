@@ -1,0 +1,133 @@
+{
+    "name": "appmixer.salesforce.crm.FindContactsByField",
+    "author": "Appmixer <info@appmixer.ai>",
+    "description": "Get all contacts related to a chosen Contact field value, for example every contact matching a specific Campaign ID, Account or custom field.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:salesforce"
+    },
+    "quota": {
+        "manager": "appmixer:salesforce",
+        "resources": "requests"
+    },
+    "version": "1.1.2",
+    "dependencies": {
+        "service": "1.1.2"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "fieldName": {
+                        "type": "string"
+                    },
+                    "fieldValue": {
+                        "type": "string"
+                    },
+                    "matchType": {
+                        "type": "string"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "fieldName": {
+                        "type": "text",
+                        "label": "Field",
+                        "index": 1,
+                        "tooltip": "The Contact field to filter on, for example AccountId, LeadSource or a custom field.",
+                        "source": {
+                            "url": "/component/appmixer/salesforce/crm/GetObjectFields?outPort=out",
+                            "data": {
+                                "messages": {
+                                    "in": {
+                                        "objectName": "Contact"
+                                    }
+                                },
+                                "transform": "./transformers#fieldsToSelectOptions",
+                                "properties": {
+                                    "variableFetch": true
+                                }
+                            }
+                        }
+                    },
+                    "fieldValue": {
+                        "type": "text",
+                        "label": "Field Value",
+                        "index": 2,
+                        "tooltip": "The value the chosen field must match, for example the Campaign ID or an email address."
+                    },
+                    "matchType": {
+                        "type": "select",
+                        "label": "Match Type",
+                        "index": 3,
+                        "options": [
+                            {
+                                "content": "Exact match",
+                                "value": "exact"
+                            },
+                            {
+                                "content": "Contains",
+                                "value": "contains"
+                            },
+                            {
+                                "content": "Starts with",
+                                "value": "startsWith"
+                            }
+                        ],
+                        "defaultValue": "exact",
+                        "tooltip": "How the field value is compared. Contains and Starts with use a SOQL LIKE query and only work on text fields \u2014 for ID, number or date fields use Exact match."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 4,
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or one item at a time or stream the items to a file. For large datasets, streaming the items to a file is the most efficient method.",
+                        "options": [
+                            {
+                                "content": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "content": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "content": "Save items to file",
+                                "value": "file"
+                            }
+                        ],
+                        "defaultValue": "array"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/salesforce/crm/FindContactsByField?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/fieldName": "inputs/in/fieldName",
+                        "in/fieldValue": "inputs/in/fieldValue",
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5OTkgNjk5LjI0MSI+PGRlZnM+PHN0eWxlPi5he2ZpbGw6IzAwYTFlMDt9PC9zdHlsZT48L2RlZnM+PHBhdGggY2xhc3M9ImEiIGQ9Ik00MTYuMjI0LDc2Ljc2M2MzMi4yMTktMzMuNTcsNzcuMDc0LTU0LjM5MSwxMjYuNjgyLTU0LjM5MSw2NS45NDYsMCwxMjMuNDgsMzYuNzcyLDE1NC4xMiw5MS4zNjFhMjEyLjk4NCwyMTIuOTg0LDAsMCwxLDg3LjEwNi0xOC41MTRjMTE4Ljk0LDAsMjE1LjM2OCw5Ny4yNjgsMjE1LjM2OCwyMTcuMjQ3UzkwMy4wNzIsNTI5LjcyNyw3ODQuMTMyLDUyOS43MjdBMjEzLjc0LDIxMy43NCwwLDAsMSw3NDEuNzEsNTI1LjVhMTU3LjQzNiwxNTcuNDM2LDAsMCwxLTIwNi4yODksNjQuNzkzLDE3OS42MjEsMTc5LjYyMSwwLDAsMS0zMzMuOTExLTguMTI2LDE2NC43NzUsMTY0Ljc3NSwwLDAsMS0zNC4yNjgsMy41NzJDNzUuMTU1LDU4NS43NC41LDUxMC4zMTcuNSw0MTcuMjYyQTE2OC43NDEsMTY4Ljc0MSwwLDAsMSw4My44NzgsMjcxLjMyNWExOTIuODY2LDE5Mi44NjYsMCwwLDEtMTUuOTY3LTc3LjA2QzY3LjkxMSw4Ny4yNSwxNTQuNzkuNSwyNjEuOTQ4LjVBMTkzLjc5MSwxOTMuNzkxLDAsMCwxLDQxNi4yMjQsNzYuNzYzIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMC41IC0wLjUpIi8+PC9zdmc+"
+}

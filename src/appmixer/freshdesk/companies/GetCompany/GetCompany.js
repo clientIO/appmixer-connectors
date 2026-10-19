@@ -6,6 +6,10 @@ module.exports = {
 
     async receive(context) {
 
+        if ([undefined, null, ''].includes(context.messages.in.content.companyId)) {
+            throw new context.CancelError('Company ID is required!');
+        }
+
         const companyId = parseInt(context.messages.in.content.companyId, 10);
 
         let data;

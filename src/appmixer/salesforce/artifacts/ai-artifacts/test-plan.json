@@ -1,0 +1,112 @@
+{
+    "plan": [
+        {
+            "name": "FindContacts",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-17",
+                "notes": "CLI: all contacts (array) OK; scoped to AccountId 0017R00002yg2OmQAI returned only its 2 contacts; outputType object emitted per-item; outputType file saved CSV and emitted fileId; generateOutputPortOptions returned CONTACT_FIELDS/Result/File ID options; dates reformatted to ISO. 2026-08-18 (renamed FindContacts): notFound port emits {} on empty account; E2E flow with positive+negative branch PASSED 2x on dev-automated-00001; accountId dynamic select (ListAccounts source, no ignoreAuth) verified via designer-style call. 2026-08-18: added campaignId filter (CampaignMember semi-join): CLI returned the campaign's member contact, campaign+account combo with no overlap -> notFound; E2E gained a campaign branch (Campaign+CampaignMember via MakeApiCall - CreateObjectRecord transforms are wiped by the dev-automated dynamic-inspector engine bug - find by campaign, assert, campaign cleanup). PASSED 2x. 2026-08-19: campaign scenario split into its own flow (E2E Salesforce - Get Contacts by Campaign) so a single designer variables-fetch stays under the 25/20s component quota (dynamic options are re-resolved per downstream link); both flows PASSED and validate-variables reports all OK."
+            }
+        },
+        {
+            "name": "FindContactsByField",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-17",
+                "notes": "CLI: LeadSource='Trade Show' returned matching contact; AccountId filter (object mode) emitted 2 items; unknown value returned {result:[]}; SOQL-injection fieldName rejected by assertSafeIdentifier; generateOutputPortOptions OK (requires fieldName/fieldValue due to required[] in port schema \u2014 designer source call maps them from inputs). 2026-08-18 (renamed FindContactsByField): notFound port emits {} on no match; E2E flow with positive+negative branch PASSED 2x; fieldName dynamic select (GetObjectFields source, no ignoreAuth) verified via designer-style call. 2026-08-18: E2E positive case switched to fieldName=Email (fieldValue mapped from CreateContact newContact.Email) \u2014 AccountId scoping is FindContacts' own use case; negative branch (nonexistent LeadSource) unchanged. PASSED. matchType added (exact/contains/startsWith via SOQL LIKE): CLI contains 'edge.com' matched both @edge.com contacts, startsWith 'Gonz' matched Gonzalez, literal '%' correctly escaped -> notFound; E2E gained a contains branch (substring of the created contact's email). PASSED."
+            }
+        },
+        {
+            "name": "CreateContact",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-18",
+                "notes": "CLI: created contact under account 0017R00002yg2OmQAI (newContact incl. Id/AccountId), cleaned up via DeleteObjectRecord; accountId+reportsTo switched select->text (typeahead) so upstream variables validate in the designer; used by both E2E Get Contacts flows (PASSED)."
+            }
+        },
+        {
+            "name": "ListAccounts",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-18",
+                "notes": "CLI: returns accounts (non-cache path); variableFetch source calls now cached 5 min via staticCache+lock (staticCache not testable in CLI <=2.3.4); dropdown verified via designer-style call returning account options."
+            }
+        },
+        {
+            "name": "CreateAccount",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-18",
+                "notes": "CLI: created account (name+industry+billingCity), newAccount incl. Id; used as the Account setup step in both E2E Get Contacts flows (PASSED)."
+            }
+        },
+        {
+            "name": "DeleteAccount",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-18",
+                "notes": "CLI: deleted the CLI-created account, emitted {} on out; used as the Account cleanup step in both E2E Get Contacts flows (PASSED)."
+            }
+        },
+        {
+            "name": "ListCampaigns",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-18",
+                "notes": "CLI: returns campaigns sorted by name; cached+error-suppressed source pattern (as ListAccounts); powers the FindContacts campaign dropdown."
+            }
+        },
+        {
+            "name": "UpdateContact",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-19",
+                "notes": "E2E: contact-lifecycle flow PASSED after inport-key fix (contact port)."
+            }
+        },
+        {
+            "name": "LeadStatusChange",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-19",
+                "notes": "E2E trigger flow (self-provoke: create Lead, update Status) PASSED on 2026-08-19; first run hit a transient engine-egress 404 (http downgrade on some workers), retry clean."
+            }
+        },
+        {
+            "name": "ContactStatusChange",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-19",
+                "notes": "E2E trigger flow (Title change) PASSED 2026-08-18."
+            }
+        },
+        {
+            "name": "AccountStatusChange",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-19",
+                "notes": "E2E trigger flow PASSED 2026-08-19 (first run lost to ECONNRESET network blip)."
+            }
+        },
+        {
+            "name": "RecordFieldChange",
+            "completed": true,
+            "result": {
+                "status": "passed",
+                "date": "2026-08-19",
+                "notes": "E2E trigger flow (Opportunity StageName) PASSED 2026-08-19 after transient 404 retry."
+            }
+        }
+    ]
+}

@@ -25,6 +25,13 @@ module.exports = {
     receive(context) {
 
         let { companyId, visibleTo } = context.properties;
+        if (!context.messages.note.content.body) {
+            throw new context.CancelError('Note is required!');
+        }
+        if (!context.messages.note.content.subjectId) {
+            throw new context.CancelError('Contact is required!');
+        }
+
         let note = context.messages.note.content;
         const options = { userAgent: context.auth.userAgent };
         let client = commons.getHighriseAPI(companyId, context.auth.accessToken, options);

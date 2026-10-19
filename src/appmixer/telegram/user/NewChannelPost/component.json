@@ -1,0 +1,78 @@
+{
+    "name": "appmixer.telegram.user.NewChannelPost",
+    "label": "New Channel Post",
+    "description": "Triggers when a new post is published in one or more public Telegram channels. The channels are polled by message ID without joining them, so posts published while the connection to Telegram was down are delivered once it is back, in order and without duplicates. Starting the flow sets the starting point: only posts published after the start are delivered. Channels restricted in the account's region return no posts.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "tick": true,
+    "auth": {
+        "service": "appmixer:telegram:user"
+    },
+    "quota": {
+        "manager": "appmixer:telegram:user",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "channels": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "channels"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "channels": {
+                    "type": "textarea",
+                    "index": 1,
+                    "label": "Channels",
+                    "tooltip": "Public channels to watch, separated by commas or new lines. Use the <i>@username</i> or the <i>https://t.me/username</i> link. Private channels and invite links are not supported. A misspelled or private channel stops the flow from starting."
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "integer", "title": "Message ID", "example": 48213 },
+                    "date": { "type": "string", "title": "Date", "format": "date-time", "example": "2026-10-05T08:14:00.000Z" },
+                    "text": { "type": "string", "title": "Text", "example": "Quarterly results are out: revenue up 12%." },
+                    "url": { "type": "string", "title": "URL", "example": "https://t.me/durov/48213" },
+                    "views": { "type": "integer", "title": "Views", "example": 15634 },
+                    "forwards": { "type": "integer", "title": "Forwards", "example": 87 },
+                    "replies": { "type": "integer", "title": "Replies", "example": 12 },
+                    "media_type": { "type": "string", "title": "Media Type", "example": "photo" },
+                    "fwd_from_channel": { "type": "string", "title": "Forwarded From Channel", "example": "telegram" },
+                    "fwd_from_channel_id": { "type": "string", "title": "Forwarded From Channel ID", "example": "1005640892" },
+                    "fwd_from_message_id": { "type": "integer", "title": "Forwarded From Message ID", "example": 391 },
+                    "reply_to_id": { "type": "integer", "title": "Reply To Message ID", "example": 48190 },
+                    "grouped_id": { "type": "string", "title": "Album ID", "example": "13792745312904855" },
+                    "edit_date": { "type": "string", "title": "Edit Date", "format": "date-time", "example": "2026-10-05T08:20:00.000Z" },
+                    "post_author": { "type": "string", "title": "Post Author", "example": "Pavel" },
+                    "channel_id": { "type": "string", "title": "Channel ID", "example": "1006503122" },
+                    "channel_username": { "type": "string", "title": "Channel Username", "example": "durov" },
+                    "channel_title": { "type": "string", "title": "Channel Title", "example": "Du Rove's Channel" }
+                },
+                "required": [
+                    "id",
+                    "date",
+                    "text",
+                    "url",
+                    "channel_id",
+                    "channel_title"
+                ]
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDAgMjQwIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IlRlbGVncmFtIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9InRnYiIgeDE9IjEyMCIgeTE9IjI0MCIgeDI9IjEyMCIgeTI9IjAiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMxRDkzRDIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMzOEIwRTMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIxMjAiIGN5PSIxMjAiIHI9IjEyMCIgZmlsbD0idXJsKCN0Z2IpIi8+PHBhdGggZmlsbD0iI2M4ZGFlYSIgZD0iTTk4IDE3NWMtMy44ODggMC0zLjIyNy0xLjQ2OC00LjU2OC01LjE3TDgyIDEzMi4yMDcgMTcwIDgweiIvPjxwYXRoIGZpbGw9IiNhOWM5ZGQiIGQ9Ik05OCAxNzVjMyAwIDQuMzI1LTEuMzcyIDYtM2wxNi0xNS41NTgtMTkuOTU4LTEyLjAzNXoiLz48cGF0aCBmaWxsPSIjZjZmYmZlIiBkPSJNMTAwLjA0IDE0NC40MWw0OC4zNiAzNS43MjljNS41MTkgMy4wNDUgOS41MDQgMS40NjggMTAuODc5LTUuMTI4bDE5LjY4NS05Mi43NjNjMi4wMTUtOC4wODYtMy4wOC0xMS43NTQtOC4zNi05LjM1N2wtMTE1LjU5IDQ0LjU4NWMtNy44OSAzLjE2NS03Ljg0MyA3LjU2Ny0xLjQzOCA5LjUyOGwyOS42NjMgOS4yNTkgNjguNjczLTQzLjMyNWMzLjI0Mi0xLjk2NiA2LjIxOC0uOTEgMy43NzYgMS4yNTh6Ii8+PC9zdmc+"
+}

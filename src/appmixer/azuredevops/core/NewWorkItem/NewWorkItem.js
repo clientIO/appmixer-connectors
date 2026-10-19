@@ -3,6 +3,11 @@
 const api = require('../../api');
 const lib = require('../../lib');
 
+// Work item fields arrive as dotted keys ("System.Title"), which variable paths like
+// resource.fields.System.Title can't reach. Add the nested form next to the dotted keys
+// (reference names always contain a dot, so nothing is overwritten).
+const withNestedFields = (fields) => (fields ? { ...fields, ...lib.expandDottedKeys(fields) } : fields);
+
 module.exports = {
 
     // Flow Test Mode: fetch the newest work item read-only and wrap it in the
@@ -14,7 +19,8 @@ module.exports = {
         if (!workItem) {
             throw new Error('No recent work items to use as test data.');
         }
-        return context.sendJson({ eventType: 'workitem.created', resource: workItem }, 'out');
+        const resource = { ...workItem, fields: withNestedFields(workItem.fields) };
+        return context.sendJson({ eventType: 'workitem.created', resource }, 'out');
     },
 
     async start(context) {
@@ -46,6 +52,9 @@ module.exports = {
                 }
             }
 
+            if (payload.resource) {
+                payload.resource.fields = withNestedFields(payload.resource.fields);
+            }
             await context.sendJson(payload, 'out');
             return context.response();
         }

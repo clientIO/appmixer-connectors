@@ -1,5 +1,7 @@
 'use strict';
 
+const { addIntegrationHeader } = require('../../lib');
+
 module.exports = {
 
     receive: async function(context) {
@@ -45,11 +47,11 @@ module.exports = {
         const req = {
             method: 'POST',
             url: 'https://api.perplexity.ai/chat/completions',
-            headers: {
+            headers: addIntegrationHeader('https://api.perplexity.ai/chat/completions', {
                 accept: 'application/json',
                 'content-type': 'application/json',
                 Authorization: `Bearer ${context.auth.apiKey}`
-            },
+            }),
             data: {
                 model: model,
                 messages: messages,

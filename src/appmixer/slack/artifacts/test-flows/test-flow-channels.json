@@ -1,21 +1,28 @@
 {
+    "name": "E2E Slack - channels and users",
+    "description": "Lists channels and users in first and array output modes and checks that both shapes carry data.",
     "flow": {
-        "on-start": {
+        "7530d3cb-6947-4525-9386-ac206ecb9c08": {
             "type": "appmixer.utils.controls.OnStart",
-            "x": -208,
-            "y": 80,
+            "x": 64,
+            "y": 16,
             "source": {},
             "version": "1.0.0",
-            "config": {}
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
         },
-        "list-channels": {
+        "d64b3296-3f9b-41a1-8397-6ed85047e2a2": {
             "type": "appmixer.slack.list.ListChannels",
-            "x": 128,
-            "y": 80,
+            "label": "List Channels - first",
+            "x": 272,
+            "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "on-start": [
+                    "7530d3cb-6947-4525-9386-ac206ecb9c08": [
                         "out"
                     ]
                 }
@@ -23,7 +30,7 @@
             "config": {
                 "transform": {
                     "in": {
-                        "on-start": {
+                        "7530d3cb-6947-4525-9386-ac206ecb9c08": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -36,23 +43,38 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-channel-id": {
+        "76df7445-c03c-4227-be42-6a0be7b87e00": {
             "type": "appmixer.utils.test.Assert",
-            "x": 448,
+            "x": 480,
             "y": 16,
             "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d64b3296-3f9b-41a1-8397-6ed85047e2a2": [
+                        "channels"
+                    ]
+                }
+            },
             "config": {
                 "transform": {
                     "in": {
-                        "list-channels": {
+                        "d64b3296-3f9b-41a1-8397-6ed85047e2a2": {
                             "channels": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "86178af0-a25e-4a96-9b79-df50e4e6fef6": {
-                                            "variable": "$.list-channels.channels.id",
+                                        "5b16bf23-8fdd-4a0e-a7c6-2f12930ec233": {
+                                            "variable": "$.d64b3296-3f9b-41a1-8397-6ed85047e2a2.channels.id",
+                                            "functions": []
+                                        },
+                                        "fbc2057b-a16d-4453-84c4-6314b7534cd8": {
+                                            "variable": "$.d64b3296-3f9b-41a1-8397-6ed85047e2a2.channels.name",
                                             "functions": []
                                         }
                                     }
@@ -61,8 +83,13 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{86178af0-a25e-4a96-9b79-df50e4e6fef6}}}"
+                                                "field": "{{{5b16bf23-8fdd-4a0e-a7c6-2f12930ec233}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[CG][A-Z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{fbc2057b-a16d-4453-84c4-6314b7534cd8}}}",
+                                                "assertion": "notEmpty"
                                             }
                                         ]
                                     }
@@ -72,29 +99,81 @@
                     }
                 }
             },
-            "source": {
-                "in": {
-                    "list-channels": [
-                        "channels"
-                    ]
-                }
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-channel-name": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 448,
+        "7e99a936-bfdd-4139-ad87-164543abdc3f": {
+            "type": "appmixer.slack.list.ListChannels",
+            "label": "List Channels - array",
+            "x": 688,
             "y": 144,
             "version": "1.0.0",
+            "source": {
+                "in": {
+                    "76df7445-c03c-4227-be42-6a0be7b87e00": [
+                        "out"
+                    ]
+                }
+            },
             "config": {
                 "transform": {
                     "in": {
-                        "list-channels": {
+                        "76df7445-c03c-4227-be42-6a0be7b87e00": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "343dc2a2-c194-4d2e-8a78-f5f885f2ea89": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7e99a936-bfdd-4139-ad87-164543abdc3f": [
+                        "channels"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7e99a936-bfdd-4139-ad87-164543abdc3f": {
                             "channels": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "3ead8694-3f67-4db7-b2c4-95b1eb4115cc": {
-                                            "variable": "$.list-channels.channels.name",
+                                        "80bfde90-27aa-4918-9860-d536a266231b": {
+                                            "variable": "$.7e99a936-bfdd-4139-ad87-164543abdc3f.channels.records",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "122857a4-ab5d-4e04-8d85-e3131dfd44db": {
+                                            "variable": "$.7e99a936-bfdd-4139-ad87-164543abdc3f.channels.count",
                                             "functions": []
                                         }
                                     }
@@ -103,8 +182,13 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{3ead8694-3f67-4db7-b2c4-95b1eb4115cc}}}"
+                                                "field": "{{{80bfde90-27aa-4918-9860-d536a266231b}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{122857a4-ab5d-4e04-8d85-e3131dfd44db}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
                                             }
                                         ]
                                     }
@@ -114,76 +198,276 @@
                     }
                 }
             },
-            "source": {
-                "in": {
-                    "list-channels": [
-                        "channels"
-                    ]
-                }
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "after-all": {
-            "type": "appmixer.utils.test.AfterAll",
-            "x": 640,
-            "y": 80,
+        "0462ab6d-bf29-4393-8180-effe719187b2": {
+            "type": "appmixer.slack.list.ListUsers",
+            "label": "List Users - first",
+            "x": 1104,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "assert-channel-id": [
-                        "out"
-                    ],
-                    "assert-channel-name": [
+                    "343dc2a2-c194-4d2e-8a78-f5f885f2ea89": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {
-                    "timeout": 30
+                "transform": {
+                    "in": {
+                        "343dc2a2-c194-4d2e-8a78-f5f885f2ea89": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "process-results": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 832,
-            "y": 80,
-            "version": "1.0.1",
+        "23bae02b-0526-4d09-b487-2b6e35124bd3": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
             "source": {
                 "in": {
-                    "after-all": [
+                    "0462ab6d-bf29-4393-8180-effe719187b2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0462ab6d-bf29-4393-8180-effe719187b2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c14d33bf-d01d-49e5-98f4-401aff2ccab7": {
+                                            "variable": "$.0462ab6d-bf29-4393-8180-effe719187b2.out.id",
+                                            "functions": []
+                                        },
+                                        "2fb010f9-bec5-4686-bb37-823e01a5992a": {
+                                            "variable": "$.0462ab6d-bf29-4393-8180-effe719187b2.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c14d33bf-d01d-49e5-98f4-401aff2ccab7}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[UW][A-Z0-9]+$"
+                                            },
+                                            {
+                                                "field": "{{{2fb010f9-bec5-4686-bb37-823e01a5992a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cd2d1460-2084-4239-961d-7a6aa35e566b": {
+            "type": "appmixer.slack.list.ListUsers",
+            "label": "List Users - array",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "23bae02b-0526-4d09-b487-2b6e35124bd3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "23bae02b-0526-4d09-b487-2b6e35124bd3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b3ef4c22-01af-464e-b2d4-4b675191956f": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1728,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cd2d1460-2084-4239-961d-7a6aa35e566b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cd2d1460-2084-4239-961d-7a6aa35e566b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ad061ffb-67c4-43e1-a923-2ae939745b5e": {
+                                            "variable": "$.cd2d1460-2084-4239-961d-7a6aa35e566b.out.records",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "5c80acfc-e7e8-4cf0-9dea-cb821fbc985e": {
+                                            "variable": "$.cd2d1460-2084-4239-961d-7a6aa35e566b.out.count",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ad061ffb-67c4-43e1-a923-2ae939745b5e}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{5c80acfc-e7e8-4cf0-9dea-cb821fbc985e}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6090681a-07aa-408e-8269-bba008a55447": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1936,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b3ef4c22-01af-464e-b2d4-4b675191956f": [
+                        "out"
+                    ],
+                    "76df7445-c03c-4227-be42-6a0be7b87e00": [
+                        "out"
+                    ],
+                    "343dc2a2-c194-4d2e-8a78-f5f885f2ea89": [
+                        "out"
+                    ],
+                    "23bae02b-0526-4d09-b487-2b6e35124bd3": [
                         "out"
                     ]
                 }
             },
             "config": {
                 "properties": {
-                    "successStoreId": "69d7a34d8c93c638d53aaf8d",
-                    "failedStoreId": "69d7a34d8c93c638d53aaf8c"
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9a3ac674-6bd8-403c-acfa-7012abc76bac": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2144,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6090681a-07aa-408e-8269-bba008a55447": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
                 },
                 "transform": {
                     "in": {
-                        "after-all": {
+                        "6090681a-07aa-408e-8269-bba008a55447": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "recipients": {},
                                     "testCase": {},
                                     "result": {
-                                        "ef50e9cb-272d-42bf-8344-1c2bfffd010d": {
-                                            "variable": "$.after-all.out",
+                                        "d50700e3-b72c-466b-9a22-fbb6f1bcd1b0": {
+                                            "variable": "$.6090681a-07aa-408e-8269-bba008a55447.out",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
                                     "recipients": "test@appmixer.ai",
-                                    "testCase": "E2E Slack - Channels",
-                                    "result": "{{{ef50e9cb-272d-42bf-8344-1c2bfffd010d}}}"
+                                    "testCase": "E2E Slack - channels and users",
+                                    "result": "{{{d50700e3-b72c-466b-9a22-fbb6f1bcd1b0}}}"
                                 }
                             }
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         }
     }

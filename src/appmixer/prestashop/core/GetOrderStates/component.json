@@ -1,0 +1,81 @@
+{
+    "name": "appmixer.prestashop.core.GetOrderStates",
+    "label": "Get Order States",
+    "description": "Get the state history of an order (e.g. delivered, in progress, shipping updates) with resolved state names, plus the current state and the associated customer.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:prestashop"
+    },
+    "quota": {
+        "manager": "appmixer:prestashop",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "orderId": { "type": "string" }
+                },
+                "required": ["orderId"]
+            },
+            "inspector": {
+                "inputs": {
+                    "orderId": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Order ID",
+                        "tooltip": "The unique identifier of the order."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "order_id": { "type": "string", "title": "Order ID", "example": "5" },
+                    "current_state": { "type": "string", "title": "Current State ID", "example": "5" },
+                    "current_state_name": { "type": "string", "title": "Current State", "example": "Shipped" },
+                    "customer": {
+                        "type": "object",
+                        "title": "Customer",
+                        "properties": {
+                            "id": { "type": "string", "title": "Customer ID", "example": "2" },
+                            "firstname": { "type": "string", "title": "First Name", "example": "John" },
+                            "lastname": { "type": "string", "title": "Last Name", "example": "Doe" },
+                            "email": { "type": "string", "title": "Email", "example": "john.doe@example.com" }
+                        }
+                    },
+                    "states": {
+                        "type": "array",
+                        "title": "States",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": { "type": "string", "title": "History ID" },
+                                "id_order_state": { "type": "string", "title": "State ID" },
+                                "state_name": { "type": "string", "title": "State" },
+                                "date_add": { "type": "string", "title": "Date" }
+                            }
+                        },
+                        "example": [
+                            { "id": "10", "id_order_state": "2", "state_name": "Payment accepted", "date_add": "2024-01-15 10:35:00" },
+                            { "id": "11", "id_order_state": "4", "state_name": "Shipped", "date_add": "2024-01-16 09:10:00" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzFEMUQzQyIgZD0iTTEyIDEuMiAyIDZ2MTJsMTAgNC44TDIyIDE4VjZMMTIgMS4yem0wIDIuMyA3LjYgMy42TDEyIDEwLjcgNC40IDcuMSAxMiAzLjV6TTQgOC43bDcgMy4zdjguNmwtNy0zLjNWOC43em0xNiAwdjguNmwtNyAzLjN2LTguNmw3LTMuM3oiLz48L3N2Zz4K"
+}

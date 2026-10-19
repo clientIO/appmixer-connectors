@@ -1,0 +1,75 @@
+{
+    "name": "appmixer.prestashop.core.FindOrders",
+    "label": "Find Orders",
+    "description": "Return the list of orders (order history) for a given customer. Returns a maximum of 100 orders.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:prestashop"
+    },
+    "quota": {
+        "manager": "appmixer:prestashop",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "customerId": { "type": "string" },
+                    "outputType": { "type": "string" }
+                },
+                "required": ["customerId"]
+            },
+            "inspector": {
+                "inputs": {
+                    "customerId": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Customer ID",
+                        "tooltip": "Return the orders belonging to this customer."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 2,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/prestashop/core/FindOrders?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/customerId": "dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzFEMUQzQyIgZD0iTTEyIDEuMiAyIDZ2MTJsMTAgNC44TDIyIDE4VjZMMTIgMS4yem0wIDIuMyA3LjYgMy42TDEyIDEwLjcgNC40IDcuMSAxMiAzLjV6TTQgOC43bDcgMy4zdjguNmwtNy0zLjNWOC43em0xNiAwdjguNmwtNyAzLjN2LTguNmw3LTMuM3oiLz48L3N2Zz4K"
+}

@@ -2,8 +2,11 @@
 
 const { apiCall } = require('../../lib');
 
-const POLL_INTERVAL_MS = 30000;   // re-check every 30s
-const MAX_POLLS = 60;             // up to 30 minutes total (60 × 30s)
+// Appmixer silently rounds any context.setTimeout delay below one minute up to
+// one minute, so a shorter interval here would only make the constants lie: the
+// ceiling below and the timeout message are both derived from this value.
+const POLL_INTERVAL_MS = 60000;   // re-check every 60s (engine floor)
+const MAX_POLLS = 60;             // up to 60 minutes total (60 x 60s)
 
 module.exports = {
 

@@ -1,0 +1,219 @@
+{
+    "name": "E2E HubBI - StartHub without payload",
+    "type": "automation",
+    "flow": {
+        "4782d74c-0808-42d5-bc7d-e5b8059933e9": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f69578fc-3627-4d57-b9bf-b1a183760ee4": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 320,
+            "y": 16,
+            "source": {
+                "in": {
+                    "4782d74c-0808-42d5-bc7d-e5b8059933e9": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "4782d74c-0808-42d5-bc7d-e5b8059933e9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "conversionKey",
+                                                "text": "fc2b69aa-1853-44aa-9992-a43fb8bf9a2b"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a8d66ba1-9f09-48e6-b78f-e420f6ecb1a6": {
+            "type": "appmixer.hubbi.core.StartHub",
+            "x": 576,
+            "y": 16,
+            "source": {
+                "in": {
+                    "f69578fc-3627-4d57-b9bf-b1a183760ee4": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "2.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "f69578fc-3627-4d57-b9bf-b1a183760ee4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "conversionKey": {
+                                        "var-ck": {
+                                            "variable": "$.f69578fc-3627-4d57-b9bf-b1a183760ee4.out.conversionKey",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "conversionKey": "{{{var-ck}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f6e8d185-8353-4c41-8b92-337e9f896da4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 16,
+            "source": {
+                "in": {
+                    "a8d66ba1-9f09-48e6-b78f-e420f6ecb1a6": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "a8d66ba1-9f09-48e6-b78f-e420f6ecb1a6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ck-check": {
+                                            "variable": "$.a8d66ba1-9f09-48e6-b78f-e420f6ecb1a6.out.conversionKey",
+                                            "functions": []
+                                        },
+                                        "started-check": {
+                                            "variable": "$.a8d66ba1-9f09-48e6-b78f-e420f6ecb1a6.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{ck-check}}}"
+                                            },
+                                            {
+                                                "expected": "true",
+                                                "assertion": "equal",
+                                                "field": "{{{started-check}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "210776c3-20ff-4a24-82c2-ee8dac1b9a52": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1088,
+            "y": 16,
+            "source": {
+                "in": {
+                    "f6e8d185-8353-4c41-8b92-337e9f896da4": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 60
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2ebc2cc1-cdee-44b4-876c-593d799e6143": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1344,
+            "y": 16,
+            "source": {
+                "in": {
+                    "210776c3-20ff-4a24-82c2-ee8dac1b9a52": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "210776c3-20ff-4a24-82c2-ee8dac1b9a52": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-afterall": {
+                                            "variable": "$.210776c3-20ff-4a24-82c2-ee8dac1b9a52.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubBI - StartHub without payload",
+                                    "result": "{{{res-afterall}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

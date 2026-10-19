@@ -1,0 +1,161 @@
+{
+    "name": "E2E Fireflies - Make API Call",
+    "flow": {
+        "1b13eba1-a63b-4e59-b5ef-57f7b1a50a11": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7b7312b6-272a-41ca-b541-34c0d5c06fc9": {
+            "type": "appmixer.fireflies.core.MakeApiCall",
+            "x": 340,
+            "y": 300,
+            "source": {
+                "in": {
+                    "1b13eba1-a63b-4e59-b5ef-57f7b1a50a11": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1b13eba1-a63b-4e59-b5ef-57f7b1a50a11": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "url": "https://api.fireflies.ai/graphql",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"query { users { user_id name email } }\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d468a585-d96e-400b-be6e-811c595a4b8b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 560,
+            "y": 300,
+            "source": {
+                "in": {
+                    "7b7312b6-272a-41ca-b541-34c0d5c06fc9": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7b7312b6-272a-41ca-b541-34c0d5c06fc9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f-status": {
+                                            "variable": "$.7b7312b6-272a-41ca-b541-34c0d5c06fc9.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f-status}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cba6d267-19d2-4422-9532-1e5cfccc2986": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 780,
+            "y": 300,
+            "source": {
+                "in": {
+                    "d468a585-d96e-400b-be6e-811c595a4b8b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8febcbe5-3fa3-4105-96db-718028c43e28": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1000,
+            "y": 300,
+            "source": {
+                "in": {
+                    "cba6d267-19d2-4422-9532-1e5cfccc2986": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "cba6d267-19d2-4422-9532-1e5cfccc2986": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.cba6d267-19d2-4422-9532-1e5cfccc2986.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fireflies - Make API Call",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

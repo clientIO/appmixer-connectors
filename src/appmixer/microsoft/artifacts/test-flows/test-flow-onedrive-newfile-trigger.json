@@ -1,0 +1,336 @@
+{
+    "name": "E2E Microsoft OneDrive - New File Trigger",
+    "description": "Provokes the OneDrive New File delta trigger by uploading a file to the root of the E2E user's OneDrive.",
+    "type": "automation",
+    "flow": {
+        "da26aaeb-585e-4aee-a872-3c70d33f9c06": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "593c00f5-c8a5-4f42-b226-22f146a54fc5": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 400,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "da26aaeb-585e-4aee-a872-3c70d33f9c06": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "da26aaeb-585e-4aee-a872-3c70d33f9c06": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "60112e93-acdd-4508-b8e9-fed58705eb8d": {
+            "type": "appmixer.utils.files.SaveFile",
+            "x": 700,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "593c00f5-c8a5-4f42-b226-22f146a54fc5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "593c00f5-c8a5-4f42-b226-22f146a54fc5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filename": {
+                                        "4cb7249c-aa75-4d54-900b-90d2f83fb46a": {
+                                            "variable": "$.da26aaeb-585e-4aee-a872-3c70d33f9c06.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_formatDate",
+                                                    "params": [
+                                                        {
+                                                            "value": "YYYYMMDD-HHmmss"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "mimetype": {},
+                                    "content": {},
+                                    "contentEncoding": {}
+                                },
+                                "lambda": {
+                                    "filename": "e2e-onedrive-newfile-{{{4cb7249c-aa75-4d54-900b-90d2f83fb46a}}}.txt",
+                                    "mimetype": "text/plain",
+                                    "content": "Appmixer E2E fixture for the OneDrive New File delta trigger.",
+                                    "contentEncoding": "utf8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7eefc975-5fbf-4ec3-9a91-2302d814e29c": {
+            "type": "appmixer.microsoft.onedrive.UploadFile",
+            "x": 1000,
+            "y": 100,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "60112e93-acdd-4508-b8e9-fed58705eb8d": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "60112e93-acdd-4508-b8e9-fed58705eb8d": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "fileId": {
+                                        "cfc88863-1097-4fe5-b759-4454ce4ada03": {
+                                            "variable": "$.60112e93-acdd-4508-b8e9-fed58705eb8d.file.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileName": {
+                                        "39eb3e84-16e5-4a87-b6aa-2b8c0e97f7ad": {
+                                            "variable": "$.60112e93-acdd-4508-b8e9-fed58705eb8d.file.filename",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "fileId": "{{{cfc88863-1097-4fe5-b759-4454ce4ada03}}}",
+                                    "fileName": "{{{39eb3e84-16e5-4a87-b6aa-2b8c0e97f7ad}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "501fb992-3577-4f6b-a4b7-ee857a7e8d3e": {
+            "type": "appmixer.microsoft.onedrive.NewFile",
+            "x": 100,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "85958a5a-faff-456f-ac2c-7870294fd53a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 400,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "501fb992-3577-4f6b-a4b7-ee857a7e8d3e": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "501fb992-3577-4f6b-a4b7-ee857a7e8d3e": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0f0195af-c90b-47be-9d39-01b46314f4b0": {
+                                            "variable": "$.501fb992-3577-4f6b-a4b7-ee857a7e8d3e.file.id",
+                                            "functions": []
+                                        },
+                                        "239eabcd-1b3b-4782-b336-9226cf9fb0e9": {
+                                            "variable": "$.501fb992-3577-4f6b-a4b7-ee857a7e8d3e.file.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0f0195af-c90b-47be-9d39-01b46314f4b0}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{239eabcd-1b3b-4782-b336-9226cf9fb0e9}}}",
+                                                "assertion": "regex",
+                                                "regex": "^e2e-onedrive-newfile-"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6cddfdb2-ace9-4d6c-a16c-82905652319b": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 700,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "85958a5a-faff-456f-ac2c-7870294fd53a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "794d71e2-80b2-4f68-926e-cde9c807fbb5": {
+            "type": "appmixer.microsoft.onedrive.MakeApiCall",
+            "x": 1000,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6cddfdb2-ace9-4d6c-a16c-82905652319b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6cddfdb2-ace9-4d6c-a16c-82905652319b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "33335177-8b6f-4731-8ed2-fe26e2f63091": {
+                                            "variable": "$.501fb992-3577-4f6b-a4b7-ee857a7e8d3e.file.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/me/drive/items/{{{33335177-8b6f-4731-8ed2-fe26e2f63091}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c6d3a866-27ef-45a0-b6f1-553039313c37": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1300,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "794d71e2-80b2-4f68-926e-cde9c807fbb5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "794d71e2-80b2-4f68-926e-cde9c807fbb5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "df70c76b-27ef-4ee7-9210-113786b6c766": {
+                                            "variable": "$.6cddfdb2-ace9-4d6c-a16c-82905652319b.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Microsoft OneDrive - New File Trigger",
+                                    "result": "{{{df70c76b-27ef-4ee7-9210-113786b6c766}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "248bf851-dee7-4aa5-b3b1-d8b3865c7ac6": {
+            "x": 64,
+            "y": 640,
+            "width": 900,
+            "height": 260,
+            "content": "## ⚠️ Test data assumption\n\n`onedrive.NewFile` has no properties — it watches the whole of `/me/drive` for the connected\naccount — and the cleanup deletes whatever item id the trigger reports. The E2E account's\nOneDrive must therefore be reserved for this flow; nothing else may create files in it while\nthe flow runs.\n\nThe upload goes to the OneDrive root (no folder binding), which is exactly what the trigger's\n`/me/drive/root/delta` watches.\n\n`Wait 1m` lets the Graph subscription propagate before the file is created — do not remove it.\nGraph webhook notifications take up to ~5 minutes, hence the 600 s AfterAll timeout.\n\nThe account needs `Files.ReadWrite.All` (trigger + upload) and `Sites.Read.All` (Make API Call)."
+        }
+    }
+}

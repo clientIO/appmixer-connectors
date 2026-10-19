@@ -1,0 +1,374 @@
+{
+    "flow": {
+        "eaadf414-48b5-46e8-a20b-75308a8185ad": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c96cd0f3-318e-4254-95e9-7389f4f92c46": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "eaadf414-48b5-46e8-a20b-75308a8185ad": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "eaadf414-48b5-46e8-a20b-75308a8185ad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "dataSourceId",
+                                                "text": "e2e-datasource-001"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "providerId",
+                                                "text": "arn:aws:ec2:us-east-1:123456789012:instance/i-0e2e123456"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "integrationId",
+                                                "text": "6f0e2d16-1482-053f-8b2b-f33b8ebd9a16"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "filename",
+                                                "text": "e2e-enrichment.json"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b46892fe-f9bb-47a6-a987-468943393dba": {
+            "type": "appmixer.wiz.core.CreateEnrichmentDocument",
+            "x": 448,
+            "y": 208,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c96cd0f3-318e-4254-95e9-7389f4f92c46": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "type": "events"
+                },
+                "transform": {
+                    "in": {
+                        "c96cd0f3-318e-4254-95e9-7389f4f92c46": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "dataSourceId": {
+                                        "7e30f20c-80f3-4db1-acbd-1408a1248999": {
+                                            "variable": "$.c96cd0f3-318e-4254-95e9-7389f4f92c46.out.dataSourceId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "providerId": {
+                                        "f7b4bdd0-b9b9-4976-8819-cac69cd3d069": {
+                                            "variable": "$.c96cd0f3-318e-4254-95e9-7389f4f92c46.out.providerId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "cloudPlatform": {},
+                                    "dataSourceAnalysisDate": {
+                                        "dce7856d-4ccc-427b-adba-2b6d6683d2bc": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "dataSourceId": "{{{7e30f20c-80f3-4db1-acbd-1408a1248999}}}",
+                                    "providerId": "{{{f7b4bdd0-b9b9-4976-8819-cac69cd3d069}}}",
+                                    "cloudPlatform": "AWS",
+                                    "dataSourceAnalysisDate": "{{{dce7856d-4ccc-427b-adba-2b6d6683d2bc}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9be7c215-a09f-4bd1-85ff-06eb17662bc0": {
+            "type": "appmixer.wiz.core.UploadScan",
+            "x": 656,
+            "y": 208,
+            "version": "1.2.2",
+            "source": {
+                "in": {
+                    "b46892fe-f9bb-47a6-a987-468943393dba": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "b46892fe-f9bb-47a6-a987-468943393dba": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "document": {
+                                        "7a24ce3c-18d2-4a4b-8763-0ec987ecc0d4": {
+                                            "variable": "$.b46892fe-f9bb-47a6-a987-468943393dba.out.document",
+                                            "functions": []
+                                        }
+                                    },
+                                    "integrationId": {
+                                        "f4963861-f061-4b7d-92b7-fa822eb19cf8": {
+                                            "variable": "$.c96cd0f3-318e-4254-95e9-7389f4f92c46.out.integrationId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "filename": {
+                                        "85b0f4e7-664a-48fc-b3bc-2f20c67cc6a2": {
+                                            "variable": "$.c96cd0f3-318e-4254-95e9-7389f4f92c46.out.filename",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "document": "{{{7a24ce3c-18d2-4a4b-8763-0ec987ecc0d4}}}",
+                                    "integrationId": "{{{f4963861-f061-4b7d-92b7-fa822eb19cf8}}}",
+                                    "filename": "{{{85b0f4e7-664a-48fc-b3bc-2f20c67cc6a2}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d87f0f57-ecac-48e3-9ebe-d540870523db": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 864,
+            "y": 208,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b46892fe-f9bb-47a6-a987-468943393dba": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b46892fe-f9bb-47a6-a987-468943393dba": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6076dc08-7ff2-4281-844a-11099aef4b7d": {
+                                            "variable": "$.b46892fe-f9bb-47a6-a987-468943393dba.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.document.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6076dc08-7ff2-4281-844a-11099aef4b7d}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-datasource-001"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5279e99c-9fa3-4d73-a41b-b8ff2d89f35e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 864,
+            "y": 352,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9be7c215-a09f-4bd1-85ff-06eb17662bc0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9be7c215-a09f-4bd1-85ff-06eb17662bc0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ecc50c85-f9b6-453c-ad1a-c240ccdd125a": {
+                                            "variable": "$.9be7c215-a09f-4bd1-85ff-06eb17662bc0.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.status"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ecc50c85-f9b6-453c-ad1a-c240ccdd125a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ddd429d7-c452-4909-a3b9-7ce43a1741e0": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1072,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d87f0f57-ecac-48e3-9ebe-d540870523db": [
+                        "out"
+                    ],
+                    "5279e99c-9fa3-4d73-a41b-b8ff2d89f35e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9be85683-9dab-4253-8cbc-344ae8234c60": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1280,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "ddd429d7-c452-4909-a3b9-7ce43a1741e0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "ddd429d7-c452-4909-a3b9-7ce43a1741e0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "a75274da-1846-4e2e-84db-781585f5918b": {
+                                            "variable": "$.ddd429d7-c452-4909-a3b9-7ce43a1741e0.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Wiz - Create Enrichment Document and Upload",
+                                    "result": "{{{a75274da-1846-4e2e-84db-781585f5918b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Wiz - Create Enrichment Document and Upload",
+    "type": "automation",
+    "notes": {}
+}

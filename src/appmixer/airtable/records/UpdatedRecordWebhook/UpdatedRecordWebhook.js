@@ -2,6 +2,8 @@
 
 const commons = require('../../airtable-commons');
 
+const DEBOUNCE_MS = 60 * 1000;
+
 const registerWebhook = async (context) => {
 
     const { baseId, tableId } = context.properties;
@@ -54,9 +56,14 @@ module.exports = {
      */
     async receive(context) {
         if (context.messages.webhook) {
+            // Airtable's notification is only a ping; the payloads are fetched by
+            // cursor below. The timeout coalesces a burst of pings into a single
+            // fetch. One minute is the shortest window available: Appmixer rounds
+            // any shorter context.setTimeout delay up to a minute without saying
+            // so, so asking for less just misrepresents what this does.
             const stateTimeout = await context.stateGet('timeout');
             if (!stateTimeout) {
-                await context.setTimeout({}, 5000);
+                await context.setTimeout({}, DEBOUNCE_MS);
                 await context.stateSet('timeout', true);
             }
             return context.response();

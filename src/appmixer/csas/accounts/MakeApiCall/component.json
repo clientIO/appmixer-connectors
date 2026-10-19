@@ -1,0 +1,92 @@
+{
+    "name": "appmixer.csas.accounts.MakeApiCall",
+    "author": "Appmixer <info@appmixer.com>",
+    "label": "Make API Call",
+    "description": "Perform an arbitrary authorized call to the Česká spořitelna Accounts API, for example the account balance or statements. The access token and the WEB-API-key header are added automatically.",
+    "private": false,
+    "auth": {
+        "service": "appmixer:csas",
+        "scope": ["siblings.accounts"]
+    },
+    "quota": {},
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" },
+                    "headers": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "A path relative to the Accounts API base URL (<code>https://www.csas.cz/webapi/api/v3/accounts</code> by default), for example <code>/my/accounts/{id}/balance</code>. A full URL is accepted only on the same host; any other host is rejected so your credentials are never sent elsewhere."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "The HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "index": 3,
+                        "label": "Query Parameters",
+                        "tooltip": "Optional query parameters, for example <code>page</code> and <code>size</code>."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Optional JSON request body."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "index": 5,
+                        "label": "Request Headers",
+                        "tooltip": "Optional additional headers. The Authorization and WEB-API-key headers are set automatically."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "statusCode": { "type": "integer", "title": "Status Code", "example": 200 },
+                    "headers": { "type": "object", "title": "Response Headers", "properties": {} },
+                    "body": { "type": "object", "title": "Response Body", "properties": {} }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iIzJBNzFFRiIvPjxjaXJjbGUgY3g9IjIwMSIgY3k9IjEwMSIgcj0iMjkiIGZpbGw9IiNmZmYiLz48cGF0aCBmaWxsPSIjZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMzIgMTU0aDE0MWEyMiAyMiAwIDAgMSAyMiAyMnYxMTJhMjIgMjIgMCAwIDEtMjIgMjJIMTMyYTIyIDIyIDAgMCAxLTIyLTIyVjE3NmEyMiAyMiAwIDAgMSAyMi0yMnpNMTU1IDE5NXYxOWgxNDB2LTE5ek0xMTAgMjUxdjE5aDE0MHYtMTl6Ii8+PC9zdmc+Cg=="
+}

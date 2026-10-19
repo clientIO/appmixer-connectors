@@ -3,6 +3,10 @@ const emailCommons = require('../lib');
 
 module.exports = {
     async receive(context) {
+        if (!context.messages.in.content.emailId) {
+            throw new context.CancelError('Email Message ID is required!');
+        }
+
         const { emailId } = context.messages.in.content;
         const endpoint = `/users/me/messages/${emailId}`;
         const emailDetails = await emailCommons.callEndpoint(context, endpoint, {

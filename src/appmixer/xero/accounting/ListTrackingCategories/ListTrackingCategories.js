@@ -1,10 +1,53 @@
 'use strict';
-const { sendArrayOutput, withCache } = require('../../commons');
+const { sendArrayOutput, withCache, getOutputPortOptions } = require('../../commons');
 const XeroClient = require('../../XeroClient');
 
 const outputPortName = 'trackingCategories';
 
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['TrackingCategoryID', 'Name', 'Status'],
+    properties: {
+        Name: { type: 'string', title: 'Name', example: 'Region' },
+        Status: { type: 'string', title: 'Status', example: 'ACTIVE' },
+        TrackingCategoryID: {
+            type: 'string',
+            title: 'Tracking Category ID',
+            example: 'c1f7a4d2-8b39-4e05-9d6a-1f2b3c4d5e60'
+        },
+        Options: {
+            type: 'array',
+            title: 'Options',
+            example: [
+                {
+                    TrackingOptionID: '8e4b1c06-3d72-4a95-b8f1-0c2d5e7a9b34',
+                    Name: 'North',
+                    Status: 'ACTIVE',
+                    HasValidationErrors: false,
+                    IsDeleted: false,
+                    IsArchived: false,
+                    IsActive: true
+                }
+            ],
+            items: {
+                type: 'object',
+                properties: {
+                    TrackingOptionID: { type: 'string', title: 'TrackingOptionID' },
+                    Name: { type: 'string', title: 'Name' },
+                    Status: { type: 'string', title: 'Status' },
+                    HasValidationErrors: { type: 'boolean', title: 'HasValidationErrors' },
+                    IsDeleted: { type: 'boolean', title: 'IsDeleted' },
+                    IsArchived: { type: 'boolean', title: 'IsArchived' },
+                    IsActive: { type: 'boolean', title: 'IsActive' }
+                }
+            }
+        }
+    }
+};
+
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 
@@ -54,77 +97,9 @@ module.exports = {
 
     getOutputPortOptions(context, outputType) {
 
-        if (outputType === 'item') {
-            return context.sendJson(
-                [
-                    { label: 'Name', value: 'Name' },
-                    { label: 'Status', value: 'Status' },
-                    { label: 'Tracking Category ID', value: 'TrackingCategoryID' },
-                    {
-                        label: 'Options', value: 'Options', schema: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    TrackingOptionID: { type: 'string', title: 'TrackingOptionID' },
-                                    Name: { type: 'string', title: 'Name' },
-                                    Status: { type: 'string', title: 'Status' },
-                                    HasValidationErrors: { type: 'boolean', title: 'HasValidationErrors' },
-                                    IsDeleted: { type: 'boolean', title: 'IsDeleted' },
-                                    IsArchived: { type: 'boolean', title: 'IsArchived' },
-                                    IsActive: { type: 'boolean', title: 'IsActive' }
-                                }
-                            }
-                        }
-                    }
-                ],
-                outputPortName
-            );
-        } else if (outputType === 'items') {
-            return context.sendJson(
-                [
-                    {
-                        label: 'Tracking Categories',
-                        value: 'items',
-                        schema: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    Name: { type: 'string', title: 'Name' },
-                                    Status: { type: 'string', title: 'Status' },
-                                    TrackingCategoryID: { type: 'string', title: 'Tracking Category ID' },
-                                    Options: {
-                                        title: 'Options',
-                                        schema: {
-                                            type: 'array',
-                                            items: {
-                                                type: 'object',
-                                                properties: {
-                                                    TrackingOptionID: { type: 'string', title: 'TrackingOptionID' },
-                                                    Name: { type: 'string', title: 'Name' },
-                                                    Status: { type: 'string', title: 'Status' },
-                                                    HasValidationErrors: {
-                                                        type: 'boolean',
-                                                        title: 'HasValidationErrors'
-                                                    },
-                                                    IsDeleted: { type: 'boolean', title: 'IsDeleted' },
-                                                    IsArchived: { type: 'boolean', title: 'IsArchived' },
-                                                    IsActive: { type: 'boolean', title: 'IsActive' }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ],
-                outputPortName
-            );
-        } else {
-            // file
-            return context.sendJson([{ label: 'File ID', value: 'fileId' }], outputPortName);
-        }
+        return getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, {
+            label: 'Tracking Categories',
+            outputPortName
+        });
     }
 };

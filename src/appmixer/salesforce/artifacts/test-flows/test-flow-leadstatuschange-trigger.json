@@ -1,0 +1,406 @@
+{
+    "flow": {
+        "3f0c2053-1be3-4e98-a5a5-0d505c883ffc": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 48,
+            "y": 48,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b59aa0f4-ac7e-40d1-8040-9d694c64045b": {
+            "type": "appmixer.salesforce.crm.LeadStatusChange",
+            "label": "LeadStatusChange (under test)",
+            "x": 48,
+            "y": 400,
+            "source": {},
+            "version": "1.1.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "fieldName": "Status",
+                    "account": "6a4d0344fe3276c1e8ddfff4"
+                }
+            }
+        },
+        "a98381bc-52f1-42ab-b049-9e0a280c6b8d": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait so trigger baselines existing records",
+            "x": 240,
+            "y": 48,
+            "source": {
+                "in": {
+                    "3f0c2053-1be3-4e98-a5a5-0d505c883ffc": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3f0c2053-1be3-4e98-a5a5-0d505c883ffc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d22ee15b-712c-42c9-bc91-71d37be6aa4b": {
+            "type": "appmixer.salesforce.crm.CreateObjectRecord",
+            "label": "Create Lead (test data, Status=X1)",
+            "x": 400,
+            "y": 48,
+            "source": {
+                "in": {
+                    "a98381bc-52f1-42ab-b049-9e0a280c6b8d": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.1.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a98381bc-52f1-42ab-b049-9e0a280c6b8d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "objectName": "Lead",
+                                    "rawJson": true,
+                                    "json": "{\"LastName\":\"E2E Lead\",\"Company\":\"E2E Co\",\"Status\":\"Open - Not Contacted\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0344fe3276c1e8ddfff4"
+                }
+            }
+        },
+        "1aafec37-b240-4d0c-946e-21f5b60d317b": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: test record created",
+            "x": 608,
+            "y": 48,
+            "source": {
+                "in": {
+                    "d22ee15b-712c-42c9-bc91-71d37be6aa4b": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d22ee15b-712c-42c9-bc91-71d37be6aa4b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v0": {
+                                            "variable": "$.d22ee15b-712c-42c9-bc91-71d37be6aa4b.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v0}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "85f5320f-f440-4cf1-8280-e27b77c11c2a": {
+            "type": "appmixer.utils.timers.Wait",
+            "label": "Wait a tick so X1 is baselined",
+            "x": 608,
+            "y": -112,
+            "source": {
+                "in": {
+                    "d22ee15b-712c-42c9-bc91-71d37be6aa4b": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d22ee15b-712c-42c9-bc91-71d37be6aa4b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ef1f0f60-d5c3-4046-9a8a-05027cdb2777": {
+            "type": "appmixer.salesforce.crm.UpdateObjectRecord",
+            "label": "Update Status -> X2 (provokes trigger)",
+            "x": 816,
+            "y": -112,
+            "source": {
+                "in": {
+                    "85f5320f-f440-4cf1-8280-e27b77c11c2a": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.1.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "85f5320f-f440-4cf1-8280-e27b77c11c2a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "id": {
+                                        "mid": {
+                                            "variable": "$.d22ee15b-712c-42c9-bc91-71d37be6aa4b.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectName": "Lead",
+                                    "id": "{{{mid}}}",
+                                    "rawJson": true,
+                                    "json": "{\"Status\":\"Working - Contacted\"}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0344fe3276c1e8ddfff4"
+                }
+            }
+        },
+        "6053915a-e6e5-4075-816d-f73325bf12a8": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert: trigger fired",
+            "x": 608,
+            "y": 288,
+            "source": {
+                "in": {
+                    "b59aa0f4-ac7e-40d1-8040-9d694c64045b": [
+                        "lead"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b59aa0f4-ac7e-40d1-8040-9d694c64045b": {
+                            "lead": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v0": {
+                                            "variable": "$.b59aa0f4-ac7e-40d1-8040-9d694c64045b.lead.Id",
+                                            "functions": []
+                                        },
+                                        "v1": {
+                                            "variable": "$.b59aa0f4-ac7e-40d1-8040-9d694c64045b.lead.Status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v0}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{v1}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "b6d5e22d-edad-4d10-92ce-e4dde63771da": {
+            "type": "appmixer.salesforce.crm.DeleteObjectRecord",
+            "label": "Delete test record (cleanup, after trigger fired)",
+            "x": 608,
+            "y": 464,
+            "source": {
+                "in": {
+                    "b59aa0f4-ac7e-40d1-8040-9d694c64045b": [
+                        "lead"
+                    ]
+                }
+            },
+            "version": "1.1.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b59aa0f4-ac7e-40d1-8040-9d694c64045b": {
+                            "lead": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "id": {
+                                        "mid": {
+                                            "variable": "$.b59aa0f4-ac7e-40d1-8040-9d694c64045b.lead.Id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectName": "Lead",
+                                    "id": "{{{mid}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a4d0344fe3276c1e8ddfff4"
+                }
+            }
+        },
+        "9c2a4390-150c-457e-a072-360d643cada5": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1024,
+            "y": 144,
+            "source": {
+                "in": {
+                    "1aafec37-b240-4d0c-946e-21f5b60d317b": [
+                        "out"
+                    ],
+                    "6053915a-e6e5-4075-816d-f73325bf12a8": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            }
+        },
+        "60371dfd-b1c2-47b3-a0e2-88920ca05ccc": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1248,
+            "y": 144,
+            "source": {
+                "in": {
+                    "9c2a4390-150c-457e-a072-360d643cada5": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c2a4390-150c-457e-a072-360d643cada5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "rv": {
+                                            "variable": "$.9c2a4390-150c-457e-a072-360d643cada5.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Salesforce - LeadStatusChange trigger",
+                                    "result": "{{{rv}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            }
+        }
+    },
+    "name": "E2E Salesforce - LeadStatusChange trigger",
+    "notes": {},
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    }
+}

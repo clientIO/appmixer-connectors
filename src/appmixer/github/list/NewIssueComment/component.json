@@ -1,0 +1,207 @@
+{
+    "name": "appmixer.github.list.NewIssueComment",
+    "label": "New Issue Comment",
+    "description": "Triggers when a new conversation comment is posted on an issue or on a pull request anywhere in a repository. GitHub calls both of these 'issue comments'; use the 'Comment On' input to keep only one kind. This is not the same as an inline comment on a diff (use New Pull Request Review Comment) nor a comment on a commit (use New Commit Comment).",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "tick": true,
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "public_repo",
+            "repo"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "repositoryId": {
+                    "type": "string",
+                    "pattern": "[^/]+[/][^/]+"
+                },
+                "commentOn": {
+                    "type": "string",
+                    "enum": [
+                        "both",
+                        "pull_requests",
+                        "issues"
+                    ]
+                },
+                "author": {
+                    "type": "string"
+                },
+                "authorType": {
+                    "type": "string",
+                    "enum": [
+                        "any",
+                        "bots",
+                        "humans"
+                    ]
+                }
+            },
+            "required": [
+                "repositoryId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "repositoryId": {
+                    "type": "text",
+                    "group": "config",
+                    "label": "Repository",
+                    "index": 1,
+                    "tooltip": "Enter the repository in `owner/repo` format (e.g. `octocat/Hello-World`). You can also pick from the dynamically loaded list of your repositories.",
+                    "source": {
+                        "url": "/component/appmixer/github/list/ListRepos?outPort=repositories",
+                        "data": {
+                            "transform": "./transformers#reposToSelectArray"
+                        }
+                    }
+                },
+                "commentOn": {
+                    "type": "select",
+                    "group": "config",
+                    "label": "Comment On",
+                    "index": 2,
+                    "defaultValue": "both",
+                    "tooltip": "GitHub stores issue and pull request conversation comments in one place and the payload does not say which is which. Choose whether to fire on comments in pull requests, in issues, or in both.",
+                    "options": [
+                        {
+                            "label": "Pull requests and issues",
+                            "value": "both"
+                        },
+                        {
+                            "label": "Pull requests only",
+                            "value": "pull_requests"
+                        },
+                        {
+                            "label": "Issues only",
+                            "value": "issues"
+                        }
+                    ]
+                },
+                "author": {
+                    "type": "text",
+                    "group": "config",
+                    "label": "Author",
+                    "index": 3,
+                    "tooltip": "Optional. Comma-separated author logins, matched case-insensitively as substrings (e.g. `copilot, dependabot`). Substring matching is intentional: the same actor is reported under a different login on every GitHub API surface, so `copilot` matches `Copilot` and `copilot-pull-request-reviewer` alike."
+                },
+                "authorType": {
+                    "type": "select",
+                    "group": "config",
+                    "label": "Author Type",
+                    "index": 4,
+                    "defaultValue": "any",
+                    "tooltip": "Restrict to comments written by bot accounts (apps, automation) or by human accounts.",
+                    "options": [
+                        {
+                            "label": "Anyone",
+                            "value": "any"
+                        },
+                        {
+                            "label": "Bots only",
+                            "value": "bots"
+                        },
+                        {
+                            "label": "Humans only",
+                            "value": "humans"
+                        }
+                    ]
+                }
+            },
+            "groups": {
+                "config": {
+                    "label": "Configuration",
+                    "index": 1
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "ID",
+                        "example": 2384759211
+                    },
+                    "node_id": {
+                        "type": "string",
+                        "title": "Node ID",
+                        "example": "IC_kwDOAA12oc6abcde"
+                    },
+                    "body": {
+                        "type": "string",
+                        "title": "Body",
+                        "example": "Fixed in the latest push, please take another look."
+                    },
+                    "html_url": {
+                        "type": "string",
+                        "title": "HTML URL",
+                        "example": "https://github.com/Appmixer-ai/appmixer-connectors/pull/1259#issuecomment-2384759211"
+                    },
+                    "issue_url": {
+                        "type": "string",
+                        "title": "Issue URL",
+                        "example": "https://api.github.com/repos/Appmixer-ai/appmixer-connectors/issues/1259"
+                    },
+                    "is_pull_request": {
+                        "type": "boolean",
+                        "title": "Is Pull Request",
+                        "example": true
+                    },
+                    "author_association": {
+                        "type": "string",
+                        "title": "Author Association",
+                        "example": "MEMBER"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "title": "Created At",
+                        "example": "2026-09-09T11:27:45Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "title": "Updated At",
+                        "example": "2026-09-09T11:31:02Z"
+                    },
+                    "user": {
+                        "type": "object",
+                        "title": "User",
+                        "properties": {
+                            "login": {
+                                "type": "string",
+                                "title": "User.Login",
+                                "example": "octocat"
+                            },
+                            "id": {
+                                "type": "integer",
+                                "title": "User.ID",
+                                "example": 583231
+                            },
+                            "type": {
+                                "type": "string",
+                                "title": "User.Type",
+                                "example": "User"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo="
+}

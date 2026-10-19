@@ -6,14 +6,14 @@ module.exports = {
 
     receive: async function(context) {
 
-        const { input } = context.messages.in.content;
+        const { input, model } = context.messages.in.content;
         if (!input) {
             throw new context.CancelError('Text is required');
         }
 
 
         const { data } = await lib.request(context, 'post', '/moderations', {
-            model: context.config.ModerateModel || 'text-moderation-latest',
+            model: model || context.config.ModerateModel || 'omni-moderation-latest',
             input
         });
 

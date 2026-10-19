@@ -1,0 +1,236 @@
+{
+    "flow": {
+        "9ef88b8c-2e93-454d-a0cc-65982ab06e24": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4209887f-60cc-4146-aa99-719215c68e61": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9ef88b8c-2e93-454d-a0cc-65982ab06e24": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9ef88b8c-2e93-454d-a0cc-65982ab06e24": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "filter",
+                                                "text": "{\"type\":[\"VIRTUAL_MACHINE\"]}"
+                                            },
+                                            {
+                                                "type": "number",
+                                                "name": "limit",
+                                                "text": "10"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "28ebe3f4-3d0c-436b-82ad-e878d9c3919b": {
+            "type": "appmixer.wiz.core.FindCloudResources",
+            "x": 448,
+            "y": 304,
+            "version": "1.0.7",
+            "source": {
+                "in": {
+                    "4209887f-60cc-4146-aa99-719215c68e61": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4209887f-60cc-4146-aa99-719215c68e61": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filter": {
+                                        "909a0fec-82aa-42fa-bbd2-ac09a3ae55b7": {
+                                            "variable": "$.4209887f-60cc-4146-aa99-719215c68e61.out.filter",
+                                            "functions": []
+                                        }
+                                    },
+                                    "limit": {
+                                        "252ec74b-d79f-46d1-b3cd-6e7414eca44b": {
+                                            "variable": "$.4209887f-60cc-4146-aa99-719215c68e61.out.limit",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "filter": "{{{909a0fec-82aa-42fa-bbd2-ac09a3ae55b7}}}",
+                                    "limit": "{{{252ec74b-d79f-46d1-b3cd-6e7414eca44b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0b17e39b-a475-43ec-a1fe-cd78776fd694": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 656,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "28ebe3f4-3d0c-436b-82ad-e878d9c3919b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "28ebe3f4-3d0c-436b-82ad-e878d9c3919b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "45e2faf7-b103-4b98-ab69-e0f5aa753c4b": {
+                                            "variable": "$.28ebe3f4-3d0c-436b-82ad-e878d9c3919b.out",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{45e2faf7-b103-4b98-ab69-e0f5aa753c4b}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "18948974-246e-4da8-bd88-bcae5f3d77d1": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 864,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0b17e39b-a475-43ec-a1fe-cd78776fd694": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f9717bb4-0fae-429c-a53e-bd043bf29d6f": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1072,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "18948974-246e-4da8-bd88-bcae5f3d77d1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "18948974-246e-4da8-bd88-bcae5f3d77d1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "3702dfbb-900f-4065-831a-2e869ceebb53": {
+                                            "variable": "$.18948974-246e-4da8-bd88-bcae5f3d77d1.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Wiz - Find Cloud Resources",
+                                    "result": "{{{3702dfbb-900f-4065-831a-2e869ceebb53}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Wiz - Find Cloud Resources",
+    "type": "automation",
+    "notes": {}
+}

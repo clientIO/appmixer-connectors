@@ -1,0 +1,87 @@
+{
+    "name": "appmixer.teamwork.core.MakeApiCall",
+    "auth": {
+        "service": "appmixer:teamwork"
+    },
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Performs an arbitrary authorized API call to the Teamwork.com API of the connected site.",
+    "private": false,
+    "version": "1.0.0",
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": { "type": "string" },
+                    "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+                    "parameters": { "type": "string" },
+                    "body": { "type": "string" },
+                    "headers": { "type": "string" }
+                },
+                "required": ["url", "method"]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "API Endpoint Path",
+                        "tooltip": "Path relative to your Teamwork site, e.g. <code>/projects/api/v3/tasks.json</code> or <code>/projects.json</code>. A full URL is accepted only when it points at the connected site."
+                    },
+                    "method": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "Select the HTTP method for the API call.",
+                        "options": [
+                            { "label": "GET", "value": "GET" },
+                            { "label": "POST", "value": "POST" },
+                            { "label": "PUT", "value": "PUT" },
+                            { "label": "PATCH", "value": "PATCH" },
+                            { "label": "DELETE", "value": "DELETE" }
+                        ]
+                    },
+                    "parameters": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Query Parameters",
+                        "index": 3,
+                        "tooltip": "Optional query parameters."
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 4,
+                        "label": "Request Body",
+                        "tooltip": "Request body as a JSON object, e.g. <code>{\"tasklist\": {\"name\": \"Backlog\"}}</code>."
+                    },
+                    "headers": {
+                        "type": "key-value",
+                        "keyLabel": "Key",
+                        "valueLabel": "Value",
+                        "addLabel": "Add item",
+                        "removeLabel": "Remove item",
+                        "label": "Request Headers",
+                        "index": 5,
+                        "tooltip": "Optional additional request headers."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                { "label": "Status Code", "value": "status", "schema": { "type": "number", "example": 200 } },
+                { "label": "Response Headers", "value": "headers", "schema": { "type": "object", "properties": {} } },
+                { "label": "Response Body", "value": "body", "schema": { "type": "object", "properties": {} } }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTIiIGhlaWdodD0iNTAiIHZpZXdCb3g9IjAgMCA1MiA1MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjI2LjI4NTciIGN5PSIyNSIgcng9IjI1LjcxNDMiIHJ5PSIyNSIgZmlsbD0iIzFEMUMzOSIvPgo8cGF0aCBkPSJNMjcuNzA5OSAyMC44NzQ2QzI5LjA4MzEgMjAuODc0NiAyOS44NzM3IDIwLjE0NjMgMjkuODczNyAxOC44OTIyQzI5Ljg3MzcgMTcuNzE4OSAyOS4wNDE1IDE2LjkwOTggMjcuNzUxNSAxNi45MDk4SDI0LjYzMDVWMTQuNjg0N0MyNC42MzA1IDEzLjA2NjQgMjMuNDIzNyAxMi4yMTY4IDIyLjI1ODYgMTIuMjE2OEMyMS4wOTM0IDEyLjIxNjggMTkuODg2NyAxMy4wNjY0IDE5Ljg4NjcgMTQuNjg0N1YzMC4xMzkyQzE5Ljg4NjcgMzMuODYxMiAyMS40MjYzIDM1LjUyIDI0LjgzODYgMzUuNTJDMjYuNjY5NSAzNS41MiAyNy43NTE1IDM1LjA3NDkgMjguNTQyMSAzNC41ODk1QzI5LjEyNDcgMzQuMjY1OCAyOS4zNzQ0IDMzLjU3OCAyOS4zNzQ0IDMzLjA1MjFDMjkuMzc0NCAzMi4wNDA3IDI4LjcwODYgMzAuOTQ4MyAyNy43MDk5IDMwLjk0ODNDMjcuNTg1IDMwLjk0ODMgMjcuNDE4NiAzMC45ODg4IDI3LjI5MzcgMzEuMDI5MkMyNy4yNTIxIDMxLjA2OTcgMjcuMTY4OSAzMS4wNjk3IDI3LjEyNzMgMzEuMTEwMkMyNi44Nzc2IDMxLjIzMTUgMjYuNTAzMSAzMS4zOTM0IDI2LjAwMzcgMzEuMzkzNEMyNS4zNzk1IDMxLjM5MzQgMjQuNjcyMSAzMS4xOTExIDI0LjY3MjEgMjkuNTMyM1YyMC44NzQ2SDI3LjcwOTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMzcuODYzIDI3LjM4ODdDMzUuNTc0MyAyNy4zODg3IDMzLjcwMTcgMjkuMjA5MiAzMy43MDE3IDMxLjQzNDRDMzMuNzAxNyAzMy42NTk1IDM1LjU3NDMgMzUuNDggMzcuODYzIDM1LjQ4QzQwLjE1MTcgMzUuNDggNDIuMDI0MyAzMy42NTk1IDQyLjAyNDMgMzEuNDM0NEM0Mi4wMjQzIDI5LjE2ODggNDAuMTUxNyAyNy4zODg3IDM3Ljg2MyAyNy4zODg3WiIgZmlsbD0iI0ZGMjJCMSIvPgo8L3N2Zz4K"
+}

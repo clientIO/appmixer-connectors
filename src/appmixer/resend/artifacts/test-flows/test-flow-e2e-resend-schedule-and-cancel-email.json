@@ -60,37 +60,37 @@
             "config": {
                 "transform": {
                     "in": {
-                        "ab664894-6e68-4bf9-8ab6-2c8b1b458467": {},
-                        "faf915b0-1f22-4386-bbda-e491c187b63e": {},
                         "4756a43e-db63-4934-b7e3-7d10ddc4ba3d": {
-                            "response": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "id": {
-                                        "eeb09807-d6bb-413f-953d-e5f42a436d8f": {
-                                            "variable": "$.4756a43e-db63-4934-b7e3-7d10ddc4ba3d.response.body",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$.id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                        "var-upd-id": {
+                                            "variable": "$.4756a43e-db63-4934-b7e3-7d10ddc4ba3d.out.id",
+                                            "functions": []
                                         }
                                     },
                                     "scheduled_at": {
-                                        "6dd88f43-7d07-411a-b7d2-3ab88ca72236": {
-                                            "variable": "$.b254e3ef-e9f1-446e-8a12-d70362c9f7db.out.reScheduledAt",
-                                            "functions": []
+                                        "var-upd-at": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "minutes": {
+                                                            "value": 120
+                                                        }
+                                                    }
+                                                }
+                                            ]
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "id": "{{{eeb09807-d6bb-413f-953d-e5f42a436d8f}}}",
-                                    "scheduled_at": "{{{6dd88f43-7d07-411a-b7d2-3ab88ca72236}}}"
+                                    "id": "{{{var-upd-id}}}",
+                                    "scheduled_at": "{{{var-upd-at}}}"
                                 }
                             }
                         }
@@ -100,7 +100,7 @@
             "source": {
                 "in": {
                     "4756a43e-db63-4934-b7e3-7d10ddc4ba3d": [
-                        "response"
+                        "out"
                     ]
                 }
             }
@@ -167,23 +167,14 @@
                                 "type": "json2new",
                                 "modifiers": {
                                     "id": {
-                                        "494e160a-8fc0-4882-8928-9ae4ab44b3c8": {
-                                            "variable": "$.4756a43e-db63-4934-b7e3-7d10ddc4ba3d.response.body",
-                                            "functions": [
-                                                {
-                                                    "name": "g_jsonPath",
-                                                    "params": [
-                                                        {
-                                                            "value": "$.id"
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                        "var-cancel-id": {
+                                            "variable": "$.4756a43e-db63-4934-b7e3-7d10ddc4ba3d.out.id",
+                                            "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "id": "{{{494e160a-8fc0-4882-8928-9ae4ab44b3c8}}}"
+                                    "id": "{{{var-cancel-id}}}"
                                 }
                             }
                         }
@@ -346,17 +337,6 @@
                                                 "name": "emailFrom",
                                                 "toggle": false,
                                                 "text": "onboarding@resend.dev"
-                                            },
-                                            {
-                                                "type": "text",
-                                                "name": "scheduledAt",
-                                                "text": "2026-03-15T15:00:00.000Z"
-                                            },
-                                            {
-                                                "type": "text",
-                                                "name": "reScheduledAt",
-                                                "toggle": false,
-                                                "text": "2026-03-25T15:00:00.000Z"
                                             }
                                         ]
                                     }
@@ -421,7 +401,7 @@
             }
         },
         "4756a43e-db63-4934-b7e3-7d10ddc4ba3d": {
-            "type": "appmixer.utils.http.Post",
+            "type": "appmixer.resend.email.SendEmail",
             "source": {
                 "in": {
                     "67d5bd1e-2767-4e6f-a8fe-3683f7f11392": [
@@ -434,34 +414,55 @@
             "config": {
                 "transform": {
                     "in": {
-                        "faf915b0-1f22-4386-bbda-e491c187b63e": {},
                         "67d5bd1e-2767-4e6f-a8fe-3683f7f11392": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "bodyType": {},
-                                    "responseEncoding": {},
-                                    "url": {},
-                                    "body": {
-                                        "5e280424-d4d8-4db8-bafb-fcd32efc316b": {
-                                            "variable": "$.b254e3ef-e9f1-446e-8a12-d70362c9f7db.out.scheduledAt",
+                                    "from": {
+                                        "var-sched-from": {
+                                            "variable": "$.b254e3ef-e9f1-446e-8a12-d70362c9f7db.out.emailFrom",
                                             "functions": []
                                         }
                                     },
-                                    "headers": {}
+                                    "to": {
+                                        "var-sched-to": {
+                                            "variable": "$.b254e3ef-e9f1-446e-8a12-d70362c9f7db.out.emailTo",
+                                            "functions": []
+                                        }
+                                    },
+                                    "subject": {},
+                                    "html": {},
+                                    "scheduled_at": {
+                                        "var-sched-at": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "minutes": {
+                                                            "value": 60
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
                                 },
                                 "lambda": {
-                                    "bodyType": "raw",
-                                    "responseEncoding": "utf8",
-                                    "url": "https://api.resend.com/emails",
-                                    "body": "{\n    \"from\": \"onboarding@resend.dev\",\n    \"to\": \"auth@appmixer.com\",\n    \"subject\": \"Scheduled Email\",\n    \"html\": \"<p>This email will be sent later.</p>\",\n    \"scheduled_at\": \"{{{5e280424-d4d8-4db8-bafb-fcd32efc316b}}}\"\n  }",
-                                    "headers": "{\n\"Authorization\": \"Bearer re_giVWCZEi_JCEvhbjscBEGdQoi5c478fRY\"\n}"
+                                    "from": "{{{var-sched-from}}}",
+                                    "to": "{{{var-sched-to}}}",
+                                    "subject": "Scheduled Email",
+                                    "html": "<p>This email will be sent later.</p>",
+                                    "scheduled_at": "{{{var-sched-at}}}"
                                 }
                             }
                         }
                     }
                 }
-            }
+            },
+            "version": "1.0.0"
         },
         "67d5bd1e-2767-4e6f-a8fe-3683f7f11392": {
             "type": "appmixer.utils.timers.Wait",

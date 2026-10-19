@@ -6,6 +6,10 @@ module.exports = {
 
     receive: async function(context) {
 
+        if ([undefined, null, ''].includes(context.messages.in.content.sheetId)) {
+            throw new context.CancelError('Sheet Id is required!');
+        }
+
         const { data } = await this.httpRequest(context);
 
         return context.sendJson({ columns: data.data }, 'out');

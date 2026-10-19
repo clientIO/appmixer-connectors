@@ -1,0 +1,310 @@
+{
+    "name": "E2E AssemblyAI - List & Find Transcripts",
+    "flow": {
+        "dce31c7a-f253-4404-8681-2d3bd79174e3": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "e661617f-04eb-4d17-9a9b-f377ca5fca4c": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 260,
+            "y": 300,
+            "source": { "in": { "dce31c7a-f253-4404-8681-2d3bd79174e3": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "dce31c7a-f253-4404-8681-2d3bd79174e3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "variables": {} },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "audioUrl",
+                                                "text": "https://storage.googleapis.com/aai-web-samples/5_common_sports_injuries.mp3"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "eaf8c59b-aff3-4cdb-b4f0-73866c208832": {
+            "type": "appmixer.ai.assemblyai.TranscribeAudio",
+            "x": 440,
+            "y": 300,
+            "source": { "in": { "e661617f-04eb-4d17-9a9b-f377ca5fca4c": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "e661617f-04eb-4d17-9a9b-f377ca5fca4c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "audioUrl": {
+                                        "9c0a1f2d-4c1b-42f7-9d5a-6e4f2b8c7a10": {
+                                            "variable": "$.e661617f-04eb-4d17-9a9b-f377ca5fca4c.out.audioUrl",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": { "audioUrl": "{{{9c0a1f2d-4c1b-42f7-9d5a-6e4f2b8c7a10}}}" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "71d7be2e-8b10-4787-a2ac-d1ead94e083c": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 620,
+            "y": 300,
+            "source": { "in": { "eaf8c59b-aff3-4cdb-b4f0-73866c208832": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "eaf8c59b-aff3-4cdb-b4f0-73866c208832": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "interval": {} },
+                                "lambda": { "interval": "1m" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "070b76f5-b9f2-4356-a93f-b4aa8b208aa5": {
+            "type": "appmixer.ai.assemblyai.ListTranscripts",
+            "x": 800,
+            "y": 160,
+            "source": { "in": { "71d7be2e-8b10-4787-a2ac-d1ead94e083c": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "71d7be2e-8b10-4787-a2ac-d1ead94e083c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "outputType": {} },
+                                "lambda": { "outputType": "first" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "a6ad6d61-e842-4277-b2c1-18f426c3248a": {
+            "type": "appmixer.ai.assemblyai.FindTranscripts",
+            "x": 800,
+            "y": 460,
+            "source": { "in": { "71d7be2e-8b10-4787-a2ac-d1ead94e083c": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "71d7be2e-8b10-4787-a2ac-d1ead94e083c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "status": {},
+                                    "createdOn": {
+                                        "5d7b0e93-2f41-4a6e-bb3c-0c9d8e1a4f77": {
+                                            "variable": "$.dce31c7a-f253-4404-8681-2d3bd79174e3.out.started",
+                                            "functions": [
+                                                { "name": "g_now" },
+                                                { "name": "g_split", "params": [{ "value": "T" }] },
+                                                { "name": "g_first" }
+                                            ]
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "status": "completed",
+                                    "createdOn": "{{{5d7b0e93-2f41-4a6e-bb3c-0c9d8e1a4f77}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "fb6a3b68-e4ce-46a9-b556-7304c154bf86": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1000,
+            "y": 160,
+            "source": { "in": { "070b76f5-b9f2-4356-a93f-b4aa8b208aa5": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "070b76f5-b9f2-4356-a93f-b4aa8b208aa5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "5fa8aaa8-4e6f-4740-8d9e-b564c6387373": {
+                                            "variable": "$.070b76f5-b9f2-4356-a93f-b4aa8b208aa5.out.id",
+                                            "functions": []
+                                        },
+                                        "8a1c4b2e-9f03-4d5a-8e77-1b6c0d3f2a94": {
+                                            "variable": "$.070b76f5-b9f2-4356-a93f-b4aa8b208aa5.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "assertion": "notEmpty", "field": "{{{5fa8aaa8-4e6f-4740-8d9e-b564c6387373}}}" },
+                                            { "assertion": "notEmpty", "field": "{{{8a1c4b2e-9f03-4d5a-8e77-1b6c0d3f2a94}}}" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "9b12d67c-9b0d-4b49-9fe1-406629004aa4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1000,
+            "y": 460,
+            "source": { "in": { "a6ad6d61-e842-4277-b2c1-18f426c3248a": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "a6ad6d61-e842-4277-b2c1-18f426c3248a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1b9715aa-4235-4e0b-80d1-bbafcff55d3f": {
+                                            "variable": "$.a6ad6d61-e842-4277-b2c1-18f426c3248a.out.id",
+                                            "functions": []
+                                        },
+                                        "c3e07f18-6b2a-4c9d-91f4-5a8d7e0b3c26": {
+                                            "variable": "$.a6ad6d61-e842-4277-b2c1-18f426c3248a.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "assertion": "notEmpty", "field": "{{{1b9715aa-4235-4e0b-80d1-bbafcff55d3f}}}" },
+                                            { "assertion": "equal", "field": "{{{c3e07f18-6b2a-4c9d-91f4-5a8d7e0b3c26}}}", "expected": "completed" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "72079af2-421d-4f4f-816e-11567c081c56": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1200,
+            "y": 300,
+            "source": {
+                "in": {
+                    "fb6a3b68-e4ce-46a9-b556-7304c154bf86": ["out"],
+                    "9b12d67c-9b0d-4b49-9fe1-406629004aa4": ["out"]
+                }
+            },
+            "version": "1.0.0",
+            "config": { "properties": { "timeout": 180 } },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "4dbfdcec-bc34-4459-aef6-400e8a6dd4e6": {
+            "type": "appmixer.ai.assemblyai.DeleteTranscript",
+            "x": 1380,
+            "y": 300,
+            "source": { "in": { "72079af2-421d-4f4f-816e-11567c081c56": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "72079af2-421d-4f4f-816e-11567c081c56": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "b270d957-be61-48a4-bcec-eb59e99b084a": {
+                                            "variable": "$.eaf8c59b-aff3-4cdb-b4f0-73866c208832.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": { "transcriptId": "{{{b270d957-be61-48a4-bcec-eb59e99b084a}}}" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "a734c16a-bbef-4a2b-87a9-23c358e12032": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1560,
+            "y": 300,
+            "source": { "in": { "4dbfdcec-bc34-4459-aef6-400e8a6dd4e6": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "4dbfdcec-bc34-4459-aef6-400e8a6dd4e6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "26ba6b77-3167-459e-a1a5-23dc99156e72": {
+                                            "variable": "$.72079af2-421d-4f4f-816e-11567c081c56.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E AssemblyAI - List & Find Transcripts",
+                                    "result": "{{{26ba6b77-3167-459e-a1a5-23dc99156e72}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

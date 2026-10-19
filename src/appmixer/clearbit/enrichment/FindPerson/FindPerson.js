@@ -29,7 +29,7 @@ let processPerson = function(res) {
 module.exports = {
 
     async receive(context) {
-        if (!context.messages.in.content.email) {
+        if (!context.messages.attributes.content.email) {
             throw new context.CancelError('Email is required');
         }
 

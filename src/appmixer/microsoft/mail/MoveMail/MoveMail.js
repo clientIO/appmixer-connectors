@@ -6,6 +6,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.emailId) {
+            throw new context.CancelError('Email Message ID is required!');
+        }
+
         const { destinationFolder } = context.messages.in.content;
         const { emailId } = context.messages.in.content;
         const { data: result } = await makeRequest(context, {

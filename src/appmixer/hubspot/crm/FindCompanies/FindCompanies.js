@@ -3,7 +3,23 @@
 const Hubspot = require('../../Hubspot');
 const lib = require('../../lib');
 
+// One record of the out port: the flattened company built in receive() — every key is always set.
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['id', 'domain', 'name', 'numberofemployees', 'industry', 'hs_employee_range'],
+    properties: {
+        id: { type: 'string', title: 'Company ID', example: '18234567890' },
+        domain: { type: 'string', title: 'Domain', example: 'acme.com' },
+        name: { type: 'string', title: 'Name', example: 'Acme Inc.' },
+        numberofemployees: { type: 'string', title: 'Number of Employees', example: '250' },
+        industry: { type: 'string', title: 'Industry', example: 'COMPUTER_SOFTWARE' },
+        hs_employee_range: { type: 'string', title: 'Employee Range', example: '100-500' }
+    }
+};
+
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 

@@ -1,0 +1,479 @@
+{
+    "name": "E2E ServiceNow - Record triggers (webhook)",
+    "description": "Provokes insert/update/delete events on an incident and asserts the NewRecord, UpdatedRecord and DeletedRecord webhook triggers receive them (requires business rules on the instance, see note).",
+    "flow": {
+        "2c763def-63be-4b80-80ef-aeb511c9391f": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6726fdcc-9338-469b-b898-fba50fc6de0a": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2c763def-63be-4b80-80ef-aeb511c9391f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2c763def-63be-4b80-80ef-aeb511c9391f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "88571c45-20c7-4b8a-98e3-c1729c2b81dd": {
+            "type": "appmixer.servicenow.record.CreateRecord",
+            "x": 480,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6726fdcc-9338-469b-b898-fba50fc6de0a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6726fdcc-9338-469b-b898-fba50fc6de0a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "record": {
+                                        "e48f5143-d5cb-4d0d-9f58-726b001e185f": {
+                                            "variable": "$.2c763def-63be-4b80-80ef-aeb511c9391f.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "record": "{\"short_description\": \"E2E ServiceNow trigger {{{e48f5143-d5cb-4d0d-9f58-726b001e185f}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a36e48dc-e296-416d-af60-d3d4ace02aaa": {
+            "type": "appmixer.servicenow.record.UpdateRecord",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "88571c45-20c7-4b8a-98e3-c1729c2b81dd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "88571c45-20c7-4b8a-98e3-c1729c2b81dd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "sys_id": {
+                                        "08317552-cd93-4c73-9cb7-2bc7c08fc64f": {
+                                            "variable": "$.88571c45-20c7-4b8a-98e3-c1729c2b81dd.out.sys_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "record": {
+                                        "f6f5ded4-0610-4708-b0ba-58765735d4cc": {
+                                            "variable": "$.2c763def-63be-4b80-80ef-aeb511c9391f.out.started",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "sys_id": "{{{08317552-cd93-4c73-9cb7-2bc7c08fc64f}}}",
+                                    "record": "{\"short_description\": \"E2E ServiceNow trigger updated {{{f6f5ded4-0610-4708-b0ba-58765735d4cc}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "237be9ff-b631-45ee-aada-9d0b5e42e934": {
+            "type": "appmixer.servicenow.record.DeleteRecord",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a36e48dc-e296-416d-af60-d3d4ace02aaa": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a36e48dc-e296-416d-af60-d3d4ace02aaa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "tableName": {},
+                                    "sys_id": {
+                                        "1bb2efac-eb23-4c9c-82e0-7789194fe94b": {
+                                            "variable": "$.88571c45-20c7-4b8a-98e3-c1729c2b81dd.out.sys_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "tableName": "incident",
+                                    "sys_id": "{{{1bb2efac-eb23-4c9c-82e0-7789194fe94b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3a5a8df2-558d-4833-837a-11d7bc40f854": {
+            "type": "appmixer.servicenow.record.NewRecord",
+            "x": 1104,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "tableName": "incident"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "63b8bf93-aa6b-43d2-bc47-d21166a5b217": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3a5a8df2-558d-4833-837a-11d7bc40f854": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3a5a8df2-558d-4833-837a-11d7bc40f854": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "578f6f93-a3a1-4477-a086-f4a25bc9a54b": {
+                                            "variable": "$.3a5a8df2-558d-4833-837a-11d7bc40f854.out.sys_id",
+                                            "functions": []
+                                        },
+                                        "45ce25df-5717-4d58-a114-0d7aebd1fc46": {
+                                            "variable": "$.3a5a8df2-558d-4833-837a-11d7bc40f854.out.short_description",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{578f6f93-a3a1-4477-a086-f4a25bc9a54b}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{45ce25df-5717-4d58-a114-0d7aebd1fc46}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E ServiceNow trigger "
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "56d70d20-9b48-4973-8317-31e4a3549f30": {
+            "type": "appmixer.servicenow.record.UpdatedRecord",
+            "x": 1104,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "tableName": "incident"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b1cba024-135f-4fe9-bcd7-b0f3fb9dc10f": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "56d70d20-9b48-4973-8317-31e4a3549f30": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "56d70d20-9b48-4973-8317-31e4a3549f30": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9fa216a5-ac35-4228-a381-93ac76ae8547": {
+                                            "variable": "$.56d70d20-9b48-4973-8317-31e4a3549f30.out.sys_id",
+                                            "functions": []
+                                        },
+                                        "1d42e594-cfe7-478d-bc8b-1269050683d6": {
+                                            "variable": "$.56d70d20-9b48-4973-8317-31e4a3549f30.out.short_description",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9fa216a5-ac35-4228-a381-93ac76ae8547}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{1d42e594-cfe7-478d-bc8b-1269050683d6}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E ServiceNow trigger updated "
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a695eeaf-744c-4375-a8c1-a57cd851aca7": {
+            "type": "appmixer.servicenow.record.DeletedRecord",
+            "x": 1104,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "tableName": "incident"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "88876347-43ea-4475-9a77-f942e6e71947": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a695eeaf-744c-4375-a8c1-a57cd851aca7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a695eeaf-744c-4375-a8c1-a57cd851aca7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ed0760aa-c808-4d5b-baaa-b9dafd3aa079": {
+                                            "variable": "$.a695eeaf-744c-4375-a8c1-a57cd851aca7.out.sys_id",
+                                            "functions": []
+                                        },
+                                        "7d256cf4-a999-4393-9deb-19ab0055f15b": {
+                                            "variable": "$.a695eeaf-744c-4375-a8c1-a57cd851aca7.out.short_description",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ed0760aa-c808-4d5b-baaa-b9dafd3aa079}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{7d256cf4-a999-4393-9deb-19ab0055f15b}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E ServiceNow trigger updated "
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1e3e814f-2fb6-4faa-8298-44a8e552942b": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "63b8bf93-aa6b-43d2-bc47-d21166a5b217": [
+                        "out"
+                    ],
+                    "b1cba024-135f-4fe9-bcd7-b0f3fb9dc10f": [
+                        "out"
+                    ],
+                    "88876347-43ea-4475-9a77-f942e6e71947": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6989db5f-77df-43c8-9009-0cfaf78f7a35": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1e3e814f-2fb6-4faa-8298-44a8e552942b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "1e3e814f-2fb6-4faa-8298-44a8e552942b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "6f7fbb81-3625-40f5-a415-555b322f28de": {
+                                            "variable": "$.1e3e814f-2fb6-4faa-8298-44a8e552942b.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E ServiceNow - Record triggers (webhook)",
+                                    "result": "{{{6f7fbb81-3625-40f5-a415-555b322f28de}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "ce754c3b-fd4b-44a9-b93d-0b4da36908ae": {
+            "x": 64,
+            "y": 16,
+            "width": 896,
+            "height": 224,
+            "content": "## ⚠️ Test data assumption — ServiceNow business rules\n\nThe NewRecord / UpdatedRecord / DeletedRecord triggers only fire when the ServiceNow instance POSTs events to the Appmixer plugin route `<API_URL>/plugins/appmixer/servicenow/events`.\n\n1. Connect the ServiceNow account **with a Webhook Secret** (at least 16 characters) — the triggers refuse to start without it.\n2. On the instance, create async business rules on the `incident` table for insert, update and delete that POST `{\"type\": \"<instance>.incident.<insert|update|delete>\", \"data\": <record JSON>}` with the header `X-Appmixer-Secret: <the same secret>`.\n3. Keep the 1 minute Wait — the listeners must be registered before the provoking actions run.\n\nWithout the business rules the flow times out in AfterAll (600 s)."
+        }
+    }
+}

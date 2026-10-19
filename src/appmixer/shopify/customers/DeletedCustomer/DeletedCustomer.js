@@ -1,38 +1,42 @@
 'use strict';
-const commons = require('../../lib');
+
+const lib = require('../../lib');
+const gqlCustomers = require('../../gql-customers');
+
+const TOPIC = 'customers/delete';
 
 /**
+ * Triggers when a customer is deleted. Emits the ID of the deleted customer.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'customers/delete');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'deleted');
+            return lib.receiveWebhook(context, { port: 'out', type: 'Customer' });
         }
     },
 
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
-    },
-
+    // A deleted customer cannot be read back; the newest customer's ID shows
+    // the shape of the output.
     async test(context) {
 
-        const deleted = await commons.fetchLatestDeleteExample(context, {
-            resource: 'customer',
-            topic: 'customers/delete',
-            params: { order: 'created_at DESC' }
-        });
-        if (!deleted) {
-            throw new Error('No customers to use as test data.');
+        const api = gqlCustomers(lib.runner(context));
+        const [customer] = await api.find({ sortKey: 'CREATED_AT', reverse: true, max: 1 });
+        if (!customer) {
+            throw new context.CancelError('The store has no customers yet. Create one to get test data.');
         }
-        return context.sendJson(deleted, 'deleted');
+        return context.sendJson({ id: customer.id, webhookTopic: TOPIC }, 'out');
     }
 };

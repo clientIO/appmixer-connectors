@@ -11,6 +11,13 @@ module.exports = {
 
         const { itemId, content } = context.messages.in.content;
 
+        if (!databaseId) {
+            throw new context.CancelError('Database ID is required!');
+        }
+        if (!itemId) {
+            throw new context.CancelError('Item ID is required!');
+        }
+
         const itemData = await formatPropertiesForNotion(context, databaseId, context.messages.in.content);
 
         const requestData = {
@@ -23,11 +30,14 @@ module.exports = {
             data: requestData
         });
 
-        // If content is provided, update the first block
+        // If content is provided, update the first text block — or add one to a page
+        // that has none, rather than dropping the content.
         if (content) {
-            const firstBlockId = await getFirstTextBlockId(context, itemId);
-            if (firstBlockId) {
-                await updateFirstTextBlock(context, firstBlockId, content);
+            const firstBlock = await getFirstTextBlock(context, itemId);
+            if (firstBlock) {
+                await updateTextBlock(context, firstBlock, content);
+            } else {
+                await appendParagraph(context, itemId, content);
             }
         }
 
@@ -49,7 +59,7 @@ async function generateInspector(context, databaseId) {
     let fieldsInputs = {};
 
     if (databaseId) {
-        const { data: databaseDetails } = await lib.callEndpoint(context, `/databases/${databaseId}`);
+        const databaseDetails = await lib.getDatabase(context, databaseId, { cached: true });
 
         fieldsInputs = Object.keys(databaseDetails.properties).reduce((res, propertyName, index) => {
             const property = databaseDetails.properties[propertyName];
@@ -85,7 +95,9 @@ async function generateInspector(context, databaseId) {
         itemId: {
             label: 'Item ID',
             index: 2,
-            type: 'select',
+            // `text` with a source is a typeahead: the ID can still be typed or mapped
+            // when the item is not among the listed ones.
+            type: 'text',
             source: {
                 url: '/component/appmixer/notion/core/ListDatabaseItems?outPort=out',
                 data: {
@@ -112,46 +124,39 @@ async function generateInspector(context, databaseId) {
     return context.sendJson({ schema, inputs }, 'out');
 }
 
+const TEXT_BLOCK_TYPES = ['paragraph', 'heading_1', 'heading_2', 'heading_3'];
+
+const toRichText = (content) => [{ type: 'text', text: { content } }];
+
 // Function to fetch the first text block (paragraph or header) of the page
-async function getFirstTextBlockId(context, pageId) {
+async function getFirstTextBlock(context, pageId) {
     const { data: blocks } = await lib.callEndpoint(context, `/blocks/${pageId}/children`, {
         method: 'GET'
     });
 
-    for (const block of blocks.results) {
-        if (block.type === 'paragraph' || block.type === 'heading_1' || block.type === 'heading_2' || block.type === 'heading_3') {
-            return block.id;
-        }
-    }
-
-    // No text block found
-    return null;
+    return blocks.results.find(block => TEXT_BLOCK_TYPES.includes(block.type)) || null;
 }
 
-// Function to update the first text block with the provided content
-async function updateFirstTextBlock(context, blockId, content) {
-    const blockData = {
-        paragraph: {
-            rich_text: [
-                {
-                    type: 'text',
-                    text: {
-                        content: content
-                    }
-                }
-            ]
-        }
-    };
-
-    // Patch the block with the new content
-    await lib.callEndpoint(context, `/blocks/${blockId}`, {
+// Function to update a text block with the provided content. The body is keyed by
+// the block's own type: Notion rejects a `paragraph` body sent to a heading block.
+async function updateTextBlock(context, block, content) {
+    await lib.callEndpoint(context, `/blocks/${block.id}`, {
         method: 'PATCH',
-        data: blockData
+        data: { [block.type]: { rich_text: toRichText(content) } }
+    });
+}
+
+async function appendParagraph(context, pageId, content) {
+    await lib.callEndpoint(context, `/blocks/${pageId}/children`, {
+        method: 'PATCH',
+        data: {
+            children: [{ object: 'block', type: 'paragraph', paragraph: { rich_text: toRichText(content) } }]
+        }
     });
 }
 
 async function formatPropertiesForNotion(context, databaseId, content) {
-    const { data: databaseDetails } = await lib.callEndpoint(context, `/databases/${databaseId}`);
+    const databaseDetails = await lib.getDatabase(context, databaseId);
 
     const formattedProperties = {};
 
@@ -161,85 +166,15 @@ async function formatPropertiesForNotion(context, databaseId, content) {
             const userInput = content[propertyName];
 
             if (userInput !== undefined && userInput !== null) {
-                formattedProperties[propertyName] = formatProperty(property, userInput);
+                const value = lib.formatPropertyValue(context, propertyName, property, userInput);
+                if (value !== undefined) {
+                    formattedProperties[propertyName] = value;
+                }
             }
         }
     }
 
     return formattedProperties;
-}
-
-function formatProperty(property, userInput) {
-    switch (property.type) {
-        case 'title':
-            return {
-                'title': [{ 'text': { 'content': userInput } }]
-            };
-        case 'rich_text':
-            return {
-                'rich_text': [{ 'text': { 'content': userInput } }]
-            };
-        case 'multi_select':
-            return {
-                'multi_select': Array.isArray(userInput) ? userInput.map(option => ({ 'name': option })) : [{ 'name': userInput }]
-            };
-        case 'select':
-            return {
-                'select': { 'name': userInput }
-            };
-        case 'status':
-            return {
-                'status': { 'name': userInput }
-            };
-        case 'people':
-            return {
-                'people': Array.isArray(userInput) ? userInput.map(personId => ({ 'id': personId })) : [{ 'id': userInput }]
-            };
-        case 'date':
-            return {
-                'date': { 'start': userInput }
-            };
-        case 'checkbox':
-            return {
-                'checkbox': Boolean(userInput)
-            };
-        case 'number':
-            return {
-                'number': parseFloat(userInput)
-            };
-        case 'email':
-            return {
-                'email': userInput
-            };
-        case 'url':
-            return {
-                'url': userInput
-            };
-        case 'phone_number':
-            return {
-                'phone_number': userInput
-            };
-        case 'files':
-            const files = [];
-            if (Array.isArray(userInput)) {
-                for (const fileUrl of userInput) {
-                    files.push({
-                        'name': fileUrl.split('/').pop(),
-                        'external': { 'url': fileUrl.trim() }
-                    });
-                }
-            } else {
-                files.push({
-                    'name': userInput.split('/').pop(),
-                    'external': { 'url': userInput.trim() }
-                });
-            }
-            return { 'files': files };
-        default:
-            return {
-                [property.type]: userInput
-            };
-    }
 }
 
 function getInputType(property) {

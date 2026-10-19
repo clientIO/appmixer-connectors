@@ -8,18 +8,20 @@ module.exports = {
 
         const { file } = context.messages.in.content;
 
+        if (!file) {
+            throw new context.CancelError('File is required!');
+        }
+
         // Initialize Slack Web API client
         const web = new WebClient(context.auth.accessToken);
         const result = await web.files.delete({
             file
         });
 
-        await context.log({ step: 'Slack response', result });
-
         if (!result.ok) {
             throw new Error(result.error);
         }
 
-        await context.sendJson(result, 'out');
+        return context.sendJson({}, 'out');
     }
 };

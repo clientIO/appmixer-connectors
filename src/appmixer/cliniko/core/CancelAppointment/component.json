@@ -1,0 +1,106 @@
+{
+    "name": "appmixer.cliniko.core.CancelAppointment",
+    "label": "Cancel Appointment",
+    "description": "Cancels an individual appointment, keeping it on record with a cancellation reason. This is not a deletion - the appointment stays in Cliniko and reporting. Returns an empty object.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:cliniko"
+    },
+    "quota": {
+        "manager": "appmixer:cliniko",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "appointmentId": {
+                        "type": "string"
+                    },
+                    "cancellationReason": {
+                        "type": "integer"
+                    },
+                    "cancellationNote": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "appointmentId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "appointmentId": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Appointment",
+                        "tooltip": "Start typing to search recent appointments, or enter an Appointment ID directly.",
+                        "source": {
+                            "url": "/component/appmixer/cliniko/core/FindAppointments?outPort=out",
+                            "data": {
+                                "transform": "./FindAppointments#toSelectArray",
+                                "messages": {
+                                    "in/outputType": "array",
+                                    "in/isSource": true
+                                }
+                            }
+                        }
+                    },
+                    "cancellationReason": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Cancellation Reason",
+                        "tooltip": "Why the appointment was cancelled. Feeds Cliniko's cancellation reporting.",
+                        "options": [
+                            {
+                                "label": "Feeling better",
+                                "value": 10
+                            },
+                            {
+                                "label": "Condition worse",
+                                "value": 20
+                            },
+                            {
+                                "label": "Sick",
+                                "value": 30
+                            },
+                            {
+                                "label": "Away",
+                                "value": 40
+                            },
+                            {
+                                "label": "Other",
+                                "value": 50
+                            },
+                            {
+                                "label": "Work",
+                                "value": 60
+                            }
+                        ]
+                    },
+                    "cancellationNote": {
+                        "type": "textarea",
+                        "index": 3,
+                        "label": "Cancellation Note"
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MCA4MCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJDbGluaWtvIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNGRkZGRkYiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1LjUsMTAuNSkiPjxnIHN0cm9rZT0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGwtcnVsZT0ibm9uemVybyI+PHBhdGggZD0iTTMxLjEsMjQuMiBDMzAuNywyMy44IDMwLjYsMjMuMiAzMSwyMi44IEMzMS40LDIyLjQgMzIsMjIuMyAzMi40LDIyLjcgQzM0LjIsMjQuMiAzNi41LDI0LjEgMzgsMjIuNyBDMzguNCwyMi4zIDM5LDIyLjQgMzkuNCwyMi44IEMzOS44LDIzLjIgMzkuNywyMy44IDM5LjMsMjQuMiBDMzcuMSwyNi4yIDMzLjYsMjYuNCAzMS4xLDI0LjIgWiIgZmlsbD0iIzAwQTlDRSI+PC9wYXRoPjxwYXRoIGQ9Ik0xOC43LDQuOCBDMTksNC41IDE4LjgsNC4yIDE5LjUsMy43IEMyMS40LDIuMSAyOCwyLjMgMjguNiw0LjYgQzI4LjgsNS4zIDI5LDQuOSAzMi4zLDUuNyBDMzIuNSw1LjcgMzMuMiw2IDMzLjIsNS43IEMzMy4yLDUuNSAzMi41LDQuNSAzMi4zLDQuMyBDMjgsLTEuMSAxOS43LC0xLjQgMTUuMSwzLjggQzE0LjksNCAxMy41LDUuNSAxNCw1LjggQzE0LjMsNiAxNC41LDUuNyAxOC4xLDUuMSBDMTguNCw1IDE4LjYsNSAxOC43LDQuOCBaIiBmaWxsPSIjNkFEMUUzIj48L3BhdGg+PHBhdGggZD0iTTIzLjcsOS4xIEMyNS4xLDkuMSAyNi44LDYuMSAyNi43LDUuNSBDMjYuNSwzLjggMjAuOSwzLjggMjAuOCw1LjUgQzIwLjgsNiAyMi40LDkuMSAyMy43LDkuMSBaIiBmaWxsPSIjMDBBOUNFIj48L3BhdGg+PHBhdGggZD0iTTM0LjUsOC4zIEMzNC40LDcuOSAzNC4zLDcuNyAzMy45LDcuNiBDMzMuNSw3LjQgMzEuOCw2LjkgMjkuNCw2LjcgQzI4LjgsNi42IDI4LjIsNi40IDI3LjksNyBDMjcuNSw3LjYgMjcuMiw4LjIgMjYuNyw4LjcgQzI0LjQsMTEuNSAyMi43LDExLjcgMjAuMSw3LjQgQzE5LjMsNi4xIDE4LjEsNi42IDE2LjksNi44IEMxNi4xLDcgMTMuNiw3LjUgMTMuMiw3LjcgQzEyLjgsNy45IDEyLjcsOC42IDEyLjYsOS40IEMxMS43LDE0LjUgMTQuNCwxOS40IDE4LjksMjEuNSBDMTkuMiwyMS42IDE5LjYsMjEuOCAxOS41LDIyLjEgQzE5LjQsMjIuNyAxOC4zLDIzIDE3LjksMjMuMyBDMTQuMSwyNS4yIDEwLjUsMjguMyA3LjYsMzIuNCBDMi44LDM5LjQgMS4yLDQ3LjUgMC44LDU2IEMwLjcsNTcuMiAxLjcsNTguMSAyLjgsNTguMSBMNy4zLDU4LjEgQzguMyw1OC4xIDkuMSw1Ny40IDkuMyw1Ni41IEM5LjgsNTEuOCAxMC44LDQ2LjMgMTMsNDIuMSBDMTYuMywzNS40IDIxLjQsMzAuNyAyNi4yLDI4LjQgQzI3LjEsMjggMjguMiwyNy42IDI3LjMsMjYuNSBDMjIuMSwyMCAyNi4yLDExLjMgMzMuNSwxMC4yIEMzNC43LDEwLjEgMzUsMTAgMzQuNSw4LjMgWiIgZmlsbD0iIzZBRDFFMyI+PC9wYXRoPjxwYXRoIGQ9Ik01NC42LDI3IEM1NC4zLDI2LjggNTMuNywyNi41IDUzLjcsMjYuMSBDNTMuNywyNS43IDU0LjIsMjUuNiA1NC41LDI1LjQgQzYzLjIsMjAgNTkuMyw2LjcgNDkuMiw2LjcgQzQ2LjUsNi43IDQzLjksNy44IDQyLjMsOS40IEM0MS44LDkuOSA0MC4yLDExLjMgNDAuOSwxMi4xIEM0MS4yLDEyLjQgNDEuNiwxMi43IDQxLjksMTIuOSBDNDMuOCwxNC43IDQ1LDE3LjMgNDUsMjAuMSBDNDUsMjIuMiA0NC40LDIzLjkgNDMuMywyNS43IEM0MywyNi4zIDQyLjMsMjYuOCA0MywyNy40IEM0NC41LDI4LjYgNTAuNiwzMS42IDU1LjQsMzkuMiBDNTcuOCw0My4xIDU5LjgsNDcuNyA2MC43LDU2LjIgQzYwLjcsNTcuMiA2MS42LDU4LjIgNjIuNyw1OC4yIEw2Nyw1OC4yIEM2OC4xLDU4LjIgNjksNTcuNCA2OSw1Ni4zIEM2OC43LDQ1IDYzLjgsMzMuNCA1NC42LDI3IFoiIGZpbGw9IiMwNUMzREUiPjwvcGF0aD48cGF0aCBkPSJNNTcuNyw1Ni4yIEM1Ny40LDUzLjMgNTYuOSw1MC44IDU2LDQ3LjkgQzUzLjksNDEuMiA0OS43LDM0LjQgNDMuNCwzMS41IEM0Mi4xLDMwLjkgMzguMywyOS42IDM3LjQsMzAuNiBDMzYuOSwzMS4xIDM3LjEsMzIgMzcuNSwzNS43IEMzOC43LDQ3LjYgMzguOCw0OC44IDM4LjgsNDkuNCBDMzguOCw1MC41IDM2LjYsNTIuNSAzNi4yLDUyLjkgQzM1LjksNTMuMiAzNS4zLDUzLjIgMzQuOSw1Mi45IEMzNC42LDUyLjUgMzIuNCw1MC41IDMyLjQsNDkuNSBDMzIuNCw0Ny4xIDM0LjEsMzIgMzQuMSwzMS41IEMzNC4xLDI5LjYgMzEuOSwzMC40IDMwLjksMzAuNiBDMjMsMzIuNCAxNy43LDQwLjIgMTUuMiw0OCBDMTQuMiw1MS4xIDEzLjYsNTQuOSAxMy41LDU2LjEgQzEzLjQsNTcuMiAxNC40LDU4LjIgMTUuNSw1OC4yIEw1NS41LDU4LjIgQzU2LjgsNTguMiA1Ny43LDU3LjIgNTcuNyw1Ni4yIFoiIGZpbGw9IiMwMEE5Q0UiPjwvcGF0aD48L2c+PC9nPjwvZz48L3N2Zz4="
+}

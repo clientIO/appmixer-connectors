@@ -1,6 +1,7 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
-const { getObjectProperties } = require('../../commons');
+const { getObjectProperties, eventChangedWatchedProperty } = require('../../commons');
+const ITEM_SCHEMA = require('../../item-schemas.json').contact;
 
 const subscriptionType = 'contact.propertyChange';
 
@@ -41,8 +42,8 @@ class ContactPropertyChanged extends BaseSubscriptionComponent {
             });
 
             for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-                // Only process events for the configured property.
-                if (event.propertyName && event.propertyName !== watchedProperty) {
+                // Only process events for the configured property (any change of the object in the batch).
+                if (!eventChangedWatchedProperty(event, [watchedProperty])) {
                     continue;
                 }
                 // Scope the dedupe key per component instance — staticCache is shared across all
@@ -106,3 +107,4 @@ class ContactPropertyChanged extends BaseSubscriptionComponent {
 }
 
 module.exports = new ContactPropertyChanged(subscriptionType);
+module.exports.ITEM_SCHEMA = ITEM_SCHEMA;

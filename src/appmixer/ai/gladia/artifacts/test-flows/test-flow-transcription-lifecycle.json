@@ -1,0 +1,440 @@
+{
+    "flow": {
+        "5cc8f74e-6ef7-4728-8643-4f6ccbcb5ee5": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ab664f3a-05d7-4d40-9d33-4bf3d3d6bb34": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 256,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5cc8f74e-6ef7-4728-8643-4f6ccbcb5ee5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5cc8f74e-6ef7-4728-8643-4f6ccbcb5ee5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "audioUrl",
+                                                "text": "http://files.gladia.io/example/audio-transcription/split_infinity.wav"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "624171d8-edba-4562-b3a3-34e74050789e": {
+            "type": "appmixer.ai.gladia.TranscribeAudio",
+            "x": 448,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ab664f3a-05d7-4d40-9d33-4bf3d3d6bb34": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ab664f3a-05d7-4d40-9d33-4bf3d3d6bb34": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "audioUrl": {
+                                        "bd582fdd-9669-4865-a81b-ba6ece116d7e": {
+                                            "variable": "$.ab664f3a-05d7-4d40-9d33-4bf3d3d6bb34.out.audioUrl",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "audioUrl": "{{{bd582fdd-9669-4865-a81b-ba6ece116d7e}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7dd161664b912a12099509"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22ebb626-fc6f-4dd0-89e4-1705d87049d2": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 685,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "624171d8-edba-4562-b3a3-34e74050789e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "624171d8-edba-4562-b3a3-34e74050789e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "85db3950-3e57-4c1e-9d80-f43016b1e9a2": {
+                                            "variable": "$.624171d8-edba-4562-b3a3-34e74050789e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{85db3950-3e57-4c1e-9d80-f43016b1e9a2}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2baef177-20ae-4801-8d2d-f899bb76329b": {
+            "type": "appmixer.ai.gladia.GetTranscription",
+            "x": 870,
+            "y": 467,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "22ebb626-fc6f-4dd0-89e4-1705d87049d2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "22ebb626-fc6f-4dd0-89e4-1705d87049d2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptionId": {
+                                        "79bc0d94-a623-4797-863a-99a3a12927a1": {
+                                            "variable": "$.624171d8-edba-4562-b3a3-34e74050789e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "transcriptionId": "{{{79bc0d94-a623-4797-863a-99a3a12927a1}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7dd161664b912a12099509"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7e4fd9a6-2d44-46ad-a4d2-0246ba76aec4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1045,
+            "y": 467,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2baef177-20ae-4801-8d2d-f899bb76329b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2baef177-20ae-4801-8d2d-f899bb76329b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a2ec307b-aaff-4de0-91b5-5bb9c29818fe": {
+                                            "variable": "$.2baef177-20ae-4801-8d2d-f899bb76329b.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a2ec307b-aaff-4de0-91b5-5bb9c29818fe}}}",
+                                                "assertion": "equal",
+                                                "expected": "done"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "769a88a1-3e59-4628-a6f9-95af40cf6106": {
+            "type": "appmixer.ai.gladia.ListTranscriptions",
+            "x": 1247,
+            "y": 652,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7e4fd9a6-2d44-46ad-a4d2-0246ba76aec4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7e4fd9a6-2d44-46ad-a4d2-0246ba76aec4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "status": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "status": "done",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7dd161664b912a12099509"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c630337c-947b-44fa-96bd-6be77317250c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1419,
+            "y": 652,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "769a88a1-3e59-4628-a6f9-95af40cf6106": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "769a88a1-3e59-4628-a6f9-95af40cf6106": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0daff524-1246-443f-ac6b-4e5eb30659a8": {
+                                            "variable": "$.769a88a1-3e59-4628-a6f9-95af40cf6106.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0daff524-1246-443f-ac6b-4e5eb30659a8}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "54b9e6f3-03c6-40f4-8f95-7e4c47c31709": {
+            "type": "appmixer.ai.gladia.DeleteTranscription",
+            "x": 1667,
+            "y": 652,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c630337c-947b-44fa-96bd-6be77317250c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c630337c-947b-44fa-96bd-6be77317250c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptionId": {
+                                        "bf835b5d-c710-4f6d-8f1b-691050665e83": {
+                                            "variable": "$.624171d8-edba-4562-b3a3-34e74050789e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "transcriptionId": "{{{bf835b5d-c710-4f6d-8f1b-691050665e83}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "6a7dd161664b912a12099509"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "faedc950-7c03-4fd1-956b-790e301d3156": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1904,
+            "y": 320,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "54b9e6f3-03c6-40f4-8f95-7e4c47c31709": [
+                        "out"
+                    ],
+                    "22ebb626-fc6f-4dd0-89e4-1705d87049d2": [
+                        "out"
+                    ],
+                    "7e4fd9a6-2d44-46ad-a4d2-0246ba76aec4": [
+                        "out"
+                    ],
+                    "c630337c-947b-44fa-96bd-6be77317250c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a3a87eca-65d9-45a0-8746-7f5ea4196459": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2112,
+            "y": 320,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "faedc950-7c03-4fd1-956b-790e301d3156": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "faedc950-7c03-4fd1-956b-790e301d3156": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "b59518d4-056f-4e91-8831-7b5cd8807afa": {
+                                            "variable": "$.faedc950-7c03-4fd1-956b-790e301d3156.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Gladia - Transcription Lifecycle",
+                                    "result": "{{{b59518d4-056f-4e91-8831-7b5cd8807afa}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Gladia - Transcription Lifecycle",
+    "notes": {},
+    "type": "automation"
+}

@@ -17,7 +17,7 @@ The Task Approval feature lets a flow request an approval from a designated Slac
 3. Approver clicks a button → Slack sends an interaction payload to `/plugins/appmixer/slack/interactions`.
 4. Route validates Slack signature, parses action, loads Task, enforces approver identity, sets status `approved` or `rejected`, persists & posts a confirmation update (removes buttons, adds status line).
 5. The stored Task triggers the provided webhook (flow continuation or external system).
-6. Background jobs mark tasks `due` if not decided by `decisionBy`, and retry failed webhook deliveries (transitioning tasks back to `pending` before retry).
+6. Background jobs mark tasks `due` if not decided by `decisionBy`, and retry failed webhook deliveries (re-sending the status that failed to deliver, see [Overdue & Retry Logic](#overdue--retry-logic)).
 
 ### Task Statuses
 | Status     | Meaning |
@@ -58,11 +58,12 @@ POST /interactions (Slack) -> validate signature -> parse actions[]
 ```
 
 ### Webhook Triggering
-Each Task carries a `webhookUrl` provided at creation time. After status change (approve, reject, due, or error transitions) the system sends the Task JSON (with updated status) to that URL. Failures set status `error` for subsequent retries.
+Each Task carries a `webhookUrl` provided at creation time. After status change (approve, reject, due, or error transitions) the system sends the Task JSON (with updated status) to that URL. A failure responding 404/410 (the flow or component no longer exists) removes the Task. Any other failure sets status `error`, remembers the undelivered status in `failedStatus` and schedules a retry.
 
 ### Overdue & Retry Logic
 - Overdue detection: Any `pending` Task with `decisionBy < now` becomes `due` and its webhook is triggered.
-- Retry: Tasks in `error` are set back to `pending`, webhook re-sent. If it fails again, they revert to `error`.
+- Retry: Tasks in `error` whose `nextAttemptAt` has passed get their `failedStatus` (e.g. `approved`, `rejected`, `due`) restored and the webhook re-sent. Tasks that failed before `failedStatus` existed are re-sent as `pending`.
+- Backoff: each failed attempt doubles the delay before the next one (5, 10, 20 … minutes, capped at 6 hours; configurable via `failedWebhooksBackoffBaseMs` / `failedWebhooksBackoffMaxMs`). A 404/410 removes the Task; other failures (e.g. a stopped flow) keep it in `error` until it is delivered or removed by the 60-day cleanup.
 
 ### Filtering & Query Parameters (`GET /tasks`)
 | Param      | Description |

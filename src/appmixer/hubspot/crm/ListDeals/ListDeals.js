@@ -1,5 +1,6 @@
 'use strict';
 const Hubspot = require('../../Hubspot');
+const ITEM_SCHEMA = require('../../item-schemas.json').deal;
 
 const outputInspector = async (context) => {
     if (context.messages.in.content.allAtOnce) {
@@ -35,6 +36,8 @@ const outputInspector = async (context) => {
 };
 
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 

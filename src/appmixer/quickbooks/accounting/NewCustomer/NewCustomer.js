@@ -7,20 +7,18 @@ module.exports = {
 
     start: async function(context) {
 
-        const { componentId, flowId } = context;
-        const webhook = `${ENTITY_NAME}.Create:${context.profileInfo.companyId}`;
-        await context.log({ step: 'Registering webhook', webhook });
-        // Subscribe to a static webhook events received via ../../plugin.js.
-        return context.service.stateAddToSet(webhook, { flowId, componentId, webhook });
+        const eventName = `${ENTITY_NAME}.Create`;
+        await context.log({ step: 'Registering listener', eventName, realmId: context.profileInfo && context.profileInfo.companyId });
+        // Register a listener so webhook events received via ../../routes.js can be routed
+        // to this component by realmId. This is AuthHub-compatible (shared webhook endpoint).
+        return context.addListener(eventName, { realmId: context.profileInfo.companyId });
     },
 
     stop: async function(context) {
 
-        const { componentId, flowId } = context;
-        const webhook = `${ENTITY_NAME}.Create:${context.profileInfo.companyId}`;
-        await context.log({ step: 'Unregistering webhook', webhook });
-        // Unsubscribe from a static webhook events received via ../../plugin.js.
-        return context.service.stateRemoveFromSet(webhook, { componentId, flowId });
+        const eventName = `${ENTITY_NAME}.Create`;
+        await context.log({ step: 'Unregistering listener', eventName });
+        return context.removeListener(eventName);
     },
 
     receive: function(context) {

@@ -1,0 +1,294 @@
+{
+    "name": "E2E Fireflies - Transcript Operations",
+    "flow": {
+        "07508382-9e32-4734-b8a0-c0df7f25d722": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "aea8b666-2ed2-489d-8085-7405cfbddaf4": {
+            "type": "appmixer.fireflies.core.ListTranscripts",
+            "x": 320,
+            "y": 300,
+            "source": {
+                "in": {
+                    "07508382-9e32-4734-b8a0-c0df7f25d722": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "07508382-9e32-4734-b8a0-c0df7f25d722": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3ff545f5-e1df-4967-9b61-9d071ad57779": {
+            "type": "appmixer.fireflies.core.GetTranscript",
+            "x": 540,
+            "y": 180,
+            "source": {
+                "in": {
+                    "aea8b666-2ed2-489d-8085-7405cfbddaf4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aea8b666-2ed2-489d-8085-7405cfbddaf4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "tid": {
+                                            "variable": "$.aea8b666-2ed2-489d-8085-7405cfbddaf4.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "transcriptId": "{{{tid}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ec8d236e-a073-49a7-a282-c9e26b23e34a": {
+            "type": "appmixer.fireflies.core.CreateBite",
+            "x": 540,
+            "y": 440,
+            "source": {
+                "in": {
+                    "aea8b666-2ed2-489d-8085-7405cfbddaf4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aea8b666-2ed2-489d-8085-7405cfbddaf4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "tid": {
+                                            "variable": "$.aea8b666-2ed2-489d-8085-7405cfbddaf4.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "transcriptId": "{{{tid}}}",
+                                    "start": 0,
+                                    "end": 15,
+                                    "name": "E2E Soundbite"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "40ee1640-f475-4243-80aa-91826c05f713": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 760,
+            "y": 180,
+            "source": {
+                "in": {
+                    "3ff545f5-e1df-4967-9b61-9d071ad57779": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3ff545f5-e1df-4967-9b61-9d071ad57779": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f-id": {
+                                            "variable": "$.3ff545f5-e1df-4967-9b61-9d071ad57779.out.id",
+                                            "functions": []
+                                        },
+                                        "f-title": {
+                                            "variable": "$.3ff545f5-e1df-4967-9b61-9d071ad57779.out.title",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f-id}}}"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f-title}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2bec8e87-cb98-43d0-95b1-3e1323254fc7": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 760,
+            "y": 440,
+            "source": {
+                "in": {
+                    "ec8d236e-a073-49a7-a282-c9e26b23e34a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ec8d236e-a073-49a7-a282-c9e26b23e34a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f-bid": {
+                                            "variable": "$.ec8d236e-a073-49a7-a282-c9e26b23e34a.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f-bid}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "65af02f2-19e8-4f5b-90fd-b3e0fe6cba68": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 980,
+            "y": 300,
+            "source": {
+                "in": {
+                    "40ee1640-f475-4243-80aa-91826c05f713": [
+                        "out"
+                    ],
+                    "2bec8e87-cb98-43d0-95b1-3e1323254fc7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7b230baa-967f-435c-96ab-0b75ca25cd6b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1200,
+            "y": 300,
+            "source": {
+                "in": {
+                    "65af02f2-19e8-4f5b-90fd-b3e0fe6cba68": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "65af02f2-19e8-4f5b-90fd-b3e0fe6cba68": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.65af02f2-19e8-4f5b-90fd-b3e0fe6cba68.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Fireflies - Transcript Operations",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

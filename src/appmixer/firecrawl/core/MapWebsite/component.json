@@ -1,0 +1,142 @@
+{
+    "name": "appmixer.firecrawl.core.MapWebsite",
+    "label": "Map Website",
+    "description": "List the URLs of a website, discovered from its sitemap and links. Returns up to 5000 URLs, optionally filtered by relevance to a search term.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:firecrawl"
+    },
+    "quota": {
+        "manager": "appmixer:firecrawl",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string"
+                    },
+                    "search": {
+                        "type": "string"
+                    },
+                    "sitemap": {
+                        "type": "string"
+                    },
+                    "includeSubdomains": {
+                        "type": "boolean"
+                    },
+                    "ignoreQueryParameters": {
+                        "type": "boolean"
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "url"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "url": {
+                        "type": "text",
+                        "index": 0,
+                        "label": "URL",
+                        "tooltip": "The base URL of the website to map, e.g. <code>https://example.com</code>."
+                    },
+                    "search": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Search",
+                        "tooltip": "Optional search term. When set, the returned URLs are ordered by relevance to it."
+                    },
+                    "sitemap": {
+                        "type": "select",
+                        "index": 2,
+                        "label": "Sitemap",
+                        "defaultValue": "include",
+                        "tooltip": "How to use the site's sitemap: include it along with crawled links (default), skip it, or use only the sitemap.",
+                        "options": [
+                            {
+                                "label": "Include",
+                                "value": "include"
+                            },
+                            {
+                                "label": "Skip",
+                                "value": "skip"
+                            },
+                            {
+                                "label": "Only Sitemap",
+                                "value": "only"
+                            }
+                        ]
+                    },
+                    "includeSubdomains": {
+                        "type": "toggle",
+                        "index": 3,
+                        "label": "Include Subdomains",
+                        "defaultValue": true,
+                        "tooltip": "Also return URLs from subdomains of the website."
+                    },
+                    "ignoreQueryParameters": {
+                        "type": "toggle",
+                        "index": 4,
+                        "label": "Ignore Query Parameters",
+                        "defaultValue": true,
+                        "tooltip": "Treat URLs that differ only in query parameters as the same URL."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "index": 5,
+                        "label": "Output Type",
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first item only or one item at a time or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/firecrawl/core/MapWebsite?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/url": "dummy",
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkZpcmVjcmF3bCI+PHBhdGggZmlsbD0iI0ZBNUQxOSIgZD0iTTI0IDJjMi4yIDYuOS0uNiAxMC4zLTQuNiAxNC4zQzE1LjIgMjAuNSAxMiAyNC45IDEyIDMwLjQgMTIgMzkuMSAxNy40IDQ2IDI0IDQ2czEyLTYuOSAxMi0xNS42YzAtNC4zLTEuNi04LjMtNC0xMS42LTEuMyAyLjMtMi43IDMuNy00LjUgNC42LjktNi43LS44LTE0LjctMy41LTIxLjR6Ii8+PHBhdGggZmlsbD0iI0ZGQzEwNyIgZD0iTTI0IDQ2Yy0zLjkgMC03LTMuNi03LTggMC0zLjQgMS43LTUuOSA0LTggMS42LTEuNSAyLjctMyAzLTUgMi4zIDIuNiA3IDYuNyA3IDEzIDAgNC40LTMuMSA4LTcgOHoiLz48L3N2Zz4="
+}

@@ -6,6 +6,10 @@ module.exports = {
 
     receive: async function(context) {
 
+        if (!context.messages.in.content.contactId) {
+            throw new context.CancelError('Contact Id is required!');
+        }
+
         const { data } = await this.httpRequest(context);
 
         return context.sendJson(data, 'out');

@@ -1,0 +1,88 @@
+{
+    "connector": "firecrawl",
+    "order": [
+        {
+            "component": "MakeApiCall",
+            "inputs": {
+                "in": {
+                    "url": "/v2/team/credit-usage",
+                    "method": "GET"
+                }
+            },
+            "expect": "statusCode 200, body.success true"
+        },
+        {
+            "component": "ScrapeUrl",
+            "inputs": {
+                "in": {
+                    "url": "https://example.com",
+                    "includeLinks": true
+                }
+            },
+            "expect": "markdown non-empty, metadata.statusCode 200, links array"
+        },
+        {
+            "component": "MapWebsite",
+            "inputs": {
+                "in": {
+                    "url": "https://example.com",
+                    "outputType": "array"
+                }
+            },
+            "expect": "result non-empty array of {url}"
+        },
+        {
+            "component": "FindSearchResults",
+            "inputs": {
+                "in": {
+                    "query": "Firecrawl web scraping API",
+                    "source": "web",
+                    "outputType": "array"
+                }
+            },
+            "expect": "result non-empty array of {title, url}"
+        },
+        {
+            "component": "CrawlWebsite",
+            "inputs": {
+                "in": {
+                    "url": "https://example.com",
+                    "maxPages": 1,
+                    "wait": false
+                }
+            },
+            "expect": "jobId returned, status scraping; capture jobId for GetCrawlStatus"
+        },
+        {
+            "component": "GetCrawlStatus",
+            "inputs": {
+                "in": {
+                    "jobId": "<from CrawlWebsite>"
+                }
+            },
+            "expect": "status scraping|completed, jobId echoed"
+        },
+        {
+            "component": "ExtractData",
+            "inputs": {
+                "in": {
+                    "urls": "https://example.com",
+                    "prompt": "Extract the main heading of the page into the field \"heading\".",
+                    "schema": "{\"type\":\"object\",\"properties\":{\"heading\":{\"type\":\"string\"}}}",
+                    "wait": false
+                }
+            },
+            "expect": "jobId returned, status processing; capture jobId for GetExtractStatus"
+        },
+        {
+            "component": "GetExtractStatus",
+            "inputs": {
+                "in": {
+                    "jobId": "<from ExtractData>"
+                }
+            },
+            "expect": "status processing|completed"
+        }
+    ],
+    "notes": "Async components are CLI-tested with wait=false (submit path); the polling wait path is exercised by the crawl/extract lifecycle E2E flows on a live instance."
+}

@@ -1,0 +1,266 @@
+{
+    "name": "E2E Spotify - api call and no match",
+    "description": "End-to-end test for the Spotify connector - calls the raw Web API through Make API Call and drives Find Tracks into its notFound branch.",
+    "type": "automation",
+    "notes": {
+        "9d1e109e-a7b7-4b3e-8d98-3afdd31d19f0": {
+            "x": 64,
+            "y": 400,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ Test data assumption\n\nNeither component needs seeded tenant data.\n\n* **Make API Call** does a `GET /me/playlists?limit=1`. It works on an account with **zero** playlists too — the assert checks the paging object's `limit`, which echoes the query parameter back, rather than any item. That is what proves the `parameters` input is actually applied.\n* **Find Tracks** is *deliberately* configured to find nothing: a gibberish `query` plus `minScore 1` means no candidate can clear the threshold, so the component emits on its **notFound** port. Do not \"fix\" the query or lower `minScore` — the assert is wired to `notFound`, and a successful match would stall the flow until the `AfterAll` timeout."
+        }
+    },
+    "flow": {
+        "a81c5108-f262-455e-8865-70fe365fd3d5": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "On Start",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "9c7ba656-40dd-478c-8352-bee02e3f4259": {
+            "type": "appmixer.spotify.core.MakeApiCall",
+            "label": "Make API Call",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a81c5108-f262-455e-8865-70fe365fd3d5": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a81c5108-f262-455e-8865-70fe365fd3d5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "parameters": {},
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "/me/playlists",
+                                    "method": "GET",
+                                    "parameters": "[{\"key\": \"limit\", \"value\": \"1\"}]",
+                                    "headers": "[{\"key\": \"Accept\", \"value\": \"application/json\"}]"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "813d2aac-8f6c-4dbc-bb17-6bcbc804131e": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Make API Call",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9c7ba656-40dd-478c-8352-bee02e3f4259": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c7ba656-40dd-478c-8352-bee02e3f4259": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "ddda66fe-24d6-47bd-8838-a6d387642d57": {
+                                            "variable": "$.9c7ba656-40dd-478c-8352-bee02e3f4259.out.statusCode",
+                                            "functions": []
+                                        },
+                                        "3152e936-54fb-445c-9a42-c8e71adccc38": {
+                                            "variable": "$.9c7ba656-40dd-478c-8352-bee02e3f4259.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [{ "value": "$.limit" }]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{ddda66fe-24d6-47bd-8838-a6d387642d57}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "field": "{{{3152e936-54fb-445c-9a42-c8e71adccc38}}}",
+                                                "assertion": "equal",
+                                                "expected": "1"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "522032d5-29ef-4ed9-8a6a-b332cf411d12": {
+            "type": "appmixer.spotify.core.FindTracks",
+            "label": "Find Tracks No Match",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9c7ba656-40dd-478c-8352-bee02e3f4259": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c7ba656-40dd-478c-8352-bee02e3f4259": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {},
+                                    "minScore": {},
+                                    "maxResults": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "query": "zzqqxxwv nonexistent track 987654321",
+                                    "minScore": 1,
+                                    "maxResults": 10,
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "fa3b0dab-97f1-4d5d-83fb-476569887efe": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Find Tracks Not Found",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "522032d5-29ef-4ed9-8a6a-b332cf411d12": ["notFound"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "522032d5-29ef-4ed9-8a6a-b332cf411d12": {
+                            "notFound": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "fdb17e86-d08c-417d-8ce2-2bb0ec4a3cb1": {
+                                            "variable": "$.522032d5-29ef-4ed9-8a6a-b332cf411d12.notFound.query",
+                                            "functions": []
+                                        },
+                                        "b27d6e88-9ebb-46bb-bc51-56621957c1eb": {
+                                            "variable": "$.522032d5-29ef-4ed9-8a6a-b332cf411d12.notFound.minScore",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{fdb17e86-d08c-417d-8ce2-2bb0ec4a3cb1}}}",
+                                                "assertion": "equal",
+                                                "expected": "zzqqxxwv nonexistent track 987654321"
+                                            },
+                                            {
+                                                "field": "{{{b27d6e88-9ebb-46bb-bc51-56621957c1eb}}}",
+                                                "assertion": "equal",
+                                                "expected": "1"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "4c1f3d4c-e8dd-48a5-b52d-477d5d95a8b9": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "After All",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "813d2aac-8f6c-4dbc-bb17-6bcbc804131e": ["out"],
+                    "fa3b0dab-97f1-4d5d-83fb-476569887efe": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "0daf79d4-8a26-4647-ae8b-287fd40b0056": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "Process E2E Results",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "4c1f3d4c-e8dd-48a5-b52d-477d5d95a8b9": ["out"]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "4c1f3d4c-e8dd-48a5-b52d-477d5d95a8b9": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "408d0d85-cde6-487d-a135-7a62d8952541": {
+                                            "variable": "$.4c1f3d4c-e8dd-48a5-b52d-477d5d95a8b9.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Spotify - api call and no match",
+                                    "result": "{{{408d0d85-cde6-487d-a135-7a62d8952541}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

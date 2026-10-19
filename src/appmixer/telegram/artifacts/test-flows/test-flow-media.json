@@ -1,0 +1,467 @@
+{
+    "name": "E2E Telegram - media",
+    "flow": {
+        "7a99906f-909e-495b-83a0-71b1311cb613": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4274804a-1a14-4695-b642-4298bb051279": {
+            "type": "appmixer.telegram.core.SendPhoto",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "7a99906f-909e-495b-83a0-71b1311cb613": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a99906f-909e-495b-83a0-71b1311cb613": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "photo": {},
+                                    "caption": {},
+                                    "parseMode": {}
+                                },
+                                "lambda": {
+                                    "chatId": "-5393771328",
+                                    "photo": "https://telegram.org/img/t_logo.png",
+                                    "caption": "E2E photo",
+                                    "parseMode": "HTML"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "19146e7c-4745-41d8-b3ef-0f97a6d1aa3c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "4274804a-1a14-4695-b642-4298bb051279": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "4274804a-1a14-4695-b642-4298bb051279": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "d759b9cc-9d9a-401d-b482-b8760e6d2eb3": {
+                                            "variable": "$.4274804a-1a14-4695-b642-4298bb051279.out.message_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{d759b9cc-9d9a-401d-b482-b8760e6d2eb3}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9137c877-9850-4f8f-b465-fc646e6f339c": {
+            "type": "appmixer.telegram.core.GetFile",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "4274804a-1a14-4695-b642-4298bb051279": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "4274804a-1a14-4695-b642-4298bb051279": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "telegramFileId": {
+                                        "7899309d-fa7d-4c98-a355-72991f1d2fc0": {
+                                            "variable": "$.4274804a-1a14-4695-b642-4298bb051279.out.photo",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].file_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "fileName": {}
+                                },
+                                "lambda": {
+                                    "telegramFileId": "{{{7899309d-fa7d-4c98-a355-72991f1d2fc0}}}",
+                                    "fileName": "e2e-download.jpg"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "dae21d63-fa1d-4742-8b95-236607bd88ff": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 448,
+            "source": {
+                "in": {
+                    "9137c877-9850-4f8f-b465-fc646e6f339c": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9137c877-9850-4f8f-b465-fc646e6f339c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c4b7afe0-c9ae-49f8-8d67-784dfd91b2e8": {
+                                            "variable": "$.9137c877-9850-4f8f-b465-fc646e6f339c.out.fileId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c4b7afe0-c9ae-49f8-8d67-784dfd91b2e8}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4a015cad-acf4-4a6c-91fb-93bfffb50ec8": {
+            "type": "appmixer.telegram.core.SendDocument",
+            "x": 1104,
+            "y": 576,
+            "source": {
+                "in": {
+                    "9137c877-9850-4f8f-b465-fc646e6f339c": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "9137c877-9850-4f8f-b465-fc646e6f339c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "fileId": {
+                                        "cd7895f7-dd25-4cd7-985c-cf2e3995c3d3": {
+                                            "variable": "$.9137c877-9850-4f8f-b465-fc646e6f339c.out.fileId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fileName": {},
+                                    "caption": {},
+                                    "parseMode": {}
+                                },
+                                "lambda": {
+                                    "chatId": "-5393771328",
+                                    "fileId": "{{{cd7895f7-dd25-4cd7-985c-cf2e3995c3d3}}}",
+                                    "fileName": "e2e-roundtrip.jpg",
+                                    "caption": "E2E upload round-trip",
+                                    "parseMode": "HTML"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "09f2a25b-3a52-47e3-9717-00bfd802c711": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1312,
+            "y": 576,
+            "source": {
+                "in": {
+                    "4a015cad-acf4-4a6c-91fb-93bfffb50ec8": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "4a015cad-acf4-4a6c-91fb-93bfffb50ec8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c5e8e9d0-e18b-4e7c-a5ad-daa8d3641656": {
+                                            "variable": "$.4a015cad-acf4-4a6c-91fb-93bfffb50ec8.out.document",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.file_name"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c5e8e9d0-e18b-4e7c-a5ad-daa8d3641656}}}",
+                                                "assertion": "equal",
+                                                "expected": "e2e-roundtrip.jpg"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5595a614-ed4d-4830-ac06-a3c4c4d11f90": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1520,
+            "y": 320,
+            "source": {
+                "in": {
+                    "19146e7c-4745-41d8-b3ef-0f97a6d1aa3c": [
+                        "out"
+                    ],
+                    "dae21d63-fa1d-4742-8b95-236607bd88ff": [
+                        "out"
+                    ],
+                    "09f2a25b-3a52-47e3-9717-00bfd802c711": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "484fd1a6-7150-49f2-a239-6f29ffc35490": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1728,
+            "y": 320,
+            "source": {
+                "in": {
+                    "5595a614-ed4d-4830-ac06-a3c4c4d11f90": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "695d11bf9bd2c7da7fff03f6",
+                    "failedStoreId": "695d11c1c38355dede7fa7a0"
+                },
+                "transform": {
+                    "in": {
+                        "5595a614-ed4d-4830-ac06-a3c4c4d11f90": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d066cb5a-6d1b-4a4d-9ffc-7e431846a5e0": {
+                                            "variable": "$.5595a614-ed4d-4830-ac06-a3c4c4d11f90.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Telegram - media",
+                                    "result": "{{{d066cb5a-6d1b-4a4d-9ffc-7e431846a5e0}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5f0e0c31-e38a-4182-b121-0746ccb4edfb": {
+            "type": "appmixer.telegram.core.DeleteMessage",
+            "x": 1728,
+            "y": 448,
+            "source": {
+                "in": {
+                    "5595a614-ed4d-4830-ac06-a3c4c4d11f90": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5595a614-ed4d-4830-ac06-a3c4c4d11f90": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "messageId": {
+                                        "11a39f81-7eb2-4edd-8b6b-d3c25e7b48cb": {
+                                            "variable": "$.4274804a-1a14-4695-b642-4298bb051279.out.message_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "chatId": "-5393771328",
+                                    "messageId": "{{{11a39f81-7eb2-4edd-8b6b-d3c25e7b48cb}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "57c769d7-1cb6-49da-afe4-87f6d6c08898": {
+            "type": "appmixer.telegram.core.DeleteMessage",
+            "x": 1936,
+            "y": 576,
+            "source": {
+                "in": {
+                    "5595a614-ed4d-4830-ac06-a3c4c4d11f90": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5595a614-ed4d-4830-ac06-a3c4c4d11f90": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "chatId": {},
+                                    "messageId": {
+                                        "9474ba23-a996-4759-bb5d-cefe34d28c24": {
+                                            "variable": "$.4a015cad-acf4-4a6c-91fb-93bfffb50ec8.out.message_id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "chatId": "-5393771328",
+                                    "messageId": "{{{9474ba23-a996-4759-bb5d-cefe34d28c24}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "2b5c8da4-3e69-4f71-8027-7d3b9c6e1f52": {
+            "content": "ENVIRONMENT — this flow is built for:\n- Telegram account: an apiKey account holding a bot token (service appmixer:telegram).\n- Chat: group chat id -5393771328. The bot MUST already be a member of that group.\n- Retargeting: the chat id is a literal on every Telegram component in this flow — change all of them together, or the cleanup step will target a different chat than the one under test.\n- Fully automatic. This is the only coverage of the multipart upload branch in lib.sendMedia: GetFile stores the photo and SendDocument uploads it back. SendPhoto itself is driven with a plain URL here.",
+            "x": 64,
+            "y": 64,
+            "width": 520,
+            "height": 230
+        }
+    }
+}

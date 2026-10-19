@@ -1,6 +1,6 @@
 {
     "name": "appmixer.hubspot",
-    "version": "4.8.0",
+    "version": "4.9.2",
     "engine": ">=6.0.0",
     "changelog": {
         "1.0.0": [
@@ -118,6 +118,25 @@
             "FormSubmission: the form is now selected from a dropdown (ListForms source) instead of a raw GUID input.",
             "Dynamic dropdowns (workflow, form, list, pipeline, deal stage, owner, product, contact property) switched from select to text typeahead so values can also be entered manually when the source is unavailable.",
             "NOT BREAKING despite the new OAuth scopes ('forms', 'automation'): they are configured as conditionally required on the HubSpot app, so existing connections and older connector deployments keep working; new consents request them and HubSpot grants them on any tier (feature gating happens at API-call time, not at consent). Deployment prerequisite: whitelabel apps must add both scopes to their HubSpot app config BEFORE rolling out this version, otherwise new consents fail on an unconfigured scope."
+        ],
+        "4.8.1": [
+            "Fixed a crash when a Find/List component saved an EMPTY result set to a CSV file — the header row was built from the first record without checking there was one, so a search that legitimately matched nothing failed the flow instead of writing an empty file."
+        ],
+        "4.9.0": [
+            "Fixed re-activation of disabled webhook subscriptions: the v3 API reports and takes `active`, not `enabled`, so a switched-off subscription was never turned back on (e.g. UpdatedDeal received nothing) and every existing one was PATCHed on each trigger start.",
+            "Fixed two NewContact / NewDeal / UpdatedContact / UpdatedDeal flows of the same portal consuming each other's events (the dedupe cache key was shared across flows).",
+            "ContactPropertyChanged: no longer misses a change of the watched property that was not the last change of the contact in a webhook batch (the events now carry every changed property name).",
+            "Fixed the default deal owner subscription and the owner field showing up twice in the CreateDeal/UpdateDeal additional properties dropdown (hubspot_owner_id instead of the input name hubSpotOwnerId).",
+            "Fixed a ReferenceError hiding the HubSpot error message when a webhook subscription API call failed.",
+            "Components with a dynamic output port now export their item contract (ITEM_SCHEMA), so offline validation and `appmixer connector verify` can check it; the designer output is unchanged.",
+            "CreateNote: the output now also contains associationTypeId (the create response carries no associations).",
+            "NewContact, NewDeal, UpdatedContact, UpdatedDeal: test() throws explicitly when no example record exists."
+        ],
+        "4.9.1": [
+            "Security: the webhook route (/plugins/appmixer/hubspot/events) now verifies the X-HubSpot-Signature-v3 header with the app's client secret (connector setting `clientSecret`) and rejects unsigned, forged or older than 5 minutes requests with 401. Requires `clientSecret` in the connector configuration of the instance (and of the AuthHub) that receives the webhooks."
+        ],
+        "4.9.2": [
+            "MakeApiCall: Request Headers and Query Parameters set in the Designer are now sent. They were silently dropped: the key-value field stores its rows as a JSON object string, which the component did not parse."
         ]
     }
 }

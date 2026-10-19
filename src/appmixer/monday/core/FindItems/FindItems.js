@@ -100,7 +100,10 @@ module.exports = {
             await context.sendJson({ items }, 'out');
         }
         if (outputType === 'file') {
-            const headers = Object.keys(items[0]);
+            // Headers come from the first record, so an empty result has no shape
+            // to describe — write a header-less CSV rather than throwing on
+            // Object.keys(undefined).
+            const headers = items.length ? Object.keys(items[0]) : [];
             let csvRows = [];
             csvRows.push(headers.join(','));
             for (const item of items) {

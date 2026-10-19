@@ -80,6 +80,10 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.contact.content.contactId) {
+            throw new context.CancelError('Contact ID is required!');
+        }
+
         const client = commons.getSalesforceAPI(context);
         let contact = context.messages.contact.content;
         let contactObject = buildContact(contact);

@@ -1,0 +1,150 @@
+{
+    "name": "appmixer.brightdata.core.ScrapeUrl",
+    "label": "Scrape URL",
+    "description": "Fetch any public web page through the Bright Data Web Unlocker, bypassing bot protection, and return the page as HTML or Markdown.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:brightdata"
+    },
+    "quota": {
+        "manager": "appmixer:brightdata",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "zone": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "dataFormat": {
+                        "type": "string",
+                        "enum": [
+                            "html",
+                            "markdown"
+                        ]
+                    },
+                    "httpMethod": {
+                        "type": "string",
+                        "enum": [
+                            "GET",
+                            "POST"
+                        ]
+                    },
+                    "country": {
+                        "type": "string"
+                    },
+                    "body": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "zone",
+                    "url"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "zone": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Zone (Proxy / API name)",
+                        "tooltip": "Name of the <b>Unlocker API</b> you created in the Bright Data control panel under <b>Proxies &amp; Scraping Infrastructure</b>. The dashboard now calls these Proxies/APIs, but the API parameter is still <code>zone</code> — the value is whatever you named that Unlocker API. Use the <b>List Zones</b> component to see what exists on your account."
+                    },
+                    "url": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "URL",
+                        "tooltip": "The full URL of the page to fetch, for example <code>https://example.com/product/1</code>."
+                    },
+                    "dataFormat": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Output Format",
+                        "defaultValue": "html",
+                        "tooltip": "<b>HTML</b> returns the raw page source. <b>Markdown</b> asks Bright Data to convert the page to Markdown, which is easier to feed to an LLM.",
+                        "options": [
+                            {
+                                "label": "HTML",
+                                "value": "html"
+                            },
+                            {
+                                "label": "Markdown",
+                                "value": "markdown"
+                            }
+                        ]
+                    },
+                    "country": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "Country",
+                        "tooltip": "Two letter ISO country code of the exit IP, for example <code>us</code>. Leave empty to let Bright Data choose."
+                    },
+                    "httpMethod": {
+                        "type": "select",
+                        "index": 5,
+                        "label": "HTTP Method",
+                        "defaultValue": "GET",
+                        "tooltip": "The HTTP method used against the target website.",
+                        "options": [
+                            {
+                                "label": "GET",
+                                "value": "GET"
+                            },
+                            {
+                                "label": "POST",
+                                "value": "POST"
+                            }
+                        ]
+                    },
+                    "body": {
+                        "type": "textarea",
+                        "index": 6,
+                        "label": "Request Body",
+                        "tooltip": "Raw payload sent to the target website. Only used when the HTTP method is <code>POST</code>."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "title": "URL",
+                        "example": "https://example.com/product/1"
+                    },
+                    "zone": {
+                        "type": "string",
+                        "title": "Zone",
+                        "example": "web_unlocker1"
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "title": "Status Code",
+                        "example": 200
+                    },
+                    "content": {
+                        "type": "string",
+                        "title": "Page Content",
+                        "example": "<!doctype html><html><head><title>Example</title></head></html>"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSJub25lIj4KICA8cGF0aCBmaWxsPSIjM0Q3RkZDIiBkPSJNMCAyLjY4QzAgMS4yIDEuMiAwIDIuNjggMGgyNi42NEMzMC44IDAgMzIgMS4yIDMyIDIuNjh2MjYuNjRDMzIgMzAuOCAzMC44IDMyIDI5LjMyIDMySDIuNjhBMi42OCAyLjY4IDAgMCAxIDAgMjkuMzJ6Ii8+CiAgPHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTEzLjc3MyA3LjI0MmMuMzEuNTkyLjE1NSAxLjA5LS4wNjMgMS42MTgtLjM0Mi44NzItLjI0OSAxLjcxMi4zNzQgMi40MjguNjIyLjc0NiAxLjQ5My44NCAyLjM5Ni42NTMgMS4yNDQtLjI4IDEuOTYtMS40NjMgMS43NzMtMi43Ny0uMDkzLS42MjItLjQ2Ni0xLjI0NC0uMTI0LTEuOTI5LS4zMTEuMTU2LS4zMTEuMTU2LS42ODQuNzc4LS4zNDMtLjQwNC0uNjU0LS44NC0xLjAyNy0xLjI3Ni0uMzEyLS4zNDItLjYyMy0uNjUzLS40MzYtMS4yMTNhMS4zMyAxLjMzIDAgMCAwLS42ODUuNzQ3Yy0uMDkzLjMxLS4xNTUuNjIyLS4yMTcuOTMzLS4wNjMuMzExLS4yMTguNTkxLS41My43NzgtLjE4Ni0uMzQyLS4zNzMtLjU5MS0uNzc3LS43NDdtLS43MzYgMTkuMTcydi0xLjUyMmwxLjY0OS0uMjE1di04LjcwMmwtMS41Mi0uNDkzdi0xLjY5NGw0LjE1NC0uNTU3Ljg3OC0uMDg3djExLjUxMmwxLjYyNy4yMzZ2MS41MjJ6Ii8+Cjwvc3ZnPg=="
+}

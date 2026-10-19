@@ -14,6 +14,8 @@ const query = `
                             }
                             nodes {
                                 id
+                                createdAt
+                                updatedAt
                                 content {
                                     __typename
                                     ... on Issue {
@@ -183,38 +185,58 @@ const query = `
 const schema = {
     id: {
         type: 'string',
-        title: 'Id'
+        title: 'Id',
+        example: 'PVTI_lADODXokv84BFM6_zgZ0aBc'
     },
     title: {
         type: 'string',
-        title: 'Title'
+        title: 'Title',
+        example: 'microsoft.mail: review connector'
     },
     status: {
         type: 'string',
-        title: 'Status'
+        title: 'Status',
+        example: 'Backlog'
+    },
+    createdAt: {
+        type: 'string',
+        format: 'date-time',
+        title: 'Added To Project At',
+        example: '2026-09-11T08:30:00Z'
+    },
+    updatedAt: {
+        type: 'string',
+        format: 'date-time',
+        title: 'Updated In Project At',
+        example: '2026-09-11T09:15:00Z'
     },
     content: {
         type: 'object',
         properties: {
             id: {
                 type: 'string',
-                title: 'Content.Id'
+                title: 'Content.Id',
+                example: 'I_kwDOK5R0o86Xa1bC'
             },
             type: {
                 type: 'string',
-                title: 'Content.Type'
+                title: 'Content.Type',
+                example: 'issue'
             },
             title: {
                 type: 'string',
-                title: 'Content.Title'
+                title: 'Content.Title',
+                example: 'microsoft.mail: review connector'
             },
             url: {
                 type: 'string',
-                title: 'Content.Url'
+                title: 'Content.Url',
+                example: 'https://github.com/Appmixer-ai/appmixer-components/issues/1842'
             },
             state: {
                 type: 'string',
-                title: 'Content.State'
+                title: 'Content.State',
+                example: 'OPEN'
             },
             assignees: {
                 type: 'array',
@@ -227,12 +249,14 @@ const schema = {
                         }
                     }
                 },
-                title: 'Content.Assignees'
+                title: 'Content.Assignees',
+                example: [{ login: 'vtalas' }]
             },
             labels: {
                 type: 'array',
                 items: {},
-                title: 'Content.Labels'
+                title: 'Content.Labels',
+                example: ['appmixer:microsoft:mail']
             },
             linkedItems: {
                 type: 'array',
@@ -276,12 +300,17 @@ const schema = {
                         }
                     }
                 },
-                title: 'Content.Linked Items'
+                title: 'Content.Linked Items',
+                example: []
             }
         },
         title: 'Content'
     }
 };
+
+// The output contract of one project item, exported so offline tooling
+// (connector verify, the outport validators) can read a dynamic port.
+const ITEM_SCHEMA = { type: 'object', properties: schema };
 
 const normalizeContent = (content) => {
 
@@ -302,6 +331,8 @@ const normalizeContent = (content) => {
 
 module.exports = {
 
+    ITEM_SCHEMA,
+
     async receive(context) {
         const {
             projectId,
@@ -310,7 +341,7 @@ module.exports = {
         } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'Items' });
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'Items' });
         }
 
         let allItems = [];
@@ -367,6 +398,10 @@ module.exports = {
             // Process the item to add easier access to status and other fields
             const processedItem = {
                 id: item.id,
+                // When the item was added to / last changed in the project — not the
+                // issue or pull request's own dates, which live under content.
+                createdAt: item.createdAt,
+                updatedAt: item.updatedAt,
                 title: null,
                 status: null,
                 content: normalizeContent(item.content)

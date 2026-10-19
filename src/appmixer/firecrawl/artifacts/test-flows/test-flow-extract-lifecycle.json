@@ -1,0 +1,316 @@
+{
+    "flow": {
+        "626e3524-032d-4461-9261-da060bf57dbf": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "73e49919-0438-4ae1-ab98-3e384e0a150a": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "626e3524-032d-4461-9261-da060bf57dbf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "626e3524-032d-4461-9261-da060bf57dbf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "testUrl",
+                                                "text": "https://example.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d8410088-96f1-4bd6-b848-51c0b5b889b3": {
+            "type": "appmixer.firecrawl.core.ExtractData",
+            "x": 480,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "73e49919-0438-4ae1-ab98-3e384e0a150a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "73e49919-0438-4ae1-ab98-3e384e0a150a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "urls": {
+                                        "70426a59-a581-4c6d-9dbd-55af316226e9": {
+                                            "variable": "$.73e49919-0438-4ae1-ab98-3e384e0a150a.out.testUrl",
+                                            "functions": []
+                                        }
+                                    },
+                                    "prompt": {},
+                                    "schema": {},
+                                    "pollingTimeout": {}
+                                },
+                                "lambda": {
+                                    "urls": "{{{70426a59-a581-4c6d-9dbd-55af316226e9}}}",
+                                    "prompt": "Extract the main heading of the page into the field \"heading\".",
+                                    "schema": "{\"type\": \"object\", \"properties\": {\"heading\": {\"type\": \"string\"}}}",
+                                    "pollingTimeout": 600
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "17cdb83f-e32a-4c1a-a8b4-b4b16cfb5417": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d8410088-96f1-4bd6-b848-51c0b5b889b3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d8410088-96f1-4bd6-b848-51c0b5b889b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "5ecb8656-68d9-4092-b26d-409b12b3c8c8": {
+                                            "variable": "$.d8410088-96f1-4bd6-b848-51c0b5b889b3.out.jobId",
+                                            "functions": []
+                                        },
+                                        "76c867c9-6f71-4e3b-bf6c-f63945a9d43a": {
+                                            "variable": "$.d8410088-96f1-4bd6-b848-51c0b5b889b3.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{5ecb8656-68d9-4092-b26d-409b12b3c8c8}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{76c867c9-6f71-4e3b-bf6c-f63945a9d43a}}}",
+                                                "assertion": "equal",
+                                                "expected": "completed"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0b3b2a4b-a475-4c56-a530-83b6f6aa4e90": {
+            "type": "appmixer.firecrawl.core.GetExtractStatus",
+            "x": 688,
+            "y": 432,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d8410088-96f1-4bd6-b848-51c0b5b889b3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d8410088-96f1-4bd6-b848-51c0b5b889b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "jobId": {
+                                        "25265d00-bd31-4b40-b8bc-8893578026f0": {
+                                            "variable": "$.d8410088-96f1-4bd6-b848-51c0b5b889b3.out.jobId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "jobId": "{{{25265d00-bd31-4b40-b8bc-8893578026f0}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0173c3c5-4328-455a-a5fc-d9b8d44af275": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 432,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0b3b2a4b-a475-4c56-a530-83b6f6aa4e90": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0b3b2a4b-a475-4c56-a530-83b6f6aa4e90": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b0ecc605-2230-4d1c-abd8-9dc8a00d487b": {
+                                            "variable": "$.0b3b2a4b-a475-4c56-a530-83b6f6aa4e90.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b0ecc605-2230-4d1c-abd8-9dc8a00d487b}}}",
+                                                "assertion": "equal",
+                                                "expected": "completed"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "92a55cd8-ef3e-41ac-b759-40802951f6f5": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 432,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "17cdb83f-e32a-4c1a-a8b4-b4b16cfb5417": [
+                        "out"
+                    ],
+                    "0173c3c5-4328-455a-a5fc-d9b8d44af275": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 720
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "99652baf-5b67-4a39-b47b-541ad74db0b2": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1312,
+            "y": 432,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "92a55cd8-ef3e-41ac-b759-40802951f6f5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "92a55cd8-ef3e-41ac-b759-40802951f6f5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "b7e715fb-2e9d-4564-9eb0-b2e1bdbcc9db": {
+                                            "variable": "$.92a55cd8-ef3e-41ac-b759-40802951f6f5.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Firecrawl - Extract Data Lifecycle",
+                                    "result": "{{{b7e715fb-2e9d-4564-9eb0-b2e1bdbcc9db}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Firecrawl - Extract Data Lifecycle",
+    "notes": {},
+    "type": "automation"
+}

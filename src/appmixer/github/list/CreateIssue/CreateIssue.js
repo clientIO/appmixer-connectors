@@ -10,7 +10,10 @@ module.exports = {
     async receive(context) {
 
         let repositoryId = context.properties.repositoryId;
-        let issue = context.messages.issue.content;
+        let issue = context.messages.issue && context.messages.issue.content;
+        if (!issue || !issue.title) {
+            throw new context.CancelError('Title is required!');
+        }
 
         // Normalize multiselect fields
         if (issue.assignees) {

@@ -1,0 +1,372 @@
+{
+    "name": "E2E Strava - Read Activities",
+    "type": "automation",
+    "flow": {
+        "2eb332b5-9759-4ef3-82c5-72b6979b18ae": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {}
+        },
+        "3590fca2-6b44-4f5b-b81e-f23a930045ad": {
+            "type": "appmixer.strava.core.ListActivities",
+            "x": 272,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2eb332b5-9759-4ef3-82c5-72b6979b18ae": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2eb332b5-9759-4ef3-82c5-72b6979b18ae": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "0530e739-e386-44a4-8623-098c08a857a7": {
+            "type": "appmixer.strava.core.FindActivities",
+            "x": 480,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3590fca2-6b44-4f5b-b81e-f23a930045ad": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3590fca2-6b44-4f5b-b81e-f23a930045ad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "2f1b4946-25cf-45f9-8e45-58b41223758a": {
+            "type": "appmixer.strava.core.FindActivityStreams",
+            "x": 688,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0530e739-e386-44a4-8623-098c08a857a7": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0530e739-e386-44a4-8623-098c08a857a7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "activityId": {
+                                        "9b3c16e3-cf6a-44b1-af36-1a5e859d95d9": {
+                                            "variable": "$.3590fca2-6b44-4f5b-b81e-f23a930045ad.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "keys": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "activityId": "{{{9b3c16e3-cf6a-44b1-af36-1a5e859d95d9}}}",
+                                    "keys": [
+                                        "time",
+                                        "distance"
+                                    ],
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "8dc2a7c6-7d61-4e91-8434-3987c390f5a8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3590fca2-6b44-4f5b-b81e-f23a930045ad": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3590fca2-6b44-4f5b-b81e-f23a930045ad": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "16e6996b-aab2-4cc9-b8e4-b8a891f49659": {
+                                            "variable": "$.3590fca2-6b44-4f5b-b81e-f23a930045ad.out.id",
+                                            "functions": []
+                                        },
+                                        "581d6bfe-a9fe-49aa-81e9-47a1667c8bdc": {
+                                            "variable": "$.3590fca2-6b44-4f5b-b81e-f23a930045ad.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{16e6996b-aab2-4cc9-b8e4-b8a891f49659}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{581d6bfe-a9fe-49aa-81e9-47a1667c8bdc}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "49232aa2-41e7-4fdd-8461-5af41acd5e1a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 176,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0530e739-e386-44a4-8623-098c08a857a7": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "0530e739-e386-44a4-8623-098c08a857a7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9b0eafca-e568-4437-b9e9-6138636fa80f": {
+                                            "variable": "$.0530e739-e386-44a4-8623-098c08a857a7.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9b0eafca-e568-4437-b9e9-6138636fa80f}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "ffd1d675-1177-4e23-b590-27bfe90b7ac8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2f1b4946-25cf-45f9-8e45-58b41223758a": [
+                        "out",
+                        "notFound"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2f1b4946-25cf-45f9-8e45-58b41223758a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "778fc326-dfac-4c9c-b29c-eea93f64146b": {
+                                            "variable": "$.2f1b4946-25cf-45f9-8e45-58b41223758a.out.type",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{778fc326-dfac-4c9c-b29c-eea93f64146b}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            },
+                            "notFound": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {}
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "notFound",
+                                                "assertion": "equal",
+                                                "expected": "notFound"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "bba65a93-b339-4353-aa06-4b4d2da8b040": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8dc2a7c6-7d61-4e91-8434-3987c390f5a8": [
+                        "out"
+                    ],
+                    "49232aa2-41e7-4fdd-8461-5af41acd5e1a": [
+                        "out"
+                    ],
+                    "ffd1d675-1177-4e23-b590-27bfe90b7ac8": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            }
+        },
+        "2227a87d-a97e-43e7-b35a-bb4ded26d925": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1312,
+            "y": 48,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bba65a93-b339-4353-aa06-4b4d2da8b040": [
+                        "out"
+                    ]
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "bba65a93-b339-4353-aa06-4b4d2da8b040": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "37dba7f8-e6e7-4746-99ab-56484a9a3e8b": {
+                                            "variable": "$.bba65a93-b339-4353-aa06-4b4d2da8b040.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Strava - Read Activities",
+                                    "result": "{{{37dba7f8-e6e7-4746-99ab-56484a9a3e8b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

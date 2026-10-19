@@ -30,6 +30,10 @@ module.exports = {
     test: async function(context) {
 
         const record = await fetchLatestExample(context, '/api.xro/2.0/Contacts');
+        if (!record) {
+            throw new context.CancelError('No Contact record available to use as test data.');
+        }
+
         return context.sendJson(record, 'out');
     }
 };

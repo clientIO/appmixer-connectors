@@ -6,7 +6,6 @@ const schema = {
     'id': { 'type': 'string', 'title': 'Document ID' },
     'name': { 'type': 'string', 'title': 'Name' },
     'status': { 'type': 'string', 'title': 'Status' },
-    'url': { 'type': 'string', 'title': 'URL' },
     'created_at': { 'type': 'string', 'title': 'Created At' },
     'metadata': { 'type': 'object', 'title': 'Metadata' }
 };

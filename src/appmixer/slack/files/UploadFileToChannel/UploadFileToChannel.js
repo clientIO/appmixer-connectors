@@ -6,6 +6,13 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.channel) {
+            throw new context.CancelError('Channel is required!');
+        }
+        if (!context.messages.in.content.fileId) {
+            throw new context.CancelError('File ID is required!');
+        }
+
         const { channel, fileId, filename, altTxt, snippetType, initialComment } = context.messages.in.content;
 
         // Get Appmixer file info

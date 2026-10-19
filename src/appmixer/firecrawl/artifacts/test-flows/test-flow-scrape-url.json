@@ -1,0 +1,223 @@
+{
+    "flow": {
+        "a08b926d-8a67-49a4-99f9-fc9b881b5a45": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 304,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "83417213-c38d-4eae-8dbe-5021e78dc11d": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a08b926d-8a67-49a4-99f9-fc9b881b5a45": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a08b926d-8a67-49a4-99f9-fc9b881b5a45": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "testUrl",
+                                                "text": "https://example.com"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2f3f12ff-fb3f-41fb-b9e1-3d9c048715c3": {
+            "type": "appmixer.firecrawl.core.ScrapeUrl",
+            "x": 480,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "83417213-c38d-4eae-8dbe-5021e78dc11d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "83417213-c38d-4eae-8dbe-5021e78dc11d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "2f24f50e-143b-4bbb-87a9-88c234595cc8": {
+                                            "variable": "$.83417213-c38d-4eae-8dbe-5021e78dc11d.out.testUrl",
+                                            "functions": []
+                                        }
+                                    },
+                                    "includeLinks": {}
+                                },
+                                "lambda": {
+                                    "url": "{{{2f24f50e-143b-4bbb-87a9-88c234595cc8}}}",
+                                    "includeLinks": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "befad6d9-b736-44ec-913b-5a71600c5da4": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2f3f12ff-fb3f-41fb-b9e1-3d9c048715c3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2f3f12ff-fb3f-41fb-b9e1-3d9c048715c3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7cc29e06-7139-4d8b-a2c3-1187fff4d370": {
+                                            "variable": "$.2f3f12ff-fb3f-41fb-b9e1-3d9c048715c3.out.markdown",
+                                            "functions": []
+                                        },
+                                        "c176d942-f05a-423e-b34e-667196ce7920": {
+                                            "variable": "$.2f3f12ff-fb3f-41fb-b9e1-3d9c048715c3.out.markdown",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7cc29e06-7139-4d8b-a2c3-1187fff4d370}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{c176d942-f05a-423e-b34e-667196ce7920}}}",
+                                                "assertion": "regex",
+                                                "regex": "Example Domain"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1d5801f5-310e-47ad-aac7-c779d3ab60c4": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 304,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "befad6d9-b736-44ec-913b-5a71600c5da4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "64e1a591-3b22-4c9c-8fcc-3d2628cbb355": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 304,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "1d5801f5-310e-47ad-aac7-c779d3ab60c4": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "1d5801f5-310e-47ad-aac7-c779d3ab60c4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "049d9712-5498-4398-8f3a-508c6eaa9ab8": {
+                                            "variable": "$.1d5801f5-310e-47ad-aac7-c779d3ab60c4.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Firecrawl - Scrape URL",
+                                    "result": "{{{049d9712-5498-4398-8f3a-508c6eaa9ab8}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "name": "E2E Firecrawl - Scrape URL",
+    "notes": {},
+    "type": "automation"
+}

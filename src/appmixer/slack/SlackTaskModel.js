@@ -30,7 +30,10 @@ module.exports = context => {
                 'webhookUrl', // URL of the Appmixer component that created this task
                 'created',
                 'mtime',
-                'isApprover'
+                'isApprover',
+                'webhookAttempts', // Number of failed webhook deliveries
+                'nextAttemptAt', // Earliest time of the next resubmit of a failed webhook
+                'failedStatus' // Status that failed to be delivered to the webhook
             ];
         }
     }

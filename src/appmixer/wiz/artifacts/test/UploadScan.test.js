@@ -170,7 +170,10 @@ describe('wiz.uploadScan', () => {
             assert.deepEqual(callArgs[1].documents, ['doc1', 'doc2']);
         });
 
-        it('should call sendDocuments with threshold documents when timeoutTrigger is true and threshold is reached', async () => {
+        it('should batch by threshold when timeoutTrigger is true and threshold is reached', async () => {
+            // Since issue #2793 a timeout drain is batched by threshold too: one
+            // threshold-sized batch per receive(), the remainder continues via a
+            // drain-continuation timeout instead of one oversized upload.
             const docs = [
                 { id: '1', data: 'doc1' },
                 { id: '2', data: 'doc2' },
@@ -184,11 +187,18 @@ describe('wiz.uploadScan', () => {
             context.lock.resolves({ unlock: unlockStub });
 
             await uploadScan.processAllDocuments(context, { threshold: 3, timeoutTrigger: true });
-            assert.equal(sendDocumentsStub.callCount, 1, 'sendDocuments should be called twice');
+            assert.equal(sendDocumentsStub.callCount, 1, 'sendDocuments should be called once per receive()');
 
-            // First batch - processes last 3 documents
-            let callArgs = sendDocumentsStub.getCall(0).args;
-            assert.equal(callArgs[1].documents.length, 5, 'when triggered by timeout, should process all 5 documents');
+            // One threshold-sized batch (the last 3 documents) is processed...
+            const callArgs = sendDocumentsStub.getCall(0).args;
+            assert.equal(callArgs[1].documents.length, 3, 'one threshold-sized batch per receive()');
+            assert.deepEqual(callArgs[1].documents, ['doc3', 'doc4', 'doc5']);
+
+            // ...and the remainder is handed to a drain-continuation timeout.
+            const remaining = await context.stateGet('documents');
+            assert.equal(remaining.length, 2, 'remaining documents stay in state');
+            const continuation = context.setTimeout.getCalls().find(c => c.args[0]?.drainContinuation);
+            assert.ok(continuation, 'a drain-continuation timeout should be scheduled');
         });
 
         it('should handle empty documents array', async () => {
@@ -367,10 +377,13 @@ describe('wiz.uploadScan', () => {
         });
 
         it('should skip processing when documents-upload-batch has items (upload in progress)', async () => {
-            // Simulate an upload already in progress
+            // Simulate an upload already in progress: a batch prepared just now by
+            // another receive() (a batch older than the lock TTL is crash leftover
+            // and IS resumed - see UploadScanDrain.test.js).
             await context.stateSet('documents-upload-batch', [
                 { id: '1', data: 'doc1' }
             ]);
+            await context.stateSet('documents-upload-batch-startedAt', Date.now());
             await context.stateSet('documents', [
                 { id: '2', data: 'doc2' }
             ]);

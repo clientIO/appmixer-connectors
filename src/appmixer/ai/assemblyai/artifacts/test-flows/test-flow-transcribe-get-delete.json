@@ -1,0 +1,274 @@
+{
+    "name": "E2E AssemblyAI - Transcribe, Get & Delete Transcript",
+    "flow": {
+        "8e14468c-e13f-43dc-8d28-b1ca20a3e2d4": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 100,
+            "y": 300,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "f6aa1e8d-c03c-42e1-b487-418868ed0054": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 260,
+            "y": 300,
+            "source": { "in": { "8e14468c-e13f-43dc-8d28-b1ca20a3e2d4": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "8e14468c-e13f-43dc-8d28-b1ca20a3e2d4": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "variables": {} },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "audioUrl",
+                                                "text": "https://storage.googleapis.com/aai-web-samples/5_common_sports_injuries.mp3"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "b11d4d81-ca5a-49c6-af05-8aed8a5c33ac": {
+            "type": "appmixer.ai.assemblyai.TranscribeAudio",
+            "x": 440,
+            "y": 300,
+            "source": { "in": { "f6aa1e8d-c03c-42e1-b487-418868ed0054": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "f6aa1e8d-c03c-42e1-b487-418868ed0054": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "audioUrl": {
+                                        "77f5cbc5-2128-413f-9f68-82b5d14cbe0a": {
+                                            "variable": "$.f6aa1e8d-c03c-42e1-b487-418868ed0054.out.audioUrl",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": { "audioUrl": "{{{77f5cbc5-2128-413f-9f68-82b5d14cbe0a}}}" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "dfad38d8-526c-4cbe-912f-82d1a4b318b0": {
+            "type": "appmixer.ai.assemblyai.GetTranscript",
+            "x": 620,
+            "y": 300,
+            "source": { "in": { "b11d4d81-ca5a-49c6-af05-8aed8a5c33ac": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "b11d4d81-ca5a-49c6-af05-8aed8a5c33ac": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "3808f0d3-a620-4396-964b-8ebafa134229": {
+                                            "variable": "$.b11d4d81-ca5a-49c6-af05-8aed8a5c33ac.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": { "transcriptId": "{{{3808f0d3-a620-4396-964b-8ebafa134229}}}" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "bdff9ba0-182c-41be-80f8-146f13a38eb7": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 820,
+            "y": 160,
+            "source": { "in": { "b11d4d81-ca5a-49c6-af05-8aed8a5c33ac": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "b11d4d81-ca5a-49c6-af05-8aed8a5c33ac": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "35980bb7-6608-472d-8dad-b90f02c465ad": {
+                                            "variable": "$.b11d4d81-ca5a-49c6-af05-8aed8a5c33ac.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "assertion": "notEmpty", "field": "{{{35980bb7-6608-472d-8dad-b90f02c465ad}}}" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "876f0f2f-909c-4f84-988e-d4577b22da8a": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 820,
+            "y": 440,
+            "source": { "in": { "dfad38d8-526c-4cbe-912f-82d1a4b318b0": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "dfad38d8-526c-4cbe-912f-82d1a4b318b0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "fffecf64-bd98-4ea4-b757-7a157f4303ed": {
+                                            "variable": "$.dfad38d8-526c-4cbe-912f-82d1a4b318b0.out.id",
+                                            "functions": []
+                                        },
+                                        "6cb1ca27-8f4a-49d2-a07f-6af4663daa25": {
+                                            "variable": "$.dfad38d8-526c-4cbe-912f-82d1a4b318b0.out.status",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            { "assertion": "notEmpty", "field": "{{{fffecf64-bd98-4ea4-b757-7a157f4303ed}}}" },
+                                            { "assertion": "notEmpty", "field": "{{{6cb1ca27-8f4a-49d2-a07f-6af4663daa25}}}" }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "ad99907a-918a-4cda-9975-8e67563dacf8": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1020,
+            "y": 300,
+            "source": {
+                "in": {
+                    "bdff9ba0-182c-41be-80f8-146f13a38eb7": ["out"],
+                    "876f0f2f-909c-4f84-988e-d4577b22da8a": ["out"]
+                }
+            },
+            "version": "1.0.0",
+            "config": { "properties": { "timeout": 180 } },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "665caa2b-96ae-489f-8b28-995648cb7e94": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 1220,
+            "y": 300,
+            "source": { "in": { "ad99907a-918a-4cda-9975-8e67563dacf8": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "ad99907a-918a-4cda-9975-8e67563dacf8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": { "interval": {} },
+                                "lambda": { "interval": "1m" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "ebf30459-6538-4164-895d-7a3b8ea01ff0": {
+            "type": "appmixer.ai.assemblyai.DeleteTranscript",
+            "x": 1400,
+            "y": 300,
+            "source": { "in": { "665caa2b-96ae-489f-8b28-995648cb7e94": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "665caa2b-96ae-489f-8b28-995648cb7e94": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "transcriptId": {
+                                        "fb83b2f9-0c47-4e3f-bd67-01b8ee366346": {
+                                            "variable": "$.b11d4d81-ca5a-49c6-af05-8aed8a5c33ac.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": { "transcriptId": "{{{fb83b2f9-0c47-4e3f-bd67-01b8ee366346}}}" }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "2f1aa677-134d-4521-9e5a-e9de04a6dea2": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1580,
+            "y": 300,
+            "source": { "in": { "ebf30459-6538-4164-895d-7a3b8ea01ff0": ["out"] } },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "successStoreId": "64cb41824421780007381f86",
+                    "failedStoreId": "64cb41969751560007caf0bf"
+                },
+                "transform": {
+                    "in": {
+                        "ebf30459-6538-4164-895d-7a3b8ea01ff0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d88884ba-4753-4a97-ab09-f7f5b4475dd6": {
+                                            "variable": "$.ad99907a-918a-4cda-9975-8e67563dacf8.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E AssemblyAI - Transcribe, Get & Delete Transcript",
+                                    "result": "{{{d88884ba-4753-4a97-ab09-f7f5b4475dd6}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

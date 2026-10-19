@@ -7,15 +7,23 @@ const commons = require('../lib');
  */
 module.exports = {
 
-    receive(context) {
+    async receive(context) {
 
-        const client = commons.getSalesforceAPI(context);
+        const isSource = !!(context.properties
+            && (context.properties.isSource || context.properties.variableFetch));
 
-        return client.sobject('Account').find()
-            .then(res => {
-                return context.sendJson(res, 'accounts');
-            });
+        try {
+            const accounts = isSource
+                ? await commons.listAccountsCached(context)
+                : await commons.listAccounts(context);
 
+            return context.sendJson(accounts, 'accounts');
+        } catch (err) {
+            if (isSource) {
+                // Never break the inspector dropdown on API failures.
+                return context.sendJson([], 'accounts');
+            }
+            throw err;
+        }
     }
 };
-

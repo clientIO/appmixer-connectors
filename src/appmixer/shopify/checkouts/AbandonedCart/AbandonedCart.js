@@ -1,46 +1,42 @@
 'use strict';
-const commons = require('../../lib');
+
+const lib = require('../../lib');
+const gqlStore = require('../../gql-store');
+
+// The abandoned checkouts the trigger compares with on every tick (newest first).
+const MAX_CHECKOUTS = 250;
 
 /**
- * Shopify has no "cart abandoned" webhook — abandonment is derived server-side and
- * exposed through the abandoned-checkouts list. This trigger polls that list and
- * emits each newly abandoned checkout once.
+ * Shopify has no "cart abandoned" webhook — abandonment is derived server-side
+ * and exposed through the abandoned checkouts list. This trigger polls that
+ * list and emits each newly abandoned checkout once. The first tick only
+ * records the checkouts that exist already.
  * @extends {Component}
  */
 module.exports = {
 
     async tick(context) {
 
-        const shopify = commons.getShopifyAPI(context);
+        const checkouts = await gqlStore(lib.runner(context)).listCheckouts({ max: MAX_CHECKOUTS });
+        const state = await context.loadState();
+        const known = Array.isArray(state.known) ? new Set(state.known) : null;
 
-        const checkouts = await shopify.checkout.list({ limit: 250 });
-        const known = Array.isArray(context.state.known) ? new Set(context.state.known) : null;
-        const actual = new Set();
-        const diff = new Set();
+        await context.saveState({ known: checkouts.map(checkout => checkout.id) });
 
-        if (Array.isArray(checkouts)) {
-            checkouts.forEach(commons.processItems.bind(null, known, actual, diff));
+        if (!known) {
+            return;
         }
-        await context.saveState({ known: Array.from(actual) });
-
-        if (diff.size) {
-            const promises = [];
-            diff.forEach(checkout => {
-                promises.push(context.sendJson(checkout, 'checkout'));
-            });
-            return Promise.all(promises);
+        for (const checkout of checkouts.filter(checkout => !known.has(checkout.id)).reverse()) {
+            await context.sendJson(checkout, 'out');
         }
     },
 
     async test(context) {
 
-        const shopify = commons.getShopifyAPI(context);
-        const checkouts = await shopify.checkout.list({ limit: 1 });
-        const checkout = Array.isArray(checkouts) ? checkouts[0] : null;
-
+        const [checkout] = await gqlStore(lib.runner(context)).listCheckouts({ max: 1 });
         if (!checkout) {
-            throw new Error('No abandoned checkouts to use as test data.');
+            throw new context.CancelError('The store has no abandoned checkouts yet. Start a checkout in the online store and leave it before paying.');
         }
-        return context.sendJson(checkout, 'checkout');
+        return context.sendJson(checkout, 'out');
     }
 };

@@ -1,0 +1,430 @@
+{
+    "name": "E2E AI Groq - prompt",
+    "description": "End-to-end test for the Groq module of the AI connector — Send Prompt: the answer/prompt contract fields and conversation memory across two prompts that share a Conversation ID.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "95058f81-548f-4fe6-a45a-8c582afda0fd": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a470ed00-67a2-49ab-8874-2f6fd3e2b3d1": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "95058f81-548f-4fe6-a45a-8c582afda0fd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "95058f81-548f-4fe6-a45a-8c582afda0fd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {
+                                        "8de97729-a3e4-468f-a0f6-fa7e66f49bf3": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "answerToken",
+                                                "text": "APPMIXER-E2E-GROQ"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "model",
+                                                "text": "openai/gpt-oss-120b"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "conversationId",
+                                                "text": "groq-e2e-{{{8de97729-a3e4-468f-a0f6-fa7e66f49bf3}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7a275484-6629-4230-a184-686145c3c3c1": {
+            "type": "appmixer.ai.groq.SendPrompt",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a470ed00-67a2-49ab-8874-2f6fd3e2b3d1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a470ed00-67a2-49ab-8874-2f6fd3e2b3d1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "prompt": {
+                                        "e084136c-f951-424a-a697-433a0d0a7ac8": {
+                                            "variable": "$.a470ed00-67a2-49ab-8874-2f6fd3e2b3d1.out.answerToken",
+                                            "functions": []
+                                        }
+                                    },
+                                    "instructions": {},
+                                    "model": {
+                                        "24af9033-26f9-4dee-8be6-db9e7e2793da": {
+                                            "variable": "$.a470ed00-67a2-49ab-8874-2f6fd3e2b3d1.out.model",
+                                            "functions": []
+                                        }
+                                    },
+                                    "conversationId": {
+                                        "8577a1c3-3f2c-41a3-a01e-634c530988cb": {
+                                            "variable": "$.a470ed00-67a2-49ab-8874-2f6fd3e2b3d1.out.conversationId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "temperature": {},
+                                    "maxCompletionTokens": {},
+                                    "topP": {},
+                                    "frequencyPenalty": {},
+                                    "presencePenalty": {}
+                                },
+                                "lambda": {
+                                    "prompt": "Reply with exactly this token and nothing else: {{{e084136c-f951-424a-a697-433a0d0a7ac8}}}",
+                                    "instructions": "You are an automated end-to-end test fixture. Answer with the exact text requested, with no punctuation, quotes or explanation.",
+                                    "model": "{{{24af9033-26f9-4dee-8be6-db9e7e2793da}}}",
+                                    "conversationId": "{{{8577a1c3-3f2c-41a3-a01e-634c530988cb}}}",
+                                    "temperature": 0,
+                                    "maxCompletionTokens": 1000,
+                                    "topP": 1,
+                                    "frequencyPenalty": 0,
+                                    "presencePenalty": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bd0f9de9-6736-468b-a1fa-34053ffa3833": {
+            "type": "appmixer.ai.groq.SendPrompt",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7a275484-6629-4230-a184-686145c3c3c1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a275484-6629-4230-a184-686145c3c3c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "prompt": {},
+                                    "instructions": {},
+                                    "model": {
+                                        "79c2607e-8aab-4453-b0e6-7327e6935f11": {
+                                            "variable": "$.a470ed00-67a2-49ab-8874-2f6fd3e2b3d1.out.model",
+                                            "functions": []
+                                        }
+                                    },
+                                    "conversationId": {
+                                        "2caab214-0907-4b6a-b389-e6d27121f404": {
+                                            "variable": "$.a470ed00-67a2-49ab-8874-2f6fd3e2b3d1.out.conversationId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "temperature": {},
+                                    "maxCompletionTokens": {},
+                                    "topP": {},
+                                    "frequencyPenalty": {},
+                                    "presencePenalty": {}
+                                },
+                                "lambda": {
+                                    "prompt": "What was the exact token you replied with a moment ago? Reply with that token only.",
+                                    "instructions": "You are an automated end-to-end test fixture. Answer with the exact text requested, with no punctuation, quotes or explanation.",
+                                    "model": "{{{79c2607e-8aab-4453-b0e6-7327e6935f11}}}",
+                                    "conversationId": "{{{2caab214-0907-4b6a-b389-e6d27121f404}}}",
+                                    "temperature": 0,
+                                    "maxCompletionTokens": 1000,
+                                    "topP": 1,
+                                    "frequencyPenalty": 0,
+                                    "presencePenalty": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "0a507ae0-c7d3-4539-b52d-b4cadb9d8290": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7a275484-6629-4230-a184-686145c3c3c1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7a275484-6629-4230-a184-686145c3c3c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "247a718d-01fe-44c8-a610-015be16102e0": {
+                                            "variable": "$.7a275484-6629-4230-a184-686145c3c3c1.out.answer",
+                                            "functions": []
+                                        },
+                                        "d786efe5-c545-4213-be21-3d2f7918d3c0": {
+                                            "variable": "$.7a275484-6629-4230-a184-686145c3c3c1.out.prompt",
+                                            "functions": []
+                                        },
+                                        "e8d1c492-e8cc-465d-a3ac-ba7053a4a700": {
+                                            "variable": "$.7a275484-6629-4230-a184-686145c3c3c1.out.id",
+                                            "functions": []
+                                        },
+                                        "7b3ea8e6-631f-4b8f-92af-94567b889e19": {
+                                            "variable": "$.7a275484-6629-4230-a184-686145c3c3c1.out.model",
+                                            "functions": []
+                                        },
+                                        "7ec85dcb-2f5a-409b-b46a-43acc28c2cb4": {
+                                            "variable": "$.7a275484-6629-4230-a184-686145c3c3c1.out.finishReason",
+                                            "functions": []
+                                        },
+                                        "027ea639-a36c-46ce-9cf0-bdf3452a9f78": {
+                                            "variable": "$.7a275484-6629-4230-a184-686145c3c3c1.out.created",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{247a718d-01fe-44c8-a610-015be16102e0}}}",
+                                                "assertion": "regex",
+                                                "regex": "APPMIXER-E2E-GROQ"
+                                            },
+                                            {
+                                                "field": "{{{d786efe5-c545-4213-be21-3d2f7918d3c0}}}",
+                                                "assertion": "regex",
+                                                "regex": "APPMIXER-E2E-GROQ"
+                                            },
+                                            {
+                                                "field": "{{{e8d1c492-e8cc-465d-a3ac-ba7053a4a700}}}",
+                                                "assertion": "regex",
+                                                "regex": "^chatcmpl-"
+                                            },
+                                            {
+                                                "field": "{{{7b3ea8e6-631f-4b8f-92af-94567b889e19}}}",
+                                                "assertion": "equal",
+                                                "expected": "openai/gpt-oss-120b"
+                                            },
+                                            {
+                                                "field": "{{{7ec85dcb-2f5a-409b-b46a-43acc28c2cb4}}}",
+                                                "assertion": "equal",
+                                                "expected": "stop"
+                                            },
+                                            {
+                                                "field": "{{{027ea639-a36c-46ce-9cf0-bdf3452a9f78}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]{10}$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "04eba691-b7ed-4b0c-9a42-702f62d8d4b7": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bd0f9de9-6736-468b-a1fa-34053ffa3833": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bd0f9de9-6736-468b-a1fa-34053ffa3833": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0a5a5498-6a6f-4b5b-af22-50f0c7c18868": {
+                                            "variable": "$.bd0f9de9-6736-468b-a1fa-34053ffa3833.out.answer",
+                                            "functions": []
+                                        },
+                                        "a5b18a7f-2227-425f-a88b-82ed4bebe9bd": {
+                                            "variable": "$.bd0f9de9-6736-468b-a1fa-34053ffa3833.out.id",
+                                            "functions": []
+                                        },
+                                        "c564fd36-354d-4604-a20a-2e16562bcd10": {
+                                            "variable": "$.bd0f9de9-6736-468b-a1fa-34053ffa3833.out.model",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0a5a5498-6a6f-4b5b-af22-50f0c7c18868}}}",
+                                                "assertion": "regex",
+                                                "regex": "APPMIXER-E2E-GROQ"
+                                            },
+                                            {
+                                                "field": "{{{a5b18a7f-2227-425f-a88b-82ed4bebe9bd}}}",
+                                                "assertion": "regex",
+                                                "regex": "^chatcmpl-"
+                                            },
+                                            {
+                                                "field": "{{{c564fd36-354d-4604-a20a-2e16562bcd10}}}",
+                                                "assertion": "equal",
+                                                "expected": "openai/gpt-oss-120b"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6949ff66-293f-4879-a8b2-f74d0b4bc06f": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "0a507ae0-c7d3-4539-b52d-b4cadb9d8290": [
+                        "out"
+                    ],
+                    "04eba691-b7ed-4b0c-9a42-702f62d8d4b7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b75faf81-ff6e-49f5-b857-cf6e18ce8730": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "6949ff66-293f-4879-a8b2-f74d0b4bc06f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "6949ff66-293f-4879-a8b2-f74d0b4bc06f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "b223f56c-a789-4a97-a6e0-fd9be49432ef": {
+                                            "variable": "$.6949ff66-293f-4879-a8b2-f74d0b4bc06f.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E AI Groq - prompt",
+                                    "result": "{{{b223f56c-a789-4a97-a6e0-fd9be49432ef}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

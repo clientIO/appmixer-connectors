@@ -14,11 +14,17 @@ module.exports = {
             channelId,
             text,
             asBot,
-            thread_ts,
-            reply_broadcast,
             username,
             iconUrl
         } = context.messages.message.content;
+        const { threadTs, replyBroadcast } = lib.getThreadInputs(context.messages.message.content);
+
+        if (!channelId) {
+            throw new context.CancelError('Channel is required!');
+        }
+        if (!text) {
+            throw new context.CancelError('Message is required!');
+        }
 
         const options = {};
         if (username) options.username = username;
@@ -29,8 +35,8 @@ module.exports = {
             channelId,
             text,
             asBot,
-            thread_ts,
-            reply_broadcast,
+            threadTs,
+            replyBroadcast,
             options
         );
         return context.sendJson(message, 'newMessage');

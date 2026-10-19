@@ -9,9 +9,12 @@ const commons = require('../lib');
 function buildContact(contact) {
 
     let contactObject = {
-        LastName: contact.lastName,
-        AccountId: contact['accountId']
+        LastName: contact.lastName
     };
+
+    if (contact['accountId']) {
+        contactObject['AccountId'] = contact['accountId'];
+    }
 
     if (contact['reportsTo']) {
         contactObject['ReportsToId'] = contact['reportsTo'];
@@ -77,6 +80,11 @@ function buildContact(contact) {
 module.exports = {
 
     receive(context) {
+
+        const { lastName } = context.messages.contact.content;
+        if (!lastName) {
+            throw new context.CancelError('Last Name is required!');
+        }
 
         const client = commons.getSalesforceAPI(context);
         let contactObject = buildContact(context.messages.contact.content);

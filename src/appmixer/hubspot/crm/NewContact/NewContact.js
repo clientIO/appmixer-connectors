@@ -1,6 +1,7 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
 const { getObjectProperties } = require('../../commons');
+const ITEM_SCHEMA = require('../../item-schemas.json').contact;
 
 const subscriptionType = 'contact.creation';
 
@@ -25,7 +26,9 @@ class NewContact extends BaseSubscriptionComponent {
             });
 
             for (const [contactId] of Object.entries(eventsByObjectId)) {
-                const cacheKey = 'hubspot-contact-created-' + contactId;
+                // Scope the dedupe key per component instance — staticCache is shared across all
+                // instances, so two flows must not consume each other's events.
+                const cacheKey = `hubspot-contact-created-${context.componentId}-${contactId}`;
                 const cached = await context.staticCache.get(cacheKey);
                 if (cached) {
                     continue;
@@ -66,8 +69,12 @@ class NewContact extends BaseSubscriptionComponent {
     async test(context) {
 
         const record = await this.fetchLatestExample(context, 'contacts');
+        if (!record) {
+            throw new context.CancelError('No contact found to use as test data.');
+        }
         return context.sendJson(record, 'contact');
     }
 }
 
 module.exports = new NewContact(subscriptionType);
+module.exports.ITEM_SCHEMA = ITEM_SCHEMA;

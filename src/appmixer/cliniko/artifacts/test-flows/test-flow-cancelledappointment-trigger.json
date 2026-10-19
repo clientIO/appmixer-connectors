@@ -1,0 +1,565 @@
+{
+    "name": "E2E Cliniko - Cancelled Appointment Trigger",
+    "flow": {
+        "4ff04f84-da31-55bf-b5df-ad212d1a72cb": {
+            "type": "appmixer.cliniko.core.CancelledAppointment",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "acbff8a5-6d33-574c-834f-b7641fd45906": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "4ff04f84-da31-55bf-b5df-ad212d1a72cb": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4ff04f84-da31-55bf-b5df-ad212d1a72cb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f0b8c74a-ef66-5301-a1ac-dd3595a896ab": {
+                                            "functions": [],
+                                            "variable": "$.4ff04f84-da31-55bf-b5df-ad212d1a72cb.out.cancelled_at"
+                                        },
+                                        "103f9835-8b79-5fe9-a894-f46c8a5ef8c9": {
+                                            "functions": [],
+                                            "variable": "$.4ff04f84-da31-55bf-b5df-ad212d1a72cb.out.cancellation_reason_description"
+                                        },
+                                        "7319b8ec-6b69-5da6-86ab-c2a71a89354e": {
+                                            "functions": [],
+                                            "variable": "$.4ff04f84-da31-55bf-b5df-ad212d1a72cb.out.patient_id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{f0b8c74a-ef66-5301-a1ac-dd3595a896ab}}}"
+                                            },
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{103f9835-8b79-5fe9-a894-f46c8a5ef8c9}}}",
+                                                "expected": "Other"
+                                            },
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{7319b8ec-6b69-5da6-86ab-c2a71a89354e}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "8bc7e221-ce3c-5842-86dd-74673a9aa2ea": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "acbff8a5-6d33-574c-834f-b7641fd45906": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "30fbcad3-17bd-5c3f-b4de-0767321a02bd": {
+            "type": "appmixer.cliniko.core.ArchivePatient",
+            "x": 688,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "8bc7e221-ce3c-5842-86dd-74673a9aa2ea": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8bc7e221-ce3c-5842-86dd-74673a9aa2ea": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "patientId": {
+                                        "9eccfdc5-1619-5e25-932b-216a7f6902f6": {
+                                            "functions": [],
+                                            "variable": "$.4ff04f84-da31-55bf-b5df-ad212d1a72cb.out.patient_id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "patientId": "{{{9eccfdc5-1619-5e25-932b-216a7f6902f6}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "c311b700-d7f0-5615-8374-6525aa95290e": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "30fbcad3-17bd-5c3f-b4de-0767321a02bd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "30fbcad3-17bd-5c3f-b4de-0767321a02bd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "71355b57-9db1-56e3-ab1a-f1bfe1ac650f": {
+                                            "functions": [],
+                                            "variable": "$.8bc7e221-ce3c-5842-86dd-74673a9aa2ea.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Cliniko - Cancelled Appointment Trigger",
+                                    "result": "{{{71355b57-9db1-56e3-ab1a-f1bfe1ac650f}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "66e9b6fc-3e47-5793-818d-ee9c15073710": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "65996d85-b0e3-534e-9fcb-6ee823452b28": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "66e9b6fc-3e47-5793-818d-ee9c15073710": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "66e9b6fc-3e47-5793-818d-ee9c15073710": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "2m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "fe72b31d-b038-5b8f-84fa-4d8f74a82823": {
+            "type": "appmixer.cliniko.core.CreatePatient",
+            "x": 480,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "65996d85-b0e3-534e-9fcb-6ee823452b28": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "65996d85-b0e3-534e-9fcb-6ee823452b28": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "firstName": {},
+                                    "lastName": {}
+                                },
+                                "lambda": {
+                                    "firstName": "E2E",
+                                    "lastName": "CancelledAppointmentTrigger"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e027928a-8c53-5ce7-b29f-860a2ed985c2": {
+            "type": "appmixer.cliniko.core.ListPractitioners",
+            "x": 688,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "fe72b31d-b038-5b8f-84fa-4d8f74a82823": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fe72b31d-b038-5b8f-84fa-4d8f74a82823": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "09a91021-971c-5594-8fee-065d98eeac89": {
+            "type": "appmixer.cliniko.core.ListBusinesses",
+            "x": 896,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "e027928a-8c53-5ce7-b29f-860a2ed985c2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e027928a-8c53-5ce7-b29f-860a2ed985c2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "cb708b6f-6952-560d-80c2-dd5d82509cd7": {
+            "type": "appmixer.cliniko.core.ListAppointmentTypes",
+            "x": 1104,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "09a91021-971c-5594-8fee-065d98eeac89": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "09a91021-971c-5594-8fee-065d98eeac89": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "32c8ed91-95f5-5314-b077-ff10b9dc9ee1": {
+            "type": "appmixer.cliniko.core.GetNextAvailableTime",
+            "x": 1312,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "cb708b6f-6952-560d-80c2-dd5d82509cd7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cb708b6f-6952-560d-80c2-dd5d82509cd7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "businessId": {
+                                        "cabaedc4-daab-58ba-a9ec-368b7490db2c": {
+                                            "functions": [],
+                                            "variable": "$.09a91021-971c-5594-8fee-065d98eeac89.out.id"
+                                        }
+                                    },
+                                    "practitionerId": {
+                                        "0c02d4d8-de5b-56be-affd-e0b6f3ffa79a": {
+                                            "functions": [],
+                                            "variable": "$.e027928a-8c53-5ce7-b29f-860a2ed985c2.out.id"
+                                        }
+                                    },
+                                    "appointmentTypeId": {
+                                        "6908327a-9f22-54c6-90b7-ce7f28b7a048": {
+                                            "functions": [],
+                                            "variable": "$.cb708b6f-6952-560d-80c2-dd5d82509cd7.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "businessId": "{{{cabaedc4-daab-58ba-a9ec-368b7490db2c}}}",
+                                    "practitionerId": "{{{0c02d4d8-de5b-56be-affd-e0b6f3ffa79a}}}",
+                                    "appointmentTypeId": "{{{6908327a-9f22-54c6-90b7-ce7f28b7a048}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "992a2861-d2e3-542d-8cbd-7ad10d59d031": {
+            "type": "appmixer.cliniko.core.CreateAppointment",
+            "x": 1520,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "32c8ed91-95f5-5314-b077-ff10b9dc9ee1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "32c8ed91-95f5-5314-b077-ff10b9dc9ee1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "businessId": {
+                                        "c96fc927-c393-5e4f-b445-151253f7eb83": {
+                                            "functions": [],
+                                            "variable": "$.09a91021-971c-5594-8fee-065d98eeac89.out.id"
+                                        }
+                                    },
+                                    "practitionerId": {
+                                        "def8dc66-e43b-5615-8f82-b02ac6f4a477": {
+                                            "functions": [],
+                                            "variable": "$.e027928a-8c53-5ce7-b29f-860a2ed985c2.out.id"
+                                        }
+                                    },
+                                    "appointmentTypeId": {
+                                        "4b302319-6f08-55ab-9c15-de311d7e0c9d": {
+                                            "functions": [],
+                                            "variable": "$.cb708b6f-6952-560d-80c2-dd5d82509cd7.out.id"
+                                        }
+                                    },
+                                    "patientId": {
+                                        "94c7c031-7ccf-5397-97fb-16c8e6719fc8": {
+                                            "functions": [],
+                                            "variable": "$.fe72b31d-b038-5b8f-84fa-4d8f74a82823.out.id"
+                                        }
+                                    },
+                                    "startsAt": {
+                                        "a54107f0-3cdd-5a6e-9443-ca939afd9f75": {
+                                            "functions": [],
+                                            "variable": "$.32c8ed91-95f5-5314-b077-ff10b9dc9ee1.out.appointment_start"
+                                        }
+                                    },
+                                    "notes": {}
+                                },
+                                "lambda": {
+                                    "businessId": "{{{c96fc927-c393-5e4f-b445-151253f7eb83}}}",
+                                    "practitionerId": "{{{def8dc66-e43b-5615-8f82-b02ac6f4a477}}}",
+                                    "appointmentTypeId": "{{{4b302319-6f08-55ab-9c15-de311d7e0c9d}}}",
+                                    "patientId": "{{{94c7c031-7ccf-5397-97fb-16c8e6719fc8}}}",
+                                    "startsAt": "{{{a54107f0-3cdd-5a6e-9443-ca939afd9f75}}}",
+                                    "notes": "Booked by an automated end-to-end test."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "312fe29d-0e4d-5249-90b2-608a989adbcc": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 1728,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "992a2861-d2e3-542d-8cbd-7ad10d59d031": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "992a2861-d2e3-542d-8cbd-7ad10d59d031": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "014a46d0-adec-526e-a785-8494e68da06e": {
+            "type": "appmixer.cliniko.core.CancelAppointment",
+            "x": 1936,
+            "y": 576,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "312fe29d-0e4d-5249-90b2-608a989adbcc": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "312fe29d-0e4d-5249-90b2-608a989adbcc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "appointmentId": {
+                                        "e230236c-152f-532f-8187-2df870a0e584": {
+                                            "functions": [],
+                                            "variable": "$.992a2861-d2e3-542d-8cbd-7ad10d59d031.out.id"
+                                        }
+                                    },
+                                    "cancellationReason": {},
+                                    "cancellationNote": {}
+                                },
+                                "lambda": {
+                                    "appointmentId": "{{{e230236c-152f-532f-8187-2df870a0e584}}}",
+                                    "cancellationReason": 50,
+                                    "cancellationNote": "Cancelled by an automated end-to-end test."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

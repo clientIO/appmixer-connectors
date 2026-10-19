@@ -13,6 +13,19 @@ module.exports = {
             attachment
         } = context.messages.in.content;
 
+        if (!tenantId) {
+            throw new context.CancelError('Tenant ID is required!');
+        }
+        if (!invoiceId) {
+            throw new context.CancelError('Invoice ID is required!');
+        }
+        if (!filename) {
+            throw new context.CancelError('File name is required!');
+        }
+        if (!attachment) {
+            throw new context.CancelError('Attachment is required!');
+        }
+
         const data = await context.loadFile(attachment);
 
         const xc = new XeroClient(context, tenantId);

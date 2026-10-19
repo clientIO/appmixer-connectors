@@ -6,6 +6,13 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.file.content.fileId) {
+            throw new context.CancelError('File ID is required!');
+        }
+        if (!context.messages.file.content.filename) {
+            throw new context.CancelError('File name is required!');
+        }
+
         const { fileId, filename, path } = context.messages.file.content;
 
         const fileStream = await context.getFileReadStream(fileId);

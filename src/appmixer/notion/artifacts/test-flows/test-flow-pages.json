@@ -1,0 +1,356 @@
+{
+    "name": "E2E Notion - pages",
+    "description": "End-to-end test for the Notion connector - List Pages and Create Page (parent taken from List Pages).",
+    "flow": {
+        "21252278-1f66-493b-9df1-c00cd0fc4c44": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9c2db2fa-3a73-4e77-9691-1b7a071850c1": {
+            "type": "appmixer.notion.core.ListPages",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "21252278-1f66-493b-9df1-c00cd0fc4c44": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "21252278-1f66-493b-9df1-c00cd0fc4c44": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "458ac52e-1274-4e3b-a6e5-3d963338f71c": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9c2db2fa-3a73-4e77-9691-1b7a071850c1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c2db2fa-3a73-4e77-9691-1b7a071850c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6093bc68-e055-4bb3-87dc-b66a84b3ef0f": {
+                                            "variable": "$.9c2db2fa-3a73-4e77-9691-1b7a071850c1.out.id",
+                                            "functions": []
+                                        },
+                                        "edba31d8-085f-40e1-b750-dcee38582ea5": {
+                                            "variable": "$.9c2db2fa-3a73-4e77-9691-1b7a071850c1.out.title",
+                                            "functions": []
+                                        },
+                                        "c1d09d62-e21f-4283-b39d-abddcd49ba10": {
+                                            "variable": "$.9c2db2fa-3a73-4e77-9691-1b7a071850c1.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6093bc68-e055-4bb3-87dc-b66a84b3ef0f}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{edba31d8-085f-40e1-b750-dcee38582ea5}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{c1d09d62-e21f-4283-b39d-abddcd49ba10}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "70208a6a-1c99-475a-9b40-e425c3a30a88": {
+            "type": "appmixer.notion.core.CreatePage",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9c2db2fa-3a73-4e77-9691-1b7a071850c1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9c2db2fa-3a73-4e77-9691-1b7a071850c1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "parentId": {
+                                        "50bdea4c-b3a1-44e3-8d6f-efab863fe5aa": {
+                                            "variable": "$.9c2db2fa-3a73-4e77-9691-1b7a071850c1.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "title": {},
+                                    "content": {}
+                                },
+                                "lambda": {
+                                    "parentId": "{{{50bdea4c-b3a1-44e3-8d6f-efab863fe5aa}}}",
+                                    "title": "E2E Test Page",
+                                    "content": "Created by the Appmixer E2E test flow. Safe to delete."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9005b67c-17fd-4e7a-9bee-f2f6f9c0a762": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "70208a6a-1c99-475a-9b40-e425c3a30a88": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "70208a6a-1c99-475a-9b40-e425c3a30a88": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "68071fdf-5f22-4abe-b289-cc5292f0d72b": {
+                                            "variable": "$.70208a6a-1c99-475a-9b40-e425c3a30a88.out.id",
+                                            "functions": []
+                                        },
+                                        "7b130c2b-d307-4d68-adc1-24aa5be38470": {
+                                            "variable": "$.70208a6a-1c99-475a-9b40-e425c3a30a88.out.object",
+                                            "functions": []
+                                        },
+                                        "57e63070-b2f5-430a-9ccf-e732134291be": {
+                                            "variable": "$.70208a6a-1c99-475a-9b40-e425c3a30a88.out.parent",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.page_id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "c4773c44-d964-4042-aaff-78fe1584f3f3": {
+                                            "variable": "$.9c2db2fa-3a73-4e77-9691-1b7a071850c1.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{68071fdf-5f22-4abe-b289-cc5292f0d72b}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{7b130c2b-d307-4d68-adc1-24aa5be38470}}}",
+                                                "assertion": "equal",
+                                                "expected": "page"
+                                            },
+                                            {
+                                                "field": "{{{57e63070-b2f5-430a-9ccf-e732134291be}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{c4773c44-d964-4042-aaff-78fe1584f3f3}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "061b3d4d-240b-49db-b8d7-4d6225e36d36": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "458ac52e-1274-4e3b-a6e5-3d963338f71c": [
+                        "out"
+                    ],
+                    "9005b67c-17fd-4e7a-9bee-f2f6f9c0a762": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a001923f-bd87-4498-a65e-903458b611dc": {
+            "type": "appmixer.notion.core.MakeApiCall",
+            "x": 1312,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "061b3d4d-240b-49db-b8d7-4d6225e36d36": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "061b3d4d-240b-49db-b8d7-4d6225e36d36": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "fa7fa1e9-02ea-41da-9cc2-e68b2e0a7b77": {
+                                            "variable": "$.70208a6a-1c99-475a-9b40-e425c3a30a88.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/pages/{{{fa7fa1e9-02ea-41da-9cc2-e68b2e0a7b77}}}",
+                                    "method": "PATCH",
+                                    "body": "{\"archived\": true}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fc2a281d-c7d0-47d5-ab98-f4c63c0f8ad7": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 144,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "a001923f-bd87-4498-a65e-903458b611dc": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a001923f-bd87-4498-a65e-903458b611dc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "6cd607d4-2d23-4258-a7df-3f4ad889a927": {
+                                            "variable": "$.061b3d4d-240b-49db-b8d7-4d6225e36d36.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Notion - pages",
+                                    "result": "{{{6cd607d4-2d23-4258-a7df-3f4ad889a927}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "4ae0e4e3-0df3-4164-965c-c6974cc13513": {
+            "x": 64,
+            "y": 288,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ Test data assumption\n\nThe Notion integration sees only the pages that were shared with it when the account was connected.\n\n1. Connect the Notion account and, in the page picker of the consent screen, share at least one page.\n2. **List Pages** returns the most recently edited shared page; **Create Page** creates a child page under it.\n3. The cleanup step archives the created page (`PATCH /pages/{id}` with `archived: true`).\n\nWith no shared page List Pages fails with \"No records available for first output type\"."
+        }
+    }
+}

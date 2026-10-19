@@ -1,0 +1,202 @@
+{
+    "name": "E2E Requesty - List Models",
+    "flow": {
+        "32e5e523-17fa-4b62-b35c-fb0ae019c08a": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 208,
+            "y": 320,
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4bdef88d-9e0f-41cc-96c5-decad6e161e8": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 400,
+            "y": 320,
+            "source": {
+                "in": {
+                    "32e5e523-17fa-4b62-b35c-fb0ae019c08a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "32e5e523-17fa-4b62-b35c-fb0ae019c08a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "outputType",
+                                                "text": "first"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3b3de042-f44d-4526-82f0-5ebc5d82e946": {
+            "type": "appmixer.ai.requesty.ListModels",
+            "x": 592,
+            "y": 320,
+            "source": {
+                "in": {
+                    "4bdef88d-9e0f-41cc-96c5-decad6e161e8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4bdef88d-9e0f-41cc-96c5-decad6e161e8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c9d87b29-d58f-4281-a968-e731981ff4a8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 784,
+            "y": 448,
+            "source": {
+                "in": {
+                    "3b3de042-f44d-4526-82f0-5ebc5d82e946": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3b3de042-f44d-4526-82f0-5ebc5d82e946": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "var-id": {
+                                            "functions": [],
+                                            "variable": "$.3b3de042-f44d-4526-82f0-5ebc5d82e946.out.id"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "notEmpty",
+                                                "field": "{{{var-id}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bbb288fa-836b-4d4d-bff6-724d5c3d70fd": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 976,
+            "y": 448,
+            "source": {
+                "in": {
+                    "c9d87b29-d58f-4281-a968-e731981ff4a8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "94610f95-4804-4881-9319-2802354eaa93": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1168,
+            "y": 448,
+            "source": {
+                "in": {
+                    "bbb288fa-836b-4d4d-bff6-724d5c3d70fd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "bbb288fa-836b-4d4d-bff6-724d5c3d70fd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "result-var": {
+                                            "functions": [],
+                                            "variable": "$.bbb288fa-836b-4d4d-bff6-724d5c3d70fd.out"
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Requesty - List Models",
+                                    "result": "{{{result-var}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {},
+    "wizard": {
+        "fields": []
+    }
+}

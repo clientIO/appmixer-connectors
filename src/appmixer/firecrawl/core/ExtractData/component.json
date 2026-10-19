@@ -1,0 +1,108 @@
+{
+    "name": "appmixer.firecrawl.core.ExtractData",
+    "label": "Extract Data",
+    "description": "Extract structured data from one or more URLs using an LLM prompt and/or a JSON schema. By default the component waits for the extraction to finish and returns the extracted data; turn off waiting to only get the job ID and fetch results later with Get Extract Status.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:firecrawl"
+    },
+    "quota": {
+        "manager": "appmixer:firecrawl",
+        "resources": "jobs",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "urls": { "type": "string" },
+                    "prompt": { "type": "string" },
+                    "schema": { "type": "string" },
+                    "enableWebSearch": { "type": "boolean" },
+                    "wait": { "type": "boolean" },
+                    "pollingTimeout": { "type": "number" }
+                },
+                "required": ["urls"]
+            },
+            "inspector": {
+                "inputs": {
+                    "urls": {
+                        "type": "textarea",
+                        "index": 0,
+                        "label": "URLs",
+                        "tooltip": "One or more URLs to extract data from, separated by commas or new lines. Append <code>/*</code> to a URL to extract from the whole site, e.g. <code>https://example.com/*</code>."
+                    },
+                    "prompt": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "Prompt",
+                        "tooltip": "Natural language description of the data to extract, e.g. <i>Extract the product name, price and availability</i>. Provide a prompt, a JSON schema, or both."
+                    },
+                    "schema": {
+                        "type": "textarea",
+                        "index": 2,
+                        "label": "JSON Schema",
+                        "tooltip": "Optional JSON Schema describing the structure of the extracted data, e.g. <code>{\"type\":\"object\",\"properties\":{\"price\":{\"type\":\"number\"}}}</code>. Provide a prompt, a JSON schema, or both."
+                    },
+                    "enableWebSearch": {
+                        "type": "toggle",
+                        "index": 3,
+                        "label": "Enable Web Search",
+                        "defaultValue": false,
+                        "tooltip": "Allow the extraction to follow links outside the provided URLs to gather additional data."
+                    },
+                    "wait": {
+                        "type": "toggle",
+                        "index": 4,
+                        "label": "Wait For Completion",
+                        "defaultValue": true,
+                        "tooltip": "Wait for the extraction to finish and return the extracted data. When off, the component returns the job ID immediately; use Get Extract Status to fetch the result later."
+                    },
+                    "pollingTimeout": {
+                        "type": "number",
+                        "index": 5,
+                        "label": "Polling Timeout (seconds)",
+                        "defaultValue": 600,
+                        "tooltip": "How long to wait for the extraction to finish before giving up. Defaults to 600 seconds (10 minutes). Only applies when waiting for completion."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "jobId": {
+                        "type": "string",
+                        "title": "Job ID",
+                        "example": "7c1d9e3a-2f4b-4a8c-b5e6-0d9f2a7b4c8e"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "example": "completed"
+                    },
+                    "data": {
+                        "type": "object",
+                        "title": "Extracted Data",
+                        "example": { "productName": "Acme Anvil", "price": 49.99 }
+                    },
+                    "tokensUsed": {
+                        "type": "number",
+                        "title": "Tokens Used",
+                        "example": 1730
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkZpcmVjcmF3bCI+PHBhdGggZmlsbD0iI0ZBNUQxOSIgZD0iTTI0IDJjMi4yIDYuOS0uNiAxMC4zLTQuNiAxNC4zQzE1LjIgMjAuNSAxMiAyNC45IDEyIDMwLjQgMTIgMzkuMSAxNy40IDQ2IDI0IDQ2czEyLTYuOSAxMi0xNS42YzAtNC4zLTEuNi04LjMtNC0xMS42LTEuMyAyLjMtMi43IDMuNy00LjUgNC42LjktNi43LS44LTE0LjctMy41LTIxLjR6Ii8+PHBhdGggZmlsbD0iI0ZGQzEwNyIgZD0iTTI0IDQ2Yy0zLjkgMC03LTMuNi03LTggMC0zLjQgMS43LTUuOSA0LTggMS42LTEuNSAyLjctMyAzLTUgMi4zIDIuNiA3IDYuNyA3IDEzIDAgNC40LTMuMSA4LTcgOHoiLz48L3N2Zz4="
+}

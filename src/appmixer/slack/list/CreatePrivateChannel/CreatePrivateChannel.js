@@ -10,6 +10,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.channel.content.name) {
+            throw new context.CancelError('Channel name is required!');
+        }
+
         let channel = context.messages.channel.content;
         const web = new WebClient(context.auth.accessToken);
 

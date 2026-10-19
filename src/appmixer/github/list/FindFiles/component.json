@@ -1,0 +1,151 @@
+{
+    "name": "appmixer.github.list.FindFiles",
+    "label": "Find Files",
+    "author": "Appmixer <info@appmixer.com>",
+    "icon": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyMi4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjxzdmcgdmVyc2lvbj0iMS4yIiBiYXNlUHJvZmlsZT0idGlueSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiDQoJIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMjM1MCAyMzE0LjgiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHBhdGggZD0iTTExNzUsMEM1MjUuOCwwLDAsNTI1LjgsMCwxMTc1YzAsNTUyLjIsMzc4LjksMTAxMC41LDg5MC4xLDExMzkuN2MtNS45LTE0LjctOC44LTM1LjMtOC44LTU1Ljh2LTE5OS44SDczNC40DQoJYy03OS4zLDAtMTUyLjgtMzUuMi0xODUuMS05OS45Yy0zOC4yLTcwLjUtNDQuMS0xNzkuMi0xNDEtMjQ2LjhjLTI5LjQtMjMuNS01LjktNDcsMjYuNC00NC4xYzYxLjcsMTcuNiwxMTEuNiw1OC44LDE1OC42LDEyMC40DQoJYzQ3LDYxLjcsNjcuNiw3Ni40LDE1NS43LDc2LjRjNDEuMSwwLDEwNS43LTIuOSwxNjQuNS0xMS44YzMyLjMtODIuMyw4OC4xLTE1NS43LDE1NS43LTE5MC45Yy0zOTMuNi00Ny01ODEuNi0yNDAuOS01ODEuNi01MDUuMw0KCWMwLTExNC42LDQ5LjktMjIzLjMsMTMyLjItMzE3LjNjLTI2LjQtOTEuMS02MS43LTI3OS4xLDExLjgtMzUyLjVjMTc2LjMsMCwyODIsMTE0LjYsMzA4LjQsMTQzLjljODguMS0yOS40LDE4NS4xLTQ3LDI4NC45LTQ3DQoJYzEwMi44LDAsMTk2LjgsMTcuNiwyODQuOSw0N2MyNi40LTI5LjQsMTMyLjItMTQzLjksMzA4LjQtMTQzLjljNzAuNSw3MC41LDM4LjIsMjYxLjQsOC44LDM1Mi41YzgyLjMsOTEuMSwxMjkuMywyMDIuNywxMjkuMywzMTcuMw0KCWMwLDI2NC40LTE4NS4xLDQ1OC4zLTU3NS43LDQ5OS40YzEwOC43LDU1LjgsMTg1LjEsMjE0LjQsMTg1LjEsMzMxLjlWMjI1NmMwLDguOC0yLjksMTcuNi0yLjksMjYuNA0KCUMyMDIxLDIxMjMuOCwyMzUwLDE2ODkuMSwyMzUwLDExNzVDMjM1MCw1MjUuOCwxODI0LjIsMCwxMTc1LDBMMTE3NSwweiIvPg0KPC9zdmc+DQo=",
+    "description": "Finds files in a repository by name, optionally under a path, at a branch, tag or commit. Reads the whole tree in one request, so it also finds files the search index does not cover, e.g. on a pull request head. Use `*` in the name as a wildcard (`*.json`).",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:github",
+        "scope": [
+            "user",
+            "public_repo",
+            "repo",
+            "notifications",
+            "gist"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:github",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "repositoryId": {
+                        "type": "string",
+                        "description": "Repository as owner/repo or its GitHub URL."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "File name to find; * matches any characters, e.g. *.json."
+                    },
+                    "path": {
+                        "type": "string",
+                        "description": "Only files under this directory."
+                    },
+                    "ref": {
+                        "type": "string",
+                        "description": "Branch, tag or commit SHA. Defaults to the default branch."
+                    },
+                    "outputType": {
+                        "type": "string",
+                        "enum": [
+                            "array",
+                            "first",
+                            "object",
+                            "file"
+                        ]
+                    }
+                },
+                "required": [
+                    "repositoryId",
+                    "name",
+                    "outputType"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "repositoryId": {
+                        "type": "text",
+                        "group": "config",
+                        "label": "Repository",
+                        "index": 1,
+                        "tooltip": "The repository, in owner/repo format (e.g. octo-org/octo-repo) or as its GitHub URL."
+                    },
+                    "name": {
+                        "type": "text",
+                        "group": "config",
+                        "label": "File Name",
+                        "index": 2,
+                        "tooltip": "The file name to find, e.g. bundle.json. Use * as a wildcard: *.json finds every JSON file. The name is matched against the file name only, not the path."
+                    },
+                    "path": {
+                        "type": "text",
+                        "group": "config",
+                        "label": "Path",
+                        "index": 3,
+                        "tooltip": "Only look under this directory, e.g. src/connectors. Leave empty to search the whole repository."
+                    },
+                    "ref": {
+                        "type": "text",
+                        "group": "config",
+                        "label": "Branch, Tag or Commit",
+                        "index": 4,
+                        "tooltip": "Where to look: a branch name, a tag or a commit SHA. A pull request head SHA works too, even when it comes from a fork. Leave empty for the default branch."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "group": "config",
+                        "label": "Output Type",
+                        "index": 5,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, or first file only or one file at a time or stream the files to a file.",
+                        "options": [
+                            {
+                                "label": "First File Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All files at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One file at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                },
+                "groups": {
+                    "config": {
+                        "label": "Configuration",
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/github/list/FindFiles?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/outputType": "inputs/in/outputType",
+                        "in/repositoryId": "dummy",
+                        "in/name": "dummy"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ]
+}
