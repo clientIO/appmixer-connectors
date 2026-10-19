@@ -134,8 +134,8 @@ The dispatcher of the status-driven connector pipeline
 step 1 in [#2916](https://github.com/Appmixer-ai/appmixer-components/issues/2916)). A Status
 change of a card on the [@appmixer-connectors](https://github.com/orgs/Appmixer-ai/projects/7)
 project is resolved to the card's issue, pull request, connector and branch and recorded in one
-comment on the item. The pipeline stages (Testing, Review, Doc&Verification, Needs input) will hang
-on this flow; this version starts nothing else.
+comment on the item. A card moved to **Testing** with a pull request also starts the Testing stage on
+the OpenClaw host (`/hooks/vero-testing`, see `.github/openclaw/vero-testing/README.md`).
 
 ### Shape
 
@@ -172,6 +172,74 @@ exists independently of the instance.
   webhook's Recent Deliveries).
 - **A move with no comment** — look at the instance's runs on `/ops`: `Resolved` is false for
   draft issues, `New run` is false for a redelivery.
+
+## pipeline-stage-result.json
+
+Counterpart of the dispatcher for the pipeline stages that run elsewhere. The Testing runner on the
+OpenClaw host (`.github/openclaw/vero-testing/`) posts its result to this integration's webhook
+(`WebhookTrigger`; the URL lives root-only on the host and is the credential).
+
+### Shape
+
+`Webhook Trigger` → `Code Block` (validates the payload) → `Condition` → `Make API Call` (the item's
+comments) → `Code Block` (rewrites the pipeline comment with the same renderer as the dispatcher and
+decides the next status from the stage and the pipeline state: Testing passed → Review, failed on code
+on a PR vero may push to → In Progress + the fix stage, at most 3 rounds, then Needs input; blocked →
+Needs input; Doc&Verification blocked → Needs input; Fix pushed → Testing) → `Make API Call` (write) →
+`Condition` → `Update Project Item Field` (Status), and in parallel `Condition` → `HTTP Post`
+(`/hooks/vero-fix`, see `.github/openclaw/vero-fix/README.md`).
+
+The card moves only after the comment is written, so the dispatcher, which records the move, reads a
+comment that already carries the result.
+
+### Setup
+
+The wizard asks for one GitHub account: the dispatcher's (it has to edit the comment the dispatcher
+created) with `repo` and `project`.
+
+## pre-release-checklist.json
+
+The **Pre-release** stage. The dispatcher calls this integration's webhook when a card moves to
+Pre-release; it checks whether the PR can be released and reports to `pipeline-stage-result.json`
+(stage `Pre-release`): everything green → the card stays for the merge, anything missing → Needs input
+with the list in the pipeline comment.
+
+### Shape
+
+`Webhook Trigger` → `Code Block` (validates the request, builds the GraphQL query) → `Condition` →
+`Make API Call` (`POST /graphql`: merge state, CI checks of the head, review threads, closing issues,
+changed files, and the pipeline comment of the item) → `Code Block` (the directories above the changed
+files) → `Make API Call` (`POST /graphql`: their `bundle.json` at the head, on the base branch and on
+`appmixer-components` master) → `Code Block` **Checklist** → Claude `AI Agent` **Design review** →
+`Code Block` (joins the checklist and the review) → `HTTP Post` (stage result).
+
+The checklist, blocking unless noted:
+
+- the PR is open and not a draft, has no merge conflict, and is up to date with its base (warning only);
+- Node.js CI (`build`: lint, validator, unit tests) is green on the head;
+- every review thread is resolved;
+- the PR closes the item's issue;
+- per changed connector: a changelog entry for the version, one bump over the base branch (which may
+  carry unreleased versions of other PRs), and a version above the release;
+- the pipeline comment shows Testing passed on the current head (the E2E report);
+- Doc&Verification passed or left a docs PR.
+
+The design review is the Claude AI Agent with two tools on its `tool` port: **Read a file** (`HTTP Get`,
+the model passes a raw URL of the public repository, so no credential leaves the flow) and **Diff of
+the pull request** (GitHub `Make API Call` whose URL is fixed by the PR number from the checklist; the
+model fills nothing). Its instructions list the component design rules; it answers
+`{"verdict": "ok" | "concerns", "notes": [...]}`.
+
+### Setup
+
+The wizard asks for a GitHub account (`repo`, `read:org`), an Anthropic Claude account and the webhook
+URL of `pipeline-stage-result.json`. The dispatcher's wizard then gets this integration's webhook URL
+(`Pre-release flow URL`). Both URLs are credentials. The Claude agent needs `ai.claude` 1.3.0 (the
+`tool` port).
+
+Publish the template only once `ai.claude` 1.3.0 is installed on the instance: saving a flow drops the
+links to an out port the installed component does not have, so the tools end up unconnected and the
+agent starts with no tools (its log says `component-tools` count 0).
 
 ## Publishing as integrations
 
