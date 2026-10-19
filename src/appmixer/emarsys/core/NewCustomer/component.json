@@ -1,0 +1,111 @@
+{
+    "name": "appmixer.emarsys.core.NewCustomer",
+    "label": "New Customer",
+    "description": "Fires when Emarsys posts a newly signed-up contact to the webhook URL. Emarsys has no API to register webhooks, so copy the Webhook URL below into an Automation Center webhook node preset and run it from an audience-based program with the 'New Contact' entry point.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "webhook": true,
+    "auth": {
+        "service": "appmixer:emarsys"
+    },
+    "quota": {
+        "manager": "appmixer:emarsys",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "webhookUrl": {},
+                "enrich": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "inspector": {
+            "inputs": {
+                "webhookUrl": {
+                    "source": {
+                        "url": "/component/appmixer/emarsys/core/NewCustomer?outPort=out",
+                        "data": {
+                            "properties": {
+                                "generateInspector": true
+                            }
+                        }
+                    }
+                },
+                "enrich": {
+                    "type": "toggle",
+                    "index": 1,
+                    "label": "Load All Contact Fields",
+                    "tooltip": "A webhook node preset can carry at most 20 contact fields. Turn this on to also read every field of the contact through the Core API and emit them as Contact Fields. Needs the <code>contact.getdata</code> and <code>field.list</code> permissions, and the preset must send the contact ID as <code>contact_id</code>."
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "contactId": {
+                        "type": "string",
+                        "title": "Contact ID",
+                        "example": "2451"
+                    },
+                    "email": {
+                        "type": "string",
+                        "title": "Email",
+                        "example": "jane.doe@example.com"
+                    },
+                    "deduplicationId": {
+                        "type": "string",
+                        "title": "Deduplication ID",
+                        "example": "8f1d2e3a-4b5c-6d7e-8f90-a1b2c3d4e5f6"
+                    },
+                    "programId": {
+                        "type": "string",
+                        "title": "Program ID",
+                        "example": "1021"
+                    },
+                    "eventTime": {
+                        "type": "string",
+                        "title": "Event Time",
+                        "example": "2026-09-18T09:41:03Z"
+                    },
+                    "eventData": {
+                        "type": "object",
+                        "title": "Event Data",
+                        "example": {}
+                    },
+                    "contact": {
+                        "type": "object",
+                        "title": "Contact",
+                        "example": {
+                            "contact_id": "2451",
+                            "email": "jane.doe@example.com",
+                            "first_name": "Jane"
+                        }
+                    },
+                    "contactFields": {
+                        "type": "object",
+                        "title": "Contact Fields",
+                        "example": {
+                            "id": "2451",
+                            "uid": "CMLOReArrR",
+                            "email": "jane.doe@example.com",
+                            "first_name": "Jane",
+                            "last_name": "Doe",
+                            "opt_in": "1"
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iIzBBNkVEMSIvPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPHBhdGggZD0iTTQ4LjUgMzJBMTYuNSAxNi41IDAgMSAwIDQzLjcgNDMuNyIvPgogICAgPHBhdGggZD0iTTE3LjUgMzJINDguNSIvPgogIDwvZz4KPC9zdmc+Cg=="
+}

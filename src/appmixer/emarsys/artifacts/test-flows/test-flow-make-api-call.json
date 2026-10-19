@@ -1,0 +1,196 @@
+{
+    "name": "E2E SAP Emarsys - Make API Call",
+    "description": "End-to-end test for the SAP Emarsys connector - calls the Core API v3 /settings endpoint directly.",
+    "notes": {
+        "626fded7-938b-494c-a166-8bef52717b38": {
+            "x": 64,
+            "y": 32,
+            "width": 928,
+            "height": 208,
+            "content": "## ⚠️ Emarsys API credential setup\n\nEvery endpoint permission of an Emarsys API credential is **disabled by default**.\nThis flow calls `GET https://api.emarsys.net/api/v3/settings`, which needs the\n`customer.settings` permission (Emarsys > Management > Security Settings > API Credentials).\n\nThe endpoint is read-only and needs no test data - it returns the account settings of the\ncredential itself, wrapped in the usual `{ replyCode, replyText, data }` envelope."
+        }
+    },
+    "flow": {
+        "077a7c4b-e4bb-4416-a75c-8d6b2a8a9504": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e2925b54-1824-4fe6-927d-61b7f0c43e7c": {
+            "type": "appmixer.emarsys.core.MakeApiCall",
+            "x": 272,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "077a7c4b-e4bb-4416-a75c-8d6b2a8a9504": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "077a7c4b-e4bb-4416-a75c-8d6b2a8a9504": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "headers": {}
+                                },
+                                "lambda": {
+                                    "url": "/settings",
+                                    "method": "GET",
+                                    "headers": "[{\"key\": \"Accept\", \"value\": \"application/json\"}]"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a141ca37-86d2-490c-afd9-4c74d15f29e8": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e2925b54-1824-4fe6-927d-61b7f0c43e7c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2925b54-1824-4fe6-927d-61b7f0c43e7c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0c5706d3-e14e-4ac7-8ffa-29778300e3f4": {
+                                            "variable": "$.e2925b54-1824-4fe6-927d-61b7f0c43e7c.out.status",
+                                            "functions": []
+                                        },
+                                        "d2029a37-980b-417e-8784-ba45fa39058c": {
+                                            "variable": "$.e2925b54-1824-4fe6-927d-61b7f0c43e7c.out.body",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.replyCode"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0c5706d3-e14e-4ac7-8ffa-29778300e3f4}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            },
+                                            {
+                                                "field": "{{{d2029a37-980b-417e-8784-ba45fa39058c}}}",
+                                                "assertion": "equal",
+                                                "expected": "0"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a5d1f383-72fa-421b-ae44-9b021b810b94": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a141ca37-86d2-490c-afd9-4c74d15f29e8": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fa679d94-f110-4be6-b8cc-a9b7c64ea631": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "a5d1f383-72fa-421b-ae44-9b021b810b94": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a5d1f383-72fa-421b-ae44-9b021b810b94": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "124ddd5b-541d-422a-a649-7552d2051550": {
+                                            "variable": "$.a5d1f383-72fa-421b-ae44-9b021b810b94.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E SAP Emarsys - Make API Call",
+                                    "result": "{{{124ddd5b-541d-422a-a649-7552d2051550}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

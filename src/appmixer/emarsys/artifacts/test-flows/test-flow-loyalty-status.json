@@ -1,0 +1,223 @@
+{
+    "name": "E2E SAP Emarsys - Loyalty Status",
+    "description": "End-to-end test for the SAP Emarsys connector - reads the Emarsys Loyalty record of a contact.",
+    "notes": {
+        "3cad9f52-af02-4e58-b8f2-2cc1a3b5acaf": {
+            "x": 64,
+            "y": 32,
+            "width": 928,
+            "height": 208,
+            "content": "## ⚠️ Test data assumption - Loyalty is a separate product\n\nEmarsys Loyalty runs on its own host with its own credential; the Core API Client Secret does\nnot work there and the connector cannot create the data this flow reads.\n\n1. Fill **Loyalty API Key** on the connected Emarsys account (Emarsys > Loyalty Configuration >\n   API Key) - it is not the Core API Client Secret.\n2. The loyalty plan must already be **launched**.\n3. Open the **Set Variable** node and set `loyaltyContactId` to the **externalId** of a contact\n   that is enrolled in the plan (the identifier used in the Smart Insight sales data upload,\n   typically the e-mail address or the shop customer ID) - not the internal Emarsys contact ID.\n\nA contact with no loyalty record leaves through `notFound` and the flow stalls until AfterAll times out."
+        }
+    },
+    "flow": {
+        "2cc8fc46-8c6e-4956-9aee-ec7894e3da70": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bac7f12d-7d8f-48cf-b3e6-0e9204024399": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2cc8fc46-8c6e-4956-9aee-ec7894e3da70": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2cc8fc46-8c6e-4956-9aee-ec7894e3da70": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "loyaltyContactId",
+                                                "text": "e2e.contact@appmixer.ai"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "9e205c12-0e00-4f50-a9ee-cfdd1a12b59f": {
+            "type": "appmixer.emarsys.core.GetLoyaltyStatus",
+            "x": 480,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bac7f12d-7d8f-48cf-b3e6-0e9204024399": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bac7f12d-7d8f-48cf-b3e6-0e9204024399": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "contactId": {
+                                        "011fccdb-e081-424d-8ea2-e708fae8f491": {
+                                            "variable": "$.bac7f12d-7d8f-48cf-b3e6-0e9204024399.out.loyaltyContactId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "language": {},
+                                    "withPointsAllocations": {},
+                                    "withTierExpiration": {}
+                                },
+                                "lambda": {
+                                    "contactId": "{{{011fccdb-e081-424d-8ea2-e708fae8f491}}}",
+                                    "language": "en",
+                                    "withPointsAllocations": true,
+                                    "withTierExpiration": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c29f0dee-5299-412e-bc5d-7630fe609b19": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9e205c12-0e00-4f50-a9ee-cfdd1a12b59f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9e205c12-0e00-4f50-a9ee-cfdd1a12b59f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "79c20a28-e142-497f-a135-15d279de1ec6": {
+                                            "variable": "$.9e205c12-0e00-4f50-a9ee-cfdd1a12b59f.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{79c20a28-e142-497f-a135-15d279de1ec6}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "be8aae24-6e86-42ae-8b91-c9e9abe7fc2b": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c29f0dee-5299-412e-bc5d-7630fe609b19": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "597099b3-ee65-4a44-a790-e5f0ffdff938": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "be8aae24-6e86-42ae-8b91-c9e9abe7fc2b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "be8aae24-6e86-42ae-8b91-c9e9abe7fc2b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "94e783b4-05e1-4576-bd56-d19460120812": {
+                                            "variable": "$.be8aae24-6e86-42ae-8b91-c9e9abe7fc2b.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E SAP Emarsys - Loyalty Status",
+                                    "result": "{{{94e783b4-05e1-4576-bd56-d19460120812}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

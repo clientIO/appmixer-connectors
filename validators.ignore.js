@@ -378,6 +378,12 @@ module.exports = [
     {
         validator: 'dynamic-outport-required-inputs',
         messageIncludes: 'missing "ignoreAuth=true"',
+        paths: ['emarsys/core/FindContacts/component.json'],
+        reason: 'Emarsys keys contact data by numeric field id and most of a contact lives in fields the customer defined, so the out port builds its options from a live GET /field/translate/{lang} (lib.getFields, which reads context.auth.token). With ignoreAuth=true that call would always be unauthenticated and the picker would silently fall back to the six system fields, hiding every custom field — exactly what the dynamic port exists to expose.'
+    },
+    {
+        validator: 'dynamic-outport-required-inputs',
+        messageIncludes: 'missing "ignoreAuth=true"',
         paths: ['hubbi/core/NewHubEvent/component.json'],
         reason: 'NewHubEvent builds its output-port options from the hub\'s actual target fields: the generateOutputPortOptions branch calls lib.getFields(context, ENDPOINTS.targetFields, conversionKey), a live HubBI request that reads context.auth. Adding ignoreAuth=true would send that call unauthenticated and the picker would fail rather than degrade. Unlike the connector\'s List helpers, whose options come from a static schema, this source cannot be made auth-free.'
     }

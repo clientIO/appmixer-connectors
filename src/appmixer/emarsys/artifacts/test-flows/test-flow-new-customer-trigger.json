@@ -1,0 +1,197 @@
+{
+    "name": "E2E SAP Emarsys - New Customer Trigger",
+    "description": "End-to-end harness for the SAP Emarsys New Customer trigger - the event has to be provoked by hand from an Automation Center program.",
+    "notes": {
+        "8484f30f-3054-434d-bc0f-18792a91c406": {
+            "x": 64,
+            "y": 32,
+            "width": 928,
+            "height": 208,
+            "content": "## ⚠️ Manual provoke required - Emarsys cannot register a webhook through its API\n\nThe only push mechanism Emarsys offers is the Automation Center **Webhook node**, which a human\nconfigures in the Emarsys UI. This flow is therefore a repeatable manual verification harness,\nnot an unattended test.\n\n1. Start the flow, open the **New Customer** node and copy the read-only **Webhook URL**.\n2. In Emarsys go to Automation > Webhook Node Presets and create a preset that POSTs to that URL.\n   Add the contact data keys `contact_id` and `email` to the preset - the Assert checks both.\n3. Build an audience-based program with the **New Contact** entry point, a short wait, and that\n   webhook node, then activate it and let a contact enter it (or send the preset test delivery).\n4. \"Load All Contact Fields\" is on, so the credential also needs `contact.getdata` and `field.list`.\n5. Pause the Emarsys program before you stop this flow, otherwise the program drops into fail-safe\n   mode after repeated delivery failures.\n\nThe OnStart -> Wait lane only keeps the flow busy while you click through Emarsys - do not remove it.\nAfterAll waits 600 s for the delivery."
+        }
+    },
+    "flow": {
+        "21732448-48ce-4055-be68-6596f731df9d": {
+            "type": "appmixer.emarsys.core.NewCustomer",
+            "x": 64,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "enrich": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bfb2d081-512b-42c7-9d5c-d0c58210611e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "21732448-48ce-4055-be68-6596f731df9d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "21732448-48ce-4055-be68-6596f731df9d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "391035df-8d13-411a-a1e1-90dc26575def": {
+                                            "variable": "$.21732448-48ce-4055-be68-6596f731df9d.out.contactId",
+                                            "functions": []
+                                        },
+                                        "b723344b-5def-452b-9fd3-2c5c65761d5f": {
+                                            "variable": "$.21732448-48ce-4055-be68-6596f731df9d.out.email",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{391035df-8d13-411a-a1e1-90dc26575def}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{b723344b-5def-452b-9fd3-2c5c65761d5f}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4cdd4f88-4fa9-4d5e-8762-8e8584185185": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bfb2d081-512b-42c7-9d5c-d0c58210611e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "85677ddc-2c23-4c1a-9b2f-f1378748fa66": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "4cdd4f88-4fa9-4d5e-8762-8e8584185185": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "4cdd4f88-4fa9-4d5e-8762-8e8584185185": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "7a365b3b-4329-468d-8e7f-ae42350e00d8": {
+                                            "variable": "$.4cdd4f88-4fa9-4d5e-8762-8e8584185185.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E SAP Emarsys - New Customer Trigger",
+                                    "result": "{{{7a365b3b-4329-468d-8e7f-ae42350e00d8}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e3526e71-9965-461d-99cc-037ce6949b34": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "64540a1b-e83a-400d-b23d-2e43845ace5f": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e3526e71-9965-461d-99cc-037ce6949b34": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e3526e71-9965-461d-99cc-037ce6949b34": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "9m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -1,0 +1,228 @@
+{
+    "name": "appmixer.emarsys.core.GetLoyaltyStatus",
+    "label": "Get Loyalty Status",
+    "description": "Gets a contact's Emarsys Loyalty information — membership, tier, next tier and points balance. Emarsys Loyalty is a separate API with its own key, so the connected Emarsys account must have the Loyalty API Key filled in, and the loyalty plan must already be launched.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:emarsys"
+    },
+    "quota": {
+        "manager": "appmixer:emarsys",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "contactId": {
+                        "type": "string"
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "withPointsAllocations": {
+                        "type": "boolean"
+                    },
+                    "withTierExpiration": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "contactId"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "contactId": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Contact External ID",
+                        "tooltip": "The contact's <b>externalId</b> — the same identifier you use in your Smart Insight sales data upload, typically the email address or your shop's customer ID. This is <em>not</em> the Emarsys internal contact ID."
+                    },
+                    "language": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Language",
+                        "tooltip": "Optional two-letter language code used to localise tier names, e.g. <code>en</code> or <code>de</code>."
+                    },
+                    "withPointsAllocations": {
+                        "type": "toggle",
+                        "index": 3,
+                        "label": "Include Points Allocations",
+                        "tooltip": "Include the breakdown of how the contact's points were allocated."
+                    },
+                    "withTierExpiration": {
+                        "type": "toggle",
+                        "index": 4,
+                        "label": "Include Tier Expiration",
+                        "tooltip": "Include when the contact's current tier expires."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "title": "Contact ID",
+                        "example": "jane.doe@example.com"
+                    },
+                    "planId": {
+                        "type": "string",
+                        "title": "Plan ID",
+                        "example": "4f1c3a12-9d0e-4d4a-9b2b-2f9a1c7e5d10"
+                    },
+                    "hasJoinedProgram": {
+                        "type": "boolean",
+                        "title": "Has Joined Program",
+                        "example": true
+                    },
+                    "isActive": {
+                        "type": "boolean",
+                        "title": "Is Active",
+                        "example": true
+                    },
+                    "joinDate": {
+                        "type": "integer",
+                        "title": "Join Date (epoch ms)",
+                        "example": 1737024000000
+                    },
+                    "purchases": {
+                        "type": "number",
+                        "title": "Purchases",
+                        "example": 12
+                    },
+                    "tier": {
+                        "type": "object",
+                        "title": "Tier",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Tier.ID",
+                                "example": "a1b2c3d4-0000-1111-2222-333344445555"
+                            },
+                            "name": {
+                                "type": "string",
+                                "title": "Tier.Name",
+                                "example": "Gold"
+                            },
+                            "tierType": {
+                                "type": "string",
+                                "title": "Tier.Type",
+                                "example": "POINTS"
+                            },
+                            "points": {
+                                "type": "number",
+                                "title": "Tier.Points",
+                                "example": 2500
+                            },
+                            "entryAt": {
+                                "type": "integer",
+                                "title": "Tier.Entry At (epoch ms)",
+                                "example": 1737024000000
+                            },
+                            "expireAt": {
+                                "type": "integer",
+                                "title": "Tier.Expire At (epoch ms)",
+                                "example": 1768560000000
+                            }
+                        }
+                    },
+                    "nextTier": {
+                        "type": "object",
+                        "title": "Next Tier",
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "title": "Next Tier.ID",
+                                "example": "b2c3d4e5-0000-1111-2222-333344445555"
+                            },
+                            "name": {
+                                "type": "string",
+                                "title": "Next Tier.Name",
+                                "example": "Platinum"
+                            },
+                            "tierType": {
+                                "type": "string",
+                                "title": "Next Tier.Type",
+                                "example": "POINTS"
+                            },
+                            "points": {
+                                "type": "number",
+                                "title": "Next Tier.Points",
+                                "example": 5000
+                            }
+                        }
+                    },
+                    "points": {
+                        "type": "object",
+                        "title": "Points",
+                        "properties": {
+                            "balance": {
+                                "type": "number",
+                                "title": "Points.Balance",
+                                "example": 3120
+                            },
+                            "pending": {
+                                "type": "number",
+                                "title": "Points.Pending",
+                                "example": 250
+                            },
+                            "status": {
+                                "type": "number",
+                                "title": "Points.Status",
+                                "example": 3370
+                            },
+                            "expiresSoon": {
+                                "type": "number",
+                                "title": "Points.Expires Soon",
+                                "example": 120
+                            },
+                            "cashback": {
+                                "type": "number",
+                                "title": "Points.Cashback",
+                                "example": 31.2
+                            },
+                            "cashbackPending": {
+                                "type": "number",
+                                "title": "Points.Cashback Pending",
+                                "example": 2.5
+                            },
+                            "pointsAllocations": {
+                                "type": "array",
+                                "title": "Points.Points Allocations",
+                                "items": {
+                                    "type": "object"
+                                },
+                                "example": [
+                                    {
+                                        "points": 250,
+                                        "expiresAt": 1768560000000
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iIzBBNkVEMSIvPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPHBhdGggZD0iTTQ4LjUgMzJBMTYuNSAxNi41IDAgMSAwIDQzLjcgNDMuNyIvPgogICAgPHBhdGggZD0iTTE3LjUgMzJINDguNSIvPgogIDwvZz4KPC9zdmc+Cg=="
+}

@@ -1,0 +1,137 @@
+{
+    "name": "appmixer.emarsys.core.FindContacts",
+    "label": "Find Contacts",
+    "description": "Finds Emarsys contacts by an exact match on one contact field and returns their full details. The Emarsys Core API can only filter on indexed columns (id, uid, email and externalId are indexed by default), and it has no search, range or multi-field filtering. Returns up to 10 000 contacts (one page at the maximum page size).",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:emarsys"
+    },
+    "quota": {
+        "manager": "appmixer:emarsys",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "filterField": {
+                        "type": "string"
+                    },
+                    "filterValue": {
+                        "type": "string"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "outputType": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "filterField",
+                    "filterValue"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "filterField": {
+                        "type": "text",
+                        "index": 1,
+                        "label": "Filter Field",
+                        "defaultValue": "3",
+                        "tooltip": "The contact field to match on. Pick from the list or type a field ID directly. Emarsys only filters on <b>indexed</b> columns — id, uid, email (3) and externalId are indexed by default; ask Emarsys support to index a custom field.",
+                        "source": {
+                            "url": "/component/appmixer/emarsys/core/ListFields?outPort=out",
+                            "data": {
+                                "transform": "./ListFields#toSelectArray",
+                                "messages": {
+                                    "in/outputType": "array",
+                                    "in/isSource": true
+                                }
+                            }
+                        }
+                    },
+                    "filterValue": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Filter Value",
+                        "tooltip": "The value the field must equal, e.g. <code>jane.doe@example.com</code>. This is an exact match — Emarsys supports no operators or wildcards here."
+                    },
+                    "fields": {
+                        "type": "multiselect",
+                        "index": 3,
+                        "label": "Fields to Return",
+                        "tooltip": "Which contact fields to include in the result. Leave empty to return every field of the account.",
+                        "source": {
+                            "url": "/component/appmixer/emarsys/core/ListFields?outPort=out",
+                            "data": {
+                                "transform": "./ListFields#toMultiselectArray",
+                                "messages": {
+                                    "in/outputType": "array",
+                                    "in/isSource": true
+                                }
+                            }
+                        }
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "index": 4,
+                        "label": "Output Type",
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, first item only, one item at a time, or stream the items to a file.",
+                        "options": [
+                            {
+                                "label": "First Item Only",
+                                "value": "first"
+                            },
+                            {
+                                "label": "All items at once",
+                                "value": "array"
+                            },
+                            {
+                                "label": "One item at a time",
+                                "value": "object"
+                            },
+                            {
+                                "label": "Store to CSV file",
+                                "value": "file"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/emarsys/core/FindContacts?outPort=out",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/filterField": "dummy",
+                        "in/filterValue": "dummy",
+                        "in/fields": "inputs/in/fields",
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound"
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iIzBBNkVEMSIvPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiPgogICAgPHBhdGggZD0iTTQ4LjUgMzJBMTYuNSAxNi41IDAgMSAwIDQzLjcgNDMuNyIvPgogICAgPHBhdGggZD0iTTE3LjUgMzJINDguNSIvPgogIDwvZz4KPC9zdmc+Cg=="
+}

@@ -1,0 +1,185 @@
+{
+    "name": "E2E SAP Emarsys - Contact Fields",
+    "description": "End-to-end test for the SAP Emarsys connector - reads the contact field definitions of the account.",
+    "notes": {
+        "d3879539-f006-478f-adb4-e892e2a88469": {
+            "x": 64,
+            "y": 32,
+            "width": 928,
+            "height": 208,
+            "content": "## ⚠️ Emarsys API credential setup\n\nEvery endpoint permission of an Emarsys API credential is **disabled by default**.\nThis flow reads `/field/translate/en`, so the credential of the connected account needs the\n`field.list` permission (Emarsys > Management > Security Settings > API Credentials).\n\nNo test data is required - every Emarsys account has contact field definitions."
+        }
+    },
+    "flow": {
+        "aead2f84-dc54-4266-b070-6985d6e0ef16": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e9fb0f0c-9901-4489-8639-fef7f4c21594": {
+            "type": "appmixer.emarsys.core.ListFields",
+            "x": 272,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "aead2f84-dc54-4266-b070-6985d6e0ef16": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aead2f84-dc54-4266-b070-6985d6e0ef16": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "language": {},
+                                    "isSource": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "language": "en",
+                                    "isSource": false,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "323c07af-78d0-4402-8a14-0327f6b37023": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e9fb0f0c-9901-4489-8639-fef7f4c21594": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e9fb0f0c-9901-4489-8639-fef7f4c21594": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "14c94c51-cea0-4323-87a4-8a96002cddfe": {
+                                            "variable": "$.e9fb0f0c-9901-4489-8639-fef7f4c21594.out.id",
+                                            "functions": []
+                                        },
+                                        "a0f6b78f-95cd-4eca-a246-a1240164c134": {
+                                            "variable": "$.e9fb0f0c-9901-4489-8639-fef7f4c21594.out.name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{14c94c51-cea0-4323-87a4-8a96002cddfe}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{a0f6b78f-95cd-4eca-a246-a1240164c134}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "39171fd3-2b80-4e19-b4e3-f471642f80df": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "323c07af-78d0-4402-8a14-0327f6b37023": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "675e8c50-92c1-456d-96fe-1e47a2293b9a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "39171fd3-2b80-4e19-b4e3-f471642f80df": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "39171fd3-2b80-4e19-b4e3-f471642f80df": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "88b8971d-7b62-4263-920f-4666774f5bea": {
+                                            "variable": "$.39171fd3-2b80-4e19-b4e3-f471642f80df.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E SAP Emarsys - Contact Fields",
+                                    "result": "{{{88b8971d-7b62-4263-920f-4666774f5bea}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

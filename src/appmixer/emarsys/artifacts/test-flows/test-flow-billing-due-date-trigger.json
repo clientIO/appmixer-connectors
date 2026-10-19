@@ -1,0 +1,198 @@
+{
+    "name": "E2E SAP Emarsys - Billing Due Date Trigger",
+    "description": "End-to-end harness for the SAP Emarsys Billing Due Date trigger - the event has to be provoked by hand from an Automation Center program.",
+    "notes": {
+        "369b8878-1555-4e99-9f4c-5b05939571e6": {
+            "x": 64,
+            "y": 32,
+            "width": 928,
+            "height": 208,
+            "content": "## ⚠️ Manual provoke required - Emarsys has no billing object and no API to register a webhook\n\nThe due date lives in a custom contact date field and the event is pushed by an Automation Center\n**Webhook node**, which a human configures in the Emarsys UI. This flow is therefore a repeatable\nmanual verification harness, not an unattended test.\n\n1. In Emarsys, make sure a custom contact **date** field holds the billing due date, and that at\n   least one contact has a due date of today.\n2. Start the flow, open the **Billing Due Date** node and copy the read-only **Webhook URL**.\n3. In Emarsys go to Automation > Webhook Node Presets and create a preset that POSTs to that URL.\n   Add the contact data keys `contact_id`, `email` and the due date field under the key `due_date`\n   (it must match the node's \"Due Date Key\") - the Assert checks `contactId` and `dueDate`.\n4. Build an audience-based program with a daily **Recurring** entry point, a segment selecting the\n   contacts whose due date is coming up, and that webhook node; activate it, or send the preset\n   test delivery to fire the event immediately.\n5. \"Load All Contact Fields\" is on, so the credential also needs `contact.getdata` and `field.list`.\n6. Pause the Emarsys program before you stop this flow, otherwise the program drops into fail-safe\n   mode after repeated delivery failures.\n\nThe OnStart -> Wait lane only keeps the flow busy while you click through Emarsys - do not remove it.\nAfterAll waits 600 s for the delivery."
+        }
+    },
+    "flow": {
+        "67e3e594-b4dc-4107-9e3d-f3f8403564b2": {
+            "type": "appmixer.emarsys.core.BillingDueDate",
+            "x": 64,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "dueDateKey": "due_date",
+                    "enrich": true
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fa3da4ef-f9ff-4811-b7bf-771201fe58ae": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "67e3e594-b4dc-4107-9e3d-f3f8403564b2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "67e3e594-b4dc-4107-9e3d-f3f8403564b2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f82df997-98cc-4839-9fc8-a0d0fa00122f": {
+                                            "variable": "$.67e3e594-b4dc-4107-9e3d-f3f8403564b2.out.contactId",
+                                            "functions": []
+                                        },
+                                        "b153d087-124c-4e45-91a8-84e05b185579": {
+                                            "variable": "$.67e3e594-b4dc-4107-9e3d-f3f8403564b2.out.dueDate",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f82df997-98cc-4839-9fc8-a0d0fa00122f}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{b153d087-124c-4e45-91a8-84e05b185579}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8910f0c8-79c4-4c16-8d55-9bfecb406350": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "fa3da4ef-f9ff-4811-b7bf-771201fe58ae": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 600
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "18e65aed-e046-42c2-bc10-4deee57bc392": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "8910f0c8-79c4-4c16-8d55-9bfecb406350": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "8910f0c8-79c4-4c16-8d55-9bfecb406350": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "48a33b58-87ff-4c1d-8d71-1d9fefb4ac2c": {
+                                            "variable": "$.8910f0c8-79c4-4c16-8d55-9bfecb406350.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E SAP Emarsys - Billing Due Date Trigger",
+                                    "result": "{{{48a33b58-87ff-4c1d-8d71-1d9fefb4ac2c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6d879367-6286-4526-95ab-8fe512002dcd": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "182c1637-1e48-4ffe-a2e8-3b4fa9212bf2": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6d879367-6286-4526-95ab-8fe512002dcd": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6d879367-6286-4526-95ab-8fe512002dcd": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "9m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

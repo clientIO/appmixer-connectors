@@ -1,0 +1,236 @@
+{
+    "name": "E2E SAP Emarsys - Find Contacts",
+    "description": "End-to-end test for the SAP Emarsys connector - looks a contact up by an exact match on the e-mail field.",
+    "notes": {
+        "28ca6f52-abc5-4d78-970f-736ff80028a2": {
+            "x": 64,
+            "y": 32,
+            "width": 928,
+            "height": 208,
+            "content": "## ⚠️ Test data assumption - the contact must already exist\n\nFind Contacts matches **exactly** on one indexed contact field; here on E-mail (field id `3`).\nThis connector has no Create Contact component and contact creation is a non-default Emarsys\npermission, so the flow cannot seed its own data.\n\n1. In Emarsys, create or pick a contact and note its e-mail address.\n2. Open the **Set Variable** node and set `contactEmail` to that address.\n3. Grant the API credential `field.list`, `contact.list` (contact/query) and `contact.getdata`\n   under Management > Security Settings > API Credentials.\n\nOnly indexed columns can be filtered - id, uid, email (3) and externalId are indexed by default.\nAn unknown value leaves through the `notFound` port and the flow stalls until AfterAll times out."
+        }
+    },
+    "flow": {
+        "47c7f49e-38bb-4a93-96a5-560d449f21b7": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cfe1c321-2d96-435e-89f7-e9dbf07d6fa7": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "47c7f49e-38bb-4a93-96a5-560d449f21b7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "47c7f49e-38bb-4a93-96a5-560d449f21b7": {
+                            "out": {
+                                "type": "json2new",
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "contactEmail",
+                                                "text": "e2e.contact@appmixer.ai"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "847d5a1f-9a78-4ad1-97a7-0eb6a29c8b81": {
+            "type": "appmixer.emarsys.core.FindContacts",
+            "x": 480,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cfe1c321-2d96-435e-89f7-e9dbf07d6fa7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cfe1c321-2d96-435e-89f7-e9dbf07d6fa7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "filterField": {},
+                                    "filterValue": {
+                                        "eebe760a-0aff-4589-8f3c-6f3100180573": {
+                                            "variable": "$.cfe1c321-2d96-435e-89f7-e9dbf07d6fa7.out.contactEmail",
+                                            "functions": []
+                                        }
+                                    },
+                                    "fields": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "filterField": "3",
+                                    "filterValue": "{{{eebe760a-0aff-4589-8f3c-6f3100180573}}}",
+                                    "fields": [],
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8ae2b8a2-7614-4f8c-a437-29465379a16e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "847d5a1f-9a78-4ad1-97a7-0eb6a29c8b81": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "847d5a1f-9a78-4ad1-97a7-0eb6a29c8b81": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "13011054-5985-4d82-b22d-e181a9d04564": {
+                                            "variable": "$.847d5a1f-9a78-4ad1-97a7-0eb6a29c8b81.out.id",
+                                            "functions": []
+                                        },
+                                        "9a817923-de36-4379-9588-72ca07aaf640": {
+                                            "variable": "$.847d5a1f-9a78-4ad1-97a7-0eb6a29c8b81.out.email",
+                                            "functions": []
+                                        },
+                                        "eebe760a-0aff-4589-8f3c-6f3100180573": {
+                                            "variable": "$.cfe1c321-2d96-435e-89f7-e9dbf07d6fa7.out.contactEmail",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{13011054-5985-4d82-b22d-e181a9d04564}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{9a817923-de36-4379-9588-72ca07aaf640}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{eebe760a-0aff-4589-8f3c-6f3100180573}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d1a31c00-efd3-493e-9e9d-62ab970e07ab": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8ae2b8a2-7614-4f8c-a437-29465379a16e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fdc5358a-ab40-499d-94f4-c978064c5d37": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "d1a31c00-efd3-493e-9e9d-62ab970e07ab": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "d1a31c00-efd3-493e-9e9d-62ab970e07ab": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "98f5107d-632b-4f90-b019-c87f8eb27b7b": {
+                                            "variable": "$.d1a31c00-efd3-493e-9e9d-62ab970e07ab.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E SAP Emarsys - Find Contacts",
+                                    "result": "{{{98f5107d-632b-4f90-b019-c87f8eb27b7b}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}
