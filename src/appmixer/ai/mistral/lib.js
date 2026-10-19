@@ -2,9 +2,44 @@
 
 const crypto = require('crypto');
 
-const BASE_URL = 'https://api.mistral.ai/v1';
+const API_ORIGIN = 'https://api.mistral.ai';
+const BASE_URL = `${API_ORIGIN}/v1`;
 
 const getBaseUrl = () => BASE_URL;
+
+/**
+ * Resolve the Make API Call endpoint to a URL on the Mistral API host. The account's API
+ * key is attached to the request, so an absolute URL on any other origin (or over plain
+ * http) is rejected rather than allowed to carry the key to a foreign host. Resolving
+ * through the WHATWG URL parser and comparing origins also rejects protocol-relative
+ * input such as `//example.com/x`.
+ * @param {object} context Appmixer component context (for CancelError)
+ * @param {string} url path relative to the v1 base (e.g. 'models') or an absolute Mistral API URL
+ * @returns {string} absolute URL on the Mistral API host
+ */
+const resolveApiUrl = (context, url) => {
+
+    const candidate = /^[a-z][a-z0-9+.-]*:/i.test(url) || url.startsWith('//')
+        ? url
+        : `${BASE_URL}/${url.replace(/^\//, '')}`;
+
+    let parsed;
+    try {
+        parsed = new URL(candidate, API_ORIGIN);
+    } catch (err) {
+        throw new context.CancelError(`API Endpoint Path is not a valid URL: ${url}`);
+    }
+
+    if (parsed.username || parsed.password) {
+        throw new context.CancelError('API Endpoint Path must not contain credentials.');
+    }
+
+    if (parsed.origin !== API_ORIGIN) {
+        throw new context.CancelError(`API Endpoint Path must target ${API_ORIGIN}, got ${parsed.origin}.`);
+    }
+
+    return parsed.toString();
+};
 
 const requestHeaders = (context, headers = {}) => ({
     accept: 'application/json',
@@ -42,8 +77,12 @@ const acquireLock = async (context, key) => {
  * Cached GET for dynamic inspector source calls. The designer fires source calls
  * in concurrent bursts, so the first caller populates the cache under a lock and
  * the rest read the cached value.
+ * @param {object} context
+ * @param {string} url path relative to the v1 base, also the cache key
+ * @param {function} [load] custom loader `(context) => data` for endpoints that need
+ *   more than one plain GET (e.g. paging); defaults to a GET of `url`
  */
-const apiCallCached = async (context, url) => {
+const apiCallCached = async (context, url, load) => {
 
     // The key covers the whole credential, not a suffix of it: two accounts whose
     // keys share the last characters would otherwise read each other's cached
@@ -58,11 +97,13 @@ const apiCallCached = async (context, url) => {
         if (cached) {
             return cached;
         }
-        const { data } = await context.httpRequest({
-            method: 'GET',
-            url: `${BASE_URL}${url}`,
-            headers: requestHeaders(context)
-        });
+        const data = load
+            ? await load(context)
+            : (await context.httpRequest({
+                method: 'GET',
+                url: `${BASE_URL}${url}`,
+                headers: requestHeaders(context)
+            })).data;
         const ttl = context.config.listCacheTTL || (120 * 1000);
         await cacheSet(context, key, data, ttl);
         return data;
@@ -119,7 +160,9 @@ const getOutputPortOptions = (context, outputType, itemSchema, { label }) => {
 };
 
 module.exports = {
+    API_ORIGIN,
     getBaseUrl,
+    resolveApiUrl,
     requestHeaders,
     apiCallCached,
     sendArrayOutput,

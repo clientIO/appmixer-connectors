@@ -18,13 +18,30 @@ const EXTENSION_TYPES = {
 };
 const IMAGE_EXTENSIONS = Object.keys(EXTENSION_TYPES);
 
+// Content types that say nothing about the file. A PNG stored as
+// application/octet-stream must still be detected by its extension, or it would be
+// sent down the document path.
+const GENERIC_TYPES = ['application/octet-stream', 'binary/octet-stream', 'application/binary'];
+
+// Upper bound on the number of page indexes a `pages` value may expand to. A range
+// like 0-999999999 would otherwise build a billion-element array before any request.
+const MAX_PAGES = 1000;
+
 const parsePages = (context, pages) => {
 
     const result = [];
     pages.split(',').map(part => part.trim()).filter(Boolean).forEach(part => {
         const range = part.match(/^(\d+)\s*-\s*(\d+)$/);
         if (range) {
-            for (let i = parseInt(range[1], 10); i <= parseInt(range[2], 10); i++) {
+            const start = parseInt(range[1], 10);
+            const end = parseInt(range[2], 10);
+            if (end < start) {
+                throw new context.CancelError(`Invalid pages range: '${part}'. The end page must not be lower than the start page.`);
+            }
+            if (result.length + (end - start + 1) > MAX_PAGES) {
+                throw new context.CancelError(`Pages selects more than ${MAX_PAGES} pages. Narrow the ranges.`);
+            }
+            for (let i = start; i <= end; i++) {
                 result.push(i);
             }
         } else if (/^\d+$/.test(part)) {
@@ -52,7 +69,7 @@ module.exports = {
             const fileContent = await context.loadFile(file);
             const base64 = fileContent.toString('base64');
             let contentType = fileInfo.contentType;
-            if (!contentType) {
+            if (!contentType || GENERIC_TYPES.includes(contentType.toLowerCase())) {
                 const ext = path.extname(fileInfo.filename).toLowerCase();
                 contentType = EXTENSION_TYPES[ext] || 'application/pdf';
             }

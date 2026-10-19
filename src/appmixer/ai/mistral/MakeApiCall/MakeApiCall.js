@@ -2,14 +2,36 @@
 
 const lib = require('../lib');
 
-const kvToObj = (arr) => {
-    if (!arr || !Array.isArray(arr)) return {};
+// The key-value inspector stores its rows as a JSON string of an object
+// (`{"limit":"1"}`). A whole-field variable bound to an array output, or a
+// hand-written flow, can instead carry the `[{ key, value }]` row form - accept
+// both, as a string or already parsed, and refuse malformed JSON rather than
+// silently sending the request without the user's headers or parameters.
+const kvToObject = (context, rows, label) => {
+
+    if (typeof rows === 'string') {
+        if (!rows.trim()) {
+            return {};
+        }
+        try {
+            rows = JSON.parse(rows);
+        } catch (err) {
+            throw new context.CancelError(`${label} must be a JSON object of key-value pairs.`);
+        }
+    }
+
+    if (rows && typeof rows === 'object' && !Array.isArray(rows)) {
+        return { ...rows };
+    }
+
+    if (!Array.isArray(rows)) {
+        return {};
+    }
+
     const out = {};
-    for (const row of arr) {
-        if (!row || typeof row !== 'object') continue;
-        const key = row.key;
-        if (typeof key !== 'string' || key.length === 0) continue;
-        out[key] = row.value;
+    for (const row of rows) {
+        if (!row || typeof row.key !== 'string' || !row.key) continue;
+        out[row.key] = row.value;
     }
     return out;
 };
@@ -28,12 +50,12 @@ module.exports = {
             throw new context.CancelError('HTTP Method is required!');
         }
 
-        const extraHeaders = kvToObj(headersKV);
-        const queryParams = kvToObj(parametersKV);
+        const extraHeaders = kvToObject(context, headersKV, 'Headers');
+        const queryParams = kvToObject(context, parametersKV, 'Query Parameters');
 
-        const targetUrl = (url.startsWith('https://') || url.startsWith('http://'))
-            ? url
-            : `${lib.getBaseUrl()}/${url.replace(/^\//, '')}`;
+        // The account's API key is attached to every request, so the target is pinned
+        // to the Mistral API host - an absolute URL elsewhere would leak the key.
+        const targetUrl = lib.resolveApiUrl(context, url);
 
         const requestOptions = {
             method,
