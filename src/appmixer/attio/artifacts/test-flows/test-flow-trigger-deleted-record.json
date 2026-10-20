@@ -1,0 +1,272 @@
+{
+    "name": "E2E Attio - Deleted Record trigger",
+    "description": "Deleted Record fires when a company is deleted.",
+    "flow": {
+        "418fe65c-365e-4e4a-9def-496a1cfd3939": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4880dbb9-6a28-4ef1-9354-cf784a0b414b": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "418fe65c-365e-4e4a-9def-496a1cfd3939": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "418fe65c-365e-4e4a-9def-496a1cfd3939": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3945180a-c9ac-4881-bd86-7eed4b3607b3": {
+            "type": "appmixer.attio.core.CreateCompany",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4880dbb9-6a28-4ef1-9354-cf784a0b414b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4880dbb9-6a28-4ef1-9354-cf784a0b414b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Attio DeletedRecord"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6b849942-d246-4d8d-9fb8-bb767983b25f": {
+            "type": "appmixer.attio.core.DeleteRecord",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3945180a-c9ac-4881-bd86-7eed4b3607b3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3945180a-c9ac-4881-bd86-7eed4b3607b3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectId": {},
+                                    "recordId": {
+                                        "5bf5d347-fd5f-4855-bdd8-9db6cf1b6d30": {
+                                            "variable": "$.3945180a-c9ac-4881-bd86-7eed4b3607b3.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectId": "companies",
+                                    "recordId": "{{{5bf5d347-fd5f-4855-bdd8-9db6cf1b6d30}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "ccc3e785-2d3f-438c-8ad5-f3c105ab2219": {
+            "type": "appmixer.attio.core.DeletedRecord",
+            "x": 64,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "objectId": "companies"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "72826258-000f-48a3-a910-0238222fd3ee": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ccc3e785-2d3f-438c-8ad5-f3c105ab2219": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ccc3e785-2d3f-438c-8ad5-f3c105ab2219": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "830f5eac-bff8-443e-b0f7-8c1c0e762ae6": {
+                                            "variable": "$.ccc3e785-2d3f-438c-8ad5-f3c105ab2219.out.id",
+                                            "functions": []
+                                        },
+                                        "10263fce-2d72-444a-8eac-0232af76255d": {
+                                            "variable": "$.3945180a-c9ac-4881-bd86-7eed4b3607b3.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{830f5eac-bff8-443e-b0f7-8c1c0e762ae6}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{10263fce-2d72-444a-8eac-0232af76255d}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b9e4e4e7-b3e3-47e1-a8b3-c38dccbea660": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "72826258-000f-48a3-a910-0238222fd3ee": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a56017d4-b656-46c7-926b-6686e11c8be4": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b9e4e4e7-b3e3-47e1-a8b3-c38dccbea660": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b9e4e4e7-b3e3-47e1-a8b3-c38dccbea660": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "904f5cf9-103d-46fa-abcc-098c84256b9d": {
+                                            "variable": "$.b9e4e4e7-b3e3-47e1-a8b3-c38dccbea660.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Attio - Deleted Record trigger",
+                                    "result": "{{{904f5cf9-103d-46fa-abcc-098c84256b9d}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "d00530e6-38c9-48cd-9bd7-c756155e6d87": {
+            "x": 64,
+            "y": 400,
+            "width": 672,
+            "height": 224,
+            "content": "## ⏱ Trigger test\n\nThe trigger registers its Attio webhook when the flow starts. The provoke lane waits 1 minute (do not remove the Wait) and then creates and deletes a company. The trigger lane asserts the event and cleans up. Run this flow alone: other flows creating the same kind of data at the same time would also fire the trigger."
+        }
+    }
+}
