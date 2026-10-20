@@ -1,0 +1,370 @@
+{
+    "name": "E2E Facebook - find page posts",
+    "description": "End-to-end test for Facebook Find Page Posts: creates a post, finds it as the newest page post, checks the Not Found port with a time range before any post, then deletes the post.",
+    "flow": {
+        "57796d2f-3c32-41c1-94ee-3f830ac521aa": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "401b1497-581f-41c6-8575-754ca948b829": {
+            "type": "appmixer.facebook.page.CreatePagePost",
+            "label": "CreatePagePost",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "content": {
+                    "57796d2f-3c32-41c1-94ee-3f830ac521aa": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "content": {
+                        "57796d2f-3c32-41c1-94ee-3f830ac521aa": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "pageId": {},
+                                    "message": {}
+                                },
+                                "lambda": {
+                                    "pageId": "1002114906324065",
+                                    "message": "E2E Find Page Posts"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "bae60beb-1ddf-4d8d-8040-de1a832052db": {
+            "type": "appmixer.facebook.page.FindPagePosts",
+            "label": "FindPagePosts",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "401b1497-581f-41c6-8575-754ca948b829": ["newPost"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "401b1497-581f-41c6-8575-754ca948b829": {
+                            "newPost": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "pageId": {
+                                        "72700ff8-9546-4e3a-ba48-36b8c7e10188": {
+                                            "variable": "$.401b1497-581f-41c6-8575-754ca948b829.newPost.pageId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "maxResults": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "pageId": "{{{72700ff8-9546-4e3a-ba48-36b8c7e10188}}}",
+                                    "maxResults": 5,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "8753a70d-33d6-43ed-8267-6c099f292b27": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert newest post",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bae60beb-1ddf-4d8d-8040-de1a832052db": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bae60beb-1ddf-4d8d-8040-de1a832052db": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "d48e07d2-0a61-452e-afb7-01b91fc1b178": {
+                                            "variable": "$.bae60beb-1ddf-4d8d-8040-de1a832052db.out.id",
+                                            "functions": []
+                                        },
+                                        "f2b584c0-986b-4d52-b2d5-1d5ea8a85e83": {
+                                            "variable": "$.401b1497-581f-41c6-8575-754ca948b829.newPost.id",
+                                            "functions": []
+                                        },
+                                        "39df1363-12e3-48a9-97f5-69a95b0832d5": {
+                                            "variable": "$.bae60beb-1ddf-4d8d-8040-de1a832052db.out.pageName",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{d48e07d2-0a61-452e-afb7-01b91fc1b178}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{f2b584c0-986b-4d52-b2d5-1d5ea8a85e83}}}"
+                                            },
+                                            {
+                                                "field": "{{{f2b584c0-986b-4d52-b2d5-1d5ea8a85e83}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{39df1363-12e3-48a9-97f5-69a95b0832d5}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "08d6eca6-26db-4f4c-8370-4c3eb190c68b": {
+            "type": "appmixer.facebook.page.FindPagePosts",
+            "label": "FindPagePosts before any post",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8753a70d-33d6-43ed-8267-6c099f292b27": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8753a70d-33d6-43ed-8267-6c099f292b27": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "pageId": {
+                                        "1332b7b6-6ae7-439d-8cd6-07d5cd04c40e": {
+                                            "variable": "$.401b1497-581f-41c6-8575-754ca948b829.newPost.pageId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "until": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "pageId": "{{{1332b7b6-6ae7-439d-8cd6-07d5cd04c40e}}}",
+                                    "until": "2001-01-01T00:00:00.000Z",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "7fd5ae32-1518-49fe-b2e7-4ab3749bf5cb": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert not found",
+            "x": 1104,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "08d6eca6-26db-4f4c-8370-4c3eb190c68b": ["notFound"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "08d6eca6-26db-4f4c-8370-4c3eb190c68b": {
+                            "notFound": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9b169476-2564-4c6c-b441-6f8d86b575d3": {
+                                            "variable": "$.08d6eca6-26db-4f4c-8370-4c3eb190c68b.notFound.pageId",
+                                            "functions": []
+                                        },
+                                        "799b7c87-34ec-4ddc-b9e5-18eef777b9fc": {
+                                            "variable": "$.401b1497-581f-41c6-8575-754ca948b829.newPost.pageId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9b169476-2564-4c6c-b441-6f8d86b575d3}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{799b7c87-34ec-4ddc-b9e5-18eef777b9fc}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "9de5925e-2700-4835-8a7e-b3655bd0db3a": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "AfterAll",
+            "x": 1312,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8753a70d-33d6-43ed-8267-6c099f292b27": ["out"],
+                    "7fd5ae32-1518-49fe-b2e7-4ab3749bf5cb": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "3f0f3693-bd05-4af0-9d3b-a20d65b4fdf2": {
+            "type": "appmixer.facebook.page.MakeApiCall",
+            "label": "Get page token",
+            "x": 1520,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "9de5925e-2700-4835-8a7e-b3655bd0db3a": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9de5925e-2700-4835-8a7e-b3655bd0db3a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/1002114906324065?fields=access_token",
+                                    "method": "GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "f0aec709-b244-4a63-97b5-44bb2c1bab2c": {
+            "type": "appmixer.facebook.page.MakeApiCall",
+            "label": "Delete post",
+            "x": 1728,
+            "y": 784,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3f0f3693-bd05-4af0-9d3b-a20d65b4fdf2": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3f0f3693-bd05-4af0-9d3b-a20d65b4fdf2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "cc41f8fa-dc39-4a46-895e-99963fd35348": {
+                                            "variable": "$.401b1497-581f-41c6-8575-754ca948b829.newPost.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {},
+                                    "parameters": {
+                                        "01131dd3-8c72-4fdf-8273-ebb21eb5cd9d": {
+                                            "variable": "$.3f0f3693-bd05-4af0-9d3b-a20d65b4fdf2.out.body",
+                                            "functions": [{ "name": "g_jsonPath", "params": [{ "value": "$.access_token" }] }]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "url": "/{{{cc41f8fa-dc39-4a46-895e-99963fd35348}}}",
+                                    "method": "DELETE",
+                                    "parameters": "{\"access_token\":\"{{{01131dd3-8c72-4fdf-8273-ebb21eb5cd9d}}}\"}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "6e5ef4e1-71f4-4a4a-845f-aadc3120274a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "ProcessE2EResults",
+            "x": 1936,
+            "y": 912,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "f0aec709-b244-4a63-97b5-44bb2c1bab2c": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "f0aec709-b244-4a63-97b5-44bb2c1bab2c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d7de2dca-1e84-4c3c-b27f-1dfbdde89731": {
+                                            "variable": "$.9de5925e-2700-4835-8a7e-b3655bd0db3a.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Facebook - find page posts",
+                                    "result": "{{{d7de2dca-1e84-4c3c-b27f-1dfbdde89731}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

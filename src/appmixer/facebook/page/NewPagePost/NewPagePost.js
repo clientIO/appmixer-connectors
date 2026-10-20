@@ -1,18 +1,6 @@
 'use strict';
 
-const { FacebookClient } = require('../../lib');
-
-/**
- * Resolve the page access token + name and build a client scoped to the page.
- * Shared by tick() and test() so both issue the same authenticated requests.
- */
-async function getPageClient(context, pageId) {
-
-    const client = new FacebookClient(context);
-    const pageDetails = await client.get(`/${pageId}`, { fields: 'access_token,name' });
-    client.setAccessToken(pageDetails.access_token);
-    return { client, pageDetails };
-}
+const { getPageClient } = require('../../lib');
 
 /**
  * Map a raw feed post into the output shape this trigger emits.
