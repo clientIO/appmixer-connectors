@@ -202,6 +202,16 @@ module.exports = async context => {
             return;
         }
 
+        if (!context.config?.authToken) {
+            // The authorization lookup needs the app token, and New User (unlike message triggers) only ever
+            // required the signing secret - an install without it keeps the unfiltered delivery.
+            context.log('warn', 'slack-plugin-route-webhook-event-team-join-unfiltered', {
+                reason: 'Missing authToken: team_join cannot be scoped to its workspace.'
+            });
+            await context.triggerListeners({ eventName: 'slack_team_join', payload: event.user });
+            return;
+        }
+
         // A team_join of one workspace is for the New User triggers of that workspace only - the same
         // authorization filter as messages. Without it every listener, in every tenant using the app,
         // received the profile of anyone joining any workspace that installed it.

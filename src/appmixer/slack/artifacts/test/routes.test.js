@@ -26,6 +26,7 @@ describe('POST /events handler', () => {
 
         context.config = {
             signingSecret: 'signing_secret',
+            authToken: 'xoxb-app-token',
             usesAuthHub: false
         };
 
@@ -278,6 +279,28 @@ describe('POST /events handler', () => {
             assert.equal(filter({ params: { userId: 'U07XXCHPJQK' } }), true);
             assert.equal(filter({ params: { userId: 'U_OTHER_WORKSPACE' } }), false);
             assert.equal(filter({ params: {} }), false);
+        });
+
+        it('team_join keeps the unfiltered delivery when no authToken is configured', async () => {
+
+            const payload = {
+                team_id: 'T07XXUJTGNB',
+                type: 'event_callback',
+                event: { type: 'team_join', user: { id: 'U07XX2HP37H', team_id: 'T07XXUJTGNB' } }
+            };
+            const timestamp = '1729856453';
+            const mySignature = 'v0=' + createHmac('sha256', 'signing_secret')
+                .update(`v0:${timestamp}:${JSON.stringify(payload)}`).digest('hex');
+            delete context.config.authToken;
+
+            await handler({
+                payload,
+                headers: { 'x-slack-signature': mySignature, 'x-slack-request-timestamp': timestamp }
+            }, h);
+
+            assert.equal(context.httpRequest.callCount, 0, 'no authorization lookup without the app token');
+            assert.equal(context.triggerListeners.callCount, 1);
+            assert.equal(context.triggerListeners.getCall(0).args[0].filter, undefined);
         });
 
         it('team_join is not delivered when Slack refuses the authorizations lookup', async () => {
