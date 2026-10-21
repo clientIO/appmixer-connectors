@@ -1,5 +1,7 @@
 'use strict';
 
+const { zendeskOrigin } = require('./lib');
+
 const hasGlobalKeys = function(context) {
     const globalKeys = context.config?.globalKeys;
     if (globalKeys === undefined) {
@@ -61,7 +63,7 @@ module.exports = {
         requestAccessToken: async (context) => {
 
             const { authorizationCode } = context;
-            const url = `https://${context.subdomain}.zendesk.com/oauth/tokens`;
+            const url = `${zendeskOrigin(context.subdomain)}/oauth/tokens`;
             const isGlobal = hasGlobalKeys(context);
             const clientId = encodeURIComponent(isGlobal ? context.clientId : context.zendeskId);
             const clientSecret = encodeURIComponent(isGlobal ? context.clientSecret : context.zendeskSecret);
@@ -89,7 +91,7 @@ module.exports = {
 
             const method = 'GET';
             const url = '/api/v2/users/me';
-            const baseUrl = `https://${context.subdomain}.zendesk.com`;
+            const baseUrl = zendeskOrigin(context.subdomain);
             const options = {
                 method: method,
                 url: baseUrl + url,
@@ -111,7 +113,7 @@ module.exports = {
 
             const method = 'GET';
             const url = '/api/v2/users/me';
-            const baseUrl = `https://${context.subdomain}.zendesk.com`;
+            const baseUrl = zendeskOrigin(context.subdomain);
             const options = {
                 method: method,
                 url: baseUrl + url,
