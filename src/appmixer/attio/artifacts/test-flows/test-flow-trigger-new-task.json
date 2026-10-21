@@ -1,0 +1,264 @@
+{
+    "name": "E2E Attio - New Task trigger",
+    "description": "New Task fires when a task is created.",
+    "flow": {
+        "96fe8790-7c3e-4fa6-a1ef-ab06f239f12c": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c282f428-cd1d-493e-ac9f-b0c638436e7f": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "96fe8790-7c3e-4fa6-a1ef-ab06f239f12c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "96fe8790-7c3e-4fa6-a1ef-ab06f239f12c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8d1d363e-70dc-4139-9363-9aa7616c7803": {
+            "type": "appmixer.attio.core.CreateTask",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c282f428-cd1d-493e-ac9f-b0c638436e7f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c282f428-cd1d-493e-ac9f-b0c638436e7f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "content": {}
+                                },
+                                "lambda": {
+                                    "content": "E2E Attio NewTask"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "aca9c379-2a75-4af1-850d-94500d29d2c3": {
+            "type": "appmixer.attio.core.NewTask",
+            "x": 64,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {}
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "356fcf80-960d-41d2-b9a9-668f5366d986": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "aca9c379-2a75-4af1-850d-94500d29d2c3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "aca9c379-2a75-4af1-850d-94500d29d2c3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9eb2b4cb-6eb1-44ba-8d93-b099ebdc78cf": {
+                                            "variable": "$.aca9c379-2a75-4af1-850d-94500d29d2c3.out.content",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9eb2b4cb-6eb1-44ba-8d93-b099ebdc78cf}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Attio NewTask"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "197c100f-3245-442d-be8f-75729bf0bbe1": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "356fcf80-960d-41d2-b9a9-668f5366d986": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5c73210c-398e-43a8-9160-140e95e89c4e": {
+            "type": "appmixer.attio.core.DeleteTask",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "197c100f-3245-442d-be8f-75729bf0bbe1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "197c100f-3245-442d-be8f-75729bf0bbe1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "bcef544b-f1f5-4089-ab35-c9d8e36d5031": {
+                                            "variable": "$.aca9c379-2a75-4af1-850d-94500d29d2c3.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{bcef544b-f1f5-4089-ab35-c9d8e36d5031}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "332e8371-922d-4590-8842-a64afe8cb6e2": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "5c73210c-398e-43a8-9160-140e95e89c4e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5c73210c-398e-43a8-9160-140e95e89c4e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "bd081c10-3f8b-4b84-9530-5c1d3a8e795e": {
+                                            "variable": "$.197c100f-3245-442d-be8f-75729bf0bbe1.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Attio - New Task trigger",
+                                    "result": "{{{bd081c10-3f8b-4b84-9530-5c1d3a8e795e}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "2e7f6f0f-fbac-4b3c-b646-02f00d5fd480": {
+            "x": 64,
+            "y": 400,
+            "width": 672,
+            "height": 224,
+            "content": "## ⏱ Trigger test\n\nThe trigger registers its Attio webhook when the flow starts. The provoke lane waits 1 minute (do not remove the Wait) and then creates a task. The trigger lane asserts the event and cleans up. Run this flow alone: other flows creating the same kind of data at the same time would also fire the trigger."
+        }
+    }
+}
