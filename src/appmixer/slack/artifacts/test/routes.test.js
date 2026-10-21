@@ -256,6 +256,9 @@ describe('POST /events handler', () => {
                 }
             };
 
+            // The workspace's authorizations: the app is installed for U07XXCHPJQK there.
+            context.httpRequest.resolves({ data: { ok: true, authorizations: [{ user_id: 'U07XXCHPJQK' }] } });
+
             // Call the handler with the payload.
             await handler(req, h);
 
@@ -268,6 +271,35 @@ describe('POST /events handler', () => {
             // Assert user details are passed to the triggerListeners. Real name and profile email are expected.
             assert.deepEqual(context.triggerListeners.getCall(0).args[0].payload.real_name, req.payload.event.user.real_name, 'triggerListeners should be called with the correct user real name');
             assert.deepEqual(context.triggerListeners.getCall(0).args[0].payload.profile.email, req.payload.event.user.profile.email, 'triggerListeners should be called with the correct user email');
+
+            // Only listeners of this workspace receive the new user.
+            const { filter } = context.triggerListeners.getCall(0).args[0];
+            assert.equal(typeof filter, 'function', 'triggerListeners should be called with a filter function');
+            assert.equal(filter({ params: { userId: 'U07XXCHPJQK' } }), true);
+            assert.equal(filter({ params: { userId: 'U_OTHER_WORKSPACE' } }), false);
+            assert.equal(filter({ params: {} }), false);
+        });
+
+        it('team_join is not delivered when Slack refuses the authorizations lookup', async () => {
+
+            const payload = {
+                team_id: 'T07XXUJTGNB',
+                type: 'event_callback',
+                event: { type: 'team_join', user: { id: 'U07XX2HP37H', team_id: 'T07XXUJTGNB' } }
+            };
+            const timestamp = '1729856453';
+            const payloadString = JSON.stringify(payload);
+            const mySignature = 'v0=' + createHmac('sha256', 'signing_secret')
+                .update(`v0:${timestamp}:${payloadString}`).digest('hex');
+
+            context.httpRequest.resolves({ data: { ok: false, error: 'invalid_auth' } });
+
+            await handler({
+                payload,
+                headers: { 'x-slack-signature': mySignature, 'x-slack-request-timestamp': timestamp }
+            }, h);
+
+            assert.equal(context.triggerListeners.callCount, 0);
         });
     });
 });
