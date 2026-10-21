@@ -2,28 +2,34 @@
     "name": "E2E Google/spreadsheets - Bulk Row Creation",
     "description": "End-to-end test for the CreateRows component. Creates multiple rows from a CSV file URL, then verifies the rows were added via GetRows and FindRow. Tests normalized header matching resilience — the same flow should work even if sheet column headers contain minor whitespace differences.",
     "flow": {
-        "on-start": {
+        "e8b47c1a-e5af-4224-9196-e2d3b9fb11f6": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
-            "y": 300,
+            "y": 16,
             "version": "1.0.0",
             "source": {},
-            "config": {}
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
         },
-        "create-rows": {
+        "da1aa382-61b7-4ea0-a614-1bf1bf817c88": {
             "type": "appmixer.google.spreadsheets.CreateRows",
-            "x": 256,
-            "y": 300,
+            "x": 272,
+            "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "on-start": ["out"]
+                    "e8b47c1a-e5af-4224-9196-e2d3b9fb11f6": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "on-start": {
+                        "e8b47c1a-e5af-4224-9196-e2d3b9fb11f6": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -46,22 +52,28 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "get-rows": {
+        "5bd87918-d587-4091-b6a6-e3929c501567": {
             "type": "appmixer.google.spreadsheets.GetRows",
-            "x": 448,
-            "y": 180,
+            "x": 480,
+            "y": 144,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "create-rows": ["out"]
+                    "da1aa382-61b7-4ea0-a614-1bf1bf817c88": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "create-rows": {
+                        "da1aa382-61b7-4ea0-a614-1bf1bf817c88": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -82,16 +94,22 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "find-row": {
+        "b1914d78-0d99-41a4-bc3c-073cc1e69476": {
             "type": "appmixer.google.spreadsheets.FindRow",
-            "x": 448,
-            "y": 420,
+            "x": 480,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "create-rows": ["out"]
+                    "da1aa382-61b7-4ea0-a614-1bf1bf817c88": [
+                        "out"
+                    ]
                 }
             },
             "config": {
@@ -101,7 +119,7 @@
                 },
                 "transform": {
                     "in": {
-                        "create-rows": {
+                        "da1aa382-61b7-4ea0-a614-1bf1bf817c88": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -118,32 +136,38 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-create-rows": {
+        "90295c8b-d345-4128-bf64-1b1d83631634": {
             "type": "appmixer.utils.test.Assert",
-            "x": 640,
-            "y": 80,
+            "x": 480,
+            "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "create-rows": ["out"]
+                    "da1aa382-61b7-4ea0-a614-1bf1bf817c88": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "create-rows": {
+                        "da1aa382-61b7-4ea0-a614-1bf1bf817c88": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "spreadsheet-id-var": {
-                                            "variable": "$.create-rows.out.spreadsheetId",
+                                            "variable": "$.da1aa382-61b7-4ea0-a614-1bf1bf817c88.out.spreadsheetId",
                                             "functions": []
                                         },
                                         "new-rows-var": {
-                                            "variable": "$.create-rows.out.newRows",
+                                            "variable": "$.da1aa382-61b7-4ea0-a614-1bf1bf817c88.out.newRows",
                                             "functions": []
                                         }
                                     }
@@ -157,9 +181,8 @@
                                             },
                                             {
                                                 "field": "{{{new-rows-var}}}",
-                                                "assertion": "greaterThan",
-                                                "value": "0",
-                                                "type": "number"
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
                                             }
                                         ]
                                     }
@@ -168,28 +191,34 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-get-rows": {
+        "3327b120-369f-4ed6-a304-6655803e368c": {
             "type": "appmixer.utils.test.Assert",
-            "x": 640,
-            "y": 260,
+            "x": 688,
+            "y": 144,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "get-rows": ["out"]
+                    "5bd87918-d587-4091-b6a6-e3929c501567": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "get-rows": {
+                        "5bd87918-d587-4091-b6a6-e3929c501567": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "rows-var": {
-                                            "variable": "$.get-rows.out.rows",
+                                            "variable": "$.5bd87918-d587-4091-b6a6-e3929c501567.out.rows",
                                             "functions": []
                                         }
                                     }
@@ -208,28 +237,34 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-find-row": {
+        "dd460f0e-e485-4110-8907-ed0327eb0df2": {
             "type": "appmixer.utils.test.Assert",
-            "x": 640,
-            "y": 440,
+            "x": 688,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "find-row": ["out"]
+                    "b1914d78-0d99-41a4-bc3c-073cc1e69476": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "find-row": {
+                        "b1914d78-0d99-41a4-bc3c-073cc1e69476": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "name-var": {
-                                            "variable": "$.find-row.out.Name",
+                                            "variable": "$.b1914d78-0d99-41a4-bc3c-073cc1e69476.out.Name",
                                             "functions": []
                                         }
                                     }
@@ -240,8 +275,7 @@
                                             {
                                                 "field": "{{{name-var}}}",
                                                 "assertion": "equal",
-                                                "expected": "TEST_ROW_VALUE",
-                                                "type": "string"
+                                                "expected": "TEST_ROW_VALUE"
                                             }
                                         ]
                                     }
@@ -250,34 +284,50 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "after-all": {
+        "446a69da-d8d8-456f-9ec6-6f002ddf1e65": {
             "type": "appmixer.utils.test.AfterAll",
-            "x": 832,
-            "y": 300,
+            "x": 896,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "assert-create-rows": ["out"],
-                    "assert-get-rows": ["out"],
-                    "assert-find-row": ["out"]
+                    "90295c8b-d345-4128-bf64-1b1d83631634": [
+                        "out"
+                    ],
+                    "3327b120-369f-4ed6-a304-6655803e368c": [
+                        "out"
+                    ],
+                    "dd460f0e-e485-4110-8907-ed0327eb0df2": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "properties": {
                     "timeout": 60
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "process-results": {
+        "3d5314b5-c937-4cb4-9784-bf96241b4d8e": {
             "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1024,
-            "y": 300,
+            "x": 1104,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "after-all": ["out"]
+                    "446a69da-d8d8-456f-9ec6-6f002ddf1e65": [
+                        "out"
+                    ]
                 }
             },
             "config": {
@@ -287,7 +337,7 @@
                 },
                 "transform": {
                     "in": {
-                        "after-all": {
+                        "446a69da-d8d8-456f-9ec6-6f002ddf1e65": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -295,7 +345,7 @@
                                     "testCase": {},
                                     "result": {
                                         "result-var": {
-                                            "variable": "$.after-all.out",
+                                            "variable": "$.446a69da-d8d8-456f-9ec6-6f002ddf1e65.out",
                                             "functions": []
                                         }
                                     }
@@ -309,6 +359,10 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         }
     }

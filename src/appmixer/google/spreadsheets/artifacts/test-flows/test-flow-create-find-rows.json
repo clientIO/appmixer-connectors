@@ -1,40 +1,29 @@
 {
     "name": "E2E Google/spreadsheets - Create and Find Rows",
-    "description": "End-to-end test for the Google Spreadsheets connector covering ListColumns, CreateRow, FindRow and GetRows. Verifies that column headers are returned, a row can be created with normalized-header-safe column names, the created row can be found by value, and all rows can be retrieved as objects.",
+    "description": "End-to-end test for the Google Spreadsheets connector covering CreateRow, FindRow and GetRows. Verifies that a row can be created, the created row can be found by value, and all rows can be retrieved as objects.",
     "flow": {
-        "on-start": {
+        "e8b3a48e-2954-4f89-8f51-d9187090b0cc": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
-            "y": 300,
+            "y": 16,
             "version": "1.0.0",
             "source": {},
-            "config": {}
-        },
-        "list-columns": {
-            "type": "appmixer.google.spreadsheets.ListColumns",
-            "x": 256,
-            "y": 80,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "on-start": ["out"]
-                }
-            },
-            "config": {
-                "properties": {
-                    "sheetId": "TEST_SPREADSHEET_ID",
-                    "worksheetId": "0/Sheet1"
-                }
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "create-row": {
+        "d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef": {
             "type": "appmixer.google.spreadsheets.CreateRow",
-            "x": 256,
-            "y": 300,
+            "x": 272,
+            "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "on-start": ["out"]
+                    "e8b3a48e-2954-4f89-8f51-d9187090b0cc": [
+                        "out"
+                    ]
                 }
             },
             "config": {
@@ -44,7 +33,7 @@
                 },
                 "transform": {
                     "in": {
-                        "on-start": {
+                        "e8b3a48e-2954-4f89-8f51-d9187090b0cc": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -59,16 +48,22 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "find-row": {
+        "8b62a6ed-7495-4c51-830e-2386d59eec34": {
             "type": "appmixer.google.spreadsheets.FindRow",
-            "x": 448,
-            "y": 180,
+            "x": 480,
+            "y": 144,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "create-row": ["createdRow"]
+                    "d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef": [
+                        "createdRow"
+                    ]
                 }
             },
             "config": {
@@ -78,7 +73,7 @@
                 },
                 "transform": {
                     "in": {
-                        "create-row": {
+                        "d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef": {
                             "createdRow": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -95,22 +90,28 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "get-rows": {
+        "05d9de76-9961-42cc-9925-0cd7445fda07": {
             "type": "appmixer.google.spreadsheets.GetRows",
-            "x": 448,
-            "y": 420,
+            "x": 480,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "create-row": ["createdRow"]
+                    "d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef": [
+                        "createdRow"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "create-row": {
+                        "d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef": {
                             "createdRow": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -131,32 +132,38 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-create-row": {
+        "480cd536-7633-4cf5-9e47-f681e969da29": {
             "type": "appmixer.utils.test.Assert",
-            "x": 640,
-            "y": 80,
+            "x": 480,
+            "y": 16,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "create-row": ["createdRow"]
+                    "d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef": [
+                        "createdRow"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "create-row": {
+                        "d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef": {
                             "createdRow": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "spreadsheet-id-var": {
-                                            "variable": "$.create-row.createdRow.spreadsheetId",
+                                            "variable": "$.d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef.createdRow.spreadsheetId",
                                             "functions": []
                                         },
                                         "new-rows-var": {
-                                            "variable": "$.create-row.createdRow.newRows",
+                                            "variable": "$.d0bf15b1-8b2e-44f9-9c58-c6205aaed4ef.createdRow.newRows",
                                             "functions": []
                                         }
                                     }
@@ -170,9 +177,8 @@
                                             },
                                             {
                                                 "field": "{{{new-rows-var}}}",
-                                                "assertion": "greaterThan",
-                                                "value": "0",
-                                                "type": "number"
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
                                             }
                                         ]
                                     }
@@ -181,28 +187,34 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-find-row": {
+        "59ef8473-0acb-49ef-b1e5-073f4299033d": {
             "type": "appmixer.utils.test.Assert",
-            "x": 640,
-            "y": 260,
+            "x": 688,
+            "y": 144,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "find-row": ["out"]
+                    "8b62a6ed-7495-4c51-830e-2386d59eec34": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "find-row": {
+                        "8b62a6ed-7495-4c51-830e-2386d59eec34": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "name-var": {
-                                            "variable": "$.find-row.out.Name",
+                                            "variable": "$.8b62a6ed-7495-4c51-830e-2386d59eec34.out.Name",
                                             "functions": []
                                         }
                                     }
@@ -213,8 +225,7 @@
                                             {
                                                 "field": "{{{name-var}}}",
                                                 "assertion": "equal",
-                                                "expected": "E2E Test User",
-                                                "type": "string"
+                                                "expected": "E2E Test User"
                                             }
                                         ]
                                     }
@@ -223,28 +234,34 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-get-rows": {
+        "5b48eec0-d543-4b5f-abc3-615bf507baa1": {
             "type": "appmixer.utils.test.Assert",
-            "x": 640,
-            "y": 440,
+            "x": 688,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "get-rows": ["out"]
+                    "05d9de76-9961-42cc-9925-0cd7445fda07": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "get-rows": {
+                        "05d9de76-9961-42cc-9925-0cd7445fda07": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
                                         "rows-var": {
-                                            "variable": "$.get-rows.out.rows",
+                                            "variable": "$.05d9de76-9961-42cc-9925-0cd7445fda07.out.rows",
                                             "functions": []
                                         }
                                     }
@@ -263,34 +280,50 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "after-all": {
+        "aafbdc09-73c9-49d5-9127-a3fecbe4108e": {
             "type": "appmixer.utils.test.AfterAll",
-            "x": 832,
-            "y": 300,
+            "x": 896,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "assert-create-row": ["out"],
-                    "assert-find-row": ["out"],
-                    "assert-get-rows": ["out"]
+                    "480cd536-7633-4cf5-9e47-f681e969da29": [
+                        "out"
+                    ],
+                    "59ef8473-0acb-49ef-b1e5-073f4299033d": [
+                        "out"
+                    ],
+                    "5b48eec0-d543-4b5f-abc3-615bf507baa1": [
+                        "out"
+                    ]
                 }
             },
             "config": {
                 "properties": {
                     "timeout": 60
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "process-results": {
+        "96d8e728-5050-4a6c-a9d4-717ec858579c": {
             "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1024,
-            "y": 300,
+            "x": 1104,
+            "y": 272,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "after-all": ["out"]
+                    "aafbdc09-73c9-49d5-9127-a3fecbe4108e": [
+                        "out"
+                    ]
                 }
             },
             "config": {
@@ -300,7 +333,7 @@
                 },
                 "transform": {
                     "in": {
-                        "after-all": {
+                        "aafbdc09-73c9-49d5-9127-a3fecbe4108e": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -308,7 +341,7 @@
                                     "testCase": {},
                                     "result": {
                                         "result-var": {
-                                            "variable": "$.after-all.out",
+                                            "variable": "$.aafbdc09-73c9-49d5-9127-a3fecbe4108e.out",
                                             "functions": []
                                         }
                                     }
@@ -322,6 +355,10 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         }
     }
