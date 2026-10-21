@@ -1,11 +1,14 @@
 'use strict';
 
 const assert = require('assert');
+const { Readable } = require('stream');
 
 const lib = require('../../lib');
 const CreatePerson = require('../../core/CreatePerson/CreatePerson');
 const FindPeople = require('../../core/FindPeople/FindPeople');
 const UpdateRecord = require('../../core/UpdateRecord/UpdateRecord');
+const UpdatePerson = require('../../core/UpdatePerson/UpdatePerson');
+const UploadFile = require('../../core/UploadFile/UploadFile');
 const FindListEntries = require('../../core/FindListEntries/FindListEntries');
 const MakeApiCall = require('../../core/MakeApiCall/MakeApiCall');
 const NewRecord = require('../../core/NewRecord/NewRecord');
@@ -161,6 +164,68 @@ describe('attio', () => {
         it('rejects invalid JSON values', async () => {
             const context = createContext({ input: { objectId: 'companies', recordId: 'rec-1', values: '{nope' } });
             await assert.rejects(() => UpdateRecord.receive(context), CancelError);
+        });
+    });
+
+    describe('UpdatePerson', () => {
+        it('keeps the current last name when only the first name is changed', async () => {
+            const context = createContext({
+                input: { recordId: 'rec-1', firstName: 'Janet' },
+                responder: ({ method }) => (method === 'GET' ? { data: RECORD } : { data: RECORD })
+            });
+            await UpdatePerson.receive(context);
+            assert.strictEqual(context.requests[0].method, 'GET');
+            const update = context.requests[1];
+            assert.strictEqual(update.method, 'PATCH');
+            assert.ok(update.url.endsWith('/v2/objects/people/records/rec-1'));
+            assert.deepStrictEqual(update.data.data.values.name, {
+                first_name: 'Janet', last_name: 'Doe', full_name: 'Janet Doe'
+            });
+            assert.deepStrictEqual(context.sent[0], { data: {}, port: 'out' });
+        });
+
+        it('does not read the record when the name is not changed', async () => {
+            const context = createContext({ input: { recordId: 'rec-1', jobTitle: 'CTO' } });
+            await UpdatePerson.receive(context);
+            assert.strictEqual(context.requests.length, 1);
+            assert.deepStrictEqual(context.requests[0].data, { data: { values: { job_title: 'CTO' } } });
+        });
+
+        it('rejects an update without values', async () => {
+            const context = createContext({ input: { recordId: 'rec-1' } });
+            await assert.rejects(() => UpdatePerson.receive(context), CancelError);
+        });
+    });
+
+    describe('UploadFile', () => {
+        it('uploads the file as multipart form data to the record', async () => {
+            const context = createContext({
+                input: { objectId: 'people', recordId: 'rec-1', fileId: 'file-1' },
+                responder: () => ({
+                    data: {
+                        id: { workspace_id: 'ws-1', file_id: 'f-1' },
+                        object_slug: 'people',
+                        record_id: 'rec-1',
+                        name: 'contract.pdf',
+                        storage_provider: 'attio'
+                    }
+                })
+            });
+            context.getFileInfo = async () => ({ filename: 'contract.pdf', contentType: 'application/pdf', length: 3 });
+            context.getFileReadStream = async () => Readable.from([Buffer.from('pdf')]);
+            await UploadFile.receive(context);
+            const request = context.requests[0];
+            assert.strictEqual(request.url, 'https://api.attio.com/v2/files/upload');
+            assert.ok(request.headers['content-type'].startsWith('multipart/form-data; boundary='));
+            assert.strictEqual(request.headers['Content-Type'], undefined);
+            assert.strictEqual(context.sent[0].data.id, 'f-1');
+            assert.strictEqual(context.sent[0].data.name, 'contract.pdf');
+        });
+
+        it('rejects files over 50 MB', async () => {
+            const context = createContext({ input: { objectId: 'people', recordId: 'rec-1', fileId: 'file-1' } });
+            context.getFileInfo = async () => ({ filename: 'big.bin', length: 51 * 1024 * 1024 });
+            await assert.rejects(() => UploadFile.receive(context), CancelError);
         });
     });
 

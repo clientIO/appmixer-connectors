@@ -29,17 +29,17 @@ function toAttioError(err) {
 /**
  * Authorized request against the Attio REST API.
  * @param {Object} context
- * @param {Object} options { method, path, params, data }
+ * @param {Object} options { method, path, params, data, headers }
  * @returns {Promise<Object>} response body
  */
-async function apiRequest(context, { method = 'GET', path, params, data } = {}) {
+async function apiRequest(context, { method = 'GET', path, params, data, headers } = {}) {
     const request = {
         method,
         url: `${API_BASE_URL}${path}`,
-        headers: {
-            Authorization: `Bearer ${context.auth.apiKey}`,
-            'Content-Type': 'application/json'
-        }
+        // Multipart uploads pass their own content type (with the boundary) in `headers`.
+        headers: headers
+            ? { Authorization: `Bearer ${context.auth.apiKey}`, ...headers }
+            : { Authorization: `Bearer ${context.auth.apiKey}`, 'Content-Type': 'application/json' }
     };
     if (params) request.params = params;
     if (data !== undefined) request.data = data;
@@ -330,6 +330,38 @@ function mapMember(member = {}) {
     };
 }
 
+function mapFile(file = {}) {
+    const id = file.id || {};
+    return {
+        id: id.file_id,
+        workspaceId: id.workspace_id,
+        objectId: file.object_id,
+        objectSlug: file.object_slug,
+        recordId: file.record_id,
+        name: file.name,
+        contentType: file.content_type,
+        contentSize: file.content_size,
+        parentFolderId: file.parent_folder_id,
+        storageProvider: file.storage_provider,
+        createdAt: file.created_at
+    };
+}
+
+/**
+ * The workspace and token details returned by GET /v2/self.
+ */
+function mapWorkspace(self = {}) {
+    return {
+        workspaceId: self.workspace_id,
+        workspaceName: self.workspace_name,
+        workspaceSlug: self.workspace_slug,
+        workspaceLogoUrl: self.workspace_logo_url,
+        tokenLevel: self.token_level,
+        scopes: splitList((self.scope || '').split(' ')),
+        authorizedByWorkspaceMemberId: self.authorized_by_workspace_member_id
+    };
+}
+
 /**
  * Query records of an object (POST /v2/objects/{object}/records/query), one page of up to
  * MAX_ITEMS records.
@@ -609,6 +641,8 @@ module.exports = {
     mapList,
     mapAttribute,
     mapMember,
+    mapFile,
+    mapWorkspace,
     queryRecords,
     getRecord,
     createRecord,
