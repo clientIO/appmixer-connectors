@@ -59,6 +59,7 @@ const ITEM_SCHEMA = {
 // the ones the API flags with no capability at all.
 const CAPABILITY_FILTERS = {
     chat: model => Boolean(model.capabilities && model.capabilities.completion_chat),
+    agent: model => Boolean(model.capabilities && model.capabilities.function_calling),
     vision: model => Boolean(model.capabilities && model.capabilities.vision),
     ocr: model => Boolean(model.capabilities && model.capabilities.ocr),
     transcription: model => Boolean(model.capabilities && model.capabilities.audio_transcription),
@@ -116,6 +117,10 @@ module.exports = {
 
     toChatModelSelectArray({ result }) {
         return toOptions(result, 'chat');
+    },
+
+    toAgentModelSelectArray({ result }) {
+        return toOptions(result, 'agent');
     },
 
     toVisionModelSelectArray({ result }) {

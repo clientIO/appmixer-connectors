@@ -1,0 +1,333 @@
+{
+    "name": "E2E Mistral - AI Agent",
+    "flow": {
+        "5422e7d6-fae4-4c71-b000-ea735dd4feb3": {
+            "type": "appmixer.utils.controls.OnStart",
+            "version": "1.0.0",
+            "x": 64,
+            "y": 320,
+            "source": {}
+        },
+        "b0a9f1fb-0aa5-4a22-92b7-dd807fcd1cd5": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "version": "1.0.0",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "5422e7d6-fae4-4c71-b000-ea735dd4feb3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5422e7d6-fae4-4c71-b000-ea735dd4feb3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "Test Case",
+                                                "text": "AI Agent"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": {
+            "type": "appmixer.ai.mistral.AIAgent",
+            "version": "1.0.0",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "b0a9f1fb-0aa5-4a22-92b7-dd807fcd1cd5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "stream": true
+                },
+                "transform": {
+                    "in": {
+                        "b0a9f1fb-0aa5-4a22-92b7-dd807fcd1cd5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "instructions": {},
+                                    "prompt": {},
+                                    "threadId": {}
+                                },
+                                "lambda": {
+                                    "model": "mistral-small-latest",
+                                    "instructions": "You are a test agent. Always call the secret_code tool before you answer, then reply with exactly the code the tool returned.",
+                                    "prompt": "Call the secret_code tool and reply with the code it returns, nothing else.",
+                                    "threadId": "mistral-e2e-agent-tools"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "881c9488-8ff2-4b50-97d8-286407ca7df1": {
+            "label": "secret_code",
+            "type": "appmixer.ai.agenttools.ToolStart",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 192,
+            "source": {
+                "in": {
+                    "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": [
+                        "tools"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "description": "Returns the secret code of this test run."
+                }
+            }
+        },
+        "cef7db7a-a308-49c3-9013-30646747ddd7": {
+            "type": "appmixer.ai.agenttools.ToolOutput",
+            "version": "1.0.0",
+            "x": 896,
+            "y": 192,
+            "source": {
+                "in": {
+                    "881c9488-8ff2-4b50-97d8-286407ca7df1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "881c9488-8ff2-4b50-97d8-286407ca7df1": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "output": {}
+                                },
+                                "lambda": {
+                                    "output": "MISTRAL-KIWI-7731"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f968ce50-aa38-4ec9-a0b3-930492635c81": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "6ed20404-addc-415c-9efa-32db216ee1b6": {
+                                            "variable": "$.999c5ad0-e5df-46f8-b58f-d13d5a93d8b5.out.answer",
+                                            "functions": []
+                                        },
+                                        "d2dae1ec-1c39-475d-bc87-16dc599de53f": {
+                                            "variable": "$.999c5ad0-e5df-46f8-b58f-d13d5a93d8b5.out.usage.total_tokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{6ed20404-addc-415c-9efa-32db216ee1b6}}}",
+                                                "assertion": "regex",
+                                                "regex": "KIWI-7731"
+                                            },
+                                            {
+                                                "field": "{{{d2dae1ec-1c39-475d-bc87-16dc599de53f}}}",
+                                                "assertion": "notEmpty",
+                                                "expected": ""
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "f5566135-21de-4fdf-9295-66abaf822e09": {
+            "type": "appmixer.ai.mistral.AIAgent",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "stream": false
+                },
+                "transform": {
+                    "in": {
+                        "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "model": {},
+                                    "instructions": {},
+                                    "prompt": {},
+                                    "threadId": {}
+                                },
+                                "lambda": {
+                                    "model": "mistral-small-latest",
+                                    "instructions": "You are a test agent. Answer as briefly as possible.",
+                                    "prompt": "Reply with the single word pong.",
+                                    "threadId": "mistral-e2e-agent-plain"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d66da418-e47f-46f4-9be8-cf634f0cb448": {
+            "type": "appmixer.utils.test.Assert",
+            "version": "1.0.0",
+            "x": 896,
+            "y": 448,
+            "source": {
+                "in": {
+                    "f5566135-21de-4fdf-9295-66abaf822e09": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "f5566135-21de-4fdf-9295-66abaf822e09": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "0600a992-8c00-4116-b71a-83fb60b0d8a7": {
+                                            "variable": "$.f5566135-21de-4fdf-9295-66abaf822e09.out.answer",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{0600a992-8c00-4116-b71a-83fb60b0d8a7}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Pp]ong"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "80902b3d-87fc-458e-afe2-5c8d801e6e5e": {
+            "type": "appmixer.utils.test.AfterAll",
+            "version": "1.0.0",
+            "x": 1104,
+            "y": 448,
+            "source": {
+                "in": {
+                    "f968ce50-aa38-4ec9-a0b3-930492635c81": [
+                        "out"
+                    ],
+                    "d66da418-e47f-46f4-9be8-cf634f0cb448": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "b6ce15a4-347c-4823-aa61-0487f7980456": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "version": "1.0.0",
+            "x": 1312,
+            "y": 448,
+            "source": {
+                "in": {
+                    "80902b3d-87fc-458e-afe2-5c8d801e6e5e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "80902b3d-87fc-458e-afe2-5c8d801e6e5e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "93c0a855-d3cc-48f3-9f85-b707ea1cdddc": {
+                                            "variable": "$.80902b3d-87fc-458e-afe2-5c8d801e6e5e.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Mistral - AI Agent",
+                                    "result": "{{{93c0a855-d3cc-48f3-9f85-b707ea1cdddc}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
