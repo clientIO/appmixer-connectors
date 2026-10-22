@@ -4,6 +4,24 @@ const pathModule = require('path');
 
 const IGNORE_PROPERTIES_INSPECTOR = ['sys_id'];
 
+// The instance name is typed by the user and becomes the request host, and the credentials are sent
+// to that host - so anything but a plain instance name (letters, digits, hyphens) is rejected.
+// Checked as typed, not normalized: components build their URLs from the stored value.
+const INSTANCE_PATTERN = /^[a-z0-9][a-z0-9-]*$/i;
+
+/**
+ * @param {string} instance - e.g. "dev144860" for dev144860.service-now.com
+ * @return {string} https origin of the ServiceNow instance
+ * @throws Error
+ */
+function instanceOrigin(instance) {
+
+    if (typeof instance !== 'string' || !INSTANCE_PATTERN.test(instance)) {
+        throw new Error('Invalid ServiceNow instance name. Enter the name only, e.g. "dev144860" for dev144860.service-now.com.');
+    }
+    return `https://${instance}.service-now.com`;
+}
+
 function getBasicAuth(username, password) {
     return Buffer.from(username + ':' + password).toString('base64');
 }
@@ -75,7 +93,7 @@ async function callEndpoint(context, {
     action
 }) {
 
-    const url = `https://${context.auth.instance}.service-now.com/api/now/${action}`;
+    const url = `${instanceOrigin(context.auth.instance)}/api/now/${action}`;
     const authHeaders = getAuthHeaders(context);
     const options = attachBody({
         method,
@@ -356,6 +374,7 @@ function toInspector(context, { columns, fields = '', schema: initialSchemaField
 }
 
 module.exports = {
+    instanceOrigin,
     getBasicAuth,
     getAuthHeaders,
     isAppmixerVariable,

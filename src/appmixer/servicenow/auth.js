@@ -1,5 +1,7 @@
 'use strict';
 
+const { instanceOrigin } = require('./lib');
+
 module.exports = {
 
     type: 'apiKey',
@@ -50,7 +52,7 @@ module.exports = {
 
             const options = {
                 method: 'GET',
-                url: 'https://' + context.instance + '.service-now.com/api/now/table/problem?sysparm_limit=1',
+                url: instanceOrigin(context.instance) + '/api/now/table/problem?sysparm_limit=1',
                 headers
             };
 
@@ -83,7 +85,7 @@ module.exports = {
 
             const options = {
                 method: 'GET',
-                url: 'https://' + context.instance + '.service-now.com/api/now/table/problem?sysparm_limit=1',
+                url: instanceOrigin(context.instance) + '/api/now/table/problem?sysparm_limit=1',
                 headers
             };
             try {

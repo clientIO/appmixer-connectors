@@ -2,9 +2,30 @@
 
 const pathModule = require('path');
 
+// The region is typed by the user and becomes the request host, and the API token is sent to that
+// host - so anything but a plain region prefix (letters, digits, hyphens) is rejected.
+// Checked as typed, not normalized: components build their URLs from the stored value.
+const REGION_PATTERN = /^[a-z0-9][a-z0-9-]*$/i;
+
+/**
+ * @param {string} regionPrefix - e.g. "nexl-360-latest" for nexl-360-latest.nexl.cloud
+ * @return {string} https origin of the Nexl account
+ * @throws Error
+ */
+function nexlOrigin(regionPrefix) {
+
+    if (typeof regionPrefix !== 'string' || !REGION_PATTERN.test(regionPrefix)) {
+        throw new Error('Invalid Nexl region. Enter the prefix only, e.g. "nexl-360-latest" for nexl-360-latest.nexl.cloud.');
+    }
+    return `https://${regionPrefix}.nexl.cloud`;
+}
+
 module.exports = {
+
+    nexlOrigin,
+
     async makeApiCall({ context, method = 'GET', data }) {
-        const url = `https://${context.auth.regionPrefix}.nexl.cloud/api/graphql`;
+        const url = `${nexlOrigin(context.auth.regionPrefix)}/api/graphql`;
         return context.httpRequest({
             method,
             url,
