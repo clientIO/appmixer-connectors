@@ -17,7 +17,7 @@ module.exports = {
         }
 
         await Promise.map(diff, invoice => {
-            context.sendJson(invoice, 'invoice');
+            return context.sendJson(invoice, 'invoice');
         });
         await context.saveState({ known: actual });
     },

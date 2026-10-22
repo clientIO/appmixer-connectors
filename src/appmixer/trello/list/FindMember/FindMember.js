@@ -43,7 +43,7 @@ module.exports = {
                 headers: { 'Content-Type': 'application/json' },
                 url: `https://api.trello.com/1/members/${member['id']}?${commons.getAuthQueryParams(context)}`
             });
-            context.sendJson(data, 'member');
+            await context.sendJson(data, 'member');
         }
     }
 };

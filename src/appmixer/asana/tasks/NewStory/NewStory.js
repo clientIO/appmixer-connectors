@@ -48,7 +48,7 @@ module.exports = {
             })
             .then(data => {
                 return Promise.map(data, story => {
-                    context.sendJson(story, 'story');
+                    return context.sendJson(story, 'story');
                 });
             });
     },

@@ -72,6 +72,6 @@ module.exports = {
         }
 
         // Send the full response to match CreateTask pattern
-        context.sendJson(resp, 'company');
+        return context.sendJson(resp, 'company');
     }
 };

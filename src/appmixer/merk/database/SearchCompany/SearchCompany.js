@@ -13,13 +13,13 @@ module.exports = {
         delete query.count;
 
         return merk.get('/suggest/', context.auth.apiKey, query)
-            .then(result => {
-                result.forEach((company, idx) => {
+            .then(async result => {
+                for (const [idx, company] of result.entries()) {
                     if (idx >= count) {
-                        return;
+                        break;
                     }
-                    context.sendJson(company, 'company');
-                });
+                    await context.sendJson(company, 'company');
+                }
             });
     }
 };

@@ -34,6 +34,6 @@ module.exports = {
             ...data.fields
         };
 
-        context.sendJson(outputRecord, 'out');
+        return context.sendJson(outputRecord, 'out');
     }
 };

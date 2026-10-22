@@ -23,7 +23,7 @@ module.exports = {
 
         if (diff.length) {
             await Promise.all(diff.map(gist => {
-                context.sendJson(gist, 'gist');
+                return context.sendJson(gist, 'gist');
             }));
         }
         const trimmedKnown = actual.length > MAX_KNOWN ? actual.slice(actual.length - MAX_KNOWN) : actual;

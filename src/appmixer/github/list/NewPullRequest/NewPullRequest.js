@@ -25,7 +25,7 @@ module.exports = {
 
         if (diff.length) {
             await Promise.all(diff.map(branch => {
-                context.sendJson(branch, 'pullRequest');
+                return context.sendJson(branch, 'pullRequest');
             }));
         }
         const trimmedKnown = actual.length > MAX_KNOWN ? actual.slice(actual.length - MAX_KNOWN) : actual;

@@ -20,13 +20,13 @@ module.exports = {
 
         // Send results to 'out' if any results are found
         if (results.length > 0) {
-            context.sendJson({ results }, 'out');
+            await context.sendJson({ results }, 'out');
         } else if (notFound.length > 0) {
             // Send notFound to 'notFound' if any keys are not found
-            context.sendJson({ notFound }, 'notFound');
+            await context.sendJson({ notFound }, 'notFound');
         } else {
             // If both results and notFound are empty, send keys to 'notFound'
-            context.sendJson({ keys: keys.AND }, 'notFound');
+            await context.sendJson({ keys: keys.AND }, 'notFound');
         }
 
         return context.response();

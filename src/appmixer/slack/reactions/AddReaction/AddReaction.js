@@ -51,9 +51,9 @@ async function listAllChannels(context) {
                 value: channel.id
             };
         });
-        context.sendJson(myChannels, 'out');
+        await context.sendJson(myChannels, 'out');
     } catch (err) {
         context.log({ step: 'List channels error', error: err });
-        context.sendJson([], 'out');
+        await context.sendJson([], 'out');
     }
 }

@@ -33,6 +33,6 @@ module.exports = {
 
         const { records } = data;
 
-        context.sendJson({ records }, 'out');
+        return context.sendJson({ records }, 'out');
     }
 };

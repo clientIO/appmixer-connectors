@@ -23,7 +23,7 @@ module.exports = {
             if (boardId && boardId !== '0' && card.idBoard !== boardId) {
                 continue;
             }
-            context.sendJson(card, 'card');
+            await context.sendJson(card, 'card');
         }
     }
 };

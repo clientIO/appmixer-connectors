@@ -150,7 +150,7 @@ module.exports = {
             null
         );
 
-        context.sendJson({
+        return context.sendJson({
             id: taskId,
             dueDate: normalizedDueDate
         }, 'task');

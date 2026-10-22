@@ -17,7 +17,7 @@ module.exports = {
         }
 
         await Promise.map(diff, todo => {
-            context.sendJson(todo, 'todo');
+            return context.sendJson(todo, 'todo');
         });
         await context.saveState({ known: actual });
     },
