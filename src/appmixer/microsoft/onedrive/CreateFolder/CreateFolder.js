@@ -18,6 +18,10 @@ module.exports = {
         } = context.messages.in.content;
         const { accessToken, profileInfo } = context.auth;
 
+        if (!name) {
+            throw new context.CancelError('Folder name is required!');
+        }
+
         const result = await commons.formatError(async () => {
             return oneDriveAPI.items.createFolder({
                 accessToken,

@@ -12,6 +12,16 @@ module.exports = {
     receive(context) {
 
         let client = new mandrill.Mandrill(context.auth.apiKey);
+        if (!context.messages.in.content.to) {
+            throw new context.CancelError('To is required!');
+        }
+        if (!context.messages.in.content.template) {
+            throw new context.CancelError('Template name is required!');
+        }
+        if (!context.messages.in.content.fromEmail) {
+            throw new context.CancelError('From Email is required!');
+        }
+
         let { subject, template, fromName, fromEmail, to, variables } = context.messages.in.content;
         to = [{ email: to }];
 

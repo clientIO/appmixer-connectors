@@ -1,9 +1,13 @@
 'use strict';
 
-// Note: Daily quotas refresh at midnight PST.
+// Note: Daily quotas refresh at midnight PST (08:00 UTC). `moment` is provided by the quota loader.
 const getStartOfNextWindow = () => {
 
-    return moment.utc().startOf('day').add(1, 'day').add(8, 'hours').valueOf();
+    const next = moment.utc().startOf('day').add(8, 'hours');
+    if (next.valueOf() <= Date.now()) {
+        next.add(1, 'day');
+    }
+    return next.valueOf();
 };
 
 module.exports = {
@@ -23,6 +27,9 @@ module.exports = {
         // According to LinkedIn the limits are 100000 per day for application
         {
             limit: 100000,
+            // The quota server builds the fixed-window key from `window`; without it every
+            // call fails with "Invalid time value". The TTL still comes from getStartOfNextWindow.
+            window: 1000 * 60 * 60 * 24,
             throttling: {
                 type: 'window-fixed',
                 getStartOfNextWindow: getStartOfNextWindow

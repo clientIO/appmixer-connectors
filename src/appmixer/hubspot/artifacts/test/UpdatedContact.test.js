@@ -267,4 +267,31 @@ describe('UpdatedContact', () => {
         assert.equal(hubspotStub.callCount, 11, 'Should make 10 calls to get contact data and 1 call to get contact properties');
     });
 
+    it('two flows receive the same change (the dedupe cache is per component)', async () => {
+
+        // staticCache is shared by all component instances.
+        const cache = new Map();
+        context.staticCache = {
+            get: async (key) => cache.get(key),
+            set: async (key, value) => {
+                cache.set(key, value);
+            }
+        };
+        context.messages.webhook.content.data = {
+            '104': { occurredAt: 1726820305517, propertyName: 'firstname' }
+        };
+        hubspotStub.withArgs('post', 'crm/v3/objects/contacts/batch/read').resolves({
+            data: {
+                results: [{ id: '104', createdAt: '2023-01-01T00:00:00Z', updatedAt: '2023-02-04T00:00:00Z' }]
+            }
+        });
+
+        context.componentId = 'flow-a-updated-contact';
+        await UpdatedContact.receive(context);
+        context.componentId = 'flow-b-updated-contact';
+        await UpdatedContact.receive(context);
+
+        assert.equal(context.sendArray.callCount, 2, 'both flows fire');
+        assert.equal(context.sendArray.args[1][0].length, 1, 'second flow gets the contact too');
+    });
 });

@@ -1,0 +1,435 @@
+{
+    "flow": {
+        "e5000005-0000-4000-8000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e5000005-0000-4000-8000-000000000002": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-000000000003": {
+            "type": "appmixer.hubspot.crm.CreateDeal",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.4",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "dealname": {
+                                        "ts-1": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "amount": {}
+                                },
+                                "lambda": {
+                                    "dealname": "E2E Updated Deal {{{ts-1}}}",
+                                    "amount": "100"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-000000000004": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-000000000003": [
+                        "newDeal"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-000000000003": {
+                            "newDeal": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-000000000005": {
+            "type": "appmixer.hubspot.crm.UpdateDeal",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.3",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "dealId": {
+                                        "did-1": {
+                                            "variable": "$.e5000005-0000-4000-8000-000000000003.newDeal.properties.hs_object_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "amount": {}
+                                },
+                                "lambda": {
+                                    "dealId": "{{{did-1}}}",
+                                    "amount": "250"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-000000000008": {
+            "type": "appmixer.hubspot.crm.NewDeal",
+            "x": 64,
+            "y": 576,
+            "source": {},
+            "version": "3.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "properties": "dealname,amount,hs_object_id",
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-000000000009": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 576,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-000000000008": [
+                        "deal"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-000000000008": {
+                            "deal": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "as-1": {
+                                            "variable": "$.e5000005-0000-4000-8000-000000000008.deal.properties.dealname",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{as-1}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E Updated Deal [0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-00000000000a": {
+            "type": "appmixer.hubspot.crm.UpdatedDeal",
+            "x": 64,
+            "y": 704,
+            "source": {},
+            "version": "3.0.2",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "properties": "dealname,amount,hs_object_id",
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-00000000000b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 704,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-00000000000a": [
+                        "deal"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-00000000000a": {
+                            "deal": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "as-1": {
+                                            "variable": "$.e5000005-0000-4000-8000-00000000000a.deal.properties.amount",
+                                            "functions": []
+                                        },
+                                        "as-2": {
+                                            "variable": "$.e5000005-0000-4000-8000-00000000000a.deal.properties.dealname",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{as-1}}}",
+                                                "assertion": "equal",
+                                                "expected": "250"
+                                            },
+                                            {
+                                                "field": "{{{as-2}}}",
+                                                "assertion": "regex",
+                                                "regex": "^E2E Updated Deal [0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-00000000000c": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 704,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-000000000009": [
+                        "out"
+                    ],
+                    "e5000005-0000-4000-8000-00000000000b": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-000000000007": {
+            "type": "appmixer.hubspot.core.MakeApiCall",
+            "x": 688,
+            "y": 704,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-00000000000c": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-00000000000c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {
+                                        "del-1": {
+                                            "variable": "$.e5000005-0000-4000-8000-00000000000a.deal.properties.hs_object_id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "method": {}
+                                },
+                                "lambda": {
+                                    "url": "/crm/v3/objects/deals/{{{del-1}}}",
+                                    "method": "DELETE"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "account": "69b0148dfba66468c2a58a06"
+                }
+            }
+        },
+        "e5000005-0000-4000-8000-00000000000d": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 704,
+            "source": {
+                "in": {
+                    "e5000005-0000-4000-8000-000000000007": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e5000005-0000-4000-8000-000000000007": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "res-1": {
+                                            "variable": "$.e5000005-0000-4000-8000-00000000000c.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E HubSpot - Updated Deal Trigger",
+                                    "result": "{{{res-1}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {}
+            }
+        }
+    },
+    "name": "E2E HubSpot - Updated Deal Trigger",
+    "type": "automation",
+    "notes": {
+        "e5000005-0000-4000-8000-0000000000ff": {
+            "content": "## ⚠️ Test data assumption\n\n- Appmixer account: auth+hubspot@appmixer.com (service appmixer:hubspot), HubSpot portal 148964607 (developer test account).\n- The HubSpot app's webhook target URL must point at this Appmixer instance (own app: appId + apiKey in the service config) — the triggers register / re-activate their subscriptions at flow start.\n- UpdatedDeal re-activates the default deal.propertyChange subscriptions if they were switched off in the HubSpot app; NewDeal does the same for `deal.creation`, so the creation-time events are dropped — UpdatedDeal must fire on the amount update only (its Assert expects amount 250).\n- The cleanup after AfterAll deletes the deal by the UpdatedDeal output: UpdatedDeal always fires last (a minute after NewDeal), so its lane is the one that completes AfterAll.\n- The Waits must stay: subscription propagation and create → update spacing.",
+            "x": 64,
+            "y": 32,
+            "width": 672,
+            "height": 256
+        }
+    }
+}

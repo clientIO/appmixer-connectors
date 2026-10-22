@@ -1,38 +1,40 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlProducts = require('../../gql-products');
+
+const TOPIC = 'products/delete';
 
 /**
+ * Triggers when a product is deleted. Emits the id of the deleted product.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'products/delete');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'deleted');
+            return lib.receiveWebhook(context, { port: 'out', type: 'Product' });
         }
     },
 
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
-    },
-
+    // A deleted product cannot be read back; the newest product's id stands
+    // in for it, in the shape the trigger emits.
     async test(context) {
 
-        const deleted = await commons.fetchLatestDeleteExample(context, {
-            resource: 'product',
-            topic: 'products/delete',
-            params: { order: 'created_at DESC' }
-        });
-        if (!deleted) {
-            throw new Error('No products to use as test data.');
+        const [product] = await gqlProducts(lib.runner(context)).recent('CREATED_AT');
+        if (!product) {
+            throw new context.CancelError('The store has no products yet. Create and delete a product to get sample data.');
         }
-        return context.sendJson(deleted, 'deleted');
+        return context.sendJson({ id: product.id, webhookTopic: TOPIC }, 'out');
     }
 };

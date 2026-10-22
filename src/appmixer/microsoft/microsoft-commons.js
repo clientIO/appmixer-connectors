@@ -5,6 +5,12 @@ const pathModule = require('path');
 
 const BASE_URL = 'https://graph.microsoft.com/v1.0';
 
+// Hard HTTP timeout for the (deprecated) request-promise based calls below. Without it a hung
+// Graph call can keep running - and keep a component lock held - indefinitely. Every caller of
+// `request()` exchanges small JSON payloads (subscriptions, delta pages, file listings), so
+// there is no upload that could legitimately take longer.
+const REQUEST_TIMEOUT = 30 * 1000;
+
 function getCSVValue(value) {
     if (typeof value === 'object') {
         try {
@@ -34,6 +40,7 @@ module.exports = {
             qs,
             json: true,
             body,
+            timeout: REQUEST_TIMEOUT,
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'

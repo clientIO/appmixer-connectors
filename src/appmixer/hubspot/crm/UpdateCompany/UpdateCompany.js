@@ -1,8 +1,11 @@
 'use strict';
 
 const Hubspot = require('../../Hubspot');
+const ITEM_SCHEMA = require('../../item-schemas.json').companyUpdate;
 
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async receive(context) {
 

@@ -1,0 +1,80 @@
+{
+    "name": "E2E MCPGateway - gateway-tools",
+    "description": "E2E test: MCPGateway registers action components wired to its 'tool' port as MCP tools. EchoTool has its 'value' field marked with 'Model Defined Parameter' (becomes a tool parameter), GreetTool has a static value (tool without parameters). A webhook tool call runs the component statically and returns its output. This flow requires external orchestration (run-e2e-test.sh) to test webhook calling.",
+    "customFields": {
+        "category": "E2E_test_flow"
+    },
+    "flow": {
+        "mcp-gateway": {
+            "type": "appmixer.ai.mcptools.MCPGateway",
+            "label": "MCPGateway",
+            "x": 300,
+            "y": 200,
+            "source": {},
+            "config": {}
+        },
+        "echo-tool": {
+            "type": "appmixer.utils.controls.MockValue",
+            "label": "EchoTool",
+            "x": 300,
+            "y": 400,
+            "source": {
+                "in": {
+                    "mcp-gateway": [
+                        "tool"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "mcp-gateway": {
+                            "tool": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {
+                                        "message": {
+                                            "variable": "$.mcp-gateway.tool.modelDefinedParameter",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "value": "{{{message}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "greet-tool": {
+            "type": "appmixer.utils.controls.MockValue",
+            "label": "GreetTool",
+            "x": 500,
+            "y": 400,
+            "source": {
+                "in": {
+                    "mcp-gateway": [
+                        "tool"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "mcp-gateway": {
+                            "tool": {
+                                "type": "json2new",
+                                "modifiers": {},
+                                "lambda": {
+                                    "value": "Hello, Appmixer!"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

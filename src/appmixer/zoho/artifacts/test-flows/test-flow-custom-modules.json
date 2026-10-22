@@ -1,0 +1,251 @@
+{
+    "name": "E2E Zoho - custom modules",
+    "description": "Finds the custom modules of the organization, then reads the first one back with GetCustomModule and compares the two.",
+    "notes": {
+        "8acff89e-0a80-4afa-99cc-410fe752b980": {
+            "x": 64,
+            "y": 384,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ Test data assumption\n\nThe Zoho CRM organization must have **at least one custom module** (paid editions only). With none, Find Custom Modules sends to `notFound` and the flow stops at the AfterAll timeout.\n\nOn a fresh tenant run **E2E Zoho - create custom module** once, or add a module in Setup → Customization → Modules and Fields.\n\nThe connected account needs the `ZohoCRM.settings.modules.READ` permission — reconnect the account in this flow if it was authorized before these components existed."
+        }
+    },
+    "flow": {
+        "bea2c71b-aae8-41a5-a935-c00284db4545": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 128,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "b26e4b56-25e9-49b0-9daa-060653dc9458": {
+            "type": "appmixer.zoho.crm.FindCustomModules",
+            "x": 272,
+            "y": 128,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bea2c71b-aae8-41a5-a935-c00284db4545": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "bea2c71b-aae8-41a5-a935-c00284db4545": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "312ce59f-0b57-4ad7-9a3c-5a15dbb2096d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 128,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b26e4b56-25e9-49b0-9daa-060653dc9458": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b26e4b56-25e9-49b0-9daa-060653dc9458": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "007ef49f-fea4-4a4c-8296-133fc8689c0a": {
+                                            "variable": "$.b26e4b56-25e9-49b0-9daa-060653dc9458.out.api_name",
+                                            "functions": []
+                                        },
+                                        "0d710ded-09f2-450c-844e-d75df84ff1a7": {
+                                            "variable": "$.b26e4b56-25e9-49b0-9daa-060653dc9458.out.generated_type",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{007ef49f-fea4-4a4c-8296-133fc8689c0a}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{0d710ded-09f2-450c-844e-d75df84ff1a7}}}",
+                                                "assertion": "equal",
+                                                "expected": "custom"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "feb24fc8-5774-46fe-b1a1-659358bef9ab": {
+            "type": "appmixer.zoho.crm.GetCustomModule",
+            "x": 480,
+            "y": 256,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b26e4b56-25e9-49b0-9daa-060653dc9458": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b26e4b56-25e9-49b0-9daa-060653dc9458": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "moduleApiName": {
+                                        "f30e5822-b69b-464b-875c-9d0ed79c0d5a": {
+                                            "variable": "$.b26e4b56-25e9-49b0-9daa-060653dc9458.out.api_name",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "moduleApiName": "{{{f30e5822-b69b-464b-875c-9d0ed79c0d5a}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "699849ba-d8d0-4435-aceb-ed0f19a09ae9": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 256,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "feb24fc8-5774-46fe-b1a1-659358bef9ab": ["out"]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "feb24fc8-5774-46fe-b1a1-659358bef9ab": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "c54edd44-8d23-4d72-be0a-ee4fe31bd40f": {
+                                            "variable": "$.feb24fc8-5774-46fe-b1a1-659358bef9ab.out.id",
+                                            "functions": []
+                                        },
+                                        "ab24399d-ec07-4b57-a952-b4cbfd45e245": {
+                                            "variable": "$.b26e4b56-25e9-49b0-9daa-060653dc9458.out.id",
+                                            "functions": []
+                                        },
+                                        "339cfb19-7629-42d4-897c-e88e39fd941a": {
+                                            "variable": "$.feb24fc8-5774-46fe-b1a1-659358bef9ab.out.plural_label",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{c54edd44-8d23-4d72-be0a-ee4fe31bd40f}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{ab24399d-ec07-4b57-a952-b4cbfd45e245}}}"
+                                            },
+                                            {
+                                                "field": "{{{339cfb19-7629-42d4-897c-e88e39fd941a}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "dc1426fa-8f16-4c69-a3f2-4b8a8f1ab294": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 256,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "312ce59f-0b57-4ad7-9a3c-5a15dbb2096d": ["out"],
+                    "699849ba-d8d0-4435-aceb-ed0f19a09ae9": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        },
+        "c8a1ecb3-06dc-4f82-91ce-354a68e43ca8": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 256,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "dc1426fa-8f16-4c69-a3f2-4b8a8f1ab294": ["out"]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "dc1426fa-8f16-4c69-a3f2-4b8a8f1ab294": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d87fd992-9c9b-4135-80a5-6491eada3290": {
+                                            "variable": "$.dc1426fa-8f16-4c69-a3f2-4b8a8f1ab294.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Zoho - custom modules",
+                                    "result": "{{{d87fd992-9c9b-4135-80a5-6491eada3290}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": { "autoRetry": false, "onError": "stopFlow" }
+        }
+    }
+}

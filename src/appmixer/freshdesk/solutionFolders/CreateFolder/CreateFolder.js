@@ -6,6 +6,13 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.categoryId) {
+            throw new context.CancelError('Category ID is required!');
+        }
+        if (!context.messages.in.content.name) {
+            throw new context.CancelError('Name is required!');
+        }
+
         const { categoryId, name, description, visibility } = context.messages.in.content;
 
         const body = { name };

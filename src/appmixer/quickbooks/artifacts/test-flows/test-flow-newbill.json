@@ -1,0 +1,352 @@
+{
+    "name": "E2E QuickBooks NewBill trigger",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "a1b2c3d4-0001-4000-8000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {},
+            "config": {}
+        },
+        "a1b2c3d4-0002-4000-8000-000000000002": {
+            "type": "appmixer.quickbooks.accounting.CreateVendor",
+            "x": 320,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1b2c3d4-0001-4000-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0001-4000-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "displayName": {
+                                        "v-vend-ts": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_timestamp"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "givenName": {},
+                                    "familyName": {},
+                                    "companyName": {},
+                                    "primaryEmailAddrAddress": {},
+                                    "printOnCheckName": {},
+                                    "minorVersion": {}
+                                },
+                                "lambda": {
+                                    "displayName": "E2E QB Vendor {{{v-vend-ts}}}",
+                                    "givenName": "E2E",
+                                    "familyName": "Supplier",
+                                    "companyName": "E2E Supply Co",
+                                    "primaryEmailAddrAddress": "e2e-vendor@appmixer-test.com",
+                                    "printOnCheckName": "E2E Supply Co",
+                                    "minorVersion": "75"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a1b2c3d4-0003-4000-8000-000000000003": {
+            "type": "appmixer.quickbooks.accounting.CreateBill",
+            "x": 576,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1b2c3d4-0002-4000-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0002-4000-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "vendorId": {
+                                        "v-bill-vendor": {
+                                            "variable": "$.a1b2c3d4-0002-4000-8000-000000000002.out.Id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "lineItemsJSON": {},
+                                    "dueDate": {},
+                                    "privateNote": {},
+                                    "minorVersion": {},
+                                    "currency": {},
+                                    "exchangeRate": {}
+                                },
+                                "lambda": {
+                                    "vendorId": "{{{v-bill-vendor}}}",
+                                    "lineItemsJSON": "[{ \"DetailType\": \"AccountBasedExpenseLineDetail\", \"Amount\": 100, \"Description\": \"E2E expense\", \"AccountBasedExpenseLineDetail\": { \"AccountRef\": { \"value\": \"7\" } } }]",
+                                    "dueDate": "2030-02-10",
+                                    "privateNote": "E2E NewBill trigger",
+                                    "minorVersion": "75",
+                                    "currency": "USD",
+                                    "exchangeRate": 1
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a1b2c3d4-0004-4000-8000-000000000004": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 320,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1b2c3d4-0003-4000-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0003-4000-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-create-bill-id": {
+                                            "variable": "$.a1b2c3d4-0003-4000-8000-000000000003.out.Id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-create-bill-id}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a1b2c3d4-0005-4000-8000-000000000005": {
+            "type": "appmixer.quickbooks.accounting.NewBill",
+            "x": 576,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "a1b2c3d4-0006-4000-8000-000000000006": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 832,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1b2c3d4-0005-4000-8000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0005-4000-8000-000000000005": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "v-trigger-bill-id": {
+                                            "variable": "$.a1b2c3d4-0005-4000-8000-000000000005.out.Id",
+                                            "functions": []
+                                        },
+                                        "v-trigger-bill-vendor": {
+                                            "variable": "$.a1b2c3d4-0005-4000-8000-000000000005.out.VendorRef.value",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{v-trigger-bill-id}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{v-trigger-bill-vendor}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a1b2c3d4-0007-4000-8000-000000000007": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1088,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1b2c3d4-0004-4000-8000-000000000004": [
+                        "out"
+                    ],
+                    "a1b2c3d4-0006-4000-8000-000000000006": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "a1b2c3d4-0009-4000-8000-000000000009": {
+            "type": "appmixer.quickbooks.accounting.DeleteBill",
+            "x": 1344,
+            "y": 560,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1b2c3d4-0007-4000-8000-000000000007": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0007-4000-8000-000000000007": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "billId": {
+                                        "v-cleanup-id": {
+                                            "variable": "$.a1b2c3d4-0005-4000-8000-000000000005.out.Id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "syncToken": {
+                                        "v-cleanup-token": {
+                                            "variable": "$.a1b2c3d4-0005-4000-8000-000000000005.out.SyncToken",
+                                            "functions": []
+                                        }
+                                    },
+                                    "minorVersion": {}
+                                },
+                                "lambda": {
+                                    "billId": "{{{v-cleanup-id}}}",
+                                    "syncToken": "{{{v-cleanup-token}}}",
+                                    "minorVersion": 75
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "a1b2c3d4-0008-4000-8000-000000000008": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1600,
+            "y": 560,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "a1b2c3d4-0009-4000-8000-000000000009": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0009-4000-8000-000000000009": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "v-result-newbill": {
+                                            "variable": "$.a1b2c3d4-0007-4000-8000-000000000007.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E QuickBooks NewBill trigger",
+                                    "result": "{{{v-result-newbill}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

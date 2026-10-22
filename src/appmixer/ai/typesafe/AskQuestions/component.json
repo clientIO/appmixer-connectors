@@ -1,0 +1,164 @@
+{
+    "name": "appmixer.ai.typesafe.AskQuestions",
+    "label": "Ask Questions",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Ask several questions about the same content in one TypeSafe Jev request, mixing all three types: <code>choice</code> (Classify Text), <code>score</code> (Score Text) and <code>noul</code> (Verify Statement). This is the recommended way to ask more than one thing: the content is sent and billed once and the questions are evaluated in parallel, so it is faster and cheaper than one component per question. The answers are returned keyed by your question ids. Works best with English content.",
+    "version": "1.0.0",
+    "auth": {
+        "service": "appmixer:ai:typesafe"
+    },
+    "quota": {
+        "manager": "appmixer:ai:typesafe",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "state": {},
+                    "questions": {},
+                    "model": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "state"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "state": {
+                        "type": "textarea",
+                        "label": "Content",
+                        "index": 1,
+                        "tooltip": "The text the questions are about. A JSON object or array mapped from a variable is sent as structured data. Text only, up to about 32k tokens."
+                    },
+                    "questions": {
+                        "type": "expression",
+                        "label": "Questions",
+                        "index": 2,
+                        "tooltip": "Required. The questions to ask about the content, one row each. All of them are answered in a single request. Every answer is available as its own output variable, named after the Question ID.",
+                        "levels": [
+                            "ADD"
+                        ],
+                        "fields": {
+                            "id": {
+                                "type": "text",
+                                "label": "Question ID",
+                                "index": 1,
+                                "tooltip": "A short name for the answer, for example <code>department</code> or <code>is_urgent</code>. Letters, digits and underscores only; it names the output variables of this question."
+                            },
+                            "type": {
+                                "type": "select",
+                                "label": "Type",
+                                "index": 2,
+                                "defaultValue": "choice",
+                                "tooltip": "Choice picks one of your options, Score rates on your scale, True or False checks a statement.",
+                                "options": [
+                                    {
+                                        "label": "Choice (pick one option)",
+                                        "value": "choice"
+                                    },
+                                    {
+                                        "label": "Score (rate on a scale)",
+                                        "value": "score"
+                                    },
+                                    {
+                                        "label": "True or False (verify a statement)",
+                                        "value": "noul"
+                                    }
+                                ]
+                            },
+                            "instructions": {
+                                "type": "text",
+                                "label": "Question",
+                                "index": 3,
+                                "tooltip": "What to decide, for example <code>Which team should handle this</code>, <code>How frustrated the customer appears</code> or the statement to verify, <code>The message is urgent</code>."
+                            },
+                            "options": {
+                                "type": "textarea",
+                                "label": "Options",
+                                "index": 4,
+                                "tooltip": "One option per line (2 to 255), as <code>key</code> or <code>key: description</code>, for example <code>billing: Payments, invoices and refunds</code>. The key is what the answer returns.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "choice"
+                                    }
+                                }
+                            },
+                            "levels": {
+                                "type": "textarea",
+                                "label": "Levels",
+                                "index": 4,
+                                "tooltip": "One level description per line (2 to 10), ordered from the lowest (level 0) to the highest, for example <code>Calm, just stating facts</code>.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "score"
+                                    }
+                                }
+                            },
+                            "trueCriteria": {
+                                "type": "text",
+                                "label": "When True",
+                                "index": 4,
+                                "tooltip": "Optional. Describe what makes the statement true.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "noul"
+                                    }
+                                }
+                            },
+                            "falseCriteria": {
+                                "type": "text",
+                                "label": "When False",
+                                "index": 5,
+                                "tooltip": "Optional. Describe what makes the statement false.",
+                                "when": {
+                                    "eq": {
+                                        "./type": "noul"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "model": {
+                        "type": "text",
+                        "label": "Model",
+                        "index": 3,
+                        "defaultValue": "jev-latest",
+                        "tooltip": "Model name or alias. <code>jev-latest</code> is the stable alias, <code>jev-preview</code> the preview build; a version such as <code>jev-1.13.0</code> pins the model.",
+                        "source": {
+                            "url": "/component/appmixer/ai/typesafe/ListModels?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListModels#toSelectArray"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/ai/typesafe/AskQuestions?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/state": "dummy",
+                        "in/questions": "inputs/in/questions"
+                    }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDE2MDAgMTYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iODAwIiBjeT0iODAwIiByPSI4MDAiIGZpbGw9IiNFNTUxQkEiLz4KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwxNjAwKSBzY2FsZSgwLjEsLTAuMSkiIGZpbGw9IiMxNzE3MTciIGZpbGwtcnVsZT0iZXZlbm9kZCI+CjxwYXRoIGQ9Ik03ODQ1IDEzOTA5IGwtMTMwIC04OSAtMzAgLTE2IC0zMCAtMTUgLTMwIC0xNyAtMzAgLTE4IC0zNDUgLTIyOSAtMzQ1IC0yMzAgLTI1IC0xMyAtMjUgLTEzIC0zMCAtMTcgLTMwIC0xOCAtMjg1IC0xODkgLTI4NSAtMTkwIC0yMCAtMTAgLTIxIC0xMCAtNjIgLTQwIC02MiAtNDAgLTMxOCAtMjEwIC0zMTcgLTIxMCAtMjUgLTEzIC0yNSAtMTMgLTMwIC0xNyAtMzAgLTE4IC0yODUgLTE4OSAtMjg1IC0xOTAgLTIwIC0xMCAtMjEgLTEwIC02MiAtNDAgLTYyIC00MCAtMzE4IC0yMTAgLTMxNyAtMjEwIC0yOCAtMTIgLTI3IC0xMyAtMTAgLTI2IC0xMCAtMjUgMCAtMjI0MCAwIC0yMjQwIDEwIC0xOSAxMCAtMTggMTMyIC04OSAxMzMgLTg4IDEwIC00IDEwIC0zIDEyNiAtODQgMTI2IC04NCA2IDAgNiAwIDIzMSAtMTUyIDIzMCAtMTUzIDEzNCAtODcgMTMzIC04OCA2IDAgNSAwIDIyOSAtMTUyIDIyOCAtMTUzIDI1IC0xMiAyNSAtMTEgMjggLTI3IDI3IC0yNiAwIC0xMDM4IC0xIC0xMDM4IDEwIC0yNSA5IC0yNCAxMTggLTgwIDExOSAtNzkgMTAgLTQgMTAgLTMgMTI2IC04NCAxMjYgLTg0IDUgMCA2IDAgMjMzIC0xNTQgMjM0IC0xNTQgMTMxIC04NiAxMzEgLTg2IDYgMCA2IDAgMjMyIC0xNTUgMjMyIC0xNTUgNSAwIDUgMCAxMjcgLTg1IDEyNyAtODUgNSAwIDYgMCAxMTMgLTc1IDExMyAtNzUgMTcgMCAxNyAwIDE0MiA5NSAxNDIgOTUgNSAwIDYgMCA3MyA0OCA3NCA0NyAzMTggMjEwIDMxNyAyMTAgMjUgMTMgMjUgMTMgMzAgMTcgMzAgMTggMjg1IDE4OSAyODUgMTkwIDIwIDEwIDIxIDEwIDYyIDQwIDYyIDQwIDMxOCAyMTAgMzE3IDIxMCAyNSAxMyAyNSAxMyAzMCAxNyAzMCAxOCAyODUgMTg5IDI4NSAxOTAgMjAgMTAgMjEgMTAgNjIgNDAgNjIgNDAgMzE4IDIxMCAzMTcgMjEwIDI4IDEyIDI3IDEzIDEwIDI2IDEwIDI1IC0xIDIyNjcgMCAyMjY3IC03IDE3IC03IDE2IC0yMTkgMTQ2IC0yMjAgMTQ2IC00IDAgLTUgMCAtMTI3IDg1IC0xMjcgODUgLTUgMCAtNiAwIC0yMzMgMTU0IC0yMzQgMTU0IC0xNjEgMTA2IC0xNjEgMTA2IC02IDAgLTYgMCAtMTU4IDEwNSAtMTU4IDEwNiAtMTIgMjIgLTEyIDIyIDAgMTAwMSAwIDEwMDEgLTEwIDI1IC05IDI0IC0xMTggODAgLTExOSA3OSAtMTAgNCAtMTAgMyAtMTI2IDg0IC0xMjYgODQgLTYgMCAtNiAwIC0yMzEgMTUzIC0yMzAgMTUyIC0xMzQgODggLTEzMyA4NyAtNiAwIC02IDAgLTIzMiAxNTUgLTIzMiAxNTUgLTUgMCAtNSAwIC0xMjcgODUgLTEyNyA4NSAtNSAwIC02IDAgLTExMyA3NSAtMTEzIDc1IC0yMCAtMSAtMjEgLTEgLTEzMCAtODl6IG0tMjQ3IC0xNjY0IGwyIC01MzggLTE0IC0yMiAtMTQgLTIxIC01NiAtMzUgLTU3IC0zNCAtMzE3IC0yMTAgLTMxNyAtMjEwIC0yNSAtMTMgLTI1IC0xMyAtMzAgLTE3IC0zMCAtMTggLTM0NSAtMjI5IC0zNDUgLTIzMCAtMjcgLTEyIC0yNyAtMTIgLTk4IC02NSAtOTkgLTY1IC0xNyAtMTkgLTE4IC0xOSAxIC05OTcgMCAtOTk2IC0xNSAtMjMgLTE1IC0yNCAtODUgLTU0IC04NSAtNTQgLTMxOCAtMjEwIC0zMTcgLTIxMCAtMjUgLTEzIC0yNSAtMTMgLTMxIC0xOCAtMzEgLTE3IC00MyAtMzIgLTQ0IC0zMiAtMTMgMCAtMTMgMCAwIDE1NDQgMCAxNTQ0IC02IDE1IC01IDE1IDIzIDIyIDIzIDIyIDcwIDQ2IDcwIDQ3IDI1IDEzIDI1IDEzIDMwIDE3IDMwIDE4IDM0NSAyMjkgMzQ1IDIzMCAyNSAxMyAyNSAxMyAzMCAxNyAzMCAxOCAyODUgMTg5IDI4NSAxOTAgMjAgMTAgMjEgMTAgNjIgNDAgNjIgNDAgMzE5IDIxMCAzMTggMjEwIDI5IDE3IDI5IDE3IDI1IDEzIDI0IDEzIDE2NiAxMTIgMTY1IDExMSAxMCAtMiAxMCAtMyAzIC01Mzh6IG04NTMgNTI2IGwyNCAtMTggODEgLTU1IDgyIC01NSAxMyAtNSAxNCAtNiAxNDUgLTk3IDE0NSAtOTcgMjAgLTkgMjAgLTggMjM1IC0xNTggMjM1IC0xNTggMyAtNTQ3IDIgLTU0OCAtMTAgMCAtOSAwIC00MyAyMiAtNDMgMjMgLTE0MCA5MyAtMTQwIDk0IC0xNCA2IC0xNCA1IC0xOTkgMTMxIC0xOTggMTMxIC0xMTYgNzUgLTExNiA3NSAtMTQgMjAgLTE0IDE5IDAgNTI3IDAgNTI3IDYgMTYgNiAxNiA4IDAgNyAwIDI0IC0xOXogbS0zODkgLTE4MjMgbDUzIC0zMSAxMjYgLTg0IDEyNiAtODMgNiAwIDYgMCAyMzIgLTE1NSAyMzIgLTE1NSA1IDAgNSAwIDEzMSAtODcgMTMxIC04NyA1IC00IDUgLTQgLTI1IC0yMCAtMjUgLTE5IC0yNDUgLTE2MiAtMjQ1IC0xNjIgLTI1IC0xMyAtMjUgLTEzIC0zMCAtMTcgLTMwIC0xOCAtMjI5IC0xNTIgLTIyOSAtMTUyIC0yMiAwIC0yMiAwIC0yNCAxOSAtMjQgMTggLTE0NCA5NyAtMTQ0IDk2IC01IDAgLTUgMCAtMTI3IDg1IC0xMjcgODUgLTUgMCAtNiAwIC0yMTggMTQ0IC0yMTkgMTQ1IC0yMiAxNiAtMjMgMTYgMCA5IDAgOCA4NyA1OSA4OCA1OCAyNyAxMiAyNyAxMiAzMTMgMjA4IDMxMyAyMDggMzAgMTcgMzAgMTcgMjUgMTMgMjQgMTMgNzEgNDcgNzAgNDggMTIgMCAxMyAwIDUyIC0zMnogbS0xMjY1IC0xNTk2IGwyMjQgLTE0NyAxNTcgLTEwNCAxNTcgLTEwMyAxNSAtNiAxNSAtNiA5NSAtNjIgOTUgLTYyIDIzIC0yMSAyMiAtMjAgMCAtNTI2IDAgLTUyNiAtMTUgLTYgLTE2IC01IC0xNyAxNSAtMTcgMTUgLTEyOSA4NiAtMTI5IDg2IC01IDAgLTUgMCAtMTI3IDg1IC0xMjcgODUgLTUgMCAtNiAwIC0yMTQgMTQyIC0yMTMgMTQxIC0yMiAyMCAtMjMgMjAgMCA1MjIgMCA1MjIgNyA3IDcgNyAxNCAtNiAxNCAtNSAyMjUgLTE0OHogbTI2NzEgLTE0MzYgbDIgLTE1ODggLTM3IC0zNSAtMzggLTM1IC0zMCAtMTQgLTMwIC0xNSAtMzAgLTE3IC0zMCAtMTggLTMxNSAtMjA5IC0zMTUgLTIxMCAtMjcgLTE1IC0yNiAtMTUgLTM0IC0xOSAtMzMgLTE5IC0zMTAgLTIwNiAtMzEwIC0yMDYgLTI1IC0xMyAtMjUgLTEzIC0zMCAtMTcgLTMwIC0xOCAtMzQ1IC0yMjkgLTM0NSAtMjMwIC0yNyAtMTIgLTI3IC0xMiAtMjM0IC0xNTUgLTIzNCAtMTU2IC0yNCAtMiAtMjQgLTMgMCA1NzUgMCA1NzQgMTc1IDExOCAxNzUgMTE4IDMwIDE2IDMwIDE1IDMwIDE3IDMwIDE4IDI4NSAxODkgMjg1IDE5MCAyMCAxMCAyMSAxMCA2MiA0MCA2MiA0MCAzMDggMjAzIDMwNyAyMDMgMjMgMjEgMjIgMjEgMCAxMDAyIDAgMTAwMSAyOCAyNSAyNyAyNiAxNTAgOTkgMTUwIDk5IDI3IDE1IDI2IDE1IDM0IDE5IDMzIDE5IDI4NCAxODkgMjg1IDE4OCAxMCAtMyAxMSAtNCAzIC0xNTg3eiBtODM5IDE1NzMgbDI4IC0xMCAxMjYgLTg1IDEyNiAtODQgNSAwIDYgMCAyMzEgLTE1MiAyMzEgLTE1MyAxMTYgLTc1IDExNSAtNzUgMTUgLTE2IDE0IC0xNiAwIC0xNTgzIDAgLTE1ODQgLTkgLTkgLTEwIC0xMCAtMjA4IDEzOSAtMjA4IDEzOSAtMTAgNCAtMTAgMyAtMTI2IDg0IC0xMjYgODQgLTUgMCAtNiAwIC0xNTggMTA1IC0xNTkgMTA2IC0xMiAyMiAtMTIgMjIgLTEgMTU0NiAwIDE1NDcgNiAzMSA3IDMxIDMgMCAzIDAgMjggLTExeiBtLTQwNTUgLTE4MTkgbDcgMCAyMzIgLTE1NSAyMzIgLTE1NSA1IDAgNSAwIDEyNyAtODUgMTI3IC04NSA2IDAgNiAwIDEwOSAtNzIgMTEwIC03MyAxOSAtMTEgMTggLTExIC0xNSAtMTcgLTE0IC0xOCAtMjgwIC0xODYgLTI4MSAtMTg3IC0yNyAtMTIgLTI3IC0xMiAtMjI3IC0xNTAgLTIyNiAtMTUxIC0yNCAwIC0yMyAwIC04MyA1NiAtODIgNTYgLTE1IDYgLTE1IDYgLTIyOCAxNTAgLTIyOCAxNTEgLTEyMiA4MCAtMTIyIDgwIC0yMCAxMCAtMjEgMTAgLTc1IDQ5IC03NSA0OSAtNyAxMSAtOCAxMSAyOCAyMyAyNyAyMyAzMCAxNSAzMCAxNCAzNSAyMiAzNSAyMiAzMTAgMjA1IDMxMCAyMDYgMzAgMTcgMzAgMTcgMjUgMTMgMjUgMTMgNzAgNDcgNzAgNDYgMzMgMjUgMzQgMjYgNTYgLTQwIDU3IC0zOSA3IDB6IG0zODMxIC0yMTg4IGwxNzggLTExNyAxNTcgLTEwNCAxNTcgLTEwMyAxNiAtNyAxNSAtNiAxODIgLTEyMCAxODEgLTEyMCAxIC0xNyAwIC0xNyAtMjUyIC0xNjggLTI1MyAtMTY4IC0yNSAtMTMgLTI1IC0xMyAtMzAgLTE3IC0zMCAtMTggLTM0NSAtMjI5IC0zNDUgLTIzMCAtMjcgLTEyIC0yNyAtMTIgLTMxMyAtMjA4IC0zMTMgLTIwOCAtMjAgLTEwIC0yMSAtMTAgLTYyIC00MCAtNjIgLTQwIC0zMTggLTIxMCAtMzE3IC0yMTAgLTI1IC0xMyAtMjUgLTEzIC00MCAtMjQgLTQwIC0yNCAtMjcgLTE2IC0yNyAtMTUgLTI0IDkgLTI1IDEwIC01OCA0MCAtNTkgNDEgLTcgMCAtNiAwIC0yMjkgMTUzIC0yMjggMTUyIC0xNSA2IC0xNSA3IC0xNDUgOTcgLTE0NSA5NyAtMTUgNyAtMTUgNiAtNjIgNDAgLTYyIDQwIC0xIDE3IDAgMTcgMjIyIDE0OCAyMjMgMTQ4IDI1IDEzIDI1IDEzIDMwIDE3IDMwIDE4IDI4NSAxODkgMjg1IDE5MCAyMCAxMCAyMSAxMCA2MiA0MCA2MiA0MCAzMTggMjEwIDMxNyAyMTAgMjUgMTMgMjUgMTMgMzAgMTcgMzAgMTggMzE1IDIwOSAzMTUgMjEwIDI3IDE1IDI2IDE1IDM0IDE5IDMzIDE5IDg5IDU5IDkwIDU5IDI1IC02IDI2IC02IDE3OCAtMTE3eiIvPgo8L2c+Cjwvc3ZnPgo="
+}

@@ -1,8 +1,17 @@
 {
     "name": "E2E Shopify - Updated Draft Order Trigger",
-    "type": "automation",
+    "description": "Updated Draft Order fires for a draft order updated through the GraphQL Admin API.",
+    "notes": {
+        "a8321aac-5312-43b2-9f61-cd646c9e4b83": {
+            "x": 64,
+            "y": 32,
+            "width": 672,
+            "height": 224,
+            "content": "## ⚠️ Self-provoking trigger flow\n\nThe bottom lane creates a draft order (`draftOrderCreate`) one minute after the start and updates its note (`draftOrderUpdate`) a minute later. Keep both **Wait** steps: the first lets the webhook subscription become active, the second separates the update from the creation.\n\nThe trigger lane deletes the emitted draft order after `AfterAll`. The app needs `read_draft_orders` and `write_draft_orders`."
+        }
+    },
     "flow": {
-        "a0000000-0000-0000-0000-000000000001": {
+        "7030cfda-8811-4822-b766-449d996e62a0": {
             "type": "appmixer.shopify.draftorders.UpdatedDraftOrder",
             "x": 64,
             "y": 320,
@@ -15,31 +24,35 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000002": {
+        "1d012be9-b3c9-4d43-b2b9-9b66c6059c3e": {
             "type": "appmixer.utils.test.Assert",
             "x": 272,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000001": [
-                        "draftOrder"
+                    "7030cfda-8811-4822-b766-449d996e62a0": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000001": {
-                            "draftOrder": {
+                        "7030cfda-8811-4822-b766-449d996e62a0": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "field-id": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.draftOrder.id",
+                                        "073e9f5a-9efd-42fb-82d5-6939d880b8af": {
+                                            "variable": "$.7030cfda-8811-4822-b766-449d996e62a0.out.id",
                                             "functions": []
                                         },
-                                        "field-topic": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.draftOrder.webhookTopic",
+                                        "80b19896-a921-478d-be44-f951d949b73a": {
+                                            "variable": "$.7030cfda-8811-4822-b766-449d996e62a0.out.webhookTopic",
+                                            "functions": []
+                                        },
+                                        "5eca811c-55a9-4e15-b970-f36f7e9be17f": {
+                                            "variable": "$.7030cfda-8811-4822-b766-449d996e62a0.out.name",
                                             "functions": []
                                         }
                                     }
@@ -48,13 +61,19 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-id}}}"
+                                                "field": "{{{073e9f5a-9efd-42fb-82d5-6939d880b8af}}}",
+                                                "assertion": "regex",
+                                                "regex": "^gid://shopify/DraftOrder/\\d+$"
                                             },
                                             {
+                                                "field": "{{{80b19896-a921-478d-be44-f951d949b73a}}}",
                                                 "assertion": "equal",
-                                                "field": "{{{field-topic}}}",
                                                 "expected": "draft_orders/update"
+                                            },
+                                            {
+                                                "field": "{{{5eca811c-55a9-4e15-b970-f36f7e9be17f}}}",
+                                                "assertion": "regex",
+                                                "regex": "^#D\\d+$"
                                             }
                                         ]
                                     }
@@ -69,13 +88,13 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000003": {
+        "f54e0b60-e057-4e19-9a98-faaf4e8d8326": {
             "type": "appmixer.utils.test.AfterAll",
             "x": 480,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000002": [
+                    "1d012be9-b3c9-4d43-b2b9-9b66c6059c3e": [
                         "out"
                     ]
                 }
@@ -90,36 +109,37 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000004": {
-            "type": "appmixer.utils.test.ProcessE2EResults",
+        "964a4908-4066-4eae-b9d8-4d637e4f1f31": {
+            "type": "appmixer.shopify.core.MakeApiCall",
             "x": 688,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000003": [
+                    "f54e0b60-e057-4e19-9a98-faaf4e8d8326": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000003": {
+                        "f54e0b60-e057-4e19-9a98-faaf4e8d8326": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "result": {
-                                        "field-result": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "f30b410a-f8dd-4fd4-8daf-98930e446722": {
+                                            "variable": "$.7030cfda-8811-4822-b766-449d996e62a0.out.id",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "recipients": "test@appmixer.com",
-                                    "testCase": "E2E Shopify - Updated Draft Order Trigger",
-                                    "result": "{{{field-result}}}"
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"mutation DraftOrderDelete($input: DraftOrderDeleteInput!) { draftOrderDelete(input: $input) { deletedId userErrors { field message } } }\", \"variables\": {\"input\": {\"id\": \"{{{f30b410a-f8dd-4fd4-8daf-98930e446722}}}\"}}}"
                                 }
                             }
                         }
@@ -131,7 +151,49 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000001": {
+        "947b182e-0bb7-45e0-960a-bb2dd8007a9a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "964a4908-4066-4eae-b9d8-4d637e4f1f31": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "964a4908-4066-4eae-b9d8-4d637e4f1f31": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "0bf83f9c-fdda-4c41-85fb-33d84bda3617": {
+                                            "variable": "$.f54e0b60-e057-4e19-9a98-faaf4e8d8326.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Shopify - Updated Draft Order Trigger",
+                                    "result": "{{{0bf83f9c-fdda-4c41-85fb-33d84bda3617}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "5f682d23-082f-4396-91c9-09e7c288deec": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
             "y": 576,
@@ -142,13 +204,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000002": {
+        "4cc60743-ac94-42ba-82dc-af1a1f2558b4": {
             "type": "appmixer.utils.timers.Wait",
             "x": 272,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000001": [
+                    "5f682d23-082f-4396-91c9-09e7c288deec": [
                         "out"
                     ]
                 }
@@ -156,10 +218,12 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000001": {
+                        "5f682d23-082f-4396-91c9-09e7c288deec": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "interval": {}
+                                },
                                 "lambda": {
                                     "interval": "1m"
                                 }
@@ -173,13 +237,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000003": {
+        "7d3a6eec-4704-4cc0-87c4-8cb274db33d2": {
             "type": "appmixer.shopify.core.MakeApiCall",
             "x": 480,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000002": [
+                    "4cc60743-ac94-42ba-82dc-af1a1f2558b4": [
                         "out"
                     ]
                 }
@@ -187,14 +251,18 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000002": {
+                        "4cc60743-ac94-42ba-82dc-af1a1f2558b4": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {}
+                                },
                                 "lambda": {
-                                    "url": "/draft_orders.json",
+                                    "url": "/graphql.json",
                                     "method": "POST",
-                                    "body": "{\"draft_order\": {\"note\": \"Appmixer E2E draft order\", \"line_items\": [{\"title\": \"Appmixer E2E Draft Item\", \"price\": \"9.99\", \"quantity\": 1}]}}"
+                                    "body": "{\"query\": \"mutation DraftOrderCreate($input: DraftOrderInput!) { draftOrderCreate(input: $input) { draftOrder { id } userErrors { field message } } }\", \"variables\": {\"input\": {\"note\": \"Appmixer E2E draft order\", \"lineItems\": [{\"title\": \"Appmixer E2E Draft Item\", \"originalUnitPriceWithCurrency\": {\"amount\": \"9.99\", \"currencyCode\": \"USD\"}, \"quantity\": 1}]}}}"
                                 }
                             }
                         }
@@ -206,13 +274,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000004": {
+        "e0b6c55b-866c-49e7-b754-a941829ccc88": {
             "type": "appmixer.utils.timers.Wait",
             "x": 688,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000003": [
+                    "7d3a6eec-4704-4cc0-87c4-8cb274db33d2": [
                         "out"
                     ]
                 }
@@ -220,10 +288,12 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000003": {
+                        "7d3a6eec-4704-4cc0-87c4-8cb274db33d2": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "interval": {}
+                                },
                                 "lambda": {
                                     "interval": "1m"
                                 }
@@ -237,13 +307,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000005": {
+        "25d9cf3c-8ef0-4784-9700-5f7059a7f425": {
             "type": "appmixer.shopify.core.MakeApiCall",
             "x": 896,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000004": [
+                    "e0b6c55b-866c-49e7-b754-a941829ccc88": [
                         "out"
                     ]
                 }
@@ -251,19 +321,21 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000004": {
+                        "e0b6c55b-866c-49e7-b754-a941829ccc88": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "url": {
-                                        "m-draft-id": {
-                                            "variable": "$.b0000000-0000-0000-0000-000000000003.out.body",
+                                    "url": {},
+                                    "method": {},
+                                    "body": {
+                                        "5aaa301e-a895-45eb-be6b-0c583a2b87ef": {
+                                            "variable": "$.7d3a6eec-4704-4cc0-87c4-8cb274db33d2.out.body",
                                             "functions": [
                                                 {
                                                     "name": "g_jsonPath",
                                                     "params": [
                                                         {
-                                                            "value": "$.draft_order.id"
+                                                            "value": "$.data.draftOrderCreate.draftOrder.id"
                                                         }
                                                     ]
                                                 }
@@ -272,9 +344,9 @@
                                     }
                                 },
                                 "lambda": {
-                                    "url": "/draft_orders/{{{m-draft-id}}}.json",
-                                    "method": "PUT",
-                                    "body": "{\"draft_order\": {\"note\": \"Appmixer E2E draft order UPDATED\"}}"
+                                    "url": "/graphql.json",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"mutation DraftOrderUpdate($id: ID!, $input: DraftOrderInput!) { draftOrderUpdate(id: $id, input: $input) { draftOrder { id } userErrors { field message } } }\", \"variables\": {\"id\": \"{{{5aaa301e-a895-45eb-be6b-0c583a2b87ef}}}\", \"input\": {\"note\": \"Appmixer E2E draft order UPDATED\"}}}"
                                 }
                             }
                         }
@@ -286,8 +358,5 @@
                 "onError": "stopFlow"
             }
         }
-    },
-    "wizard": {
-        "fields": []
     }
 }

@@ -39,10 +39,16 @@ module.exports = {
 
 
                 await context.log({ 'step': 'auth', data });
-                return data;
+                // Auth Hub runs requestProfileInfo from its own copy of this connector, while the
+                // tenant evaluates accountNameFromProfileInfo from its copy. Tenants older than 1.6.1
+                // read `EmailAddress` (the former /Users profile), so keep that key too.
+                return { ...data, EmailAddress: data.email };
             },
 
-            accountNameFromProfileInfo: 'email'
+            // Fall back to `EmailAddress` for an Auth Hub still running the pre-1.6.1 profile.
+            accountNameFromProfileInfo: context => {
+                return context.profileInfo.email || context.profileInfo.EmailAddress;
+            }
         };
     }
 };

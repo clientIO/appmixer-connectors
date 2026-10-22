@@ -1,0 +1,352 @@
+{
+    "name": "E2E Attio - New Note trigger",
+    "description": "New Note fires when a note is created on a company.",
+    "flow": {
+        "903cf230-db89-4b3c-87c3-a4dc1d88bcb0": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "01871814-c01b-4371-9c61-c47abd160423": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "903cf230-db89-4b3c-87c3-a4dc1d88bcb0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "903cf230-db89-4b3c-87c3-a4dc1d88bcb0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "13aca76a-4e2a-4ff6-91a6-330ad07522fe": {
+            "type": "appmixer.attio.core.CreateCompany",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "01871814-c01b-4371-9c61-c47abd160423": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "01871814-c01b-4371-9c61-c47abd160423": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Attio NewNote Company"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "b0f165bd-ac04-4c54-a930-84417359c5e3": {
+            "type": "appmixer.attio.core.CreateNote",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "13aca76a-4e2a-4ff6-91a6-330ad07522fe": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "13aca76a-4e2a-4ff6-91a6-330ad07522fe": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectId": {},
+                                    "recordId": {
+                                        "dbc8dc8b-e05d-443b-9002-a923a24a8964": {
+                                            "variable": "$.13aca76a-4e2a-4ff6-91a6-330ad07522fe.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "title": {},
+                                    "content": {}
+                                },
+                                "lambda": {
+                                    "objectId": "companies",
+                                    "recordId": "{{{dbc8dc8b-e05d-443b-9002-a923a24a8964}}}",
+                                    "title": "E2E Attio NewNote",
+                                    "content": "Created by the Attio E2E trigger test."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8c9d243d-d26b-40aa-abc5-811244859000": {
+            "type": "appmixer.attio.core.NewNote",
+            "x": 64,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {},
+            "config": {
+                "properties": {
+                    "objectId": "companies"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3264b670-a0c4-4868-aea5-9929fc2cbe32": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "8c9d243d-d26b-40aa-abc5-811244859000": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8c9d243d-d26b-40aa-abc5-811244859000": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "f5b67ddd-a00e-4821-b977-b44dc168ea6f": {
+                                            "variable": "$.8c9d243d-d26b-40aa-abc5-811244859000.out.title",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{f5b67ddd-a00e-4821-b977-b44dc168ea6f}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Attio NewNote"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "beb03c27-d157-4cfb-bdc5-64a60fce7469": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3264b670-a0c4-4868-aea5-9929fc2cbe32": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "87318e34-7f28-4678-baca-1693c4cb217a": {
+            "type": "appmixer.attio.core.DeleteNote",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "beb03c27-d157-4cfb-bdc5-64a60fce7469": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "beb03c27-d157-4cfb-bdc5-64a60fce7469": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "noteId": {
+                                        "441c8bd2-e6f6-4c75-8379-6fc7ed59e1bb": {
+                                            "variable": "$.8c9d243d-d26b-40aa-abc5-811244859000.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "noteId": "{{{441c8bd2-e6f6-4c75-8379-6fc7ed59e1bb}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a8fa1973-3935-4c09-9582-27f03b4cb406": {
+            "type": "appmixer.attio.core.DeleteRecord",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "87318e34-7f28-4678-baca-1693c4cb217a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "87318e34-7f28-4678-baca-1693c4cb217a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectId": {},
+                                    "recordId": {
+                                        "8c6ee03e-354a-45e6-a198-d55caf3b5cf1": {
+                                            "variable": "$.8c9d243d-d26b-40aa-abc5-811244859000.out.parentRecordId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectId": "companies",
+                                    "recordId": "{{{8c6ee03e-354a-45e6-a198-d55caf3b5cf1}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6b78608e-6e3e-4b4f-8d9c-ad8301b24c6b": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a8fa1973-3935-4c09-9582-27f03b4cb406": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a8fa1973-3935-4c09-9582-27f03b4cb406": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "9f49f0ac-5678-4a76-b949-82b3ec757951": {
+                                            "variable": "$.beb03c27-d157-4cfb-bdc5-64a60fce7469.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Attio - New Note trigger",
+                                    "result": "{{{9f49f0ac-5678-4a76-b949-82b3ec757951}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "8db1801d-36c6-4aab-a3eb-49db63dbdc96": {
+            "x": 64,
+            "y": 400,
+            "width": 672,
+            "height": 224,
+            "content": "## ⏱ Trigger test\n\nThe trigger registers its Attio webhook when the flow starts. The provoke lane waits 1 minute (do not remove the Wait) and then creates a company and a note on it. The trigger lane asserts the event and cleans up. Run this flow alone: other flows creating the same kind of data at the same time would also fire the trigger."
+        }
+    }
+}

@@ -1,0 +1,292 @@
+{
+    "name": "E2E Zoho - invoices",
+    "description": "End-to-end test for Zoho CRM invoices — finds invoices by due date as a list and by invoice date as a single record.",
+    "type": "automation",
+    "flow": {
+        "8984f26d-5608-4a27-8934-4b66ef6d6298": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "e696229e-81c9-498e-ac16-92860d6e60a7": {
+            "type": "appmixer.zoho.crm.FindInvoices",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "8984f26d-5608-4a27-8934-4b66ef6d6298": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8984f26d-5608-4a27-8934-4b66ef6d6298": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "dueDateTo": {
+                                        "v-due-to": {
+                                            "variable": "$.8984f26d-5608-4a27-8934-4b66ef6d6298.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "days": {
+                                                            "value": 3650
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "dueDateTo": "{{{v-due-to}}}",
+                                    "outputType": "array"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "61d8d919-909e-454b-b953-54b9bb641f26": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "e696229e-81c9-498e-ac16-92860d6e60a7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e696229e-81c9-498e-ac16-92860d6e60a7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-invoices": {
+                                            "variable": "$.e696229e-81c9-498e-ac16-92860d6e60a7.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-invoices}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "cdfb81f2-2229-4acf-b896-b4c83dc2c525": {
+            "type": "appmixer.zoho.crm.FindInvoices",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "8984f26d-5608-4a27-8934-4b66ef6d6298": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "8984f26d-5608-4a27-8934-4b66ef6d6298": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "invoiceDateTo": {
+                                        "v-invoice-to": {
+                                            "variable": "$.8984f26d-5608-4a27-8934-4b66ef6d6298.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "days": {
+                                                            "value": 3650
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "invoiceDateTo": "{{{v-invoice-to}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "9d68acf7-d16b-427e-b14c-275c20e0ec55": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "cdfb81f2-2229-4acf-b896-b4c83dc2c525": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cdfb81f2-2229-4acf-b896-b4c83dc2c525": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "a-invoice-id": {
+                                            "variable": "$.cdfb81f2-2229-4acf-b896-b4c83dc2c525.out.id",
+                                            "functions": []
+                                        },
+                                        "a-invoice-created": {
+                                            "variable": "$.cdfb81f2-2229-4acf-b896-b4c83dc2c525.out.Created_Time",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{a-invoice-id}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{a-invoice-created}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "7e37b366-3799-4bec-8c12-52cc7c57ae4b": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "61d8d919-909e-454b-b953-54b9bb641f26": [
+                        "out"
+                    ],
+                    "9d68acf7-d16b-427e-b14c-275c20e0ec55": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            }
+        },
+        "b03bc7e2-210c-4fe8-bd31-998911b4b04a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "7e37b366-3799-4bec-8c12-52cc7c57ae4b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7e37b366-3799-4bec-8c12-52cc7c57ae4b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "bbb0895a-f804-42db-9020-4692a4174093": {
+                                            "variable": "$.7e37b366-3799-4bec-8c12-52cc7c57ae4b.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Zoho - invoices",
+                                    "result": "{{{bbb0895a-f804-42db-9020-4692a4174093}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -9,6 +9,10 @@ module.exports = {
 
     receive(context) {
 
+        if (!context.messages.tag.content.name) {
+            throw new context.CancelError('Tag name is required!');
+        }
+
         let tag = context.messages.tag.content;
         const client = commons.getEvernoteAPI(context.auth.accessToken).getNoteStore();
 

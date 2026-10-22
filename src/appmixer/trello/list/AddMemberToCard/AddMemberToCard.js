@@ -9,6 +9,13 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.boardListCardId) {
+            throw new context.CancelError('Card is required!');
+        }
+        if (!context.messages.in.content.boardMemberId) {
+            throw new context.CancelError('Member is required!');
+        }
+
         let { boardListCardId, boardMemberId } = context.messages.in.content;
         const { data: newMembers } = await context.httpRequest({
             headers: { 'Content-Type': 'application/json' },

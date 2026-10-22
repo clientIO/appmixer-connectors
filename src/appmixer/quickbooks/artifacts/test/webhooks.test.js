@@ -17,6 +17,8 @@ const INVOICE_A1_CREATED = { id: '1001', name: 'Invoice', operation: 'Create', l
 const INVOICE_A2_CREATED = { id: '1002', name: 'Invoice', operation: 'Create', lastUpdated: NOW };
 const INVOICE_B1_CREATED = { id: '1003', name: 'Invoice', operation: 'Create', lastUpdated: NOW };
 const INVOICE_B2_CREATED = { id: '1004', name: 'Invoice', operation: 'Create', lastUpdated: NOW };
+const BILL_A_CREATED = { id: '2001', name: 'Bill', operation: 'Create', lastUpdated: NOW };
+const BILL_B_UPDATED = { id: '2002', name: 'Bill', operation: 'Update', lastUpdated: NOW };
 
 describe('Quickbooks webhooks', function() {
 
@@ -513,13 +515,141 @@ describe('Quickbooks onListenerAdded', function() {
     });
 });
 
+const RECEIVE_TRIGGERS = [
+    { label: 'NewBill', path: '../../accounting/NewBill/NewBill', entity: 'Bill', fixture: { id: '2001', name: 'Bill', operation: 'Create' } },
+    { label: 'UpdatedBill', path: '../../accounting/UpdatedBill/UpdatedBill', entity: 'Bill', fixture: { id: '2002', name: 'Bill', operation: 'Update' } }
+];
+
+for (const trigger of RECEIVE_TRIGGERS) {
+    describe(`${trigger.label} component`, function() {
+
+        const { receive } = require(trigger.path);
+        let context;
+
+        const QUICKBOOKS_BILL = { Id: trigger.fixture.id, TotalAmt: 2400, VendorRef: { value: '55', name: 'Acme Supplies' } };
+
+        beforeEach(function() {
+
+            context = {
+                ...testUtils.createMockContext(),
+                profileInfo: { companyId: 'companyId' }
+            };
+        });
+
+        it('should query and emit bills by id', async function() {
+
+            context.httpRequest = sinon.stub().resolves({
+                data: { QueryResponse: { Bill: [QUICKBOOKS_BILL] } }
+            });
+            context.messages = { webhook: { content: { data: [trigger.fixture.id] } } };
+
+            await receive(context);
+
+            assert(context.httpRequest.calledOnce);
+            const args = context.httpRequest.args[0];
+            assert.equal(args[0].method, 'GET');
+            assert.match(args[0].url, /v3\/company\/companyId\/query\?query=select/);
+            assert.match(args[0].url, /Bill/);
+            assert.match(args[0].url, new RegExp(`Id%20in%20\\('${trigger.fixture.id}'\\)`));
+            assert.equal(context.sendArray.callCount, 1);
+            assert.deepEqual(context.sendArray.args[0][0], [QUICKBOOKS_BILL]);
+        });
+    });
+}
+
+describe('Quickbooks webhooks: Bill routing', function() {
+
+    let context;
+    let req;
+    let h;
+
+    function sign() {
+        req.headers['intuit-signature'] = crypto.createHmac('sha256', context.config.webhookVerifierToken)
+            .update(JSON.stringify(req.payload)).digest('base64');
+    }
+
+    beforeEach(function() {
+
+        context = {
+            ...testUtils.createMockContext(),
+            config: { webhookVerifierToken: 'webhooksVerifier' },
+            profileInfo: { companyId: 'companyId' }
+        };
+        req = { payload: {}, query: {}, info: { hostname: 'hostname' }, headers: {} };
+        h = {
+            response: function(msg) {
+                return { code: function(code) { return { code, msg }; } };
+            }
+        };
+    });
+
+    it('should trigger Bill.Create listeners when a bill is created', async function() {
+
+        req.payload = {
+            eventNotifications: [{
+                realmId: REALM_ID_AIRBUS,
+                dataChangeEvent: { entities: [BILL_A_CREATED] }
+            }]
+        };
+        sign();
+
+        await webhookHandler(context, req, h);
+        assert.equal(context.triggerListeners.callCount, 1);
+        const call = context.triggerListeners.args[0][0];
+        assert.equal(call.eventName, 'Bill.Create');
+        assert.deepEqual(call.payload, [BILL_A_CREATED.id]);
+        assert.equal(call.filter({ params: { realmId: REALM_ID_AIRBUS } }), true);
+        assert.equal(call.filter({ params: { realmId: REALM_ID_BOEING } }), false);
+    });
+
+    it('should trigger Bill.Update listeners when a bill is updated', async function() {
+
+        req.payload = {
+            eventNotifications: [{
+                realmId: REALM_ID_AIRBUS,
+                dataChangeEvent: { entities: [BILL_B_UPDATED] }
+            }]
+        };
+        sign();
+
+        await webhookHandler(context, req, h);
+        assert.equal(context.triggerListeners.callCount, 1);
+        const call = context.triggerListeners.args[0][0];
+        assert.equal(call.eventName, 'Bill.Update');
+        assert.deepEqual(call.payload, [BILL_B_UPDATED.id]);
+    });
+
+    it('should route Bill.Create and Bill.Update independently in the same payload', async function() {
+
+        req.payload = {
+            eventNotifications: [{
+                realmId: REALM_ID_AIRBUS,
+                dataChangeEvent: { entities: [BILL_A_CREATED, BILL_B_UPDATED] }
+            }]
+        };
+        sign();
+
+        await webhookHandler(context, req, h);
+        assert.equal(context.triggerListeners.callCount, 2);
+        const calls = context.triggerListeners.args.map(args => args[0]);
+        const createCall = calls.find(c => c.eventName === 'Bill.Create');
+        const updateCall = calls.find(c => c.eventName === 'Bill.Update');
+        assert(createCall, 'Expected a Bill.Create call');
+        assert(updateCall, 'Expected a Bill.Update call');
+        assert.deepEqual(createCall.payload, [BILL_A_CREATED.id]);
+        assert.deepEqual(updateCall.payload, [BILL_B_UPDATED.id]);
+    });
+});
+
 describe('Quickbooks trigger registration', function() {
 
     const TRIGGERS = [
         { path: '../../accounting/NewInvoice/NewInvoice', eventName: 'Invoice.Create' },
         { path: '../../accounting/UpdatedInvoice/UpdatedInvoice', eventName: 'Invoice.Update' },
         { path: '../../accounting/NewCustomer/NewCustomer', eventName: 'Customer.Create' },
-        { path: '../../accounting/UpdatedCustomer/UpdatedCustomer', eventName: 'Customer.Update' }
+        { path: '../../accounting/UpdatedCustomer/UpdatedCustomer', eventName: 'Customer.Update' },
+        { path: '../../accounting/NewBill/NewBill', eventName: 'Bill.Create' },
+        { path: '../../accounting/UpdatedBill/UpdatedBill', eventName: 'Bill.Update' }
     ];
 
     for (const trigger of TRIGGERS) {

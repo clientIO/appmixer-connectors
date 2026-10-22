@@ -1,0 +1,636 @@
+{
+    "name": "E2E Attio - tasks",
+    "description": "List Workspace Members, Create Task, Update Task, Get Task, Find Tasks, Delete Task.",
+    "flow": {
+        "b5c0d66a-e166-47a8-9f09-e2e85e67d0cf": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "4df21885-7be2-4b4f-9bf5-f44a6c197b0b": {
+            "type": "appmixer.attio.core.ListWorkspaceMembers",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "b5c0d66a-e166-47a8-9f09-e2e85e67d0cf": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "b5c0d66a-e166-47a8-9f09-e2e85e67d0cf": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1aa3da32-8e30-4285-bd5b-73d69726467e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "4df21885-7be2-4b4f-9bf5-f44a6c197b0b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "4df21885-7be2-4b4f-9bf5-f44a6c197b0b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "b23c46b8-58f9-49fc-8496-5932772d7ce2": {
+                                            "variable": "$.4df21885-7be2-4b4f-9bf5-f44a6c197b0b.out.emailAddress",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{b23c46b8-58f9-49fc-8496-5932772d7ce2}}}",
+                                                "assertion": "notEmpty",
+                                                "expected": ""
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "d15ac021-2c4a-4039-b500-d434a3cc3aff": {
+            "type": "appmixer.attio.core.CreateCompany",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1aa3da32-8e30-4285-bd5b-73d69726467e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1aa3da32-8e30-4285-bd5b-73d69726467e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "name": {}
+                                },
+                                "lambda": {
+                                    "name": "E2E Attio Task Company"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fa228725-0990-411c-b7a1-70d6ac96308e": {
+            "type": "appmixer.attio.core.CreateTask",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "d15ac021-2c4a-4039-b500-d434a3cc3aff": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d15ac021-2c4a-4039-b500-d434a3cc3aff": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "content": {},
+                                    "deadlineAt": {
+                                        "2e860758-c455-49b5-a2b9-c3cdb3c24643": {
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "minutes": {
+                                                            "value": 1440
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "assigneeEmails": {
+                                        "86768659-e383-46d1-bf37-fce2ef68468b": {
+                                            "variable": "$.4df21885-7be2-4b4f-9bf5-f44a6c197b0b.out.emailAddress",
+                                            "functions": []
+                                        }
+                                    },
+                                    "linkedObject": {},
+                                    "linkedRecordId": {
+                                        "7ec9209d-fd96-4b8a-a4ee-66fa80a534eb": {
+                                            "variable": "$.d15ac021-2c4a-4039-b500-d434a3cc3aff.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "content": "E2E Attio Task",
+                                    "deadlineAt": "{{{2e860758-c455-49b5-a2b9-c3cdb3c24643}}}",
+                                    "assigneeEmails": "{{{86768659-e383-46d1-bf37-fce2ef68468b}}}",
+                                    "linkedObject": "companies",
+                                    "linkedRecordId": "{{{7ec9209d-fd96-4b8a-a4ee-66fa80a534eb}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1533261d-2aeb-4860-8ba5-a8e209d47a4e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "fa228725-0990-411c-b7a1-70d6ac96308e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fa228725-0990-411c-b7a1-70d6ac96308e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "5a1755ac-8220-416c-9c7a-352655d34bac": {
+                                            "variable": "$.fa228725-0990-411c-b7a1-70d6ac96308e.out.content",
+                                            "functions": []
+                                        },
+                                        "2427f49d-eef5-4cde-b046-97c3f96e8844": {
+                                            "variable": "$.fa228725-0990-411c-b7a1-70d6ac96308e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{5a1755ac-8220-416c-9c7a-352655d34bac}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Attio Task"
+                                            },
+                                            {
+                                                "field": "{{{2427f49d-eef5-4cde-b046-97c3f96e8844}}}",
+                                                "assertion": "notEmpty",
+                                                "expected": ""
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "85b710eb-438d-4a31-bdcd-aed2987fd2d6": {
+            "type": "appmixer.attio.core.UpdateTask",
+            "x": 1312,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "1533261d-2aeb-4860-8ba5-a8e209d47a4e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1533261d-2aeb-4860-8ba5-a8e209d47a4e": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "3941fb6d-dc9b-4dee-88d4-cf649a8904a2": {
+                                            "variable": "$.fa228725-0990-411c-b7a1-70d6ac96308e.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "isCompleted": {}
+                                },
+                                "lambda": {
+                                    "taskId": "{{{3941fb6d-dc9b-4dee-88d4-cf649a8904a2}}}",
+                                    "isCompleted": "true"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e1e31ba2-e745-49c0-a069-ba509e8761e0": {
+            "type": "appmixer.attio.core.GetTask",
+            "x": 1520,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "85b710eb-438d-4a31-bdcd-aed2987fd2d6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "85b710eb-438d-4a31-bdcd-aed2987fd2d6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "9dffd43d-5538-471d-bfb6-37ef9b30a789": {
+                                            "variable": "$.fa228725-0990-411c-b7a1-70d6ac96308e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{9dffd43d-5538-471d-bfb6-37ef9b30a789}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "257728c0-2158-46a7-bda7-89a6e470d38d": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1728,
+            "y": 528,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e1e31ba2-e745-49c0-a069-ba509e8761e0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1e31ba2-e745-49c0-a069-ba509e8761e0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "439b4479-710e-4e52-a0de-97f2cf20b564": {
+                                            "variable": "$.e1e31ba2-e745-49c0-a069-ba509e8761e0.out.isCompleted",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{439b4479-710e-4e52-a0de-97f2cf20b564}}}",
+                                                "assertion": "regex",
+                                                "regex": "^true$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "287db447-f6c9-445b-aa46-10087a53d867": {
+            "type": "appmixer.attio.core.FindTasks",
+            "x": 1936,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "257728c0-2158-46a7-bda7-89a6e470d38d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "257728c0-2158-46a7-bda7-89a6e470d38d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "linkedObject": {},
+                                    "linkedRecordId": {
+                                        "73224e5f-1cdc-4d6c-b17c-9c29d6e854d3": {
+                                            "variable": "$.d15ac021-2c4a-4039-b500-d434a3cc3aff.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "linkedObject": "companies",
+                                    "linkedRecordId": "{{{73224e5f-1cdc-4d6c-b17c-9c29d6e854d3}}}",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "bfee34d0-be8f-4d34-82ae-e708d3a0cb39": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 2144,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "287db447-f6c9-445b-aa46-10087a53d867": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "287db447-f6c9-445b-aa46-10087a53d867": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "1703cfa9-2ae6-48ca-9beb-274aef146fec": {
+                                            "variable": "$.287db447-f6c9-445b-aa46-10087a53d867.out.id",
+                                            "functions": []
+                                        },
+                                        "0de13fcf-b27e-44fd-8755-e3b7a7bc0a94": {
+                                            "variable": "$.fa228725-0990-411c-b7a1-70d6ac96308e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{1703cfa9-2ae6-48ca-9beb-274aef146fec}}}",
+                                                "assertion": "equal",
+                                                "expected": "{{{0de13fcf-b27e-44fd-8755-e3b7a7bc0a94}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "46d803fb-7e31-42bc-a000-7bcebd06eb5f": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 2352,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "bfee34d0-be8f-4d34-82ae-e708d3a0cb39": [
+                        "out"
+                    ],
+                    "1aa3da32-8e30-4285-bd5b-73d69726467e": [
+                        "out"
+                    ],
+                    "1533261d-2aeb-4860-8ba5-a8e209d47a4e": [
+                        "out"
+                    ],
+                    "257728c0-2158-46a7-bda7-89a6e470d38d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3324b385-cd22-4daa-8bb9-eebaf7ce9254": {
+            "type": "appmixer.attio.core.DeleteTask",
+            "x": 2560,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "46d803fb-7e31-42bc-a000-7bcebd06eb5f": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "46d803fb-7e31-42bc-a000-7bcebd06eb5f": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "taskId": {
+                                        "a2e10471-ffd8-4ba8-b592-371b41e8ec42": {
+                                            "variable": "$.fa228725-0990-411c-b7a1-70d6ac96308e.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "taskId": "{{{a2e10471-ffd8-4ba8-b592-371b41e8ec42}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0c99aec-7acd-42b2-92a3-412ed20d9d9c": {
+            "type": "appmixer.attio.core.DeleteRecord",
+            "x": 2768,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "3324b385-cd22-4daa-8bb9-eebaf7ce9254": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3324b385-cd22-4daa-8bb9-eebaf7ce9254": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "objectId": {},
+                                    "recordId": {
+                                        "2647613d-9da6-43e4-be10-048f42261bd5": {
+                                            "variable": "$.d15ac021-2c4a-4039-b500-d434a3cc3aff.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "objectId": "companies",
+                                    "recordId": "{{{2647613d-9da6-43e4-be10-048f42261bd5}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2f63ae21-faa6-40a3-80e0-1aab592315c8": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 2976,
+            "y": 656,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "a0c99aec-7acd-42b2-92a3-412ed20d9d9c": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0c99aec-7acd-42b2-92a3-412ed20d9d9c": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "0ab69c48-ee7d-4164-b0e6-127b32e46a01": {
+                                            "variable": "$.46d803fb-7e31-42bc-a000-7bcebd06eb5f.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Attio - tasks",
+                                    "result": "{{{0ab69c48-ee7d-4164-b0e6-127b32e46a01}}}"
+                                }
+                            }
+                        }
+                    }
+                },
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

@@ -1,0 +1,269 @@
+{
+    "name": "E2E GitHub - New Review Trigger",
+    "description": "End-to-end test for the New Review trigger. The provoke lane submits a COMMENT review on the pull request the trigger watches.",
+    "flow": {
+        "1ed5e638-b06c-496a-a038-3334349c995b": {
+            "type": "appmixer.github.list.NewReview",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "config": {
+                "properties": {
+                    "repositoryId": "apx-vero/appmixer-test",
+                    "pullRequestNumber": "5",
+                    "state": "COMMENTED",
+                    "authorType": "any"
+                }
+            }
+        },
+        "f2618da5-e65d-4c6a-88d2-d974ff4a616e": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "1ed5e638-b06c-496a-a038-3334349c995b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "1ed5e638-b06c-496a-a038-3334349c995b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "25e3adf3-2723-4ad0-8a4f-87aae9aa911d": {
+                                            "variable": "$.1ed5e638-b06c-496a-a038-3334349c995b.out.id",
+                                            "functions": []
+                                        },
+                                        "dfa5a40a-747e-485d-8d99-0c0dbd16937a": {
+                                            "variable": "$.1ed5e638-b06c-496a-a038-3334349c995b.out.state",
+                                            "functions": []
+                                        },
+                                        "7c1a67f5-5127-43f5-8af0-9c38543b658b": {
+                                            "variable": "$.1ed5e638-b06c-496a-a038-3334349c995b.out.body",
+                                            "functions": []
+                                        },
+                                        "db5c689c-b880-47a1-b4b0-e80df6e98a4b": {
+                                            "variable": "$.1ed5e638-b06c-496a-a038-3334349c995b.out.pull_request_number",
+                                            "functions": []
+                                        },
+                                        "d16e74c7-f385-457b-a43f-ec3fe263a5d7": {
+                                            "variable": "$.1ed5e638-b06c-496a-a038-3334349c995b.out.submitted_at",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{25e3adf3-2723-4ad0-8a4f-87aae9aa911d}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{dfa5a40a-747e-485d-8d99-0c0dbd16937a}}}",
+                                                "assertion": "equal",
+                                                "expected": "COMMENTED"
+                                            },
+                                            {
+                                                "field": "{{{7c1a67f5-5127-43f5-8af0-9c38543b658b}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E NewReview probe - review submitted by the test flow."
+                                            },
+                                            {
+                                                "field": "{{{db5c689c-b880-47a1-b4b0-e80df6e98a4b}}}",
+                                                "assertion": "equal",
+                                                "expected": "5"
+                                            },
+                                            {
+                                                "field": "{{{d16e74c7-f385-457b-a43f-ec3fe263a5d7}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "7547146e-0b1f-40ef-b10d-269f55ce2098": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "f2618da5-e65d-4c6a-88d2-d974ff4a616e": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 420
+                }
+            }
+        },
+        "5f487dec-a3ea-4cce-89ed-687c825903cf": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.1",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "7547146e-0b1f-40ef-b10d-269f55ce2098": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "7547146e-0b1f-40ef-b10d-269f55ce2098": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "2d210a97-dca9-4676-a947-6627696fe15c": {
+                                            "variable": "$.7547146e-0b1f-40ef-b10d-269f55ce2098.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E GitHub - New Review Trigger",
+                                    "result": "{{{2d210a97-dca9-4676-a947-6627696fe15c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "d3eae6b6-e3e5-4a89-a402-5a3ddad65d8b": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {}
+        },
+        "9ff49680-9392-47e4-9532-39fe32e912b6": {
+            "type": "appmixer.utils.timers.Wait",
+            "x": 272,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "d3eae6b6-e3e5-4a89-a402-5a3ddad65d8b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "d3eae6b6-e3e5-4a89-a402-5a3ddad65d8b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "interval": {}
+                                },
+                                "lambda": {
+                                    "interval": "1m"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "cc4bc29d-a6b5-4c5e-8294-b430b91ea3a7": {
+            "type": "appmixer.github.list.SubmitReview",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            },
+            "source": {
+                "in": {
+                    "9ff49680-9392-47e4-9532-39fe32e912b6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9ff49680-9392-47e4-9532-39fe32e912b6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "repositoryId": {},
+                                    "pullRequest": {},
+                                    "body": {},
+                                    "event": {}
+                                },
+                                "lambda": {
+                                    "repositoryId": "apx-vero/appmixer-test",
+                                    "pullRequest": "5",
+                                    "body": "E2E NewReview probe - review submitted by the test flow.",
+                                    "event": "COMMENT"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "23858c64-d3fa-46bc-abac-b34dbf8f1fa2": {
+            "x": 64,
+            "y": 576,
+            "width": 736,
+            "height": 320,
+            "content": "## \u26a0\ufe0f Test data assumption\n\nThese flows work against the **permanently open pull request [`apx-vero/appmixer-test` #5](https://github.com/apx-vero/appmixer-test/pull/5)** (\"Exercise the new review components\", head `review-components-smoke`).\n\nIt adds a single file `review-components-smoke.txt` with five lines, so lines 1-5 are all part of the diff and can be commented on with side `RIGHT`. Two review threads created by hand live on it \u2014 they are what List Review Threads / List Reviews read.\n\n**If the pull request is missing or closed, every flow here fails or times out.** Recreate it:\n\n1. `git checkout -b review-components-smoke master` in `apx-vero/appmixer-test`\n2. add `review-components-smoke.txt` containing the lines `line one` \u2026 `line five`, commit and push\n3. open a pull request against `master` and leave it OPEN\n4. post one inline review comment on line 3 and reply to it once (that is the thread the resolve/unresolve steps operate on)\n\n## \u23f2\ufe0f Timing and leftovers\n\nThe `Wait 1m` must stay - the trigger records its polling window when the flow starts and only reports reviews submitted after that. GitHub cannot delete a submitted review, so each run leaves one more COMMENT review on the pull request; that is harmless and there is nothing to clean up. An APPROVE review is deliberately NOT used: GitHub refuses to let an account approve its own pull request.\n"
+        }
+    }
+}

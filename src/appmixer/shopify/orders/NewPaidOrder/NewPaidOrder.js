@@ -1,39 +1,40 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlOrders = require('../../gql-orders');
+
+const TOPIC = 'orders/paid';
 
 /**
- * This trigger fires when an order is paid on Shopify.
+ * Triggers when an order is paid.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'orders/paid');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'order');
+            const api = gqlOrders(lib.runner(context));
+            return lib.receiveWebhook(context, { port: 'out', type: 'Order', fetch: id => api.fetch(id) });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const record = await commons.fetchLatestWebhookExample(context, {
-            resource: 'order',
-            topic: 'orders/paid',
-            params: { status: 'any', order: 'created_at DESC', financial_status: 'paid' }
-        });
-        if (!record) {
-            throw new Error('No matching orders to use as test data.');
+        const api = gqlOrders(lib.runner(context));
+        const [order] = await api.find({ query: 'financial_status:paid', sortKey: 'UPDATED_AT', reverse: true, max: 1 });
+        if (!order) {
+            throw new context.CancelError('There are no paid orders in the store yet. Mark an order as paid to see sample data.');
         }
-        return context.sendJson(record, 'order');
+        return context.sendJson({ ...order, webhookTopic: TOPIC }, 'out');
     }
 };

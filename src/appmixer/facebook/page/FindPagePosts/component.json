@@ -1,0 +1,113 @@
+{
+    "name": "appmixer.facebook.page.FindPagePosts",
+    "author": "Appmixer <info@appmixer.com>",
+    "label": "Find Page Posts",
+    "description": "Find posts published by a Facebook Page you manage, newest first, optionally limited to a time range. When no post matches, the input is emitted on the Not Found port.",
+    "auth": {
+        "service": "appmixer:facebook",
+        "scope": [
+            "pages_show_list",
+            "pages_read_engagement"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:facebook",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "pageId": { "type": "string" },
+                    "since": { "type": "string", "format": "date-time" },
+                    "until": { "type": "string", "format": "date-time" },
+                    "maxResults": { "type": "integer", "minimum": 1, "maximum": 1000 },
+                    "outputType": { "type": "string", "enum": ["first", "array", "object", "file"] }
+                },
+                "required": ["pageId"]
+            },
+            "inspector": {
+                "inputs": {
+                    "pageId": {
+                        "type": "text",
+                        "label": "Page",
+                        "index": 1,
+                        "source": {
+                            "url": "/component/appmixer/facebook/page/ListPages?outPort=pages",
+                            "data": {
+                                "transform": "./ListPages#toSelectArray"
+                            }
+                        },
+                        "tooltip": "Select a page you manage, or enter its Page ID."
+                    },
+                    "since": {
+                        "type": "date-time",
+                        "label": "Since",
+                        "index": 2,
+                        "tooltip": "Only return posts created at or after this time."
+                    },
+                    "until": {
+                        "type": "date-time",
+                        "label": "Until",
+                        "index": 3,
+                        "tooltip": "Only return posts created before this time."
+                    },
+                    "maxResults": {
+                        "type": "number",
+                        "label": "Maximum Results",
+                        "index": 4,
+                        "defaultValue": 100,
+                        "tooltip": "How many of the newest posts to return, 1 to 1000. Facebook serves 100 posts per request, and each request counts against the 200 requests per hour limit."
+                    },
+                    "outputType": {
+                        "type": "select",
+                        "label": "Output Type",
+                        "index": 5,
+                        "defaultValue": "array",
+                        "tooltip": "Choose whether you want to receive the result set as one complete list, first item only, one item at a time, or stream the items to a file.",
+                        "options": [
+                            { "label": "First Item Only", "value": "first" },
+                            { "label": "All items at once", "value": "array" },
+                            { "label": "One item at a time", "value": "object" },
+                            { "label": "Store to CSV file", "value": "file" }
+                        ]
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "source": {
+                "url": "/component/appmixer/facebook/page/FindPagePosts?outPort=out&ignoreAuth=true",
+                "data": {
+                    "properties": {
+                        "generateOutputPortOptions": true
+                    },
+                    "messages": {
+                        "in/pageId": "dummy",
+                        "in/outputType": "inputs/in/outputType"
+                    }
+                }
+            }
+        },
+        {
+            "name": "notFound",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "pageId": { "type": "string", "title": "Page ID", "example": "104857361234567" },
+                    "since": { "type": "string", "title": "Since", "example": "2026-09-01T00:00:00.000Z" },
+                    "until": { "type": "string", "title": "Until", "example": "2026-09-30T23:59:59.000Z" }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNTAwIiBoZWlnaHQ9IjI1MDAiIHZpZXdCb3g9IjAgMCAyNjYuODkzIDI2Ni44OTUiPjxwYXRoIGQ9Ik0yNTIuMTY0IDI2Ni44OTVjOC4xMzQgMCAxNC43MjktNi41OTYgMTQuNzI5LTE0LjczVjE0LjczYzAtOC4xMzctNi41OTYtMTQuNzMtMTQuNzI5LTE0LjczSDE0LjczQzYuNTkzIDAgMCA2LjU5NCAwIDE0LjczdjIzNy40MzRjMCA4LjEzNSA2LjU5MyAxNC43MyAxNC43MyAxNC43M2gyMzcuNDM0eiIgZmlsbD0iIzQ4NWE5NiIvPjxwYXRoIGQ9Ik0xODQuMTUyIDI2Ni44OTVWMTYzLjUzOWgzNC42OTJsNS4xOTQtNDAuMjhoLTM5Ljg4N1Y5Ny41NDJjMC0xMS42NjIgMy4yMzgtMTkuNjA5IDE5Ljk2Mi0xOS42MDlsMjEuMzI5LS4wMVY0MS44OTdjLTMuNjg5LS40OS0xNi4zNTEtMS41ODctMzEuMDgtMS41ODctMzAuNzUzIDAtNTEuODA3IDE4Ljc3MS01MS44MDcgNTMuMjQ0djI5LjcwNWgtMzQuNzgxdjQwLjI4aDM0Ljc4MXYxMDMuMzU1aDQxLjU5N3oiIGZpbGw9IiNmZmYiLz48L3N2Zz4="
+}

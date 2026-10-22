@@ -1,74 +1,38 @@
 'use strict';
-const commons = require('../../lib');
 
-function buildCustomer(customerInfo, context) {
-    const { firstName, lastName, email, phone, note, tags } = customerInfo;
-    const customer = {};
-
-    let metafields = [];
-    if (customerInfo.metafields && Array.isArray(customerInfo.metafields.AND)) {
-        metafields = customerInfo.metafields.AND.filter(metafield => metafield.key !== '');
-    }
-
-    if (firstName) {
-        customer['first_name'] = firstName;
-    }
-
-    if (lastName) {
-        customer['last_name'] = lastName;
-    }
-
-    if (email) {
-        customer['email'] = email;
-    }
-
-    if (phone) {
-        customer['phone'] = phone;
-    }
-
-    if (note) {
-        customer['note'] = note;
-    }
-
-    if (tags) {
-        customer['tags'] = tags;
-    }
-
-    if (customerInfo.accepts_marketing_updated_at) {
-        customer['accepts_marketing_updated_at'] = customerInfo.accepts_marketing_updated_at;
-    }
-
-    customer['accepts_marketing'] = customerInfo.accepts_marketing;
-    customer['tax_exempt'] = customerInfo.tax_exempt;
-
-    if (customerInfo.tax_exemptions) {
-        customer['tax_exemptions'] = commons.normalizeMultiselectInput(customerInfo.tax_exemptions, context, 'Tax Exemptions');
-    }
-
-    if (metafields.length > 0) {
-        customer['metafields'] = metafields;
-    }
-
-    return customer;
-}
+const lib = require('../../lib');
+const gqlCustomers = require('../../gql-customers');
 
 /**
- * Update customer.
+ * Update a customer; only the filled-in fields change.
  * @extends {Component}
  */
 module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context);
-        const customerInfo = context.messages.in.content;
+        const {
+            id, firstName, lastName, email, phone, note, tags, emailMarketingState,
+            taxExempt, taxExemptions, metafields
+        } = context.messages.in.content;
 
-        if (!customerInfo.id) {
-            throw new context.CancelError('ID is required!');
+        if (!id) {
+            throw new context.CancelError('Customer ID is required!');
         }
-        const { id } = customerInfo;
 
-        const updatedCustomer = await shopify.customer.update(id, buildCustomer(customerInfo, context));
-        return context.sendJson(updatedCustomer, 'customer');
+        try {
+            await gqlCustomers(lib.runner(context)).update(id, {
+                firstName, lastName, email, phone, note, tags, taxExempt,
+                taxExemptions: taxExemptions ? lib.normalizeMultiselectInput(taxExemptions, context, 'Tax Exemptions') : undefined,
+                metafields: (metafields && metafields.ADD) || []
+            }, { emailMarketingState });
+        } catch (err) {
+            // Rejected input (userErrors) does not get better by retrying.
+            if (err.statusCode === 422) {
+                throw new context.CancelError(err.message);
+            }
+            throw err;
+        }
+        return context.sendJson({}, 'out');
     }
 };

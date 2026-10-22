@@ -1,40 +1,40 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlOrders = require('../../gql-orders');
+
+const TOPIC = 'orders/fulfilled';
 
 /**
+ * Triggers when an order is completely fulfilled.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'orders/fulfilled');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'fulfilled');
+            const api = gqlOrders(lib.runner(context));
+            return lib.receiveWebhook(context, { port: 'out', type: 'Order', fetch: id => api.fetch(id) });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const order = await commons.fetchLatestWebhookExample(context, {
-            resource: 'order',
-            topic: 'orders/fulfilled',
-            // 'shipped' selects fully fulfilled orders in the Shopify REST Admin API.
-            params: { status: 'any', fulfillment_status: 'shipped', order: 'updated_at DESC' }
-        });
+        const api = gqlOrders(lib.runner(context));
+        const [order] = await api.find({ query: 'fulfillment_status:shipped', sortKey: 'UPDATED_AT', reverse: true, max: 1 });
         if (!order) {
-            throw new Error('No recent fulfilled orders to use as test data.');
+            throw new context.CancelError('There are no fulfilled orders in the store yet. Fulfill an order to see sample data.');
         }
-        return context.sendJson(order, 'fulfilled');
+        return context.sendJson({ ...order, webhookTopic: TOPIC }, 'out');
     }
 };
-

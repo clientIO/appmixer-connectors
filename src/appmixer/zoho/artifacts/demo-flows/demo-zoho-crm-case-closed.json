@@ -1,0 +1,144 @@
+{
+    "name": "Demo Zoho CRM - Case Closed Wrap-up",
+    "type": "automation",
+    "wizard": {
+        "fields": []
+    },
+    "notes": {
+        "e1000000-0000-0000-0000-0000000000aa": {
+            "x": 64,
+            "y": 96,
+            "width": 704,
+            "height": 176,
+            "content": "## ✅ Case Closed Wrap-up\n\nWhenever a Zoho CRM **case moves into the closed status**, the flow adds a **closing note** to the case (so the case timeline shows the hand-off) and e-mails the account team a short summary. Edits of an already closed case do not fire again.\n\n- Change the closed status in the **Case closed** trigger if your organization uses another value (e.g. *Resolved*).\n- Change the recipient in the **Notify the team** step (demo sends to `test@appmixer.com`)."
+        }
+    },
+    "flow": {
+        "e1000000-0000-0000-0000-000000000001": {
+            "type": "appmixer.zoho.crm.CaseClosed",
+            "label": "Case closed",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "config": {
+                "properties": {
+                    "closedStatus": "Closed"
+                }
+            }
+        },
+        "e1000000-0000-0000-0000-000000000002": {
+            "type": "appmixer.zoho.crm.CreateNote",
+            "label": "Add closing note",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "e1000000-0000-0000-0000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-0000-0000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "moduleName": {},
+                                    "recordId": {
+                                        "case-id": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.id",
+                                            "functions": []
+                                        }
+                                    },
+                                    "noteTitle": {},
+                                    "noteContent": {
+                                        "case-number": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Case_Number",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "moduleName": "Cases",
+                                    "recordId": "{{{case-id}}}",
+                                    "noteTitle": "Case closed - wrap-up",
+                                    "noteContent": "Case {{{case-number}}} was closed. A wrap-up summary was e-mailed to the account team by Appmixer."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "e1000000-0000-0000-0000-000000000003": {
+            "type": "appmixer.utils.email.SendEmail",
+            "label": "Notify the team",
+            "x": 480,
+            "y": 320,
+            "version": "1.1.1",
+            "source": {
+                "in": {
+                    "e1000000-0000-0000-0000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e1000000-0000-0000-0000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "subject": {
+                                        "s-number": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Case_Number",
+                                            "functions": []
+                                        },
+                                        "s-subject": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Subject",
+                                            "functions": []
+                                        }
+                                    },
+                                    "html": {
+                                        "h-number": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Case_Number",
+                                            "functions": []
+                                        },
+                                        "h-subject": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Subject",
+                                            "functions": []
+                                        },
+                                        "h-priority": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Priority",
+                                            "functions": []
+                                        },
+                                        "h-status": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Status",
+                                            "functions": []
+                                        },
+                                        "h-closed": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000001.out.Modified_Time",
+                                            "functions": []
+                                        },
+                                        "h-note": {
+                                            "variable": "$.e1000000-0000-0000-0000-000000000002.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "to": "test@appmixer.com",
+                                    "subject": "Zoho CRM demo — Case {{{s-number}}} closed: {{{s-subject}}}",
+                                    "html": "<div style=\"font-family:Arial,sans-serif;max-width:600px;color:#222\"><h2 style=\"color:#E42527\">Zoho CRM — Case closed</h2><p>A case has just been closed. A closing note was added to its timeline.</p><table style=\"border-collapse:collapse;width:100%\"><tr><td style=\"padding:6px 12px;border:1px solid #eee;background:#fafafa\"><b>Case number</b></td><td style=\"padding:6px 12px;border:1px solid #eee\">{{{h-number}}}</td></tr><tr><td style=\"padding:6px 12px;border:1px solid #eee;background:#fafafa\"><b>Subject</b></td><td style=\"padding:6px 12px;border:1px solid #eee\">{{{h-subject}}}</td></tr><tr><td style=\"padding:6px 12px;border:1px solid #eee;background:#fafafa\"><b>Priority</b></td><td style=\"padding:6px 12px;border:1px solid #eee\">{{{h-priority}}}</td></tr><tr><td style=\"padding:6px 12px;border:1px solid #eee;background:#fafafa\"><b>Status</b></td><td style=\"padding:6px 12px;border:1px solid #eee\">{{{h-status}}}</td></tr><tr><td style=\"padding:6px 12px;border:1px solid #eee;background:#fafafa\"><b>Closed at</b></td><td style=\"padding:6px 12px;border:1px solid #eee\">{{{h-closed}}}</td></tr><tr><td style=\"padding:6px 12px;border:1px solid #eee;background:#fafafa\"><b>Closing note</b></td><td style=\"padding:6px 12px;border:1px solid #eee\">{{{h-note}}}</td></tr></table><p style=\"color:#888;font-size:12px\">Sent by the Appmixer demo flow “Demo Zoho CRM - Case Closed Wrap-up”.</p></div>"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

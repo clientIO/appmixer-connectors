@@ -1,6 +1,7 @@
 'use strict';
 const Hubspot = require('../../Hubspot');
 const { getObjectProperties } = require('../../commons');
+const ITEM_SCHEMA = require('../../item-schemas.json').contact;
 
 // Default polling interval: 5 minutes
 const DEFAULT_POLL_INTERVAL_MS = 5 * 60 * 1000;
@@ -33,6 +34,8 @@ async function readContactsBatch(hubspot, ids, properties) {
 }
 
 module.exports = {
+
+    ITEM_SCHEMA,
 
     async start(context) {
 

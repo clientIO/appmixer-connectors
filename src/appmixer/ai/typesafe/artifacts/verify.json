@@ -1,0 +1,101 @@
+{
+    "read": [
+        {
+            "component": "ListModels",
+            "inputs": {
+                "outputType": "first"
+            }
+        },
+        {
+            "component": "ClassifyText",
+            "inputs": {
+                "state": "I was charged twice for my subscription this month. Please refund the second payment.",
+                "instructions": "Which team should handle this",
+                "options": {
+                    "ADD": [
+                        {
+                            "key": "billing",
+                            "description": "Payments, invoices and refunds"
+                        },
+                        {
+                            "key": "technical",
+                            "description": "Bugs or integration problems"
+                        },
+                        {
+                            "key": "sales"
+                        }
+                    ]
+                },
+                "model": "jev-latest"
+            }
+        },
+        {
+            "component": "ScoreText",
+            "inputs": {
+                "state": "This is the third time I am writing about the same problem and nobody has answered. I am done waiting.",
+                "instructions": "How frustrated the customer appears",
+                "levels": {
+                    "ADD": [
+                        {
+                            "description": "Calm, just stating facts"
+                        },
+                        {
+                            "description": "Frustrated but civil"
+                        },
+                        {
+                            "description": "Angry or threatening to leave"
+                        }
+                    ]
+                },
+                "model": "jev-latest"
+            }
+        },
+        {
+            "component": "VerifyStatement",
+            "inputs": {
+                "state": "URGENT: production is down, we need a fix within the hour.",
+                "statement": "The message conveys urgency or time-sensitivity",
+                "trueCriteria": "A deadline, an outage or an explicit request for a fast response",
+                "falseCriteria": "A routine question with no time pressure",
+                "threshold": 0.5,
+                "model": "jev-latest"
+            }
+        },
+        {
+            "component": "AskQuestions",
+            "inputs": {
+                "state": "URGENT: the API returns a 500 error on every request since this morning. This is the third time this month.",
+                "questions": {
+                    "ADD": [
+                        {
+                            "id": "department",
+                            "type": "choice",
+                            "instructions": "Which team should handle this",
+                            "options": "billing: Payments, invoices and refunds\ntechnical: Bugs or integration problems\nsales"
+                        },
+                        {
+                            "id": "frustration",
+                            "type": "score",
+                            "instructions": "How frustrated the customer appears",
+                            "levels": "Calm, just stating facts\nFrustrated but civil\nAngry or threatening to leave"
+                        },
+                        {
+                            "id": "is_urgent",
+                            "type": "noul",
+                            "instructions": "The message is urgent",
+                            "trueCriteria": "A deadline, an outage or an explicit request for a fast response"
+                        }
+                    ]
+                },
+                "model": "jev-latest"
+            }
+        },
+        {
+            "component": "MakeApiCall",
+            "inputs": {
+                "url": "/v1/models",
+                "method": "GET"
+            }
+        }
+    ]
+}

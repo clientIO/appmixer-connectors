@@ -1,38 +1,43 @@
 'use strict';
-const commons = require('../../lib');
+
+const lib = require('../../lib');
+const gqlStore = require('../../gql-store');
+
+const TOPIC = 'checkouts/create';
 
 /**
- * This trigger fires when a checkout is created on Shopify.
+ * Triggers when a checkout is created in the online store.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'checkouts/create');
+        return lib.registerWebhooks(context, [TOPIC], { extraFields: gqlStore.CHECKOUT_WEBHOOK_FIELDS });
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'checkout');
+            return lib.receiveWebhook(context, {
+                port: 'out',
+                type: 'AbandonedCheckout',
+                fetch: gqlStore.checkoutFetcher(gqlStore(lib.runner(context)))
+            });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const record = await commons.fetchLatestWebhookExample(context, {
-            resource: 'checkout',
-            topic: 'checkouts/create'
-        });
-        if (!record) {
-            throw new Error('No checkouts to use as test data.');
+        const [checkout] = await gqlStore(lib.runner(context)).listCheckouts({ max: 1 });
+        if (!checkout) {
+            throw new context.CancelError('The store has no abandoned checkouts to use as test data. Start a checkout in the online store and leave it before paying.');
         }
-        return context.sendJson(record, 'checkout');
+        return context.sendJson({ ...checkout, webhookTopic: TOPIC }, 'out');
     }
 };

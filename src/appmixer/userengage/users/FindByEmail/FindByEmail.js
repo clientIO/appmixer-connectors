@@ -11,7 +11,7 @@ module.exports = {
     receive(context) {
 
         let { apiKey } = context.auth;
-        let email = context.messages.user.email;
+        let email = context.messages.in.content.email;
 
         return commons.getUserengageRequest(apiKey, 'users/search', 'GET', email, 'email')
             .then(result => {

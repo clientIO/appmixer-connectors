@@ -1,38 +1,40 @@
 'use strict';
-const commons = require('../../lib');
+
+const lib = require('../../lib');
+const gqlStore = require('../../gql-store');
+
+const TOPIC = 'draft_orders/update';
 
 /**
- * This trigger fires when a draft order is updated on Shopify.
+ * Triggers when a draft order is updated.
  * @extends {Component}
  */
 module.exports = {
 
     async start(context) {
 
-        return commons.registerWebhook(context, 'draft_orders/update');
+        return lib.registerWebhooks(context, [TOPIC]);
+    },
+
+    async stop(context) {
+
+        return lib.unregisterWebhooks(context);
     },
 
     async receive(context) {
 
         if (context.messages.webhook) {
-            return commons.onReceive(context, 'draftOrder');
+            const api = gqlStore(lib.runner(context));
+            return lib.receiveWebhook(context, { port: 'out', type: 'DraftOrder', fetch: id => api.getDraftOrder(id) });
         }
-    },
-
-    async stop(context) {
-
-        return commons.unregisterWebhook(context);
     },
 
     async test(context) {
 
-        const record = await commons.fetchLatestWebhookExample(context, {
-            resource: 'draftOrder',
-            topic: 'draft_orders/update'
-        });
-        if (!record) {
-            throw new Error('No draft orders to use as test data.');
+        const draftOrder = await gqlStore(lib.runner(context)).latestDraftOrder('UPDATED_AT');
+        if (!draftOrder) {
+            throw new context.CancelError('The store has no draft orders yet. Create one to get test data.');
         }
-        return context.sendJson(record, 'draftOrder');
+        return context.sendJson({ ...draftOrder, webhookTopic: TOPIC }, 'out');
     }
 };

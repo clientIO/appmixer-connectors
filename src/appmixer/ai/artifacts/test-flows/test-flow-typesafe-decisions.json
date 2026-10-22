@@ -1,0 +1,735 @@
+{
+    "name": "E2E AI TypeSafe - decisions",
+    "description": "End-to-end test for the TypeSafe module of the AI connector — Classify Text, Score Text, Verify Statement and Ask Questions against the Jev decision model with unambiguous English content.",
+    "type": "automation",
+    "notes": {},
+    "flow": {
+        "ec5cb57b-8913-49e2-9984-eb61aac3c0e3": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e513912a-0d7b-4b2a-b9ac-e86eeca04f4a": {
+            "type": "appmixer.ai.typesafe.ClassifyText",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "ec5cb57b-8913-49e2-9984-eb61aac3c0e3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "ec5cb57b-8913-49e2-9984-eb61aac3c0e3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "state": {},
+                                    "instructions": {},
+                                    "options": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "state": "Hello, my credit card was charged twice for the same invoice this month. Please refund the duplicate payment.",
+                                    "instructions": "Which team should handle this message",
+                                    "options": {
+                                        "ADD": [
+                                            {
+                                                "key": "billing",
+                                                "description": "Invoices, payments, charges and refunds"
+                                            },
+                                            {
+                                                "key": "technical",
+                                                "description": "Bugs, outages or integration problems"
+                                            },
+                                            {
+                                                "key": "sales",
+                                                "description": "Pricing questions and new purchases"
+                                            }
+                                        ]
+                                    },
+                                    "model": "jev-latest"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22c9b623-1e35-4e71-a4ad-bd5759e39bb9": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e513912a-0d7b-4b2a-b9ac-e86eeca04f4a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e513912a-0d7b-4b2a-b9ac-e86eeca04f4a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "cd2044c1-3169-4edc-93b7-c7a5bed608d2": {
+                                            "variable": "$.e513912a-0d7b-4b2a-b9ac-e86eeca04f4a.out.choice",
+                                            "functions": []
+                                        },
+                                        "867511bb-4ec7-43ae-881c-45bded288a93": {
+                                            "variable": "$.e513912a-0d7b-4b2a-b9ac-e86eeca04f4a.out.confidence",
+                                            "functions": []
+                                        },
+                                        "3fff94b2-6b57-438e-ad56-a450f4102bc8": {
+                                            "variable": "$.e513912a-0d7b-4b2a-b9ac-e86eeca04f4a.out.probabilities",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.billing"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "2185957d-751f-435f-b5ba-9e5d3a3e03f8": {
+                                            "variable": "$.e513912a-0d7b-4b2a-b9ac-e86eeca04f4a.out.ranking",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].option"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "9f9b3cbf-f8f3-4017-8dbf-c5e3f7442337": {
+                                            "variable": "$.e513912a-0d7b-4b2a-b9ac-e86eeca04f4a.out.model",
+                                            "functions": []
+                                        },
+                                        "5681904a-159c-4143-b407-230b485c2931": {
+                                            "variable": "$.e513912a-0d7b-4b2a-b9ac-e86eeca04f4a.out.usage.inputTokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{cd2044c1-3169-4edc-93b7-c7a5bed608d2}}}",
+                                                "assertion": "equal",
+                                                "expected": "billing"
+                                            },
+                                            {
+                                                "field": "{{{867511bb-4ec7-43ae-881c-45bded288a93}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{3fff94b2-6b57-438e-ad56-a450f4102bc8}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{2185957d-751f-435f-b5ba-9e5d3a3e03f8}}}",
+                                                "assertion": "equal",
+                                                "expected": "billing"
+                                            },
+                                            {
+                                                "field": "{{{9f9b3cbf-f8f3-4017-8dbf-c5e3f7442337}}}",
+                                                "assertion": "regex",
+                                                "regex": "^jev-"
+                                            },
+                                            {
+                                                "field": "{{{5681904a-159c-4143-b407-230b485c2931}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "cd197a0a-88ce-491f-bb38-c5425ab9fbc7": {
+            "type": "appmixer.ai.typesafe.ScoreText",
+            "x": 480,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e513912a-0d7b-4b2a-b9ac-e86eeca04f4a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e513912a-0d7b-4b2a-b9ac-e86eeca04f4a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "state": {},
+                                    "instructions": {},
+                                    "levels": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "state": "This is the third time your app has lost my data this week. I am furious, nothing works and I am cancelling my subscription today!",
+                                    "instructions": "How frustrated the customer appears",
+                                    "levels": {
+                                        "ADD": [
+                                            {
+                                                "description": "Calm, just stating facts"
+                                            },
+                                            {
+                                                "description": "Mildly annoyed"
+                                            },
+                                            {
+                                                "description": "Very angry"
+                                            }
+                                        ]
+                                    },
+                                    "model": "jev-latest"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "54ce92ff-662e-45a8-8350-408c72ae38d9": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cd197a0a-88ce-491f-bb38-c5425ab9fbc7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cd197a0a-88ce-491f-bb38-c5425ab9fbc7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7444b82a-76a2-448b-bf3a-dab51f48d5b0": {
+                                            "variable": "$.cd197a0a-88ce-491f-bb38-c5425ab9fbc7.out.score",
+                                            "functions": []
+                                        },
+                                        "693bb58b-f6cb-480a-8784-e135badde6fd": {
+                                            "variable": "$.cd197a0a-88ce-491f-bb38-c5425ab9fbc7.out.level",
+                                            "functions": []
+                                        },
+                                        "b65d2c51-c298-42ee-a859-ea418d717984": {
+                                            "variable": "$.cd197a0a-88ce-491f-bb38-c5425ab9fbc7.out.levelDescription",
+                                            "functions": []
+                                        },
+                                        "a5358702-7807-4f03-be48-f53da3c12891": {
+                                            "variable": "$.cd197a0a-88ce-491f-bb38-c5425ab9fbc7.out.confidence",
+                                            "functions": []
+                                        },
+                                        "6d6690f0-9899-4d0c-9c3f-af53d970c88e": {
+                                            "variable": "$.cd197a0a-88ce-491f-bb38-c5425ab9fbc7.out.probabilities",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.0"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "4d9da5f7-0119-4636-8c3b-1299cbb167af": {
+                                            "variable": "$.cd197a0a-88ce-491f-bb38-c5425ab9fbc7.out.model",
+                                            "functions": []
+                                        },
+                                        "dd4e5e32-f8b0-4943-9bf6-cdf4bb4784e4": {
+                                            "variable": "$.cd197a0a-88ce-491f-bb38-c5425ab9fbc7.out.usage.inputTokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7444b82a-76a2-448b-bf3a-dab51f48d5b0}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-2](\\.[0-9]+)?$"
+                                            },
+                                            {
+                                                "field": "{{{693bb58b-f6cb-480a-8784-e135badde6fd}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[12]$"
+                                            },
+                                            {
+                                                "field": "{{{b65d2c51-c298-42ee-a859-ea418d717984}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(Mildly annoyed|Very angry)$"
+                                            },
+                                            {
+                                                "field": "{{{a5358702-7807-4f03-be48-f53da3c12891}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{6d6690f0-9899-4d0c-9c3f-af53d970c88e}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{4d9da5f7-0119-4636-8c3b-1299cbb167af}}}",
+                                                "assertion": "regex",
+                                                "regex": "^jev-"
+                                            },
+                                            {
+                                                "field": "{{{dd4e5e32-f8b0-4943-9bf6-cdf4bb4784e4}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "25bc637e-fcd8-4453-a192-c4b7b702d984": {
+            "type": "appmixer.ai.typesafe.VerifyStatement",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "cd197a0a-88ce-491f-bb38-c5425ab9fbc7": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "cd197a0a-88ce-491f-bb38-c5425ab9fbc7": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "state": {},
+                                    "statement": {},
+                                    "trueCriteria": {},
+                                    "falseCriteria": {},
+                                    "threshold": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "state": "URGENT: our production checkout is down for all customers. Please respond within the next hour.",
+                                    "statement": "The message conveys urgency or time-sensitivity",
+                                    "trueCriteria": "The sender asks for an immediate or time-bound response",
+                                    "falseCriteria": "The sender has no time pressure",
+                                    "threshold": 0.5,
+                                    "model": "jev-latest"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "1eddf99d-7b44-4d6b-8e27-26a86282a953": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "25bc637e-fcd8-4453-a192-c4b7b702d984": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "25bc637e-fcd8-4453-a192-c4b7b702d984": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "dfd97619-220d-47de-858a-90f01ec3ffda": {
+                                            "variable": "$.25bc637e-fcd8-4453-a192-c4b7b702d984.out.result",
+                                            "functions": []
+                                        },
+                                        "dba7b28b-534e-40ee-9677-c85e6f1601ea": {
+                                            "variable": "$.25bc637e-fcd8-4453-a192-c4b7b702d984.out.probability",
+                                            "functions": []
+                                        },
+                                        "8ac60642-d334-4b9f-a513-ade9d6f51452": {
+                                            "variable": "$.25bc637e-fcd8-4453-a192-c4b7b702d984.out.model",
+                                            "functions": []
+                                        },
+                                        "a24a9d7f-784a-4bee-8078-7885a7db870a": {
+                                            "variable": "$.25bc637e-fcd8-4453-a192-c4b7b702d984.out.usage.inputTokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{dfd97619-220d-47de-858a-90f01ec3ffda}}}",
+                                                "assertion": "equal",
+                                                "expected": "true"
+                                            },
+                                            {
+                                                "field": "{{{dba7b28b-534e-40ee-9677-c85e6f1601ea}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{8ac60642-d334-4b9f-a513-ade9d6f51452}}}",
+                                                "assertion": "regex",
+                                                "regex": "^jev-"
+                                            },
+                                            {
+                                                "field": "{{{a24a9d7f-784a-4bee-8078-7885a7db870a}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c2947a35-4433-4de3-9816-2b7062dcac81": {
+            "type": "appmixer.ai.typesafe.AskQuestions",
+            "x": 896,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "25bc637e-fcd8-4453-a192-c4b7b702d984": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "25bc637e-fcd8-4453-a192-c4b7b702d984": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "state": {},
+                                    "questions": {},
+                                    "model": {}
+                                },
+                                "lambda": {
+                                    "state": "Hi, the API integration returns a 500 error on every request since this morning and our production system is blocked. Please help as soon as possible.",
+                                    "questions": {
+                                        "ADD": [
+                                            {
+                                                "id": "department",
+                                                "type": "choice",
+                                                "instructions": "Which team should handle this",
+                                                "options": "billing: Payments, invoices and refunds\ntechnical: Bugs or integration problems\nsales"
+                                            },
+                                            {
+                                                "id": "frustration",
+                                                "type": "score",
+                                                "instructions": "How frustrated the customer appears",
+                                                "levels": "Calm, just stating facts\nFrustrated but civil\nAngry or threatening to leave"
+                                            },
+                                            {
+                                                "id": "is_urgent",
+                                                "type": "noul",
+                                                "instructions": "The message is urgent",
+                                                "trueCriteria": "An outage, a deadline or an explicit request for a fast response"
+                                            }
+                                        ]
+                                    },
+                                    "model": "jev-latest"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "63bb5420-3260-4c1c-9f9a-fbce8be9aa69": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 1104,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "c2947a35-4433-4de3-9816-2b7062dcac81": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c2947a35-4433-4de3-9816-2b7062dcac81": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "363d063f-8679-4f68-aa46-ad582097cc40": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.department.choice",
+                                            "functions": []
+                                        },
+                                        "e0eeec9b-b767-4cb6-8051-c39a175c1a3f": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.department.confidence",
+                                            "functions": []
+                                        },
+                                        "2b917205-5e5e-493e-a60f-54d269e64859": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.frustration.score",
+                                            "functions": []
+                                        },
+                                        "7e2e2fed-2875-4898-9fa8-4020c58ecdc8": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.frustration.level",
+                                            "functions": []
+                                        },
+                                        "07ebb8ae-984e-46c6-b611-0520b18832ce": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.frustration.levelDescription",
+                                            "functions": []
+                                        },
+                                        "0fe26538-a79a-4317-a2e4-942b4fee43d9": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.frustration.confidence",
+                                            "functions": []
+                                        },
+                                        "696a67cf-f264-4343-ba49-399ccac1ef00": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.is_urgent.probability",
+                                            "functions": []
+                                        },
+                                        "01e472f8-c4df-444d-b815-a72b1f803527": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.answers.is_urgent.result",
+                                            "functions": []
+                                        },
+                                        "b06f3f80-71ae-4d12-8f1b-2c6a39deebf1": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.model",
+                                            "functions": []
+                                        },
+                                        "6f922b0d-9760-43bd-bb48-660433b491de": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.usage.inputTokens",
+                                            "functions": []
+                                        },
+                                        "25440989-58de-4c90-95d7-a84e12b77726": {
+                                            "variable": "$.c2947a35-4433-4de3-9816-2b7062dcac81.out.usage.outputTokens",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{363d063f-8679-4f68-aa46-ad582097cc40}}}",
+                                                "assertion": "equal",
+                                                "expected": "technical"
+                                            },
+                                            {
+                                                "field": "{{{e0eeec9b-b767-4cb6-8051-c39a175c1a3f}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{2b917205-5e5e-493e-a60f-54d269e64859}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-2](\\.[0-9]+)?$"
+                                            },
+                                            {
+                                                "field": "{{{7e2e2fed-2875-4898-9fa8-4020c58ecdc8}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-2]$"
+                                            },
+                                            {
+                                                "field": "{{{07ebb8ae-984e-46c6-b611-0520b18832ce}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(Calm, just stating facts|Frustrated but civil|Angry or threatening to leave)$"
+                                            },
+                                            {
+                                                "field": "{{{0fe26538-a79a-4317-a2e4-942b4fee43d9}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{696a67cf-f264-4343-ba49-399ccac1ef00}}}",
+                                                "assertion": "regex",
+                                                "regex": "^(0(\\.[0-9]+)?|1(\\.0+)?)$"
+                                            },
+                                            {
+                                                "field": "{{{01e472f8-c4df-444d-b815-a72b1f803527}}}",
+                                                "assertion": "equal",
+                                                "expected": "true"
+                                            },
+                                            {
+                                                "field": "{{{b06f3f80-71ae-4d12-8f1b-2c6a39deebf1}}}",
+                                                "assertion": "regex",
+                                                "regex": "^jev-"
+                                            },
+                                            {
+                                                "field": "{{{6f922b0d-9760-43bd-bb48-660433b491de}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[1-9][0-9]*$"
+                                            },
+                                            {
+                                                "field": "{{{25440989-58de-4c90-95d7-a84e12b77726}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[0-9]+$"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "8d6cb586-47df-4295-b3fa-56c85e9f45f0": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1312,
+            "y": 400,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "22c9b623-1e35-4e71-a4ad-bd5759e39bb9": [
+                        "out"
+                    ],
+                    "54ce92ff-662e-45a8-8350-408c72ae38d9": [
+                        "out"
+                    ],
+                    "1eddf99d-7b44-4d6b-8e27-26a86282a953": [
+                        "out"
+                    ],
+                    "63bb5420-3260-4c1c-9f9a-fbce8be9aa69": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 300
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "601f8889-2687-4cff-9519-d2b4d0c4239d": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 400,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "8d6cb586-47df-4295-b3fa-56c85e9f45f0": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "8d6cb586-47df-4295-b3fa-56c85e9f45f0": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "88608890-4e93-4a58-ac68-cc1a785a715c": {
+                                            "variable": "$.8d6cb586-47df-4295-b3fa-56c85e9f45f0.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E AI TypeSafe - decisions",
+                                    "result": "{{{88608890-4e93-4a58-ac68-cc1a785a715c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

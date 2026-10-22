@@ -7,9 +7,17 @@ module.exports = {
     async receive(context) {
 
         const { channel, ts } = context.messages.in.content;
-        const web = new WebClient(context.auth.accessToken);
-        const createdChannel = await web.chat.delete({ channel, ts });
 
-        return context.sendJson(createdChannel, 'out');
+        if (!channel) {
+            throw new context.CancelError('Channel is required!');
+        }
+        if (!ts) {
+            throw new context.CancelError('Message Timestamp is required!');
+        }
+
+        const web = new WebClient(context.auth.accessToken);
+        await web.chat.delete({ channel, ts });
+
+        return context.sendJson({}, 'out');
     }
 };

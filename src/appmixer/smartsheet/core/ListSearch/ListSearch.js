@@ -6,6 +6,10 @@ module.exports = {
 
     receive: async function(context) {
 
+        if (!context.messages.in.content.query) {
+            throw new context.CancelError('Query is required!');
+        }
+
         const { data } = await this.httpRequest(context);
 
         return context.sendJson(data, 'out');

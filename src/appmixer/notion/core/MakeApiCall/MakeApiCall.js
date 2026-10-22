@@ -1,31 +1,50 @@
 'use strict';
 
-function kvToObj(arr) {
-    if (!arr || !Array.isArray(arr)) return {};
+function kvToObj(value) {
+    // The Designer's key-value field sends its rows as a JSON object string
+    // ('{"Accept":"application/json"}'); a plain object and an array of
+    // {key, value} rows are accepted too.
+    let input = value;
+    if (typeof input === 'string') {
+        if (!input.trim()) return {};
+        try {
+            input = JSON.parse(input);
+        } catch (e) {
+            throw new Error('Request Headers and Query Parameters must be a JSON object of key-value pairs.');
+        }
+    }
+    if (!input || typeof input !== 'object') return {};
+    const entries = Array.isArray(input)
+        ? input.filter(row => row && typeof row === 'object').map(row => [row.key, row.value])
+        : Object.entries(input);
     const out = {};
-    for (const row of arr) {
-        if (!row || typeof row !== 'object') continue;
-        const key = row.key;
+    for (const [key, val] of entries) {
         if (typeof key !== 'string' || key.length === 0) continue;
-        out[key] = row.value;
+        out[key] = val;
     }
     return out;
 }
 
 
-const { API_VERSION } = require('../../lib');
+const lib = require('../../lib');
+const { API_VERSION } = lib;
 
 module.exports = {
     async receive(context) {
         const { url, method, headers: headersKV, parameters: parametersKV, body } = context.messages.in.content;
 
+        if (!url) {
+            throw new context.CancelError('API Endpoint URL is required!');
+        }
+        if (!method) {
+            throw new context.CancelError('HTTP Method is required!');
+        }
+
         const extraHeaders = kvToObj(headersKV);
         const queryParams = kvToObj(parametersKV);
 
-        const baseUrl = 'https://api.notion.com/v1';
-        const targetUrl = url.startsWith('http://') || url.startsWith('https://')
-            ? url
-            : `${baseUrl}${url.startsWith('/') ? url : '/' + url}`;
+        // The account's token goes out with this request — only ever to the Notion API.
+        const targetUrl = lib.resolveApiUrl(context, url);
 
         const requestOptions = {
             method: method,

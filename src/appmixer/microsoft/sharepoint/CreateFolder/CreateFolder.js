@@ -6,8 +6,18 @@ module.exports = {
 
     async receive(context) {
 
-        const { driveId, parentId, parentPath, name } = context.messages.in.content;
+        const { siteId, driveId, parentId, parentPath, name } = context.messages.in.content;
         const { accessToken, profileInfo } = context.auth;
+
+        if (!siteId) {
+            throw new context.CancelError('Site ID is required!');
+        }
+        if (!driveId) {
+            throw new context.CancelError('Drive ID is required!');
+        }
+        if (!name) {
+            throw new context.CancelError('Folder name is required!');
+        }
 
         const result = await commons.formatError(async () => {
             return oneDriveAPI.items.createFolder({

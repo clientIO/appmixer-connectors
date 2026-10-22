@@ -1,0 +1,211 @@
+{
+    "name": "E2E Notion - find page by title",
+    "description": "End-to-end test for the Notion connector - Find Page By Title.",
+    "flow": {
+        "e332d56e-b517-48f9-91d5-4836b84a5827": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2de4a52b-2808-458a-8374-a427e7bf8125": {
+            "type": "appmixer.notion.core.FindPageByTitle",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e332d56e-b517-48f9-91d5-4836b84a5827": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e332d56e-b517-48f9-91d5-4836b84a5827": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "title": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "title": "Getting Started",
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fefe872f-ba25-4725-94e1-33220e746c3b": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "2de4a52b-2808-458a-8374-a427e7bf8125": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2de4a52b-2808-458a-8374-a427e7bf8125": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "36903105-7a8a-411a-aa19-0914690c5d56": {
+                                            "variable": "$.2de4a52b-2808-458a-8374-a427e7bf8125.out.page",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.id"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "f044f75e-79ae-413f-b974-39b31125e47e": {
+                                            "variable": "$.2de4a52b-2808-458a-8374-a427e7bf8125.out.page",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$.title"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "fbdb679a-9134-40d3-a190-fe5ff67919cb": {
+                                            "variable": "$.2de4a52b-2808-458a-8374-a427e7bf8125.out.index",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{36903105-7a8a-411a-aa19-0914690c5d56}}}",
+                                                "assertion": "notEmpty"
+                                            },
+                                            {
+                                                "field": "{{{f044f75e-79ae-413f-b974-39b31125e47e}}}",
+                                                "assertion": "regex",
+                                                "regex": "[Gg]etting [Ss]tarted"
+                                            },
+                                            {
+                                                "field": "{{{fbdb679a-9134-40d3-a190-fe5ff67919cb}}}",
+                                                "assertion": "equal",
+                                                "expected": "0"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "aaf7f578-e97b-416c-baed-85a25e2e1484": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "fefe872f-ba25-4725-94e1-33220e746c3b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f8feb8f0-2f0e-4550-b6d7-e952a87384c1": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 896,
+            "y": 16,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "aaf7f578-e97b-416c-baed-85a25e2e1484": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "aaf7f578-e97b-416c-baed-85a25e2e1484": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "692f3ac8-f881-4db0-ae50-f56a500d1da5": {
+                                            "variable": "$.aaf7f578-e97b-416c-baed-85a25e2e1484.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.com",
+                                    "testCase": "E2E Notion - find page by title",
+                                    "result": "{{{692f3ac8-f881-4db0-ae50-f56a500d1da5}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "1a87006d-f8ff-472c-8ad0-9d9bd663fd9d": {
+            "x": 64,
+            "y": 160,
+            "width": 672,
+            "height": 256,
+            "content": "## ⚠️ Test data assumption\n\nA page whose title contains **Getting Started** must be shared with the integration (the Notion default page).\n\nThe flow searches for an existing page on purpose: Notion's search index is eventually consistent, so a page created a moment ago is not reliably found. The search is fuzzy, hence the case-insensitive title check."
+        }
+    }
+}

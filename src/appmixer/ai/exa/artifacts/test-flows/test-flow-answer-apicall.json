@@ -1,0 +1,293 @@
+{
+    "name": "E2E Exa - Answer and API Call",
+    "flow": {
+        "22b3c4d5-1000-4a00-8000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22b3c4d5-1000-4a00-8000-000000000002": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "22b3c4d5-1000-4a00-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "22b3c4d5-1000-4a00-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "searchPath",
+                                                "text": "/search"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22b3c4d5-1000-4a00-8000-000000000003": {
+            "type": "appmixer.ai.exa.AnswerQuestion",
+            "x": 480,
+            "y": 192,
+            "source": {
+                "in": {
+                    "22b3c4d5-1000-4a00-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "22b3c4d5-1000-4a00-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {}
+                                },
+                                "lambda": {
+                                    "query": "What is the capital city of Portugal?"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22b3c4d5-1000-4a00-8000-000000000005": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 192,
+            "source": {
+                "in": {
+                    "22b3c4d5-1000-4a00-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "22b3c4d5-1000-4a00-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "22b3c4d5-2000-4a00-8000-000000000001": {
+                                            "variable": "$.22b3c4d5-1000-4a00-8000-000000000003.out.answer",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{22b3c4d5-2000-4a00-8000-000000000001}}}",
+                                                "assertion": "regex",
+                                                "regex": "Lisbon"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22b3c4d5-1000-4a00-8000-000000000004": {
+            "type": "appmixer.ai.exa.MakeApiCall",
+            "x": 480,
+            "y": 448,
+            "source": {
+                "in": {
+                    "22b3c4d5-1000-4a00-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "22b3c4d5-1000-4a00-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "method": {},
+                                    "body": {}
+                                },
+                                "lambda": {
+                                    "url": "/search",
+                                    "method": "POST",
+                                    "body": "{\"query\": \"Exa web search API\", \"type\": \"fast\", \"numResults\": 2}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22b3c4d5-1000-4a00-8000-000000000006": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "22b3c4d5-1000-4a00-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "22b3c4d5-1000-4a00-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "22b3c4d5-2000-4a00-8000-000000000002": {
+                                            "variable": "$.22b3c4d5-1000-4a00-8000-000000000004.out.statusCode",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{22b3c4d5-2000-4a00-8000-000000000002}}}",
+                                                "assertion": "equal",
+                                                "expected": "200"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22b3c4d5-1000-4a00-8000-000000000007": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "22b3c4d5-1000-4a00-8000-000000000005": [
+                        "out"
+                    ],
+                    "22b3c4d5-1000-4a00-8000-000000000006": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "22b3c4d5-1000-4a00-8000-000000000008": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "22b3c4d5-1000-4a00-8000-000000000007": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "22b3c4d5-1000-4a00-8000-000000000007": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "22b3c4d5-2000-4a00-8000-000000000003": {
+                                            "variable": "$.22b3c4d5-1000-4a00-8000-000000000007.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Exa - Answer and API Call",
+                                    "result": "{{{22b3c4d5-2000-4a00-8000-000000000003}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

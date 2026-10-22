@@ -1,0 +1,388 @@
+{
+    "name": "E2E Exa - Search, Extract and Find Similar",
+    "flow": {
+        "11a2b3c4-1000-4a00-8000-000000000001": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 320,
+            "source": {},
+            "version": "1.0.0",
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000002": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 320,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000001": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000001": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "seedUrl",
+                                                "text": "https://en.wikipedia.org/wiki/Web_search_engine"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000003": {
+            "type": "appmixer.ai.exa.FindSearchResults",
+            "x": 480,
+            "y": 192,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "query": {},
+                                    "searchType": {},
+                                    "numResults": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "query": "history of web search engines",
+                                    "searchType": "fast",
+                                    "numResults": 3,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000006": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 192,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000003": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000003": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "11a2b3c4-2000-4a00-8000-000000000001": {
+                                            "variable": "$.11a2b3c4-1000-4a00-8000-000000000003.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{11a2b3c4-2000-4a00-8000-000000000001}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000004": {
+            "type": "appmixer.ai.exa.FindExtractedPages",
+            "x": 480,
+            "y": 320,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "urls": {},
+                                    "includeText": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "urls": "https://en.wikipedia.org/wiki/Web_search_engine",
+                                    "includeText": true,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000007": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 320,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000004": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000004": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "11a2b3c4-2000-4a00-8000-000000000002": {
+                                            "variable": "$.11a2b3c4-1000-4a00-8000-000000000004.out.text",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{11a2b3c4-2000-4a00-8000-000000000002}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000005": {
+            "type": "appmixer.ai.exa.FindSimilarLinks",
+            "x": 480,
+            "y": 448,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000002": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000002": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "url": {},
+                                    "numResults": {},
+                                    "excludeSourceDomain": {},
+                                    "outputType": {}
+                                },
+                                "lambda": {
+                                    "url": "https://en.wikipedia.org/wiki/Web_search_engine",
+                                    "numResults": 3,
+                                    "excludeSourceDomain": true,
+                                    "outputType": "first"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000008": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 688,
+            "y": 448,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000005": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000005": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "11a2b3c4-2000-4a00-8000-000000000003": {
+                                            "variable": "$.11a2b3c4-1000-4a00-8000-000000000005.out.url",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{11a2b3c4-2000-4a00-8000-000000000003}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https?://"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-000000000009": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 896,
+            "y": 320,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000006": [
+                        "out"
+                    ],
+                    "11a2b3c4-1000-4a00-8000-000000000007": [
+                        "out"
+                    ],
+                    "11a2b3c4-1000-4a00-8000-000000000008": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.0",
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a2b3c4-1000-4a00-8000-00000000000a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1104,
+            "y": 320,
+            "source": {
+                "in": {
+                    "11a2b3c4-1000-4a00-8000-000000000009": [
+                        "out"
+                    ]
+                }
+            },
+            "version": "1.0.1",
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "11a2b3c4-1000-4a00-8000-000000000009": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "11a2b3c4-2000-4a00-8000-000000000004": {
+                                            "variable": "$.11a2b3c4-1000-4a00-8000-000000000009.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Exa - Search, Extract and Find Similar",
+                                    "result": "{{{11a2b3c4-2000-4a00-8000-000000000004}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

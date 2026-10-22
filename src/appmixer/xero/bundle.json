@@ -1,6 +1,6 @@
 {
     "name": "appmixer.xero",
-    "version": "1.6.4",
+    "version": "2.1.0",
     "engine": ">=6.0.0",
     "changelog": {
         "1.0.0": [
@@ -56,6 +56,34 @@
         "1.6.4": [
             "Fixed *META* lock exhaustion (\"Exceeded 30 attempts to lock the resource ...:locks:xero:<hash>\") on long-running jobs (>15 min) that repeatedly read the same account/query via the withCache list cache. Cache hits are now served without taking the lock, so warm-cache reads no longer contend; the lock is only used to dedupe the burst that populates a cold cache.",
             "withCache: the lock is now released in every code path (cache hit, success and error), the release is awaited and guarded, and lock acquisition uses an explicit TTL (60s, documented) plus a longer retry budget. If the lock still cannot be acquired the call degrades to a direct fetch instead of failing the component, and lock acquisition/release failures are logged with the lock key."
+        ],
+        "1.7.0": [
+            "Added components: CreatePurchaseOrder, GetPurchaseOrder, UpdatePurchaseOrder, FindPurchaseOrders. They use Xero's granular scopes (accounting.invoices / accounting.invoices.read), so they work with Xero apps created on or after 2 March 2026; an existing Xero account must be reconnected to grant these scopes before it can be used with them.",
+            "Fixed the Contact ID dropdown (ListContacts source) returning an empty list in CreateInvoice, UpdateInvoice and UpdateContact."
+        ],
+        "2.0.0": [
+            "BREAKING: Migrated the invoice and manual journal components to Xero's granular OAuth scopes, which replace the broad accounting.transactions scope. Every existing Xero account must be reconnected (remove and re-authorize the connection) after upgrading. Until it is reconnected, the account no longer matches these components: it disappears from the account picker and flows using it fail to start with \"Access token not found for component ...\".",
+            "CreateInvoice, UpdateInvoice: accounting.transactions -> accounting.invoices.",
+            "GetInvoice, NewInvoice, UpdatedInvoice: accounting.transactions -> accounting.invoices.read. These components are read-only, so they no longer request a write scope (GetInvoice previously asked for accounting.transactions).",
+            "CreateManualJournal, UpdateManualJournal: accounting.transactions -> accounting.manualjournals.",
+            "FindManualJournals: accounting.transactions.read -> accounting.manualjournals.read.",
+            "Why: Xero apps created on or after 2 March 2026 are only granted the granular scopes, so these components could not be used at all with such an app. Apps created earlier keep the broad scopes until 13 September 2027.",
+            "Unchanged: the contact and settings components, AddAttachmentToInvoice (accounting.attachments), ListJournals (accounting.journals.read), ListTenants and MakeApiCall (accounting.settings.read).",
+            "Tenant ID (and UpdateContact's Contact ID) dropdowns are now typeahead inputs instead of plain selects, so a value can still be typed in when the dropdown source fails or returns no options.",
+            "Added output examples to every output port field of the invoice, contact, manual journal and attachment components, so the Designer variable picker previews real values instead of empty placeholders.",
+            "ListTenants, ListAccounts, ListContacts, ListJournals, ListTrackingCategories, FindManualJournals and GetOrganization now publish their output contract as an exported ITEM_SCHEMA and build the variable picker options from it through a shared commons helper. The two hand-maintained copies each component carried had already drifted (ListAccounts labelled its array \"Tracking Categories\").",
+            "AddAttachmentToInvoice, CreateContact, GetInvoice and UpdateContact now validate their required inputs with a clear error message instead of failing inside the API call.",
+            "CreateContact now returns the fields it accepts as input — ContactNumber, AccountNumber, FirstName, LastName, CompanyNumber, TaxNumber, AccountsReceivableTaxType, AccountsPayableTaxType, DefaultCurrency, SalesDefaultAccountCode, PurchasesDefaultAccountCode and PaymentTerms — which a flow could previously set but never read back.",
+            "GetOrganization now offers the Organisation ID in its output.",
+            "NewContact, UpdatedContact, NewInvoice and UpdatedInvoice fail their Flow Test Mode example with an explicit error when no record is available, instead of emitting an empty one.",
+            "CreateContact: the Payment Terms input is now sent on the contact itself (Xero ignored it on the request root, so it was never saved); an invalid JSON value is rejected with a clear error instead of being passed through."
+        ],
+        "2.0.1": [
+            "Fixed \"Connecting Account Failed: Unable to retrieve a name for the account\" when connecting through Auth Hub with a different Xero connector version on the Auth Hub and on the tenant. The profile now carries both email and EmailAddress, and the account name falls back from one to the other."
+        ],
+        "2.1.0": [
+            "MakeApiCall: added a Tenant input (the organisation dropdown the other Xero components have), so a connection with access to several organisations can call the one it needs. Before, every call went to the connection's first organisation.",
+            "MakeApiCall: Request Headers and Query Parameters set in the Designer are now sent. They were silently dropped: the key-value field stores its rows as a JSON object string, which the component did not parse, so a xero-tenant-id header could not select the organisation either. A xero-tenant-id header (any letter case) is used when Tenant is empty."
         ]
     }
 }

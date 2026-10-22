@@ -4,7 +4,26 @@ const urlUtil = require('url');
 const qs = require('qs');
 const axios = require('axios');
 const https = require('https');
-const { request: undiciRequest, Agent } = require('undici');
+
+/**
+ * Loads undici lazily. It is only needed for requests with SSL/TLS options and the version
+ * range we can ship is bound to the Node.js version of the engine (undici 7 needs Node 20+,
+ * undici 6 needs Node 18.17+). Requiring it at module load time would make the whole connector
+ * fail to install on an unsupported Node.js, e.g. `ReferenceError: File is not defined`
+ * on Node 18 with undici 7 (support ticket #9714).
+ * @return {{ request: Function, Agent: Function }}
+ */
+function loadUndici() {
+
+    try {
+        return require('undici');
+    } catch (error) {
+        throw new Error(
+            `SSL/TLS options require the 'undici' package, which failed to load on Node.js ${process.version}. ` +
+            error.message
+        );
+    }
+}
 
 /**
  * Validates PEM certificate format.
@@ -363,6 +382,7 @@ async function buildUndiciAgent(context, certOptions) {
         agentOptions.connect.key = clientKey;
     }
 
+    const { Agent } = loadUndici();
     return new Agent(agentOptions);
 }
 
@@ -408,6 +428,8 @@ async function sendWithUndici(context, method, options) {
         clientKeyFileId,
         ignoreSsl
     });
+
+    const { request: undiciRequest } = loadUndici();
 
     try {
         const { statusCode, body: responseBody, headers: responseHeaders } = await undiciRequest(url, {
@@ -483,4 +505,5 @@ module.exports.buildHttpsAgentFromFiles = buildHttpsAgentFromFiles;
 module.exports.buildHttpsAgent = buildHttpsAgent;
 module.exports.buildUndiciAgent = buildUndiciAgent;
 module.exports.sendWithUndici = sendWithUndici;
+module.exports.loadUndici = loadUndici;
 module.exports.hasSslOptions = hasSslOptions;

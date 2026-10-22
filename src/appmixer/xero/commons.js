@@ -155,6 +155,51 @@ module.exports = {
     },
 
     /**
+     * Builds the variable picker options of a dynamic out port from the component's exported
+     * ITEM_SCHEMA, so the contract the tooling reads and the options the designer shows cannot
+     * drift apart (they used to be two hand-maintained copies per component, and had).
+     *
+     * Xero's outputType enum is item / items / file — see sendArrayOutput, which decides the
+     * shape these options describe. The array mode wraps the item under the `items` key that
+     * sendArrayOutput emits.
+     *
+     * @param {object} context Component context.
+     * @param {string} outputType 'item', 'items' or 'file'.
+     * @param {object} itemProperties ITEM_SCHEMA.properties of the component's behavior.
+     * @param {object} options
+     * @param {string} options.label Label of the whole array in 'items' mode, e.g. 'Contacts'.
+     * @param {string} [options.outputPortName] Name of the out port, defaults to 'out'.
+     * @returns {Promise<void>}
+     */
+    getOutputPortOptions(context, outputType, itemProperties, { label, outputPortName = 'out' }) {
+
+        if (outputType === 'items') {
+            return context.sendJson(
+                [{
+                    label,
+                    value: 'items',
+                    schema: { type: 'array', items: { type: 'object', properties: itemProperties } }
+                }],
+                outputPortName
+            );
+        }
+
+        if (outputType === 'file') {
+            return context.sendJson([{ label: 'File ID', value: 'fileId' }], outputPortName);
+        }
+
+        // 'item' — each field of the record is offered as its own variable. The title becomes the
+        // picker label, so it is not repeated inside the option's schema.
+        return context.sendJson(
+            Object.keys(itemProperties).map(field => {
+                const { title, ...schema } = itemProperties[field];
+                return { label: title || field, value: field, schema };
+            }),
+            outputPortName
+        );
+    },
+
+    /**
      * Handles a webhook message from Xero plugin for contacts and invoices.
      * @param {string} endpoint The Xero endpoint to fetch data from. E.g. '/api.xro/2.0/Contacts'.
      * @returns {Promise<void>}

@@ -1,6 +1,7 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
 const { getObjectProperties } = require('../../commons');
+const ITEM_SCHEMA = require('../../item-schemas.json').contact;
 
 const subscriptionType = 'contact.propertyChange';
 
@@ -24,7 +25,9 @@ class UpdatedContact extends BaseSubscriptionComponent {
             });
 
             for (const [contactId, event] of Object.entries(eventsByObjectId)) {
-                const cacheKey = 'hubspot-contact-updated-' + contactId;
+                // Scope the dedupe key per component instance — staticCache is shared across all
+                // instances, so two flows must not consume each other's events.
+                const cacheKey = `hubspot-contact-updated-${context.componentId}-${contactId}`;
                 const cached = await context.staticCache.get(cacheKey);
                 if (cached && event.occurredAt <= cached) {
                     continue;
@@ -73,8 +76,12 @@ class UpdatedContact extends BaseSubscriptionComponent {
     async test(context) {
 
         const record = await this.fetchLatestExample(context, 'contacts', { sortProperty: 'lastmodifieddate' });
+        if (!record) {
+            throw new context.CancelError('No contact found to use as test data.');
+        }
         return context.sendJson(record, 'contact');
     }
 }
 
 module.exports = new UpdatedContact(subscriptionType);
+module.exports.ITEM_SCHEMA = ITEM_SCHEMA;

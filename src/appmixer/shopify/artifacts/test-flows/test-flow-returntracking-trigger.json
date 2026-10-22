@@ -1,8 +1,17 @@
 {
     "name": "E2E Shopify - Return Tracking Trigger",
-    "type": "automation",
+    "description": "Return Tracking fires on return events of a fulfilled order (manual step).",
+    "notes": {
+        "9087035e-180d-4604-a704-05f830abac65": {
+            "x": 64,
+            "y": -128,
+            "width": 400,
+            "height": 400,
+            "content": "## ⚠️ Manual E2E — requires a return on a fulfilled order\n\nThe trigger listens to every `returns/*` topic. A return needs a **fulfilled order**, and creating one through the API needs the `write_returns` scope, which the connector does not request (the QA app does not have it either — `returnRequest` answers ACCESS_DENIED).\n\n### How to test\n1. Start this flow (the webhooks are registered on start).\n2. In the Shopify admin open **Orders** → a fulfilled order → **Return** → select the items and a reason → **Create return** (fires `returns/request` or `returns/approve`).\n3. With `write_returns` granted, the GraphQL Admin API works too: `returnRequest` (`returns/request`) → `returnApproveRequest` (`returns/approve`) → `returnClose` (`returns/close`), using the order's `fulfillmentLineItemId`.\n\nThe Assert checks the return id, its order and that the topic starts with `returns/`. AfterAll timeout is 300 s — create the return within 5 minutes of starting the flow. `returns/update` alone never fires during a standard return journey."
+        }
+    },
     "flow": {
-        "a0000000-0000-0000-0000-000000000001": {
+        "5d3b4e7e-b0ac-4f4d-a86d-7258b84a4698": {
             "type": "appmixer.shopify.returns.ReturnTracking",
             "x": 64,
             "y": 320,
@@ -15,31 +24,35 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000002": {
+        "e516f33c-e2d4-42e6-8971-094495910547": {
             "type": "appmixer.utils.test.Assert",
             "x": 272,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000001": [
-                        "return"
+                    "5d3b4e7e-b0ac-4f4d-a86d-7258b84a4698": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000001": {
-                            "return": {
+                        "5d3b4e7e-b0ac-4f4d-a86d-7258b84a4698": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "field-id": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.return.id",
+                                        "e59c6e67-fcd0-4b30-8115-c3c9b9d88bb1": {
+                                            "variable": "$.5d3b4e7e-b0ac-4f4d-a86d-7258b84a4698.out.id",
                                             "functions": []
                                         },
-                                        "field-topic": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.return.webhookTopic",
+                                        "d2973f97-19dd-4328-9ec8-5078a258a5ac": {
+                                            "variable": "$.5d3b4e7e-b0ac-4f4d-a86d-7258b84a4698.out.webhookTopic",
+                                            "functions": []
+                                        },
+                                        "7d8c36e9-ba4f-4d8a-a124-127a83a36566": {
+                                            "variable": "$.5d3b4e7e-b0ac-4f4d-a86d-7258b84a4698.out.order.name",
                                             "functions": []
                                         }
                                     }
@@ -48,13 +61,18 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-id}}}"
+                                                "field": "{{{e59c6e67-fcd0-4b30-8115-c3c9b9d88bb1}}}",
+                                                "assertion": "regex",
+                                                "regex": "^gid://shopify/Return/\\d+$"
                                             },
                                             {
+                                                "field": "{{{d2973f97-19dd-4328-9ec8-5078a258a5ac}}}",
                                                 "assertion": "regex",
-                                                "field": "{{{field-topic}}}",
-                                                "expected": "^returns/"
+                                                "regex": "^returns/"
+                                            },
+                                            {
+                                                "field": "{{{7d8c36e9-ba4f-4d8a-a124-127a83a36566}}}",
+                                                "assertion": "notEmpty"
                                             }
                                         ]
                                     }
@@ -69,13 +87,13 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000003": {
+        "0fb22159-e0e7-405e-b550-2546afaca361": {
             "type": "appmixer.utils.test.AfterAll",
             "x": 480,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000002": [
+                    "e516f33c-e2d4-42e6-8971-094495910547": [
                         "out"
                     ]
                 }
@@ -90,36 +108,37 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000004": {
+        "0763692b-de82-4249-af89-44b1880a3269": {
             "type": "appmixer.utils.test.ProcessE2EResults",
             "x": 688,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000003": [
+                    "0fb22159-e0e7-405e-b550-2546afaca361": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000003": {
+                        "0fb22159-e0e7-405e-b550-2546afaca361": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
                                     "result": {
-                                        "field-result": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                        "36af8a85-778d-47c7-be36-21838a8e4fc1": {
+                                            "variable": "$.0fb22159-e0e7-405e-b550-2546afaca361.out",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "recipients": "test@appmixer.com",
+                                    "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Shopify - Return Tracking Trigger",
-                                    "result": "{{{field-result}}}"
+                                    "result": "{{{36af8a85-778d-47c7-be36-21838a8e4fc1}}}"
                                 }
                             }
                         }
@@ -131,7 +150,7 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000001": {
+        "fe7fadbf-6394-48f3-a33c-0915324d3653": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
             "y": 576,
@@ -142,13 +161,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000002": {
+        "b47329b1-2e9a-42d3-a8b1-75dcb63ddc93": {
             "type": "appmixer.utils.timers.Wait",
             "x": 272,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000001": [
+                    "fe7fadbf-6394-48f3-a33c-0915324d3653": [
                         "out"
                     ]
                 }
@@ -156,10 +175,12 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000001": {
+                        "fe7fadbf-6394-48f3-a33c-0915324d3653": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "interval": {}
+                                },
                                 "lambda": {
                                     "interval": "1m"
                                 }
@@ -173,8 +194,5 @@
                 "onError": "stopFlow"
             }
         }
-    },
-    "wizard": {
-        "fields": []
     }
 }

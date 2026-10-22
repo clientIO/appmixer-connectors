@@ -1,0 +1,121 @@
+{
+    "name": "appmixer.zoho.books.NewInvoice",
+    "author": "Appmixer <info@appmixer.com>",
+    "description": "Triggers when a new invoice is created in Zoho Books.",
+    "version": "1.0.0",
+    "tick": true,
+    "auth": {
+        "service": "appmixer:zoho:books",
+        "scope": [
+            "ZohoBooks.invoices.READ"
+        ]
+    },
+    "quota": {
+        "manager": "appmixer:zoho:books",
+        "resources": "requests",
+        "scope": {
+            "userId": "{{userId}}"
+        }
+    },
+    "properties": {
+        "schema": {
+            "type": "object",
+            "properties": {
+                "organizationId": { "type": "string" },
+                "status": { "type": "string" }
+            },
+            "required": [
+                "organizationId"
+            ]
+        },
+        "inspector": {
+            "inputs": {
+                "organizationId": {
+                    "type": "text",
+                    "label": "Organization ID",
+                    "index": 0,
+                    "tooltip": "Select the organization to watch for new invoices, or enter its ID.",
+                    "source": {
+                        "url": "/component/appmixer/zoho/books/ListOrganizations?outPort=out",
+                        "data": {
+                            "transform": "./transformers#organizationsToSelectArray"
+                        }
+                    }
+                },
+                "status": {
+                    "type": "select",
+                    "label": "Status",
+                    "index": 1,
+                    "tooltip": "Optionally only trigger for invoices with the selected status.",
+                    "options": [
+                        { "label": "Draft", "value": "Status.Draft" },
+                        { "label": "Sent", "value": "Status.Sent" },
+                        { "label": "Overdue", "value": "Status.OverDue" },
+                        { "label": "Unpaid", "value": "Status.Unpaid" },
+                        { "label": "Partially Paid", "value": "Status.PartiallyPaid" },
+                        { "label": "Paid", "value": "Status.Paid" },
+                        { "label": "Void", "value": "Status.Void" }
+                    ]
+                }
+            }
+        }
+    },
+    "outPorts": [
+        {
+            "name": "out",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "invoice_id": { "type": "string", "title": "Invoice ID", "example": "460000000038080" },
+                    "invoice_number": { "type": "string", "title": "Invoice Number", "example": "INV-00001" },
+                    "date": { "type": "string", "title": "Date", "example": "2026-06-20" },
+                    "status": { "type": "string", "title": "Status", "example": "sent" },
+                    "total": { "type": "number", "title": "Total", "example": 450 },
+                    "balance": { "type": "number", "title": "Balance", "example": 450 },
+                    "currency_code": { "type": "string", "title": "Currency Code", "example": "USD" },
+                    "customer_id": { "type": "string", "title": "Customer ID", "example": "460000000026049" },
+                    "customer_name": { "type": "string", "title": "Customer Name", "example": "Bowman Furniture" },
+                    "email": { "type": "string", "title": "Email", "example": "benjamin.geri@bowmanfurniture.com" },
+                    "billing_address": {
+                        "type": "object",
+                        "title": "Billing Address",
+                        "properties": {
+                            "address": { "type": "string", "title": "Billing Address.Address", "example": "4900 Hopyard Rd" },
+                            "city": { "type": "string", "title": "Billing Address.City", "example": "Pleasanton" },
+                            "state": { "type": "string", "title": "Billing Address.State", "example": "CA" },
+                            "zip": { "type": "string", "title": "Billing Address.Zip", "example": "94588" },
+                            "country": { "type": "string", "title": "Billing Address.Country", "example": "U.S.A" }
+                        }
+                    },
+                    "line_items": {
+                        "type": "array",
+                        "title": "Line Items",
+                        "example": [
+                            {
+                                "line_item_id": "460000000038092",
+                                "name": "Hard Drive",
+                                "description": "500GB, USB 2.0",
+                                "quantity": 1,
+                                "rate": 450,
+                                "item_total": 450
+                            }
+                        ],
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "line_item_id": { "type": "string", "title": "Line Item ID", "example": "460000000038092" },
+                                "name": { "type": "string", "title": "Name", "example": "Hard Drive" },
+                                "description": { "type": "string", "title": "Description", "example": "500GB, USB 2.0" },
+                                "quantity": { "type": "number", "title": "Quantity", "example": 1 },
+                                "rate": { "type": "number", "title": "Rate", "example": 450 },
+                                "item_total": { "type": "number", "title": "Item Total", "example": 450 }
+                            }
+                        }
+                    },
+                    "created_time": { "type": "string", "title": "Created Time", "example": "2026-06-20T10:30:00+0000" }
+                }
+            }
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJsb2dvLWNvbG9yIiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0Ij48cGF0aCBmaWxsPSIjMjI2ZWIzIiBkPSJNNzI5LjU0IDEwMjRIMzBjLTE2LjU3IDAtMzAtMTMuNDMtMzAtMzBWNzM5Ljg0YzAtNTUuNTIgMzUuMjgtMTA0LjkzIDg3LjgtMTIyLjk2bDc3NS4yOC0yNjYuMDlDOTIzLjQ0IDMzMC4wNyA5NjQgMjczLjI2IDk2NCAyMDkuNDQgOTY0IDEyNy4wNCA4OTYuOTYgNjAgODE0LjU2IDYwSDYwdjQ5NC45NmMwIDE2LjU3LTEzLjQzIDMwLTMwIDMwcy0zMC0xMy40My0zMC0zMFYzMEMwIDEzLjQzIDEzLjQzIDAgMzAgMGg3ODQuNTZDOTMwLjA1IDAgMTAyNCA5My45NSAxMDI0IDIwOS40NGMwIDg5LjQ1LTU2Ljg0IDE2OS4wNi0xNDEuNDUgMTk4LjFMMTA3LjI4IDY3My42M0M3OSA2ODMuMzMgNjAgNzA5Ljk0IDYwIDczOS44NFY5NjRoNjY5LjU0YzYyLjYzIDAgMTIxLjUtMjQuMzkgMTY1Ljc5LTY4LjY3QzkzOS42MSA4NTEuMDQgOTY0IDc5Mi4xNyA5NjQgNzI5LjU0YzAtNDQuMzMtMTIuNDktODcuNTYtMzYuMTEtMTI1LjAyLTIzLjM5LTM3LjEtNTYuNTUtNjYuNzktOTUuODktODUuODgtMTQuOTEtNy4yMy0yMS4xMy0yNS4xOC0xMy44OS00MC4wOSA3LjIzLTE0LjkxIDI1LjE4LTIxLjEzIDQwLjA5LTEzLjg5IDQ5LjQyIDIzLjk4IDkxLjA3IDYxLjI4IDEyMC40NSAxMDcuODYgMjkuNjggNDcuMDYgNDUuMzYgMTAxLjM2IDQ1LjM2IDE1Ny4wMyAwIDc4LjY1LTMwLjYzIDE1Mi42LTg2LjI1IDIwOC4yMi01NS42MiA1NS42LTEyOS41NyA4Ni4yMy0yMDguMjIgODYuMjN6IiBvcGFjaXR5PSIuOSIvPjxwYXRoIGZpbGw9IiMyMjZlYjMiIGQ9Ik0zMzcuNTIgNDE5LjgyYy02Ni4xNyAwLTEyMC01My44My0xMjAtMTIwczUzLjgzLTEyMCAxMjAtMTIwIDEyMCA1My44MyAxMjAgMTIwLTUzLjgzIDEyMC0xMjAgMTIwem0wLTE4MGMtMzMuMDggMC02MCAyNi45Mi02MCA2MHMyNi45MiA2MCA2MCA2MCA2MC0yNi45MiA2MC02MC0yNi45Mi02MC02MC02MHpNNjM4LjM0IDg0My41M2MtNjYuMTcgMC0xMjAtNTMuODMtMTIwLTEyMHM1My44My0xMjAgMTIwLTEyMCAxMjAgNTMuODMgMTIwIDEyMC01My44MyAxMjAtMTIwIDEyMHptMC0xODBjLTMzLjA4IDAtNjAgMjYuOTItNjAgNjBzMjYuOTIgNjAgNjAgNjAgNjAtMjYuOTIgNjAtNjAtMjYuOTItNjAtNjAtNjB6IiBvcGFjaXR5PSIuOSIvPjwvc3ZnPgo="
+}

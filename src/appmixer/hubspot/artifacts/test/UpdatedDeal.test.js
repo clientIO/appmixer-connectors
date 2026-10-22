@@ -219,4 +219,5 @@ describe('UpdatedDeal', () => {
 
         assert.equal(hubspotStub.callCount, 11, 'Should make 10 calls to get deal data and 1 call to get deal properties');
     });
+
 });

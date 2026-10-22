@@ -46,6 +46,10 @@ module.exports = {
 
     async receive(context) {
 
+        if (!context.messages.in.content.boardListCardId) {
+            throw new context.CancelError('Card is required!');
+        }
+
         let cardInfo = context.messages.in.content;
         let boardListCardId = cardInfo.boardListCardId;
         delete cardInfo.boardListCardId;

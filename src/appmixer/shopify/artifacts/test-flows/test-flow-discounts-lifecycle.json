@@ -1,0 +1,411 @@
+{
+    "name": "E2E Shopify - Discount Codes",
+    "description": "Create a discount code, read it back by its code, delete it.",
+    "notes": {
+        "fcd687f0-eeaa-41b7-af16-73a14783e955": {
+            "x": 64,
+            "y": 320,
+            "width": 672,
+            "height": 256,
+            "content": "## ⚠️ Test data\n\nThe flow creates all of its own data:\n\n1. **Create Discount Code** leaves the code empty on purpose, so the component generates a random 8-character code. Shopify rejects duplicate codes, so a fixed code would fail on the second run.\n2. **Get Discount Code** reads the discount back by that code and the asserts check its terms.\n3. **Delete Discount Code** after `AfterAll` removes the discount with its code.\n\nThe account needs the `read_discounts` and `write_discounts` scopes."
+        }
+    },
+    "flow": {
+        "5bfe80d4-b410-46d1-bc8a-056cfa4b5ca6": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "49268388-5cfb-46ff-b832-d78e0fd3ee4a": {
+            "type": "appmixer.shopify.discounts.CreateDiscountCode",
+            "x": 272,
+            "y": 16,
+            "source": {
+                "in": {
+                    "5bfe80d4-b410-46d1-bc8a-056cfa4b5ca6": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "5bfe80d4-b410-46d1-bc8a-056cfa4b5ca6": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "valueType": {},
+                                    "value": {},
+                                    "title": {},
+                                    "minimumSubtotal": {},
+                                    "usageLimit": {},
+                                    "appliesOncePerCustomer": {},
+                                    "endsAt": {
+                                        "71fd84e2-624a-42aa-b594-e67eea35f079": {
+                                            "variable": "$.5bfe80d4-b410-46d1-bc8a-056cfa4b5ca6.out.started",
+                                            "functions": [
+                                                {
+                                                    "name": "g_now"
+                                                },
+                                                {
+                                                    "name": "g_addTimeSpan",
+                                                    "hashParams": {
+                                                        "days": {
+                                                            "value": 30
+                                                        }
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "valueType": "percentage",
+                                    "value": 15,
+                                    "title": "E2E Discount Code Test",
+                                    "minimumSubtotal": 50,
+                                    "usageLimit": 10,
+                                    "appliesOncePerCustomer": false,
+                                    "endsAt": "{{{71fd84e2-624a-42aa-b594-e67eea35f079}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a0ab7edc-4c72-4504-a9b7-6354c76311a3": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 480,
+            "y": 16,
+            "source": {
+                "in": {
+                    "49268388-5cfb-46ff-b832-d78e0fd3ee4a": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "49268388-5cfb-46ff-b832-d78e0fd3ee4a": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7b8a5402-c769-4feb-b2cd-121e7aa489e4": {
+                                            "variable": "$.49268388-5cfb-46ff-b832-d78e0fd3ee4a.out.codes",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].code"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        "5ef0d268-a2f8-4687-969c-e0854d295023": {
+                                            "variable": "$.49268388-5cfb-46ff-b832-d78e0fd3ee4a.out.id",
+                                            "functions": []
+                                        },
+                                        "707ffa53-b814-49f5-9f1b-3643ba128c31": {
+                                            "variable": "$.49268388-5cfb-46ff-b832-d78e0fd3ee4a.out.discountType",
+                                            "functions": []
+                                        },
+                                        "38ecc75b-0e52-4b46-9150-f614ab1a2fab": {
+                                            "variable": "$.49268388-5cfb-46ff-b832-d78e0fd3ee4a.out.status",
+                                            "functions": []
+                                        },
+                                        "be99ede0-b320-488b-af9c-f2fdf0d75129": {
+                                            "variable": "$.49268388-5cfb-46ff-b832-d78e0fd3ee4a.out.customerGets.value.percentage",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7b8a5402-c769-4feb-b2cd-121e7aa489e4}}}",
+                                                "assertion": "regex",
+                                                "regex": "^[A-Z0-9]{8}$"
+                                            },
+                                            {
+                                                "field": "{{{5ef0d268-a2f8-4687-969c-e0854d295023}}}",
+                                                "assertion": "regex",
+                                                "regex": "^gid://shopify/DiscountCodeNode/\\d+$"
+                                            },
+                                            {
+                                                "field": "{{{707ffa53-b814-49f5-9f1b-3643ba128c31}}}",
+                                                "assertion": "equal",
+                                                "expected": "DiscountCodeBasic"
+                                            },
+                                            {
+                                                "field": "{{{38ecc75b-0e52-4b46-9150-f614ab1a2fab}}}",
+                                                "assertion": "equal",
+                                                "expected": "ACTIVE"
+                                            },
+                                            {
+                                                "field": "{{{be99ede0-b320-488b-af9c-f2fdf0d75129}}}",
+                                                "assertion": "equal",
+                                                "expected": "0.15"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "2521cd9e-83db-4cf6-acae-fc72c1558b5d": {
+            "type": "appmixer.shopify.discounts.GetDiscountCode",
+            "x": 688,
+            "y": 144,
+            "source": {
+                "in": {
+                    "a0ab7edc-4c72-4504-a9b7-6354c76311a3": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a0ab7edc-4c72-4504-a9b7-6354c76311a3": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "code": {
+                                        "5801282c-d0b7-4fa0-92ea-653df930617c": {
+                                            "variable": "$.49268388-5cfb-46ff-b832-d78e0fd3ee4a.out.codes",
+                                            "functions": [
+                                                {
+                                                    "name": "g_jsonPath",
+                                                    "params": [
+                                                        {
+                                                            "value": "$[0].code"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "code": "{{{5801282c-d0b7-4fa0-92ea-653df930617c}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c6bb5d47-cf4d-49a7-be12-9f6d335507d1": {
+            "type": "appmixer.utils.test.Assert",
+            "x": 896,
+            "y": 144,
+            "source": {
+                "in": {
+                    "2521cd9e-83db-4cf6-acae-fc72c1558b5d": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "2521cd9e-83db-4cf6-acae-fc72c1558b5d": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "4bbf08c4-6fb6-4057-a0b2-bba07ab5acb0": {
+                                            "variable": "$.2521cd9e-83db-4cf6-acae-fc72c1558b5d.out.title",
+                                            "functions": []
+                                        },
+                                        "85fd3457-2715-4595-86bd-ebe9bfdb2ec4": {
+                                            "variable": "$.2521cd9e-83db-4cf6-acae-fc72c1558b5d.out.usageLimit",
+                                            "functions": []
+                                        },
+                                        "0f872f40-0d1c-48a9-9218-5b19f42e1cc7": {
+                                            "variable": "$.2521cd9e-83db-4cf6-acae-fc72c1558b5d.out.appliesOncePerCustomer",
+                                            "functions": []
+                                        },
+                                        "5d3b6b8b-7df4-46bf-a29b-b381c0c157f8": {
+                                            "variable": "$.2521cd9e-83db-4cf6-acae-fc72c1558b5d.out.minimumRequirement.greaterThanOrEqualToSubtotal.amount",
+                                            "functions": []
+                                        },
+                                        "eca56b27-d2a9-4364-acb1-9572659ef15d": {
+                                            "variable": "$.2521cd9e-83db-4cf6-acae-fc72c1558b5d.out.endsAt",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{4bbf08c4-6fb6-4057-a0b2-bba07ab5acb0}}}",
+                                                "assertion": "equal",
+                                                "expected": "E2E Discount Code Test"
+                                            },
+                                            {
+                                                "field": "{{{85fd3457-2715-4595-86bd-ebe9bfdb2ec4}}}",
+                                                "assertion": "equal",
+                                                "expected": "10"
+                                            },
+                                            {
+                                                "field": "{{{0f872f40-0d1c-48a9-9218-5b19f42e1cc7}}}",
+                                                "assertion": "equal",
+                                                "expected": "false"
+                                            },
+                                            {
+                                                "field": "{{{5d3b6b8b-7df4-46bf-a29b-b381c0c157f8}}}",
+                                                "assertion": "equal",
+                                                "expected": "50.0"
+                                            },
+                                            {
+                                                "field": "{{{eca56b27-d2a9-4364-acb1-9572659ef15d}}}",
+                                                "assertion": "notEmpty"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3d923975-7ce8-4659-bc93-d9683d81e632": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1104,
+            "y": 144,
+            "source": {
+                "in": {
+                    "a0ab7edc-4c72-4504-a9b7-6354c76311a3": [
+                        "out"
+                    ],
+                    "c6bb5d47-cf4d-49a7-be12-9f6d335507d1": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "7cb403cd-bc9c-4f61-b159-9bdc4742abbb": {
+            "type": "appmixer.shopify.discounts.DeleteDiscountCode",
+            "x": 1312,
+            "y": 144,
+            "source": {
+                "in": {
+                    "3d923975-7ce8-4659-bc93-d9683d81e632": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "3d923975-7ce8-4659-bc93-d9683d81e632": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "id": {
+                                        "b2787b57-ad2f-4a85-a4d3-3cad0013d8de": {
+                                            "variable": "$.49268388-5cfb-46ff-b832-d78e0fd3ee4a.out.id",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "id": "{{{b2787b57-ad2f-4a85-a4d3-3cad0013d8de}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "449fe0ca-69c0-49ad-989a-defc90861c4a": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 144,
+            "source": {
+                "in": {
+                    "7cb403cd-bc9c-4f61-b159-9bdc4742abbb": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7cb403cd-bc9c-4f61-b159-9bdc4742abbb": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "de021077-ab61-4b4f-9291-f71679326b3d": {
+                                            "variable": "$.3d923975-7ce8-4659-bc93-d9683d81e632.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Shopify - Discount Codes",
+                                    "result": "{{{de021077-ab61-4b4f-9291-f71679326b3d}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}

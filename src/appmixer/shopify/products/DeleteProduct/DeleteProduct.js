@@ -1,22 +1,21 @@
 'use strict';
-const commons = require('../../lib');
+const lib = require('../../lib');
+const gqlProducts = require('../../gql-products');
 
 /**
- * Delete product.
+ * Delete a product.
  * @extends {Component}
  */
 module.exports = {
 
     async receive(context) {
 
-        const shopify = commons.getShopifyAPI(context);
         const { id } = context.messages.in.content;
-
-
         if (!id) {
-            throw new context.CancelError('ID is required!');
+            throw new context.CancelError('Product ID is required!');
         }
-        await shopify.product.delete(id);
-        return context.sendJson({ id }, 'deleted');
+
+        await gqlProducts(lib.runner(context)).delete(id);
+        return context.sendJson({}, 'out');
     }
 };

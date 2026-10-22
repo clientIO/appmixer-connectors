@@ -110,7 +110,8 @@ const sendBinaryData = async (context, url, headers, binaryFileId) => {
                 ignoreSsl
             });
 
-            const { statusCode, headers: responseHeaders, body: responseBody } = await require('undici').request(url, {
+            const undici = request.loadUndici();
+            const { statusCode, headers: responseHeaders, body: responseBody } = await undici.request(url, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/octet-stream',
@@ -210,7 +211,7 @@ const sendFormData = async (context, url, headers) => {
             ignoreSsl
         });
 
-        const { statusCode, headers: responseHeaders, body: responseBody } = await require('undici').request(url, {
+        const { statusCode, headers: responseHeaders, body: responseBody } = await request.loadUndici().request(url, {
             method: 'PUT',
             headers: { ...formData.getHeaders(), ...headers },
             body: formData,

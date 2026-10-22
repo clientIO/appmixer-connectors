@@ -32,27 +32,41 @@ module.exports = {
         } while (nextLink && totalEmails < MAX_LIMIT);
 
         if (outputType === 'emails') {
-            await context.sendJson({ emails }, 'out');
+            return context.sendJson({ emails }, 'out');
         }
-        const headers = Object.keys(emails[0]);
-        const csvRows = [headers.join(',')];
 
-        for (const email of emails) {
-            if (outputType === 'email') {
+        if (outputType === 'email') {
+            // One at a time. An empty result emits nothing, which is inherent to
+            // per-record mode — use 'emails' when the branch below must always run.
+            for (const email of emails) {
                 await context.sendJson(email, 'out');
-            } else {
-                const row = Object.values(email).join(',');
-                csvRows.push(row);
             }
+            return;
         }
 
         if (outputType === 'file') {
+            // The CSV header comes from the first record, so an empty mailbox has
+            // no shape to describe — write a header-less file instead of throwing
+            // on Object.keys(undefined).
+            const headers = emails.length ? Object.keys(emails[0]) : [];
+            const csvRows = [headers.join(',')];
+            for (const email of emails) {
+                csvRows.push(Object.values(email).join(','));
+            }
+
             const csvString = csvRows.join('\n');
             const buffer = Buffer.from(csvString, 'utf8');
             const filename = `microsoft-mail-listemails-${context.componentId}.csv`;
             const savedFile = await context.saveFileStream(filename, buffer);
-            await context.sendJson({ fileId: savedFile.fileId }, 'out');
+            return context.sendJson({ fileId: savedFile.fileId }, 'out');
         }
+
+        // Every branch above is guarded, so an unrecognized value used to fall
+        // through and emit NOTHING, with no error — the branch below the component
+        // silently never ran. outputType can come from a lambda, not just the
+        // dropdown, so this is reachable. microsoft-commons.sendArrayOutput throws
+        // in the same situation; match it.
+        throw new context.CancelError('Unsupported outputType ' + outputType);
     },
     getOutputPortOptions(context, outputType) {
 

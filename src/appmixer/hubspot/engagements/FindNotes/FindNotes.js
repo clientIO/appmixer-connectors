@@ -1,25 +1,32 @@
 const Hubspot = require('../../Hubspot');
 
 const lib = require('../../lib');
-const schema = {
-    'id': { 'type': 'string', 'title': 'Id' },
-    'properties': {
-        'type': 'object',
+const ITEM_SCHEMA = {
+    type: 'object',
+    required: ['id', 'properties', 'createdAt', 'updatedAt'],
+    properties: {
+        'id': { 'type': 'string', 'title': 'Id', 'example': '87654321' },
         'properties': {
-            'hs_createdate': { 'type': 'string', 'title': 'Properties.Hs Create Date' },
-            'hs_lastmodifieddate': { 'type': 'string', 'title': 'Properties.Hs Last Modified Date' },
-            'hs_object_id': { 'type': 'string', 'title': 'Properties.Hs Object Id' },
-            'hs_note_body': { 'type': 'string', 'title': 'Properties.Note Body' },
-            'hubspot_owner_id': { 'type': 'string', 'title': 'Properties.Owner Id' }
+            'type': 'object',
+            'properties': {
+                'hs_createdate': { 'type': 'string', 'title': 'Properties.Hs Create Date', 'example': '2026-07-24T12:00:00.000Z' },
+                'hs_lastmodifieddate': { 'type': 'string', 'title': 'Properties.Hs Last Modified Date', 'example': '2026-07-24T12:05:00.000Z' },
+                'hs_object_id': { 'type': 'string', 'title': 'Properties.Hs Object Id', 'example': '87654321' },
+                'hs_note_body': { 'type': 'string', 'title': 'Properties.Note Body', 'example': 'Follow-up call scheduled for next week.' },
+                'hubspot_owner_id': { 'type': 'string', 'title': 'Properties.Owner Id', 'example': '1246609099' }
+            },
+            'title': 'Properties'
         },
-        'title': 'Properties'
-    },
-    'createdAt': { 'type': 'string', 'title': 'Created At' },
-    'updatedAt': { 'type': 'string', 'title': 'Updated At' },
-    'archived': { 'type': 'boolean', 'title': 'Archived' }
+        'createdAt': { 'type': 'string', 'title': 'Created At', 'example': '2026-07-24T12:00:00.000Z' },
+        'updatedAt': { 'type': 'string', 'title': 'Updated At', 'example': '2026-07-24T12:05:00.000Z' },
+        'archived': { 'type': 'boolean', 'title': 'Archived', 'example': false }
+    }
 };
 
 module.exports = {
+
+    ITEM_SCHEMA,
+
     async receive(context) {
         const {
             query,
@@ -27,7 +34,7 @@ module.exports = {
         } = context.messages.in.content;
 
         if (context.properties.generateOutputPortOptions) {
-            return lib.getOutputPortOptions(context, outputType, schema, { label: 'results', value: 'results' });
+            return lib.getOutputPortOptions(context, outputType, ITEM_SCHEMA.properties, { label: 'results', value: 'results' });
         }
 
         if (!query) {

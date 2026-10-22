@@ -1,6 +1,7 @@
 'use strict';
 const BaseSubscriptionComponent = require('../../BaseSubscriptionComponent');
 const { getObjectProperties } = require('../../commons');
+const ITEM_SCHEMA = require('../../item-schemas.json').deal;
 
 const subscriptionType = 'deal.propertyChange';
 
@@ -23,7 +24,9 @@ class UpdatedDeal extends BaseSubscriptionComponent {
             });
 
             for (const [dealId, event] of Object.entries(eventsByObjectId)) {
-                const cacheKey = 'hubspot-deal-updated-' + dealId;
+                // Scope the dedupe key per component instance — staticCache is shared across all
+                // instances, so two flows must not consume each other's events.
+                const cacheKey = `hubspot-deal-updated-${context.componentId}-${dealId}`;
                 const cached = await context.staticCache.get(cacheKey);
                 if (cached && event.occurredAt <= cached) {
                     continue;
@@ -90,8 +93,12 @@ class UpdatedDeal extends BaseSubscriptionComponent {
             filters.push({ propertyName: 'dealstage', operator: 'EQ', value: filterStage });
         }
         const record = await this.fetchLatestExample(context, 'deals', { sortProperty: 'lastmodifieddate', filters });
+        if (!record) {
+            throw new context.CancelError('No deal found to use as test data.');
+        }
         return context.sendJson(record, 'deal');
     }
 }
 
 module.exports = new UpdatedDeal(subscriptionType);
+module.exports.ITEM_SCHEMA = ITEM_SCHEMA;

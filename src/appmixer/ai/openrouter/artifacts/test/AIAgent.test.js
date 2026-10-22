@@ -230,3 +230,67 @@ describe('OpenRouter AIAgent - mcpCallTool with correlationId', () => {
         assert.strictEqual(callArgs.data.correlationId, '', 'empty correlationId should be passed as-is');
     });
 });
+
+describe('OpenRouter AIAgent - instructions', () => {
+
+    const AIAgent = require('../../AIAgent/AIAgent');
+    const INSTRUCTIONS = 'Answer in plain text only.';
+
+    let sandbox;
+    let context;
+    let createCompletion;
+
+    beforeEach(async () => {
+        context = createMockContext({
+            properties: { instructions: INSTRUCTIONS, model: 'openai/gpt-4o' },
+            messages: { in: { correlationId: 'corr-1', content: { prompt: 'First question' } } }
+        });
+        // No tools, so receive() does not collect them from the flow descriptor.
+        await context.stateSet('tools', []);
+
+        sandbox = sinon.createSandbox();
+        sandbox.stub(lib, 'publishChatProgressEvent').resolves();
+        createCompletion = sandbox.stub(AIAgent, 'createCompletion').callsFake(async (ctx, completion) => {
+            return {
+                finish_reason: 'stop',
+                message: { role: 'assistant', content: `Answer ${completion.messages.length}` }
+            };
+        });
+    });
+
+    afterEach(() => {
+        sandbox.restore();
+    });
+
+    it('should send the instructions ahead of the prompt', async () => {
+
+        await AIAgent.receive(context);
+
+        const { messages } = createCompletion.firstCall.args[1];
+        assert.deepStrictEqual(messages, [
+            { role: 'user', content: INSTRUCTIONS },
+            { role: 'user', content: 'First question' }
+        ]);
+    });
+
+    it('should send the instructions once per request in a thread and keep them out of its history', async () => {
+
+        context.messages.in.content.threadId = 'thread-1';
+        await AIAgent.receive(context);
+
+        context.messages.in.content.prompt = 'Second question';
+        await AIAgent.receive(context);
+
+        const { messages } = createCompletion.secondCall.args[1];
+        assert.deepStrictEqual(messages, [
+            { role: 'user', content: INSTRUCTIONS },
+            { role: 'user', content: 'First question' },
+            { role: 'assistant', content: 'Answer 2' },
+            { role: 'user', content: 'Second question' }
+        ]);
+
+        const history = JSON.parse(await context.stateGet('thread_summary_thread-1'));
+        assert.strictEqual(history.length, 4);
+        assert(history.every((message) => message.content !== INSTRUCTIONS), 'instructions should not be stored');
+    });
+});

@@ -1,8 +1,17 @@
 {
     "name": "E2E Shopify - Abandoned Cart Trigger",
-    "type": "automation",
+    "description": "Abandoned Cart emits a checkout abandoned in the online store (manual storefront step).",
+    "notes": {
+        "059e74ce-1eac-48cc-aaaa-754d717ddd12": {
+            "x": 64,
+            "y": -128,
+            "width": 400,
+            "height": 400,
+            "content": "## ⚠️ Manual E2E — requires a storefront action\n\nAn abandoned checkout cannot be created through the Admin API. The trigger polls the GraphQL `abandonedCheckouts` list, where a checkout shows up about 10 minutes after it was abandoned.\n\n### How to test\n1. Start this flow and keep it running — the first poll after the start only records the checkouts that already exist.\n2. Open the online store in an **incognito window** (https://<store>.myshopify.com; the dev-store password is in Online Store → Preferences). A fresh window forces a NEW checkout session — a reused window resumes the previous checkout instead.\n3. Add a product to the cart, go to the checkout, enter an **email address and a shipping address** (a checkout without contact details is not listed) and close the window before paying.\n4. Wait about 10 minutes. The trigger then emits the checkout and the Assert verifies it.\n\nAfterAll timeout is 600 s, which the visibility delay can exceed — `appmixer e2e run` may then report a timeout although the trigger works. Abandon the checkout right after starting the flow; if the run still times out, start the flow by hand and read the flow log."
+        }
+    },
     "flow": {
-        "a0000000-0000-0000-0000-000000000001": {
+        "d69dce8a-90a4-42f5-8762-34fc1a6873a8": {
             "type": "appmixer.shopify.checkouts.AbandonedCart",
             "x": 64,
             "y": 320,
@@ -15,31 +24,35 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000002": {
+        "2b524a35-3726-48e6-825b-8d30d8ff6edf": {
             "type": "appmixer.utils.test.Assert",
             "x": 272,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000001": [
-                        "checkout"
+                    "d69dce8a-90a4-42f5-8762-34fc1a6873a8": [
+                        "out"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000001": {
-                            "checkout": {
+                        "d69dce8a-90a4-42f5-8762-34fc1a6873a8": {
+                            "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "field-id": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.checkout.id",
+                                        "bc4afa5b-07ce-4939-87ea-3b906b3d9415": {
+                                            "variable": "$.d69dce8a-90a4-42f5-8762-34fc1a6873a8.out.id",
                                             "functions": []
                                         },
-                                        "field-topic": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000001.checkout.token",
+                                        "60128b43-8a71-483d-abd1-9d1e6f7ffb39": {
+                                            "variable": "$.d69dce8a-90a4-42f5-8762-34fc1a6873a8.out.abandonedCheckoutUrl",
+                                            "functions": []
+                                        },
+                                        "44c01ab8-f686-4904-98cc-a67de9a6c0ea": {
+                                            "variable": "$.d69dce8a-90a4-42f5-8762-34fc1a6873a8.out.totalPriceSet.shopMoney.amount",
                                             "functions": []
                                         }
                                     }
@@ -48,12 +61,18 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-id}}}"
+                                                "field": "{{{bc4afa5b-07ce-4939-87ea-3b906b3d9415}}}",
+                                                "assertion": "regex",
+                                                "regex": "^gid://shopify/AbandonedCheckout/\\d+$"
                                             },
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{field-topic}}}"
+                                                "field": "{{{60128b43-8a71-483d-abd1-9d1e6f7ffb39}}}",
+                                                "assertion": "regex",
+                                                "regex": "^https://"
+                                            },
+                                            {
+                                                "field": "{{{44c01ab8-f686-4904-98cc-a67de9a6c0ea}}}",
+                                                "assertion": "notEmpty"
                                             }
                                         ]
                                     }
@@ -68,13 +87,13 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000003": {
+        "0f8aecb7-031d-488a-a164-eb7b4e541c8f": {
             "type": "appmixer.utils.test.AfterAll",
             "x": 480,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000002": [
+                    "2b524a35-3726-48e6-825b-8d30d8ff6edf": [
                         "out"
                     ]
                 }
@@ -89,36 +108,37 @@
                 "onError": "stopFlow"
             }
         },
-        "a0000000-0000-0000-0000-000000000004": {
+        "a91e6754-6dab-4d45-aa26-dab94cec1004": {
             "type": "appmixer.utils.test.ProcessE2EResults",
             "x": 688,
             "y": 320,
             "source": {
                 "in": {
-                    "a0000000-0000-0000-0000-000000000003": [
+                    "0f8aecb7-031d-488a-a164-eb7b4e541c8f": [
                         "out"
                     ]
                 }
             },
             "config": {
-                "properties": {},
                 "transform": {
                     "in": {
-                        "a0000000-0000-0000-0000-000000000003": {
+                        "0f8aecb7-031d-488a-a164-eb7b4e541c8f": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
                                     "result": {
-                                        "field-result": {
-                                            "variable": "$.a0000000-0000-0000-0000-000000000003.out",
+                                        "62af45e2-1dd9-45cd-9ce2-d2c5320d6bc7": {
+                                            "variable": "$.0f8aecb7-031d-488a-a164-eb7b4e541c8f.out",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "recipients": "test@appmixer.com",
+                                    "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Shopify - Abandoned Cart Trigger",
-                                    "result": "{{{field-result}}}"
+                                    "result": "{{{62af45e2-1dd9-45cd-9ce2-d2c5320d6bc7}}}"
                                 }
                             }
                         }
@@ -130,7 +150,7 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000001": {
+        "fe4925fb-7a54-497e-b601-83f6c55d4e95": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
             "y": 576,
@@ -141,13 +161,13 @@
                 "onError": "stopFlow"
             }
         },
-        "b0000000-0000-0000-0000-000000000002": {
+        "18034f71-ee41-4bcb-8f5f-6fb3452bbf96": {
             "type": "appmixer.utils.timers.Wait",
             "x": 272,
             "y": 576,
             "source": {
                 "in": {
-                    "b0000000-0000-0000-0000-000000000001": [
+                    "fe4925fb-7a54-497e-b601-83f6c55d4e95": [
                         "out"
                     ]
                 }
@@ -155,10 +175,12 @@
             "config": {
                 "transform": {
                     "in": {
-                        "b0000000-0000-0000-0000-000000000001": {
+                        "fe4925fb-7a54-497e-b601-83f6c55d4e95": {
                             "out": {
                                 "type": "json2new",
-                                "modifiers": {},
+                                "modifiers": {
+                                    "interval": {}
+                                },
                                 "lambda": {
                                     "interval": "1m"
                                 }
@@ -172,8 +194,5 @@
                 "onError": "stopFlow"
             }
         }
-    },
-    "wizard": {
-        "fields": []
     }
 }

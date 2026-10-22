@@ -1,0 +1,477 @@
+{
+    "name": "E2E Utils Controls - Each sequential order",
+    "description": "Iterates [1200, 50, 600, 10] with Each in Sequential mode. The loop body busy-waits that many milliseconds per item (so a plain Each lets the fast items overtake the slow ones) and then confirms the item with Continue Each. JoinEach collects the results in ARRIVAL order and the Assert requires the original order. The body also reads a variable of a component BEFORE Each, which proves the engine restores the original message scope for items 1..N (they are emitted from a webhook delivery, not from the 'in' message). Continue Each also adds the result of each item to the loop's Result, and a second Assert on the 'done' port requires that list to hold all four values in item order.",
+    "flow": {
+        "30c55f98-f8de-4f12-86ac-c1073784b5dc": {
+            "type": "appmixer.utils.controls.OnStart",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "version": "1.0.0",
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a7a87d7c-5ac8-4644-a63a-031640bd15a2": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "x": 272,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "30c55f98-f8de-4f12-86ac-c1073784b5dc": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "30c55f98-f8de-4f12-86ac-c1073784b5dc": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "list",
+                                                "text": "[1200,50,600,10]"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "prefix",
+                                                "text": "e2e"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "6acd7c66-cf92-4193-b769-09186658e724": {
+            "type": "appmixer.utils.controls.Each",
+            "label": "Each (sequential)",
+            "x": 480,
+            "y": 16,
+            "version": "1.5.0",
+            "source": {
+                "in": {
+                    "a7a87d7c-5ac8-4644-a63a-031640bd15a2": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a7a87d7c-5ac8-4644-a63a-031640bd15a2": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "list": {
+                                        "268c1441-eb3a-4111-98fb-2e3cabd7fb2f": {
+                                            "variable": "$.a7a87d7c-5ac8-4644-a63a-031640bd15a2.out.list",
+                                            "functions": []
+                                        }
+                                    },
+                                    "sequential": {},
+                                    "itemTimeout": {}
+                                },
+                                "lambda": {
+                                    "list": "{{{268c1441-eb3a-4111-98fb-2e3cabd7fb2f}}}",
+                                    "sequential": true,
+                                    "itemTimeout": 120
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "604876a8-5f10-4a0e-b9a3-d64d8f05f7ef": {
+            "type": "appmixer.utils.controls.CodeBlock",
+            "label": "Work (varying latency)",
+            "x": 688,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "6acd7c66-cf92-4193-b769-09186658e724": [
+                        "item"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6acd7c66-cf92-4193-b769-09186658e724": {
+                            "item": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "code": {},
+                                    "variables": {
+                                        "4d3a1b57-dd08-4ab3-a16b-684b439fb752": {
+                                            "variable": "$.6acd7c66-cf92-4193-b769-09186658e724.item.value",
+                                            "functions": []
+                                        },
+                                        "868e20a0-4aff-491c-aeb8-c075f2bd60fe": {
+                                            "variable": "$.a7a87d7c-5ac8-4644-a63a-031640bd15a2.out.prefix",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "code": "(function() { var end = Date.now() + Number($data.ms); while (Date.now() < end) {} return $data.prefix + '-' + $data.ms; })()",
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "ms",
+                                                "text": "{{{4d3a1b57-dd08-4ab3-a16b-684b439fb752}}}"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "prefix",
+                                                "text": "{{{868e20a0-4aff-491c-aeb8-c075f2bd60fe}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "82117530-1df1-4570-b13a-fa8e089d8da6": {
+            "type": "appmixer.utils.controls.ContinueEach",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "604876a8-5f10-4a0e-b9a3-d64d8f05f7ef": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "604876a8-5f10-4a0e-b9a3-d64d8f05f7ef": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "correlationId": {
+                                        "8a717748-2942-454b-bce6-62a319c5ac56": {
+                                            "variable": "$.6acd7c66-cf92-4193-b769-09186658e724.item.correlationId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "index": {
+                                        "af854103-c934-4ea5-b053-c61b74d1f647": {
+                                            "variable": "$.6acd7c66-cf92-4193-b769-09186658e724.item.index",
+                                            "functions": []
+                                        }
+                                    },
+                                    "result": {
+                                        "c1d2e3f4-0a1b-4c2d-8e3f-4a5b6c7d8e9f": {
+                                            "variable": "$.604876a8-5f10-4a0e-b9a3-d64d8f05f7ef.out.result",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "correlationId": "{{{8a717748-2942-454b-bce6-62a319c5ac56}}}",
+                                    "index": "{{{af854103-c934-4ea5-b053-c61b74d1f647}}}",
+                                    "result": {
+                                        "ADD": [
+                                            {
+                                                "name": "id",
+                                                "value": "{{{c1d2e3f4-0a1b-4c2d-8e3f-4a5b6c7d8e9f}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "11a1eaf2-1da1-4d3f-9cb8-4aa828ac5c93": {
+            "type": "appmixer.utils.controls.JoinEach",
+            "x": 896,
+            "y": 272,
+            "version": "1.1.2",
+            "source": {
+                "in": {
+                    "604876a8-5f10-4a0e-b9a3-d64d8f05f7ef": [
+                        "out"
+                    ]
+                },
+                "count": {
+                    "6acd7c66-cf92-4193-b769-09186658e724": [
+                        "done"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "604876a8-5f10-4a0e-b9a3-d64d8f05f7ef": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "correlationId": {
+                                        "a5609b9a-f158-4a53-9918-00cd15c1bc1d": {
+                                            "variable": "$.6acd7c66-cf92-4193-b769-09186658e724.item.correlationId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "correlationId": "{{{a5609b9a-f158-4a53-9918-00cd15c1bc1d}}}"
+                                }
+                            }
+                        }
+                    },
+                    "count": {
+                        "6acd7c66-cf92-4193-b769-09186658e724": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "count": {
+                                        "1ffd5fa4-dcac-4b38-bb25-4016e1fe8dc4": {
+                                            "variable": "$.6acd7c66-cf92-4193-b769-09186658e724.done.count",
+                                            "functions": []
+                                        }
+                                    },
+                                    "correlationId": {
+                                        "04c3f428-613b-4107-8755-5ac67f84ccb9": {
+                                            "variable": "$.6acd7c66-cf92-4193-b769-09186658e724.done.correlationId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "timeout": {},
+                                    "timeoutValue": {}
+                                },
+                                "lambda": {
+                                    "count": "{{{1ffd5fa4-dcac-4b38-bb25-4016e1fe8dc4}}}",
+                                    "correlationId": "{{{04c3f428-613b-4107-8755-5ac67f84ccb9}}}",
+                                    "timeout": true,
+                                    "timeoutValue": 120
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e542d829-f264-4592-b113-c89e871da50f": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert original order + upstream scope",
+            "x": 1104,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "11a1eaf2-1da1-4d3f-9cb8-4aa828ac5c93": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "11a1eaf2-1da1-4d3f-9cb8-4aa828ac5c93": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9e35643e-5ae0-4a4c-a47a-8d529d2448b8": {
+                                            "variable": "$.11a1eaf2-1da1-4d3f-9cb8-4aa828ac5c93.out.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_stringify"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9e35643e-5ae0-4a4c-a47a-8d529d2448b8}}}",
+                                                "assertion": "regex",
+                                                "regex": "\"e2e-1200\"[\\s\\S]*\"e2e-50\"[\\s\\S]*\"e2e-600\"[\\s\\S]*\"e2e-10\""
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "fae6d01c-f698-4592-94f8-eb372215c22b": {
+            "type": "appmixer.utils.test.AfterAll",
+            "x": 1312,
+            "y": 272,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "e542d829-f264-4592-b113-c89e871da50f": [
+                        "out"
+                    ],
+                    "3b9d2f61-7c4e-4a8b-9d0e-2f6a1c5b8d73": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 180
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f2346848-c9a7-477d-8f78-e27d2101aaa6": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "x": 1520,
+            "y": 272,
+            "version": "1.0.1",
+            "source": {
+                "in": {
+                    "fae6d01c-f698-4592-94f8-eb372215c22b": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "successStoreId": "64f6f1f9193228000754082f",
+                    "failedStoreId": "64f6f1f0193228000754082e"
+                },
+                "transform": {
+                    "in": {
+                        "fae6d01c-f698-4592-94f8-eb372215c22b": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "d8959437-0b7b-45af-9f38-b00251de3587": {
+                                            "variable": "$.fae6d01c-f698-4592-94f8-eb372215c22b.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Utils Controls - Each sequential order",
+                                    "result": "{{{d8959437-0b7b-45af-9f38-b00251de3587}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "3b9d2f61-7c4e-4a8b-9d0e-2f6a1c5b8d73": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert collected Result (done)",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 16,
+            "source": {
+                "in": {
+                    "6acd7c66-cf92-4193-b769-09186658e724": [
+                        "done"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "6acd7c66-cf92-4193-b769-09186658e724": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "7e2a4c91-1b3d-4f6e-8a5c-9d0b2e4f6a81": {
+                                            "variable": "$.6acd7c66-cf92-4193-b769-09186658e724.done.result",
+                                            "functions": [
+                                                {
+                                                    "name": "g_stringify"
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{7e2a4c91-1b3d-4f6e-8a5c-9d0b2e4f6a81}}}",
+                                                "assertion": "equal",
+                                                "expected": "[{\"id\":\"e2e-1200\"},{\"id\":\"e2e-50\"},{\"id\":\"e2e-600\"},{\"id\":\"e2e-10\"}]"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    }
+}
