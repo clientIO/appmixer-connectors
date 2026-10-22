@@ -10,8 +10,7 @@ module.exports = {
     receive(context) {
 
         if (context.messages.webhook) {
-            context.sendJson(context.messages.webhook.content.data, 'call');
-            return;
+            return context.sendJson(context.messages.webhook.content.data, 'call');
         }
 
         let { accountSID, authenticationToken } = context.auth;

@@ -73,6 +73,6 @@ module.exports = {
             null
         );
 
-        context.sendJson(resp, 'task');
+        return context.sendJson(resp, 'task');
     }
 };

@@ -58,8 +58,8 @@ module.exports = {
                     context.state = { known: Array.from(actual) };
 
                     if (diff.size) {
-                        diff.forEach(task => {
-                            context.sendJson(task, 'task');
+                        return Promise.map(diff, task => {
+                            return context.sendJson(task, 'task');
                         });
                     }
                 });

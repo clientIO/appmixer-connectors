@@ -14,6 +14,6 @@ module.exports = {
             null
         );
 
-        context.sendJson({ id: projectId }, 'project');
+        return context.sendJson({ id: projectId }, 'project');
     }
 };

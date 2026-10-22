@@ -14,6 +14,6 @@ module.exports = {
             null
         );
 
-        context.sendJson({ id: taskId }, 'task');
+        return context.sendJson({ id: taskId }, 'task');
     }
 };

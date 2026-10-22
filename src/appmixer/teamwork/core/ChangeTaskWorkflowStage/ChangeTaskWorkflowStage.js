@@ -23,7 +23,7 @@ module.exports = {
             null
         );
 
-        context.sendJson({
+        return context.sendJson({
             taskId: taskId,
             workflowId: workflowId,
             workflowStageId: workflowStageId

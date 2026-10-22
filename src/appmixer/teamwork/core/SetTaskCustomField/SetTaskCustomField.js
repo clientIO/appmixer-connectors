@@ -341,7 +341,7 @@ module.exports = {
             );
         }
 
-        context.sendJson({
+        return context.sendJson({
             taskId: taskId,
             taskCustomFieldId: taskCustomField?.id || null,
             customFieldId: customFieldId,

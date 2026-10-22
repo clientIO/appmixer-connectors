@@ -167,7 +167,7 @@ module.exports = {
             }
         );
 
-        context.sendJson({
+        return context.sendJson({
             taskId: taskId,
             assignees: taskAssignees,
             operation: operation,

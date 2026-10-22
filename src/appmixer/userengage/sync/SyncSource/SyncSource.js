@@ -18,14 +18,14 @@ module.exports = {
 
         let since = commons.getTimestamp();
         return commons.getUsers(apiKey)
-            .then(users => {
-                users.forEach(user => {
-                    context.sendJson({ phase: 'init', source: 'userengage', data: user }, 'user');
-                });
+            .then(async users => {
+                for (const user of users) {
+                    await context.sendJson({ phase: 'init', source: 'userengage', data: user }, 'user');
+                }
                 context.state = {
                     since: since        // will be used in tick() method
                 };
-                context.sendJson({ phase: 'init-done', source: 'userengage' }, 'user');
+                await context.sendJson({ phase: 'init-done', source: 'userengage' }, 'user');
             });
     },
 
@@ -44,14 +44,14 @@ module.exports = {
 
         let since = commons.getTimestamp();
         return commons.getUsers(apiKey, { search: 'updated_at', min: context.state.since })
-            .then(users => {
-                users.forEach(user => {
-                    context.sendJson({
+            .then(async users => {
+                for (const user of users) {
+                    await context.sendJson({
                         phase: 'increment',
                         source: 'userengage',
                         data: user
                     }, 'user');
-                });
+                }
 
                 context.state = {
                     since: since

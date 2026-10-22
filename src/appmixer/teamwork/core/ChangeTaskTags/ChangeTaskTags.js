@@ -55,7 +55,7 @@ module.exports = {
             { replaceExistingTags: replaceExistingTags }
         );
 
-        context.sendJson({
+        return context.sendJson({
             taskId: taskId,
             tags: updatedTagIds,
             operation: operation

@@ -48,7 +48,7 @@ module.exports = {
             })
             .then(data => {
                 return Promise.map(data, subtask => {
-                    context.sendJson(subtask, 'subtask');
+                    return context.sendJson(subtask, 'subtask');
                 });
             });
     },

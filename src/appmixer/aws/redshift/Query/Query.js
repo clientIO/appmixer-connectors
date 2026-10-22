@@ -70,9 +70,9 @@ module.exports = {
         } else {
 
             // Handle each row individually for 'object' type
-            rows.forEach(async row => {
+            for (const row of rows) {
                 await context.sendJson({ result: row }, 'out');
-            });
+            }
         }
         await context.sendJson(this.getMetadata(context, rowsAffected), 'info');
     },

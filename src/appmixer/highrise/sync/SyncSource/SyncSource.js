@@ -25,14 +25,14 @@ module.exports = {
         let started = commons.generateSince();
 
         return commons.getPeople(getHighriseContacts, [])
-            .then(res => {
-                res.forEach(contact => {
-                    context.sendJson({ phase: 'init', source: 'highrise', data: contact }, 'contact');
-                });
+            .then(async res => {
+                for (const contact of res) {
+                    await context.sendJson({ phase: 'init', source: 'highrise', data: contact }, 'contact');
+                }
                 context.state = {
                     since: started        // will be used in tick() method
                 };
-                context.sendJson({ phase: 'init-done', source: 'highrise' }, 'contact');
+                await context.sendJson({ phase: 'init-done', source: 'highrise' }, 'contact');
             });
     },
 
@@ -57,14 +57,14 @@ module.exports = {
             getHighriseContacts,
             [],
             { since: context.state.since })
-            .then(res => {
-                res.forEach(contact => {
-                    context.sendJson({
+            .then(async res => {
+                for (const contact of res) {
+                    await context.sendJson({
                         phase: 'increment',
                         source: 'highrise',
                         data: contact
                     }, 'contact');
-                });
+                }
 
                 context.state = {
                     since: since

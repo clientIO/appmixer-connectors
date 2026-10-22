@@ -64,6 +64,6 @@ module.exports = {
 
         let resp = await lib.callAPI(context, 'POST', url, body);
 
-        context.sendJson(resp, 'project');
+        return context.sendJson(resp, 'project');
     }
 };
