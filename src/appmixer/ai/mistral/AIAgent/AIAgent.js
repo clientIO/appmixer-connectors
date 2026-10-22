@@ -1,11 +1,9 @@
 'use strict';
 
 const lib = require('../lib');
-const shortuuid = require('short-uuid');
+const componentTool = require('../tool');
 const uuid = require('uuid');
 
-const TOOLS_OUTPUT_POLL_TIMEOUT = 2 * 60 * 1000;  // 120 seconds
-const TOOLS_OUTPUT_POLL_INTERVAL = 300;  // 300ms
 const AI_AGENT_MAX_ATTEMPTS = 20; // Max number of agent turns before we stop.
 const AI_AGENT_MAX_HISTORY_SIZE = 512000;
 const AI_AGENT_MAX_FILE_SIZE = 1024 * 1024 * 5; // 5MB
@@ -19,143 +17,41 @@ module.exports = {
         await this.collectTools(context);
     },
 
+    // Everything wired to the 'tool' port is a tool: an action component (the fields
+    // mapped to 'Model Defined Parameter' become its parameters), the components behind
+    // it as further steps of the same tool, or an MCP server. See tool.js.
     collectTools: async function(context) {
 
-        const tools = await this.getAllToolsDefinition(context);
-        await context.log({ step: 'tools', tools });
-        await context.stateSet('tools', tools);
-        return tools;
+        const defs = await componentTool.collectComponentTools(context);
+        await context.stateSet('toolsCollected', true);
+        return defs;
     },
 
-    getAllToolsDefinition: async function(context) {
+    getTools: async function(context) {
 
-        const flowDescriptor = context.flowDescriptor;
-        const agentComponentId = context.componentId;
-        const toolsPort = 'tools';
-
-        // Tools are the branches connected to my 'tools' output port.
-        const tools = {};
-        let error;
-
-        Object.keys(flowDescriptor).forEach((componentId) => {
-            const component = flowDescriptor[componentId];
-            const sources = component.source;
-            Object.keys(sources || {}).forEach((inPort) => {
-                const source = sources[inPort];
-                if (source[agentComponentId] && source[agentComponentId].includes(toolsPort)) {
-                    tools[componentId] = component;
-                    if (component.type !== 'appmixer.ai.agenttools.ToolStart') {
-                        error = `Component ${componentId} is not of type 'ToolStart' but ${component.type}.
-                            Every tool chain connected to the '${toolsPort}' port of the AI Agent
-                            must start with 'ToolStart' and end with 'ToolOutput'.
-                            This is where you describe what the tool does and what parameters should the AI model provide to it.`;
-                    }
-                }
-            });
-        });
-
-        // Teach the user via logs that they need to use the 'ToolStart' component.
-        if (error) {
-            throw new context.CancelError(error);
+        if (!await context.stateGet('toolsCollected')) {
+            // A message from OnStart can arrive before start() has stored the tools.
+            return this.collectTools(context);
         }
-
-        const toolsDefinition = this.getToolsDefinition(tools);
-        const mcpToolsDefinition = await this.getMCPToolsDefinition(context);
-        return toolsDefinition.concat(mcpToolsDefinition);
+        return componentTool.getComponentToolDefs(context);
     },
 
-    mcpListTools: async function(context, componentId) {
+    // The function definition sent to Mistral. Mistral rejects a function without
+    // `parameters` (422), unlike OpenAI, so a tool that takes no input still declares
+    // an empty object schema.
+    toFunctionDef: function(def) {
 
-        const { data } = await context.httpRequest({
-            url: `${process.env.APPMIXER_API_URL}/flows/${context.flowId}/components/${componentId}?action=listTools`,
-            method: 'POST',
-            data: {}
-        });
-
-        return data;
-    },
-
-    mcpCallTool: async function(context, componentId, toolName, args) {
-
-        const { data } = await context.httpRequest({
-            url: `${process.env.APPMIXER_API_URL}/flows/${context.flowId}/components/${componentId}?action=callTool`,
-            method: 'POST',
-            data: {
-                name: toolName,
-                arguments: args,
-                correlationId: context.messages?.in?.correlationId
+        const fn = componentTool.toPublicToolDef(def).function;
+        return {
+            type: 'function',
+            function: {
+                name: fn.name,
+                description: fn.description,
+                parameters: this.toParameters(fn.parameters)
             }
-        });
-
-        return data;
+        };
     },
 
-    isMCPserver: function(context, componentId) {
-
-        const component = context.flowDescriptor[componentId];
-        if (!component) {
-            return false;
-        }
-        const category = component.type.split('.').slice(0, 2).join('.');
-        const type = component.type.split('.').at(-1);
-        return category === 'appmixer.mcpservers' && type === 'MCPServer';
-    },
-
-    getMCPToolsDefinition: async function(context) {
-
-        const toolsDefinition = [];
-
-        const flowDescriptor = context.flowDescriptor;
-        const agentComponentId = context.componentId;
-        const mcpPort = 'mcp';
-        const components = {};
-        let error;
-        // Find all components connected to my 'mcp' output port.
-        Object.keys(flowDescriptor).forEach((componentId) => {
-            const component = flowDescriptor[componentId];
-            const sources = component.source;
-            Object.keys(sources || {}).forEach((inPort) => {
-                const source = sources[inPort];
-                if (source[agentComponentId] && source[agentComponentId].includes(mcpPort)) {
-                    components[componentId] = component;
-                    if (component.type.split('.').slice(0, 2).join('.') !== 'appmixer.mcpservers') {
-                        error = `Component ${componentId} is not an 'MCP Server' but ${component.type}.
-                            Every mcp component connected to the '${mcpPort}' port of the AI Agent
-                            must be an MCP server.`;
-                    }
-                }
-            });
-        });
-
-        if (error) {
-            throw new context.CancelError(error);
-        }
-
-        for (const componentId in components) {
-            const component = components[componentId];
-            const tools = await this.mcpListTools(context, componentId);
-            await context.log({ step: 'mcp-server-list-tools', componentId, component, tools });
-
-            for (const tool of tools) {
-                // The short form of the component UUID keeps the function name within
-                // the 64 characters Mistral allows.
-                const name = [shortuuid().fromUUID(componentId), tool.name].join('_');
-                toolsDefinition.push({
-                    type: 'function',
-                    function: {
-                        name,
-                        description: tool.description,
-                        parameters: this.toParameters(tool.inputSchema)
-                    }
-                });
-            }
-        }
-
-        return toolsDefinition;
-    },
-
-    // Mistral rejects a function without `parameters` (422), unlike OpenAI, so a tool
-    // that takes no input still declares an empty object schema.
     toParameters: function(schema) {
 
         const parameters = schema && typeof schema === 'object' ? { ...schema } : { type: 'object' };
@@ -166,41 +62,6 @@ module.exports = {
             parameters.properties = {};
         }
         return parameters;
-    },
-
-    getToolsDefinition: function(tools) {
-
-        const toolsDefinition = [];
-
-        Object.keys(tools).forEach((componentId) => {
-            const component = tools[componentId];
-            const parameters = component.config.properties.parameters?.ADD || [];
-            const toolParameters = {
-                type: 'object',
-                properties: {}
-            };
-            parameters.forEach((parameter) => {
-                // Skip empty objects
-                if (Object.keys(parameter).length === 0) {
-                    return;
-                }
-                toolParameters.properties[parameter.name] = {
-                    type: parameter.type,
-                    description: parameter.description
-                };
-            });
-            let toolName = (component.label || component.type.split('.').pop());
-            toolName = toolName.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 64 - componentId.length - 1);
-            toolsDefinition.push({
-                type: 'function',
-                function: {
-                    name: componentId + '_' + toolName,
-                    description: component.config.properties.description,
-                    parameters: toolParameters
-                }
-            });
-        });
-        return toolsDefinition;
     },
 
     publishChatProgressEvent: function(context, step, content) {
@@ -234,111 +95,35 @@ module.exports = {
         });
     },
 
-    callTools: async function(context, modelToolCalls) {
-
-        if (!modelToolCalls || !modelToolCalls.length) {
-            return [];
-        }
-
-        if (modelToolCalls.length > 1) {
-            await this.publishChatProgressEvent(context, 'tool-calls', `Calling ${modelToolCalls.length} tools.`);
-        }
+    // Every tool call of a turn gets an answer, or Mistral rejects the next request.
+    // executeComponentTool never throws: a failure comes back as the output text for
+    // the model to deal with.
+    callTools: async function(context, toolDefs, modelToolCalls) {
 
         const outputs = [];
-
-        const toolCalls = [];
         for (const toolCall of modelToolCalls) {
-            let componentId = toolCall.function.name.split('_')[0];
-            const toolName = toolCall.function.name.split('_').slice(1).join('_');
-            await this.publishChatProgressEvent(context, 'tool-call', `Calling tool ${toolName}.`);
-            if (!uuid.validate(componentId)) {
-                // MCP tools carry the short form of the component UUID.
-                componentId = shortuuid().toUUID(componentId);
+            const toolDef = toolDefs.find((def) => def.function.name === toolCall.function.name);
+            await this.publishChatProgressEvent(context, 'tool-call', `Calling tool ${toolCall.function.name}.`);
+            if (!toolDef) {
+                outputs.push({ tool_call_id: toolCall.id, output: `Error: unknown tool ${toolCall.function.name}.` });
+                continue;
             }
             let args;
             try {
                 args = JSON.parse(toolCall.function.arguments || '{}');
             } catch (err) {
-                await context.log({
-                    step: 'tool-call-json-parse-error',
-                    toolCallId: toolCall.id,
-                    toolName: toolCall.function.name,
-                    arguments: toolCall.function.arguments,
-                    error: err.message
-                });
+                await context.log({ step: 'tool-call-json-parse-error', toolCall, error: err.message });
                 outputs.push({
                     tool_call_id: toolCall.id,
                     output: `Error: Failed to parse tool arguments - ${err.message}. Raw arguments: ${toolCall.function.arguments}`
                 });
                 continue;
             }
-            if (this.isMCPserver(context, componentId)) {
-                let output;
-                // Catch errors so that we don't trigger an Appmixer component retry.
-                // Simply return the error message instead.
-                try {
-                    output = await this.mcpCallTool(context, componentId, toolName, args);
-                } catch (err) {
-                    await context.log({ step: 'call-tool-error', componentId, toolName, toolCall, err });
-                    output = `Error calling tool ${toolName}: ${err.message}`;
-                }
-                output = typeof output === 'string' ? output : JSON.stringify(output, null, 2);
-                outputs.push({ tool_call_id: toolCall.id, output });
-            } else {
-                toolCalls.push({ componentId, args, id: toolCall.id });
-            }
+            const output = await componentTool.executeComponentTool(context, toolDef, args, {
+                correlationId: context.messages?.in?.correlationId
+            });
+            outputs.push({ tool_call_id: toolCall.id, output });
         }
-
-        if (toolCalls.length > 0) {
-
-            // Send to all tools. Each ai.ToolStart ignores tool calls that are not intended for it.
-            await context.sendJson({ toolCalls, prompt: context.messages.in.content.prompt }, 'tools');
-
-            // ToolOutput stores each tool's output in the flow state under the tool call ID.
-            await context.log({ step: 'collect-tools-output', toolCalls });
-
-            const pollStart = Date.now();
-            const pollTimeout = context.config.TOOLS_OUTPUT_POLL_TIMEOUT || TOOLS_OUTPUT_POLL_TIMEOUT;
-            const pollInterval = context.config.TOOLS_OUTPUT_POLL_INTERVAL || TOOLS_OUTPUT_POLL_INTERVAL;
-            const collectedToolCallIds = new Set();
-
-            while (
-                (collectedToolCallIds.size < toolCalls.length) &&
-                (Date.now() - pollStart < pollTimeout)
-            ) {
-                for (const toolCall of toolCalls) {
-                    if (!collectedToolCallIds.has(toolCall.id)) {
-                        const result = await context.flow.stateGet(toolCall.id);
-                        if (result) {
-                            outputs.push({ tool_call_id: toolCall.id, output: result.output });
-                            collectedToolCallIds.add(toolCall.id);
-                            await context.flow.stateUnset(toolCall.id);
-                        }
-                    }
-                }
-                await new Promise((resolve) => setTimeout(resolve, pollInterval));
-            }
-            await context.log({ step: 'collected-tools-output', outputs });
-        }
-
-        // Every tool call needs an answer, or the next request is rejected.
-        const providedToolCallIds = new Set(outputs.map(output => output.tool_call_id));
-        for (const toolCall of modelToolCalls) {
-            if (!providedToolCallIds.has(toolCall.id)) {
-                const pollTimeout = context.config.TOOLS_OUTPUT_POLL_TIMEOUT || TOOLS_OUTPUT_POLL_TIMEOUT;
-                outputs.push({
-                    tool_call_id: toolCall.id,
-                    output: `Error: Tool call ${toolCall.function.name} timed out or failed to respond within ${pollTimeout}ms`
-                });
-                await context.log({
-                    step: 'tool-call-timeout',
-                    toolCallId: toolCall.id,
-                    toolName: toolCall.function.name,
-                    timeout: pollTimeout
-                });
-            }
-        }
-
         return outputs;
     },
 
@@ -401,7 +186,7 @@ module.exports = {
         }
     },
 
-    agent: async function(context, instructions, model, prompt, fileId, tools, history) {
+    agent: async function(context, instructions, model, prompt, fileId, toolDefs, history) {
 
         const messages = history || [];
         // The instructions lead every request but stay out of `messages`, which is what gets
@@ -421,8 +206,8 @@ module.exports = {
                 messages: [instructionsMessage, ...messages]
             };
             // An empty tools array is rejected; leave it out when no tool is connected.
-            if (tools && tools.length) {
-                completion.tools = tools;
+            if (toolDefs.length) {
+                completion.tools = toolDefs.map((def) => this.toFunctionDef(def));
             }
             await context.log({ step: 'agent-completion', completion, turn: i + 1 });
             await this.publishChatProgressEvent(context, 'inference', `Crunching data (${i + 1})...`);
@@ -434,7 +219,7 @@ module.exports = {
 
             if (finishReason === 'tool_calls' && message.tool_calls) {
 
-                const outputs = await this.callTools(context, message.tool_calls);
+                const outputs = await this.callTools(context, toolDefs, message.tool_calls);
                 (outputs || []).forEach((output) => {
                     // A tool chain may produce no output (nothing mapped to ToolOutput's
                     // 'output' field); the tool message content still has to be a string.
@@ -635,12 +420,7 @@ module.exports = {
 
         // Usage is reported per message, not accumulated across messages.
         await context.stateUnset('usage');
-        let tools = await context.stateGet('tools');
-        if (!tools) {
-            // If agent is started with OnStart component, the start method might not
-            // have been executed yet. So we need to collect tools on-demand here.
-            tools = await this.collectTools(context);
-        }
+        const toolDefs = await this.getTools(context);
 
         let history = [];
         if (threadId) {
@@ -648,7 +428,7 @@ module.exports = {
         }
         const historyLength = history.length;
         const agentTimeStart = new Date;
-        const response = await this.agent(context, instructions, model, prompt, fileId, tools, history);
+        const response = await this.agent(context, instructions, model, prompt, fileId, toolDefs, history);
         await context.log({ step: 'agent-response', response, time: (new Date) - agentTimeStart });
 
         const newMessages = response.messages.slice(historyLength);

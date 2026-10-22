@@ -1,21 +1,21 @@
 {
     "name": "E2E Mistral - AI Agent",
     "flow": {
-        "5422e7d6-fae4-4c71-b000-ea735dd4feb3": {
+        "b3dfc9ef-597d-4658-87b4-1247db5faced": {
             "type": "appmixer.utils.controls.OnStart",
             "version": "1.0.0",
             "x": 64,
             "y": 320,
             "source": {}
         },
-        "b0a9f1fb-0aa5-4a22-92b7-dd807fcd1cd5": {
+        "98fdfd36-ead4-47fd-9c42-2e9bf992ed66": {
             "type": "appmixer.utils.controls.SetVariable",
             "version": "1.0.0",
             "x": 272,
             "y": 320,
             "source": {
                 "in": {
-                    "5422e7d6-fae4-4c71-b000-ea735dd4feb3": [
+                    "b3dfc9ef-597d-4658-87b4-1247db5faced": [
                         "out"
                     ]
                 }
@@ -23,7 +23,7 @@
             "config": {
                 "transform": {
                     "in": {
-                        "5422e7d6-fae4-4c71-b000-ea735dd4feb3": {
+                        "b3dfc9ef-597d-4658-87b4-1247db5faced": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -46,14 +46,14 @@
                 }
             }
         },
-        "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": {
+        "5fd00f2b-2457-473e-9755-11ac7a2cbbee": {
             "type": "appmixer.ai.mistral.AIAgent",
             "version": "1.0.0",
             "x": 480,
             "y": 320,
             "source": {
                 "in": {
-                    "b0a9f1fb-0aa5-4a22-92b7-dd807fcd1cd5": [
+                    "98fdfd36-ead4-47fd-9c42-2e9bf992ed66": [
                         "out"
                     ]
                 }
@@ -64,7 +64,7 @@
                 },
                 "transform": {
                     "in": {
-                        "b0a9f1fb-0aa5-4a22-92b7-dd807fcd1cd5": {
+                        "98fdfd36-ead4-47fd-9c42-2e9bf992ed66": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -75,8 +75,8 @@
                                 },
                                 "lambda": {
                                     "model": "mistral-small-latest",
-                                    "instructions": "You are a test agent. Always call the secret_code tool before you answer, then reply with exactly the code the tool returned.",
-                                    "prompt": "Call the secret_code tool and reply with the code it returns, nothing else.",
+                                    "instructions": "You are a test agent. Look the secret code up with the Secret code tool and call the Order lookup tool with the value 5512. Answer with the secret code, then the exact text the Order lookup tool returned, and nothing else.",
+                                    "prompt": "What is the secret code, and what is the state of order 5512?",
                                     "threadId": "mistral-e2e-agent-tools"
                                 }
                             }
@@ -85,48 +85,30 @@
                 }
             }
         },
-        "881c9488-8ff2-4b50-97d8-286407ca7df1": {
-            "label": "secret_code",
-            "type": "appmixer.ai.agenttools.ToolStart",
+        "fbd13b76-42f3-496e-9cf0-17fe8d635df9": {
+            "type": "appmixer.utils.controls.MockValue",
             "version": "1.0.0",
-            "x": 688,
-            "y": 192,
+            "x": 480,
+            "y": 576,
             "source": {
                 "in": {
-                    "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": [
-                        "tools"
+                    "5fd00f2b-2457-473e-9755-11ac7a2cbbee": [
+                        "tool"
                     ]
                 }
             },
-            "config": {
-                "properties": {
-                    "description": "Returns the secret code of this test run."
-                }
-            }
-        },
-        "cef7db7a-a308-49c3-9013-30646747ddd7": {
-            "type": "appmixer.ai.agenttools.ToolOutput",
-            "version": "1.0.0",
-            "x": 896,
-            "y": 192,
-            "source": {
-                "in": {
-                    "881c9488-8ff2-4b50-97d8-286407ca7df1": [
-                        "out"
-                    ]
-                }
-            },
+            "label": "Secret code",
             "config": {
                 "transform": {
                     "in": {
-                        "881c9488-8ff2-4b50-97d8-286407ca7df1": {
-                            "out": {
+                        "5fd00f2b-2457-473e-9755-11ac7a2cbbee": {
+                            "tool": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "output": {}
+                                    "value": {}
                                 },
                                 "lambda": {
-                                    "output": "MISTRAL-KIWI-7731"
+                                    "value": "MISTRAL-KIWI-7731"
                                 }
                             }
                         }
@@ -134,14 +116,86 @@
                 }
             }
         },
-        "f968ce50-aa38-4ec9-a0b3-930492635c81": {
+        "93248b02-0da0-4bff-841f-11542f7385b8": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 480,
+            "y": 704,
+            "source": {
+                "in": {
+                    "5fd00f2b-2457-473e-9755-11ac7a2cbbee": [
+                        "tool"
+                    ]
+                }
+            },
+            "label": "Order lookup",
+            "config": {
+                "transform": {
+                    "in": {
+                        "5fd00f2b-2457-473e-9755-11ac7a2cbbee": {
+                            "tool": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {
+                                        "1c18ba05-2e8f-4443-a7e6-f4e095052ec5": {
+                                            "variable": "$.5fd00f2b-2457-473e-9755-11ac7a2cbbee.tool.modelDefinedParameter",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "value": "{{{1c18ba05-2e8f-4443-a7e6-f4e095052ec5}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "1d70ea1e-9178-4197-8251-2ca0938f9f47": {
+            "type": "appmixer.utils.controls.MockValue",
+            "version": "1.0.0",
+            "x": 688,
+            "y": 704,
+            "source": {
+                "in": {
+                    "93248b02-0da0-4bff-841f-11542f7385b8": [
+                        "out"
+                    ]
+                }
+            },
+            "label": "Order state",
+            "config": {
+                "transform": {
+                    "in": {
+                        "93248b02-0da0-4bff-841f-11542f7385b8": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "value": {
+                                        "e96e64a3-9da4-45db-8072-b44f7fd4870d": {
+                                            "variable": "$.93248b02-0da0-4bff-841f-11542f7385b8.out.outvalue",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "value": "ORDER-{{{e96e64a3-9da4-45db-8072-b44f7fd4870d}}}-SHIPPED"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "56d3be1e-f7e1-4e97-b6c9-4f0a63c40721": {
             "type": "appmixer.utils.test.Assert",
             "version": "1.0.0",
             "x": 688,
             "y": 320,
             "source": {
                 "in": {
-                    "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": [
+                    "5fd00f2b-2457-473e-9755-11ac7a2cbbee": [
                         "out"
                     ]
                 }
@@ -149,17 +203,17 @@
             "config": {
                 "transform": {
                     "in": {
-                        "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": {
+                        "5fd00f2b-2457-473e-9755-11ac7a2cbbee": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "6ed20404-addc-415c-9efa-32db216ee1b6": {
-                                            "variable": "$.999c5ad0-e5df-46f8-b58f-d13d5a93d8b5.out.answer",
+                                        "fc123709-1761-417f-a886-f5a2f1fdfe2b": {
+                                            "variable": "$.5fd00f2b-2457-473e-9755-11ac7a2cbbee.out.answer",
                                             "functions": []
                                         },
-                                        "d2dae1ec-1c39-475d-bc87-16dc599de53f": {
-                                            "variable": "$.999c5ad0-e5df-46f8-b58f-d13d5a93d8b5.out.usage.total_tokens",
+                                        "cbad151d-1b5d-4baa-af70-956537f71d53": {
+                                            "variable": "$.5fd00f2b-2457-473e-9755-11ac7a2cbbee.out.usage.total_tokens",
                                             "functions": []
                                         }
                                     }
@@ -168,12 +222,17 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "field": "{{{6ed20404-addc-415c-9efa-32db216ee1b6}}}",
+                                                "field": "{{{fc123709-1761-417f-a886-f5a2f1fdfe2b}}}",
                                                 "assertion": "regex",
                                                 "regex": "KIWI-7731"
                                             },
                                             {
-                                                "field": "{{{d2dae1ec-1c39-475d-bc87-16dc599de53f}}}",
+                                                "field": "{{{fc123709-1761-417f-a886-f5a2f1fdfe2b}}}",
+                                                "assertion": "regex",
+                                                "regex": "ORDER-5512-SHIPPED"
+                                            },
+                                            {
+                                                "field": "{{{cbad151d-1b5d-4baa-af70-956537f71d53}}}",
                                                 "assertion": "notEmpty",
                                                 "expected": ""
                                             }
@@ -186,14 +245,14 @@
                 }
             }
         },
-        "f5566135-21de-4fdf-9295-66abaf822e09": {
+        "7c295264-2ef9-4f7e-ba1f-f60480bbb2ed": {
             "type": "appmixer.ai.mistral.AIAgent",
             "version": "1.0.0",
             "x": 688,
             "y": 448,
             "source": {
                 "in": {
-                    "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": [
+                    "5fd00f2b-2457-473e-9755-11ac7a2cbbee": [
                         "out"
                     ]
                 }
@@ -204,7 +263,7 @@
                 },
                 "transform": {
                     "in": {
-                        "999c5ad0-e5df-46f8-b58f-d13d5a93d8b5": {
+                        "5fd00f2b-2457-473e-9755-11ac7a2cbbee": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -225,14 +284,14 @@
                 }
             }
         },
-        "d66da418-e47f-46f4-9be8-cf634f0cb448": {
+        "3e8a3505-8b2e-4cce-b91c-6ca573b18e43": {
             "type": "appmixer.utils.test.Assert",
             "version": "1.0.0",
             "x": 896,
             "y": 448,
             "source": {
                 "in": {
-                    "f5566135-21de-4fdf-9295-66abaf822e09": [
+                    "7c295264-2ef9-4f7e-ba1f-f60480bbb2ed": [
                         "out"
                     ]
                 }
@@ -240,13 +299,13 @@
             "config": {
                 "transform": {
                     "in": {
-                        "f5566135-21de-4fdf-9295-66abaf822e09": {
+                        "7c295264-2ef9-4f7e-ba1f-f60480bbb2ed": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "0600a992-8c00-4116-b71a-83fb60b0d8a7": {
-                                            "variable": "$.f5566135-21de-4fdf-9295-66abaf822e09.out.answer",
+                                        "2f3343a5-afe9-485b-b1aa-3be12e1b7a6c": {
+                                            "variable": "$.7c295264-2ef9-4f7e-ba1f-f60480bbb2ed.out.answer",
                                             "functions": []
                                         }
                                     }
@@ -255,7 +314,7 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "field": "{{{0600a992-8c00-4116-b71a-83fb60b0d8a7}}}",
+                                                "field": "{{{2f3343a5-afe9-485b-b1aa-3be12e1b7a6c}}}",
                                                 "assertion": "regex",
                                                 "regex": "[Pp]ong"
                                             }
@@ -268,17 +327,17 @@
                 }
             }
         },
-        "80902b3d-87fc-458e-afe2-5c8d801e6e5e": {
+        "6b78c7f7-e2a0-4f2d-8155-b5a19af0cf69": {
             "type": "appmixer.utils.test.AfterAll",
             "version": "1.0.0",
             "x": 1104,
             "y": 448,
             "source": {
                 "in": {
-                    "f968ce50-aa38-4ec9-a0b3-930492635c81": [
+                    "56d3be1e-f7e1-4e97-b6c9-4f0a63c40721": [
                         "out"
                     ],
-                    "d66da418-e47f-46f4-9be8-cf634f0cb448": [
+                    "3e8a3505-8b2e-4cce-b91c-6ca573b18e43": [
                         "out"
                     ]
                 }
@@ -289,14 +348,14 @@
                 }
             }
         },
-        "b6ce15a4-347c-4823-aa61-0487f7980456": {
+        "fdda5224-7fec-4774-bb0e-2d0255d7cd10": {
             "type": "appmixer.utils.test.ProcessE2EResults",
             "version": "1.0.0",
             "x": 1312,
             "y": 448,
             "source": {
                 "in": {
-                    "80902b3d-87fc-458e-afe2-5c8d801e6e5e": [
+                    "6b78c7f7-e2a0-4f2d-8155-b5a19af0cf69": [
                         "out"
                     ]
                 }
@@ -305,15 +364,15 @@
                 "properties": {},
                 "transform": {
                     "in": {
-                        "80902b3d-87fc-458e-afe2-5c8d801e6e5e": {
+                        "6b78c7f7-e2a0-4f2d-8155-b5a19af0cf69": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "recipients": {},
                                     "testCase": {},
                                     "result": {
-                                        "93c0a855-d3cc-48f3-9f85-b707ea1cdddc": {
-                                            "variable": "$.80902b3d-87fc-458e-afe2-5c8d801e6e5e.out",
+                                        "43e6e2c9-09f8-4743-be6f-99d9f56534a7": {
+                                            "variable": "$.6b78c7f7-e2a0-4f2d-8155-b5a19af0cf69.out",
                                             "functions": []
                                         }
                                     }
@@ -321,7 +380,7 @@
                                 "lambda": {
                                     "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Mistral - AI Agent",
-                                    "result": "{{{93c0a855-d3cc-48f3-9f85-b707ea1cdddc}}}"
+                                    "result": "{{{43e6e2c9-09f8-4743-be6f-99d9f56534a7}}}"
                                 }
                             }
                         }
