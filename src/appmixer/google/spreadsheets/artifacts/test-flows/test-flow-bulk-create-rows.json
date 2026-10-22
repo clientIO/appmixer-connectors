@@ -1,6 +1,6 @@
 {
     "name": "E2E Google/spreadsheets - Bulk Row Creation",
-    "description": "End-to-end test for the CreateRows component. Creates multiple rows from a CSV file URL, then verifies the rows were added via GetRows and FindRow. Tests normalized header matching resilience — the same flow should work even if sheet column headers contain minor whitespace differences.",
+    "description": "End-to-end test for the CreateRows component. Creates multiple rows from a CSV file the flow saves with SaveFile, then verifies the rows were added via GetRows and FindRow. Tests normalized header matching resilience — the same flow should work even if sheet column headers contain minor whitespace differences.",
     "flow": {
         "e8b47c1a-e5af-4224-9196-e2d3b9fb11f6": {
             "type": "appmixer.utils.controls.OnStart",
@@ -14,8 +14,8 @@
                 "onError": "stopFlow"
             }
         },
-        "da1aa382-61b7-4ea0-a614-1bf1bf817c88": {
-            "type": "appmixer.google.spreadsheets.CreateRows",
+        "7c2f0e91-4b3a-4d6e-9f15-2a8c3d5e6f70": {
+            "type": "appmixer.utils.files.SaveFile",
             "x": 272,
             "y": 16,
             "version": "1.0.0",
@@ -33,17 +33,62 @@
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
+                                    "filename": {},
+                                    "mimetype": {},
+                                    "content": {},
+                                    "contentEncoding": {}
+                                },
+                                "lambda": {
+                                    "filename": "e2e-bulk-rows.csv",
+                                    "mimetype": "text/csv",
+                                    "content": "Name,Email\nE2E Bulk Row,bulk-1@example.com\nE2E Bulk Row 2,bulk-2@example.com\n",
+                                    "contentEncoding": "utf8"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "da1aa382-61b7-4ea0-a614-1bf1bf817c88": {
+            "type": "appmixer.google.spreadsheets.CreateRows",
+            "x": 480,
+            "y": 16,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "7c2f0e91-4b3a-4d6e-9f15-2a8c3d5e6f70": [
+                        "file"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "7c2f0e91-4b3a-4d6e-9f15-2a8c3d5e6f70": {
+                            "file": {
+                                "type": "json2new",
+                                "modifiers": {
                                     "sheetId": {},
                                     "worksheetId": {},
-                                    "fileUrl": {},
+                                    "fileId": {
+                                        "file-id-var": {
+                                            "variable": "$.7c2f0e91-4b3a-4d6e-9f15-2a8c3d5e6f70.file.fileId",
+                                            "functions": []
+                                        }
+                                    },
                                     "delimiter": {},
                                     "append": {},
                                     "autoMatch": {}
                                 },
                                 "lambda": {
-                                    "sheetId": "TEST_SPREADSHEET_ID",
+                                    "sheetId": "1VUr70u3lmGaBwdNan7Cx9M0sUetUrqWfozF9wOupg-8",
                                     "worksheetId": "0/Sheet1",
-                                    "fileUrl": "TEST_CSV_FILE_URL",
+                                    "fileId": "{{{file-id-var}}}",
                                     "delimiter": ",",
                                     "append": true,
                                     "autoMatch": true
@@ -60,7 +105,7 @@
         },
         "5bd87918-d587-4091-b6a6-e3929c501567": {
             "type": "appmixer.google.spreadsheets.GetRows",
-            "x": 480,
+            "x": 688,
             "y": 144,
             "version": "1.0.0",
             "source": {
@@ -84,7 +129,7 @@
                                     "rowFormat": {}
                                 },
                                 "lambda": {
-                                    "sheetId": "TEST_SPREADSHEET_ID",
+                                    "sheetId": "1VUr70u3lmGaBwdNan7Cx9M0sUetUrqWfozF9wOupg-8",
                                     "worksheetId": "0/Sheet1",
                                     "allAtOnce": true,
                                     "withHeaders": true,
@@ -102,7 +147,7 @@
         },
         "b1914d78-0d99-41a4-bc3c-073cc1e69476": {
             "type": "appmixer.google.spreadsheets.FindRow",
-            "x": 480,
+            "x": 688,
             "y": 272,
             "version": "1.0.0",
             "source": {
@@ -114,7 +159,7 @@
             },
             "config": {
                 "properties": {
-                    "sheetId": "TEST_SPREADSHEET_ID",
+                    "sheetId": "1VUr70u3lmGaBwdNan7Cx9M0sUetUrqWfozF9wOupg-8",
                     "worksheetId": "0/Sheet1"
                 },
                 "transform": {
@@ -129,7 +174,7 @@
                                 },
                                 "lambda": {
                                     "column": "Name",
-                                    "value": "TEST_ROW_VALUE",
+                                    "value": "E2E Bulk Row",
                                     "operator": "equalTo"
                                 }
                             }
@@ -144,7 +189,7 @@
         },
         "90295c8b-d345-4128-bf64-1b1d83631634": {
             "type": "appmixer.utils.test.Assert",
-            "x": 480,
+            "x": 688,
             "y": 16,
             "version": "1.0.0",
             "source": {
@@ -199,7 +244,7 @@
         },
         "3327b120-369f-4ed6-a304-6655803e368c": {
             "type": "appmixer.utils.test.Assert",
-            "x": 688,
+            "x": 896,
             "y": 144,
             "version": "1.0.0",
             "source": {
@@ -245,7 +290,7 @@
         },
         "dd460f0e-e485-4110-8907-ed0327eb0df2": {
             "type": "appmixer.utils.test.Assert",
-            "x": 688,
+            "x": 896,
             "y": 272,
             "version": "1.0.0",
             "source": {
@@ -275,7 +320,7 @@
                                             {
                                                 "field": "{{{name-var}}}",
                                                 "assertion": "equal",
-                                                "expected": "TEST_ROW_VALUE"
+                                                "expected": "E2E Bulk Row"
                                             }
                                         ]
                                     }
@@ -292,7 +337,7 @@
         },
         "446a69da-d8d8-456f-9ec6-6f002ddf1e65": {
             "type": "appmixer.utils.test.AfterAll",
-            "x": 896,
+            "x": 1104,
             "y": 272,
             "version": "1.0.0",
             "source": {
@@ -320,7 +365,7 @@
         },
         "3d5314b5-c937-4cb4-9784-bf96241b4d8e": {
             "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1104,
+            "x": 1312,
             "y": 272,
             "version": "1.0.0",
             "source": {
