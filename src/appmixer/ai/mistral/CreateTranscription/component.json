@@ -1,0 +1,107 @@
+{
+    "name": "appmixer.ai.mistral.CreateTranscription",
+    "label": "Create Transcription",
+    "description": "Generates a transcription of audio content to text using a Voxtral speech-to-text model.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:ai:mistral"
+    },
+    "quota": {
+        "manager": "appmixer:ai:mistral",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string"
+                    },
+                    "fileUrl": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "language": {
+                        "type": "string"
+                    }
+                }
+            },
+            "inspector": {
+                "inputs": {
+                    "file": {
+                        "type": "filepicker",
+                        "index": 1,
+                        "label": "Audio File",
+                        "tooltip": "The audio file to transcribe (mp3, wav, etc.). Either Audio File or Audio File URL is required."
+                    },
+                    "fileUrl": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Audio File URL",
+                        "tooltip": "Publicly accessible URL of the audio file to transcribe. Used only when no Audio File is provided."
+                    },
+                    "model": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "Model",
+                        "tooltip": "ID of the speech-to-text model to use.",
+                        "defaultValue": "voxtral-mini-latest",
+                        "source": {
+                            "url": "/component/appmixer/ai/mistral/ListModels?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListModels#toTranscriptionModelSelectArray"
+                            }
+                        }
+                    },
+                    "language": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "Language",
+                        "tooltip": "Language code (ISO 639-1, e.g. <code>en</code>) of the audio to improve accuracy and latency. Detected automatically when empty."
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Transcription",
+                    "value": "text",
+                    "schema": {
+                        "type": "string",
+                        "example": "Hello and welcome to our weekly status meeting."
+                    }
+                },
+                {
+                    "label": "Language",
+                    "value": "language",
+                    "schema": {
+                        "type": "string",
+                        "example": "en"
+                    }
+                },
+                {
+                    "label": "Model",
+                    "value": "model",
+                    "schema": {
+                        "type": "string",
+                        "example": "voxtral-mini-latest"
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyLjUpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZEODAwIi8+PHJlY3QgeD0iOCIgeT0iMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZGRDgwMCIvPjxyZWN0IHg9IjAiIHk9IjEiIHdpZHRoPSI0IiBoZWlnaHQ9IjEiIGZpbGw9IiNGRkFGMDAiLz48cmVjdCB4PSI2IiB5PSIxIiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZBRjAwIi8+PHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEiIGZpbGw9IiNGRjgyMDUiLz48cmVjdCB4PSIwIiB5PSIzIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkE1MDBGIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZBNTAwRiIvPjxyZWN0IHg9IjgiIHk9IjMiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNGQTUwMEYiLz48cmVjdCB4PSIwIiB5PSI0IiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRTEwNTAwIi8+PHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0UxMDUwMCIvPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNFMTA1MDAiLz48L2c+PC9zdmc+"
+}

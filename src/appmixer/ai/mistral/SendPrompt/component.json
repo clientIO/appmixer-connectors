@@ -1,0 +1,208 @@
+{
+    "name": "appmixer.ai.mistral.SendPrompt",
+    "label": "Send Prompt",
+    "description": "Generates a model response for the given chat prompt.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:ai:mistral"
+    },
+    "quota": {
+        "manager": "appmixer:ai:mistral",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "instructions": {
+                        "type": "string"
+                    },
+                    "prompt": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "conversationId": {
+                        "type": "string"
+                    },
+                    "temperature": {
+                        "type": "number"
+                    },
+                    "maxTokens": {
+                        "type": "integer"
+                    },
+                    "topP": {
+                        "type": "number"
+                    },
+                    "randomSeed": {
+                        "type": "integer"
+                    },
+                    "safePrompt": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "model",
+                    "prompt"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "instructions": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "Instructions",
+                        "tooltip": "The system instructions that the assistant uses. For example 'Be precise and concise.'"
+                    },
+                    "prompt": {
+                        "type": "textarea",
+                        "index": 2,
+                        "label": "Prompt",
+                        "tooltip": "The text input that the model will use to generate a response."
+                    },
+                    "model": {
+                        "type": "text",
+                        "index": 3,
+                        "label": "Model",
+                        "tooltip": "Insert model ID or select a model to use for the request, for example <code>mistral-small-latest</code>.",
+                        "defaultValue": "mistral-small-latest",
+                        "source": {
+                            "url": "/component/appmixer/ai/mistral/ListModels?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListModels#toChatModelSelectArray"
+                            }
+                        }
+                    },
+                    "conversationId": {
+                        "type": "text",
+                        "index": 4,
+                        "label": "Conversation ID",
+                        "tooltip": "The unique identifier of the conversation. If provided, the model's response will be saved and used to continue the conversation in subsequent prompts with the same ID. If not provided, a new conversation is started each time."
+                    },
+                    "temperature": {
+                        "group": "advanced",
+                        "type": "number",
+                        "index": 5,
+                        "label": "Temperature",
+                        "tooltip": "Controls the randomness of the model, usually between 0.0 and 1.0. Lower values make the output more focused and deterministic, higher values more creative."
+                    },
+                    "maxTokens": {
+                        "group": "advanced",
+                        "type": "number",
+                        "index": 6,
+                        "label": "Max Tokens",
+                        "tooltip": "The maximum number of completion tokens returned by the API. The total length of input tokens and generated tokens is limited by the model's context length."
+                    },
+                    "topP": {
+                        "group": "advanced",
+                        "type": "number",
+                        "index": 7,
+                        "label": "Top P",
+                        "tooltip": "Nucleus sampling threshold, valued between 0 and 1. We generally recommend altering this or temperature but not both."
+                    },
+                    "randomSeed": {
+                        "group": "advanced",
+                        "type": "number",
+                        "index": 8,
+                        "label": "Random Seed",
+                        "tooltip": "The seed to use for random sampling. If set, different calls with the same seed will produce deterministic results."
+                    },
+                    "safePrompt": {
+                        "group": "advanced",
+                        "type": "toggle",
+                        "index": 9,
+                        "label": "Safe Prompt",
+                        "tooltip": "Whether to inject a safety prompt before all conversations."
+                    }
+                },
+                "groups": {
+                    "advanced": {
+                        "label": "Advanced",
+                        "closed": true,
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "ID",
+                    "value": "id",
+                    "schema": {
+                        "type": "string",
+                        "example": "cmpl-e5cc70bb28c444948073e77776eb30ef"
+                    }
+                },
+                {
+                    "label": "Model",
+                    "value": "model",
+                    "schema": {
+                        "type": "string",
+                        "example": "mistral-small-latest"
+                    }
+                },
+                {
+                    "label": "Created Timestamp",
+                    "value": "created",
+                    "schema": {
+                        "type": "number",
+                        "example": 1702256327
+                    }
+                },
+                {
+                    "label": "Answer",
+                    "value": "choices.message.content",
+                    "schema": {
+                        "type": "string",
+                        "example": "Here is the answer to your question..."
+                    }
+                },
+                {
+                    "label": "Finish Reason",
+                    "value": "choices.finish_reason",
+                    "schema": {
+                        "type": "string",
+                        "example": "stop"
+                    }
+                },
+                {
+                    "label": "Prompt Tokens",
+                    "value": "usage.prompt_tokens",
+                    "schema": {
+                        "type": "number",
+                        "example": 16
+                    }
+                },
+                {
+                    "label": "Completion Tokens",
+                    "value": "usage.completion_tokens",
+                    "schema": {
+                        "type": "number",
+                        "example": 34
+                    }
+                },
+                {
+                    "label": "Total Tokens",
+                    "value": "usage.total_tokens",
+                    "schema": {
+                        "type": "number",
+                        "example": 50
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyLjUpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZEODAwIi8+PHJlY3QgeD0iOCIgeT0iMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZGRDgwMCIvPjxyZWN0IHg9IjAiIHk9IjEiIHdpZHRoPSI0IiBoZWlnaHQ9IjEiIGZpbGw9IiNGRkFGMDAiLz48cmVjdCB4PSI2IiB5PSIxIiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZBRjAwIi8+PHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEiIGZpbGw9IiNGRjgyMDUiLz48cmVjdCB4PSIwIiB5PSIzIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkE1MDBGIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZBNTAwRiIvPjxyZWN0IHg9IjgiIHk9IjMiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNGQTUwMEYiLz48cmVjdCB4PSIwIiB5PSI0IiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRTEwNTAwIi8+PHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0UxMDUwMCIvPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNFMTA1MDAiLz48L2c+PC9zdmc+"
+}

@@ -1,0 +1,151 @@
+{
+    "name": "appmixer.ai.mistral.CreateSpeech",
+    "label": "Create Speech",
+    "description": "Generates spoken audio from text (text-to-speech) and stores it as a file.",
+    "author": "Appmixer <info@appmixer.com>",
+    "version": "1.0.0",
+    "private": false,
+    "auth": {
+        "service": "appmixer:ai:mistral"
+    },
+    "quota": {
+        "manager": "appmixer:ai:mistral",
+        "resources": "requests"
+    },
+    "inPorts": [
+        {
+            "name": "in",
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "type": "string"
+                    },
+                    "responseFormat": {
+                        "type": "string"
+                    },
+                    "model": {
+                        "type": "string"
+                    },
+                    "voice": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "text",
+                    "voice"
+                ]
+            },
+            "inspector": {
+                "inputs": {
+                    "text": {
+                        "type": "textarea",
+                        "index": 1,
+                        "label": "Text",
+                        "tooltip": "The text to generate speech from."
+                    },
+                    "voice": {
+                        "type": "text",
+                        "index": 2,
+                        "label": "Voice",
+                        "tooltip": "The voice used to generate the speech. Select a preset or custom voice, or insert a voice slug (for example <code>en_paul_neutral</code>) or voice ID.",
+                        "source": {
+                            "url": "/component/appmixer/ai/mistral/ListVoices?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListVoices#toSelectArray"
+                            }
+                        }
+                    },
+                    "responseFormat": {
+                        "type": "select",
+                        "index": 3,
+                        "label": "Audio Format",
+                        "defaultValue": "mp3",
+                        "tooltip": "The format of the generated audio file.",
+                        "options": [
+                            {
+                                "label": "MP3",
+                                "value": "mp3"
+                            },
+                            {
+                                "label": "WAV",
+                                "value": "wav"
+                            },
+                            {
+                                "label": "FLAC",
+                                "value": "flac"
+                            },
+                            {
+                                "label": "OPUS",
+                                "value": "opus"
+                            },
+                            {
+                                "label": "PCM",
+                                "value": "pcm"
+                            }
+                        ]
+                    },
+                    "model": {
+                        "group": "advanced",
+                        "type": "text",
+                        "index": 4,
+                        "label": "Model",
+                        "tooltip": "Insert model ID or select a text-to-speech model to use for the request, for example <code>voxtral-mini-tts-latest</code>.",
+                        "defaultValue": "voxtral-mini-tts-latest",
+                        "source": {
+                            "url": "/component/appmixer/ai/mistral/ListModels?outPort=out",
+                            "data": {
+                                "properties": {
+                                    "isSource": true
+                                },
+                                "transform": "./ListModels#toSpeechModelSelectArray"
+                            }
+                        }
+                    }
+                },
+                "groups": {
+                    "advanced": {
+                        "label": "Advanced",
+                        "closed": true,
+                        "index": 1
+                    }
+                }
+            }
+        }
+    ],
+    "outPorts": [
+        {
+            "name": "out",
+            "options": [
+                {
+                    "label": "Audio File ID",
+                    "value": "fileId",
+                    "schema": {
+                        "type": "string",
+                        "example": "5f6252ec2b1c9c4a4d0e4c1a"
+                    }
+                },
+                {
+                    "label": "File Name",
+                    "value": "fileName",
+                    "schema": {
+                        "type": "string",
+                        "example": "speech-8f21c3e0.mp3"
+                    }
+                },
+                {
+                    "label": "Model",
+                    "value": "model",
+                    "schema": {
+                        "type": "string",
+                        "example": "voxtral-tts-latest"
+                    }
+                }
+            ]
+        }
+    ],
+    "icon": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAyLjUpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZEODAwIi8+PHJlY3QgeD0iOCIgeT0iMCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZGRDgwMCIvPjxyZWN0IHg9IjAiIHk9IjEiIHdpZHRoPSI0IiBoZWlnaHQ9IjEiIGZpbGw9IiNGRkFGMDAiLz48cmVjdCB4PSI2IiB5PSIxIiB3aWR0aD0iNCIgaGVpZ2h0PSIxIiBmaWxsPSIjRkZBRjAwIi8+PHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEiIGZpbGw9IiNGRjgyMDUiLz48cmVjdCB4PSIwIiB5PSIzIiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRkE1MDBGIi8+PHJlY3QgeD0iNCIgeT0iMyIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0ZBNTAwRiIvPjxyZWN0IHg9IjgiIHk9IjMiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNGQTUwMEYiLz48cmVjdCB4PSIwIiB5PSI0IiB3aWR0aD0iMiIgaGVpZ2h0PSIxIiBmaWxsPSIjRTEwNTAwIi8+PHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjIiIGhlaWdodD0iMSIgZmlsbD0iI0UxMDUwMCIvPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSIyIiBoZWlnaHQ9IjEiIGZpbGw9IiNFMTA1MDAiLz48L2c+PC9zdmc+"
+}
