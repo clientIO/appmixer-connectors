@@ -1,0 +1,554 @@
+{
+    "name": "E2E Utils Controls - Switch with missing input",
+    "description": "End-to-end test for appmixer.utils.controls.Switch5 and appmixer.utils.filters.Contains - a variable that resolves to nothing (missingText is declared in Set Variables without a value) must route Switch 'contains' and 'regex' clauses to 'else' (or the next matching output) and the Contains filter to 'notContains' instead of throwing. Regression test for issue #1394.",
+    "type": "automation",
+    "flow": {
+        "fc96e3a6-2599-4a99-8c06-ed90051c0b15": {
+            "type": "appmixer.utils.controls.OnStart",
+            "label": "On Start",
+            "x": 64,
+            "y": 16,
+            "source": {},
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c7897794-d56c-4475-a110-995641ff62c5": {
+            "type": "appmixer.utils.controls.SetVariable",
+            "label": "Set Variables",
+            "x": 272,
+            "y": 16,
+            "source": {
+                "in": {
+                    "fc96e3a6-2599-4a99-8c06-ed90051c0b15": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "fc96e3a6-2599-4a99-8c06-ed90051c0b15": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "variables": {}
+                                },
+                                "lambda": {
+                                    "variables": {
+                                        "ADD": [
+                                            {
+                                                "type": "text",
+                                                "name": "presentText",
+                                                "text": "Hello Appmixer E2E"
+                                            },
+                                            {
+                                                "type": "text",
+                                                "name": "missingText"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a1b2c3d4-0000-4000-8000-000000000005": {
+            "type": "appmixer.utils.controls.Switch5",
+            "label": "Switch contains (missing input)",
+            "x": 480,
+            "y": 16,
+            "source": {
+                "in": {
+                    "c7897794-d56c-4475-a110-995641ff62c5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c7897794-d56c-4475-a110-995641ff62c5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression1": {
+                                        "5d1a0e2c-0000-4000-8000-000000000001": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.missingText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression1": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{5d1a0e2c-0000-4000-8000-000000000001}}}",
+                                                        "operator": "contains",
+                                                        "value": "Hello"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e5f6a7b8-0000-4000-8000-000000000006": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Switch contains (missing input) -> else",
+            "x": 688,
+            "y": 16,
+            "source": {
+                "in": {
+                    "a1b2c3d4-0000-4000-8000-000000000005": [
+                        "else"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0000-4000-8000-000000000005": {
+                            "else": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9c8b7a6d-0000-4000-8000-000000000007": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.presentText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9c8b7a6d-0000-4000-8000-000000000007}}}",
+                                                "assertion": "equal",
+                                                "expected": "Hello Appmixer E2E",
+                                                "label": "Switch contains on a missing input is routed to else without an error"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a1b2c3d4-0000-4000-8000-000000000008": {
+            "type": "appmixer.utils.controls.Switch5",
+            "label": "Switch regex (missing input)",
+            "x": 480,
+            "y": 144,
+            "source": {
+                "in": {
+                    "c7897794-d56c-4475-a110-995641ff62c5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c7897794-d56c-4475-a110-995641ff62c5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression1": {
+                                        "5d1a0e2c-0000-4000-8000-000000000002": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.missingText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression1": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{5d1a0e2c-0000-4000-8000-000000000002}}}",
+                                                        "operator": "regex",
+                                                        "regex": "undefined|null"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e5f6a7b8-0000-4000-8000-000000000009": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Switch regex (missing input) -> else",
+            "x": 688,
+            "y": 144,
+            "source": {
+                "in": {
+                    "a1b2c3d4-0000-4000-8000-000000000008": [
+                        "else"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0000-4000-8000-000000000008": {
+                            "else": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9c8b7a6d-0000-4000-8000-000000000010": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.presentText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9c8b7a6d-0000-4000-8000-000000000010}}}",
+                                                "assertion": "equal",
+                                                "expected": "Hello Appmixer E2E",
+                                                "label": "Switch regex on a missing input does not match the literal 'undefined'/'null' string"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "a1b2c3d4-0000-4000-8000-000000000011": {
+            "type": "appmixer.utils.controls.Switch5",
+            "label": "Switch falls through to Output 2",
+            "x": 480,
+            "y": 272,
+            "source": {
+                "in": {
+                    "c7897794-d56c-4475-a110-995641ff62c5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c7897794-d56c-4475-a110-995641ff62c5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression1": {
+                                        "5d1a0e2c-0000-4000-8000-000000000003": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.missingText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "expression2": {
+                                        "5d1a0e2c-0000-4000-8000-000000000004": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.presentText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression1": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{5d1a0e2c-0000-4000-8000-000000000003}}}",
+                                                        "operator": "contains",
+                                                        "value": "Hello"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "expression2": {
+                                        "AND": [
+                                            {
+                                                "OR": [
+                                                    {
+                                                        "input": "{{{5d1a0e2c-0000-4000-8000-000000000004}}}",
+                                                        "operator": "contains",
+                                                        "value": "appmixer"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e5f6a7b8-0000-4000-8000-000000000012": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Switch falls through to Output 2 -> out2",
+            "x": 688,
+            "y": 272,
+            "source": {
+                "in": {
+                    "a1b2c3d4-0000-4000-8000-000000000011": [
+                        "out2"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "a1b2c3d4-0000-4000-8000-000000000011": {
+                            "out2": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9c8b7a6d-0000-4000-8000-000000000013": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.presentText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9c8b7a6d-0000-4000-8000-000000000013}}}",
+                                                "assertion": "equal",
+                                                "expected": "Hello Appmixer E2E",
+                                                "label": "Switch skips a clause with a missing input and routes to the next matching output"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "c0a1b2c3-0000-4000-8000-000000000014": {
+            "type": "appmixer.utils.filters.Contains",
+            "label": "Contains (present data, case-insensitive)",
+            "x": 480,
+            "y": 400,
+            "source": {
+                "in": {
+                    "c7897794-d56c-4475-a110-995641ff62c5": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c7897794-d56c-4475-a110-995641ff62c5": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "sourceData": {
+                                        "d1e2f3a4-0000-4000-8000-000000000015": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.presentText",
+                                            "functions": []
+                                        }
+                                    },
+                                    "value": {}
+                                },
+                                "lambda": {
+                                    "sourceData": "{{{d1e2f3a4-0000-4000-8000-000000000015}}}",
+                                    "value": "appmixer"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "e5f6a7b8-0000-4000-8000-000000000016": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert Contains -> contains",
+            "x": 688,
+            "y": 400,
+            "source": {
+                "in": {
+                    "c0a1b2c3-0000-4000-8000-000000000014": [
+                        "contains"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "c0a1b2c3-0000-4000-8000-000000000014": {
+                            "contains": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "9c8b7a6d-0000-4000-8000-000000000017": {
+                                            "variable": "$.c7897794-d56c-4475-a110-995641ff62c5.out.presentText",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "field": "{{{9c8b7a6d-0000-4000-8000-000000000017}}}",
+                                                "assertion": "equal",
+                                                "expected": "Hello Appmixer E2E",
+                                                "label": "Contains filter matches present data case-insensitively and routes to contains"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "f0d4f330-0000-4000-8000-000000000018": {
+            "type": "appmixer.utils.test.AfterAll",
+            "label": "After All",
+            "x": 896,
+            "y": 144,
+            "source": {
+                "in": {
+                    "e5f6a7b8-0000-4000-8000-000000000006": [
+                        "out"
+                    ],
+                    "e5f6a7b8-0000-4000-8000-000000000009": [
+                        "out"
+                    ],
+                    "e5f6a7b8-0000-4000-8000-000000000012": [
+                        "out"
+                    ],
+                    "e5f6a7b8-0000-4000-8000-000000000016": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {
+                    "timeout": 120
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "10c74aff-0000-4000-8000-000000000019": {
+            "type": "appmixer.utils.test.ProcessE2EResults",
+            "label": "Process E2E Results",
+            "x": 1104,
+            "y": 144,
+            "source": {
+                "in": {
+                    "f0d4f330-0000-4000-8000-000000000018": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "properties": {},
+                "transform": {
+                    "in": {
+                        "f0d4f330-0000-4000-8000-000000000018": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "recipients": {},
+                                    "testCase": {},
+                                    "result": {
+                                        "423f1dee-0000-4000-8000-000000000020": {
+                                            "variable": "$.f0d4f330-0000-4000-8000-000000000018.out",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "recipients": "test@appmixer.ai",
+                                    "testCase": "E2E Utils Controls - Switch with missing input",
+                                    "result": "{{{423f1dee-0000-4000-8000-000000000020}}}"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        }
+    },
+    "notes": {
+        "b7c1d2e3-0000-4000-8000-000000000001": {
+            "x": 64,
+            "y": 544,
+            "width": 672,
+            "height": 192,
+            "content": "## Test data assumption\n\n`missingText` in **Set Variables** is intentionally declared without a value so it resolves to `undefined` downstream. Do not fill it in - the flow tests that **Switch** and **Contains** handle a missing input (issue #1394).\n\nIf a component is routed to the wrong port, its Assert never fires and **After All** fails on timeout."
+        }
+    }
+}

@@ -1,37 +1,27 @@
 {
     "name": "E2E Utils Controls - Each",
-    "description": "Iterates a 5-item list with the Each component on both the no-delay and delayed paths, asserts the 'done' port reports count=5 (so the loop completes \u2014 guards against the delay infinite-loop bug) and uses CallCount on the 'item' port to confirm exactly 5 items are emitted (guards against missing/duplicate items).",
+    "description": "Iterates a 5-item list with the Each component on both the no-delay and delayed paths, asserts the 'done' port reports count=5 (so the loop completes — guards against the delay infinite-loop bug) and joins the 'item' messages with JoinEach to confirm exactly 5 items are emitted (guards against missing/duplicate items).",
     "flow": {
-        "on-start": {
+        "445978c5-74ee-4015-aafa-64213edfb879": {
             "type": "appmixer.utils.controls.OnStart",
             "x": 64,
-            "y": 304,
+            "y": 144,
+            "version": "1.0.0",
             "source": {},
-            "version": "1.0.0",
-            "config": {}
+            "config": {},
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
         },
-        "before-all": {
-            "type": "appmixer.utils.test.BeforeAll",
-            "x": 256,
-            "y": 304,
-            "version": "1.0.0",
-            "source": {
-                "in": {
-                    "on-start": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {}
-        },
-        "set-variables": {
+        "9d85eaa7-046f-45d9-9fff-f2cd4da450fe": {
             "type": "appmixer.utils.controls.SetVariable",
-            "x": 448,
-            "y": 304,
+            "x": 272,
+            "y": 144,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "before-all": [
+                    "445978c5-74ee-4015-aafa-64213edfb879": [
                         "out"
                     ]
                 }
@@ -39,7 +29,7 @@
             "config": {
                 "transform": {
                     "in": {
-                        "before-all": {
+                        "445978c5-74ee-4015-aafa-64213edfb879": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
@@ -65,17 +55,21 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "each-immediate": {
+        "e2ffe51c-86a1-4da4-b80b-48a7ee88cb80": {
             "type": "appmixer.utils.controls.Each",
-            "x": 640,
-            "y": 160,
-            "version": "1.4.7",
             "label": "Each (no delay)",
+            "x": 480,
+            "y": 16,
+            "version": "1.5.0",
             "source": {
                 "in": {
-                    "set-variables": [
+                    "9d85eaa7-046f-45d9-9fff-f2cd4da450fe": [
                         "out"
                     ]
                 }
@@ -83,35 +77,165 @@
             "config": {
                 "transform": {
                     "in": {
-                        "set-variables": {
+                        "9d85eaa7-046f-45d9-9fff-f2cd4da450fe": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "list": {
-                                        "list-var": {
-                                            "variable": "$.set-variables.out.list",
+                                        "84b57dc1-de00-420b-8a9d-8013bc46ccf0": {
+                                            "variable": "$.9d85eaa7-046f-45d9-9fff-f2cd4da450fe.out.list",
                                             "functions": []
                                         }
                                     }
                                 },
                                 "lambda": {
-                                    "list": "{{{list-var}}}"
+                                    "list": "{{{84b57dc1-de00-420b-8a9d-8013bc46ccf0}}}"
                                 }
                             }
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "each-delayed": {
-            "type": "appmixer.utils.controls.Each",
-            "x": 640,
-            "y": 448,
-            "version": "1.4.7",
-            "label": "Each (delay 25ms)",
+        "f0bba368-a72c-43f8-8f65-c05d4827baaf": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert done.count == 5 (no delay)",
+            "x": 688,
+            "y": 16,
+            "version": "1.0.0",
             "source": {
                 "in": {
-                    "set-variables": [
+                    "e2ffe51c-86a1-4da4-b80b-48a7ee88cb80": [
+                        "done"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2ffe51c-86a1-4da4-b80b-48a7ee88cb80": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "cebfa477-720e-4212-b194-83c465a4c9fd": {
+                                            "variable": "$.e2ffe51c-86a1-4da4-b80b-48a7ee88cb80.done.count",
+                                            "functions": []
+                                        },
+                                        "a817bcc3-665f-4d3e-a10d-b0bfeb53823f": {
+                                            "variable": "$.9d85eaa7-046f-45d9-9fff-f2cd4da450fe.out.expectedCount",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{cebfa477-720e-4212-b194-83c465a4c9fd}}}",
+                                                "expected": "{{{a817bcc3-665f-4d3e-a10d-b0bfeb53823f}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "732f24f7-c819-4c25-af10-81a1f3868a02": {
+            "type": "appmixer.utils.controls.JoinEach",
+            "label": "Join items (no delay)",
+            "x": 688,
+            "y": 144,
+            "version": "1.1.2",
+            "source": {
+                "in": {
+                    "e2ffe51c-86a1-4da4-b80b-48a7ee88cb80": [
+                        "item"
+                    ]
+                },
+                "count": {
+                    "e2ffe51c-86a1-4da4-b80b-48a7ee88cb80": [
+                        "done"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "e2ffe51c-86a1-4da4-b80b-48a7ee88cb80": {
+                            "item": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "correlationId": {
+                                        "f6803208-3a3a-4505-9316-1322826b2000": {
+                                            "variable": "$.e2ffe51c-86a1-4da4-b80b-48a7ee88cb80.item.correlationId",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "correlationId": "{{{f6803208-3a3a-4505-9316-1322826b2000}}}"
+                                }
+                            }
+                        }
+                    },
+                    "count": {
+                        "e2ffe51c-86a1-4da4-b80b-48a7ee88cb80": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "count": {
+                                        "b8759aef-c725-4e95-9a0c-9166f5d7506d": {
+                                            "variable": "$.e2ffe51c-86a1-4da4-b80b-48a7ee88cb80.done.count",
+                                            "functions": []
+                                        }
+                                    },
+                                    "correlationId": {
+                                        "b9a7caf7-dd88-43c1-80e6-180387d316c7": {
+                                            "variable": "$.e2ffe51c-86a1-4da4-b80b-48a7ee88cb80.done.correlationId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "timeout": {},
+                                    "timeoutValue": {}
+                                },
+                                "lambda": {
+                                    "count": "{{{b8759aef-c725-4e95-9a0c-9166f5d7506d}}}",
+                                    "correlationId": "{{{b9a7caf7-dd88-43c1-80e6-180387d316c7}}}",
+                                    "timeout": true,
+                                    "timeoutValue": 120
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "10970546-e909-4189-a207-560cf132116d": {
+            "type": "appmixer.utils.test.Assert",
+            "label": "Assert 5 items emitted (no delay)",
+            "x": 896,
+            "y": 144,
+            "version": "1.0.0",
+            "source": {
+                "in": {
+                    "732f24f7-c819-4c25-af10-81a1f3868a02": [
                         "out"
                     ]
                 }
@@ -119,159 +243,97 @@
             "config": {
                 "transform": {
                     "in": {
-                        "set-variables": {
+                        "732f24f7-c819-4c25-af10-81a1f3868a02": {
+                            "out": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "expression": {
+                                        "522a8e4b-f7af-4f91-827f-7df6881f689a": {
+                                            "variable": "$.732f24f7-c819-4c25-af10-81a1f3868a02.out.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_length"
+                                                }
+                                            ]
+                                        },
+                                        "03665790-5b70-487e-99e1-d9fc08f1aab2": {
+                                            "variable": "$.9d85eaa7-046f-45d9-9fff-f2cd4da450fe.out.expectedCount",
+                                            "functions": []
+                                        }
+                                    }
+                                },
+                                "lambda": {
+                                    "expression": {
+                                        "AND": [
+                                            {
+                                                "assertion": "equal",
+                                                "field": "{{{522a8e4b-f7af-4f91-827f-7df6881f689a}}}",
+                                                "expected": "{{{03665790-5b70-487e-99e1-d9fc08f1aab2}}}"
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
+            }
+        },
+        "738af965-8f48-4836-83db-289fa64107b3": {
+            "type": "appmixer.utils.controls.Each",
+            "label": "Each (delay 25ms)",
+            "x": 480,
+            "y": 272,
+            "version": "1.5.0",
+            "source": {
+                "in": {
+                    "9d85eaa7-046f-45d9-9fff-f2cd4da450fe": [
+                        "out"
+                    ]
+                }
+            },
+            "config": {
+                "transform": {
+                    "in": {
+                        "9d85eaa7-046f-45d9-9fff-f2cd4da450fe": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "list": {
-                                        "list-var": {
-                                            "variable": "$.set-variables.out.list",
+                                        "ad8a1789-18e1-4124-8061-6a692c6859cf": {
+                                            "variable": "$.9d85eaa7-046f-45d9-9fff-f2cd4da450fe.out.list",
                                             "functions": []
                                         }
                                     },
                                     "delay": {}
                                 },
                                 "lambda": {
-                                    "list": "{{{list-var}}}",
+                                    "list": "{{{ad8a1789-18e1-4124-8061-6a692c6859cf}}}",
                                     "delay": 25
                                 }
                             }
                         }
                     }
                 }
-            }
-        },
-        "assert-done-immediate": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 1024,
-            "y": 48,
-            "version": "1.0.0",
-            "label": "Assert done.count == 5 (no delay)",
-            "source": {
-                "in": {
-                    "each-immediate": [
-                        "done"
-                    ]
-                }
             },
-            "config": {
-                "transform": {
-                    "in": {
-                        "each-immediate": {
-                            "done": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "actual": {
-                                            "variable": "$.each-immediate.done.count",
-                                            "functions": []
-                                        },
-                                        "expected": {
-                                            "variable": "$.set-variables.out.expectedCount",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "assertion": "equal",
-                                                "field": "{{{actual}}}",
-                                                "expected": "{{{expected}}}"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "count-immediate": {
-            "type": "appmixer.utils.test.CallCount",
-            "x": 832,
-            "y": 224,
-            "version": "1.0.0",
-            "label": "Count items (no delay)",
-            "source": {
-                "in": {
-                    "each-immediate": [
-                        "item"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "each-immediate": {
-                            "item": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "callCount": {}
-                                },
-                                "lambda": {
-                                    "callCount": 5
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-items-immediate": {
+        "7cf02fd1-91bb-4211-9fc7-dd6650b70b36": {
             "type": "appmixer.utils.test.Assert",
-            "x": 1024,
-            "y": 224,
-            "version": "1.0.0",
-            "label": "Assert 5 items emitted (no delay)",
-            "source": {
-                "in": {
-                    "count-immediate": [
-                        "out"
-                    ]
-                }
-            },
-            "config": {
-                "transform": {
-                    "in": {
-                        "count-immediate": {
-                            "out": {
-                                "type": "json2new",
-                                "modifiers": {
-                                    "expression": {
-                                        "items": {
-                                            "variable": "$.count-immediate.out",
-                                            "functions": []
-                                        }
-                                    }
-                                },
-                                "lambda": {
-                                    "expression": {
-                                        "AND": [
-                                            {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{items}}}"
-                                            }
-                                        ]
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "assert-done-delayed": {
-            "type": "appmixer.utils.test.Assert",
-            "x": 1024,
-            "y": 384,
-            "version": "1.0.0",
             "label": "Assert done.count == 5 (delay)",
+            "x": 688,
+            "y": 272,
+            "version": "1.0.0",
             "source": {
                 "in": {
-                    "each-delayed": [
+                    "738af965-8f48-4836-83db-289fa64107b3": [
                         "done"
                     ]
                 }
@@ -279,17 +341,17 @@
             "config": {
                 "transform": {
                     "in": {
-                        "each-delayed": {
+                        "738af965-8f48-4836-83db-289fa64107b3": {
                             "done": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "actual": {
-                                            "variable": "$.each-delayed.done.count",
+                                        "008ff86e-d9e0-42cf-b72b-0401602ee71f": {
+                                            "variable": "$.738af965-8f48-4836-83db-289fa64107b3.done.count",
                                             "functions": []
                                         },
-                                        "expected": {
-                                            "variable": "$.set-variables.out.expectedCount",
+                                        "c62ad2bf-207b-4bea-90e0-5ec70cb93d1f": {
+                                            "variable": "$.9d85eaa7-046f-45d9-9fff-f2cd4da450fe.out.expectedCount",
                                             "functions": []
                                         }
                                     }
@@ -299,8 +361,8 @@
                                         "AND": [
                                             {
                                                 "assertion": "equal",
-                                                "field": "{{{actual}}}",
-                                                "expected": "{{{expected}}}"
+                                                "field": "{{{008ff86e-d9e0-42cf-b72b-0401602ee71f}}}",
+                                                "expected": "{{{c62ad2bf-207b-4bea-90e0-5ec70cb93d1f}}}"
                                             }
                                         ]
                                     }
@@ -309,48 +371,95 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "count-delayed": {
-            "type": "appmixer.utils.test.CallCount",
-            "x": 832,
-            "y": 512,
-            "version": "1.0.0",
-            "label": "Count items (delay)",
+        "55829bd4-21d8-4a7a-a4a8-930dd2c9eabf": {
+            "type": "appmixer.utils.controls.JoinEach",
+            "label": "Join items (delay)",
+            "x": 688,
+            "y": 400,
+            "version": "1.1.2",
             "source": {
                 "in": {
-                    "each-delayed": [
+                    "738af965-8f48-4836-83db-289fa64107b3": [
                         "item"
+                    ]
+                },
+                "count": {
+                    "738af965-8f48-4836-83db-289fa64107b3": [
+                        "done"
                     ]
                 }
             },
             "config": {
                 "transform": {
                     "in": {
-                        "each-delayed": {
+                        "738af965-8f48-4836-83db-289fa64107b3": {
                             "item": {
                                 "type": "json2new",
                                 "modifiers": {
-                                    "callCount": {}
+                                    "correlationId": {
+                                        "1bbe534a-8134-4729-b120-138d02e0c336": {
+                                            "variable": "$.738af965-8f48-4836-83db-289fa64107b3.item.correlationId",
+                                            "functions": []
+                                        }
+                                    }
                                 },
                                 "lambda": {
-                                    "callCount": 5
+                                    "correlationId": "{{{1bbe534a-8134-4729-b120-138d02e0c336}}}"
+                                }
+                            }
+                        }
+                    },
+                    "count": {
+                        "738af965-8f48-4836-83db-289fa64107b3": {
+                            "done": {
+                                "type": "json2new",
+                                "modifiers": {
+                                    "count": {
+                                        "8e2607d9-6635-4109-877c-6881ed7832a4": {
+                                            "variable": "$.738af965-8f48-4836-83db-289fa64107b3.done.count",
+                                            "functions": []
+                                        }
+                                    },
+                                    "correlationId": {
+                                        "a90acecd-22e9-4797-bc1c-8f144f4e01ec": {
+                                            "variable": "$.738af965-8f48-4836-83db-289fa64107b3.done.correlationId",
+                                            "functions": []
+                                        }
+                                    },
+                                    "timeout": {},
+                                    "timeoutValue": {}
+                                },
+                                "lambda": {
+                                    "count": "{{{8e2607d9-6635-4109-877c-6881ed7832a4}}}",
+                                    "correlationId": "{{{a90acecd-22e9-4797-bc1c-8f144f4e01ec}}}",
+                                    "timeout": true,
+                                    "timeoutValue": 120
                                 }
                             }
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "assert-items-delayed": {
+        "13c2d4b9-ebaf-45f2-b594-cae6cc2ae272": {
             "type": "appmixer.utils.test.Assert",
-            "x": 1024,
-            "y": 512,
-            "version": "1.0.0",
             "label": "Assert 5 items emitted (delay)",
+            "x": 896,
+            "y": 400,
+            "version": "1.0.0",
             "source": {
                 "in": {
-                    "count-delayed": [
+                    "55829bd4-21d8-4a7a-a4a8-930dd2c9eabf": [
                         "out"
                     ]
                 }
@@ -358,13 +467,21 @@
             "config": {
                 "transform": {
                     "in": {
-                        "count-delayed": {
+                        "55829bd4-21d8-4a7a-a4a8-930dd2c9eabf": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "expression": {
-                                        "items": {
-                                            "variable": "$.count-delayed.out",
+                                        "7cddf466-c8a0-42be-9744-2d575ce0a98a": {
+                                            "variable": "$.55829bd4-21d8-4a7a-a4a8-930dd2c9eabf.out.items",
+                                            "functions": [
+                                                {
+                                                    "name": "g_length"
+                                                }
+                                            ]
+                                        },
+                                        "5a0bd725-d123-4ff5-80bf-1b5735c4d843": {
+                                            "variable": "$.9d85eaa7-046f-45d9-9fff-f2cd4da450fe.out.expectedCount",
                                             "functions": []
                                         }
                                     }
@@ -373,8 +490,9 @@
                                     "expression": {
                                         "AND": [
                                             {
-                                                "assertion": "notEmpty",
-                                                "field": "{{{items}}}"
+                                                "assertion": "equal",
+                                                "field": "{{{7cddf466-c8a0-42be-9744-2d575ce0a98a}}}",
+                                                "expected": "{{{5a0bd725-d123-4ff5-80bf-1b5735c4d843}}}"
                                             }
                                         ]
                                     }
@@ -383,25 +501,29 @@
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "after-all": {
+        "d82dc201-7480-4b5b-a100-d047b1d6f97c": {
             "type": "appmixer.utils.test.AfterAll",
-            "x": 1280,
-            "y": 304,
+            "x": 1104,
+            "y": 144,
             "version": "1.0.0",
             "source": {
                 "in": {
-                    "assert-done-immediate": [
+                    "f0bba368-a72c-43f8-8f65-c05d4827baaf": [
                         "out"
                     ],
-                    "assert-items-immediate": [
+                    "10970546-e909-4189-a207-560cf132116d": [
                         "out"
                     ],
-                    "assert-done-delayed": [
+                    "7cf02fd1-91bb-4211-9fc7-dd6650b70b36": [
                         "out"
                     ],
-                    "assert-items-delayed": [
+                    "13c2d4b9-ebaf-45f2-b594-cae6cc2ae272": [
                         "out"
                     ]
                 }
@@ -410,16 +532,20 @@
                 "properties": {
                     "timeout": 120
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         },
-        "process-results": {
+        "ee7e1091-1760-43da-97c5-90530ec32cd6": {
             "type": "appmixer.utils.test.ProcessE2EResults",
-            "x": 1472,
-            "y": 304,
+            "x": 1312,
+            "y": 144,
             "version": "1.0.1",
             "source": {
                 "in": {
-                    "after-all": [
+                    "d82dc201-7480-4b5b-a100-d047b1d6f97c": [
                         "out"
                     ]
                 }
@@ -431,15 +557,15 @@
                 },
                 "transform": {
                     "in": {
-                        "after-all": {
+                        "d82dc201-7480-4b5b-a100-d047b1d6f97c": {
                             "out": {
                                 "type": "json2new",
                                 "modifiers": {
                                     "recipients": {},
                                     "testCase": {},
                                     "result": {
-                                        "result-var": {
-                                            "variable": "$.after-all.out",
+                                        "55a6663f-cacc-44f3-a2cf-a0bccb81b54b": {
+                                            "variable": "$.d82dc201-7480-4b5b-a100-d047b1d6f97c.out",
                                             "functions": []
                                         }
                                     }
@@ -447,12 +573,16 @@
                                 "lambda": {
                                     "recipients": "test@appmixer.ai",
                                     "testCase": "E2E Utils Controls - Each",
-                                    "result": "{{{result-var}}}"
+                                    "result": "{{{55a6663f-cacc-44f3-a2cf-a0bccb81b54b}}}"
                                 }
                             }
                         }
                     }
                 }
+            },
+            "errorHandling": {
+                "autoRetry": false,
+                "onError": "stopFlow"
             }
         }
     },
