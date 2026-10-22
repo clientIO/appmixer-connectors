@@ -45,7 +45,9 @@ const loadAllVoices = async (context) => {
             method: 'GET',
             url: `${lib.API_ORIGIN}/v2/audio/voices`,
             headers: lib.requestHeaders(context),
-            params: pageToken ? { page_token: pageToken } : {}
+            // The default page holds 10 voices; 100 returns the whole preset catalogue
+            // (66 voices) in one request.
+            params: pageToken ? { page_size: 100, page_token: pageToken } : { page_size: 100 }
         });
         voices.push(...(data?.data ?? []));
         pageToken = data?.next_page_token;
