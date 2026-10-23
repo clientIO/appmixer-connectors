@@ -17,9 +17,9 @@ module.exports = {
         await this.collectTools(context);
     },
 
-    // Everything wired to the 'tool' port is a tool: an action component (the fields
+    // Everything wired to the 'tools' port is a tool: an action component (the fields
     // mapped to 'Model Defined Parameter' become its parameters), the components behind
-    // it as further steps of the same tool, or an MCP server. See tool.js.
+    // it as further steps of the same tool, a 'Tool Start' chain, or an MCP server. See tool.js.
     collectTools: async function(context) {
 
         const defs = await componentTool.collectComponentTools(context);
@@ -96,35 +96,28 @@ module.exports = {
     },
 
     // Every tool call of a turn gets an answer, or Mistral rejects the next request.
-    // executeComponentTool never throws: a failure comes back as the output text for
-    // the model to deal with.
+    // executeToolCalls never throws: a failure comes back as the output text for the
+    // model to deal with.
     callTools: async function(context, toolDefs, modelToolCalls) {
 
-        const outputs = [];
+        const outputs = new Map();
+        const calls = [];
         for (const toolCall of modelToolCalls) {
-            const toolDef = toolDefs.find((def) => def.function.name === toolCall.function.name);
             await this.publishChatProgressEvent(context, 'tool-call', `Calling tool ${toolCall.function.name}.`);
-            if (!toolDef) {
-                outputs.push({ tool_call_id: toolCall.id, output: `Error: unknown tool ${toolCall.function.name}.` });
-                continue;
-            }
-            let args;
             try {
-                args = JSON.parse(toolCall.function.arguments || '{}');
+                const args = JSON.parse(toolCall.function.arguments || '{}');
+                calls.push({ id: toolCall.id, name: toolCall.function.name, args });
             } catch (err) {
                 await context.log({ step: 'tool-call-json-parse-error', toolCall, error: err.message });
-                outputs.push({
-                    tool_call_id: toolCall.id,
-                    output: `Error: Failed to parse tool arguments - ${err.message}. Raw arguments: ${toolCall.function.arguments}`
-                });
-                continue;
+                outputs.set(toolCall.id,
+                    `Error: Failed to parse tool arguments - ${err.message}. Raw arguments: ${toolCall.function.arguments}`);
             }
-            const output = await componentTool.executeComponentTool(context, toolDef, args, {
-                correlationId: context.messages?.in?.correlationId
-            });
-            outputs.push({ tool_call_id: toolCall.id, output });
         }
-        return outputs;
+        const results = await componentTool.executeToolCalls(context, toolDefs, calls, {
+            correlationId: context.messages?.in?.correlationId
+        });
+        results.forEach(({ id, output }) => outputs.set(id, output));
+        return modelToolCalls.map((toolCall) => ({ tool_call_id: toolCall.id, output: outputs.get(toolCall.id) }));
     },
 
     /**
@@ -421,6 +414,8 @@ module.exports = {
         // Usage is reported per message, not accumulated across messages.
         await context.stateUnset('usage');
         const toolDefs = await this.getTools(context);
+        // A Tool Output that came after its call had timed out would stay in the flow state.
+        await componentTool.removeLateToolOutputs(context);
 
         let history = [];
         if (threadId) {
